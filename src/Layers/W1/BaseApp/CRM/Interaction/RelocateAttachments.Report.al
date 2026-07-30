@@ -10,6 +10,7 @@ using System.IO;
 report 5181 "Relocate Attachments"
 {
     Caption = 'Relocate Attachments';
+    ToolTip = 'Specify where to store attachments.';
     ProcessingOnly = true;
     UseRequestPage = false;
 

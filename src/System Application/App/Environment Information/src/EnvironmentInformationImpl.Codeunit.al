@@ -27,7 +27,6 @@ codeunit 3702 "Environment Information Impl."
         IsSandboxInitialized: Boolean;
         DefaultSandboxEnvironmentNameTxt: Label 'Sandbox', Locked = true;
         DefaultProductionEnvironmentNameTxt: Label 'Production', Locked = true;
-        MicrosoftPublisherOnlyErr: Label 'This procedure is only available for Microsoft published apps.';
 
     procedure IsProduction(): Boolean
     begin
@@ -178,37 +177,11 @@ codeunit 3702 "Environment Information Impl."
         exit(NavTenantSettingsHelper.GetLinkedPowerPlatformEnvironmentId());
     end;
 
-    procedure GetApplicationServiceLocation(CallerModuleInfo: ModuleInfo): Text
-    begin
-        EnsureMicrosoftPublisher(CallerModuleInfo);
-
-        if not IsSaaSInfrastructure() then
-            exit('');
-
-        exit(NavTenantSettingsHelper.GetAppServiceLocation());
-    end;
-
-    procedure IsApplicationServiceInEUDB(CallerModuleInfo: ModuleInfo): Boolean
-    begin
-        EnsureMicrosoftPublisher(CallerModuleInfo);
-
-        if not IsSaaSInfrastructure() then
-            exit(false);
-
-        exit(NavTenantSettingsHelper.GetAppServiceInEUDB());
-    end;
-
     procedure GetEnvironmentSetting(SettingName: Text; ModuleInfo: ModuleInfo): Text
     begin
         if ModuleInfo.Publisher <> 'Microsoft' then
             exit('');
         exit(NavTenantSettingsHelper.GetEnvironmentApplicationSetting(SettingName));
-    end;
-
-    local procedure EnsureMicrosoftPublisher(CallerModuleInfo: ModuleInfo)
-    begin
-        if CallerModuleInfo.Publisher <> 'Microsoft' then
-            Error(MicrosoftPublisherOnlyErr);
     end;
 
     [InternalEvent(false)]

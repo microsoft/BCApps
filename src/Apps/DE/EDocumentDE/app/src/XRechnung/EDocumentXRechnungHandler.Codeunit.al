@@ -23,6 +23,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
         SchemeIDGLNTok: Label '0088', Locked = true;
         InvoiceLineTok: Label 'cac:InvoiceLine', Locked = true;
         CreditNoteLineTok: Label 'cac:CreditNoteLine', Locked = true;
+        UnsupportedXmlRootElementErr: Label 'Unsupported XML root element: %1.', Comment = '%1 = local name of the XML root element';
 
     /// <summary>
     /// Reads an XRechnung format XML document and converts it into a draft purchase document.
@@ -47,6 +48,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
         StartEventNameTok: Label 'E-document XRechnung import started. Parsing basic information.', Locked = true;
     begin
         FeatureTelemetry.LogUsage('0000EXH', FeatureNameTok, StartEventNameTok);
+        ResetDraft(EDocument);
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
         XmlDocument.ReadFrom(TempBlob.CreateInStream(TextEncoding::UTF8), XRechnungXml);
@@ -59,14 +61,20 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
         case UpperCase(XmlElement.LocalName()) of
             'INVOICE':
                 begin
+                    if XmlElement.NamespaceUri() <> DefaultInvoiceTok then
+                        Error(UnsupportedXmlRootElementErr, XmlElement.LocalName());
                     PopulateEDocumentForInvoice(XRechnungXml, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
                     ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Invoice";
                 end;
             'CREDITNOTE':
                 begin
+                    if XmlElement.NamespaceUri() <> DefaultCreditNoteTok then
+                        Error(UnsupportedXmlRootElementErr, XmlElement.LocalName());
                     PopulateEDocumentForCreditNote(XRechnungXml, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
                     ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Credit Memo";
                 end;
+            else
+                Error(UnsupportedXmlRootElementErr, XmlElement.LocalName());
         end;
 
         EDocumentPurchaseHeader.Modify(false);
@@ -115,6 +123,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
         EDocumentXMLHelper.SetDateValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cbc:DueDate', EDocumentPurchaseHeader."Due Date");
         EDocumentXMLHelper.SetCurrencyValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetStringValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+        EDocumentXMLHelper.SetStringValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cbc:BuyerReference', MaxStrLen(EDocumentPurchaseHeader."Buyer Reference DE"), EDocumentPurchaseHeader."Buyer Reference DE");
 #pragma warning restore AA0139
         EDocumentXMLHelper.SetNumberValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
         EDocumentXMLHelper.SetNumberValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', EDocumentPurchaseHeader.Total);
@@ -139,6 +148,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
         EDocumentXMLHelper.SetDateValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cbc:DueDate', EDocumentPurchaseHeader."Due Date");
         EDocumentXMLHelper.SetCurrencyValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetStringValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+        EDocumentXMLHelper.SetStringValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cbc:BuyerReference', MaxStrLen(EDocumentPurchaseHeader."Buyer Reference DE"), EDocumentPurchaseHeader."Buyer Reference DE");
 #pragma warning restore AA0139
         EDocumentXMLHelper.SetNumberValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
         EDocumentXMLHelper.SetNumberValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', EDocumentPurchaseHeader.Total);
@@ -336,8 +346,11 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
     procedure ResetDraft(EDocument: Record "E-Document")
     var
         EDocPurchaseHeader: Record "E-Document Purchase Header";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
     begin
-        EDocPurchaseHeader.GetFromEDocument(EDocument);
-        EDocPurchaseHeader.Delete(true);
+        EDocPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseHeader.DeleteAll();
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseLine.DeleteAll();
     end;
 }
