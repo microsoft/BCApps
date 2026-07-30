@@ -2316,7 +2316,7 @@ codeunit 134263 "Test Bank Payment Application"
           AdjustmentPostingDate);
 
         Vendor.Get(VendorNo);
-        Vendor.Validate("Vendor Posting Group", PaymentVendorPostingGroup);
+        Vendor."Vendor Posting Group" := PaymentVendorPostingGroup;
         Vendor.Modify(true);
 
         VendLedgEntry.CalcFields("Remaining Amount");
