@@ -657,6 +657,118 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenSellerElectronicAddressIsMissing()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        OriginalSIRETNo: Code[14];
+        OriginalVATRegistrationNo: Text[20];
+    begin
+        // [SCENARIO] Check rejects a seller without SIRET, VAT registration number, or a service participant identifier
+        Initialize();
+
+        OriginalSIRETNo := CompanyInformation."SIRET No.";
+        OriginalVATRegistrationNo := CompanyInformation."VAT Registration No.";
+        CompanyInformation."SIRET No." := '';
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        Assert.ExpectedError('SIRET No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.');
+
+        CompanyInformation.Get();
+        CompanyInformation."SIRET No." := OriginalSIRETNo;
+        CompanyInformation."VAT Registration No." := OriginalVATRegistrationNo;
+        CompanyInformation.Modify(true);
+    end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenBuyerElectronicAddressIsMissing()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Check rejects a buyer without an electronic address, VAT registration number, or a service participant identifier
+        Initialize();
+
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        ClearCustomerVATRegistrationNo(CustomerNo);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        Assert.ExpectedError(StrSubstNo('Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', CustomerNo));
+    end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenBuyerElectronicAddressSchemeIsMissing()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Check rejects a buyer electronic address without its scheme
+        Initialize();
+
+        CustomerNo := CreateCustomer('buyer@example.com', "Electronic Address Scheme"::" ");
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        Assert.ExpectedError(StrSubstNo('Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', CustomerNo));
+    end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenParticipantSchemeIsMissing()
+    var
+        ServiceParticipant: Record "Service Participant";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Check rejects a service participant identifier without its French identifier scheme
+        Initialize();
+
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        ClearCustomerVATRegistrationNo(CustomerNo);
+        ServiceParticipant.Init();
+        ServiceParticipant.Service := EDocumentService.Code;
+        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Customer;
+        ServiceParticipant.Participant := CustomerNo;
+        ServiceParticipant."Participant Identifier" := '123456789_001';
+        ServiceParticipant.Insert();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        Assert.ExpectedError('Participant Identifier and French Identifier Scheme must both be specified for French electronic invoicing.');
+    end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenParticipantIdentifierIsMissing()
+    var
+        ServiceParticipant: Record "Service Participant";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Check rejects a French identifier scheme without its service participant identifier
+        Initialize();
+
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        ClearCustomerVATRegistrationNo(CustomerNo);
+        ServiceParticipant.Init();
+        ServiceParticipant.Service := EDocumentService.Code;
+        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Customer;
+        ServiceParticipant.Participant := CustomerNo;
+        ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0225";
+        ServiceParticipant.Insert();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        Assert.ExpectedError('Participant Identifier and French Identifier Scheme must both be specified for French electronic invoicing.');
+    end;
     #endregion
 
     local procedure Initialize()
@@ -836,6 +948,15 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     begin
         Customer.Get(CustomerNo);
         exit(Customer."VAT Registration No.");
+    end;
+
+    local procedure ClearCustomerVATRegistrationNo(CustomerNo: Code[20])
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CustomerNo);
+        Customer."VAT Registration No." := '';
+        Customer.Modify(true);
     end;
 
     local procedure CheckInvoice(SalesInvoiceHeader: Record "Sales Invoice Header")

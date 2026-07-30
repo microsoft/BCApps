@@ -106,8 +106,11 @@ codeunit 10991 "EDoc. Helpers"
         if not Customer.Get(CustomerNo) then
             exit;
 
-        if Customer."FR Electronic Address" <> '' then
+        if Customer."FR Electronic Address" <> '' then begin
+            if Customer."FR Elec. Address Scheme" = Customer."FR Elec. Address Scheme"::" " then
+                Error(BuyerElectronicAddressSchemeRequiredErr, Customer."No.");
             exit;
+        end;
         if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, Customer."No.") then
             exit;
         if Customer."VAT Registration No." <> '' then
@@ -116,18 +119,23 @@ codeunit 10991 "EDoc. Helpers"
         Error(BuyerElectronicAddressRequiredErr, Customer."No.");
     end;
 
-    local procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]): Boolean
+    procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]): Boolean
     var
         ServiceParticipant: Record "Service Participant";
+        HasIdentifier: Boolean;
+        HasScheme: Boolean;
     begin
         if EDocumentServiceCode = '' then
             exit(false);
         if not ServiceParticipant.Get(EDocumentServiceCode, ParticipantType, ParticipantNo) then
             exit(false);
 
-        exit(
-            (ServiceParticipant."Participant Identifier" <> '') and
-            (ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" "));
+        HasIdentifier := ServiceParticipant."Participant Identifier" <> '';
+        HasScheme := ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" ";
+        if HasIdentifier <> HasScheme then
+            Error(ServiceParticipantAddressIncompleteErr, ServiceParticipant.FieldCaption("Participant Identifier"), ServiceParticipant.FieldCaption("FR Identifier Scheme"));
+
+        exit(HasIdentifier);
     end;
 
     var
@@ -135,5 +143,7 @@ codeunit 10991 "EDoc. Helpers"
         SIRETRequiredErr: Label 'SIRET No. must be specified in Company Information for French e-invoicing.';
         SellerElectronicAddressRequiredErr: Label 'SIRET No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.';
         BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
+        BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         SellerCountryCodeRequiredErr: Label 'Country/Region Code must be specified in Company Information for French e-invoicing.';
+        ServiceParticipantAddressIncompleteErr: Label '%1 and %2 must both be specified for French electronic invoicing.', Comment = '%1 = Participant Identifier field caption, %2 = French Identifier Scheme field caption';
 }

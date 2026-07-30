@@ -138,13 +138,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesShipmentHeader.SetLoadFields("Posting Date");
         if SalesInvoiceLine.FindSet() then
             repeat
-                if SalesInvoiceLine."Shipment No." <> '' then begin
+                if SalesInvoiceLine."Shipment No." <> '' then
                     if not ShipmentNos.ContainsKey(SalesInvoiceLine."Shipment No.") then begin
                         ShipmentNos.Add(SalesInvoiceLine."Shipment No.", true);
                         if SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.") then
                             AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
                     end;
-                end;
                 if SalesInvoiceLine."Order No." <> '' then
                     AddDistinctValue(OrderNos, SalesInvoiceLine."Order No.");
             until SalesInvoiceLine.Next() = 0;
@@ -392,13 +391,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure GetServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ElecAddress: Text[250]; var ElecAddressScheme: Enum "Electronic Address Scheme"): Boolean
     var
         ServiceParticipant: Record "Service Participant";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
     begin
-        if not ServiceParticipant.Get(EDocumentServiceCode, ParticipantType, ParticipantNo) then
+        if not FREDocHelpers.HasServiceParticipantAddress(EDocumentServiceCode, ParticipantType, ParticipantNo) then
             exit(false);
-        if ServiceParticipant."Participant Identifier" = '' then
-            exit(false);
-        if ServiceParticipant."FR Identifier Scheme" = ServiceParticipant."FR Identifier Scheme"::" " then
-            exit(false);
+
+        ServiceParticipant.Get(EDocumentServiceCode, ParticipantType, ParticipantNo);
 
         ElecAddress := CopyStr(ServiceParticipant."Participant Identifier", 1, MaxStrLen(ElecAddress));
         ElecAddressScheme := ServiceParticipant."FR Identifier Scheme";

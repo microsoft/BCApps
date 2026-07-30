@@ -14,6 +14,7 @@ tableextension 10974 "FR Service Participant" extends "Service Participant"
         {
             Caption = 'French Identifier Scheme';
             DataClassification = CustomerContent;
+            InitValue = " ";
             ToolTip = 'Specifies the electronic address scheme used for French electronic invoicing.';
         }
     }
