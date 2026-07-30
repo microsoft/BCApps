@@ -42,38 +42,48 @@ codeunit 6915 "Create Corp Card Setup"
     end;
 
     internal procedure EnsureDataExchangeForProvider(var CorpCardProvider: Record EACorpCardProvider)
+    var
+        IsXmlDefinition: Boolean;
+        IsManagedDefaultProvider: Boolean;
     begin
         EnsureProviderDefaults(CorpCardProvider);
-        EnsureDataExchDefinition(CorpCardProvider."Data Exch Def Code", IsXmlDefinitionCode(CorpCardProvider."Data Exch Def Code"));
-        EnsureDataExchLineAndColumns(CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", IsXmlDefinitionCode(CorpCardProvider."Data Exch Def Code"));
-        EnsureDataExchMapping(CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code");
-        EnsureFieldMappings(CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code");
+        IsXmlDefinition := IsXmlDefinitionCode(CorpCardProvider."Data Exch Def Code") or IsXmlFeedType(CorpCardProvider."Feed Type");
+        IsManagedDefaultProvider := IsManagedProviderCode(CorpCardProvider.Code);
+
+        EnsureDataExchDefinition(CorpCardProvider."Data Exch Def Code", IsXmlDefinition);
+        if IsManagedDefaultProvider then begin
+            EnsureDataExchLineAndColumns(CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code", IsXmlDefinition);
+            EnsureDataExchMapping(CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code");
+            EnsureFieldMappings(CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code");
+        end;
 
         // Seed all predefined setups so admins can switch source formats without manual rebuild.
-        EnsureDataExchDefinition(CorpCardCsvDataExchDefCodeTok, false);
-        EnsureDataExchLineAndColumns(CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok, false);
-        EnsureDataExchMapping(CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok);
-        EnsureFieldMappings(CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok);
+        if IsManagedDefaultProvider then begin
+            EnsureDataExchDefinition(CorpCardCsvDataExchDefCodeTok, false);
+            EnsureDataExchLineAndColumns(CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok, false);
+            EnsureDataExchMapping(CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok);
+            EnsureFieldMappings(CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok);
 
-        EnsureDataExchDefinition(CorpCardXmlDataExchDefCodeTok, true);
-        EnsureDataExchLineAndColumns(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok, true);
-        EnsureDataExchMapping(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
-        EnsureFieldMappings(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
+            EnsureDataExchDefinition(CorpCardXmlDataExchDefCodeTok, true);
+            EnsureDataExchLineAndColumns(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok, true);
+            EnsureDataExchMapping(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
+            EnsureFieldMappings(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
 
-        EnsureDataExchDefinition(CorpCardIsoDataExchDefCodeTok, true);
-        EnsureDataExchLineAndColumns(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok, true);
-        EnsureDataExchMapping(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
-        EnsureFieldMappings(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
+            EnsureDataExchDefinition(CorpCardIsoDataExchDefCodeTok, true);
+            EnsureDataExchLineAndColumns(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok, true);
+            EnsureDataExchMapping(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
+            EnsureFieldMappings(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
 
-        EnsureDataExchDefinition(CorpCardCamt053DataExchDefCodeTok, true);
-        EnsureDataExchLineAndColumns(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok, true);
-        EnsureDataExchMapping(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
-        EnsureFieldMappings(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
+            EnsureDataExchDefinition(CorpCardCamt053DataExchDefCodeTok, true);
+            EnsureDataExchLineAndColumns(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok, true);
+            EnsureDataExchMapping(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
+            EnsureFieldMappings(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
 
-        EnsureDataExchDefinition(CorpCardCamt054DataExchDefCodeTok, true);
-        EnsureDataExchLineAndColumns(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok, true);
-        EnsureDataExchMapping(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
-        EnsureFieldMappings(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
+            EnsureDataExchDefinition(CorpCardCamt054DataExchDefCodeTok, true);
+            EnsureDataExchLineAndColumns(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok, true);
+            EnsureDataExchMapping(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
+            EnsureFieldMappings(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
+        end;
     end;
 
     local procedure EnsureDefaultCorpCardLinks(ProviderCode: Code[20])
@@ -100,6 +110,65 @@ codeunit 6915 "Create Corp Card Setup"
             CorpCard."Valid From" := Today();
             CorpCard.Insert(true);
         until ExpenseUser.Next() = 0;
+
+        EnsureSampleCardIdsForProvider(ProviderCode);
+    end;
+
+    local procedure EnsureSampleCardIdsForProvider(ProviderCode: Code[20])
+    var
+        CorpCard: Record EACorpCard;
+        ExistingProviderCard: Record EACorpCard;
+        TargetCardId: Code[50];
+        PrefixTxt: Text;
+        ExternalRef: Code[50];
+        FallbackExpenseUserNo: Code[20];
+        SequenceNo: Integer;
+    begin
+        PrefixTxt := GetProviderSampleCardPrefix(ProviderCode);
+        if PrefixTxt = '' then
+            exit;
+
+        ExistingProviderCard.SetRange("Provider Code", ProviderCode);
+        ExistingProviderCard.SetFilter("Expense User No.", '<>%1', '');
+        if ExistingProviderCard.FindFirst() then
+            FallbackExpenseUserNo := ExistingProviderCard."Expense User No.";
+
+        for SequenceNo := 1 to 6 do begin
+            TargetCardId := CopyStr(StrSubstNo('%1-%2', PrefixTxt, PadNumberLeft(SequenceNo, 4)), 1, MaxStrLen(TargetCardId));
+            if CorpCard.Get(TargetCardId) then
+                continue;
+
+            CorpCard.Init();
+            CorpCard."Card Id" := TargetCardId;
+            CorpCard."Provider Code" := ProviderCode;
+            CorpCard."Expense User No." := FallbackExpenseUserNo;
+            if FallbackExpenseUserNo <> '' then
+                ExternalRef := CopyStr(FallbackExpenseUserNo, 1, MaxStrLen(ExternalRef))
+            else
+                ExternalRef := CopyStr(StrSubstNo('%1-%2', ProviderCode, PadNumberLeft(SequenceNo, 4)), 1, MaxStrLen(ExternalRef));
+            CorpCard."External Card Ref" := ExternalRef;
+            CorpCard."Masked Card No." := BuildMaskedCardNo(CorpCard."Card Id");
+            CorpCard."Valid From" := Today();
+            CorpCard.Insert(true);
+        end;
+    end;
+
+    local procedure GetProviderSampleCardPrefix(ProviderCode: Code[20]): Text
+    begin
+        case ProviderCode of
+            CorpCardCsvProviderCodeTok:
+                exit('CRDCSV');
+            CorpCardXmlProviderCodeTok:
+                exit('CRDXML');
+            CorpCardIsoProviderCodeTok:
+                exit('CRDISO');
+            CorpCardCamt053ProviderCodeTok:
+                exit('CRDC53');
+            CorpCardCamt054ProviderCodeTok:
+                exit('CRDC54');
+            else
+                exit('');
+        end;
     end;
 
     local procedure GetNextCorpCardId(): Code[50]
@@ -305,6 +374,11 @@ codeunit 6915 "Create Corp Card Setup"
     local procedure IsXmlDefinitionCode(DataExchDefCode: Code[20]): Boolean
     begin
         exit((DataExchDefCode = CorpCardXmlDataExchDefCodeTok) or (DataExchDefCode = CorpCardIsoDataExchDefCodeTok) or (DataExchDefCode = CorpCardCamt053DataExchDefCodeTok) or (DataExchDefCode = CorpCardCamt054DataExchDefCodeTok));
+    end;
+
+    local procedure IsXmlFeedType(FeedType: Enum EACorpCardFeedType): Boolean
+    begin
+        exit(FeedType in [FeedType::XML, FeedType::ISO20022, FeedType::CAMT053, FeedType::CAMT054]);
     end;
 
     local procedure IsCamtDefinitionCode(DataExchDefCode: Code[20]): Boolean

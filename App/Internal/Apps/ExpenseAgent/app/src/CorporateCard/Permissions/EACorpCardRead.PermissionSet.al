@@ -11,9 +11,11 @@ permissionset 7212 EACorpCardRead
     Caption = 'Corp Card Read';
 
     Permissions =
+        page EACorpCardDetails = X,
         page EACorpCardJQSchedule = X,
         page EACorpCardJQScheduleSubpage = X,
         codeunit "Create Corp Card Setup" = X,
+        codeunit "Create Corp Card L3 Demo" = X,
         codeunit EACorpCardDENoop = X,
         tabledata EACorpCardProvider = R,
         tabledata EACorpCard = R,

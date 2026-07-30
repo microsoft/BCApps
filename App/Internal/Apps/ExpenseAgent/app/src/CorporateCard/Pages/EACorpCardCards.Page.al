@@ -51,4 +51,27 @@ page 7221 EACorpCardCards
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(Transactions)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Transactions';
+                Image = Ledger;
+                ToolTip = 'Shows imported transactions for the selected corporate card.';
+
+                trigger OnAction()
+                var
+                    CorpCardTrans: Record EACorpCardTrans;
+                begin
+                    CorpCardTrans.SetRange("Provider Code", Rec."Provider Code");
+                    CorpCardTrans.SetRange("Card Id", Rec."Card Id");
+                    Page.RunModal(Page::EACorpCardTransList, CorpCardTrans);
+                end;
+            }
+        }
+    }
 }

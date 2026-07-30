@@ -13,9 +13,11 @@ permissionset 7213 EACorpCardAdmin
     IncludedPermissionSets = EACorpCardEdit;
 
     Permissions =
+        page EACorpCardDetails = X,
         page EACorpCardJQSchedule = X,
         page EACorpCardJQScheduleSubpage = X,
         codeunit "Create Corp Card Setup" = X,
+        codeunit "Create Corp Card L3 Demo" = X,
         codeunit EACorpCardDENoop = X,
         tabledata EACorpCardProvider = D,
         tabledata EACorpCard = D,

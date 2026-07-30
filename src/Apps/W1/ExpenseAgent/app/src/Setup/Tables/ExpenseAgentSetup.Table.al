@@ -1239,12 +1239,9 @@ table 6930 "Expense Agent Setup"
     end;
 
     internal procedure CreateDefaultSettings()
-    var
-        CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
     begin
         CreateAccountingDefaults();
         CreateManagementDefaults();
-        CreateExpenseAgentSetup.CreateCorporateCardDefaults();
     end;
 
     local procedure CheckBeforeEnablingAgent()

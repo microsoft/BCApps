@@ -11,9 +11,11 @@ namespace Microsoft.ExpenseAgent;
 codeunit 7212 EACorpCardExpWriter implements IEACorpCardExpWriter
 {
     Access = Internal;
+    Permissions = tabledata "Expense VAT Specification" = rimd;
 
     var
         ExpenseUserNotFoundErr: Label 'Expense User not found for card %1.', Comment = '%1 is the card id.';
+        Level3ReconcileWarnLbl: Label 'Level 3 detail total %1 does not match transaction amount %2.', Comment = '%1 = detail total, %2 = transaction amount';
 
     procedure CreateDraftFromTrans(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20])
     var
@@ -46,6 +48,8 @@ codeunit 7212 EACorpCardExpWriter implements IEACorpCardExpWriter
         Expense.Insert(true);
         ExpenseNo := Expense."No.";
 
+        CreateVatSpecificationsFromTransDetails(CorpCardTrans, ExpenseNo);
+
         CorpCardTrans."Expense No." := ExpenseNo;
         CorpCardTrans.Status := CorpCardTrans.Status::DraftCreated;
     end;
@@ -62,5 +66,58 @@ codeunit 7212 EACorpCardExpWriter implements IEACorpCardExpWriter
         MCCMgt: Codeunit EACorpCardMCCMgt;
     begin
         exit(MCCMgt.GetExpenseCategoryForMCC(MCC));
+    end;
+
+    local procedure CreateVatSpecificationsFromTransDetails(CorpCardTrans: Record EACorpCardTrans; ExpenseNo: Code[20])
+    var
+        CorpCardTransDetail: Record EACorpCardTransDetail;
+        CorpCardTransForUpdate: Record EACorpCardTrans;
+        ExpenseVATSpecification: Record "Expense VAT Specification";
+        BaseAmount: Decimal;
+        VatAmount: Decimal;
+        TotalAmount: Decimal;
+        TotalFromDetails: Decimal;
+        VatPercent: Decimal;
+        LineNo: Integer;
+    begin
+        CorpCardTransDetail.SetRange("Trans Entry No.", CorpCardTrans."Entry No.");
+        if not CorpCardTransDetail.FindSet() then
+            exit;
+
+        LineNo := 0;
+        repeat
+            BaseAmount := Round(CorpCardTransDetail.Quantity * CorpCardTransDetail."Unit Cost", 0.00001);
+            VatAmount := CorpCardTransDetail."VAT Amount";
+            if VatAmount = 0 then
+                VatAmount := CorpCardTransDetail."Tax Amount";
+            TotalAmount := BaseAmount + VatAmount;
+            TotalFromDetails += TotalAmount;
+
+            if TotalAmount = 0 then
+                continue;
+
+            VatPercent := 0;
+            if BaseAmount <> 0 then
+                VatPercent := Round((VatAmount / BaseAmount) * 100, 0.00001);
+
+            ExpenseVATSpecification.Init();
+            ExpenseVATSpecification."Expense No." := ExpenseNo;
+            LineNo += 1;
+            ExpenseVATSpecification."Line No." := LineNo;
+            ExpenseVATSpecification.Validate(Amount, TotalAmount);
+            if VatPercent > 0 then
+                ExpenseVATSpecification.Validate("VAT %", VatPercent);
+            ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
+            ExpenseVATSpecification.Insert(true);
+        until CorpCardTransDetail.Next() = 0;
+
+        if CorpCardTransForUpdate.Get(CorpCardTrans."Entry No.") then begin
+            if Round(TotalFromDetails, 0.01) <> Round(CorpCardTrans.Amount, 0.01) then
+                CorpCardTransForUpdate."Reject Reason" := CopyStr(StrSubstNo(Level3ReconcileWarnLbl, Format(Round(TotalFromDetails, 0.01)), Format(Round(CorpCardTrans.Amount, 0.01))), 1, MaxStrLen(CorpCardTransForUpdate."Reject Reason"))
+            else
+                if CorpCardTransForUpdate."Reject Reason" <> '' then
+                    CorpCardTransForUpdate."Reject Reason" := '';
+            CorpCardTransForUpdate.Modify(true);
+        end;
     end;
 }

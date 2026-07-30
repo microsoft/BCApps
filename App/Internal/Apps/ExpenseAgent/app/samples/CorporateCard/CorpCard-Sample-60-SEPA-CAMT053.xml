@@ -73,7 +73,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=4511; Country=US; Notes=Sample transaction 1</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=4511; Country=US; Notes=Sample transaction 1</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -113,7 +113,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=7011; Country=US; Notes=Sample transaction 2</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=7011; Country=US; Notes=Sample transaction 2</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -153,7 +153,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=4121; Country=US; Notes=Sample transaction 3</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=4121; Country=US; Notes=Sample transaction 3</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -193,7 +193,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=5812; Country=US; Notes=Sample transaction 4</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=5812; Country=US; Notes=Sample transaction 4</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -233,7 +233,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=4112; Country=US; Notes=Sample transaction 5</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=4112; Country=US; Notes=Sample transaction 5</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -273,7 +273,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=5541; Country=US; Notes=Sample transaction 6</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=5541; Country=US; Notes=Sample transaction 6</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -313,7 +313,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=5943; Country=US; Notes=Sample transaction 7</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=5943; Country=US; Notes=Sample transaction 7</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -353,7 +353,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=7523; Country=US; Notes=Sample transaction 8</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=7523; Country=US; Notes=Sample transaction 8</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -393,7 +393,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=5111; Country=US; Notes=Sample transaction 9</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=5111; Country=US; Notes=Sample transaction 9</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -433,7 +433,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=4722; Country=US; Notes=Sample transaction 10</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=4722; Country=US; Notes=Sample transaction 10</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -473,7 +473,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=4511; Country=US; Notes=Sample transaction 11</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=4511; Country=US; Notes=Sample transaction 11</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -513,7 +513,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=7011; Country=US; Notes=Sample transaction 12</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=7011; Country=US; Notes=Sample transaction 12</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -553,7 +553,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=4121; Country=US; Notes=Sample transaction 13</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=4121; Country=US; Notes=Sample transaction 13</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -593,7 +593,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=5812; Country=US; Notes=Sample transaction 14</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=5812; Country=US; Notes=Sample transaction 14</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -633,7 +633,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=4112; Country=US; Notes=Sample transaction 15</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=4112; Country=US; Notes=Sample transaction 15</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -673,7 +673,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=5541; Country=US; Notes=Sample transaction 16</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=5541; Country=US; Notes=Sample transaction 16</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -713,7 +713,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=5943; Country=US; Notes=Sample transaction 17</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=5943; Country=US; Notes=Sample transaction 17</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -753,7 +753,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=7523; Country=US; Notes=Sample transaction 18</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=7523; Country=US; Notes=Sample transaction 18</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -793,7 +793,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=5111; Country=US; Notes=Sample transaction 19</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=5111; Country=US; Notes=Sample transaction 19</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -833,7 +833,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=4722; Country=US; Notes=Sample transaction 20</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=4722; Country=US; Notes=Sample transaction 20</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -873,7 +873,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=4511; Country=US; Notes=Sample transaction 21</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=4511; Country=US; Notes=Sample transaction 21</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -913,7 +913,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=7011; Country=US; Notes=Sample transaction 22</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=7011; Country=US; Notes=Sample transaction 22</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -953,7 +953,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=4121; Country=US; Notes=Sample transaction 23</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=4121; Country=US; Notes=Sample transaction 23</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -993,7 +993,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=5812; Country=US; Notes=Sample transaction 24</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=5812; Country=US; Notes=Sample transaction 24</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1033,7 +1033,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=4112; Country=US; Notes=Sample transaction 25</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=4112; Country=US; Notes=Sample transaction 25</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1073,7 +1073,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=5541; Country=US; Notes=Sample transaction 26</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=5541; Country=US; Notes=Sample transaction 26</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1113,7 +1113,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=5943; Country=US; Notes=Sample transaction 27</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=5943; Country=US; Notes=Sample transaction 27</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1153,7 +1153,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=7523; Country=US; Notes=Sample transaction 28</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=7523; Country=US; Notes=Sample transaction 28</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1193,7 +1193,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=5111; Country=US; Notes=Sample transaction 29</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=5111; Country=US; Notes=Sample transaction 29</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1233,7 +1233,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=4722; Country=US; Notes=Sample transaction 30</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=4722; Country=US; Notes=Sample transaction 30</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1273,7 +1273,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=4511; Country=US; Notes=Sample transaction 31</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=4511; Country=US; Notes=Sample transaction 31</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1313,7 +1313,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=7011; Country=US; Notes=Sample transaction 32</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=7011; Country=US; Notes=Sample transaction 32</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1353,7 +1353,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=4121; Country=US; Notes=Sample transaction 33</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=4121; Country=US; Notes=Sample transaction 33</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1393,7 +1393,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=5812; Country=US; Notes=Sample transaction 34</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=5812; Country=US; Notes=Sample transaction 34</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1433,7 +1433,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=4112; Country=US; Notes=Sample transaction 35</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=4112; Country=US; Notes=Sample transaction 35</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1473,7 +1473,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=5541; Country=US; Notes=Sample transaction 36</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=5541; Country=US; Notes=Sample transaction 36</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1513,7 +1513,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=5943; Country=US; Notes=Sample transaction 37</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=5943; Country=US; Notes=Sample transaction 37</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1553,7 +1553,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=7523; Country=US; Notes=Sample transaction 38</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=7523; Country=US; Notes=Sample transaction 38</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1593,7 +1593,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=5111; Country=US; Notes=Sample transaction 39</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=5111; Country=US; Notes=Sample transaction 39</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1633,7 +1633,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=4722; Country=US; Notes=Sample transaction 40</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=4722; Country=US; Notes=Sample transaction 40</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1673,7 +1673,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=4511; Country=US; Notes=Sample transaction 41</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=4511; Country=US; Notes=Sample transaction 41</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1713,7 +1713,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=7011; Country=US; Notes=Sample transaction 42</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=7011; Country=US; Notes=Sample transaction 42</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1753,7 +1753,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=4121; Country=US; Notes=Sample transaction 43</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=4121; Country=US; Notes=Sample transaction 43</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1793,7 +1793,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=5812; Country=US; Notes=Sample transaction 44</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=5812; Country=US; Notes=Sample transaction 44</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1833,7 +1833,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=4112; Country=US; Notes=Sample transaction 45</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=4112; Country=US; Notes=Sample transaction 45</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1873,7 +1873,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=5541; Country=US; Notes=Sample transaction 46</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=5541; Country=US; Notes=Sample transaction 46</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1913,7 +1913,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=5943; Country=US; Notes=Sample transaction 47</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=5943; Country=US; Notes=Sample transaction 47</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1953,7 +1953,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=7523; Country=US; Notes=Sample transaction 48</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=7523; Country=US; Notes=Sample transaction 48</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -1993,7 +1993,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=5111; Country=US; Notes=Sample transaction 49</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=5111; Country=US; Notes=Sample transaction 49</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2033,7 +2033,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=4722; Country=US; Notes=Sample transaction 50</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=4722; Country=US; Notes=Sample transaction 50</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2073,7 +2073,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=4511; Country=US; Notes=Sample transaction 51</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=4511; Country=US; Notes=Sample transaction 51</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2113,7 +2113,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=7011; Country=US; Notes=Sample transaction 52</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=7011; Country=US; Notes=Sample transaction 52</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2153,7 +2153,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=4121; Country=US; Notes=Sample transaction 53</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=4121; Country=US; Notes=Sample transaction 53</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2193,7 +2193,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=5812; Country=US; Notes=Sample transaction 54</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=5812; Country=US; Notes=Sample transaction 54</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2233,7 +2233,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0001; MCC=4112; Country=US; Notes=Sample transaction 55</Ustrd>
+              <Ustrd>CardId=CRDC53-0001; MCC=4112; Country=US; Notes=Sample transaction 55</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2273,7 +2273,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0002; MCC=5541; Country=US; Notes=Sample transaction 56</Ustrd>
+              <Ustrd>CardId=CRDC53-0002; MCC=5541; Country=US; Notes=Sample transaction 56</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2313,7 +2313,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0003; MCC=5943; Country=US; Notes=Sample transaction 57</Ustrd>
+              <Ustrd>CardId=CRDC53-0003; MCC=5943; Country=US; Notes=Sample transaction 57</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2353,7 +2353,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0004; MCC=7523; Country=US; Notes=Sample transaction 58</Ustrd>
+              <Ustrd>CardId=CRDC53-0004; MCC=7523; Country=US; Notes=Sample transaction 58</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2393,7 +2393,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0005; MCC=5111; Country=US; Notes=Sample transaction 59</Ustrd>
+              <Ustrd>CardId=CRDC53-0005; MCC=5111; Country=US; Notes=Sample transaction 59</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>
@@ -2433,7 +2433,7 @@
               </Cdtr>
             </RltdPties>
             <RmtInf>
-              <Ustrd>CardId=CARD-0006; MCC=4722; Country=US; Notes=Sample transaction 60</Ustrd>
+              <Ustrd>CardId=CRDC53-0006; MCC=4722; Country=US; Notes=Sample transaction 60</Ustrd>
             </RmtInf>
             <Purp>
               <Prtry>CORPCARD</Prtry>

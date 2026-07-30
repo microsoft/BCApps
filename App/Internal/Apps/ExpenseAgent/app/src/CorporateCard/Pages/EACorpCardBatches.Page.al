@@ -8,6 +8,7 @@ page 7220 EACorpCardBatches
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Batches';
+    Editable = false;
     PageType = List;
     UsageCategory = Lists;
     SourceTable = EACorpCardBatch;
@@ -110,6 +111,21 @@ page 7220 EACorpCardBatches
                     CorpCardTrans.SetRange("Batch No.", Rec."Batch No.");
                     CorpCardTrans.SetRange("Provider Code", Rec."Provider Code");
                     Page.RunModal(Page::EACorpCardTransList, CorpCardTrans);
+                end;
+            }
+            action(ShowExceptions)
+            {
+                Caption = 'Show Exceptions';
+                ApplicationArea = Basic, Suite;
+                Image = ErrorLog;
+                ToolTip = 'Opens corporate card exceptions for the selected batch.';
+
+                trigger OnAction()
+                var
+                    CorpCardException: Record EACorpCardException;
+                begin
+                    CorpCardException.SetRange("Batch No.", Rec."Batch No.");
+                    Page.RunModal(Page::EACorpCardExceptions, CorpCardException);
                 end;
             }
         }

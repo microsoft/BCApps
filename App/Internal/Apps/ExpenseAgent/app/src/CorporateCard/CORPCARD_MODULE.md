@@ -29,7 +29,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Provider downloads transactions from bank/processor               │
 │ - Data injected into Data Exchange framework                        │
 │ - Field mapping validation via EACorpCardMapMgt                     │
-│ - Transactions imported to staging table (EACorpCardTrans)         │
+│ - Transactions imported to staging table (EACorpCardTrans)          │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -37,32 +37,35 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Regex patterns applied to normalize merchant names                │
 │ - Rules sorted by priority, first match wins                        │
 │ - Normalized name + category stored for later use                   │
-│ - Codeunit: EACorpCardMerchantNorm (7210)                          │
+│ - Codeunit: EACorpCardMerchantNorm (7210)                           │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 3: TRANSACTION MATCHING                                       │
-│ - Strategy 1: Exact amount/date match (score 50-100)               │
-│ - Strategy 2: Fuzzy merchant name match via Levenshtein (70-85%)   │
+│ - Strategy 1: Exact amount/date match (score 50-100)                │
+│ - Strategy 2: Fuzzy merchant name match via Levenshtein (70-85%)    │
 │ - Strategy 3: Employee-only match as fallback (score 50)            │
 │ - Match type & score stored; transaction status updated             │
-│ - Codeunit: EACorpCardEnhancedMatchMgt (7216)                      │
+│ - Codeunit: EACorpCardEnhancedMatchMgt (7216)                       │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 4: DRAFT CREATION / MANUAL MATCHING                           │
 │ - AutoDraft mode: always creates 1 draft per imported transaction   │
 │ - ManualLink mode: tries matching first, then optional draft create │
-│ - Codeunit: EACorpCardExpWriter (7212)                             │
-│ - MCC mapping to category: Codeunit EACorpCardMCCMgt (7217)        │
+│ - Level 3 detail rows can seed Expense VAT Specification lines      │
+│ - Persisted VAT spec lines rely on table autoincrement for Line No. │
+│ - Warns if Level 3 totals differ from transaction header amount     │
+│ - Codeunit: EACorpCardExpWriter (7212)                              │
+│ - MCC mapping to category: Codeunit EACorpCardMCCMgt (7217)         │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 5: REPORT AGGREGATION                                         │
-│ - Employee reviews drafts and existing expenses                      │
-│ - Creates/updates Expense Report via UI or EACorpCardReportMgt     │
+│ - Employee reviews drafts and existing expenses                     │
+│ - Creates/updates Expense Report via UI or EACorpCardReportMgt      │
 │ - Adds individual expenses to report                                │
-│ - Codeunit: EACorpCardReportMgt (7219)                             │
+│ - Codeunit: EACorpCardReportMgt (7219)                              │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -70,8 +73,8 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Employee submits Expense Report for approval                      │
 │ - Manager approves via standard Expense Agent workflow              │
 │ - Report released to Posted status                                  │
-│ - GL postings created via platform ExpenseReportPost (6987)        │
-│ - Codeunit: EACorpCardApprovalMgt (7218)                           │
+│ - GL postings created via platform ExpenseReportPost (6987)         │
+│ - Codeunit: EACorpCardApprovalMgt (7218)                            │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -95,7 +98,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 | 7219 | EACorpCardReportMgt | Expense Report aggregation | CreateReportFromCorpCardExpenses, AddExpenseToReport, ReleaseExpenseForReporting |
 | 7223 | EACorpCardJQRunner | Job Queue entry point with error resilience | OnRun (Job Queue trigger) |
 
-### Pages (12 total)
+### Pages (13 total)
 
 | ID | Name | Type | Purpose |
 |----|------|------|----------|
@@ -111,6 +114,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 | 7235 | EACorpCardJQScheduleSubpage | Subpage | Read-only Job Queue entry details filtered by provider |
 | 7231 | EACorpCardDashboardFactbox | ListPart | Recent import batches sorted chronologically |
 | 7232 | EACorpCardStatisticsFactbox | CardPart | KPI statistics (30-day rolling aggregation) |
+| 7099 | EACorpCardL3Details | List | Imported Level 3 VAT/tax detail lines per transaction |
 
 ### Tables (0 new)
 
@@ -135,6 +139,8 @@ Provider.Download()
 Provider.ParseToStaging()
     → Validates field mappings (EACorpCardMapMgt)
     → Imports data to EACorpCardTrans (Status=Imported)
+    → Includes mapped MCC values for XML/L3 transactions
+    → Imports Level 3 detail rows to EACorpCardTransDetail (when present)
     → Calls EACorpCardPostImportOrch.ProcessBatchPostImport()
             ↓
 EACorpCardPostImportOrch.ProcessBatchPostImport()
@@ -143,6 +149,7 @@ EACorpCardPostImportOrch.ProcessBatchPostImport()
         2. If Create Mode = AutoDraft: EACorpCardExpWriter.CreateDraftFromTrans()
         3. Else try EACorpCardEnhancedMatchMgt.EnhancedMatchTransaction()
         4. If unmatched + Auto-Create: EACorpCardExpWriter.CreateDraftFromTrans()
+        5. If Level 3 details exist: create Expense VAT Specification lines
     → Log results via AuditSubscribers
             ↓
 Provider.Ack()
@@ -266,7 +273,24 @@ Platform ExpenseReportPost (Codeunit 6987)
     - 7399 (Business Services) → MISC
     - 5542 (Fuel Dispensers) → CAR
 
-2. **Access Corporate Card Features**
+2. **Apply Corp Card Level 3 Demo**
+    - Navigate: Expense Agent Setup → Setup → Apply corp card level 3 demo
+    - Creates provider `CORPCARDL3` and demo Data Exchange definition `EACCL3VAT`
+    - Seeds header line mapping `L3HDR` and detail line mapping `L3DTL`
+    - Ensures provider-specific corporate card links exist for `CORPCARDL3`
+    - Initializes default MCC mappings and mapped Expense Categories (idempotent)
+    - Builds sample payload using actual card IDs assigned to `CORPCARDL3`
+    - Uploads sample payload for mixed VAT detail scenarios
+
+### VAT Specification Line Numbering
+
+When VAT specification rows are created from imported Level 3 details:
+
+- Temporary aggregation records may use explicit line numbers for in-memory grouping.
+- Persisted `Expense VAT Specification` rows are inserted with `Line No.` reset, so table autoincrement assigns unique values.
+- This prevents duplicate-key collisions on (`Expense No.`, `Line No.`) while preserving standard table behavior.
+
+3. **Access Corporate Card Features**
    - Navigate: Expense Management Role Center → Corporate Card group
    - Available actions:
      - **Corp Card Dashboard:** View import statistics & recent batches
@@ -275,17 +299,29 @@ Platform ExpenseReportPost (Codeunit 6987)
      - **Merchant Normalization Rules:** Add custom regex patterns
      - **MCC Code Mappings:** Map category codes to expense categories
 
-3. **Add Custom Merchant Rules**
+4. **Add Custom Merchant Rules**
    - From Role Center: Corp Card → Merchant Normalization Rules
    - For each pattern: Set Regex pattern, normalized name, category, priority
    - Active flag: Enable/disable rules without deletion
 
-4. **Schedule Provider Imports**
+5. **Schedule Provider Imports**
    - From Role Center: Corp Card → Corp Card Providers
    - For each enabled provider:
      - Action: Schedule Import
      - Frequency: Immediate/Hourly/Daily/Weekly
      - Job Queue created with retry logic (max 3 attempts)
+
+### Sample Card-ID Conventions
+
+Static samples use provider-specific card ID prefixes to avoid cross-provider ambiguity:
+
+- CSV sample (`CorpCard-Sample-60.csv`) uses `CRDCSV-xxxx`
+- CAMT.053 sample (`CorpCard-Sample-60-SEPA-CAMT053.xml`) uses `CRDC53-xxxx`
+- CAMT.054 sample (`CorpCard-Sample-60-SEPA-CAMT054.xml`) uses `CRDC54-xxxx`
+- ISO20022 sample (`CorpCardISO20022Sample.xml`) uses `CRDISO-xxxx`
+- Level 3 sample (`CorpCard-Sample-Level3.xml`) uses `CRDL3-xxxx`
+
+For runtime Level 3 demo payloads, card IDs are generated from provider cards linked to `CORPCARDL3`.
 
 ---
 
@@ -398,7 +434,7 @@ Pages are interlinked with drill-down actions:
 | Page | Drill-Down Actions |
 |------|-------------------|
 | EACorpCardBatches (7220) | → Show Transactions, Run Matching |
-| EACorpCardTransList (7223) | → Open Matched Expense |
+| EACorpCardTransList (7223) | → Open Matched Expense, Show Level 3 Details |
 | EACorpCardExceptions (7222) | → Mark Resolved, View Batch, View Transaction |
 
 ---
@@ -458,6 +494,12 @@ Pages are interlinked with drill-down actions:
 | Expense User No. missing | Expense draft creation fails, logged | Transaction marked unmatched |
 | Amount tolerance = 0 (exact only) | No exact match found | Falls through to fuzzy/employee match |
 | No open expenses for user | All 3 strategies fail | Status = Imported (awaits manual action) |
+
+### Level 3 Reconciliation Warning
+
+When Level 3 detail rows are present, draft creation compares the summed detail totals against the transaction header amount.
+
+If values differ (rounded to 2 decimals), processing continues but a warning is written to transaction field `Reject Reason` for manual review before report submission.
 
 ### Job Queue Errors
 
@@ -562,6 +604,20 @@ Pages are interlinked with drill-down actions:
 **Symptom:** Unsure which profile will be used for import  
 **Check:** Corp Card Providers page → `Detected Source Format` column (CSV/XML/CAMT/Not set/Unknown)
 
+### Level 3 Detail Visibility
+
+**Symptom:** Need to inspect imported VAT/tax sub-lines for one transaction  
+**Check:** Corp Card Transactions page → action `Show Level 3 Details`
+
+### "Card Id is missing" Validation Exceptions
+
+**Symptom:** Import exceptions show `Card Id is missing.` and no transactions are inserted  
+**Check:**
+1. Provider has corporate card links (`EACorpCard`) for that provider code
+2. Sample payload card IDs match cards linked to the same provider
+3. Re-run `Apply corp card level 3 demo` to refresh provider links and payload
+4. Verify provider `Data Exch Def Code`/`Data Exch Map Code` still point to the expected line definition
+
 ---
 
 ## Object ID Allocation
@@ -572,6 +628,6 @@ Pages are interlinked with drill-down actions:
 
 ---
 
-**Document Version:** 1.2  
-**Last Updated:** 2026-07-29  
+**Document Version:** 1.4  
+**Last Updated:** 2026-07-30  
 **Module Status:** Active (CSV/XML/ISO20022/CAMT.053/CAMT.054 import and AutoDraft 1:1 flow enabled)

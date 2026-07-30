@@ -14,7 +14,7 @@
 
     <Transaction>
       <ProviderTransId>ISO-TRX-0001</ProviderTransId>
-      <CardId>CARD-0001</CardId>
+      <CardId>CRDISO-0001</CardId>
       <TransDate>2026-07-26</TransDate>
       <PostingDate>2026-07-27</PostingDate>
       <Amount>123.45</Amount>
@@ -27,7 +27,7 @@
 
     <Transaction>
       <ProviderTransId>ISO-TRX-0002</ProviderTransId>
-      <CardId>CARD-0002</CardId>
+      <CardId>CRDISO-0002</CardId>
       <TransDate>2026-07-27</TransDate>
       <PostingDate>2026-07-28</PostingDate>
       <Amount>67.80</Amount>

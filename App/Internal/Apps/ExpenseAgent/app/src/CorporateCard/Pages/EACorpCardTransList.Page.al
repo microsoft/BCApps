@@ -8,6 +8,7 @@ page 7223 EACorpCardTransList
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Transactions';
+    Editable = false;
     PageType = List;
     UsageCategory = Lists;
     SourceTable = EACorpCardTrans;
@@ -98,6 +99,21 @@ page 7223 EACorpCardTransList
 
                     Expense.Get(Rec."Expense No.");
                     Page.RunModal(Page::Expense, Expense);
+                end;
+            }
+            action(OpenLevel3Details)
+            {
+                Caption = 'Show Level 3 Details';
+                ApplicationArea = Basic, Suite;
+                Image = ViewDetails;
+                ToolTip = 'Shows imported Level 3 tax detail lines for the selected transaction.';
+
+                trigger OnAction()
+                var
+                    CorpCardTransDetail: Record EACorpCardTransDetail;
+                begin
+                    CorpCardTransDetail.SetRange("Trans Entry No.", Rec."Entry No.");
+                    Page.RunModal(Page::EACorpCardDetails, CorpCardTransDetail);
                 end;
             }
         }

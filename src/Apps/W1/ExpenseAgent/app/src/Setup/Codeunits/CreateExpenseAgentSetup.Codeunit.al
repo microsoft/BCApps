@@ -15,19 +15,9 @@ codeunit 6970 "Create Expense Agent Setup"
         tabledata "Source Code Setup" = rim;
 
     trigger OnRun()
-    var
-        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
     begin
         CreateSetupTable();
         UpdateSourceCodeSetup();
-        CreateCorpCardSetup.CreateDefaults();
-    end;
-
-    internal procedure CreateCorporateCardDefaults()
-    var
-        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
-    begin
-        CreateCorpCardSetup.CreateDefaults();
     end;
 
     local procedure CreateSetupTable()

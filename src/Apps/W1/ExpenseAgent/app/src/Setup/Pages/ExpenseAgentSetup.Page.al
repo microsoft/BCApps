@@ -420,6 +420,20 @@ page 6996 "Expense Agent Setup"
                         CreateCorpCardSetup.CreateDefaults();
                     end;
                 }
+                action("Apply Corp Card Level 3 Demo")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Apply corp card level 3 demo';
+                    Image = SetupPayment;
+                    ToolTip = 'Creates a dedicated Level 3 corporate card demo provider with sample payload and data exchange definition for VAT detail processing demos.';
+
+                    trigger OnAction()
+                    var
+                        CreateCorpCardL3Demo: Codeunit "Create Corp Card L3 Demo";
+                    begin
+                        CreateCorpCardL3Demo.CreateDefaults();
+                    end;
+                }
             }
             action("Agent Consumption")
             {
