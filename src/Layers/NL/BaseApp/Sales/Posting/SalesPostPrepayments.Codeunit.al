@@ -2028,11 +2028,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
         SalesLine: Record "Sales Line";
         PrepmtAmt: Decimal;
     begin
-        SalesLine.SetLoadFields(Type, Amount, "Prepmt. Line Amount", "Prepayment %");
-        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
-        SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
-        SalesLine.SetFilter("Prepmt. Line Amount", '<>0');
+        ApplyFilter(SalesHeader, 2, SalesLine);
         if SalesLine.FindSet() then
             repeat
                 PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;

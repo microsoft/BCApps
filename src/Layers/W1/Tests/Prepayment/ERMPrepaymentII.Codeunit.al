@@ -2401,14 +2401,16 @@ codeunit 134101 "ERM Prepayment II"
 
     local procedure GetSalesPrepaymentLineAmount(SalesHeader: Record "Sales Header"): Decimal
     var
+        Currency: Record Currency;
         SalesLine: Record "Sales Line";
         PrepaymentLineAmount: Decimal;
     begin
+        Currency.Initialize(SalesHeader."Currency Code");
         FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
         repeat
-            PrepaymentLineAmount += Round(SalesLine.Amount * SalesLine."Prepayment %" / 100);
+            PrepaymentLineAmount += SalesLine.Amount * SalesLine."Prepayment %" / 100;
         until SalesLine.Next() = 0;
-        exit(PrepaymentLineAmount);
+        exit(Round(PrepaymentLineAmount, Currency."Amount Rounding Precision"));
     end;
 
     local procedure InvoicePostedPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; BuyFromVendorNo: Code[20]; DocumentNoFilter: Text; CurrencyCode: Code[10]; PostingDate: Date): Code[20]
