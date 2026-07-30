@@ -230,6 +230,8 @@ codeunit 137032 "SCM Costing Purch Returns II"
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.FindFirst();
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(Quantity);
         PurchaseLine.ShowReservation();
 
         // [WHEN] Posting the purchase return order (ship + invoice).
@@ -605,6 +607,7 @@ codeunit 137032 "SCM Costing Purch Returns II"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Costing Purch Returns II");
+        LibraryVariableStorage.Clear();
         // Lazy Setup.
         if isInitialized then
             exit;
@@ -955,8 +958,8 @@ codeunit 137032 "SCM Costing Purch Returns II"
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2) + 50);
         PurchaseLine.Modify(true);
-        LibraryVariableStorage.Enqueue(LotNo);  // Enqueue value for ItemTrackingLinesAssignLotPageHandler.
-        LibraryVariableStorage.Enqueue(Quantity);  // Enqueue value for ItemTrackingLinesAssignLotPageHandler.
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(Quantity);
         PurchaseLine.OpenItemTrackingLines();
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
         exit(PurchaseHeader."Buy-from Vendor No.");
@@ -990,6 +993,7 @@ codeunit 137032 "SCM Costing Purch Returns II"
     [Scope('OnPrem')]
     procedure ReservationReserveFromCurrentLinePageHandler(var Reservation: TestPage Reservation)
     begin
+        Reservation.QtyToReserveBase.AssertEquals(LibraryVariableStorage.DequeueDecimal());
         Reservation."Reserve from Current Line".Invoke();
         Reservation.OK().Invoke();
     end;
@@ -998,6 +1002,7 @@ codeunit 137032 "SCM Costing Purch Returns II"
     [Scope('OnPrem')]
     procedure ItemTrackingListPageHandler(var ItemTrackingList: TestPage "Item Tracking List")
     begin
+        ItemTrackingList."Lot No.".AssertEquals(LibraryVariableStorage.DequeueText());
         ItemTrackingList.OK().Invoke();
     end;
 }

@@ -360,8 +360,6 @@ codeunit 99000834 "Purch. Line-Reserve"
                         if OppositeReservationEntry."Source Type" <> Database::"Item Ledger Entry" then
                             NotFullyReserved := true
                         else
-                            // Line is fully reserved against an item ledger entry, so the exact cost reversing
-                            // link can be derived from that entry when it was not set on the reservation entry.
                             if ApplyToItemEntryNo = 0 then
                                 ApplyToItemEntryNo := OppositeReservationEntry."Source Ref. No.";
                     end else
