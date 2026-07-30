@@ -123,7 +123,8 @@ codeunit 8614 "Config. XML Exchange"
             TableNode.AppendChild(FieldNode);
         end;
 
-        OnAfterAddTableAttributes(ConfigPackageTable, PackageXML, TableNode);
+        OnAfterAddTableAttributesDotNet(ConfigPackageTable, PackageXML, TableNode);
+        OnAfterAddTableAttributes(ConfigPackageTable);
     end;
 
     local procedure AddFieldAttributes(ConfigPackageField: Record "Config. Package Field"; var FieldNode: DotNet XmlNode)
@@ -138,7 +139,8 @@ codeunit 8614 "Config. XML Exchange"
             XMLDOMMgt.AddAttribute(
               FieldNode, GetElementName(ConfigPackageField.FieldName("Processing Order")), Format(ConfigPackageField."Processing Order"));
 
-        OnAfterAddFieldAttributes(ConfigPackageField, FieldNode);
+        OnAfterAddFieldAttributesDotNet(ConfigPackageField, FieldNode);
+        OnAfterAddFieldAttributes(ConfigPackageField);
     end;
 
     local procedure AddDimensionFields(var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExportValue: Boolean)
@@ -325,7 +327,8 @@ codeunit 8614 "Config. XML Exchange"
                             end;
                         until ConfigPackageField.Next() = 0;
 
-                    OnCreateRecordNodesOnAfterRecordProcessed(ConfigPackageTable, ConfigPackageField, RecRef, PackageXML, RecordNode, FieldNode, ExcelMode);
+                    OnCreateRecordNodesOnAfterRecordProcessedDotNet(ConfigPackageTable, ConfigPackageField, RecRef, PackageXML, RecordNode, FieldNode, ExcelMode);
+                    OnCreateRecordNodesOnAfterRecordProcessed(ConfigPackageTable, ConfigPackageField, RecRef, ExcelMode);
                     ExportMetadata := false;
                     ProcessedRecordCount += 1;
 
@@ -359,7 +362,8 @@ codeunit 8614 "Config. XML Exchange"
 
             if ConfigPackageTable."Dimensions as Columns" and ExcelMode then
                 AddDimensionFields(ConfigPackageField, RecRef, PackageXML, RecordNode, FieldNode, false);
-            OnCreateRecordNodesOnAfterNotFoundRecordProcessed(ConfigPackageTable, ConfigPackageField, RecRef, PackageXML, RecordNode, FieldNode, ExcelMode);
+            OnCreateRecordNodesOnAfterNotFoundRecordProcessedDotNet(ConfigPackageTable, ConfigPackageField, RecRef, PackageXML, RecordNode, FieldNode, ExcelMode);
+            OnCreateRecordNodesOnAfterNotFoundRecordProcessed(ConfigPackageTable, ConfigPackageField, RecRef, ExcelMode);
         end;
     end;
 
@@ -507,7 +511,8 @@ codeunit 8614 "Config. XML Exchange"
               DocumentElement, GetElementName(ConfigPackage.FieldName("Product Version")), ConfigPackage."Product Version");
             XMLDOMMgt.AddAttribute(DocumentElement, GetElementName(ConfigPackage.FieldName("Package Name")), ConfigPackage."Package Name");
             XMLDOMMgt.AddAttribute(DocumentElement, GetElementName(ConfigPackage.FieldName(Code)), ConfigPackage.Code);
-            OnExportPackageXMLDocumentOnAfterSetAttributes(ConfigPackage, XMLDOMMgt, DocumentElement);
+            OnExportPackageXMLDocumentOnAfterSetAttributesDotNet(ConfigPackage, XMLDOMMgt, DocumentElement);
+            OnExportPackageXMLDocumentOnAfterSetAttributes(ConfigPackage, XMLDOMMgt);
         end;
 
         OnExportPackageXMLDocumentOnBeforeConfigProgressBarInit(ConfigPackageTable, ConfigPackage, XMLDOMMgt, Advanced, HideDialog);
@@ -685,7 +690,8 @@ codeunit 8614 "Config. XML Exchange"
                 if not IsHandled then
                     Evaluate(ConfigPackage."Min. Count For Async Import", Value);
             end;
-            OnImportPackageXMLDocumentOnBeforeModify(ConfigPackage, DocumentElement);
+            OnImportPackageXMLDocumentOnBeforeModifyDotNet(ConfigPackage, DocumentElement);
+            OnImportPackageXMLDocumentOnBeforeModify(ConfigPackage);
             ConfigPackage.Modify();
         end;
 
@@ -916,7 +922,8 @@ codeunit 8614 "Config. XML Exchange"
                 Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Created by User ID")));
                 if Value <> '' then
                     Evaluate(ConfigPackageTable."Created by User ID", CopyStr(Value, 1, 50));
-                OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXML(ConfigPackageTable, TableNode);
+                OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXMLDotNet(ConfigPackageTable, TableNode);
+                OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXML(ConfigPackageTable);
                 ConfigPackageTable."Data Template" :=
                   CopyStr(
                     GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Data Template"))), 1,
@@ -971,7 +978,8 @@ codeunit 8614 "Config. XML Exchange"
                                         if Value <> '' then
                                             Evaluate(ConfigPackageField."Processing Order", Value);
 
-                                        OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModify(ConfigPackageField, Value, FieldNode);
+                                        OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModifyDotNet(ConfigPackageField, Value, FieldNode);
+                                        OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModify(ConfigPackageField, Value);
                                     end;
                                     ConfigPackageField.Modify();
                                 end;
@@ -1599,13 +1607,25 @@ codeunit 8614 "Config. XML Exchange"
             Error(ImportingIsNotAllowedDuringUpgradeOrInstallationErr);
     end;
 
+    [Obsolete('Use OnAfterAddFieldAttributes without DotNet XmlNode parameter instead.', '29.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnAfterAddFieldAttributes(var ConfigPackageField: Record "Config. Package Field"; var FieldNode: DotNet XmlNode)
+    local procedure OnAfterAddFieldAttributesDotNet(var ConfigPackageField: Record "Config. Package Field"; var FieldNode: DotNet XmlNode)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterAddTableAttributes(ConfigPackageTable: Record "Config. Package Table"; var PackageXML: DotNet XmlDocument; var TableNode: DotNet XmlNode)
+    local procedure OnAfterAddFieldAttributes(var ConfigPackageField: Record "Config. Package Field")
+    begin
+    end;
+
+    [Obsolete('Use OnAfterAddTableAttributes without DotNet parameters instead.', '29.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAddTableAttributesDotNet(ConfigPackageTable: Record "Config. Package Table"; var PackageXML: DotNet XmlDocument; var TableNode: DotNet XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAddTableAttributes(ConfigPackageTable: Record "Config. Package Table")
     begin
     end;
 
@@ -1659,8 +1679,14 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+    [Obsolete('Use OnCreateRecordNodesOnAfterRecordProcessed without DotNet parameters instead.', '29.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnCreateRecordNodesOnAfterRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExcelMode: Boolean)
+    local procedure OnCreateRecordNodesOnAfterRecordProcessedDotNet(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExcelMode: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateRecordNodesOnAfterRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; ExcelMode: Boolean)
     begin
     end;
 
@@ -1669,13 +1695,25 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+    [Obsolete('Use OnCreateRecordNodesOnAfterNotFoundRecordProcessed without DotNet parameters instead.', '29.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnCreateRecordNodesOnAfterNotFoundRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExcelMode: Boolean)
+    local procedure OnCreateRecordNodesOnAfterNotFoundRecordProcessedDotNet(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExcelMode: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnExportPackageXMLDocumentOnAfterSetAttributes(var ConfigPackage: Record "Config. Package"; var XMLDOMMgt: Codeunit "XML DOM Management"; var DocumentElement: DotNet XmlElement)
+    local procedure OnCreateRecordNodesOnAfterNotFoundRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; ExcelMode: Boolean)
+    begin
+    end;
+
+    [Obsolete('Use OnExportPackageXMLDocumentOnAfterSetAttributes without DotNet XmlElement parameter instead.', '29.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnExportPackageXMLDocumentOnAfterSetAttributesDotNet(var ConfigPackage: Record "Config. Package"; var XMLDOMMgt: Codeunit "XML DOM Management"; var DocumentElement: DotNet XmlElement)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnExportPackageXMLDocumentOnAfterSetAttributes(var ConfigPackage: Record "Config. Package"; var XMLDOMMgt: Codeunit "XML DOM Management")
     begin
     end;
 
@@ -1694,8 +1732,14 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+    [Obsolete('Use OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXML without DotNet XmlNode parameter instead.', '29.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXML(ConfigPackageTable: Record "Config. Package Table"; var TableNode: DotNet XmlNode)
+    local procedure OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXMLDotNet(ConfigPackageTable: Record "Config. Package Table"; var TableNode: DotNet XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXML(ConfigPackageTable: Record "Config. Package Table")
     begin
     end;
 
@@ -1729,13 +1773,25 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+    [Obsolete('Use OnImportPackageXMLDocumentOnBeforeModify without DotNet XmlElement parameter instead.', '29.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnImportPackageXMLDocumentOnBeforeModify(var ConfigPackage: Record "Config. Package"; var DocumentElement: DotNet XmlElement)
+    local procedure OnImportPackageXMLDocumentOnBeforeModifyDotNet(var ConfigPackage: Record "Config. Package"; var DocumentElement: DotNet XmlElement)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModify(var ConfigPackageField: Record "Config. Package Field"; var Value: Text; var FieldNode: DotNet XmlNode)
+    local procedure OnImportPackageXMLDocumentOnBeforeModify(var ConfigPackage: Record "Config. Package")
+    begin
+    end;
+
+    [Obsolete('Use OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModify without DotNet XmlNode parameter instead.', '29.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModifyDotNet(var ConfigPackageField: Record "Config. Package Field"; var Value: Text; var FieldNode: DotNet XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModify(var ConfigPackageField: Record "Config. Package Field"; var Value: Text)
     begin
     end;
 
