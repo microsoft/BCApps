@@ -76,10 +76,14 @@ page 9661 "Report Layout Edit Dialog"
                 trigger OnValidate()
                 begin
                     // In override mode (extension layout) checking "Save Changes to a Copy" re-enables
-                    // the Layout Name so the forked copy can be given a distinct name.
-                    if OverrideMode then
-                        LayoutNameEditable := CreateCopy
-                    else
+                    // the Layout Name so the forked copy can be given a distinct name, and exposes the
+                    // layout-availability field — the copy is a normal tenant layout, so its company
+                    // scope is chosen there (not by the override-scope control).
+                    if OverrideMode then begin
+                        LayoutNameEditable := CreateCopy;
+                        AvailableInAllCompaniesEditable := CreateCopy;
+                        CurrPage.Update(false);
+                    end else
                         if (CreateCopy) then
                             AvailableInAllCompaniesEditable := true
                         else
@@ -98,7 +102,9 @@ page 9661 "Report Layout Edit Dialog"
                 Caption = 'Available in All Companies';
                 ToolTip = 'Specifies whether the layout should be available in all companies or just the current company.';
                 Editable = AvailableInAllCompaniesEditable;
-                Visible = not OverrideMode;
+                // Hidden while overriding an extension layout (the layout is already available
+                // everywhere); shown again when the user opts into a copy, which IS a tenant layout.
+                Visible = (not OverrideMode) or CreateCopy;
             }
             field(OverrideForAllCompanies; OverrideForAllCompanies)
             {
@@ -159,19 +165,6 @@ page 9661 "Report Layout Edit Dialog"
         exit(OverrideForAllCompanies);
     end;
 
-    /// <summary>
-    /// Re-seeds the dialog when it is reopened after the user declined an all-companies override, so
-    /// their entries survive and only the scope is reset. Does not re-run SetupDialog (which would
-    /// discard the edits).
-    /// </summary>
-    internal procedure SetOverrideValues(NewDescription: Text[250]; NewIsObsolete: Boolean; ScopeIsGlobal: Boolean)
-    begin
-        Description := NewDescription;
-        if IsObsoleteEditable then
-            IsObsolete := NewIsObsolete;
-        OverrideForAllCompanies := ScopeIsGlobal;
-    end;
-
     internal procedure SelectedIsObsolete(): Boolean
     begin
         exit(IsObsolete);
@@ -207,6 +200,10 @@ page 9661 "Report Layout Edit Dialog"
             // Override scope uses its own control and defaults to the CURRENT company (ask-first
             // before global) — NOT the "Available in All Companies" layout-availability field.
             OverrideForAllCompanies := false;
+            // Keep the shipped default for the copy escape hatch: a copy of an extension layout is
+            // created for all companies unless the user says otherwise (field shown once Copy is ticked).
+            AvailableInAllCompanies := true;
+            AvailableInAllCompaniesEditable := false;
 
         end else begin
             CreateCopy := false;
