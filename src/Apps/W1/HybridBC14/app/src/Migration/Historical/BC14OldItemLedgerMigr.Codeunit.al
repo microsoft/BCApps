@@ -34,9 +34,12 @@ codeunit 46947 "BC14 Old Item Ledger Migr." implements "BC14 Migrator"
     var
         BC14MigrationSetup: Codeunit "BC14 Migration Setup";
     begin
-        // Item transactions are migrated read-only only: the entire item ledger (and the value
-        // entries needed to compute each entry's actual cost) is archived for reference. Live
-        // on-hand inventory is not re-created, so there is no Transaction-phase item migrator.
+        // Item transactions are migrated in two complementary ways: the Transaction-phase
+        // "BC14 Item Ledger Migrator" rebuilds live on-hand inventory (open entries -> positive
+        // adjustments), while this historical migrator archives the entire item ledger (and the
+        // value entries needed to compute each entry's actual cost) read-only for reference.
+        // InsertPerCompanyMapping is idempotent on the source/destination pair, so registering the
+        // same mappings here and in the Transaction-phase migrator is safe.
         BC14MigrationSetup.InsertPerCompanyMapping(CompanyName, Database::"Item Ledger Entry", Database::"BC14 Item Ledger Entry");
         BC14MigrationSetup.InsertPerCompanyMapping(CompanyName, Database::"Value Entry", Database::"BC14 Value Entry");
     end;

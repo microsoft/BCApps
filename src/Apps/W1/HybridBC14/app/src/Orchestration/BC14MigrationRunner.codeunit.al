@@ -314,6 +314,7 @@ codeunit 46875 "BC14 Migration Runner"
         Changed: Boolean;
     begin
         ActionList.Add("BC14 Post Migration Action"::"Journal Post");
+        ActionList.Add("BC14 Post Migration Action"::"Item Journal Post");
 
         CountBefore := ActionList.Count();
         OnAfterPopulateActions(ActionList, NewActions, Changed);
@@ -547,6 +548,7 @@ codeunit 46875 "BC14 Migration Runner"
         MigratorEnums.Add("BC14 Transaction Migrator"::"G/L Entries");
         MigratorEnums.Add("BC14 Transaction Migrator"::"Customer Ledger Entries");
         MigratorEnums.Add("BC14 Transaction Migrator"::"Vendor Ledger Entries");
+        MigratorEnums.Add("BC14 Transaction Migrator"::"Item Ledger Entries");
 
         CountBefore := MigratorEnums.Count();
         OnAfterPopulateTransactionMigrators(MigratorEnums, NewMigrators, Changed);

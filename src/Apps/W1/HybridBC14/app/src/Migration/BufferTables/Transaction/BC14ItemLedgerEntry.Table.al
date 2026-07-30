@@ -89,6 +89,12 @@ table 46945 "BC14 Item Ledger Entry"
         {
             Caption = 'Document Type';
         }
+        // Working field populated during migration (batch assignment). Uses a field number that is
+        // NOT present on the source "Item Ledger Entry" table so replication never overwrites it.
+        field(100; "Journal Batch Name"; Code[10])
+        {
+            Caption = 'Journal Batch Name';
+        }
     }
 
     keys
