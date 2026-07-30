@@ -2352,12 +2352,11 @@ codeunit 148017 "FEC Audit File Export Tests"
         Customer: Record Customer;
         CustomerPostingGroup: Record "Customer Posting Group";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
         AuditFile: Record "Audit File";
         iStream: InStream;
         StartingDate: Date;
         InvoiceDocNo: Code[20];
-        PaymentDocNo: Code[20];
         InvoiceAmount: Decimal;
         DiscountAmount: Decimal;
         PmtDiscAccountNo: Code[20];
@@ -2367,8 +2366,8 @@ codeunit 148017 "FEC Audit File Export Tests"
         Initialize();
         StartingDate := GetStartingDate();
 
-        // [GIVEN] Customer with a payment-discount payment term whose posting group has a Payment Disc. Debit Acc.
-        CreateCustomer(Customer);
+        // [GIVEN] Customer whose posting group has a Payment Disc. Debit Acc.
+        LibrarySales.CreateCustomer(Customer);
         CustomerPostingGroup.Get(Customer."Customer Posting Group");
         if CustomerPostingGroup."Payment Disc. Debit Acc." = '' then begin
             CustomerPostingGroup.Validate("Payment Disc. Debit Acc.", LibraryERM.CreateGLAccountNo());
@@ -2377,20 +2376,28 @@ codeunit 148017 "FEC Audit File Export Tests"
         PmtDiscAccountNo := CustomerPostingGroup."Payment Disc. Debit Acc.";
 
         // [GIVEN] A posted sales invoice with a possible payment discount
-        CreateGenJournalBatch(GenJournalBatch);
         InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
-        InvoiceDocNo :=
-          CreateGenJournalLine(GenJournalBatch, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Customer,
-            Customer."No.", StartingDate, InvoiceAmount);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Customer, Customer."No.", InvoiceAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Pmt. Discount Date", CalcDate('<1M>', StartingDate));
+        GenJournalLine.Validate("Payment Discount %", LibraryRandom.RandIntInRange(2, 5));
+        GenJournalLine.Modify(true);
+        InvoiceDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
         DiscountAmount := CustLedgerEntry."Original Pmt. Disc. Possible";
         Assert.IsTrue(DiscountAmount > 0, 'The posted invoice should have a possible payment discount.');
 
         // [GIVEN] A payment for (invoice amount - discount) applied to the invoice within the discount date, so the discount is granted
-        PaymentDocNo :=
-          CreateGenJournalLine(GenJournalBatch, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Customer,
-            Customer."No.", StartingDate, -(InvoiceAmount - DiscountAmount));
-        ApplyAndPostGenJournalLine(PaymentDocNo, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Customer, Customer."No.", -(InvoiceAmount - DiscountAmount));
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", "Gen. Journal Document Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [WHEN] Export Audit File in FEC format for the Payment Disc. Debit Acc. only
         RunFECExport(AuditFile, PmtDiscAccountNo, StartingDate, StartingDate, false);
