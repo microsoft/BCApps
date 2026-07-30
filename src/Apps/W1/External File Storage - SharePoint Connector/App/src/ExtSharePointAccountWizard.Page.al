@@ -151,6 +151,11 @@ page 4581 "Ext. SharePoint Account Wizard"
                         IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
                     end;
                 }
+                field(MultipleCompaniesField; MultipleCompanies)
+                {
+                    Caption = 'Multiple Companies';
+                    ToolTip = 'Specifies whether the file account should be created in multiple companies.';
+                }
             }
             group(Step2)
             {
@@ -160,16 +165,6 @@ page 4581 "Ext. SharePoint Account Wizard"
                 group(CompanyFilterGroup)
                 {
                     ShowCaption = false;
-                    field(MultipleCompaniesField; MultipleCompanies)
-                    {
-                        Caption = 'Multiple Companies';
-                        ToolTip = 'Specifies whether the file account should be created in multiple companies.';
-
-                        trigger OnValidate()
-                        begin
-                            UpdateFinishEnabled();
-                        end;
-                    }
                     field(CompanyFilterField; CompanyFilter)
                     {
                         Caption = 'Company Filter';
@@ -178,7 +173,7 @@ page 4581 "Ext. SharePoint Account Wizard"
 
                         trigger OnValidate()
                         begin
-                            UpdateFinishEnabled();
+                            IsNextEnabled := GetMatchingCompaniesCount() > 0;
                         end;
 
                         trigger OnLookup(var Text: Text): Boolean
@@ -201,10 +196,9 @@ page 4581 "Ext. SharePoint Account Wizard"
                         ToolTip = 'Specifies the the account for all scenarios.';
                     }
 
-                    field(MatchingCompaniesField; MatchingCompaniesCount)
+                    field(MatchingCompaniesField; GetMatchingCompaniesCount())
                     {
                         Caption = 'Matching Companies';
-                        Editable = false;
                         ToolTip = 'Shows the number of companies that match the current filter.';
                     }
                 }
@@ -225,7 +219,10 @@ page 4581 "Ext. SharePoint Account Wizard"
 
                 trigger OnAction()
                 begin
-                    CurrPage.Close();
+                    if Step = Step::AccountDetails then
+                        CurrPage.Close()
+                    else
+                        Step -= 1;
                 end;
             }
             action(Next)
@@ -235,42 +232,27 @@ page 4581 "Ext. SharePoint Account Wizard"
                 Image = NextRecord;
                 InFooterBar = true;
                 ToolTip = 'Move to next step.';
-                Visible = Step < Step::CompanySelection;
 
                 trigger OnAction()
                 var
                     SecretToPass: SecretText;
                 begin
-                    Step += 1;
-                    if Step = Step::CompanySelection then
-                        UpdateFinishEnabled();
-                end;
-            }
-            action(FinishAction)
-            {
-                Caption = 'Finish';
-                Enabled = IsFinishEnabled;
-                Image = Approve;
-                InFooterBar = true;
-                ToolTip = 'Create the file account in all selected companies.';
-                Visible = Step = Step::CompanySelection;
-
-                trigger OnAction()
-                var
-                    SecretToPass: SecretText;
-                begin
-                    case Rec."Authentication Type" of
-                        Enum::"Ext. SharePoint Auth Type"::"Client Secret":
-                            SecretToPass := ClientSecret;
-                        Enum::"Ext. SharePoint Auth Type"::Certificate:
-                            SecretToPass := Certificate;
+                    if (Step = Step::AccountDetails) and not MultipleCompanies then begin
+                        SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount);
+                        CurrPage.Close();
                     end;
-
-                    if not MultipleCompanies then
-                        SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount)
-                    else
+                    if Step = Step::CompanySelection then begin
+                        case Rec."Authentication Type" of
+                            Enum::"Ext. SharePoint Auth Type"::"Client Secret":
+                                SecretToPass := ClientSecret;
+                            Enum::"Ext. SharePoint Auth Type"::Certificate:
+                                SecretToPass := Certificate;
+                        end;
                         CreateAccountInCompanies(Rec, SecretToPass, CertificatePassword);
-                    CurrPage.Close();
+                        CurrPage.Close();
+                    end;
+                    IsNextEnabled := GetMatchingCompaniesCount > 0;
+                    Step += 1;
                 end;
             }
         }
@@ -292,10 +274,8 @@ page 4581 "Ext. SharePoint Account Wizard"
         CertificateVisible: Boolean;
         MultipleCompanies: Boolean;
         CompanyFilter: Text;
-        MatchingCompaniesCount: Integer;
         SetAsDefault: Boolean;
         Step: Option AccountDetails,CompanySelection;
-        IsFinishEnabled: Boolean;
 
     trigger OnOpenPage()
     var
@@ -341,20 +321,14 @@ page 4581 "Ext. SharePoint Account Wizard"
             CertificateStatusText := CertificateUploadedLbl;
     end;
 
-    local procedure UpdateFinishEnabled()
+    local procedure GetMatchingCompaniesCount(): Integer
     var
         Company: Record Company;
     begin
-        if not MultipleCompanies then begin
-            MatchingCompaniesCount := 0;
-            IsFinishEnabled := true;
-            exit;
-        end;
         Company.Reset();
         if CompanyFilter <> '' then
             Company.SetFilter(Name, CompanyFilter);
-        MatchingCompaniesCount := Company.Count();
-        IsFinishEnabled := MatchingCompaniesCount > 0;
+        exit(Company.Count());
     end;
 
     local procedure CreateAccountInCompanies(var AccountToCopy: Record "Ext. SharePoint Account"; ClientSecretOrCertificate: SecretText; CertificatePassword: SecretText)
