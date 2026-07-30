@@ -247,7 +247,7 @@ The small curated J/H scenarios stay in the **Daily** `TMA-UNIT` gate; the large
 |---------|-----------|----------|
 | `TMA-TS-AccUS-1.yaml` | ~144 | US states (first half of the catalog) |
 | `TMA-TS-AccUS-2.yaml` | ~139 | US states (second half) |
-| `TMA-TS-AccCA.yaml` | ~69 | Canada provinces incl. French (TPS/TVQ) abbreviations |
+| `TMA-TS-AccCA.yaml` | ~65 | Canada provinces incl. French (TPS/TVQ) abbreviations |
 
 **Coverage axes** — 24 US states + 7 CA provinces (state/province + county/city/district
 jurisdictions), each exercised through title **perturbations**: exact, sales-variant,

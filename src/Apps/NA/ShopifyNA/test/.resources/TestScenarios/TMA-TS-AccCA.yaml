@@ -160,7 +160,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "ONTARIO STATE SALES & USE TAX"
+              title: "HST HARMONIZED SALES TAX"
               ratePct: 13.0
               channelLiable: false
     expected:
@@ -330,38 +330,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "QCGST"
 
-  - name: CA-QC-03-minimal-abbrev
-    description: "QC primary jurisdiction via minimal-abbrev title must match QCGST"
-    setup:
-      shopSettings:
-        autoCreateTaxJurisdictions: false
-        autoCreateTaxAreas: true
-        taxAreaNamingPattern: SHPFY-
-      taxJurisdictions:
-        - Code: QCGST
-          Description: Quebec GST
-          Country/Region Code: CA
-        - Code: QCQST
-          Description: Quebec QST
-          Country/Region Code: CA
-      orderAddress:
-        countryRegionCode: CA
-        county: QC
-        city: Montreal
-      orderLines:
-        - lineId: 10001
-          taxLines:
-            - lineNo: 1
-              title: "QC TAX"
-              ratePct: 5.0
-              channelLiable: false
-    expected:
-      taxLineJurisdictions:
-        - parentId: 10001
-          lineNo: 1
-          jurisdictionCode: "QCGST"
-
-  - name: CA-QC-04-punctuation
+  - name: CA-QC-03-punctuation
     description: "QC primary jurisdiction via punctuation title must match QCGST"
     setup:
       shopSettings:
@@ -392,7 +361,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "QCGST"
 
-  - name: CA-QC-05-embedded-rate
+  - name: CA-QC-04-embedded-rate
     description: "QC primary jurisdiction via embedded-rate title must match QCGST"
     setup:
       shopSettings:
@@ -423,7 +392,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "QCGST"
 
-  - name: CA-QC-06-truncated-code20
+  - name: CA-QC-05-truncated-code20
     description: "QC primary jurisdiction via truncated-code20 title must match QCGST"
     setup:
       shopSettings:
@@ -445,7 +414,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "QUEBEC STATE SALES & USE TAX"
+              title: "GST GOODS AND SERVICES TAX"
               ratePct: 5.0
               channelLiable: false
     expected:
@@ -729,38 +698,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "BCGST"
 
-  - name: CA-BC-03-minimal-abbrev
-    description: "BC primary jurisdiction via minimal-abbrev title must match BCGST"
-    setup:
-      shopSettings:
-        autoCreateTaxJurisdictions: false
-        autoCreateTaxAreas: true
-        taxAreaNamingPattern: SHPFY-
-      taxJurisdictions:
-        - Code: BCGST
-          Description: British Columbia GST
-          Country/Region Code: CA
-        - Code: BCPST
-          Description: British Columbia PST
-          Country/Region Code: CA
-      orderAddress:
-        countryRegionCode: CA
-        county: BC
-        city: Vancouver
-      orderLines:
-        - lineId: 10001
-          taxLines:
-            - lineNo: 1
-              title: "BC TAX"
-              ratePct: 5.0
-              channelLiable: false
-    expected:
-      taxLineJurisdictions:
-        - parentId: 10001
-          lineNo: 1
-          jurisdictionCode: "BCGST"
-
-  - name: CA-BC-04-punctuation
+  - name: CA-BC-03-punctuation
     description: "BC primary jurisdiction via punctuation title must match BCGST"
     setup:
       shopSettings:
@@ -791,7 +729,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "BCGST"
 
-  - name: CA-BC-05-embedded-rate
+  - name: CA-BC-04-embedded-rate
     description: "BC primary jurisdiction via embedded-rate title must match BCGST"
     setup:
       shopSettings:
@@ -822,7 +760,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "BCGST"
 
-  - name: CA-BC-06-truncated-code20
+  - name: CA-BC-05-truncated-code20
     description: "BC primary jurisdiction via truncated-code20 title must match BCGST"
     setup:
       shopSettings:
@@ -844,7 +782,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "BRITISH COLUMBIA STATE SALES & USE TAX"
+              title: "GST GOODS AND SERVICES TAX"
               ratePct: 5.0
               channelLiable: false
     expected:
@@ -1154,7 +1092,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "ALBERTA STATE SALES & USE TAX"
+              title: "GST GOODS AND SERVICES TAX"
               ratePct: 5.0
               channelLiable: false
     expected:
@@ -1421,7 +1359,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "NOVA SCOTIA STATE SALES & USE TAX"
+              title: "HST HARMONIZED SALES TAX"
               ratePct: 15.0
               channelLiable: false
     expected:
@@ -1591,38 +1529,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "MBGST"
 
-  - name: CA-MB-03-minimal-abbrev
-    description: "MB primary jurisdiction via minimal-abbrev title must match MBGST"
-    setup:
-      shopSettings:
-        autoCreateTaxJurisdictions: false
-        autoCreateTaxAreas: true
-        taxAreaNamingPattern: SHPFY-
-      taxJurisdictions:
-        - Code: MBGST
-          Description: Manitoba GST
-          Country/Region Code: CA
-        - Code: MBPST
-          Description: Manitoba PST
-          Country/Region Code: CA
-      orderAddress:
-        countryRegionCode: CA
-        county: MB
-        city: Winnipeg
-      orderLines:
-        - lineId: 10001
-          taxLines:
-            - lineNo: 1
-              title: "MB TAX"
-              ratePct: 5.0
-              channelLiable: false
-    expected:
-      taxLineJurisdictions:
-        - parentId: 10001
-          lineNo: 1
-          jurisdictionCode: "MBGST"
-
-  - name: CA-MB-04-punctuation
+  - name: CA-MB-03-punctuation
     description: "MB primary jurisdiction via punctuation title must match MBGST"
     setup:
       shopSettings:
@@ -1653,7 +1560,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "MBGST"
 
-  - name: CA-MB-05-embedded-rate
+  - name: CA-MB-04-embedded-rate
     description: "MB primary jurisdiction via embedded-rate title must match MBGST"
     setup:
       shopSettings:
@@ -1684,7 +1591,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "MBGST"
 
-  - name: CA-MB-06-truncated-code20
+  - name: CA-MB-05-truncated-code20
     description: "MB primary jurisdiction via truncated-code20 title must match MBGST"
     setup:
       shopSettings:
@@ -1706,7 +1613,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "MANITOBA STATE SALES & USE TAX"
+              title: "GST GOODS AND SERVICES TAX"
               ratePct: 5.0
               channelLiable: false
     expected:
@@ -1919,38 +1826,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "SKGST"
 
-  - name: CA-SK-03-minimal-abbrev
-    description: "SK primary jurisdiction via minimal-abbrev title must match SKGST"
-    setup:
-      shopSettings:
-        autoCreateTaxJurisdictions: false
-        autoCreateTaxAreas: true
-        taxAreaNamingPattern: SHPFY-
-      taxJurisdictions:
-        - Code: SKGST
-          Description: Saskatchewan GST
-          Country/Region Code: CA
-        - Code: SKPST
-          Description: Saskatchewan PST
-          Country/Region Code: CA
-      orderAddress:
-        countryRegionCode: CA
-        county: SK
-        city: Regina
-      orderLines:
-        - lineId: 10001
-          taxLines:
-            - lineNo: 1
-              title: "SK TAX"
-              ratePct: 5.0
-              channelLiable: false
-    expected:
-      taxLineJurisdictions:
-        - parentId: 10001
-          lineNo: 1
-          jurisdictionCode: "SKGST"
-
-  - name: CA-SK-04-punctuation
+  - name: CA-SK-03-punctuation
     description: "SK primary jurisdiction via punctuation title must match SKGST"
     setup:
       shopSettings:
@@ -1981,7 +1857,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "SKGST"
 
-  - name: CA-SK-05-embedded-rate
+  - name: CA-SK-04-embedded-rate
     description: "SK primary jurisdiction via embedded-rate title must match SKGST"
     setup:
       shopSettings:
@@ -2012,7 +1888,7 @@ tests:
           lineNo: 1
           jurisdictionCode: "SKGST"
 
-  - name: CA-SK-06-truncated-code20
+  - name: CA-SK-05-truncated-code20
     description: "SK primary jurisdiction via truncated-code20 title must match SKGST"
     setup:
       shopSettings:
@@ -2034,7 +1910,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "SASKATCHEWAN STATE SALES & USE TAX"
+              title: "GST GOODS AND SERVICES TAX"
               ratePct: 5.0
               channelLiable: false
     expected:

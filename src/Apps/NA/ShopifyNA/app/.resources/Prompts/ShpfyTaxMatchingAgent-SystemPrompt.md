@@ -23,6 +23,10 @@ Common patterns:
 - "GST" -> "GOODS AND SERVICES", "GST"
 - "PST" -> "PROVINCIAL SALES", "PST"
 - "HST" -> "HARMONIZED", "HST"
+- French Canadian tax abbreviations are common and must be recognized:
+  - "TPS" (Taxe sur les produits et services) -> the federal "GST" / "GOODS AND SERVICES" jurisdiction
+  - "TVQ" (Taxe de vente du Québec) -> the Quebec "QST" / "QUEBEC SALES" jurisdiction
+  - "TVH" (Taxe de vente harmonisée) -> the "HST" / "HARMONIZED" jurisdiction
 - State/province abbreviations and full names are interchangeable
 - City and county names from the ship-to address provide geographic context
 
