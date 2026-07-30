@@ -86,9 +86,6 @@ page 9661 "Report Layout Edit Dialog"
                     if OverrideMode then begin
                         LayoutNameEditable := CreateCopy;
                         AvailableInAllCompaniesEditable := CreateCopy;
-                        OverrideForAllCompaniesEditable := not CreateCopy;
-                        if CreateCopy then
-                            OverrideForAllCompanies := false;
                     end else
                         if (CreateCopy) then
                             AvailableInAllCompaniesEditable := true
@@ -107,21 +104,11 @@ page 9661 "Report Layout Edit Dialog"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Available in All Companies';
                 ToolTip = 'Specifies whether the layout should be available in all companies or just the current company.';
-                // Always visible: `Visible` is evaluated when the page initialises and is NOT
-                // re-evaluated when a variable changes, so it cannot be revealed by ticking Copy.
-                // Editability carries the meaning instead — for an extension layout this field states
-                // the (true) fact that the layout is available everywhere and is read-only until the
-                // user opts into a copy, whose company scope it then controls. The *override* scope is
-                // a separate control, so the two meanings stay distinct.
+                // For an extension layout this states the (true) fact that the layout is available
+                // everywhere; it is read-only until the user opts into a copy, whose company scope it
+                // then controls. Editing an extension layout in place never changes availability — it
+                // writes an override for the CURRENT company only, with no scope choice to make.
                 Editable = AvailableInAllCompaniesEditable;
-            }
-            field(OverrideForAllCompanies; OverrideForAllCompanies)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Override for all companies';
-                ToolTip = 'Specifies whether this override applies to all companies (global) or only the current company. The layout itself stays available everywhere; this controls only the scope of the override. Not used when you save the changes to a copy — a copy is a new layout, and its availability is set above.';
-                Visible = OverrideMode;
-                Editable = OverrideForAllCompaniesEditable;
             }
             field(IsObsolete; IsObsolete)
             {
@@ -152,8 +139,6 @@ page 9661 "Report Layout Edit Dialog"
         LayoutNameEditable: Boolean;
         IsObsoleteEditable: Boolean;
         OverrideMode: Boolean;
-        OverrideForAllCompanies: Boolean;
-        OverrideForAllCompaniesEditable: Boolean;
 
     internal procedure SelectedLayoutDescription(): Text[250]
     begin
@@ -168,11 +153,6 @@ page 9661 "Report Layout Edit Dialog"
     internal procedure SelectedAvailableInAllCompanies(): Boolean
     begin
         exit(AvailableInAllCompanies);
-    end;
-
-    internal procedure SelectedOverrideForAllCompanies(): Boolean
-    begin
-        exit(OverrideForAllCompanies);
     end;
 
     internal procedure SelectedIsObsolete(): Boolean
@@ -207,10 +187,9 @@ page 9661 "Report Layout Edit Dialog"
             CreateCopyEditable := true;
             LayoutNameEditable := false;
             IsObsoleteEditable := not ReportLayoutList.IsObsolete;
-            // Override scope uses its own control and defaults to the CURRENT company (ask-first
-            // before global) — NOT the "Available in All Companies" layout-availability field.
-            OverrideForAllCompanies := false;
-            OverrideForAllCompaniesEditable := true;
+            // No scope choice is offered here: an in-place edit of an extension layout always writes a
+            // CURRENT-COMPANY override. Tenant-wide (global) overrides are a governance act — see the
+            // task notes — and are deliberately kept out of this dialog.
             // Keep the shipped default for the copy escape hatch: a copy of an extension layout is
             // created for all companies unless the user says otherwise (unlocked once Copy is ticked).
             AvailableInAllCompanies := true;

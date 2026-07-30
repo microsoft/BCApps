@@ -46,8 +46,6 @@ codeunit 9660 "Report Layouts Impl."
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = Layout Name';
         MixedScopeErr: Label 'The selected layouts have different scopes. Some apply to all companies and some only to the current company. Select layouts of a single scope and try again.';
         GlobalScopeConfirmQst: Label 'One or more of the selected layouts apply to all companies. Changing the status will affect all companies, not only the current one. Do you want to continue?';
-        GlobalOverrideConfirmQst: Label 'This override will apply to all companies, not only the current one. Do you want to continue?\\Choose No to discard the changes without applying them. To apply them to the current company only, reopen Edit info and leave "Override for all companies" clear.';
-        NoChangesAppliedMsg: Label 'No changes were applied. To change this layout for the current company only, reopen Edit info and leave "Override for all companies" clear.';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
     begin
@@ -721,12 +719,12 @@ codeunit 9660 "Report Layouts Impl."
             AvailableInAllCompanies := ReportLayoutEditDialog.SelectedAvailableInAllCompanies();
             NewIsObsolete := ReportLayoutEditDialog.SelectedIsObsolete();
 
-            // For an extension layout edited IN PLACE the scope comes from the dedicated "Override for
-            // all companies" control. A copy is an ordinary tenant layout, so its company scope keeps
-            // coming from "Available in All Companies" (read above) — the override control must not
-            // decide where the copy lives.
+            // An extension layout edited IN PLACE always overrides for the CURRENT company: the
+            // tenant-wide (global) decision is a governance act and is not offered here. A copy is an
+            // ordinary tenant layout, so its company scope keeps coming from "Available in All
+            // Companies" (read above).
             if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then
-                AvailableInAllCompanies := ReportLayoutEditDialog.SelectedOverrideForAllCompanies();
+                AvailableInAllCompanies := false;
 
             // Extension-installed layout, edited in place (not copied): write an override for only the
             // properties the user actually changed (a no-op OK writes nothing). IsObsolete is one-way.
@@ -737,17 +735,6 @@ codeunit 9660 "Report Layouts Impl."
                 ApplyObsolete := NewIsObsolete and (not SelectedReportLayoutList.IsObsolete);
                 if not (ApplyDescription or ApplyObsolete) then
                     exit;
-                // Declining the all-companies scope abandons the edit — say so explicitly, so the user
-                // isn't left wondering whether the change was applied to this company at least.
-                // (Reopening the dialog with the entries preserved is not possible here: an AL Page
-                // variable cannot be run twice without Clear(), which would discard those entries.)
-                // Nested ifs on purpose: AL does not short-circuit `and`, so combining these would
-                // call Confirm even for a company-scoped edit.
-                if AvailableInAllCompanies then
-                    if not Confirm(GlobalOverrideConfirmQst, false) then begin
-                        Message(NoChangesAppliedMsg);
-                        exit;
-                    end;
             end;
 
             if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin

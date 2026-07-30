@@ -801,8 +801,8 @@ codeunit 139595 "Report Layouts Test"
     end;
 
     [Test]
-    [HandlerFunctions('EditExtensionOverrideGlobalDescHandler,ConfirmHandler')]
-    procedure TestEditExtensionLayoutWritesGlobalDescriptionOverride()
+    [HandlerFunctions('EditExtensionOverrideDescHandler')]
+    procedure TestEditExtensionLayoutWritesCompanyDescriptionOverride()
     var
         TenantReportLayout: Record "Tenant Report Layout";
         TenantReportLayoutOverride: Record "Tenant Report Layout Override";
@@ -810,26 +810,30 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage: TestPage "Report Layouts";
     begin
         // [FEATURE] [AI TEST]
-        // [SCENARIO] Editing an extension-installed layout's description writes a global
-        // Tenant Report Layout Override record instead of copying the layout.
+        // [SCENARIO] Editing an extension-installed layout's description writes a CURRENT-COMPANY
+        // Tenant Report Layout Override record instead of copying the layout. The dialog offers no
+        // scope choice — tenant-wide overrides are a governance act, not an everyday edit.
         EnsureNewLayoutsAreCleaned();
 
         ReportLayoutList.SetRange("Report ID", 139595);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
-        // Act - Edit info (override mode), global scope
+        // Act - Edit info (override mode)
         ReportLayoutsPage.OpenView();
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
         ReportLayoutsPage.EditLayout.Invoke();
         ReportLayoutsPage.Close();
 
-        // Assert - a global description override exists, no tenant copy
+        // Assert - a COMPANY-scoped description override exists (and no global one), no tenant copy
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
-            'A global override record should have been created.');
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'A company-specific override record should have been created.');
         Assert.IsTrue(TenantReportLayoutOverride."Override Description", 'The Override Description flag should be set.');
         Assert.AreEqual(EditedLayoutNameTxt, TenantReportLayoutOverride.Description, 'The override should carry the edited description.');
+        Assert.IsFalse(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            'An everyday edit must never create a global override.');
 
         TenantReportLayout.SetRange("Report ID", 139595);
         Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
@@ -897,17 +901,15 @@ codeunit 139595 "Report Layouts Test"
     end;
 
     [ModalPageHandler]
-    procedure EditExtensionOverrideGlobalDescHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
+    procedure EditExtensionOverrideDescHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
     begin
         ReportLayoutEditDialog.Description.SetValue(EditedLayoutNameTxt);
-        ReportLayoutEditDialog.OverrideForAllCompanies.SetValue(true);
         ReportLayoutEditDialog.OK().Invoke();
     end;
 
     [ModalPageHandler]
     procedure EditExtensionOverrideCompanyObsoleteHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
     begin
-        ReportLayoutEditDialog.OverrideForAllCompanies.SetValue(false);
         ReportLayoutEditDialog.IsObsolete.SetValue(true);
         ReportLayoutEditDialog.OK().Invoke();
     end;
@@ -919,36 +921,6 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutEditDialog.OK().Invoke();
     end;
 
-    [Test]
-    [HandlerFunctions('EditExtensionOverrideDeclineGlobalHandler,ConfirmHandlerNo,MessageHandler')]
-    procedure TestEditExtensionLayoutDeclineGlobalWritesNothing()
-    var
-        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
-        ReportLayoutList: Record "Report Layout List";
-        ReportLayoutsPage: TestPage "Report Layouts";
-    begin
-        // [FEATURE] [AI TEST]
-        // [SCENARIO] Declining the all-companies confirmation applies nothing (not globally and not
-        // for the current company) and tells the user so — no silent partial write.
-        EnsureNewLayoutsAreCleaned();
-        EditDialogPass := 0;
-
-        ReportLayoutList.SetRange("Report ID", 139595);
-        ReportLayoutList.SetRange("User Defined", false);
-        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
-
-        // Act - type a description, ask for an all-companies override, then decline the confirmation
-        ReportLayoutsPage.OpenView();
-        ReportLayoutsPage.GoToRecord(ReportLayoutList);
-        ReportLayoutsPage.EditLayout.Invoke();
-        ReportLayoutsPage.Close();
-
-        Assert.AreEqual(1, EditDialogPass, 'The edit dialog should have been shown exactly once.');
-
-        // Assert - nothing was written at either scope
-        TenantReportLayoutOverride.SetRange("Report ID", 139595);
-        Assert.IsTrue(TenantReportLayoutOverride.IsEmpty(), 'Declining the all-companies scope must not write any override.');
-    end;
 
     [Test]
     [HandlerFunctions('EditExtensionCopyAllCompaniesHandler')]
@@ -996,26 +968,10 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutEditDialog.OK().Invoke();
     end;
 
-    [ModalPageHandler]
-    procedure EditExtensionOverrideDeclineGlobalHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
-    begin
-        // Type a description and ask for an all-companies override; ConfirmHandlerNo then declines it.
-        EditDialogPass += 1;
-        ReportLayoutEditDialog.Description.SetValue(EditedLayoutNameTxt);
-        ReportLayoutEditDialog.OverrideForAllCompanies.SetValue(true);
-        ReportLayoutEditDialog.OK().Invoke();
-    end;
-
-    [ConfirmHandler]
-    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := false;
-    end;
 
     var
         Assert: Codeunit Assert;
         TempBlob: Codeunit "Temp Blob";
-        EditDialogPass: Integer;
         NewLayoutNameTxt: Label 'NewLayout';
         EditedLayoutNameTxt: Label 'EditedLayout';
         SampleTextTxt: Label 'ATAKLOA, TINWTABSBATF.';
