@@ -132,7 +132,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "ON TAX 13.0%"
+              title: "HST 13.0%"
               ratePct: 13.0
               channelLiable: false
     expected:
@@ -383,7 +383,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "QC TAX 5.0%"
+              title: "GST 5.0%"
               ratePct: 5.0
               channelLiable: false
     expected:
@@ -751,7 +751,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "BC TAX 5.0%"
+              title: "GST 5.0%"
               ratePct: 5.0
               channelLiable: false
     expected:
@@ -1064,7 +1064,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "AB TAX 5.0%"
+              title: "GST 5.0%"
               ratePct: 5.0
               channelLiable: false
     expected:
@@ -1331,7 +1331,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "NS TAX 15.0%"
+              title: "HST 15.0%"
               ratePct: 15.0
               channelLiable: false
     expected:
@@ -1582,7 +1582,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "MB TAX 5.0%"
+              title: "GST 5.0%"
               ratePct: 5.0
               channelLiable: false
     expected:
@@ -1879,7 +1879,7 @@ tests:
         - lineId: 10001
           taxLines:
             - lineNo: 1
-              title: "SK TAX 5.0%"
+              title: "GST 5.0%"
               ratePct: 5.0
               channelLiable: false
     expected:
