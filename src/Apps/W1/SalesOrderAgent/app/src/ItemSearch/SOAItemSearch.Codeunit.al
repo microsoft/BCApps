@@ -493,7 +493,7 @@ codeunit 4591 "SOA Item Search"
         ColumnValuesObject: JsonObject;
         VariantArray: JsonArray;
         VariantObject: JsonObject;
-        ItemNoFilter: Text;
+        ItemNoFilterTextBuilder: TextBuilder;
     begin
         Clear(CandidateArray);
         if ItemFilter = '' then
@@ -513,13 +513,13 @@ codeunit 4591 "SOA Item Search"
             TempItem.Insert(false, true);
 
             ItemNoFilterBuilder.SetRange("No.", Item."No.");
-            if ItemNoFilter <> '' then
-                ItemNoFilter += '|';
-            ItemNoFilter += ItemNoFilterBuilder.GetFilter("No.");
+            if ItemNoFilterTextBuilder.Length() > 0 then
+                ItemNoFilterTextBuilder.Append('|');
+            ItemNoFilterTextBuilder.Append(ItemNoFilterBuilder.GetFilter("No."));
         until Item.Next() = 0;
 
         ItemVariant.SetLoadFields("Item No.", Code, Description, "Description 2");
-        ItemVariant.SetFilter("Item No.", ItemNoFilter);
+        ItemVariant.SetFilter("Item No.", ItemNoFilterTextBuilder.ToText());
         if ItemVariant.FindSet() then
             repeat
                 Clear(VariantArray);
