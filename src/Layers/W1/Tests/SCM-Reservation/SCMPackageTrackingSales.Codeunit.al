@@ -2068,6 +2068,11 @@ codeunit 137264 "SCM Package Tracking Sales"
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdateVATPostingSetup();
         LibraryERMCountryData.UpdateLocalData();
+        // GB demo data enables "Posting Date Check on Posting", which turns a posting date that
+        // differs from the work date into a Confirm dialog. These tests have no handler for it, so
+        // the setup has to be cleared here rather than relying on another codeunit having done it.
+        LibraryERMCountryData.UpdateSalesReceivablesSetup();
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
 
         LibraryPurchase.SetReturnOrderNoSeriesInSetup();
         SetupInvtDocNosInInvSetup();
