@@ -2058,7 +2058,6 @@ codeunit 134101 "ERM Prepayment II"
         LineGLAccount: Record "G/L Account";
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         DocumentNo: Code[20];
         PrePaymentLineAmount: Decimal;
         SalesPrepaymentsAccount: Code[20];
