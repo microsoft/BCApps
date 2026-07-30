@@ -485,11 +485,14 @@ codeunit 4591 "SOA Item Search"
     local procedure BuildCandidateArrayFromItemFilter(ItemFilter: Text; var CandidateArray: JsonArray)
     var
         Item: Record Item;
+        ItemNoFilterBuilder: Record Item;
         ItemVariant: Record "Item Variant";
+        ItemVariants: Dictionary of [Code[20], JsonArray];
         CandidateObject: JsonObject;
         ColumnValuesObject: JsonObject;
         VariantArray: JsonArray;
         VariantObject: JsonObject;
+        ItemNoFilter: Text;
     begin
         Clear(CandidateArray);
         if ItemFilter = '' then
@@ -497,6 +500,35 @@ codeunit 4591 "SOA Item Search"
 
         Item.SetLoadFields("No.", Description, "Description 2", SystemId);
         Item.SetFilter(SystemId, ItemFilter);
+        if not Item.FindSet() then
+            exit;
+
+        repeat
+            ItemNoFilterBuilder.SetRange("No.", Item."No.");
+            if ItemNoFilter <> '' then
+                ItemNoFilter += '|';
+            ItemNoFilter += ItemNoFilterBuilder.GetFilter("No.");
+        until Item.Next() = 0;
+
+        ItemVariant.SetLoadFields("Item No.", Code, Description, "Description 2");
+        ItemVariant.SetFilter("Item No.", ItemNoFilter);
+        if ItemVariant.FindSet() then
+            repeat
+                Clear(VariantArray);
+                if ItemVariants.Get(ItemVariant."Item No.", VariantArray) then;
+
+                Clear(VariantObject);
+                VariantObject.Add('Code', ItemVariant.Code);
+                VariantObject.Add('Description', ItemVariant.Description);
+                VariantObject.Add('Description 2', ItemVariant."Description 2");
+                VariantArray.Add(VariantObject);
+
+                if ItemVariants.ContainsKey(ItemVariant."Item No.") then
+                    ItemVariants.Set(ItemVariant."Item No.", VariantArray)
+                else
+                    ItemVariants.Add(ItemVariant."Item No.", VariantArray);
+            until ItemVariant.Next() = 0;
+
         if not Item.FindSet() then
             exit;
 
@@ -509,16 +541,7 @@ codeunit 4591 "SOA Item Search"
             ColumnValuesObject.Add('Description', Item.Description);
             ColumnValuesObject.Add('Description 2', Item."Description 2");
 
-            ItemVariant.SetRange("Item No.", Item."No.");
-            ItemVariant.SetLoadFields(Code, Description, "Description 2");
-            if ItemVariant.FindSet() then
-                repeat
-                    Clear(VariantObject);
-                    VariantObject.Add('Code', ItemVariant.Code);
-                    VariantObject.Add('Description', ItemVariant.Description);
-                    VariantObject.Add('Description 2', ItemVariant."Description 2");
-                    VariantArray.Add(VariantObject);
-                until ItemVariant.Next() = 0;
+            if ItemVariants.Get(Item."No.", VariantArray) then;
 
             ColumnValuesObject.Add('Variants', VariantArray);
             CandidateObject.Add('system_id', Format(Item.SystemId));

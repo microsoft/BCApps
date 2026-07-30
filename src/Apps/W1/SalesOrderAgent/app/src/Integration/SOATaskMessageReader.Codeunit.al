@@ -21,17 +21,16 @@ codeunit 4420 "SOA Task Message Reader"
         AgentMetadataProvider: Enum "Agent Metadata Provider";
         MessageContent: Text;
         InStream: InStream;
-        TaskContextMismatchErr: Label 'The requested agent task does not match the current agent session.';
     begin
         if AgentTaskID = 0 then
             exit('');
 
         if not AgentSession.IsAgentSession(AgentMetadataProvider) then
-            Error(TaskContextMismatchErr);
+            ErrorTaskContextMismatch();
         if AgentMetadataProvider <> "Agent Metadata Provider"::"SO Agent" then
-            Error(TaskContextMismatchErr);
+            ErrorTaskContextMismatch();
         if AgentSession.GetCurrentSessionAgentTaskId() <> AgentTaskID then
-            Error(TaskContextMismatchErr);
+            ErrorTaskContextMismatch();
 
         AgentTaskMessage.ReadIsolation := IsolationLevel::ReadCommitted;
         AgentTaskMessage.SetAutoCalcFields(Content);
@@ -47,4 +46,16 @@ codeunit 4420 "SOA Task Message Reader"
         InStream.Read(MessageContent);
         exit(MessageContent);
     end;
+
+    local procedure ErrorTaskContextMismatch()
+    var
+        TaskContextMismatchErrorInfo: ErrorInfo;
+    begin
+        TaskContextMismatchErrorInfo.Message(TaskContextMismatchErr);
+        TaskContextMismatchErrorInfo.ErrorType(ErrorType::Internal);
+        Error(TaskContextMismatchErrorInfo);
+    end;
+
+    var
+        TaskContextMismatchErr: Label 'The requested agent task does not match the current agent session.';
 }
