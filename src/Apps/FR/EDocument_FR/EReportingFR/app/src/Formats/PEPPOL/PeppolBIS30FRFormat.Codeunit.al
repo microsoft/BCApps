@@ -164,7 +164,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         DeliveryElement: XmlElement;
         LineXPath: Text;
     begin
-        LineXPath := StrSubstNo('/*/cac:InvoiceLine[cbc:ID=''%1'']', Format(SalesInvoiceLine."Line No.", 0, 9));
+        LineXPath := StrSubstNo(InvoiceLineXPathTok, Format(SalesInvoiceLine."Line No.", 0, 9));
         if not XmlDoc.SelectSingleNode(LineXPath, NamespaceMgr, InvoiceLineNode) then
             exit;
         if not InvoiceLineNode.SelectSingleNode('cac:Item', NamespaceMgr, ItemNode) then
@@ -317,7 +317,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 ElecAddress := CompanyInformation."SIRET No.";
                 ElecAddressScheme := ElecAddressScheme::"0009";
             end else begin
-                ElecAddress := CompanyInformation.GetVATRegistrationNumber();
+                ElecAddress := CopyStr(CompanyInformation.GetVATRegistrationNumber(), 1, MaxStrLen(ElecAddress));
                 ElecAddressScheme := ElecAddressScheme::"0223";
             end;
 
@@ -509,4 +509,5 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         CacNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
         ExtendedCTCFranceCustomizationIdTok: Label 'EXTENDED-CTC-FR', Locked = true;
         RegulatoryCommentFormatTok: Label '#%1#%2', Locked = true;
+        InvoiceLineXPathTok: Label '/*/cac:InvoiceLine[cbc:ID=''%1'']', Locked = true;
 }
