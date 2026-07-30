@@ -23,6 +23,7 @@ codeunit 148057 "Reverse Charge CZL"
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPatterns: Codeunit "Library - Patterns";
+        LibraryTaxCZL: Codeunit "Library - Tax CZL";
         Assert: Codeunit Assert;
         SalesDocumentType: Enum "Sales Document Type";
         SalesLineType: Enum "Sales Line Type";
@@ -253,12 +254,11 @@ codeunit 148057 "Reverse Charge CZL"
 
     local procedure CreateTariffNo(var TariffNumber: Record "Tariff Number"; CommodityCode: Code[10]; UoMCode: Code[10])
     begin
-        TariffNumber.Init();
-        TariffNumber."No." := CopyStr(LibraryRandom.RandText(3), 1, MaxStrLen(CommodityCode));
+        LibraryTaxCZL.CreateTariffNumber(TariffNumber);
         TariffNumber."Statement Code CZL" := CommodityCode;
         TariffNumber."Statement Limit Code CZL" := CommodityCode;
         TariffNumber."VAT Stat. UoM Code CZL" := UoMCode;
         TariffNumber."Allow Empty UoM Code CZL" := false;
-        TariffNumber.Insert();
+        TariffNumber.Modify();
     end;
 }
