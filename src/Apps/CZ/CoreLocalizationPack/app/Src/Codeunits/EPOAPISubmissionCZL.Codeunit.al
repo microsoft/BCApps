@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Utilities;
 using System.RestClient;
 
 codeunit 31175 "EPO API Submission CZL"
@@ -47,5 +48,24 @@ codeunit 31175 "EPO API Submission CZL"
     procedure GetHttpResponse(): Codeunit "Http Response Message"
     begin
         exit(HttpResponseMessage);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Service Connection", 'OnRegisterServiceConnection', '', false, false)]
+    local procedure HandleEPOServiceConnection(var ServiceConnection: Record "Service Connection")
+    var
+        EPOServiceSetupRecordRef: RecordRef;
+    begin
+        if not EPOServiceSetupCZL.Get() then begin
+            EPOServiceSetupCZL.Init();
+            EPOServiceSetupCZL.Insert();
+        end;
+        EPOServiceSetupRecordRef.GetTable(EPOServiceSetupCZL);
+
+        if EPOServiceSetupCZL.Enabled then
+            ServiceConnection.Status := ServiceConnection.Status::Enabled
+        else
+            ServiceConnection.Status := ServiceConnection.Status::Disabled;
+        ServiceConnection.InsertServiceConnection(
+              ServiceConnection, EPOServiceSetupRecordRef.RecordId, EPOServiceSetupCZL.TableCaption(), EPOServiceSetupCZL."Open Form Endpoint", Page::"EPO Service Setup CZL");
     end;
 }
