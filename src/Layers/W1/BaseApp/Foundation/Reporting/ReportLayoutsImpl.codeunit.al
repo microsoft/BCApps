@@ -739,10 +739,13 @@ codeunit 9660 "Report Layouts Impl."
                 // Declining the all-companies scope must NOT throw away what the user typed: reopen the
                 // dialog with their values, scope reset to the current company, so they can save it
                 // company-scoped (or cancel deliberately).
-                if AvailableInAllCompanies and (not Confirm(GlobalOverrideConfirmQst, false)) then begin
-                    ReportLayoutEditDialog.SetOverrideValues(NewDescription, NewIsObsolete, false);
-                    ReopenForScope := true;
-                end;
+                // Nested ifs on purpose: AL does not short-circuit `and`, so combining these would
+                // call Confirm even for a company-scoped edit.
+                if AvailableInAllCompanies then
+                    if not Confirm(GlobalOverrideConfirmQst, false) then begin
+                        ReportLayoutEditDialog.SetOverrideValues(NewDescription, NewIsObsolete, false);
+                        ReopenForScope := true;
+                    end;
             end;
         until not ReopenForScope;
 
