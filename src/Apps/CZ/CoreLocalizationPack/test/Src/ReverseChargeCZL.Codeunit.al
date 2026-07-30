@@ -118,11 +118,11 @@ codeunit 148057 "Reverse Charge CZL"
     end;
 
     [Test]
-    procedure PostSalesWithCommodityAboveLimit()
+    procedure PostSalesWithCommodityUnderLimit()
     var
         TariffNumber: Record "Tariff Number";
     begin
-        // [SCENARIO] Post Sales Invoice with Commodity above limit
+        // [SCENARIO] Post Sales Invoice with Commodity under limit
         Initialize();
 
         // [GIVEN] New Customer has been created
