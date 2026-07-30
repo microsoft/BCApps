@@ -775,9 +775,12 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     local procedure Initialize()
     var
         CountryRegion: Record "Country/Region";
+        ServiceParticipant: Record "Service Participant";
         ServiceCode: Code[20];
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
+        ServiceParticipant.SetRange(Service, EDocumentService.Code);
+        ServiceParticipant.DeleteAll();
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
