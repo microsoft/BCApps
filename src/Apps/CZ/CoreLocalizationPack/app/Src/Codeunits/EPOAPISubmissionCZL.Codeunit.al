@@ -11,10 +11,9 @@ codeunit 31175 "EPO API Submission CZL"
     Access = Internal;
 
     var
+        EPOServiceSetupCZL: Record "EPO Service Setup CZL";
         HttpResponseMessage: Codeunit "Http Response Message";
         FormUrl: Text;
-        BaseUrlTok: Label 'https://adisspr.mfcr.cz/dpr/', Locked = true;
-        SubmitUriTok: Label 'epo_podani?otevriFormular=1', Locked = true;
         UrlXPathTok: Label 'URL', Locked = true;
 
     [TryFunction]
@@ -25,10 +24,13 @@ codeunit 31175 "EPO API Submission CZL"
         ResponseXmlDocument: XmlDocument;
         UrlXmlNode: XmlNode;
     begin
+        EPOServiceSetupCZL.Get();
+        EPOServiceSetupCZL.TestField(Enabled, true);
+
         HttpContent := HttpContent.Create(Content);
         RestClient.Initialize();
-        RestClient.SetBaseAddress(BaseUrlTok);
-        HttpResponseMessage := RestClient.Post(SubmitUriTok, HttpContent);
+        RestClient.SetTimeOut(EPOServiceSetupCZL."Limit Response Time");
+        HttpResponseMessage := RestClient.Post(EPOServiceSetupCZL."Open Form Endpoint", HttpContent);
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetErrorMessage());
 
@@ -42,7 +44,7 @@ codeunit 31175 "EPO API Submission CZL"
         exit(FormUrl);
     end;
 
-    procedure GetHttpResonse(): Codeunit "Http Response Message"
+    procedure GetHttpResponse(): Codeunit "Http Response Message"
     begin
         exit(HttpResponseMessage);
     end;

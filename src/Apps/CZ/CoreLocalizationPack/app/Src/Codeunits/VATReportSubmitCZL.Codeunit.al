@@ -32,7 +32,7 @@ codeunit 31170 "VAT Report Submit CZL"
         VATReportArchiveMgtCZL.ArchiveSubmissionMessage(TempBlobSubmission, Rec);
 
         // archive response
-        TempBlobResponse := EPOAPISubmission.GetHttpResonse().GetContent().AsBlob();
+        TempBlobResponse := EPOAPISubmission.GetHttpResponse().GetContent().AsBlob();
         VATReportArchiveMgtCZL.RemoveVATReportResponseFromDocAttachment(Rec);
         VATReportArchiveMgtCZL.InsertVATReportResponseToDocAttachment(Rec, TempBlobResponse);
         VATReportArchiveMgtCZL.ArchiveResponseMessage(TempBlobResponse, Rec);
