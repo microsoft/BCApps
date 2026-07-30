@@ -11,6 +11,9 @@ codeunit 8026 "Process Usage Data Billing"
         UsageDataSupplier: Record "Usage Data Supplier";
         DateTimeManagement: Codeunit "Date Time Management";
         ContractItemMgt: Codeunit "Sub. Contracts Item Management";
+        ProgressTracker: Codeunit "Progress Tracker";
+        ProcessBillingLbl: Label 'Processing usage based billing...';
+        ImportEntryDetailLbl: Label 'Import Entry No. %1', Comment = '%1 = Usage Data Import Entry No.';
         DoesNotExistErr: Label 'No data found for processing step %1.', Comment = '%1=Name of the processing step';
         ProcessServiceCommitmentProcedureNameLbl: Label 'ProcessServiceCommitment', Locked = true;
         UsageBasedPricingOptionNotImplementedErr: Label 'Unknown option %1 for %2.\\Object Type: %3 Object Name: %4, Procedure: %5', Comment = '%1=Format("Calculation Base Type"), %2 = Fieldcaption for "Calculation Base Type", %3 = Object Type, %4 = Object Name, %5 = Procedure Name';
@@ -30,6 +33,8 @@ codeunit 8026 "Process Usage Data Billing"
     var
         UsageDataBilling: Record "Usage Data Billing";
         SubscriptionLineEntryNoList: List of [Integer];
+        Counter: Integer;
+        DetailText: Text;
     begin
         OnBeforeProcessUsageDataBilling(UsageDataImport);
         if UsageDataImport."Processing Status" = Enum::"Processing Status"::Closed then
@@ -46,13 +51,18 @@ codeunit 8026 "Process Usage Data Billing"
                 until UsageDataBilling.Next() = 0;
 
             UsageDataBilling.SetRange(Partner);
+            this.ProgressTracker.StartActivity(ProcessBillingLbl, UsageDataBilling.Count());
+            DetailText := StrSubstNo(ImportEntryDetailLbl, UsageDataImport."Entry No.");
             if UsageDataBilling.FindSet() then
                 repeat
+                    Counter += 1;
+                    this.ProgressTracker.UpdateProgress(Counter, DetailText);
                     if SubscriptionLineEntryNoList.IndexOf(UsageDataBilling."Subscription Line Entry No.") = 0 then begin
                         SubscriptionLineEntryNoList.Add(UsageDataBilling."Subscription Line Entry No.");
                         ProcessServiceCommitment(UsageDataBilling);
                     end;
                 until UsageDataBilling.Next() = 0;
+            this.ProgressTracker.Finish();
         end else begin
             UsageDataBilling.SetRange("Subscription Contract No.");
             if UsageDataBilling.FindFirst() then begin
