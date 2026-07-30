@@ -393,6 +393,31 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure ExportSalesCrMemoIncludesRegulatoryCommentAsNote()
+    var
+        SalesCommentLine: Record "Sales Comment Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        XmlDoc: XmlDocument;
+        CommentText: Text[80];
+    begin
+        // [SCENARIO] A French regulatory comment on a posted credit memo is prefixed with its type in a UBL header note
+        Initialize();
+
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemo(CreateCustomer('', "Electronic Address Scheme"::"EM")));
+        CommentText := 'No discount is granted for early payment.';
+        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::"Posted Credit Memo";
+        SalesCommentLine."No." := SalesCrMemoHeader."No.";
+        SalesCommentLine."Line No." := 10000;
+        SalesCommentLine."FR Regulatory Comment Type" := SalesCommentLine."FR Regulatory Comment Type"::AAB;
+        SalesCommentLine.Comment := CommentText;
+        SalesCommentLine.Insert();
+
+        ExportCrMemo(SalesCrMemoHeader, XmlDoc);
+
+        Assert.AreEqual('#AAB#' + CommentText, GetNodeByPath(XmlDoc, '/CreditNote/cbc:Note'), StrSubstNo(IncorrectValueErr, 'Note'));
+    end;
+
+    [Test]
     procedure ExportSalesInvSelectsExtendedCTCForMultipleOrders()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
