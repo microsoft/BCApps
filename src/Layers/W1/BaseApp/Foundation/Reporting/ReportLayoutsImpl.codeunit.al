@@ -84,6 +84,16 @@ codeunit 9660 "Report Layouts Impl."
     end;
 
     /// <summary>
+    /// Renders the override scope for telemetry as a stable, non-localized token.
+    /// </summary>
+    local procedure ScopeDimension(IsGlobal: Boolean): Text
+    begin
+        if IsGlobal then
+            exit('AllCompanies');
+        exit('CurrentCompany');
+    end;
+
+    /// <summary>
     /// Determines whether a status change to an extension-installed layout applies globally.
     /// A company-specific override for the current company takes precedence (company scope); otherwise
     /// an existing global override means the layout is global-scope. A layout with no override defaults
@@ -740,13 +750,20 @@ codeunit 9660 "Report Layouts Impl."
             if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
                 UpsertLayoutOverride(SelectedReportLayoutList, AvailableInAllCompanies, ApplyDescription, NewDescription, false, Enum::"Report Layout Status"::Draft, ApplyObsolete, NewIsObsolete);
 
-                // TODO (Slice 4 C/D): telemetry disabled while testing. The previous Log reused event
-                // id '0000N0H' (dimension-schema clash with the Edit path) and shipped the free-text
-                // description (PII). Re-enable with a dedicated event id and no content dimension.
-                // CustomDimensions.Add('ReportId', Format(SelectedReportLayoutList."Report ID"));
-                // CustomDimensions.Add('LayoutName', SelectedReportLayoutList.Name);
-                // AddReportLayoutDimensionsAction('EditOverride', CustomDimensions);
-                // Log('0000N0H', 'Report layout properties overridden by user', CustomDimensions);
+                // Telemetry for the override path uses its OWN event id '0000RTQ', freshly allocated
+                // from the number series. It is deliberately not the Edit path's '0000N0H': that event
+                // carries a different custom-dimension schema (Old/New layout name and description),
+                // and reusing it here would change the meaning of an id existing queries already
+                // consume. The dimensions below are metadata only — the layout description is
+                // user-entered free text and is reported as a changed/not-changed flag rather than
+                // its content.
+                CustomDimensions.Add('ReportId', Format(SelectedReportLayoutList."Report ID"));
+                CustomDimensions.Add('LayoutName', SelectedReportLayoutList.Name);
+                CustomDimensions.Add('DescriptionChanged', Format(ApplyDescription));
+                CustomDimensions.Add('ObsoleteSet', Format(ApplyObsolete));
+                CustomDimensions.Add('OverrideScope', ScopeDimension(AvailableInAllCompanies));
+                AddReportLayoutDimensionsAction('EditOverride', CustomDimensions);
+                Log('0000RTQ', 'Report layout properties overridden by user', CustomDimensions);
                 exit;
             end;
 
