@@ -19,6 +19,7 @@ using Microsoft.Purchases.Vendor;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.TestLibraries.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 139990 "Subc. Subcontracting UI Test"
 {
