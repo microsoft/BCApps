@@ -487,6 +487,7 @@ codeunit 4591 "SOA Item Search"
         Item: Record Item;
         ItemNoFilterBuilder: Record Item;
         ItemVariant: Record "Item Variant";
+        TempItem: Record Item temporary;
         ItemVariants: Dictionary of [Code[20], JsonArray];
         CandidateObject: JsonObject;
         ColumnValuesObject: JsonObject;
@@ -504,6 +505,13 @@ codeunit 4591 "SOA Item Search"
             exit;
 
         repeat
+            TempItem.Init();
+            TempItem."No." := Item."No.";
+            TempItem.Description := Item.Description;
+            TempItem."Description 2" := Item."Description 2";
+            TempItem.SystemId := Item.SystemId;
+            TempItem.Insert(false, true);
+
             ItemNoFilterBuilder.SetRange("No.", Item."No.");
             if ItemNoFilter <> '' then
                 ItemNoFilter += '|';
@@ -529,7 +537,7 @@ codeunit 4591 "SOA Item Search"
                     ItemVariants.Add(ItemVariant."Item No.", VariantArray);
             until ItemVariant.Next() = 0;
 
-        if not Item.FindSet() then
+        if not TempItem.FindSet() then
             exit;
 
         repeat
@@ -537,17 +545,17 @@ codeunit 4591 "SOA Item Search"
             Clear(ColumnValuesObject);
             Clear(VariantArray);
 
-            ColumnValuesObject.Add('No.', Item."No.");
-            ColumnValuesObject.Add('Description', Item.Description);
-            ColumnValuesObject.Add('Description 2', Item."Description 2");
+            ColumnValuesObject.Add('No.', TempItem."No.");
+            ColumnValuesObject.Add('Description', TempItem.Description);
+            ColumnValuesObject.Add('Description 2', TempItem."Description 2");
 
-            if ItemVariants.Get(Item."No.", VariantArray) then;
+            if ItemVariants.Get(TempItem."No.", VariantArray) then;
 
             ColumnValuesObject.Add('Variants', VariantArray);
-            CandidateObject.Add('system_id', Format(Item.SystemId));
+            CandidateObject.Add('system_id', Format(TempItem.SystemId));
             CandidateObject.Add('column_values', ColumnValuesObject);
             CandidateArray.Add(CandidateObject);
-        until Item.Next() = 0;
+        until TempItem.Next() = 0;
     end;
 
     local procedure AddSelectedItem(var SelectedItemFilter: Text; var SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedItemNo: Text; ItemNoToSystemId: Dictionary of [Text, Text]; RawSelectedItemVariants: Dictionary of [Text, List of [Code[10]]])
