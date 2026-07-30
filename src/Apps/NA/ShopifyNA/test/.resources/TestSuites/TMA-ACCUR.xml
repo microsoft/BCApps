@@ -16,5 +16,11 @@
         <Line CodeunitID="134717"
               Description="Accuracy - Canada jurisdictions (generated)"
               Dataset="TMA-TS-AccCA.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - US real-world (Shopify titles, real jurisdictions)"
+              Dataset="TMA-TS-RealUS.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - Canada real-world (Shopify titles, real jurisdictions)"
+              Dataset="TMA-TS-RealCA.yaml" />
     </AITSuite>
 </Root>

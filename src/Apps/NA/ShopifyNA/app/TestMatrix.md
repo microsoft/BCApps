@@ -245,23 +245,36 @@ The small curated J/H scenarios stay in the **Daily** `TMA-UNIT` gate; the large
 
 | Dataset | Scenarios | Coverage |
 |---------|-----------|----------|
-| `TMA-TS-AccUS-1.yaml` | ~144 | US states (first half of the catalog) |
-| `TMA-TS-AccUS-2.yaml` | ~139 | US states (second half) |
-| `TMA-TS-AccCA.yaml` | ~65 | Canada provinces incl. French (TPS/TVQ) abbreviations |
+| `TMA-TS-AccUS-1.yaml` | ~144 | US states (first half of the catalog) — synthetic perturbations |
+| `TMA-TS-AccUS-2.yaml` | ~139 | US states (second half) — synthetic perturbations |
+| `TMA-TS-AccCA.yaml` | ~65 | Canada provinces incl. French (TPS/TVQ) — synthetic perturbations |
+| `TMA-TS-RealUS.yaml` | ~45 | Real US localities, real Shopify titles, reworded BC descriptions |
+| `TMA-TS-RealCA.yaml` | ~14 | Real CA provinces, real Shopify titles (GST/PST/HST/QST + TPS/TVQ) |
 
-**Coverage axes** — 24 US states + 7 CA provinces (state/province + county/city/district
-jurisdictions), each exercised through title **perturbations**: exact, sales-variant,
-abbreviation, minimal-abbreviation, punctuation, embedded-rate, reworded, `Code[20]` truncation,
-plus structural cases: multi-line orders, distractor jurisdictions from other regions, unmatched
+**Two dataset families.** *Synthetic* (`TMA-TS-Acc*`) exercises breadth through systematic title
+**perturbations** — 24 US states + 7 CA provinces (state/province + county/city/district), via
+exact, sales-variant, abbreviation, minimal-abbreviation, punctuation, embedded-rate, reworded,
+`Code[20]` truncation, plus structural cases: multi-line orders, distractor jurisdictions, unmatched
 (`jurisdictionCode: ""`), auto-create (`hasJurisdictionCode`), and non-English (Quebec French).
 
-**Generation** — produced deterministically (no PII; public US/CA tax facts + synthetic title
-perturbations) so the corpus can be regenerated while hill-climbing the prompt. Each tax line is
-labeled with its target jurisdiction, so accuracy = matched / total.
+*Real-world* (`TMA-TS-Real*`) reduces the circularity of the synthetic set by using the **actual
+Shopify tax-line title conventions** (US `"<State> State Tax"` / `"<County> County Tax"` /
+`"<City> City Tax"`; CA bare `"GST"`/`"PST"`/`"HST"`/`"QST"` + French `"TPS"`/`"TVQ"`), **real**
+US state/county/city and CA province tax authorities, and BC candidate jurisdiction Descriptions that
+are deliberately **reworded** so they are not string-identical to the title (e.g. Shopify
+`"Los Angeles City Tax"` vs BC `"City of Los Angeles"`). This forces a genuine semantic match rather
+than string equality — a closer proxy for production accuracy. Sources: Shopify Admin API TaxLine
+docs/community examples; Tax Foundation *Sales Tax Rates by City, 2024*; CRA GST/HST + provincial
+PST/QST.
+
+**Generation** — both families are produced deterministically (no PII; public US/CA tax facts) so the
+corpus can be regenerated while hill-climbing the prompt. Each tax line is labeled with its target
+jurisdiction, so accuracy = matched / total.
 
 **Metric** — this corpus is intentionally **not** a 100% pass gate. Accuracy is expected to be
 below 100% and improved over time (hill-climb); each scenario asserts the exact expected
-jurisdiction, so the AI Test Toolkit reports the pass rate per dataset line.
+jurisdiction, so the AI Test Toolkit reports the pass rate per dataset line. The *real-world* family
+is the more honest accuracy signal; the *synthetic* family is the broader regression/robustness net.
 
 ---
 ## Automated Test Coverage

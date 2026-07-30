@@ -1,0 +1,1865 @@
+test_setup: TMA-Setup.yaml
+
+tests:
+  - name: US-CA-LosAngeles-real
+    description: "Los Angeles, CA real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: LACNTY
+          Description: LA County District Tax
+          Country/Region Code: US
+        - Code: LACITY
+          Description: City of Los Angeles
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Los Angeles
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "California State Tax"
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Los Angeles County Tax"
+              ratePct: 0.25
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Los Angeles City Tax"
+              ratePct: 2.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CASUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "LACNTY"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "LACITY"
+
+  - name: US-CA-LosAngeles-state
+    description: "CA state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: LACNTY
+          Description: LA County District Tax
+          Country/Region Code: US
+        - Code: LACITY
+          Description: City of Los Angeles
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Los Angeles
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "California State Tax"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CASUT"
+
+  - name: US-CA-LosAngeles-distractors
+    description: "CA state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: LACNTY
+          Description: LA County District Tax
+          Country/Region Code: US
+        - Code: LACITY
+          Description: City of Los Angeles
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+        - Code: WASUT
+          Description: Washington State Sales Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Los Angeles
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "California State Tax"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CASUT"
+
+  - name: US-IL-Chicago-real
+    description: "Chicago, IL real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: COOKCO
+          Description: Cook County Home Rule Tax
+          Country/Region Code: US
+        - Code: CHICITY
+          Description: City of Chicago Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IL
+        city: Chicago
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Illinois State Tax"
+              ratePct: 6.25
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Cook County Tax"
+              ratePct: 1.75
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Chicago City Tax"
+              ratePct: 2.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ILSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "COOKCO"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "CHICITY"
+
+  - name: US-IL-Chicago-state
+    description: "IL state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: COOKCO
+          Description: Cook County Home Rule Tax
+          Country/Region Code: US
+        - Code: CHICITY
+          Description: City of Chicago Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IL
+        city: Chicago
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Illinois State Tax"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ILSUT"
+
+  - name: US-IL-Chicago-distractors
+    description: "IL state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: COOKCO
+          Description: Cook County Home Rule Tax
+          Country/Region Code: US
+        - Code: CHICITY
+          Description: City of Chicago Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+        - Code: WASUT
+          Description: Washington State Sales Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IL
+        city: Chicago
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Illinois State Tax"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ILSUT"
+
+  - name: US-TX-Houston-real
+    description: "Houston, TX real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+        - Code: HARRISCO
+          Description: Harris County Tax
+          Country/Region Code: US
+        - Code: HOUCITY
+          Description: City of Houston Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TX
+        city: Houston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Texas State Tax"
+              ratePct: 6.25
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Harris County Tax"
+              ratePct: 1.0
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Houston City Tax"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "TXSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "HARRISCO"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "HOUCITY"
+
+  - name: US-TX-Houston-state
+    description: "TX state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+        - Code: HARRISCO
+          Description: Harris County Tax
+          Country/Region Code: US
+        - Code: HOUCITY
+          Description: City of Houston Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TX
+        city: Houston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Texas State Tax"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "TXSUT"
+
+  - name: US-TX-Houston-distractors
+    description: "TX state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+        - Code: HARRISCO
+          Description: Harris County Tax
+          Country/Region Code: US
+        - Code: HOUCITY
+          Description: City of Houston Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: WASUT
+          Description: Washington State Sales Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TX
+        city: Houston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Texas State Tax"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "TXSUT"
+
+  - name: US-WA-Seattle-real
+    description: "Seattle, WA real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WASUT
+          Description: Washington State Sales Tax
+          Country/Region Code: US
+        - Code: KINGCO
+          Description: King County Tax
+          Country/Region Code: US
+        - Code: SEACITY
+          Description: City of Seattle Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WA
+        city: Seattle
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Washington State Tax"
+              ratePct: 6.5
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "King County Tax"
+              ratePct: 3.0
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Seattle City Tax"
+              ratePct: 0.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WASUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "KINGCO"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "SEACITY"
+
+  - name: US-WA-Seattle-state
+    description: "WA state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WASUT
+          Description: Washington State Sales Tax
+          Country/Region Code: US
+        - Code: KINGCO
+          Description: King County Tax
+          Country/Region Code: US
+        - Code: SEACITY
+          Description: City of Seattle Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WA
+        city: Seattle
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Washington State Tax"
+              ratePct: 6.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WASUT"
+
+  - name: US-WA-Seattle-distractors
+    description: "WA state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WASUT
+          Description: Washington State Sales Tax
+          Country/Region Code: US
+        - Code: KINGCO
+          Description: King County Tax
+          Country/Region Code: US
+        - Code: SEACITY
+          Description: City of Seattle Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WA
+        city: Seattle
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Washington State Tax"
+              ratePct: 6.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WASUT"
+
+  - name: US-CO-Denver-real
+    description: "Denver, CO real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: COSUT
+          Description: Colorado State Tax
+          Country/Region Code: US
+        - Code: DENCO
+          Description: Denver County Tax
+          Country/Region Code: US
+        - Code: DENCITY
+          Description: City and County of Denver
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CO
+        city: Denver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Colorado State Tax"
+              ratePct: 2.9
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Denver County Tax"
+              ratePct: 0.5
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Denver City Tax"
+              ratePct: 4.81
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "COSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "DENCO"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "DENCITY"
+
+  - name: US-CO-Denver-state
+    description: "CO state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: COSUT
+          Description: Colorado State Tax
+          Country/Region Code: US
+        - Code: DENCO
+          Description: Denver County Tax
+          Country/Region Code: US
+        - Code: DENCITY
+          Description: City and County of Denver
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CO
+        city: Denver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Colorado State Tax"
+              ratePct: 2.9
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "COSUT"
+
+  - name: US-CO-Denver-distractors
+    description: "CO state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: COSUT
+          Description: Colorado State Tax
+          Country/Region Code: US
+        - Code: DENCO
+          Description: Denver County Tax
+          Country/Region Code: US
+        - Code: DENCITY
+          Description: City and County of Denver
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CO
+        city: Denver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Colorado State Tax"
+              ratePct: 2.9
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "COSUT"
+
+  - name: US-LA-BatonRouge-real
+    description: "Baton Rouge, LA real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASUT
+          Description: Louisiana State Sales Tax
+          Country/Region Code: US
+        - Code: EBRPAR
+          Description: East Baton Rouge Parish
+          Country/Region Code: US
+        - Code: BRCITY
+          Description: City of Baton Rouge
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: Baton Rouge
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Louisiana State Tax"
+              ratePct: 4.45
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "East Baton Rouge Parish Tax"
+              ratePct: 3.5
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Baton Rouge City Tax"
+              ratePct: 2.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "EBRPAR"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "BRCITY"
+
+  - name: US-LA-BatonRouge-state
+    description: "LA state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASUT
+          Description: Louisiana State Sales Tax
+          Country/Region Code: US
+        - Code: EBRPAR
+          Description: East Baton Rouge Parish
+          Country/Region Code: US
+        - Code: BRCITY
+          Description: City of Baton Rouge
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: Baton Rouge
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Louisiana State Tax"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASUT"
+
+  - name: US-LA-BatonRouge-distractors
+    description: "LA state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASUT
+          Description: Louisiana State Sales Tax
+          Country/Region Code: US
+        - Code: EBRPAR
+          Description: East Baton Rouge Parish
+          Country/Region Code: US
+        - Code: BRCITY
+          Description: City of Baton Rouge
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: Baton Rouge
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Louisiana State Tax"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASUT"
+
+  - name: US-NY-NewYork-real
+    description: "New York, NY real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NYSUT
+          Description: New York State Sales Tax
+          Country/Region Code: US
+        - Code: NYCNTY
+          Description: New York City County Tax
+          Country/Region Code: US
+        - Code: MTADST
+          Description: MTA Commuter Transportation District
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "New York State Tax"
+              ratePct: 4.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "New York County Tax"
+              ratePct: 4.5
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Metropolitan Tax"
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NYSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "NYCNTY"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "MTADST"
+
+  - name: US-NY-NewYork-state
+    description: "NY state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NYSUT
+          Description: New York State Sales Tax
+          Country/Region Code: US
+        - Code: NYCNTY
+          Description: New York City County Tax
+          Country/Region Code: US
+        - Code: MTADST
+          Description: MTA Commuter Transportation District
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "New York State Tax"
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NYSUT"
+
+  - name: US-NY-NewYork-distractors
+    description: "NY state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NYSUT
+          Description: New York State Sales Tax
+          Country/Region Code: US
+        - Code: NYCNTY
+          Description: New York City County Tax
+          Country/Region Code: US
+        - Code: MTADST
+          Description: MTA Commuter Transportation District
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "New York State Tax"
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NYSUT"
+
+  - name: US-FL-Miami-real
+    description: "Miami, FL real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: FLSUT
+          Description: Florida State Sales Tax
+          Country/Region Code: US
+        - Code: MDADECO
+          Description: Miami-Dade County Surtax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: FL
+        city: Miami
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Florida State Tax"
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Miami-Dade County Tax"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "FLSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MDADECO"
+
+  - name: US-FL-Miami-state
+    description: "FL state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: FLSUT
+          Description: Florida State Sales Tax
+          Country/Region Code: US
+        - Code: MDADECO
+          Description: Miami-Dade County Surtax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: FL
+        city: Miami
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Florida State Tax"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "FLSUT"
+
+  - name: US-FL-Miami-distractors
+    description: "FL state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: FLSUT
+          Description: Florida State Sales Tax
+          Country/Region Code: US
+        - Code: MDADECO
+          Description: Miami-Dade County Surtax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: FL
+        city: Miami
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Florida State Tax"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "FLSUT"
+
+  - name: US-AZ-Phoenix-real
+    description: "Phoenix, AZ real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: AZTPT
+          Description: Arizona Transaction Privilege Tax
+          Country/Region Code: US
+        - Code: MARICO
+          Description: Maricopa County Tax
+          Country/Region Code: US
+        - Code: PHXCITY
+          Description: City of Phoenix Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: AZ
+        city: Phoenix
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Arizona State Tax"
+              ratePct: 5.6
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Maricopa County Tax"
+              ratePct: 0.7
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Phoenix City Tax"
+              ratePct: 2.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "AZTPT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MARICO"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "PHXCITY"
+
+  - name: US-AZ-Phoenix-state
+    description: "AZ state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: AZTPT
+          Description: Arizona Transaction Privilege Tax
+          Country/Region Code: US
+        - Code: MARICO
+          Description: Maricopa County Tax
+          Country/Region Code: US
+        - Code: PHXCITY
+          Description: City of Phoenix Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: AZ
+        city: Phoenix
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Arizona State Tax"
+              ratePct: 5.6
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "AZTPT"
+
+  - name: US-AZ-Phoenix-distractors
+    description: "AZ state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: AZTPT
+          Description: Arizona Transaction Privilege Tax
+          Country/Region Code: US
+        - Code: MARICO
+          Description: Maricopa County Tax
+          Country/Region Code: US
+        - Code: PHXCITY
+          Description: City of Phoenix Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: AZ
+        city: Phoenix
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Arizona State Tax"
+              ratePct: 5.6
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "AZTPT"
+
+  - name: US-GA-Atlanta-real
+    description: "Atlanta, GA real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: GASUT
+          Description: Georgia State Sales Tax
+          Country/Region Code: US
+        - Code: FULTCO
+          Description: Fulton County Tax
+          Country/Region Code: US
+        - Code: ATLCITY
+          Description: City of Atlanta MOST
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: GA
+        city: Atlanta
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Georgia State Tax"
+              ratePct: 4.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Fulton County Tax"
+              ratePct: 3.0
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Atlanta City Tax"
+              ratePct: 1.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "GASUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "FULTCO"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "ATLCITY"
+
+  - name: US-GA-Atlanta-state
+    description: "GA state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: GASUT
+          Description: Georgia State Sales Tax
+          Country/Region Code: US
+        - Code: FULTCO
+          Description: Fulton County Tax
+          Country/Region Code: US
+        - Code: ATLCITY
+          Description: City of Atlanta MOST
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: GA
+        city: Atlanta
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Georgia State Tax"
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "GASUT"
+
+  - name: US-GA-Atlanta-distractors
+    description: "GA state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: GASUT
+          Description: Georgia State Sales Tax
+          Country/Region Code: US
+        - Code: FULTCO
+          Description: Fulton County Tax
+          Country/Region Code: US
+        - Code: ATLCITY
+          Description: City of Atlanta MOST
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: GA
+        city: Atlanta
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Georgia State Tax"
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "GASUT"
+
+  - name: US-TN-Nashville-real
+    description: "Nashville, TN real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: TNSUT
+          Description: Tennessee State Sales Tax
+          Country/Region Code: US
+        - Code: DAVIDCO
+          Description: Davidson County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TN
+        city: Nashville
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Tennessee State Tax"
+              ratePct: 7.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Davidson County Tax"
+              ratePct: 2.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "TNSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "DAVIDCO"
+
+  - name: US-TN-Nashville-state
+    description: "TN state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: TNSUT
+          Description: Tennessee State Sales Tax
+          Country/Region Code: US
+        - Code: DAVIDCO
+          Description: Davidson County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TN
+        city: Nashville
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Tennessee State Tax"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "TNSUT"
+
+  - name: US-TN-Nashville-distractors
+    description: "TN state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: TNSUT
+          Description: Tennessee State Sales Tax
+          Country/Region Code: US
+        - Code: DAVIDCO
+          Description: Davidson County Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TN
+        city: Nashville
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Tennessee State Tax"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "TNSUT"
+
+  - name: US-MN-Minneapolis-real
+    description: "Minneapolis, MN real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSUT
+          Description: Minnesota State Sales Tax
+          Country/Region Code: US
+        - Code: HENNCO
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MPLSCITY
+          Description: City of Minneapolis Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Minnesota State Tax"
+              ratePct: 6.875
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Hennepin County Tax"
+              ratePct: 0.15
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Minneapolis City Tax"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "HENNCO"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "MPLSCITY"
+
+  - name: US-MN-Minneapolis-state
+    description: "MN state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSUT
+          Description: Minnesota State Sales Tax
+          Country/Region Code: US
+        - Code: HENNCO
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MPLSCITY
+          Description: City of Minneapolis Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Minnesota State Tax"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSUT"
+
+  - name: US-MN-Minneapolis-distractors
+    description: "MN state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSUT
+          Description: Minnesota State Sales Tax
+          Country/Region Code: US
+        - Code: HENNCO
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MPLSCITY
+          Description: City of Minneapolis Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Minnesota State Tax"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSUT"
+
+  - name: US-NV-LasVegas-real
+    description: "Las Vegas, NV real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSUT
+          Description: Nevada State Sales Tax
+          Country/Region Code: US
+        - Code: CLARKCO
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Nevada State Tax"
+              ratePct: 4.6
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Clark County Tax"
+              ratePct: 3.775
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "CLARKCO"
+
+  - name: US-NV-LasVegas-state
+    description: "NV state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSUT
+          Description: Nevada State Sales Tax
+          Country/Region Code: US
+        - Code: CLARKCO
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Nevada State Tax"
+              ratePct: 4.6
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSUT"
+
+  - name: US-NV-LasVegas-distractors
+    description: "NV state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSUT
+          Description: Nevada State Sales Tax
+          Country/Region Code: US
+        - Code: CLARKCO
+          Description: Clark County Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Nevada State Tax"
+              ratePct: 4.6
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSUT"
+
+  - name: US-MO-StLouis-real
+    description: "St. Louis, MO real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSUT
+          Description: Missouri State Sales Tax
+          Country/Region Code: US
+        - Code: STLCITY
+          Description: City of St. Louis Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Missouri State Tax"
+              ratePct: 4.225
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "St. Louis City Tax"
+              ratePct: 5.454
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "STLCITY"
+
+  - name: US-MO-StLouis-state
+    description: "MO state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSUT
+          Description: Missouri State Sales Tax
+          Country/Region Code: US
+        - Code: STLCITY
+          Description: City of St. Louis Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Missouri State Tax"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSUT"
+
+  - name: US-MO-StLouis-distractors
+    description: "MO state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSUT
+          Description: Missouri State Sales Tax
+          Country/Region Code: US
+        - Code: STLCITY
+          Description: City of St. Louis Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Missouri State Tax"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSUT"
+
+  - name: US-WI-Milwaukee-real
+    description: "Milwaukee, WI real Shopify tax lines match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISUT
+          Description: Wisconsin State Sales Tax
+          Country/Region Code: US
+        - Code: MILWCO
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+        - Code: MILWCITY
+          Description: City of Milwaukee Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Wisconsin State Tax"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Milwaukee County Tax"
+              ratePct: 0.9
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "Milwaukee City Tax"
+              ratePct: 2.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MILWCO"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "MILWCITY"
+
+  - name: US-WI-Milwaukee-state
+    description: "WI state-only Shopify tax line matches the state jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISUT
+          Description: Wisconsin State Sales Tax
+          Country/Region Code: US
+        - Code: MILWCO
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+        - Code: MILWCITY
+          Description: City of Milwaukee Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Wisconsin State Tax"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISUT"
+
+  - name: US-WI-Milwaukee-distractors
+    description: "WI state line matches despite out-of-state distractor jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISUT
+          Description: Wisconsin State Sales Tax
+          Country/Region Code: US
+        - Code: MILWCO
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+        - Code: MILWCITY
+          Description: City of Milwaukee Tax
+          Country/Region Code: US
+        - Code: CASUT
+          Description: California Sales and Use Tax
+          Country/Region Code: US
+        - Code: ILSUT
+          Description: Illinois Retailers Occupation Tax
+          Country/Region Code: US
+        - Code: TXSUT
+          Description: Texas State Sales/Use Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Wisconsin State Tax"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISUT"
