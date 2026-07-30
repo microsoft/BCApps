@@ -233,6 +233,115 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
     end;
 
     [Test]
+    procedure MixedOperationsAtBinMandatoryReceiveOnlyLocation()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header";
+        PostedWhseReceiptLine: Record "Posted Whse. Receipt Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        ReceiveBin: Record Bin;
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 642535] Post mixed subcontracting operations at a bin-mandatory receive-only location
+        // [GIVEN] One warehouse receipt containing last and not-last operations at a bin-mandatory receive-only location
+        CreateMixedOperationsWarehouseReceiptAtBinMandatoryReceiveOnlyLocation(
+            Item, Location, ProductionOrder, PurchaseHeader, ReceiveBin, WarehouseReceiptHeader, WorkCenter, Quantity);
+        WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
+        WarehouseReceiptLine.SetRange("Source No.", PurchaseHeader."No.");
+        Assert.RecordCount(WarehouseReceiptLine, 2);
+
+        // [GIVEN] The not-last operation has no operational bin or inventory quantity
+        WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::NotLastOperation);
+        WarehouseReceiptLine.FindFirst();
+        Assert.AreEqual('', WarehouseReceiptLine."Bin Code", 'Not-last operation should not use a bin');
+        Assert.AreEqual(0, WarehouseReceiptLine."Qty. (Base)", 'Not-last operation should have zero base quantity');
+
+        // [GIVEN] The last operation uses the receipt bin and carries the inventory quantity
+        WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::LastOperation);
+        WarehouseReceiptLine.FindFirst();
+        Assert.AreEqual(ReceiveBin.Code, WarehouseReceiptLine."Bin Code", 'Last operation should use the receipt bin');
+        Assert.AreEqual(Quantity, WarehouseReceiptLine."Qty. (Base)", 'Last operation should have the production quantity');
+
+        // [WHEN] The mixed warehouse receipt is posted
+        SubcWarehouseLibrary.PostWarehouseReceipt(WarehouseReceiptHeader, PostedWhseReceiptHeader);
+
+        // [THEN] Both lines are included in the posted warehouse receipt
+        PostedWhseReceiptLine.SetRange("No.", PostedWhseReceiptHeader."No.");
+        PostedWhseReceiptLine.SetRange("Item No.", Item."No.");
+        Assert.RecordCount(PostedWhseReceiptLine, 2);
+
+        // [THEN] Only the last operation creates one output item ledger entry
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Location Code", Location.Code);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'Only the last operation should post output inventory');
+
+        // [THEN] Both subcontracting operations create their capacity entries
+        SubcWarehouseLibrary.VerifyCapacityLedgerEntry(WorkCenter[1]."No.", Quantity);
+        SubcWarehouseLibrary.VerifyCapacityLedgerEntry(WorkCenter[2]."No.", Quantity);
+
+        // [THEN] Only one warehouse entry is created directly in the receipt bin
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Bin Code", ReceiveBin.Code);
+        Assert.RecordCount(WarehouseEntry, 1);
+        WarehouseEntry.FindFirst();
+        Assert.AreEqual(Quantity, WarehouseEntry.Quantity, 'The last operation should create one warehouse entry');
+        SubcWarehouseLibrary.VerifyBinContents(Location.Code, ReceiveBin.Code, Item."No.", Quantity);
+
+        // [THEN] No warehouse put-away is created
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Put-away");
+        WarehouseActivityLine.SetRange("Location Code", Location.Code);
+        WarehouseActivityLine.SetRange("Item No.", Item."No.");
+        Assert.RecordIsEmpty(WarehouseActivityLine);
+    end;
+
+    [Test]
+    procedure ItemTrackingBlockedForNotLastOperationAtBinMandatoryReceiveOnlyLocation()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        ReceiveBin: Record Bin;
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        WorkCenter: array[2] of Record "Work Center";
+        WarehouseReceiptPage: TestPage "Warehouse Receipt";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 642535] Item tracking is blocked for a not-last operation at a bin-mandatory receive-only location
+        // [GIVEN] One warehouse receipt containing last and not-last operations at a bin-mandatory receive-only location
+        CreateMixedOperationsWarehouseReceiptAtBinMandatoryReceiveOnlyLocation(
+            Item, Location, ProductionOrder, PurchaseHeader, ReceiveBin, WarehouseReceiptHeader, WorkCenter, Quantity);
+        WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
+        WarehouseReceiptLine.SetRange("Source No.", PurchaseHeader."No.");
+        WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::NotLastOperation);
+        WarehouseReceiptLine.FindFirst();
+
+        // [WHEN] Item tracking is opened for the not-last operation
+        WarehouseReceiptPage.OpenEdit();
+        WarehouseReceiptPage.GoToRecord(WarehouseReceiptHeader);
+        WarehouseReceiptPage.WhseReceiptLines.GoToRecord(WarehouseReceiptLine);
+        asserterror WarehouseReceiptPage.WhseReceiptLines.ItemTrackingLines.Invoke();
+
+        // [THEN] Item tracking remains blocked
+        Assert.ExpectedError(
+            'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.');
+    end;
+
+    [Test]
     procedure ProdOrderWithMultipleOperationsDifferentVendors()
     var
         PutAwayBin: Record Bin;
@@ -530,6 +639,38 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         WarehouseEntry.SetRange("Item No.", ItemNo);
         WarehouseEntry.SetRange("Location Code", LocationCode);
         Assert.RecordIsNotEmpty(WarehouseEntry);
+    end;
+
+    local procedure CreateMixedOperationsWarehouseReceiptAtBinMandatoryReceiveOnlyLocation(var Item: Record Item; var Location: Record Location; var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var ReceiveBin: Record Bin; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var WorkCenter: array[2] of Record "Work Center"; var Quantity: Decimal)
+    var
+        MachineCenter: array[2] of Record "Machine Center";
+        Vendor: Record Vendor;
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenterSameVendor(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkForBothOperations(Item, WorkCenter);
+
+        SubcWarehouseLibrary.CreateLocationWithRequireReceiveOnlyAndBinMandatory(Location, ReceiveBin);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        Vendor.Get(WorkCenter[1]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        SubcWarehouseLibrary.CreateWarehouseReceiptUsingGetSourceDocuments(WarehouseReceiptHeader, Location.Code);
+        SetBinCodeOnWarehouseReceiptLines(WarehouseReceiptHeader, ReceiveBin.Code);
     end;
 
     local procedure VerifyLedgerEntriesForMultiVendorScenario(ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10])
