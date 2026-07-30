@@ -138,7 +138,7 @@ codeunit 8055 "Sub. Contracts Item Management"
         if (SellToCustomerNo = '') or (ItemNo = '') then
             exit;
         CreateTempSalesHeader(TempSalesHeader, TempSalesHeader."Document Type"::Order, SellToCustomerNo, SellToCustomerNo, 0D, CurrencyCode);
-        CreateTempSalesLine(TempSalesLine, TempSalesHeader, "Service Object Type"::Item, ItemNo, Quantity, 0D);
+        CreateTempSalesLine(TempSalesLine, TempSalesHeader, "Service Object Type"::Item, ItemNo, Quantity, 0D, '');
         UnitPrice := CalculateUnitPrice(TempSalesHeader, TempSalesLine);
     end;
 
@@ -159,7 +159,7 @@ codeunit 8055 "Sub. Contracts Item Management"
 
     internal procedure CreateTempSalesLine(var TempSalesLine: Record "Sales Line" temporary; var TempSalesHeader: Record "Sales Header" temporary; ServiceObject: Record "Subscription Header"; OrderDate: Date)
     begin
-        CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate);
+        CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate, ServiceObject."Variant Code");
     end;
 
     local procedure CreateTempSalesLine(var TempSalesLine: Record "Sales Line" temporary; var TempSalesHeader: Record "Sales Header" temporary; ServiceObjectType: enum "Service Object Type"; SourceNo: Code[20]; Quantity: Decimal; OrderDate: Date)
