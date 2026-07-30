@@ -35,6 +35,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting UI Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         SubcontractingMgmtLibrary.Initialize();
@@ -132,7 +133,13 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Assert.IsFalse(SubcontractingSetupGuide.ActionNext.Enabled(), 'Next should be disabled on the final step.');
         Assert.IsTrue(SubcontractingSetupGuide.ActionFinish.Enabled(), 'Finish should be enabled on the final step.');
 
+        // [WHEN] The user closes the guide without finishing the setup
+        LibraryVariableStorage.Enqueue(SetupNotCompletedQst);
+        LibraryVariableStorage.Enqueue(true);
         SubcontractingSetupGuide.Close();
+
+        // [THEN] The expected confirmation was handled
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Opening and navigating the guide did not replace the installed defaults
         ManufacturingSetup.Get();
@@ -824,8 +831,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     [ConfirmHandler]
     procedure SetupNotCompletedConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
-        Assert.ExpectedMessage(SetupNotCompletedQst, Question);
-        Reply := true;
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 
     var
@@ -833,6 +840,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
