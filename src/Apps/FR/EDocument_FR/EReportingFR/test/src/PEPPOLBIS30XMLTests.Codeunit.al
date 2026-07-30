@@ -935,7 +935,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
         if Customer."Post Code" = '' then
             Customer.Validate("Post Code", '75001');
-        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo('FR'));
+        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
 
         Customer.Validate("FR Electronic Address", FRElectronicAddress);
         Customer.Validate("FR Elec. Address Scheme", AddressScheme);
