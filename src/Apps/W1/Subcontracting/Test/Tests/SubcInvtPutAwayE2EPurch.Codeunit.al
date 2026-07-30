@@ -127,6 +127,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
         // [WHEN]  Inventory Put-Away is created from the purchase order
@@ -1523,10 +1524,17 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
             ProductionOrder."Source Type"::Item, Item."No.", Quantity, FromLocation.Code);
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        if PurchaseLine.FindSet() then
+            repeat
+                SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+            until PurchaseLine.Next() = 0;
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
         LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeaderStd, '', FromLocation.Code);
         LibraryPurchase.CreatePurchaseLine(PurchaseLineStd, PurchaseHeaderStd, PurchaseLineStd.Type::Item, Item."No.", Quantity);
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineStd."Gen. Bus. Posting Group", PurchaseLineStd."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeaderStd);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProdLocation);

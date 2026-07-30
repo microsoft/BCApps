@@ -201,6 +201,167 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
 
     [Test]
     [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    procedure PartialThenRepeatPickAndPutAwayForWipTransfer()
+    var
+        Item: Record Item;
+        InTransitLocation: Record Location;
+        ProductionLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ForwardTransferHeader: Record "Transfer Header";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] Subcontracting Inventory Put-away / Pick - WIP transfer partial posting
+        // [SCENARIO] Partial/repeated posting for both legs of a WIP transfer round trip.
+        // A Transfer WIP Item has Qty. (Base) = 0, so base-app activity completion deletes the activity after any
+        // non-zero partial post. The remaining quantity must therefore be posted from a newly created activity.
+        Initialize();
+        Quantity := 20;
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.SetTransferWIPItemOnRoutingLine(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(ProductionLocation);
+        ProductionLocation."Require Pick" := true;
+        ProductionLocation.Modify(true);
+
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Location Code" := ProductionLocation.Code;
+        Vendor.Modify(true);
+        SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer(ProductionLocation.Code, Vendor."Subc. Location Code", InTransitLocation.Code);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, ProductionLocation.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader);
+        SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ForwardTransferHeader);
+
+        // [WHEN] The forward Pick posts partially, then the remaining quantity is posted from a new activity.
+        SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(ForwardTransferHeader, WarehouseActivityHeader);
+        SubcWarehouseLibrary.PostPartialInventoryPick(WarehouseActivityHeader, 12);
+
+        TransferShipmentLine.SetRange("Transfer Order No.", ForwardTransferHeader."No.");
+        Assert.RecordIsNotEmpty(TransferShipmentLine);
+        TransferShipmentLine.FindFirst();
+        Assert.AreEqual(12, TransferShipmentLine.Quantity, 'Only the handled quantity should have shipped after the first partial Pick.');
+        SubcWarehouseLibrary.VerifyNoWarehouseEntry(Item."No.", ProductionLocation.Code);
+        SubcWarehouseLibrary.VerifyNoItemLedgerEntry(Item."No.", ProductionLocation.Code);
+
+        SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(ForwardTransferHeader, WarehouseActivityHeader);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        TransferShipmentLine.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, TransferShipmentLine.Quantity, 'Cumulative shipment quantity should equal the total pick quantity across both partial posts.');
+        SubcWarehouseLibrary.VerifyNoWarehouseEntry(Item."No.", ProductionLocation.Code);
+        SubcWarehouseLibrary.VerifyNoItemLedgerEntry(Item."No.", ProductionLocation.Code);
+
+        LibraryWarehouse.PostTransferOrder(ForwardTransferHeader, false, true);
+        SubcWarehouseLibrary.CreateReturnTransferWithSubcContext(
+            PurchaseHeader, PurchaseLine, Vendor."Subc. Location Code", ProductionLocation.Code, InTransitLocation.Code, Quantity, ReturnTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ReturnTransferHeader);
+        LibraryWarehouse.PostTransferOrder(ReturnTransferHeader, true, false);
+
+        // [WHEN] The return Put-away follows the same partial/repeat pattern.
+        SubcWarehouseLibrary.CreateInvtPutAwayFromTransferOrder(ReturnTransferHeader, WarehouseActivityHeader);
+        SubcWarehouseLibrary.PostPartialPutAway(WarehouseActivityHeader, 12);
+
+        Assert.IsTrue(ReturnTransferHeader.Get(ReturnTransferHeader."No."), 'Return transfer order must remain open after a partial return receipt.');
+        TransferReceiptLine.SetRange("Transfer Order No.", ReturnTransferHeader."No.");
+        Assert.RecordIsNotEmpty(TransferReceiptLine);
+        TransferReceiptLine.FindFirst();
+        Assert.AreEqual(12, TransferReceiptLine.Quantity, 'Only the handled quantity should have been received after the first partial return Put-away.');
+
+        SubcWarehouseLibrary.CreateInvtPutAwayFromTransferOrder(ReturnTransferHeader, WarehouseActivityHeader);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        TransferReceiptLine.SetRange("Transfer Order No.", ReturnTransferHeader."No.");
+        Assert.RecordIsNotEmpty(TransferReceiptLine);
+        TransferReceiptLine.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, TransferReceiptLine.Quantity, 'Cumulative receipt quantity should equal the total put-away quantity across both partial posts.');
+        Assert.IsFalse(ReturnTransferHeader.Get(ReturnTransferHeader."No."), 'Return transfer order must be deleted only after the final, fully-received posting.');
+        SubcWarehouseLibrary.VerifyNoWarehouseEntry(Item."No.", ProductionLocation.Code);
+        SubcWarehouseLibrary.VerifyNoItemLedgerEntry(Item."No.", ProductionLocation.Code);
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleSubcTransferOrderPage')]
+    procedure ForwardWipTransferWithRequirePickFalsePostsDirectly()
+    var
+        Item: Record Item;
+        InTransitLocation: Record Location;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        ForwardTransferHeader: Record "Transfer Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        Vendor: Record Vendor;
+        WarehouseEntry: Record "Warehouse Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] Subcontracting Inventory Put-away / Pick - WIP transfer direct posting
+        // [SCENARIO] A forward WIP transfer posts directly when the shipping location does not require a Pick.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.SetTransferWIPItemOnRoutingLine(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(ProductionLocation);
+
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Location Code" := ProductionLocation.Code;
+        Vendor.Modify(true);
+        SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer(ProductionLocation.Code, Vendor."Subc. Location Code", InTransitLocation.Code);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, ProductionLocation.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader);
+        SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ForwardTransferHeader);
+
+        LibraryWarehouse.PostTransferOrder(ForwardTransferHeader, true, true);
+
+        TransferShipmentHeader.SetRange("Transfer Order No.", ForwardTransferHeader."No.");
+        Assert.RecordIsNotEmpty(TransferShipmentHeader);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        Assert.RecordIsEmpty(WarehouseEntry);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+        WIPLedgerEntry.SetRange("Prod. Order Status", ProductionOrder.Status);
+        WIPLedgerEntry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.RecordIsNotEmpty(WIPLedgerEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
     procedure DirectTransferFullWIPRoundTripForwardPickReturnPutAway()
     var
         Item: Record Item;
@@ -648,6 +809,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         // [WHEN] Op 10 (NotLastOperation) Put-Away posted
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[1]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
@@ -673,6 +835,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         // explicit Subcontractor Price setup or a manually assigned cost here, the purchase line defaults to 0.
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 25, 2));
         PurchaseLine.Modify(true);
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
@@ -767,6 +930,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         // [WHEN] Full sequence executed: forward pick → return put-away → purchase put-away for Op20
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[1]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         SubcWarehouseLibrary.CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader);
         SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
@@ -787,6 +951,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
 
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
@@ -846,6 +1011,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
@@ -905,6 +1071,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
@@ -980,6 +1147,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         SubcWarehouseLibrary.CreateWarehouseReceiptFromPurchaseOrder(PurchaseHeader, WarehouseReceiptHeader);
         SubcWarehouseLibrary.PostPartialWarehouseReceipt(WarehouseReceiptHeader, FirstReceiptQty, PostedWhseReceiptHeader);
@@ -1464,6 +1632,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseLine.TestField("Bin Code", Bin.Code);
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [WHEN] Bin Mandatory is turned off after the bin has propagated
         Location."Bin Mandatory" := false;

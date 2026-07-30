@@ -116,7 +116,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] The receipt is posted; serial number tracking flows automatically from the production order reservation entries
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -133,7 +133,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", Qty);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
 
         // [GIVEN] The item charge is assigned to the subcontracting receipt line
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLine, Qty, PurchaseLineCharge."Direct Unit Cost");
@@ -239,7 +239,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
@@ -253,7 +253,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", Qty);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLine, Qty, PurchaseLineCharge."Direct Unit Cost" * Qty);
 
         // [WHEN] Post the purchase invoice
@@ -339,7 +339,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
@@ -353,7 +353,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", Qty);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLine, Qty, PurchaseLineCharge."Direct Unit Cost");
 
         // [WHEN] Post the purchase invoice
@@ -438,7 +438,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] First partial receipt: SN[1] and SN[2] (qty = 2)
         PurchaseLine.Validate("Qty. to Receive", QtyPerReceipt);
@@ -468,7 +468,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", QtyPerReceipt);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLineFirst, QtyPerReceipt, PurchaseLineCharge."Direct Unit Cost" * QtyPerReceipt);
 
         // [WHEN] Post the purchase invoice
@@ -552,7 +552,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] First partial receipt: SN[1] and SN[2] (qty = 2)
         PurchaseLine.Validate("Qty. to Receive", QtyPerReceipt);
@@ -583,7 +583,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", QtyPerReceipt);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLineSecond, QtyPerReceipt, PurchaseLineCharge."Direct Unit Cost" * QtyPerReceipt);
 
         // [WHEN] Post the purchase invoice
@@ -655,7 +655,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] First partial receipt (qty = 3)
         PurchaseLine.Validate("Qty. to Receive", QtyFirstRcpt);
@@ -675,7 +675,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", QtyFirstRcpt);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLineFirst, QtyFirstRcpt, PurchaseLineCharge."Direct Unit Cost" * QtyFirstRcpt);
 
         // [WHEN] Post the purchase invoice
@@ -740,7 +740,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] First partial receipt (qty = 3)
         PurchaseLine.Validate("Qty. to Receive", QtyFirstRcpt);
@@ -761,7 +761,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", QtyLastRcpt);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLineLast, QtyLastRcpt, PurchaseLineCharge."Direct Unit Cost" * QtyLastRcpt);
 
         // [WHEN] Post the purchase invoice
@@ -837,7 +837,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryVariableStorage.Enqueue(Qty);
         PurchaseLine.OpenItemTrackingLines();
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -853,7 +853,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", Qty);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLine, Qty, PurchaseLineCharge."Direct Unit Cost" * Qty);
 
         // [WHEN] Post the purchase invoice
@@ -946,7 +946,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] First partial receipt (qty = 3, lot = LotNo)
         PurchaseLine.Validate("Qty. to Receive", QtyFirstRcpt);
@@ -971,7 +971,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", QtyFirstRcpt);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLineFirst, QtyFirstRcpt, PurchaseLineCharge."Direct Unit Cost" * QtyFirstRcpt);
 
         // [WHEN] Post the purchase invoice
@@ -1049,7 +1049,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] First partial receipt (qty = 3, lot = LotNo)
         PurchaseLine.Validate("Qty. to Receive", QtyFirstRcpt);
@@ -1074,7 +1074,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", QtyLastRcpt);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLineLast, QtyLastRcpt, PurchaseLineCharge."Direct Unit Cost" * QtyLastRcpt);
 
         // [WHEN] Post the purchase invoice
@@ -1146,7 +1146,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
@@ -1160,7 +1160,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", Qty);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLine, Qty, PurchaseLineCharge."Direct Unit Cost");
 
         // [WHEN] Post the purchase invoice
@@ -1248,7 +1248,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
@@ -1262,7 +1262,7 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeaderInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", Qty);
         PurchaseLineCharge.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 50, 2));
         PurchaseLineCharge.Modify(true);
-        EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLineCharge."Gen. Bus. Posting Group", PurchaseLineCharge."Gen. Prod. Posting Group");
         AssignItemChargeToReceiptLine(PurchaseLineCharge, PurchRcptLine, Qty, PurchaseLineCharge."Direct Unit Cost");
 
         // [WHEN] Post the purchase invoice
@@ -1465,24 +1465,6 @@ codeunit 149917 "Subc. Item Charge Posting Test"
             QtyToAssign,
             AmountToAssign,
             NextLineNo);
-    end;
-
-    local procedure EnsureGeneralPostingSetupIsValid(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
-    var
-        GeneralPostingSetup: Record "General Posting Setup";
-    begin
-        if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
-            if GeneralPostingSetup.Blocked then begin
-                GeneralPostingSetup.Blocked := false;
-                GeneralPostingSetup.Modify();
-            end;
-            exit;
-        end;
-        GeneralPostingSetup.Init();
-        GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
-        GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
-        GeneralPostingSetup.Insert();
-        GeneralPostingSetup.SuggestSetupAccounts();
     end;
 
     local procedure Initialize()

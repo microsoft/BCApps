@@ -283,7 +283,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         if PurchaseLine.FindSet() then
             repeat
-                EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+                SubSetupLibrary.EnsureGeneralPostingSetupIsValid(GenBusPostingGroup, GenProdPostingGroup);
             until PurchaseLine.Next() = 0;
 
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -548,7 +548,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
         // [GIVEN] First partial purchase receipt (4 of 10)
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(GenBusPostingGroup, GenProdPostingGroup);
         PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
         PurchaseLine.Modify(true);
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
@@ -882,25 +882,6 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Purch. Subcont. Test");
-    end;
-
-    local procedure EnsureGeneralPostingSetupIsValid(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
-    var
-        GeneralPostingSetup: Record "General Posting Setup";
-    begin
-        if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
-            if GeneralPostingSetup.Blocked then begin
-                GeneralPostingSetup.Blocked := false;
-                GeneralPostingSetup.Modify();
-            end;
-            exit;
-        end;
-
-        GeneralPostingSetup.Init();
-        GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
-        GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
-        GeneralPostingSetup.Insert();
-        GeneralPostingSetup.SuggestSetupAccounts();
     end;
 
     local procedure SetupSubcontractingEnvironment()

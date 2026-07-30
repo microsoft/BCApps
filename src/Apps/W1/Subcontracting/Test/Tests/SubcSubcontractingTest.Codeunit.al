@@ -2045,7 +2045,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [WHEN] Receive the subcontracting purchase order
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -2103,7 +2103,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
@@ -2154,7 +2154,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         // [GIVEN] The production order is changed to Finished status
@@ -3262,7 +3262,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] The existing subcontracting purchase order is fully received
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -3947,25 +3947,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         WorkCenterNo := WorkCenter."No.";
     end;
 
-    local procedure EnsureGeneralPostingSetupIsValid(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
-    var
-        GeneralPostingSetup: Record "General Posting Setup";
-    begin
-        if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
-            if GeneralPostingSetup.Blocked then begin
-                GeneralPostingSetup.Blocked := false;
-                GeneralPostingSetup.Modify();
-            end;
-            exit;
-        end;
-
-        GeneralPostingSetup.Init();
-        GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
-        GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
-        GeneralPostingSetup.Insert();
-        GeneralPostingSetup.SuggestSetupAccounts();
-    end;
-
     local procedure CreateItem(var Item: Record Item; ItemCostingMethod: Enum "Costing Method"; ItemReorderPolicy: Enum "Reordering Policy";
                                                                              FlushingMethod: Enum "Flushing Method";
                                                                              RoutingNo: Code[20];
@@ -4575,7 +4556,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         SubcPurchaseLine.FindFirst();
         SubcPurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
 
         LibraryPurchase.PostPurchaseDocument(SubcPurchaseHeader, true, false);
 
@@ -4589,7 +4570,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryPurchase.CreatePurchaseLine(ItemChargeInvLine, ItemChargeInvHeader, ItemChargeInvLine.Type::"Charge (Item)", ItemCharge."No.", 1);
         ItemChargeInvLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
         ItemChargeInvLine.Modify(true);
-        EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
 
         AssignItemChargeToReceiptLine(ItemChargeInvLine, SubcPurchRcptLine, 1);
 

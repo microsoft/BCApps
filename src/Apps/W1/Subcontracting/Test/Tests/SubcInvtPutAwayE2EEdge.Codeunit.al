@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
@@ -123,6 +124,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
@@ -694,6 +696,93 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
+    procedure ItemChargeAssignedToSerialTrackedLastOperationViaSingleStepPutAway()
+    var
+        Item: Record Item;
+        ItemCharge: Record "Item Charge";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ChargeInvoice: Record "Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        ChargeLine: Record "Purchase Line";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        Vendor: Record Vendor;
+        ValueEntry: Record "Value Entry";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WorkCenter: array[2] of Record "Work Center";
+        NoSeriesCodeunit: Codeunit "No. Series";
+        SerialNo: Code[50];
+    begin
+        // [FEATURE] Group I - Purchase invoice / financial post-processes
+        // [SCENARIO] Item charge assignment to a tracked LastOperation receipt through single-step Put-away.
+        Initialize();
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateSerialTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify(true);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 1, Location.Code);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        SerialNo := NoSeriesCodeunit.GetNextNo(Item."Serial Nos.");
+        LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, SerialNo, '', 1);
+
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryPurchase.CreatePurchHeader(ChargeInvoice, ChargeInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(ChargeLine, ChargeInvoice, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", 1);
+        ChargeLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 25, 2));
+        ChargeLine.Modify(true);
+        LibraryPurchase.CreateItemChargeAssignment(
+            ItemChargeAssignmentPurch, ChargeLine, ItemCharge,
+            "Purchase Applies-to Document Type"::Receipt,
+            PurchRcptLine."Document No.", PurchRcptLine."Line No.", PurchRcptLine."No.",
+            1, ChargeLine."Direct Unit Cost");
+        ItemChargeAssignmentPurch.Insert(true);
+        LibraryPurchase.PostPurchaseDocument(ChargeInvoice, false, true);
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Serial No.", SerialNo);
+        ItemLedgerEntry.FindFirst();
+        ValueEntry.SetRange("Item Charge No.", ItemCharge."No.");
+        Assert.RecordIsNotEmpty(ValueEntry);
+        ValueEntry.FindLast();
+        Assert.AreEqual(ItemLedgerEntry."Entry No.", ValueEntry."Item Ledger Entry No.", 'The item charge must capitalize onto the specific tracked output Item Ledger Entry.');
+        Assert.AreEqual(0, ValueEntry."Capacity Ledger Entry No.", 'A tracked Last Operation item charge must not reference a Capacity Ledger Entry.');
+        Assert.AreEqual(Round(ChargeLine."Direct Unit Cost"), Round(ValueEntry."Cost Amount (Actual)"), 'Item charge cost must be fully capitalized onto the tracked Item Ledger Entry.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure CancelPostedPurchaseInvoiceWithSubcontractingItemChargeIsBlocked()
     var
         Item: Record Item;
@@ -1197,23 +1286,24 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         Quantities[1] := 1;
         Quantities[2] := 1;
-        SubcWarehouseLibrary.SplitActivityLineAcrossBins(WarehouseActivityHeader, WarehouseActivityHeader.Type, Bins, Quantities);
-        // Unlike serial tracking, lot/package tracking does NOT make the base app pre-split the Warehouse Activity
-        // Line per unit - a single combined line (Qty=2) is created, and since it spans two DIFFERENT lots/packages
-        // aggregated from separate reservation entries, its own Lot No./Package No. fields are blank (a single field
-        // can't represent two different lots). SplitLine() then copies that blank tracking to both sub-lines
-        // unchanged, so posting fails ("'Lot No.' must contain a value") unless we reassign the correct lot/package
-        // to each split sub-line explicitly, matching the per-unit reservation entries created above.
+        // Like serial tracking (see SplitSerialTrackedPutAwayPostsDistinctSerialEntriesPerBin's comment), base app
+        // pre-splits the Warehouse Activity Line per unit when 2 separate per-unit reservation entries exist against
+        // the Prod. Order Line (one per distinct lot/package here), even though lot/package tracking is not itself
+        // auto-populated onto each pre-split line the way it would be from a Purchase Line-based reservation. So 2
+        // lines already exist here (each "Qty. (Base)" = 1) - calling SplitActivityLineAcrossBins on top of that
+        // trips "Qty. to Handle must not be Qty. Outstanding" (1=1), matching fix #35's finding. Assign bin and
+        // lot/package directly to each of the 2 pre-existing lines instead of splitting further.
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
-        WarehouseActivityLine.SetRange("Bin Code", Bins[1].Code);
-        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.FindSet();
+        WarehouseActivityLine.Validate("Bin Code", Bins[1].Code);
+        WarehouseActivityLine.Validate("Qty. to Handle", Quantities[1]);
         WarehouseActivityLine.Validate("Lot No.", 'K2LOT1');
         WarehouseActivityLine.Validate("Package No.", 'PKG-A');
         WarehouseActivityLine.Modify(true);
-
-        WarehouseActivityLine.SetRange("Bin Code", Bins[2].Code);
-        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.Next();
+        WarehouseActivityLine.Validate("Bin Code", Bins[2].Code);
+        WarehouseActivityLine.Validate("Qty. to Handle", Quantities[2]);
         WarehouseActivityLine.Validate("Lot No.", 'K2LOT2');
         WarehouseActivityLine.Validate("Package No.", 'PKG-B');
         WarehouseActivityLine.Modify(true);

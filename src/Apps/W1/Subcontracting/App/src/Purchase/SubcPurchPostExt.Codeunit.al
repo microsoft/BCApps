@@ -139,9 +139,23 @@ codeunit 99001535 "Subc. Purch. Post Ext"
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
-        if PurchRcptLineIsLastOperation(PurchRcptLine) then
+        if PurchRcptLineIsLastOperation(PurchRcptLine) and ItemIsTracked(PurchRcptLine."No.") then
+            // A tracked LastOperation receipt posts as a plain Entry Type::Purchase item journal line
+            // (see CopySubcontractingProdOrderFieldsToItemJnlLine), so "Item Rcpt. Entry No." is a genuine
+            // Item Ledger Entry No. here - let base app's default Item Ledger Entry lookup/dimension
+            // propagation run unmodified instead of overriding it below.
             exit;
         SubcSessionState.SetRecordID('PurchRcptLineForItemCharge', PurchRcptLine.RecordId);
+    end;
+
+    local procedure ItemIsTracked(ItemNo: Code[20]): Boolean
+    var
+        Item: Record Item;
+    begin
+        Item.SetLoadFields("Item Tracking Code");
+        if not Item.Get(ItemNo) then
+            exit(false);
+        exit(Item."Item Tracking Code" <> '');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry, '', false, false)]
