@@ -22,5 +22,11 @@
         <Line CodeunitID="134717"
               Description="Accuracy - Canada real-world (Shopify titles, real jurisdictions)"
               Dataset="TMA-TS-RealCA.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - held-out generalization (unusual official names not in prompt)"
+              Dataset="TMA-TS-Heldout.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - traps / false-positive (no-match-correct with distractors)"
+              Dataset="TMA-TS-Traps.yaml" />
     </AITSuite>
 </Root>

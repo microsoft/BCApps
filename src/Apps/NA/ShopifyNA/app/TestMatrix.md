@@ -250,6 +250,8 @@ The small curated J/H scenarios stay in the **Daily** `TMA-UNIT` gate; the large
 | `TMA-TS-AccCA.yaml` | ~65 | Canada provinces incl. French (TPS/TVQ) — synthetic perturbations |
 | `TMA-TS-RealUS.yaml` | ~45 | Real US localities, real Shopify titles, reworded BC descriptions |
 | `TMA-TS-RealCA.yaml` | ~14 | Real CA provinces, real Shopify titles (GST/PST/HST/QST + TPS/TVQ) |
+| `TMA-TS-Heldout.yaml` | ~6 | Held-out generalization: unusual official names **not** named in the prompt |
+| `TMA-TS-Traps.yaml` | ~7 | Traps: correct answer is no-match despite tempting distractors (false-positive probes) |
 
 **Two dataset families.** *Synthetic* (`TMA-TS-Acc*`) exercises breadth through systematic title
 **perturbations** — 24 US states + 7 CA provinces (state/province + county/city/district), via
@@ -270,6 +272,26 @@ PST/QST.
 **Generation** — both families are produced deterministically (no PII; public US/CA tax facts) so the
 corpus can be regenerated while hill-climbing the prompt. Each tax line is labeled with its target
 jurisdiction, so accuracy = matched / total.
+
+**Held-out generalization + false-positive probes.** Because the matcher prompt intentionally carries
+a few real official-name aliases (e.g. Retailers' Occupation Tax = state sales tax; RST = PST), a
+scenario whose answer is *spelled out in the prompt* proves little. Two datasets guard against that:
+
+- `TMA-TS-Heldout.yaml` — real jurisdictions with **unusual official names deliberately NOT mentioned
+  in the prompt** (Hawaii General Excise Tax, New Mexico Gross Receipts Tax, Puerto Rico *IVU*
+  (Spanish), Colorado RTD district, Nevada Local School Support Tax, Florida Discretionary Sales
+  Surtax). Passing these measures **generalization** of the general geography/level principle, not
+  memorization of prompt aliases.
+- `TMA-TS-Traps.yaml` — cases where the correct answer is **no match** (or one specific look-alike)
+  despite a tempting distractor: wrong-state, near-duplicate city (geo disambiguation), missing
+  county level, similar-name-different-scope, absent city, wrong tax *type* (franchise vs sales), and
+  empty candidate list. A non-empty wrong match here is a **false positive** — the dangerous failure
+  mode for a human-in-the-loop matcher (a no-match is safe; a confident wrong match is not).
+
+**False-positive metric.** Plain pass-rate hides confident wrong matches. `files/tma_fp_metric.py`
+(session artifact) reads any `*_Eval_Summary.xlsx` and classifies every jurisdiction assertion as
+*correct*, *miss/no-match (safe)*, or *wrong-match / over-match (false positive)*, reported overall
+and per family. The target is **zero false positives**; misses are tolerated (held for review).
 
 **Metric** — this corpus is intentionally **not** a 100% pass gate. Accuracy is expected to be
 below 100% and improved over time (hill-climb); each scenario asserts the exact expected
