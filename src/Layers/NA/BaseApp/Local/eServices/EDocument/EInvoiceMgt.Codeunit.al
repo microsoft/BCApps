@@ -7915,7 +7915,7 @@ codeunit 10145 "E-Invoice Mgt."
         if Succeeded then
             Severity := Verbosity::Normal
         else
-            Severity := Verbosity::Warning;
+            Severity := Verbosity::Error;
 
         Session.LogMessage(
             '0000MF8',
