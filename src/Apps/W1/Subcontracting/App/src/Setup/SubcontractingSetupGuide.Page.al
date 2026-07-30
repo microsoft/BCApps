@@ -11,6 +11,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Telemetry;
 using System.Utilities;
 
 page 99001505 "Subcontracting Setup Guide"
@@ -273,6 +274,7 @@ page 99001505 "Subcontracting Setup Guide"
     trigger OnOpenPage()
     begin
         Rec.Get();
+        FeatureTelemetry.LogUptake('0001Q7N', SubcontractingTok, Enum::"Feature Uptake Status"::Discovered);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -288,6 +290,7 @@ page 99001505 "Subcontracting Setup Guide"
         MediaRepositoryStandard: Record "Media Repository";
         MediaResourcesDone: Record "Media Resources";
         MediaResourcesStandard: Record "Media Resources";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         BackActionEnabled: Boolean;
         CompanyDefaultsStepVisible: Boolean;
         FinishActionEnabled: Boolean;
@@ -302,6 +305,7 @@ page 99001505 "Subcontracting Setup Guide"
         DocumentationUrlLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2345593', Locked = true;
         LocationsLinkLbl: Label 'Set up locations';
         SetupNotCompletedQst: Label 'The Subcontracting setup is not complete. Are you sure you want to exit?';
+        SubcontractingTok: Label 'Subcontracting', Locked = true;
         SubcontractingWorksheetLinkLbl: Label 'Open the Subcontracting Worksheet';
         SubcontractorPricesLinkLbl: Label 'Set up subcontractor prices';
         VendorsLinkLbl: Label 'Set up vendors';
@@ -338,6 +342,7 @@ page 99001505 "Subcontracting Setup Guide"
     begin
         CurrPage.SaveRecord();
         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Subcontracting Setup Guide");
+        FeatureTelemetry.LogUptake('0001Q7O', SubcontractingTok, Enum::"Feature Uptake Status"::"Set up");
         SubcApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
         SetupCompleted := true;
         CurrPage.Close();
