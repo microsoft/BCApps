@@ -919,9 +919,71 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutEditDialog.OK().Invoke();
     end;
 
+    [Test]
+    [HandlerFunctions('EditExtensionOverrideDeclineGlobalHandler,ConfirmHandlerNo')]
+    procedure TestEditExtensionLayoutDeclineGlobalKeepsEditsAndSavesCompanyScope()
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Declining the all-companies confirmation reopens the dialog with the user's
+        // entries preserved and the scope reset to the current company, so the edit can still be
+        // saved company-scoped instead of being silently discarded (Slice 4, step-4 finding).
+        EnsureNewLayoutsAreCleaned();
+        EditDialogPass := 0;
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Act - pass 1 sets a description + global scope; the declined confirm reopens the dialog,
+        // where pass 2 verifies the state and accepts the (now company-scoped) edit.
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.EditLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        Assert.AreEqual(2, EditDialogPass, 'The dialog should have been reopened after declining the global scope.');
+
+        // Assert - the edit landed as a COMPANY-scoped override, and no global override was created
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'The declined global edit should have been saved as a company-specific override.');
+        Assert.IsTrue(TenantReportLayoutOverride."Override Description", 'Override Description should be set.');
+        Assert.AreEqual(EditedLayoutNameTxt, TenantReportLayoutOverride.Description, 'The typed description should have survived the reopen.');
+        Assert.IsFalse(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            'No global override should exist after declining the all-companies scope.');
+    end;
+
+    [ModalPageHandler]
+    procedure EditExtensionOverrideDeclineGlobalHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
+    begin
+        EditDialogPass += 1;
+        if EditDialogPass = 1 then begin
+            // First pass: type a description and ask for an all-companies override.
+            ReportLayoutEditDialog.Description.SetValue(EditedLayoutNameTxt);
+            ReportLayoutEditDialog.OverrideForAllCompanies.SetValue(true);
+        end else begin
+            // Reopened after declining: the entries must be preserved and the scope reset to company.
+            Assert.AreEqual(EditedLayoutNameTxt, ReportLayoutEditDialog.Description.Value, 'The description should be preserved on reopen.');
+            Assert.AreEqual('No', ReportLayoutEditDialog.OverrideForAllCompanies.Value, 'The scope should be reset to the current company on reopen.');
+        end;
+        ReportLayoutEditDialog.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
     var
         Assert: Codeunit Assert;
         TempBlob: Codeunit "Temp Blob";
+        EditDialogPass: Integer;
         NewLayoutNameTxt: Label 'NewLayout';
         EditedLayoutNameTxt: Label 'EditedLayout';
         SampleTextTxt: Label 'ATAKLOA, TINWTABSBATF.';

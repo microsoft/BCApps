@@ -159,6 +159,19 @@ page 9661 "Report Layout Edit Dialog"
         exit(OverrideForAllCompanies);
     end;
 
+    /// <summary>
+    /// Re-seeds the dialog when it is reopened after the user declined an all-companies override, so
+    /// their entries survive and only the scope is reset. Does not re-run SetupDialog (which would
+    /// discard the edits).
+    /// </summary>
+    internal procedure SetOverrideValues(NewDescription: Text[250]; NewIsObsolete: Boolean; ScopeIsGlobal: Boolean)
+    begin
+        Description := NewDescription;
+        if IsObsoleteEditable then
+            IsObsolete := NewIsObsolete;
+        OverrideForAllCompanies := ScopeIsGlobal;
+    end;
+
     internal procedure SelectedIsObsolete(): Boolean
     begin
         exit(IsObsolete);

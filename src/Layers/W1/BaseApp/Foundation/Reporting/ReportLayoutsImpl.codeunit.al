@@ -46,7 +46,7 @@ codeunit 9660 "Report Layouts Impl."
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = Layout Name';
         MixedScopeErr: Label 'The selected layouts have different scopes. Some apply to all companies and some only to the current company. Select layouts of a single scope and try again.';
         GlobalScopeConfirmQst: Label 'One or more of the selected layouts apply to all companies. Changing the status will affect all companies, not only the current one. Do you want to continue?';
-        GlobalOverrideConfirmQst: Label 'This override will apply to all companies, not only the current one. Do you want to continue?';
+        GlobalOverrideConfirmQst: Label 'This override will apply to all companies, not only the current one. Do you want to continue?\\Choose No to go back to the dialog with your changes, where you can apply them to the current company only.';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
     begin
@@ -701,6 +701,7 @@ codeunit 9660 "Report Layouts Impl."
         NewIsObsolete: Boolean;
         ApplyDescription: Boolean;
         ApplyObsolete: Boolean;
+        ReopenForScope: Boolean;
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if SelectedReportLayoutList."User Defined" then begin
@@ -710,7 +711,10 @@ codeunit 9660 "Report Layouts Impl."
             CompanyName := SelectedCompany;
 
         ReportLayoutEditDialog.SetupDialog(SelectedReportLayoutList, SelectedCompany);
-        if ReportLayoutEditDialog.RunModal() = Action::OK then begin
+        repeat
+            ReopenForScope := false;
+            if ReportLayoutEditDialog.RunModal() <> Action::OK then
+                exit;
 
             NewDescription := ReportLayoutEditDialog.SelectedLayoutDescription();
             NewLayoutName := ReportLayoutEditDialog.SelectedLayoutName();
@@ -732,9 +736,20 @@ codeunit 9660 "Report Layouts Impl."
                 ApplyObsolete := NewIsObsolete and (not SelectedReportLayoutList.IsObsolete);
                 if not (ApplyDescription or ApplyObsolete) then
                     exit;
-                if AvailableInAllCompanies then
-                    if not Confirm(GlobalOverrideConfirmQst, false) then
-                        exit;
+                // Declining the all-companies scope must NOT throw away what the user typed: reopen the
+                // dialog with their values, scope reset to the current company, so they can save it
+                // company-scoped (or cancel deliberately).
+                if AvailableInAllCompanies and (not Confirm(GlobalOverrideConfirmQst, false)) then begin
+                    ReportLayoutEditDialog.SetOverrideValues(NewDescription, NewIsObsolete, false);
+                    ReopenForScope := true;
+                end;
+            end;
+        until not ReopenForScope;
+
+        // The dialog values are settled at this point (scope question answered). Block kept so the
+        // paths below — override write, copy, in-place user-defined edit — stay as they were.
+        begin
+            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
                 UpsertLayoutOverride(SelectedReportLayoutList, AvailableInAllCompanies, ApplyDescription, NewDescription, false, Enum::"Report Layout Status"::Draft, ApplyObsolete, NewIsObsolete);
 
                 // TODO (Slice 4 C/D): telemetry disabled while testing. The previous Log reused event
