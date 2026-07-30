@@ -301,7 +301,7 @@ codeunit 20509 "Subc. Data Migration"
 
     local procedure GetRenumberedDataMigrationTag(): Code[250]
     begin
-        exit('MS-Subcontracting-RenumberObjects-28.3-20260728');
+        exit('MS-Subcontracting-RenumberObjects-20260728');
     end;
 
     var
