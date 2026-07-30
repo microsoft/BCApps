@@ -6,6 +6,7 @@
 namespace Microsoft.DataMigration.BC14Reimplementation;
 
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Posting;
 
 codeunit 46949 "BC14 Item Journal Post Action" implements "BC14 Post Migration Action"
 {
