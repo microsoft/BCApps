@@ -49,16 +49,13 @@ page 5734 "Item Category Attributes"
                     trigger OnValidate()
                     var
                         ItemAttribute: Record "Item Attribute";
-                        ErrorMsg: Text;
                     begin
                         PersistInheritanceData();
 
                         ItemAttribute.SetLoadFields(Type);
                         ItemAttribute.Get(Rec."Attribute ID");
-                        if (ItemAttribute.Type = ItemAttribute.Type::Option) and (Rec.Value = '') then begin
-                            ErrorMsg := StrSubstNo(BlankOptionAttributeNotificationMsg, Rec."Attribute Name");
-                            Error(ErrorMsg);
-                        end;
+                        if (ItemAttribute.Type = ItemAttribute.Type::Option) and (Rec.Value = '') then
+                            Error(BlankOptionAttributeNotificationMsg, Rec."Attribute Name");
 
                         ChangeDefaultValue();
                     end;
@@ -113,7 +110,7 @@ page 5734 "Item Category Attributes"
         ItemAttributeValueMapping.SetRange("Item Attribute ID", Rec."Attribute ID");
         if ItemAttributeValueMapping.FindFirst() then begin
             if ItemAttributeManagement.SearchCategoryItemsForAttribute(ItemCategoryCode, Rec."Attribute ID") then
-                if Confirm(StrSubstNo(DeleteItemInheritedParentCategoryAttributesQst, ItemCategoryCode)) then begin
+                if Confirm(DeleteItemInheritedParentCategoryAttributesQst, false, ItemCategoryCode) then begin
                     ItemAttributeValue.SetRange("Attribute ID", Rec."Attribute ID");
                     ItemAttributeValue.SetRange(ID, ItemAttributeValueMapping."Item Attribute Value ID");
                     if ItemAttributeValue.FindFirst() then begin
@@ -138,8 +135,6 @@ page 5734 "Item Category Attributes"
         if ItemCategoryCode <> '' then begin
             ItemAttribute.Get(Rec."Attribute ID");
 
-            // Allow the line to be created without a value so the user can select one;
-            // blank Option values are simply not persisted (see SaveAttributes).
             if (ItemAttribute.Type = ItemAttribute.Type::Option) and (Rec.Value = '') then
                 exit(true);
 
@@ -242,7 +237,6 @@ page 5734 "Item Category Attributes"
         if TempNewItemAttributeValue.FindSet() then
             repeat
                 ItemAttribute.Get(TempNewItemAttributeValue."Attribute ID");
-                // Do not persist a mapping for a blank Option-type value.
                 if not ((ItemAttribute.Type = ItemAttribute.Type::Option) and (TempNewItemAttributeValue.Value = '')) then begin
                     ItemAttributeValueMapping."Table ID" := DATABASE::"Item Category";
                     ItemAttributeValueMapping."No." := CategoryCode;

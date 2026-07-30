@@ -2978,17 +2978,22 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         ItemCategoryCard.OpenEdit();
         ItemCategoryCard.GotoRecord(ItemCategory);
 
-        // [WHEN] User adds a new attribute line, selects an Option-type attribute, and enters a valid value.
+        // [WHEN] User adds a new attribute line and selects an Option-type attribute (value still blank).
         ItemCategoryCard.Attributes.New();
         ItemCategoryCard.Attributes."Attribute Name".SetValue(ItemAttribute.Name);
+
+        // [THEN] No Item Attribute Value Mapping is created while the Option value is blank.
+        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
+        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
+        ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
+        Assert.RecordIsEmpty(ItemAttributeValueMapping);
+
+        // [WHEN] User enters a valid value and closes the page.
         ItemCategoryCard.Attributes.Value.SetValue(ItemAttributeValue.Value);
         ItemCategoryCard.Attributes.Next();
         ItemCategoryCard.Close();
 
         // [THEN] Verify Item Attribute Value Mapping is created.
-        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
-        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
-        ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
         Assert.RecordIsNotEmpty(ItemAttributeValueMapping);
     end;
 
