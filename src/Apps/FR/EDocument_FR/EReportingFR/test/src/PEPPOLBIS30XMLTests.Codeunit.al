@@ -45,6 +45,8 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         Assert: Codeunit Assert;
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
+        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
+        BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         IsInitialized: Boolean;
 
@@ -700,7 +702,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         asserterror CheckInvoice(SalesInvoiceHeader);
 
-        Assert.ExpectedError(StrSubstNo('Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', CustomerNo));
+        Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
     end;
 
     [Test]
@@ -717,7 +719,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         asserterror CheckInvoice(SalesInvoiceHeader);
 
-        Assert.ExpectedError(StrSubstNo('Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', CustomerNo));
+        Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressSchemeRequiredErr, CustomerNo));
     end;
 
     [Test]
@@ -1090,7 +1092,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         end;
     end;
 
-    local procedure EnsureCountryRegionExists(CountryCode: Code[10])
+    local procedure EnsureCountryRegionExists(CountryCode: Code[2])
     var
         CountryRegion: Record "Country/Region";
     begin
