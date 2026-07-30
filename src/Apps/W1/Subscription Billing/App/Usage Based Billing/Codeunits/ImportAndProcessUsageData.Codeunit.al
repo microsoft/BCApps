@@ -97,12 +97,6 @@ codeunit 8025 "Import And Process Usage Data"
         exit(ServiceCommitment.FindLast());
     end;
 
-    internal procedure SetError(var UsageDataImport: Record "Usage Data Import"; Reason: Text)
-    begin
-        UsageDataImport."Processing Status" := UsageDataImport."Processing Status"::Error;
-        UsageDataImport.SetReason(Reason);
-    end;
-
     internal procedure AvailableServiceObjectExist(var UsageDataImport: Record "Usage Data Import"; SubscriptionID: Text[80]): Boolean
     var
         UsageDataSubscription: Record "Usage Data Supp. Subscription";
