@@ -1987,6 +1987,14 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
         VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
         if VATCalculationType = VATCalculationType::"Reverse Charge VAT" then
             VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
+        case true of
+            VATCalculationType = VATCalculationType::"Reverse Charge VAT":
+                VATPostingSetup.Validate("Tax Category", 'AE');
+            VATRate > 0:
+                VATPostingSetup.Validate("Tax Category", 'S');
+            else
+                VATPostingSetup.Validate("Tax Category", 'Z');
+        end;
         VATPostingSetup.Modify(true);
         exit(VATProductPostingGroup.Code);
     end;
