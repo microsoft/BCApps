@@ -53,7 +53,7 @@ codeunit 99001506 "Subc. Notification Mgmt."
         MissingSubcontractingLocationNotification.Send();
     end;
 
-    procedure OpenVendorCard(MissingSubcontractingLocationNotification: Notification)
+    internal procedure OpenVendorCard(MissingSubcontractingLocationNotification: Notification)
     var
         Vendor: Record Vendor;
         VendorNo: Code[20];
