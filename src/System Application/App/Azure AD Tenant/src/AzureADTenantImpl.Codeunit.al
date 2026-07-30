@@ -63,18 +63,26 @@ codeunit 3705 "Azure AD Tenant Impl."
         Error(PreferredLanguageErr);
     end;
 
-    procedure GetVerifiedDomains() Domains: List of [Text]
+    procedure IsVerifiedDomain(Domain: Text): Boolean
     var
         VerifiedDomain: DotNet VerifiedDomainInfo;
+        VerifiedDomains: DotNet GenericIEnumerable1;
+        VerifiedDomainName: Text;
     begin
         Initialize();
         if IsNull(TenantInfo) then
             Error(VerifiedDomainsErr);
 
-        foreach VerifiedDomain in TenantInfo.VerifiedDomains() do
-            if not IsNull(VerifiedDomain) then
-                if VerifiedDomain.Name() <> '' then
-                    Domains.Add(VerifiedDomain.Name());
+        VerifiedDomains := TenantInfo.VerifiedDomains();
+        if IsNull(VerifiedDomains) then
+            exit(false);
+
+        foreach VerifiedDomain in VerifiedDomains do
+            if not IsNull(VerifiedDomain) then begin
+                VerifiedDomainName := VerifiedDomain.Name();
+                if (VerifiedDomainName <> '') and (LowerCase(VerifiedDomainName) = LowerCase(Domain)) then
+                    exit(true);
+            end;
     end;
 
     procedure GetPowerPlatformTenantURL(): Text

@@ -63,14 +63,15 @@ codeunit 433 "Azure AD Tenant"
     end;
 
     /// <summary>
-    /// Gets the verified domain names registered on the current Microsoft Entra tenant.
+    /// Checks whether a domain is registered as verified on the current Microsoft Entra tenant.
     /// If the Microsoft Graph API cannot be reached, the error is displayed.
     /// </summary>
-    /// <returns>A list of verified domain names (e.g. "contoso.com", "contoso.onmicrosoft.com").</returns>
-    /// <error>Cannot retrieve the Microsoft Entra tenant verified domains.</error>
-    procedure GetVerifiedDomains(): List of [Text]
+    /// <param name="Domain">The domain name to check.</param>
+    /// <returns>True if the domain is verified; otherwise, false.</returns>
+    /// <error>Failed to retrieve the Microsoft Entra tenant verified domains.</error>
+    procedure IsVerifiedDomain(Domain: Text): Boolean
     begin
-        exit(AzureADTenantImpl.GetVerifiedDomains());
+        exit(AzureADTenantImpl.IsVerifiedDomain(Domain));
     end;
 
     /// <summary>
