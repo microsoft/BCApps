@@ -615,12 +615,6 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
 
         EDocumentService.DeleteAll();
 
-        PurchasesPayablesSetup.Get();
-        if PurchasesPayablesSetup."Invoice Nos." = '' then begin
-            PurchasesPayablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-            PurchasesPayablesSetup.Modify(true);
-        end;
-
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
@@ -632,6 +626,13 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         Vendor.Modify(true);
 
         CreatePaymentJournalBatch();
+
+        PurchasesPayablesSetup.Get();
+        if (PurchasesPayablesSetup."Invoice Nos." = '') or (PurchasesPayablesSetup."Posted Invoice Nos." = '') then begin
+            PurchasesPayablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+            PurchasesPayablesSetup.Validate("Posted Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+            PurchasesPayablesSetup.Modify(true);
+        end;
 
         IsInitialized := true;
     end;
@@ -775,13 +776,16 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
             CountryRegion.SetFilter("ISO Code", '<>%1', '');
             CountryRegion.FindFirst();
             CompanyInformation."Country/Region Code" := CountryRegion.Code;
-        end else begin
-            CountryRegion.Get(CompanyInformation."Country/Region Code");
-            if CountryRegion."ISO Code" = '' then begin
-                CountryRegion."ISO Code" := 'XX';
-                CountryRegion.Modify();
-            end;
-        end;
+        end else
+            if not CountryRegion.Get(CompanyInformation."Country/Region Code") then begin
+                CountryRegion.SetFilter("ISO Code", '<>%1', '');
+                CountryRegion.FindFirst();
+                CompanyInformation."Country/Region Code" := CountryRegion.Code;
+            end else
+                if CountryRegion."ISO Code" = '' then begin
+                    CountryRegion."ISO Code" := 'XX';
+                    CountryRegion.Modify();
+                end;
         CompanyInformation.Modify();
     end;
 
