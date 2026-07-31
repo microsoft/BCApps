@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.DemoTool;
 using Microsoft.Utilities;
 using System.Privacy;
 
