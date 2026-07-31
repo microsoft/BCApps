@@ -16,9 +16,9 @@ codeunit 148151 CurrencyExchangeRateFile
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         FileMgt: Codeunit "File Management";
         CurrencyExchangeRateFile: File;
-        CurrencyFileExtTxt: Label 'dat';
-        EuroCodeTok: Label 'EUR';
-        USDCodeTok: Label 'USD';
+        CurrencyFileExtTxt: Label 'dat', Locked = true;
+        EuroCodeTok: Label 'EUR', Locked = true;
+        USDCodeTok: Label 'USD', Locked = true;
         CurrencyExchRateImportText1090000Err: Label 'File does not contain Exchange rates in LCY Currency';
         CurrencyExchRateImportText1090001Msg: Label 'New Exchange Rates updated ';
         CurrencyExchRateImportText1090002Msg: Label 'No updated currencies';

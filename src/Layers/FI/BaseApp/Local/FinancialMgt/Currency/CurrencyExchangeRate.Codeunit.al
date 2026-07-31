@@ -140,7 +140,7 @@ codeunit 32000001 "Currency Exchange Rate"
 
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
-    [Obsolete('Moved to the FI Core app.', '29.0')]
+    [Obsolete('Moved to codeunit "Currency Exch. Rate Import" in the FI Core app. Subscribe to "Currency Exch. Rate Import".OnBeforeFileImport instead.', '29.0')]
     procedure OnBeforeFileImport(var FileName: Text)
     begin
     end;
