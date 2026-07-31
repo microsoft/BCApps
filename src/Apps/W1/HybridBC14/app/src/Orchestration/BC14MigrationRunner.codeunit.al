@@ -94,6 +94,8 @@ codeunit 46875 "BC14 Migration Runner"
         MigrationPhaseHaltedLbl: Label 'Migration halted at phase %1 for company %2. Company marked Failed so the operator can retry via Continue migration.', Locked = true, Comment = '%1 = Phase, %2 = Company Name';
         MigrationPhaseHaltedErrLbl: Label 'Migration halted at phase %1. Resolve the underlying errors and click Continue migration to retry.', Comment = '%1 = Phase';
         NoReplicationSummaryForRerunErr: Label 'Cannot rerun migration for company %1: no replication summary was found. Run replication first.', Comment = '%1 = Company Name';
+        HistoricalDisabledForRerunErr: Label 'Cannot rerun historical migration for company %1: historical record migration is disabled for this company.', Comment = '%1 = Company Name';
+        MainNotCompletedForHistoricalRerunErr: Label 'Cannot rerun historical migration for company %1 because its main migration has not completed yet. Use Continue migration to finish the upgrade first.', Comment = '%1 = Company Name';
         OnAfterPopulateSetupMigratorsTok: Label 'OnAfterPopulateSetupMigrators', Locked = true;
         OnAfterPopulateMasterMigratorsTok: Label 'OnAfterPopulateMasterMigrators', Locked = true;
         OnAfterPopulateTransactionMigratorsTok: Label 'OnAfterPopulateTransactionMigrators', Locked = true;
@@ -210,6 +212,46 @@ codeunit 46875 "BC14 Migration Runner"
                     true, TargetCompanyName, CurrentDateTime(), TaskRecordId, BC14MigrationOrchestrator.GetDefaultJobTimeout())
             else
                 Session.StartSession(SessionID, Codeunit::"BC14 Migration Runner", TargetCompanyName);
+    end;
+
+    internal procedure RerunHistoricalForCompany(TargetCompanyName: Text[30])
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        BC14CompanySettings: Record BC14CompanyMigrationInfo;
+        BC14MigrationOrchestrator: Codeunit "BC14 Migration Orchestrator";
+        BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
+        EmptyRecordId: RecordId;
+        SessionID: Integer;
+        RunSynchronously: Boolean;
+    begin
+        if not BC14CompanySettings.Get(TargetCompanyName) then
+            Error(NoReplicationSummaryForRerunErr, TargetCompanyName);
+        if not BC14CompanySettings."Migrate Historical Records" then
+            Error(HistoricalDisabledForRerunErr, TargetCompanyName);
+        if not BC14CompanySettings."Posting Completed" then
+            Error(MainNotCompletedForHistoricalRerunErr, TargetCompanyName);
+
+        BC14StatusMgr.AcquireRerunSlot(TargetCompanyName);
+
+        if not BC14MigrationOrchestrator.FindLatestReplicationSummary(HybridReplicationSummary) then
+            Error(NoReplicationSummaryForRerunErr, TargetCompanyName);
+        BC14StatusMgr.SetSummaryInProgress(HybridReplicationSummary);
+
+        BC14CompanySettings.RestartHistoricalDispatch(TargetCompanyName);
+        Commit();
+
+        BC14MigrationOrchestrator.RaiseOnBeforeScheduleTask(Codeunit::"BC14 Historical Task Worker", RunSynchronously);
+        if RunSynchronously then begin
+            Codeunit.Run(Codeunit::"BC14 Historical Task Worker");
+            exit;
+        end;
+
+        if TaskScheduler.CanCreateTask() then
+            TaskScheduler.CreateTask(
+                Codeunit::"BC14 Historical Task Worker", Codeunit::"BC14 Migration Failure Handler",
+                true, TargetCompanyName, CurrentDateTime(), EmptyRecordId, BC14MigrationOrchestrator.GetDefaultJobTimeout())
+        else
+            Session.StartSession(SessionID, Codeunit::"BC14 Historical Task Worker", TargetCompanyName);
     end;
 
     local procedure RunMigrationFromPhase(StartPhase: Enum "BC14 Migration Step")
