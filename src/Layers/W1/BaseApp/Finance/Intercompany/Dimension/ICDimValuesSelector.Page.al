@@ -117,6 +117,7 @@ page 706 "IC Dim Values Selector"
     var
         DimensionValue: Record "Dimension Value";
         ICDimensionValue: Record "IC Dimension Value";
+        ICDimension: Record "IC Dimension";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         ICMapping: Codeunit "IC Mapping";
         IsHandle: Boolean;
@@ -151,6 +152,10 @@ page 706 "IC Dim Values Selector"
                     ICDimensionValue.Code := DimensionValue.Code;
                     ICDimensionValue.Name := DimensionValue.Name;
                     ICDimensionValue."Dimension Value Type" := DimensionValue."Dimension Value Type";
+
+                    if ICDimension.Get(DimensionValue."Dimension Code") then
+                        ICDimensionValue."Map-to Dimension Code" := ICDimension."Map-to Dimension Code";
+
                     ICDimensionValue.Indentation := PrevIndentation;
                     ICDimensionValue.Insert();
                     DimValuesCopied := true;

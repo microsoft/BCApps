@@ -1098,8 +1098,12 @@ codeunit 6500 "Item Tracking Management"
                 TempPostedWhseRcptLine.Modify();
             until WhseItemEntryRelation.Next() = 0
         else begin
-            TempPostedWhseRcptLine := PostedWhseRcptLine;
-            TempPostedWhseRcptLine.Insert();
+            IsHandled := false;
+            OnSplitPostedWhseReceiptLineOnNotFindWhseItemEntryRelation(PostedWhseRcptLine, TempPostedWhseRcptLine, IsHandled);
+            if not IsHandled then begin
+                TempPostedWhseRcptLine := PostedWhseRcptLine;
+                TempPostedWhseRcptLine.Insert();
+            end;
         end;
 
         OnAfterSplitPostedWhseReceiptLine(PostedWhseRcptLine, TempPostedWhseRcptLine);
@@ -1265,7 +1269,7 @@ codeunit 6500 "Item Tracking Management"
             repeat
                 CalcWhseItemTrkgLine(WhseItemTrackingLine);
                 WhseItemTrackingLine.Modify();
-                if SourceType in [ProdOrderCompID(), AssemblyLineID(), Database::Job] then begin
+                if SourceType in [ProdOrderCompID(), AssemblyLineID(), Database::Job, Database::"Job Planning Line"] then begin
                     TempWhseItemTrackingLine := WhseItemTrackingLine;
                     TempWhseItemTrackingLine.Insert();
                 end;
@@ -1281,7 +1285,8 @@ codeunit 6500 "Item Tracking Management"
                 ProdOrderCompID():
                     CreateWhseItemTrackingBatch(WhseWkshLine);
                 AssemblyLineID(),
-                Database::Job:
+                Database::Job,
+                Database::"Job Planning Line":
                     CreateWhseItemTrackingBatch(WhseWkshLine);
                 else
                     OnInitTrackingSpecificationOnCreateNew(WhseWkshLine, SourceType);
@@ -1339,7 +1344,8 @@ codeunit 6500 "Item Tracking Management"
                     SourceReservEntry.SetSourceFilter(WhseWkshLine."Source Type", WhseWkshLine."Source Subtype", WhseWkshLine."Source No.", WhseWkshLine."Source Subline No.", true);
                     SourceReservEntry.SetSourceFilter('', WhseWkshLine."Source Line No.");
                 end;
-            Database::Job:
+            Database::Job,
+            Database::"Job Planning Line":
                 begin
                     SourceReservEntry.SetSourceFilter(Database::"Job Planning Line", 2, WhseWkshLine."Source No.", WhseWkshLine."Source Line No.", true);
                     SourceReservEntry.SetSourceFilter('', 0);
@@ -1436,7 +1442,8 @@ codeunit 6500 "Item Tracking Management"
                 WhseItemTrkgLine."Source Type Filter" := WhseItemTrkgLine."Source Type Filter"::"Internal Pick";
             AssemblyLineID():
                 WhseItemTrkgLine."Source Type Filter" := WhseItemTrkgLine."Source Type Filter"::Assembly;
-            Database::Job:
+            Database::Job,
+            Database::"Job Planning Line":
                 WhseItemTrkgLine."Source Type Filter" := WhseItemTrkgLine."Source Type Filter"::Job;
             Database::"Whse. Worksheet Line":
                 WhseItemTrkgLine."Source Type Filter" := WhseItemTrkgLine."Source Type Filter"::"Movement Worksheet";
@@ -3699,6 +3706,11 @@ codeunit 6500 "Item Tracking Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSplitPostedWhseReceiptLine(PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempPostedWhseRcptLine: Record "Posted Whse. Receipt Line" temporary; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSplitPostedWhseReceiptLineOnNotFindWhseItemEntryRelation(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var TempPostedWhseReceiptLine: Record "Posted Whse. Receipt Line" temporary; var IsHandled: Boolean)
     begin
     end;
 

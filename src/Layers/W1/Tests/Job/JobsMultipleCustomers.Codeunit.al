@@ -1888,6 +1888,91 @@ codeunit 136323 "Jobs - Multiple Customers"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure TaskBillingMethodIsPersistedAfterValidateWithExistingTasks()
+    var
+        Job: Record Job;
+        Job2: Record Job;
+        JobTask: Record "Job Task";
+    begin
+        // [SCENARIO 639677] Task Billing Method value is persisted to database after OnValidate completes when tasks exist
+        Initialize();
+
+        // [GIVEN] Set One Customer billing method on Project Setup
+        SetOneCustomerBillingMethodOnProjectSetup();
+
+        // [GIVEN] Create new Project and Project Task
+        CreateJobAndJobTask(Job, JobTask);
+
+        // [WHEN] Change Task Billing Method to Multiple customers
+        Job.Validate("Task Billing Method", Job."Task Billing Method"::"Multiple customers");
+
+        // [THEN] Re-read from database and verify the value is persisted
+        Job2.Get(Job."No.");
+        Assert.AreEqual(Job2."Task Billing Method"::"Multiple customers", Job2."Task Billing Method", 'Task Billing Method should be persisted to database after validation with existing tasks');
+    end;
+
+    [Test]
+    procedure TaskBillingMethodIsNotPersistedWhenNoTasksExist()
+    var
+        Job: Record Job;
+        Job2: Record Job;
+    begin
+        // [SCENARIO 639677] Task Billing Method value is not auto-persisted when no tasks exist (early exit in trigger)
+        Initialize();
+
+        // [GIVEN] Set One Customer billing method on Project Setup
+        SetOneCustomerBillingMethodOnProjectSetup();
+
+        // [GIVEN] Create new Project without any tasks
+        LibraryJob.CreateJob(Job);
+
+        // [WHEN] Change Task Billing Method to Multiple customers
+        Job.Validate("Task Billing Method", Job."Task Billing Method"::"Multiple customers");
+
+        // [THEN] In-memory value is updated
+        Assert.AreEqual(Job."Task Billing Method"::"Multiple customers", Job."Task Billing Method", 'In-memory value should be updated');
+
+        // [THEN] Database value is not yet updated (trigger exits early, no Modify called)
+        Job2.Get(Job."No.");
+        Assert.AreEqual(Job2."Task Billing Method"::"One customer", Job2."Task Billing Method", 'Database value should not be updated when no tasks exist');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure TaskBillingMethodModifyNotCalledWhenValueUnchanged()
+    var
+        Job: Record Job;
+        Job2: Record Job;
+        JobTask: Record "Job Task";
+        LastDateModifiedBefore: Date;
+    begin
+        // [SCENARIO 639677] No unnecessary Modify is called when Task Billing Method is validated with the same value
+        Initialize();
+
+        // [GIVEN] Set Multiple Customers on Project Setup
+        SetMultiupleCustomersOnProjectSetup();
+
+        // [GIVEN] Create new Project and Project Task
+        CreateJobAndJobTask(Job, JobTask);
+
+        // [GIVEN] Record Last Date Modified
+        Job.Get(Job."No.");
+        LastDateModifiedBefore := Job."Last Date Modified";
+
+        // [GIVEN] Set Last Date Modified to a past date to detect changes
+        Job."Last Date Modified" := CalcDate('<-1D>', Today());
+        Job.Modify(false);
+
+        // [WHEN] Validate Task Billing Method with the same value (Multiple customers -> Multiple customers)
+        Job.Validate("Task Billing Method", Job."Task Billing Method"::"Multiple customers");
+
+        // [THEN] Verify Modify was not called (Last Date Modified should remain the past date)
+        Job2.Get(Job."No.");
+        Assert.AreEqual(CalcDate('<-1D>', Today()), Job2."Last Date Modified", 'Modify should not be called when Task Billing Method value is unchanged');
+    end;
+
+    [Test]
     procedure ProjectDimensionsInheritedWithMultipleCustomers()
     var
         Job: Record Job;

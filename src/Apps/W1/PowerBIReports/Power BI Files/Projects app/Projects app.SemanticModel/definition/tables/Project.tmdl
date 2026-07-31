@@ -133,11 +133,27 @@ table Project
 			VAR ProjectTaskNos = CONCATENATEX(VALUES('Project Planning Line'[Task No.]), 'Project Planning Line'[Task No.], "|")
 			VAR LineNos = CONCATENATEX(VALUES('Project Planning Line'[Line No.]), 'Project Planning Line'[Line No.], "|")
 			
-			RETURN 
+			VAR PageLink = 
 			    [Base Link] 
-			    & "&page=1007&filter='Job Planning Line'.'Job No.' IS '" & ProjectNos & "'"
-			    & " AND 'Job Planning Line'.'Job Task No.' IS '" & ProjectTaskNos & "'"
-			    & " AND 'Job Planning Line'.'Line No.' IS '" & LineNos & "'"
+			    & "&page=1007"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Job Planning Line'.'Job No.' IS ''" )
+			    + SUMX ( VALUES ( 'Project Planning Line'[Project No.] ), LEN ( 'Project Planning Line'[Project No.] ) + 1 )
+			    + LEN ( " AND 'Job Planning Line'.'Job Task No.' IS ''" )
+			    + SUMX ( VALUES ( 'Project Planning Line'[Task No.] ), LEN ( 'Project Planning Line'[Task No.] ) + 1 )
+			    + LEN ( " AND 'Job Planning Line'.'Line No.' IS ''" )
+			    + SUMX ( VALUES ( 'Project Planning Line'[Line No.] ), LEN ( 'Project Planning Line'[Line No.] ) + 1 )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        PageLink & "&filter='Job Planning Line'.'Job No.' IS '" & CONCATENATEX(VALUES('Project Planning Line'[Project No.]), 'Project Planning Line'[Project No.], "|") & "'"
+			    & " AND 'Job Planning Line'.'Job Task No.' IS '" & CONCATENATEX(VALUES('Project Planning Line'[Task No.]), 'Project Planning Line'[Task No.], "|") & "'"
+			    & " AND 'Job Planning Line'.'Line No.' IS '" & CONCATENATEX(VALUES('Project Planning Line'[Line No.]), 'Project Planning Line'[Line No.], "|") & "'",
+			        PageLink
+			    )
 			```
 		isHidden
 		displayFolder: _Project Measures\Back Links
@@ -163,13 +179,33 @@ table Project
 			VAR EntryTypes = CONCATENATEX(VALUES('Project Ledger Entry'[Entry Type]), 'Project Ledger Entry'[Entry Type], "|")
 			VAR Types = CONCATENATEX(VALUES('Project Ledger Entry'[Type]), 'Project Ledger Entry'[Type], "|")
 			
-			RETURN 
+			VAR PageLink = 
 			    [Base Link] 
-			    & "&page=92&filter='Job Ledger Entry'.'Job No.' IS '" & ProjectNos & "'"
-			    & " AND 'Job Ledger Entry'.'Job Task No.' IS '" & ProjectTaskNos & "'"
-			    & " AND 'Job Ledger Entry'.'Entry Type' IS '" & EntryTypes & "'"
-			    & " AND 'Job Ledger Entry'.'Type' IS '" & Types & "'"
-			    & " AND 'Job Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			    & "&page=92"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Job Ledger Entry'.'Job No.' IS ''" )
+			    + SUMX ( VALUES ( 'Project Ledger Entry'[Project No.] ), LEN ( 'Project Ledger Entry'[Project No.] ) + 1 )
+			    + LEN ( " AND 'Job Ledger Entry'.'Job Task No.' IS ''" )
+			    + SUMX ( VALUES ( 'Project Ledger Entry'[Task No.] ), LEN ( 'Project Ledger Entry'[Task No.] ) + 1 )
+			    + LEN ( " AND 'Job Ledger Entry'.'Entry Type' IS ''" )
+			    + SUMX ( VALUES ( 'Project Ledger Entry'[Entry Type] ), LEN ( 'Project Ledger Entry'[Entry Type] ) + 1 )
+			    + LEN ( " AND 'Job Ledger Entry'.'Type' IS ''" )
+			    + SUMX ( VALUES ( 'Project Ledger Entry'[Type] ), LEN ( 'Project Ledger Entry'[Type] ) + 1 )
+			    + LEN ( " AND 'Job Ledger Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Project Ledger Entry'[Dimension Set ID.] ), LEN ( 'Project Ledger Entry'[Dimension Set ID.] ) + 1 )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        PageLink & "&filter='Job Ledger Entry'.'Job No.' IS '" & CONCATENATEX(VALUES('Project Ledger Entry'[Project No.]), 'Project Ledger Entry'[Project No.], "|") & "'"
+			    & " AND 'Job Ledger Entry'.'Job Task No.' IS '" & CONCATENATEX(VALUES('Project Ledger Entry'[Task No.]), 'Project Ledger Entry'[Task No.], "|") & "'"
+			    & " AND 'Job Ledger Entry'.'Entry Type' IS '" & CONCATENATEX(VALUES('Project Ledger Entry'[Entry Type]), 'Project Ledger Entry'[Entry Type], "|") & "'"
+			    & " AND 'Job Ledger Entry'.'Type' IS '" & CONCATENATEX(VALUES('Project Ledger Entry'[Type]), 'Project Ledger Entry'[Type], "|") & "'"
+			    & " AND 'Job Ledger Entry'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Project Ledger Entry'[Dimension Set ID.]), 'Project Ledger Entry'[Dimension Set ID.], "|") & "'",
+			        PageLink
+			    )
 			```
 		isHidden
 		displayFolder: _Project Measures\Back Links
