@@ -243,12 +243,23 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Vendor No.';
             DataClassification = CustomerContent;
             TableRelation = Vendor."No.";
+
+            trigger OnValidate()
+            begin
+                // The user picked the vendor explicitly, so the name-only match hint no longer applies.
+                Rec."[BC] Vendor Matched By Name" := false;
+            end;
         }
         field(102; "[BC] Purchase Order No."; Code[20])
         {
             Caption = 'Purchase Order No.';
             DataClassification = CustomerContent;
             TableRelation = "Purchase Header"."No." where("Document Type" = const(Order));
+        }
+        field(103; "[BC] Vendor Matched By Name"; Boolean)
+        {
+            Caption = 'Vendor Matched by Name Only';
+            DataClassification = SystemMetadata;
         }
         #endregion Business Central Data
     }

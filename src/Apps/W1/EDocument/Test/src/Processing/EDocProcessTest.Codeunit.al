@@ -26,9 +26,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.IO;
-#pragma warning disable AL0792
-using System.Log;
-#pragma warning restore AL0792
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
@@ -1536,18 +1533,16 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
-    procedure GetVendor_NameOnlyMatch_LogsVendorNoInfotip()
+    procedure GetVendor_NameOnlyMatch_FlagsVendorMatchedByName()
     var
         VendorLocal: Record Vendor;
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         MatchedVendor: Record Vendor;
         EDocProviders: Codeunit "E-Doc. Providers";
-        ActivityLogBuilder: Codeunit "Activity Log Builder";
         UniqueName: Text[100];
-        ActivityLogJson: Text;
     begin
-        // [SCENARIO] The V2 provider matches a vendor by name only and logs an infotip on the Vendor No. field.
+        // [SCENARIO] The V2 provider matches a vendor by name only and flags it on the purchase header.
 
         // [GIVEN] A vendor whose name is unique and whose address differs from the document
         UniqueName := CopyStr('VMN ' + Format(CreateGuid()), 1, 100);
@@ -1572,10 +1567,54 @@ codeunit 139883 "E-Doc Process Test"
         // [THEN] It returns the name-only vendor
         Assert.AreEqual(VendorLocal."No.", MatchedVendor."No.", 'The provider should accept the name-only vendor match.');
 
-        // [THEN] An activity-log infotip exists on the E-Document Purchase Header record
+        // [THEN] The purchase header is flagged so the draft page can show the name-only match text
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
-        ActivityLogJson := ActivityLogBuilder.Query(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.SystemId);
-        Assert.IsTrue(StrPos(ActivityLogJson, 'name only') > 0, 'An infotip explaining the name-only match should be logged. Got: ' + ActivityLogJson);
+        Assert.IsTrue(EDocumentPurchaseHeader."[BC] Vendor Matched By Name", 'The name-only match should be flagged on the purchase header.');
+
+        // [WHEN] The user explicitly validates the vendor on the draft
+        EDocumentPurchaseHeader.Validate("[BC] Vendor No.", VendorLocal."No.");
+
+        // [THEN] The name-only match flag is cleared
+        Assert.IsFalse(EDocumentPurchaseHeader."[BC] Vendor Matched By Name", 'Validating the vendor should clear the name-only match flag.');
+    end;
+
+    [Test]
+    procedure GetVendor_FullMatch_DoesNotFlagVendorMatchedByName()
+    var
+        VendorLocal: Record Vendor;
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        MatchedVendor: Record Vendor;
+        EDocProviders: Codeunit "E-Doc. Providers";
+        UniqueName: Text[100];
+        UniqueAddress: Text[100];
+    begin
+        // [SCENARIO] A name and address match must not flag the header.
+
+        // [GIVEN] A vendor whose name and address are unique
+        UniqueName := CopyStr('VMN ' + Format(CreateGuid()), 1, 100);
+        UniqueAddress := CopyStr('ADDR ' + Format(CreateGuid()), 1, 100);
+        LibraryPurchase.CreateVendor(VendorLocal);
+        VendorLocal.Name := CopyStr(UniqueName, 1, MaxStrLen(VendorLocal.Name));
+        VendorLocal.Address := CopyStr(UniqueAddress, 1, MaxStrLen(VendorLocal.Address));
+        VendorLocal.Modify();
+
+        // [GIVEN] An E-Document with a purchase header carrying the same name and address
+        EDocument.Init();
+        EDocument.Insert(true);
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
+        EDocumentPurchaseHeader."Vendor Company Name" := CopyStr(UniqueName, 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"));
+        EDocumentPurchaseHeader."Vendor Address" := CopyStr(UniqueAddress, 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Address"));
+        EDocumentPurchaseHeader."Vendor External Id" := CopyStr('EXT ' + Format(CreateGuid()), 1, MaxStrLen(EDocumentPurchaseHeader."Vendor External Id"));
+        EDocumentPurchaseHeader.Modify();
+
+        // [WHEN] The provider resolves the vendor
+        MatchedVendor := EDocProviders.GetVendor(EDocument);
+
+        // [THEN] The vendor is returned without the name-only flag
+        Assert.AreEqual(VendorLocal."No.", MatchedVendor."No.", 'The provider should return the fully matched vendor.');
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        Assert.IsFalse(EDocumentPurchaseHeader."[BC] Vendor Matched By Name", 'A full name and address match must not be flagged as a name-only match.');
     end;
 
 }

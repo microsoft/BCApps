@@ -72,7 +72,7 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
             if MatchedByAddress then
                 EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Name and Address')
             else begin
-                LogVendorMatchedByNameOnlyInfotip(EDocumentPurchaseHeader);
+                SetVendorMatchedByNameOnly(EDocumentPurchaseHeader);
                 EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Name Only');
             end;
             exit;
@@ -81,16 +81,10 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
         EDocImpSessionTelemetry.SetText('Vendor Match Method', 'None - No Match');
     end;
 
-    local procedure LogVendorMatchedByNameOnlyInfotip(EDocumentPurchaseHeader: Record "E-Document Purchase Header")
-    var
-        ActivityLog: Codeunit "Activity Log Builder";
-        VendorMatchedByNameOnlyMsg: Label 'Vendor was matched by name only. The address on the document does not match this vendor.';
+    local procedure SetVendorMatchedByNameOnly(var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     begin
-        ActivityLog
-            .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("[BC] Vendor No."), EDocumentPurchaseHeader.SystemId)
-            .SetExplanation(VendorMatchedByNameOnlyMsg)
-            .SetType(Enum::"Activity Log Type"::"AL")
-            .Log();
+        EDocumentPurchaseHeader."[BC] Vendor Matched By Name" := true;
+        EDocumentPurchaseHeader.Modify();
     end;
 
     procedure GetUnitOfMeasure(EDocumentHeader: Record "E-Document"; EDocumentLineId: Integer; ExternalUnitOfMeasure: Text) UnitOfMeasure: Record "Unit of Measure"

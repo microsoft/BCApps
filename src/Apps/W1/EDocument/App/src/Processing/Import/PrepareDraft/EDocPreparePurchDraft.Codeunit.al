@@ -57,6 +57,8 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         VendorAlreadyAssigned := EDocumentPurchaseHeader."[BC] Vendor No." <> '';
         if not VendorAlreadyAssigned then begin
             Vendor := GetVendor(EDocument, EDocImportParameters."Processing Customizations");
+            // The provider may have flagged how the vendor was matched, so re-read before further changes.
+            EDocumentPurchaseHeader.GetFromEDocument(EDocument);
             EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
         end;
         VendorFoundByProvider := (not VendorAlreadyAssigned) and (EDocumentPurchaseHeader."[BC] Vendor No." <> '');

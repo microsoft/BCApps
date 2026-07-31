@@ -98,6 +98,32 @@ page 6181 "E-Document Purchase Draft"
                         Editable = false;
                         ToolTip = 'Specifies the extracted vendor''s address.';
                     }
+                    group(VendorMatchByName)
+                    {
+                        ShowCaption = false;
+                        Visible = VendorMatchedByName;
+                        field(VendorMatchedByNameInfo; VendorMatchedByNameLbl)
+                        {
+                            ApplicationArea = Suite;
+                            ShowCaption = false;
+                            Editable = false;
+                            StyleExpr = true;
+                            Style = Ambiguous;
+                            ToolTip = 'Specifies that the vendor was assigned based on the name only, because the address on the document does not match the address of the vendor. Choose the text to open the vendor card and verify the assignment.';
+
+                            trigger OnDrillDown()
+                            var
+                                Vendor: Record Vendor;
+                                VendorCard: Page "Vendor Card";
+                            begin
+                                if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+                                    exit;
+                                VendorCard.SetRecord(Vendor);
+                                VendorCard.RunModal();
+                                CurrPage.Update(false);
+                            end;
+                        }
+                    }
                 }
                 group(Document)
                 {
@@ -555,6 +581,7 @@ page 6181 "E-Document Purchase Draft"
         SetPageCaption();
 
         AppliedVATAmountDiff := EDocumentPurchaseHeader.GetAppliedVATAmountDiff();
+        VendorMatchedByName := EDocumentPurchaseHeader."[BC] Vendor Matched By Name";
 
         Rec.CalcFields("Import Processing Status");
         ShowFinalizeDraftAction := Rec."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"];
@@ -792,5 +819,7 @@ page 6181 "E-Document Purchase Draft"
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
         PageEditable, HasPDFSource, IsCreditMemo : Boolean;
         ApplyVATDiffEnabled: Boolean;
+        VendorMatchedByName: Boolean;
+        VendorMatchedByNameLbl: Label 'Vendor was matched by name only. The address on the document does not match this vendor.';
         AppliedVATAmountDiff: Decimal;
 }
