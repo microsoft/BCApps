@@ -23,6 +23,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
@@ -2560,6 +2561,42 @@ table 81 "Gen. Journal Line"
             if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
         }
         /// <summary>
+        /// Specifies the spend request that this journal line relates to.
+        /// </summary>
+        field(146; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this journal line relates to.';
+            TableRelation = "Spend Request" where(Status = const(Approved));
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                DimensionSetIDArr: array[10] of Integer;
+            begin
+                if "Spend Request No." = '' then begin
+                    "Spend Request Close" := false;
+                    exit;
+                end;
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Amount (LCY)");
+                if SpendRequest."Dimension Set ID" <> 0 then begin
+                    DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                    DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                    Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                end;
+            end;
+        }
+        /// <summary>
+        /// Specifies that the spend request will be closed when the journal line is posted.
+        /// </summary>
+        field(147; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the journal line is posted.';
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
         /// Job queue processing status for batch posting operations and automated journal processing.
         /// </summary>
         field(160; "Job Queue Status"; Enum "Document Job Queue Status")
@@ -4805,6 +4842,7 @@ table 81 "Gen. Journal Line"
                 exit;
 
         CheckDirectPosting(GLAcc);
+        CheckSpendRequest(GLAcc);
 
         OnAfterCheckGLAcc(Rec, GLAcc);
     end;
@@ -4834,6 +4872,14 @@ table 81 "Gen. Journal Line"
         GLAccount.TestField("Direct Posting", true);
 
         OnAfterCheckDirectPosting(GLAccount, Rec);
+    end;
+
+    local procedure CheckSpendRequest(var GLAccount: Record "G/L Account")
+    begin
+        if Rec."Spend Request No." <> '' then
+            exit;
+        if GLAccount."Spend Request Required" = GLAccount."Spend Request Required"::None then
+            exit;
     end;
 
     /// <summary>
@@ -5133,6 +5179,9 @@ table 81 "Gen. Journal Line"
             then
                 CustCheckCreditLimit.GenJnlLineCheck(Rec);
 
+        if "Spend Request No." <> '' then
+            CheckSpendRequestAmount();
+
         Validate("VAT %");
         Validate("Bal. VAT %");
         UpdateLineBalance();
@@ -5147,6 +5196,13 @@ table 81 "Gen. Journal Line"
         end;
 
         OnAfterValidateAmount(Rec);
+    end;
+
+    local procedure CheckSpendRequestAmount()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Amount (LCY)");
     end;
 
     local procedure UpdateApplyToAmount()
@@ -7206,6 +7262,8 @@ table 81 "Gen. Journal Line"
         "Ship-to/Order Address Code" := PurchHeader."Order Address Code";
         "Salespers./Purch. Code" := PurchHeader."Purchaser Code";
         "On Hold" := PurchHeader."On Hold";
+        "Spend Request No." := PurchHeader."Spend Request No.";
+        "Spend Request Close" := PurchHeader."Spend Request Close";
         if "Account Type" = "Account Type"::Vendor then
             "Posting Group" := PurchHeader."Vendor Posting Group";
         ReadGLSetup();

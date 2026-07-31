@@ -200,6 +200,14 @@ table 8064 "Billing Line Archive"
         {
         }
     }
+
+    fieldgroups
+    {
+        fieldgroup(DropDown; "Subscription Header No.", "Billing from", "Billing to", Amount)
+        {
+        }
+    }
+
     internal procedure PostedDocumentExist(): Boolean
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";

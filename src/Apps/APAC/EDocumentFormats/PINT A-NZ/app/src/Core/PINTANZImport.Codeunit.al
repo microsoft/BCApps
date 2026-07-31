@@ -99,7 +99,7 @@ codeunit 28007 "PINT A-NZ Import"
         VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress(VendorName, VendorAddress);
     end;
 
-    local procedure GetVendorRelatedData(var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text; var ABN: Code[11]; var GLN: Code[13]; var VATRegistrationNo: Text[20]; VendorParticipantId: Text; VendorName: Text; VendorAddress: Text)
+    local procedure GetVendorRelatedData(var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text; var ABN: Code[11]; var GLN: Code[13]; var VATRegistrationNo: Text[20]; var VendorParticipantId: Text; var VendorName: Text; var VendorAddress: Text)
     var
         ABNSchemeIdTok: Label '0151', Locked = true;
         GLNSchemeIdTok: Label '0088', Locked = true;
