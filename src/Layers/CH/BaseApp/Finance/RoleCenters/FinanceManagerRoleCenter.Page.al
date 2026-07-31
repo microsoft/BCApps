@@ -1336,14 +1336,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Salesperson Sales Statistics';
                         RunObject = report "Salesperson - Sales Statistics";
-                        Tooltip = 'Run the Salesperson Sales Statistics report.';
                     }
                     action("Salesperson - Commission")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Salesperson Commission';
                         RunObject = report "Salesperson - Commission";
-                        Tooltip = 'Run the Salesperson Commission report.';
                     }
 #if not CLEAN28
                     action("Customer - Sales List")
@@ -2213,7 +2211,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Age Composition - Value';
                         RunObject = report "Item Age Composition - Value";
-                        Tooltip = 'Run the Item Age Composition - Value report.';
                     }
                     action("Item Register - Value")
                     {

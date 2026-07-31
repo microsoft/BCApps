@@ -1,10 +1,7 @@
 namespace Microsoft.eServices.EDocument.OrderMatch;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using Microsoft.Purchases.Document;
-using System.AI;
-using System.Telemetry;
 page 6167 "E-Doc. Order Line Matching"
 {
     Caption = 'Purchase Order Matching';
@@ -165,19 +162,19 @@ page 6167 "E-Doc. Order Line Matching"
         }
         area(Prompting)
         {
+#if not CLEAN29
             action(MatchCopilot)
             {
                 Caption = 'Match with Copilot';
                 ToolTip = 'Match e-document lines with the assistance of Copilot';
                 ApplicationArea = All;
                 Image = SparkleFilled;
-
-                trigger OnAction()
-                begin
-                    MatchWithCopilot(true);
-                    SetUserInteractions();
-                end;
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+                ObsoleteTag = '29.0';
             }
+#endif
         }
         area(Navigation)
         {
@@ -203,7 +200,15 @@ page 6167 "E-Doc. Order Line Matching"
             }
             group(Matching)
             {
-                actionref(MatchCopilot_Promoted; MatchCopilot) { }
+#if not CLEAN29
+                actionref(MatchCopilot_Promoted; MatchCopilot)
+                {
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+                    ObsoleteTag = '29.0';
+                }
+#endif
                 actionref(MatchManual_Promoted; MatchManual) { }
                 actionref(MatchAuto_Promoted; MatchAutomatic) { }
                 actionref(RemoveMatch_Promoted; RemoveMatch) { }
@@ -218,30 +223,18 @@ page 6167 "E-Doc. Order Line Matching"
     }
 
     var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         EDocMatchOrderLines: Codeunit "E-Doc. Line Matching";
         CostNotification: Notification;
-        AutoRunCopilot: Boolean;
         LineCostVaryMatchMsg: Label 'Matched e-document lines (%1) has cost different from matched purchase order line. Please verify matches are correct.', Comment = '%1 - Line number';
-        NoMatchesFoundMsg: Label 'Copilot could not find any line matches. Please review manually';
         GlobalDataCaptionExpressionTxt: Label 'Purchase Order %1', Comment = '%1 - Purchase order number';
 
     trigger OnAfterGetRecord()
-    var
-        EDocOrderMatch: Record "E-Doc. Order Match";
     begin
         CurrPage.OrderLines.Page.SetEDocumentBeingMatched(Rec);
         CurrPage.ImportedLines.Page.SetEDocumentBeingMatched(Rec);
         CurrPage.OrderLines.Page.ResetQtyOnNonMatchedLines();
 
         OpenPurchaseHeader();
-
-        if AutoRunCopilot then begin
-            AutoRunCopilot := false;
-            EDocOrderMatch.SetRange("E-Document Entry No.", Rec."Entry No");
-            if EDocOrderMatch.IsEmpty() then
-                MatchWithCopilot(false);
-        end;
     end;
 
     local procedure OpenPurchaseHeader()
@@ -313,36 +306,6 @@ page 6167 "E-Doc. Order Line Matching"
         end;
     end;
 
-    local procedure MatchWithCopilot(CheckToOverwrite: Boolean)
-    var
-        TempEDocImportedLines: Record "E-Doc. Imported Line" temporary;
-        TempPurchaseLines: Record "Purchase Line" temporary;
-        AzureOpenAI: Codeunit "Azure OpenAI";
-        AIMatchingImpl: Codeunit "E-Doc. PO Copilot Matching";
-        EDocOrderMatchAIProposal: Page "E-Doc. PO Copilot Prop";
-    begin
-        if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"E-Document Matching Assistance") then
-            exit;
-
-        FeatureTelemetry.LogUptake('0000MB0', AIMatchingImpl.FeatureName(), Enum::"Feature Uptake Status"::Discovered);
-        FeatureTelemetry.LogUptake('0000MB1', AIMatchingImpl.FeatureName(), Enum::"Feature Uptake Status"::"Set up");
-
-        CurrPage.ImportedLines.Page.GetRecords(TempEDocImportedLines);
-        CurrPage.OrderLines.Page.GetRecords(TempPurchaseLines);
-
-        if CheckToOverwrite then
-            EDocMatchOrderLines.AskToOverwrite(Rec, TempEDocImportedLines, TempPurchaseLines);
-        Commit();
-        EDocOrderMatchAIProposal.SetData(Rec, TempEDocImportedLines, TempPurchaseLines);
-        EDocOrderMatchAIProposal.SetGenerateMode();
-        EDocOrderMatchAIProposal.LookupMode(true);
-        if EDocOrderMatchAIProposal.RunModal() = Action::Cancel then
-            if ((not EDocOrderMatchAIProposal.WasCopilotMatchesFound()) and EDocOrderMatchAIProposal.IsCopilotRequestSuccessful()) then
-                Message(NoMatchesFoundMsg);
-
-        CurrPage.Update();
-    end;
-
     local procedure SetUserInteractions()
     begin
         CurrPage.ImportedLines.Page.SetUserInteractions();
@@ -386,11 +349,6 @@ page 6167 "E-Doc. Order Line Matching"
         Rec.TransferFields(EDocument);
         Rec.SystemId := EDocument.SystemId;
         Rec.Insert(false);
-    end;
-
-    internal procedure SetAutoRunCopilot(CopilotToRun: Boolean)
-    begin
-        AutoRunCopilot := CopilotToRun;
     end;
 
 }

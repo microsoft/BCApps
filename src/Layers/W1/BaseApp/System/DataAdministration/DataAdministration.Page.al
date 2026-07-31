@@ -196,7 +196,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Campaign Entries';
-                        ToolTip = 'Delete Campaign Entries';
 
                         RunObject = report "Delete Campaign Entries";
                         Ellipsis = true;
@@ -205,7 +204,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Logged Segments';
-                        ToolTip = 'Delete Logged Segments';
 
                         RunObject = report "Delete Logged Segments";
                         Ellipsis = true;
@@ -214,7 +212,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Opportunities';
-                        ToolTip = 'Delete Opportunities';
 
                         RunObject = report "Delete Opportunities";
                         Ellipsis = true;
@@ -223,7 +220,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Tasks';
-                        ToolTip = 'Delete Tasks';
 
                         RunObject = report "Delete Tasks";
                         Ellipsis = true;
@@ -232,7 +228,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Interaction Log Entries';
-                        ToolTip = 'Delete Interaction Log Entries';
                         RunObject = report "Delete Interaction Log Entries";
                         Ellipsis = true;
                     }
@@ -365,7 +360,6 @@ page 9035 "Data Administration"
                         Image = Resource;
                         RunObject = Report "Date Compress Resource Ledger";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress FA Ledger Entries")
                     {
@@ -443,7 +437,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = Jobs;
                         Caption = 'Resource Registers';
-                        ToolTip = 'Resource Registers';
                         RunObject = report "Delete Empty Res. Registers";
                         Ellipsis = true;
                     }

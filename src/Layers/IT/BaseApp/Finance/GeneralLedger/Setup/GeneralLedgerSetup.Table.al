@@ -211,7 +211,8 @@ table 98 "General Ledger Setup"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                 "Initial Entry Due Date" = field("Date Filter")));
+                                                                                 "Initial Entry Due Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Cust. Balances Due';
             Editable = false;
             FieldClass = FlowField;
@@ -225,7 +226,8 @@ table 98 "General Ledger Setup"
             AutoFormatType = 1;
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Initial Entry Due Date" = field("Date Filter")));
+                                                                                   "Initial Entry Due Date" = field("Date Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Vendor Balances Due';
             Editable = false;
             FieldClass = FlowField;
@@ -1255,7 +1257,7 @@ table 98 "General Ledger Setup"
         field(188; "Control VAT Period"; Enum "VAT Period Control")
         {
             Caption = 'Control VAT Period';
-            ToolTip = 'Specifies a way of using VAT Date against VAT Return Periods. If you choose â€˜Block posting within closed and warn for released periodâ€™, system will not allow postings in closed VAT Return Period, but if the period is not closed, but VAT returns are released or submitted, user will be warned what try to post an entry with VAT Date in this period. If you choose â€˜Block posting within closed periodâ€™, system will still not allow postings in closed VAT Return Period, but there will be no warnings for release or submitted VAT returns. If you choose â€˜Warn when posting in closed periodâ€™, system will not block posting entry with VAT Date in the closed VAT return period, but it will show warning message before posting. And if you choose â€˜Disabledâ€™ options, system will allow you to post without any control regardless of VAT return or period status.';
+            ToolTip = 'Specifies a way of using VAT Date against VAT Return Periods. If you choose Block posting within closed and warn for released period, system will not allow postings in closed VAT Return Period, but if the period is not closed, but VAT returns are released or submitted, user will be warned what try to post an entry with VAT Date in this period. If you choose Block posting within closed period, system will still not allow postings in closed VAT Return Period, but there will be no warnings for release or submitted VAT returns. If you choose ˜Warn when posting in closed period, system will not block posting entry with VAT Date in the closed VAT return period, but it will show warning message before posting. And if you choose ˜Disabled options, system will allow you to post without any control regardless of VAT return or period status.';
 
             trigger OnValidate()
             begin

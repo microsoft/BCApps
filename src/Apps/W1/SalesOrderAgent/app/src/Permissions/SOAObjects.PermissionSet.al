@@ -20,6 +20,7 @@ permissionset 4406 "SOA - Objects"
     Permissions =
         tabledata "Contact" = R,
         tabledata "SOA Email" = RIM,
+        tabledata "SOA Reply Attempt" = rimd,
         tabledata "SOA Task Contact Override" = RIM,
         page "Contact Card" = X,
         page "Contact List" = X,

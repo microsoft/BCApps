@@ -252,6 +252,7 @@ jobs:
               'issue:unresolved', 'pull_request:changed-files',
               'pull_request:ambiguous', 'pull_request:unresolved',
               'pull_request:incomplete-files',
+              'pull_request:linked-issue',
             ];
             const issue_number = Number(process.env.SUBJECT_NUMBER);
             const bytes = fs.readFileSync(process.env.RESULT_PATH);
