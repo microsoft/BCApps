@@ -721,22 +721,24 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage: TestPage "Report Layouts";
     begin
         // [FEATURE] [AI TEST]
-        // [SCENARIO] Changing the status of an extension layout that already has a GLOBAL override
-        // prompts for confirmation and updates the global override, not a company-specific one.
+        // [SCENARIO] Changing the status of an extension layout whose STATUS is already overridden
+        // globally prompts for confirmation and updates the global override, not a company-specific one.
         EnsureNewLayoutsAreCleaned();
 
         ReportLayoutList.SetRange("Report ID", 139595);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
-        // Establish global scope by seeding a global override for the layout.
+        // Establish global scope FOR THE STATUS FIELD. The override table is field-granular, so scope is
+        // resolved from "Override Layout Status" - seeding a description-only row would not make the
+        // status global-scope (see TestGlobalDescriptionOnlyOverrideKeepsStatusCompanyScoped).
         TenantReportLayoutOverride.Init();
         TenantReportLayoutOverride."Report ID" := 139595;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := '';
-        TenantReportLayoutOverride.Description := EditedLayoutNameTxt;
-        TenantReportLayoutOverride."Override Description" := true;
+        TenantReportLayoutOverride."Layout Status" := Enum::"Report Layout Status"::Draft;
+        TenantReportLayoutOverride."Override Layout Status" := true;
         TenantReportLayoutOverride.Insert(true);
 
         // Act - Set status to Approved; scope is global, so a confirmation is expected (ConfirmHandler = Yes)
@@ -757,6 +759,123 @@ codeunit 139595 "Report Layouts Test"
         Assert.IsFalse(
             TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
             'No company-specific override should have been created for a global-scope layout.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,StatusChangedMessageHandler')]
+    procedure TestCompanyDescriptionOnlyOverrideDoesNotForkGlobalStatus()
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] The override table is field-granular. A company-specific row that overrides only the
+        // DESCRIPTION must not make a status change company-scoped while the effective status still comes
+        // from a global status override - that would silently fork layout status per company and skip the
+        // all-companies confirmation. Scope is resolved from "Override Layout Status", so the change is
+        // recognised as global: it confirms and updates the global row.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Global row owns the STATUS...
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride."Layout Status" := Enum::"Report Layout Status"::Draft;
+        TenantReportLayoutOverride."Override Layout Status" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // ...while a company row owns only the DESCRIPTION.
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := CompanyName();
+        TenantReportLayoutOverride.Description := EditedLayoutNameTxt;
+        TenantReportLayoutOverride."Override Description" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // Act - Set status to Approved; scope is global, so a confirmation is expected (ConfirmHandler = Yes)
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.SetApproved.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - the GLOBAL row took the new status...
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            'The global override should still exist.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Approved,
+            TenantReportLayoutOverride."Layout Status",
+            'The global override should have taken the Approved status.');
+
+        // ...and the company row still overrides only the description, with no forked status.
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'The company-specific description override should still exist.');
+        Assert.IsFalse(
+            TenantReportLayoutOverride."Override Layout Status",
+            'The status must not be forked into the company-specific override.');
+    end;
+
+    [Test]
+    [HandlerFunctions('StatusChangedMessageHandler')]
+    procedure TestGlobalDescriptionOnlyOverrideKeepsStatusCompanyScoped()
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] The mirror case: a GLOBAL row that overrides only the description must not drag a
+        // status change tenant-wide. The status is not overridden anywhere, so the change stays
+        // company-scoped and no all-companies confirmation is raised (no ConfirmHandler is registered,
+        // so an unexpected Confirm would fail this test).
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride.Description := EditedLayoutNameTxt;
+        TenantReportLayoutOverride."Override Description" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // Act - Set status to Approved; scope is company, so no confirmation should be raised
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.SetApproved.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - a company-specific override carries the status...
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'A company-specific override should have been created for the status change.');
+        Assert.IsTrue(TenantReportLayoutOverride."Override Layout Status", 'The Override Layout Status flag should be set.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Approved,
+            TenantReportLayoutOverride."Layout Status",
+            'The company override should carry the Approved status.');
+
+        // ...and the global description-only row was left untouched.
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            'The global description override should still exist.');
+        Assert.IsFalse(
+            TenantReportLayoutOverride."Override Layout Status",
+            'The global override must not have gained a status override.');
     end;
 
     [Test]

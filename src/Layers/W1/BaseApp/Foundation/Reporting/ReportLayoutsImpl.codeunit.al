@@ -95,17 +95,25 @@ codeunit 9660 "Report Layouts Impl."
 
     /// <summary>
     /// Determines whether a status change to an extension-installed layout applies globally.
-    /// A company-specific override for the current company takes precedence (company scope); otherwise
-    /// an existing global override means the layout is global-scope. A layout with no override defaults
-    /// to company scope.
+    /// "Tenant Report Layout Override" is field-granular, so scope must be resolved from the field that
+    /// is about to change: only a row that actually sets "Override Layout Status" tells us where the
+    /// effective status comes from. A current-company status override wins (company scope); otherwise a
+    /// global status override means global scope. A layout whose status is not overridden anywhere
+    /// defaults to company scope, so a description-only or obsolete-only row on either side never drags
+    /// the status change into the wrong scope.
     /// </summary>
     local procedure LayoutStatusIsGlobalScope(ReportLayoutList: Record "Report Layout List"): Boolean
     var
         TenantReportLayoutOverride: Record "Tenant Report Layout Override";
     begin
         if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", SelectedCompany) then
-            exit(false);
-        exit(TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''));
+            if TenantReportLayoutOverride."Override Layout Status" then
+                exit(false);
+
+        if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", '') then
+            exit(TenantReportLayoutOverride."Override Layout Status");
+
+        exit(false);
     end;
 
     /// <summary>
