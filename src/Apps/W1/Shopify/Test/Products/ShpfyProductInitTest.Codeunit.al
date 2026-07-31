@@ -295,6 +295,7 @@ codeunit 139603 "Shpfy Product Init Test"
         PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"All Customers");
         PriceListLine.Validate("Ending Date", BoundaryDate);
         PriceListLine.Validate("Line Discount %", DiscUpToBoundary);
+        PriceListLine.SetNextLineNo();
         PriceListLine.Insert(true);
 
         // Discount that applies from the day after the boundary date onwards.
@@ -307,6 +308,7 @@ codeunit 139603 "Shpfy Product Init Test"
         PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"All Customers");
         PriceListLine.Validate("Starting Date", BoundaryDate + 1);
         PriceListLine.Validate("Line Discount %", DiscFromBoundary);
+        PriceListLine.SetNextLineNo();
         PriceListLine.Insert(true);
 
         PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
