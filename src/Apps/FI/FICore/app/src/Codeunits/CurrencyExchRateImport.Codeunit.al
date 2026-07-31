@@ -59,8 +59,12 @@ codeunit 13415 "Currency Exch. Rate Import"
                 Vaihtokurssisumma := Round(Vaihtokurssisumma, 0.0000001);
                 StartingDate := DMY2Date(Aloituspvm, Aloituskk, Aloitusv);
 
-                if not CurrencyExchRate.Get(Valuuttakoodi, StartingDate) then
-                    if Currency.Get(Valuuttakoodi) then begin
+                Currency.SetFilter(Code, Valuuttakoodi);
+                CurrencyExchRate.SetFilter("Currency Code", Valuuttakoodi);
+                CurrencyExchRate.SetRange("Starting Date", StartingDate);
+
+                if CurrencyExchRate.FindFirst() = false then
+                    if Currency.FindFirst() then begin
                         UusienlukuOK := true;
                         CurrencyExchRate.Validate("Currency Code", Valuuttakoodi);
                         CurrencyExchRate.Validate("Starting Date", StartingDate);
