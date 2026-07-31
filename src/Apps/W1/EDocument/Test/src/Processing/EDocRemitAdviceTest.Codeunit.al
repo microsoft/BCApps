@@ -12,6 +12,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Reports;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
@@ -595,6 +596,7 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
     var
         EDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         LibraryVariableStorage.Clear();
         Clear(EDocImplState);
@@ -612,6 +614,12 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
 
         EDocumentService.DeleteAll();
+
+        PurchasesPayablesSetup.Get();
+        if PurchasesPayablesSetup."Invoice Nos." = '' then begin
+            PurchasesPayablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+            PurchasesPayablesSetup.Modify(true);
+        end;
 
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
