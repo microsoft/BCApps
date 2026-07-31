@@ -50,7 +50,9 @@ codeunit 149912 "Subc. WIP Avail. Warn Test"
         // [WHEN] The Quantity is increased on the WIP line through the Transfer Order page (sets CurrFieldNo)
         NewQuantity := 10;
         AvailCheckSpy.Reset();
+        BindSubscription(AvailCheckSpy);
         SetQuantityOnTransferOrderPage(TransferOrder, TransferHeader, TransferLine, NewQuantity);
+        UnbindSubscription(AvailCheckSpy);
 
         // [THEN] The Quantity is persisted and the item-availability warning check was NOT performed for the WIP item
         TransferLine.Find('=');
@@ -89,7 +91,9 @@ codeunit 149912 "Subc. WIP Avail. Warn Test"
         // [WHEN] The Quantity is increased on the line through the Transfer Order page (sets CurrFieldNo)
         NewQuantity := 10;
         AvailCheckSpy.Reset();
+        BindSubscription(AvailCheckSpy);
         SetQuantityOnTransferOrderPage(TransferOrder, TransferHeader, TransferLine, NewQuantity);
+        UnbindSubscription(AvailCheckSpy);
 
         // [THEN] The item-availability warning check WAS performed for the normal item
         TransferLine.Find('=');

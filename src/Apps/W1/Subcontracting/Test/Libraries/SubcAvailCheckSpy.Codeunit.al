@@ -15,18 +15,26 @@ using Microsoft.Inventory.Transfer;
 codeunit 149913 "Subc. Avail. Check Spy"
 {
     SingleInstance = true;
-    EventSubscriberInstance = StaticAutomatic;
+    EventSubscriberInstance = Manual;
 
     var
         InvokedItemNo: Code[20];
         Invoked: Boolean;
 
+    /// <summary>
+    /// Resets the recorded availability-check state before a test action runs.
+    /// </summary>
     procedure Reset()
     begin
         Invoked := false;
         InvokedItemNo := '';
     end;
 
+    /// <summary>
+    /// Returns true when the availability-check event was raised for the specified item.
+    /// </summary>
+    /// <param name="ItemNo">The item number to compare with the recorded invocation.</param>
+    /// <returns>True if the spy captured an availability-check invocation for the item; otherwise, false.</returns>
     procedure WasInvokedForItem(ItemNo: Code[20]): Boolean
     begin
         exit(Invoked and (InvokedItemNo = ItemNo));
