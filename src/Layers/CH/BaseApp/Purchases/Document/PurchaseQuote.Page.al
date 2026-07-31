@@ -264,6 +264,11 @@ page 49 "Purchase Quote"
                 {
                     ApplicationArea = Suite;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
                 field("Vendor Order No."; Rec."Vendor Order No.")
                 {
                     ApplicationArea = Suite;
