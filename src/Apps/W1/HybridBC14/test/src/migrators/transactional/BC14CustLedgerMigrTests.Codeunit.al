@@ -8,8 +8,8 @@ namespace Microsoft.DataMigration.BC14.Tests;
 using Microsoft.DataMigration.BC14Reimplementation;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Sales.Customer;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Sales.Customer;
 
 codeunit 148915 "BC14 CustLedgerMigr Tests"
 {
