@@ -6,8 +6,6 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
-using System.TestLibraries.Utilities;
-using System.Utilities;
 
 codeunit 139541 "E-Doc. Log File Extension Test"
 {
