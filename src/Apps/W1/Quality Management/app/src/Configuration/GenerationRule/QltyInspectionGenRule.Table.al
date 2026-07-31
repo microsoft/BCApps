@@ -97,7 +97,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
             Caption = 'Table No.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table),
                                                                 "Object ID" = field("Table ID Filter"));
-            ToolTip = 'Specifies the table for this rule. For example for receiving to a purchase line, you would use table 39. For production typically 5409 for Production Order Routing Lines.';
+            ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
 
             trigger OnValidate()
             begin
@@ -123,7 +123,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
             Caption = 'Table';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the table for this rule. For example for receiving to a purchase line, you would use table 39. For production typically 5409 for Production Order Routing Lines.';
+            ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
         }
         field(18; "Table ID Filter"; Integer)
         {
@@ -277,9 +277,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
         RuleCurrentlyDisabledLbl: Label 'The generation rule Sort Order %1, Template Code %2 is currently disabled. It will need to have an activation trigger of "Automatic Only" or "Manual or Automatic" before it will be triggered by "%3"', Comment = '%1=generation rule sort order,%2=generation rule template code,%3=auto trigger';
         ChooseTemplateFirstErr: Label 'Please choose the template first.';
         FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
+        TableMissingErr: Label 'You must choose a Table for this generation rule before saving.', Comment = 'Error shown when a generation rule record is inserted or modified without a Source Table No.';
 
     trigger OnInsert()
     begin
+        CheckSourceTableNoIsSet();
         UpdateSortOrder();
         SetEntryNo();
         SetIntentAndDefaultTriggerValuesFromSetup();
@@ -287,9 +289,17 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     trigger OnModify()
     begin
+        if xRec."Source Table No." <> 0 then
+            CheckSourceTableNoIsSet();
         UpdateSortOrder();
         if (xRec."Source Table No." <> Rec."Source Table No.") or (Rec.Intent = Rec.Intent::Unknown) or not GuiAllowed() then
             SetIntentAndDefaultTriggerValuesFromSetup();
+    end;
+
+    local procedure CheckSourceTableNoIsSet()
+    begin
+        if Rec."Source Table No." = 0 then
+            Error(TableMissingErr);
     end;
 
     internal procedure SetEntryNo()
@@ -321,15 +331,17 @@ table 20404 "Qlty. Inspection Gen. Rule"
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
         Filter: Text;
+        NewSourceTableNo: Integer;
     begin
         if Rec."Template Code" = '' then
             Error(ChooseTemplateFirstErr);
-        if IsNullGuid(Rec.SystemId) and not Rec.IsTemporary() then
-            Rec.Insert();
         Filter := QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations();
-        QltyFilterHelpers.RunModalLookupTable(Rec."Source Table No.", Filter);
+        NewSourceTableNo := Rec."Source Table No.";
+        QltyFilterHelpers.RunModalLookupTable(NewSourceTableNo, Filter);
+        if NewSourceTableNo = Rec."Source Table No." then
+            exit;
+        Rec.Validate("Source Table No.", NewSourceTableNo);
         Rec.CalcFields("Table Caption");
-        Rec.Validate("Source Table No.");
     end;
 
     /// <summary>

@@ -1119,6 +1119,76 @@ codeunit 134389 "ERM Customer Statistics"
         Assert.AreEqual(CustomerStatistics.GetTotalAmountLCY.AsDecimal(), Customer.GetTotalAmountLCY(), CustomerCardFactboxTotalErr);
     end;
 
+    [Test]
+    procedure OverdueBalanceLCYOnCustomerCardWhenOpenedWithoutDateFilter()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        OverdueCustLedgEntry: Record "Cust. Ledger Entry";
+        FutureCustLedgEntry: Record "Cust. Ledger Entry";
+        SalesInvoice: TestPage "Sales Invoice";
+        CustomerCard: TestPage "Customer Card";
+        OverdueAmountLCY: Decimal;
+        FutureAmountLCY: Decimal;
+    begin
+        // [SCENARIO 640988] "Overdue Balance (LCY)" on the Customer Card shows only overdue entries when the card is opened from a document (the card is reached without an explicit Date Filter).
+        Initialize();
+
+        // [GIVEN] Create Customer with an overdue entry and a not-yet-due entry.
+        LibrarySales.CreateCustomer(Customer);
+        OverdueAmountLCY := LibraryRandom.RandDecInRange(100, 200, 2);
+        FutureAmountLCY := LibraryRandom.RandDecInRange(300, 400, 2);
+        MockCustLedgerEntryWithDueDateAndAmountLCY(OverdueCustLedgEntry, Customer."No.", CalcDate('<-1D>', WorkDate()), OverdueAmountLCY);
+        MockCustLedgerEntryWithDueDateAndAmountLCY(FutureCustLedgEntry, Customer."No.", CalcDate('<1D>', WorkDate()), FutureAmountLCY);
+
+        // [GIVEN] Create a sales invoice for the customer.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+
+        // [WHEN] Open the Customer Card from the sales document (navigating through the customer part, which passes an empty Date Filter to the card).
+        SalesInvoice.OpenView();
+        SalesInvoice.GotoRecord(SalesHeader);
+        CustomerCard.Trap();
+        SalesInvoice.Control1902018507."No.".DrillDown();
+
+        // [THEN] Verify "Balance Due (LCY)" on the Customer Card shows only the overdue amount.
+        Assert.AreEqual(OverdueAmountLCY, CustomerCard."Balance Due (LCY)".AsDecimal(), OverDueBalanceErr);
+
+        CustomerCard.Close();
+        SalesInvoice.Close();
+    end;
+
+    [Test]
+    procedure DrillDownOnBalanceDueFromCardWithoutDateFilterFiltersOverdueEntries()
+    var
+        Customer: Record Customer;
+        OverdueCustLedgEntry: Record "Cust. Ledger Entry";
+        FutureCustLedgEntry: Record "Cust. Ledger Entry";
+        CustomerCard: TestPage "Customer Card";
+        CustomerLedgerEntries: TestPage "Customer Ledger Entries";
+    begin
+        // [SCENARIO 640988] Drill Down on "Balance Due (LCY)" from the Customer Card applies a Due Date filter and shows only overdue entries.
+        Initialize();
+
+        // [GIVEN] Create customer with an overdue open entry and a not-yet-due open entry.
+        LibrarySales.CreateCustomer(Customer);
+        MockCustLedgerEntryWithDueDateAndAmountLCY(OverdueCustLedgEntry, Customer."No.", CalcDate('<-1D>', WorkDate()), LibraryRandom.RandDecInRange(100, 200, 2));
+        MockCustLedgerEntryWithDueDateAndAmountLCY(FutureCustLedgEntry, Customer."No.", CalcDate('<1D>', WorkDate()), LibraryRandom.RandDecInRange(300, 400, 2));
+
+        // [WHEN] Open the Customer Card and drill down on "Balance Due (LCY)".
+        CustomerCard.OpenView();
+        CustomerCard.GotoRecord(Customer);
+        CustomerLedgerEntries.Trap();
+        CustomerCard."Balance Due (LCY)".DrillDown();
+
+        // [THEN] Verify Due Date filter is applied on the Customer Ledger Entries page, showing only the overdue entry.
+        Assert.AreNotEqual('', CustomerLedgerEntries.FILTER.GetFilter("Due Date"), 'Due Date filter should be applied on the drill down.');
+        CustomerLedgerEntries.First();
+        Assert.AreEqual(OverdueCustLedgEntry."Entry No.", CustomerLedgerEntries."Entry No.".AsInteger(), '');
+        Assert.IsFalse(CustomerLedgerEntries.Next(), '');
+        CustomerLedgerEntries.Close();
+        CustomerCard.Close();
+    end;
+
     local procedure Initialize()
     var
         Currency: Record Currency;
@@ -1293,6 +1363,19 @@ codeunit 134389 "ERM Customer Statistics"
         DetailedCustLedgEntry."Cust. Ledger Entry No." := CustLedgEntryNo;
         DetailedCustLedgEntry."Document Type" := DetailedCustLedgEntry."Document Type"::Payment;
         DetailedCustLedgEntry.Insert();
+    end;
+
+    local procedure MockCustLedgerEntryWithDueDateAndAmountLCY(var CustLedgEntry: Record "Cust. Ledger Entry"; CustNo: Code[20]; DueDate: Date; AmountLCY: Decimal)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        CreateCustLedgerEntryWithDueDate(CustLedgEntry, CustNo, DueDate);
+        CreatePaymentDetailedCustLedgerEntryForCustLedgerEntry(DetailedCustLedgEntry, CustLedgEntry."Entry No.");
+        DetailedCustLedgEntry.Validate("Initial Entry Due Date", CustLedgEntry."Due Date");
+        DetailedCustLedgEntry.Validate("Customer No.", CustLedgEntry."Customer No.");
+        DetailedCustLedgEntry.Validate(Amount, AmountLCY);
+        DetailedCustLedgEntry.Validate("Amount (LCY)", AmountLCY);
+        DetailedCustLedgEntry.Modify(true);
     end;
 
     local procedure MockDetailedCustLedgerEntryWithDueDate(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; CustLedgerEntry: Record "Cust. Ledger Entry")

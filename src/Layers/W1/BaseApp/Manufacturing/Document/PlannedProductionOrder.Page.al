@@ -394,7 +394,6 @@ page 99000813 "Planned Production Order"
                 Caption = 'Subcontractor - Dispatch List';
                 Image = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
-                ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';
             }
         }
         area(Promoted)
