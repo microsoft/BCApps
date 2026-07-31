@@ -26,6 +26,9 @@ codeunit 20415 "Qlty. Tracking Integration"
         WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6 %7, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=Lot No., %6=Serial No., %7=Package No.';
         NavigatePageSearchFiltersTok: Label 'NAVIGATEFILTERS', Locked = true;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Setup."Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterCheckItemTrackingInformation', '', true, true)]
     local procedure HandleOnAfterCheckItemTrackingInformation(var ItemJnlLine2: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; ItemTrackingSetup: Record "Item Tracking Setup"; Item: Record Item)
     var
@@ -37,12 +40,8 @@ codeunit 20415 "Qlty. Tracking Integration"
         IsHandled: Boolean;
         TrackingDetails: Text;
     begin
-        case true of
-            not QltyInspectionHeader.ReadPermission(),
-            not QltyInspectionResult.ReadPermission(),
-            not QltyManagementSetup.GetSetupRecord():
-                exit;
-        end;
+        if not QltyManagementSetup.GetSetupRecord() then
+            exit;
 
         QltyInspectionHeader.SetRange("Source Item No.", ItemJnlLine2."Item No.");
         QltyInspectionHeader.SetRange("Source Variant Code", ItemJnlLine2."Variant Code");
@@ -176,6 +175,9 @@ codeunit 20415 "Qlty. Tracking Integration"
         CommonCheckWarehouseActivityLineIsAllowed(WarehouseActivityLine);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Setup."Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'R', InherentPermissionsScope::Permissions)]
     local procedure CommonCheckWarehouseActivityLineIsAllowed(WarehouseActivityLine: Record "Warehouse Activity Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -185,12 +187,8 @@ codeunit 20415 "Qlty. Tracking Integration"
         IsFinished: Boolean;
         IsHandled: Boolean;
     begin
-        case true of
-            not QltyInspectionHeader.ReadPermission(),
-            not QltyInspectionResult.ReadPermission(),
-            not QltyManagementSetup.GetSetupRecord():
-                exit;
-        end;
+        if not QltyManagementSetup.GetSetupRecord() then
+            exit;
 
         QltyInspectionHeader.SetRange("Source Item No.", WarehouseActivityLine."Item No.");
         QltyInspectionHeader.SetRange("Source Variant Code", WarehouseActivityLine."Variant Code");

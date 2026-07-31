@@ -88,7 +88,6 @@ pageextension 18545 "General Journal" extends "General Journal"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

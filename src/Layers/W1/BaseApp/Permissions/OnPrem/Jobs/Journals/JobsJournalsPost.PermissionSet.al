@@ -24,6 +24,7 @@ permissionset 3414 "Jobs Journals - Post"
                   tabledata "General Ledger Setup" = R,
                   tabledata "General Posting Setup" = R,
                   tabledata Job = R,
+                  tabledata "Job Assigned Resource" = R,
                   tabledata "Job Journal Batch" = RID,
                   tabledata "Job Journal Line" = RIMD,
                   tabledata "Job Journal Template" = RI,

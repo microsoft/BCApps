@@ -28,6 +28,7 @@ codeunit 137015 "SCM Pick Worksheet"
         ErrorDifferentQtyOnPickLine: Label 'Quantity to Handle on pick line different from expected.';
         IsInitialized: Boolean;
         AvailableQtyToPickMsg: Label 'AvailableQtyToPick returned wrong value.';
+        DoNotFillQtyToHandleErr: Label 'Expected "Do Not Fill Qty. to Handle" to be true on the pick header.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1495,6 +1496,45 @@ codeunit 137015 "SCM Pick Worksheet"
         Assert.AreEqual(SalesQuantity, WhseWorksheetLine."Qty. to Handle", ErrorDifferentQtyToHandle);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CreatePickFromWkshSetsDoNotFillQtyToHandleFlag()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        ShipmentNo: Code[20];
+    begin
+        // [SCENARIO 638298] Create Pick from Pick Worksheet sets "Do Not Fill Qty. to Handle" flag on the pick header.
+        Initialize();
+
+        // [GIVEN] Location set up for Warehouse picking.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        SetupLocation(Location, WhseWorksheetTemplate.Name, true, true, true);
+        WhseWorksheetLine.DeleteAll();
+        LibraryInventory.CreateItem(Item);
+        CreatePurchase(Item."No.", Location.Code, 10, 10);
+        ShipmentNo := CreateSales(Item."No.", Location.Code, 5, true, true, false, 0);
+
+        // [GIVEN] Get warehouse documents in pick worksheet.
+        GetPickWksheetName(WhseWorksheetName);
+        PickWorksheetGetSourceDocument(WhseWorksheetName."Worksheet Template Name", WhseWorksheetName.Name, Location.Code, 0, ShipmentNo);
+
+        // [WHEN] Create Pick from Worksheet with "Do Not Fill Qty. to Handle" = true.
+        CreatePickFromWkshWithDoNotFillQtyToHandle(
+            WhseWorksheetLine, 10000, WhseWorksheetName."Worksheet Template Name", WhseWorksheetName.Name,
+            Location.Code, '', 0, 0, "Whse. Activity Sorting Method"::None, false, false, false, false, false, false, false, true);
+
+        // [THEN] The warehouse pick header has "Do Not Fill Qty. to Handle" = true.
+        WarehouseActivityHeader.SetRange(Type, WarehouseActivityHeader.Type::Pick);
+        WarehouseActivityHeader.SetRange("Location Code", Location.Code);
+        WarehouseActivityHeader.FindLast();
+        Assert.IsTrue(WarehouseActivityHeader."Do Not Fill Qty. to Handle", DoNotFillQtyToHandleErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1927,6 +1967,28 @@ codeunit 137015 "SCM Pick Worksheet"
             exit(Bin.Code);
 
         exit('');
+    end;
+
+    local procedure CreatePickFromWkshWithDoNotFillQtyToHandle(var WhseWorksheetLine: Record "Whse. Worksheet Line"; LineNo: Integer; WkshTemplateName: Code[10]; Name: Code[10]; LocationCode: Code[10]; AssignedID: Code[10]; MaxNoOfLines: Integer; MaxNoOfSourceDoc: Integer; SortPick: Enum "Whse. Activity Sorting Method"; PerShipTo: Boolean; PerItem: Boolean; PerZone: Boolean; PerBin: Boolean; PerWhseDoc: Boolean; PerDate: Boolean; PrintPick: Boolean; DoNotFillQtytoHandle: Boolean)
+    var
+        WhseWorksheetLine2: Record "Whse. Worksheet Line";
+        CreatePick: Report "Create Pick";
+    begin
+        WhseWorksheetLine2 := WhseWorksheetLine;
+        WhseWorksheetLine2.SetRange("Worksheet Template Name", WkshTemplateName);
+        WhseWorksheetLine2.SetRange(Name, Name);
+        WhseWorksheetLine2.SetRange("Location Code", LocationCode);
+        WhseWorksheetLine2.SetRange("Line No.", LineNo);
+
+        CreatePick.InitializeReport(
+          AssignedID, MaxNoOfLines, MaxNoOfSourceDoc, SortPick, PerShipTo, PerItem,
+          PerZone, PerBin, PerWhseDoc, PerDate, PrintPick, DoNotFillQtytoHandle, false);
+        CreatePick.UseRequestPage(false);
+        CreatePick.SetWkshPickLine(WhseWorksheetLine2);
+        CreatePick.RunModal();
+        Clear(CreatePick);
+
+        WhseWorksheetLine := WhseWorksheetLine2;
     end;
 
     [ModalPageHandler]

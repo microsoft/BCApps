@@ -35,8 +35,13 @@ table 20405 "Qlty. Inspection Header"
     DrillDownPageId = "Qlty. Inspection List";
     LookupPageId = "Qlty. Inspection List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Line" = d,
-                  tabledata "Qlty. I. Result Condit. Conf." = d;
+    Permissions = tabledata "Qlty. Management Setup" = r,
+                  tabledata "Qlty. Inspection Result" = r,
+                  tabledata "Qlty. Inspection Template Hdr." = r,
+                  tabledata "Qlty. Inspection Template Line" = r,
+                  tabledata "Qlty. Inspection Header" = rm,
+                  tabledata "Qlty. Inspection Line" = rmd,
+                  tabledata "Qlty. I. Result Condit. Conf." = rd;
 
     fields
     {
@@ -630,6 +635,7 @@ table 20405 "Qlty. Inspection Header"
         IsChangingStatus: Boolean;
         TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Re-inspection No.';
         SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
+        SampleSizeCappedMsg: Label 'The calculated sample size on inspection %1 was reduced to the maximum allowed value of %2 because the source quantity is too large.', Comment = '%1=the inspection, %2=the maximum sample size';
         YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the re-inspection';
         UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the inspection [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the inspection, %3=the count.';
         ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Item tracking token';
@@ -641,7 +647,7 @@ table 20405 "Qlty. Inspection Header"
         ReopenInspectionQst: Label 'Are you sure you want to Reopen the inspection %1 on %2?', Comment = '%1=the inspection details, %2=the source details.';
         MoreRecentReinspectionErr: Label 'This inspection cannot be Reopened because there is a more recent Re-inspection. Please work with the most recent Re-inspection instead.';
         CreateReinspectionQst: Label 'Are you sure you want to create a Re-inspection?';
-        FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Re-inspection can be made. This is done automatically, but you do not have permission to finish an inspection. Ask your administrator to add the ability to finish an inspection in the Quality Inspection Permissions page.';
+        FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Re-inspection can be made. This is done automatically, but you do not have permission to finish an inspection.';
         PictureNameTok: Label '%1_%2_%3', Locked = true;
         FileExtensionTok: Label 'jpeg', Locked = true;
         CameraNotAvailableErr: Label 'The camera is not available. Make sure to use this with a device that has a camera supported by Business Central.';
@@ -1502,15 +1508,36 @@ table 20405 "Qlty. Inspection Header"
     local procedure UpdateSampleSize()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        Math: Codeunit Math;
+        MaxSampleSize: Integer;
+        EffectiveMaxSampleSize: Integer;
+        CalculatedSampleSize: Decimal;
     begin
         if not QltyInspectionTemplateHdr.Get(Rec."Template Code") then
             exit;
+
+        MaxSampleSize := Power(2, 31) - 1; // Maximum value of an Integer field; protects the "Sample Size" field against overflow.
+        EffectiveMaxSampleSize := MaxSampleSize;
+
+        if (Rec."Source Quantity (Base)" > 0) and (Rec."Source Quantity (Base)" < MaxSampleSize) then
+            EffectiveMaxSampleSize := Math.Truncate(Rec."Source Quantity (Base)");
 
         case QltyInspectionTemplateHdr."Sample Source" of
             QltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity":
                 Rec.Validate("Sample Size", QltyInspectionTemplateHdr."Sample Fixed Amount");
             QltyInspectionTemplateHdr."Sample Source"::"Percent of Quantity":
-                Rec.Validate("Sample Size", Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>'));
+                begin
+                    CalculatedSampleSize := Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>');
+                    if CalculatedSampleSize > EffectiveMaxSampleSize then begin
+                        if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
+                            if EffectiveMaxSampleSize = MaxSampleSize then
+                                Message(SampleSizeCappedMsg, Rec."No.", MaxSampleSize)
+                            else
+                                Message(SampleSizeInvalidMsg, Math.Truncate(CalculatedSampleSize), Rec."No.", Rec."Source Quantity (Base)");
+                        CalculatedSampleSize := EffectiveMaxSampleSize;
+                    end;
+                    Rec.Validate("Sample Size", CalculatedSampleSize);
+                end;
         end;
     end;
 

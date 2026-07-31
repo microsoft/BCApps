@@ -100,6 +100,14 @@ page 8901 "Finance Manager Role Center"
     // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
+
+    layout
+    {
+        area(rolecenter)
+        {
+        }
+    }
+
     actions
     {
         area(Sections)
@@ -1586,14 +1594,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Order Summary';
                         RunObject = report "Customer - Order Summary";
-                        Tooltip = 'Run the Customer - Order Summary report.';
                     }
                     action("Customer - Order Detail")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Order Detail';
                         RunObject = report "Customer - Order Detail";
-                        Tooltip = 'Run the Customer - Order Detail report.';
                     }
                     action("Customer - Labels")
                     {
@@ -1636,14 +1642,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer/Item Sales';
                         RunObject = report "Customer/Item Sales";
-                        Tooltip = 'Run the Customer/Item Sales report.';
                     }
                     action("Salesperson - Sales Statistics")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Salesperson Sales Statistics';
                         RunObject = report "Salesperson - Sales Statistics";
-                        Tooltip = 'Run the Salesperson Sales Statistics report.';
                     }
                     action("Salesperson - Commission")
                     {
@@ -2535,7 +2539,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Age Composition - Value';
                         RunObject = report "Item Age Composition - Value";
-                        Tooltip = 'Run the Item Age Composition - Value report.';
                     }
                     action("Item Register - Value")
                     {

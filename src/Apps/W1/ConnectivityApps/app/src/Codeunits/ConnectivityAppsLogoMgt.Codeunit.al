@@ -10,11 +10,12 @@ codeunit 20353 "Connectivity Apps Logo Mgt."
     Permissions = tabledata "Connectivity App Logo" = RIMD;
 
     var
-        AppExistURLLbl: Label 'https://marketplace.microsoft.com/view/app/pubid.%1|aid.%2|pappid.%3/?version=2017-04-24', Locked = true;
+        CatalogApiUrlLbl: Label 'https://catalogapi.azure.com/products/PUBID.%1|AID.%2|PAPPID.%3?market=US&api-version=2023-05-01-preview&language=en', Locked = true;
         IncorrectAppSourceUrlLbl: Label '%1 is not a correct AppSource URL.', Locked = true, Comment = '%1 = App source URL';
-        LogoDownloadFailedLbl: Label 'Logo download failed from %1', Locked = true, Comment = '%1 = App source URL';
+        LogoDownloadFailedLbl: Label 'Logo download failed from Catalog API for PUBID.%1|AID.%2|PAPPID.%3', Locked = true, Comment = '%1 = Publisher ID, %2 = App ID, %3 = Plan App ID';
         TelemetryCategoryLbl: Label 'Connectivity Apps', Locked = true;
-        UserAgentLbl: Label 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', Locked = true;
+        CatalogApiKeyVaultSecretNameLbl: Label 'MarketplaceCatalogApi-Key', Locked = true;
+        CannotGetApiKeyFromKeyVaultLbl: Label 'Cannot retrieve the Marketplace Catalog API key from Azure Key Vault.', Locked = true;
 
     procedure LoadImages(var ConnectivityApp: Record "Connectivity App")
     var
@@ -105,6 +106,7 @@ codeunit 20353 "Connectivity Apps Logo Mgt."
 
     local procedure CheckIfURLExistsAndDownloadLogo(PubId: Text; AId: Text; PAppId: Text; var MemoryStream: DotNet MemoryStream): Boolean
     var
+        AzureKeyVault: Codeunit "Azure Key Vault";
         WebClient: DotNet WebClient;
         HttpClient: HttpClient;
         HttpResponseMessage: HttpResponseMessage;
@@ -113,17 +115,21 @@ codeunit 20353 "Connectivity Apps Logo Mgt."
         StatusCode: Integer;
         HttpResponseBodyText: Text;
         LogoURL: Text;
+        ApiKey: SecretText;
     begin
-        HttpClient.DefaultRequestHeaders().Add('User-Agent', UserAgentLbl);
-        HttpClient.Get(StrSubstNo(AppExistURLLbl, PubId, AId, PAppId), HttpResponseMessage);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(CatalogApiKeyVaultSecretNameLbl, ApiKey) then begin
+            Session.LogMessage('0000I4S', CannotGetApiKeyFromKeyVaultLbl, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            exit(false);
+        end;
+
+        HttpClient.DefaultRequestHeaders().Add('X-API-Key', ApiKey);
+        HttpClient.Get(StrSubstNo(CatalogApiUrlLbl, PubId, AId, PAppId), HttpResponseMessage);
         StatusCode := HttpResponseMessage.HttpStatusCode();
 
         if (StatusCode = 200) then begin
             HttpResponseMessage.Content().ReadAs(HttpResponseBodyText);
             JsonObj.ReadFrom(HttpResponseBodyText);
-            JsonObj.Get('detailInformation', JsonTok);
-            JsonObj := JsonTok.AsObject();
-            JsonObj.Get('LargeIconUri', JsonTok);
+            JsonObj.Get('largeIconUri', JsonTok);
             LogoURL := JsonTok.AsValue().AsText();
 
             WebClient := WebClient.WebClient();
@@ -131,7 +137,7 @@ codeunit 20353 "Connectivity Apps Logo Mgt."
             exit(true);
         end;
 
-        Session.LogMessage('0000I4J', StrSubstNo(LogoDownloadFailedLbl, StrSubstNo(AppExistURLLbl, PubId, AId, PAppId)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000I4J', StrSubstNo(LogoDownloadFailedLbl, PubId, AId, PAppId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
         exit(false);
     end;
 

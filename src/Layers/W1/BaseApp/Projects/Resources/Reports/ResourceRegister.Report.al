@@ -8,6 +8,7 @@ report 1103 "Resource Register"
 {
     ApplicationArea = Jobs;
     Caption = 'Resource Register';
+    ToolTip = 'View a list of all the resource registers. Every time a resource entry is posted, a register is created. Every register shows the first and last entry numbers of its entries. You can use the information in a resource register to document when entries were posted.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

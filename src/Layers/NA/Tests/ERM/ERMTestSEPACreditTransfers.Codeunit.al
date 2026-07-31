@@ -1692,6 +1692,50 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
     end;
 
     [Test]
+    procedure SvcLvlCodeIsSepaForEuroPayment()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        TempBlob: Codeunit "Temp Blob";
+        BlobOutStream: OutStream;
+    begin
+        // [SCENARIO 641065] The service level code "PmtTpInf/SvcLvl/Cd" is "SEPA" when a Euro payment is exported.
+        Init();
+
+        // [GIVEN] "SEPA Non-Euro Export" is disabled and a Euro payment exists.
+        LibraryERM.SetAllowNonEuroExport(false);
+        CreateGenJnlLine(GenJournalLine);
+
+        // [WHEN] Export the payment using the SEPA CT xmlport.
+        TempBlob.CreateOutStream(BlobOutStream);
+        Xmlport.Export(BankAccount.GetPaymentExportXMLPortID(), BlobOutStream, GenJournalLine);
+
+        // [THEN] When the "SvcLvl/Cd" node is present, its value is "SEPA".
+        VerifySvcLvlCodeIfPresent(TempBlob, 'SEPA');
+    end;
+
+    [Test]
+    procedure SvcLvlCodeIsNurgForNonEuroPayment()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        TempBlob: Codeunit "Temp Blob";
+        BlobOutStream: OutStream;
+    begin
+        // [SCENARIO 641065] The service level code "PmtTpInf/SvcLvl/Cd" is "NURG" when a non-Euro payment is exported.
+        Init();
+
+        // [GIVEN] "SEPA Non-Euro Export" is enabled and a payment exists.
+        LibraryERM.SetAllowNonEuroExport(true);
+        CreateGenJnlLine(GenJournalLine);
+
+        // [WHEN] Export the payment using the SEPA CT xmlport.
+        TempBlob.CreateOutStream(BlobOutStream);
+        Xmlport.Export(BankAccount.GetPaymentExportXMLPortID(), BlobOutStream, GenJournalLine);
+
+        // [THEN] When the "SvcLvl/Cd" node is present, its value is "NURG".
+        VerifySvcLvlCodeIfPresent(TempBlob, 'NURG');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ValidatePaymentJnlExportErrorTextHasNoErrorEntriesWhenJournalLineDeleted()
     var
@@ -2361,6 +2405,20 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
             end;
         end;
         Assert.AreEqual(ExpectedNoOfCdtTrfTxInf, NoOfCdtTrfTxInf, 'Wrong number of DrctDbtTxInf nodes.');
+    end;
+
+    local procedure VerifySvcLvlCodeIfPresent(var TempBlob: Codeunit "Temp Blob"; ExpectedSvcLvlCode: Text)
+    var
+        SvcLvlCodeNodeList: DotNet XmlNodeList;
+        SvcLvlCdXPathTok: Label '//PmtInf/PmtTpInf/SvcLvl/Cd', Locked = true;
+    begin
+        LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
+        LibraryXPathXMLReader.GetNodeList(SvcLvlCdXPathTok, SvcLvlCodeNodeList);
+        // Some country layers (for example CH) intentionally omit the SvcLvl node for non-local exports.
+        if IsNull(SvcLvlCodeNodeList) then
+            exit;
+        if SvcLvlCodeNodeList.Count() > 0 then
+            LibraryXPathXMLReader.VerifyNodeValueByXPath(SvcLvlCdXPathTok, ExpectedSvcLvlCode);
     end;
 
     local procedure VerifyPaymentJnlExportErr(GenJnlLine: Record "Gen. Journal Line"; ErrText: Text)

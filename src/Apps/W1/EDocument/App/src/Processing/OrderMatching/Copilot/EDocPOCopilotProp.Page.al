@@ -1,3 +1,4 @@
+#if not CLEAN29
 namespace Microsoft.eServices.EDocument.OrderMatch.Copilot;
 
 using Microsoft.eServices.EDocument;
@@ -18,6 +19,9 @@ page 6166 "E-Doc. PO Copilot Prop"
     InherentPermissions = X;
     InherentEntitlements = X;
     ContextSensitiveHelpPage = 'map-edocuments-with-copilot';
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -332,3 +336,4 @@ page 6166 "E-Doc. PO Copilot Prop"
         CurrPage.ProposalDetails.Page.Load(TempAIProposalBuffer, TempLocalEDocOrderMatches);
     end;
 }
+#endif
