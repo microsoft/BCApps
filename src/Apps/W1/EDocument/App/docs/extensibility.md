@@ -22,7 +22,9 @@ Example: to add a custom document format, extend `enum 6101 "E-Document Format"`
 - `GetBasicInfoFromReceivedDocument(EDocument, TempBlob)` -- extract header info from received blob (V1.0 import)
 - `GetCompleteInfoFromReceivedDocument(EDocument, CreatedDocumentHeader, CreatedDocumentLines, TempBlob)` -- parse into BC records (V1.0 import)
 
-**Binding enum**: `"E-Document Format"` (`enum 6101`). Built-in values: `"Data Exchange"` and `"PEPPOL BIS 3.0"`.
+**Binding enum**: `"E-Document Format"` (`enum 6101`). Built-in values: `"Data Exchange"` and `"PEPPOL BIS 3.0"`. PEPPOL XML construction and validation primitives live in the standalone PEPPOL app that Core depends on; Core keeps the enum binding and adapter/reader logic.
+
+*Updated: 2026-07-29 -- clarified the PEPPOL split between Core and the standalone PEPPOL app.*
 
 **Where configured**: `"Document Format"` field on `"E-Document Service"` table.
 
@@ -103,13 +105,13 @@ For the two built-in actions, the framework also checks if the service integrati
 procedure StructureReceivedEDocument(EDocumentDataStorage): Interface IStructuredDataType
 ```
 
-Returns an `IStructuredDataType` that wraps the structured content, its file format, and which `"E-Doc. Read into Draft"` implementation should read it.
+Returns an `IStructuredDataType` that wraps the structured content, its file format, and which `"E-Doc. Read into Draft"` implementation should read it. If it returns `Unspecified`, the pipeline falls back to the E-Document's value and then to the service's Draft Format field.
 
-**Binding enum**: `"Structure Received E-Doc."` (`enum 6120`).
+**Binding enum**: `"Structure Received E-Doc."` (`enum 6103`).
 
 ### Reading structured data into staging tables
 
-**Goal**: Parse structured data (XML, JSON, ADI output) into the E-Document Purchase Header/Line staging tables.
+**Goal**: Parse structured data (XML, JSON, ADI output) into the E-Document purchase or sales staging tables.
 
 **Interface**: `IStructuredFormatReader` (in `Processing/Interfaces/IStructuredFormatReader.Interface.al`)
 
@@ -118,9 +120,11 @@ procedure ReadIntoDraft(EDocument, TempBlob): Enum "E-Doc. Process Draft"
 procedure View(EDocument, TempBlob)
 ```
 
-`ReadIntoDraft` populates the staging tables and returns the `"E-Doc. Process Draft"` enum value that determines which `IProcessStructuredData` runs next.
+`ReadIntoDraft` populates the staging tables and returns the `"E-Doc. Process Draft"` enum value that determines which `IProcessStructuredData` runs next. Built-in readers include PEPPOL, ADI, MLLM, Blank Draft, and Data Exchange Purchase; dependent format apps can add readers such as OIOUBL or XRechnung by extending the enum.
 
-**Binding enum**: `"E-Doc. Read into Draft"` (`enum 6113`).
+**Binding enum**: `"E-Doc. Read into Draft"` (`enum 6109`).
+
+The Data Exchange Purchase reader uses `E-Doc. Data Exchange Impl.` as a reusable XML-to-intermediate-data bridge and then maps the result into `E-Document Purchase Header` and `E-Document Purchase Line`. Those draft tables are exposed for dependent country apps to consume, while the bridge events below remain the safer customization points for adjusting mapped data. `E-Doc. Data Exchange Impl.` is no longer restricted with `Access = Internal`, but extensions should still prefer enum bindings and published events before depending on implementation details.
 
 ### Processing the draft
 
@@ -135,9 +139,9 @@ procedure OpenDraftPage(var EDocument)
 procedure CleanUpDraft(EDocument)
 ```
 
-`PrepareDraft` returns the resolved document type. `GetVendor` is called separately to populate the E-Document's vendor fields. `CleanUpDraft` is called when an E-Document is deleted.
+`PrepareDraft` returns the resolved document type. `GetVendor` is called separately for purchase drafts to populate the E-Document's vendor fields. Sales implementations can extend the contract through `IProcessStructuredDataSales` to resolve customers. `CleanUpDraft` is called when an E-Document is deleted.
 
-**Binding enum**: `"E-Doc. Process Draft"` (`enum 6112`).
+**Binding enum**: `"E-Doc. Process Draft"` (`enum 6107`).
 
 ### Finishing the draft (creating BC documents)
 
@@ -150,9 +154,11 @@ procedure ApplyDraftToBC(EDocument, EDocImportParameters): RecordId
 procedure RevertDraftActions(EDocument)
 ```
 
-`ApplyDraftToBC` creates the Purchase Invoice/Credit Memo and returns its RecordId. `RevertDraftActions` undoes the creation (deletes the BC document).
+`ApplyDraftToBC` creates the BC document for the resolved E-Document Type and returns its RecordId. Current Core implementations handle Purchase Invoice, Purchase Credit Memo, and Sales Order. `RevertDraftActions` undoes the Core link and moves attachments back to the E-Document; it does not post or delete the user's business document for them.
 
-**Binding enum**: `"E-Document Type"` (`enum 6105`). Each document type value implements this interface to handle its specific creation logic.
+**Binding enum**: `"E-Document Type"` (`enum 6121`). Each document type value implements this interface to handle its specific creation logic.
+
+*Updated: 2026-07-29 -- added Draft Format fallback, Data Exchange Purchase, sales order import, and dependent format readers.*
 
 ## Provider interfaces
 
@@ -163,6 +169,9 @@ These interfaces allow customization of specific resolution steps during the "Pr
 - **IUnitOfMeasureProvider** -- resolve unit of measure from external code
 - **IPurchaseLineProvider** -- determine purchase line type and account (replaces deprecated `IPurchaseLineAccountProvider`)
 - **IPurchaseOrderProvider** -- match E-Document to an existing purchase order
+- **ICustomerProvider** -- resolve a customer for inbound sales order drafts
+- **ISalesLineProvider** -- resolve sales line type, number, item reference, dimensions, and unit of measure
+- **IEDocumentCreateSalesOrder** -- customize how a staged inbound order becomes a BC Sales Order
 
 ## Export eligibility
 
@@ -238,6 +247,11 @@ Beyond interfaces, the framework publishes integration events for finer-grained 
 - `OnADIProcessingCompleted` -- react to Azure Document Intelligence processing completion
 - `OnFoundVendorNo` -- react to vendor resolution during draft preparation
 
+**Data Exchange V2 bridge** (in `EDocDataExchPurchHandler.Codeunit.al`):
+
+- `OnAfterBridgeToStagingTables` -- react after Data Exchange intermediate data has been mapped to the purchase staging header
+- `OnAfterMapLineToStaging` -- react after each intermediate purchase line record becomes an E-Document Purchase Line
+
 **Service configuration** (in `EDocumentService.Table.al`):
 
 - `OnAfterGetDefaultFileExtension` -- override the default file extension for the service
@@ -246,10 +260,18 @@ Beyond interfaces, the framework publishes integration events for finer-grained 
 
 - Events on draft page field validations for reacting to user edits
 
+**Attachments** (in `EDocAttachmentProcessor.Codeunit.al`):
+
+- Document Attachment Management subscribers make E-Document act like an attachment-bearing source record, including filters by `"E-Document Entry No."`. This is the safe extension surface for flows that need to attach or move files around E-Documents, including Digital Voucher attachment flows.
+
 **Import processing** (in `EDocImport.Codeunit.al`):
 
 - `OnAfterProcessIncomingEDocument` -- react after the import pipeline completes or advances a step
 
+*Updated: 2026-07-29 -- added Data Exchange bridge and attachment extension points.*
+
 ## Processing customizations
 
-The `"E-Doc. Proc. Customizations"` enum on the service (field 61) provides a secondary customization axis. It is passed to `IProcessStructuredData.GetVendor()` as a parameter, allowing different vendor resolution strategies per service.
+The `"E-Doc. Proc. Customizations"` enum on the service (field 61) provides a secondary customization axis. It is passed into purchase and sales draft processing, allowing different vendor, customer, line, unit of measure, purchase document creation, and sales order creation strategies per service.
+
+*Updated: 2026-07-29 -- expanded processing customization coverage to sales order import.*
