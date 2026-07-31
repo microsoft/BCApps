@@ -5032,6 +5032,10 @@ codeunit 148306 "Expense Report Test"
         // [GIVEN] Generate Random Amount.
         Amount := LibraryRandom.RandInt(100);
 
+        // [GIVEN] Remove any existing (demo) Expense Locations so the new one
+        // cannot conflict on the same Country/Region Code, County, and City.
+        ExpenseLocation.DeleteAll();
+
         // [GIVEN] Create Expense Location.
         LibraryExpense.CreateExpenseLocation(ExpenseLocation, PostCode."Country/Region Code", PostCode.City);
 
