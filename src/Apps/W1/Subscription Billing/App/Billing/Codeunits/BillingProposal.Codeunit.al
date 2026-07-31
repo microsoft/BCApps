@@ -12,8 +12,11 @@ codeunit 8062 "Billing Proposal"
     var
         SalesHeaderGlobal: Record "Sales Header";
         PurchaseHeaderGlobal: Record "Purchase Header";
+        ProgressTracker: Codeunit "Progress Tracker";
         LastContractNo: Code[20];
         LastPartnerNo: Code[20];
+        CreatingProposalLbl: Label 'Creating billing proposal...';
+        ContractDetailLbl: Label 'Contract %1', Comment = '%1 = Subscription Contract No.';
         BillingToChangeNotAllowedErr: Label 'A change of Billing to field from %1 to %2 for %3 and %4 is not allowed because the Subscription Line has already been calculated up to %5.', Comment = '%1: Old Billing To Date, %2: New Billing To Date, %3: Subscription Contract No., %4: Subscription Contract Line No., %5: Last Billing To Date';
         NoBillingDateErr: Label 'Please enter the Billing Date.';
         BillingToChangeNotAllowedDocNoExistsErr: Label 'Billing to field is not allowed to change because an unposted invoice or credit memo exists.';
@@ -26,6 +29,9 @@ codeunit 8062 "Billing Proposal"
         PurchaseCreditMemoExistsForBillingLineQst: Label 'There is a purchase credit memo that needs to be posted before an invoice can be created. Do you want to open the credit memo?';
         BillingLinesForAllContractLinesExistsErr: Label 'There are billing lines for all contract lines. For contract lines with billing lines, the invoice must be created in recurring billing.';
         NotAuthorizedToClearOrDeleteDocumentErr: Label 'You are not authorized to clear billing templates or delete billing documents. To perform these actions, you must be set up as an Auto Contract Billing user in the User Setup.';
+        ClearingBillingProposalLbl: Label 'Clearing billing proposal...';
+        DeletingBillingLinesLbl: Label 'Deleting billing lines...';
+        DeletingDocumentsLbl: Label 'Deleting billing documents...';
 
     procedure InitTempTable(var TempBillingLine: Record "Billing Line" temporary; GroupBy: Enum "Contract Billing Grouping")
     var
@@ -58,6 +64,87 @@ codeunit 8062 "Billing Proposal"
 
         TempBillingLine.CopyFilters(TempBillingLine2);
         OnAfterInitTempTable(TempBillingLine, GroupBy);
+    end;
+
+    /// <summary>
+    /// Rebuilds only the temporary rows of the groups touched by a selection-scoped action (for example Delete
+    /// Billing Line or Change Billing To Date), instead of re-reading every Billing Line as InitTempTable does.
+    /// Each affected group is dropped and rebuilt from the database, so the result is identical to a full rebuild
+    /// for those groups - but the cost scales with the affected groups, not with the whole proposal. GroupKeys holds
+    /// the Subscription Contract No. of each affected group, or the Partner No. when grouping by "Contract Partner".
+    /// </summary>
+    internal procedure RefreshGroupsInTempTable(var TempBillingLine: Record "Billing Line" temporary; GroupBy: Enum "Contract Billing Grouping"; GroupKeys: List of [Code[20]])
+    var
+        PageFilterBillingLine: Record "Billing Line";
+        TempPageFilter: Record "Billing Line" temporary;
+        GroupKey: Code[20];
+        NextHeaderEntryNo: Integer;
+    begin
+        if GroupKeys.Count = 0 then
+            exit;
+
+        TempPageFilter.CopyFilters(TempBillingLine); // remember the page view filters so they can be restored
+        PageFilterBillingLine.CopyFilters(TempBillingLine); // page view filters (Partner, User ID) scope the DB read
+        NextHeaderEntryNo := SmallestTempBillingLineEntryNo(TempBillingLine);
+
+        foreach GroupKey in GroupKeys do begin
+            DeleteTempRowsForGroup(TempBillingLine, GroupBy, GroupKey);
+            RebuildTempRowsForGroup(TempBillingLine, PageFilterBillingLine, GroupBy, GroupKey, NextHeaderEntryNo);
+        end;
+
+        TempBillingLine.CopyFilters(TempPageFilter);
+    end;
+
+    local procedure SmallestTempBillingLineEntryNo(var TempBillingLine: Record "Billing Line" temporary): Integer
+    begin
+        // Group header rows use descending negative Entry No.; continue below the current minimum to avoid collisions.
+        TempBillingLine.Reset();
+        if TempBillingLine.FindFirst() then // primary key ascending -> smallest Entry No. is first
+            if TempBillingLine."Entry No." < 0 then
+                exit(TempBillingLine."Entry No.");
+        exit(0);
+    end;
+
+    local procedure DeleteTempRowsForGroup(var TempBillingLine: Record "Billing Line" temporary; GroupBy: Enum "Contract Billing Grouping"; GroupKey: Code[20])
+    begin
+        TempBillingLine.Reset();
+        case GroupBy of
+            GroupBy::"Contract Partner":
+                TempBillingLine.SetRange("Partner No.", GroupKey);
+            else
+                TempBillingLine.SetRange("Subscription Contract No.", GroupKey);
+        end;
+        TempBillingLine.DeleteAll(false);
+        TempBillingLine.Reset();
+    end;
+
+    local procedure RebuildTempRowsForGroup(var TempBillingLine: Record "Billing Line" temporary; var PageFilterBillingLine: Record "Billing Line"; GroupBy: Enum "Contract Billing Grouping"; GroupKey: Code[20]; var NextHeaderEntryNo: Integer)
+    var
+        BillingLine: Record "Billing Line";
+        TempGroupBillingLine: Record "Billing Line" temporary;
+    begin
+        BillingLine.CopyFilters(PageFilterBillingLine);
+        SetKeysForGrouping(BillingLine, TempBillingLine, GroupBy); // also resets Last* so the first row opens a new group
+        case GroupBy of
+            GroupBy::"Contract Partner":
+                BillingLine.SetRange("Partner No.", GroupKey);
+            else
+                BillingLine.SetRange("Subscription Contract No.", GroupKey);
+        end;
+        if BillingLine.FindSet() then
+            repeat
+                UpdateGroupingLine(TempGroupBillingLine, BillingLine, GroupBy);
+                TempBillingLine := BillingLine;
+                TempBillingLine.Indent := 1;
+                TempBillingLine.Insert(false);
+            until BillingLine.Next() = 0;
+        if TempGroupBillingLine.FindSet() then
+            repeat
+                TempBillingLine := TempGroupBillingLine;
+                NextHeaderEntryNo -= 1;
+                TempBillingLine."Entry No." := NextHeaderEntryNo;
+                TempBillingLine.Insert(false);
+            until TempGroupBillingLine.Next() = 0;
     end;
 
     local procedure SetKeysForGrouping(var BillingLine: Record "Billing Line"; var TempBillingLine: Record "Billing Line" temporary; GroupBy: Enum "Contract Billing Grouping")
@@ -156,8 +243,11 @@ codeunit 8062 "Billing Proposal"
         VendorContract: Record "Vendor Subscription Contract";
         FilterText: Text;
         BillingRhythmFilterText: Text;
+        ContractCounter: Integer;
+        CommitBatchSize: Integer;
     begin
         SalesHeaderGlobal.Reset();
+        CommitBatchSize := 50; // Contracts processed per transaction checkpoint
         BillingTemplate.Get(BillingTemplateCode);
         if BillingDate = 0D then
             Error(NoBillingDateErr);
@@ -175,24 +265,38 @@ codeunit 8062 "Billing Proposal"
                     if FilterText <> '' then
                         CustomerContract.SetView(FilterText);
                     BillingRhythmFilterText := CustomerContract.GetFilter("Billing Rhythm Filter");
+                    this.ProgressTracker.StartActivity(CreatingProposalLbl, CustomerContract.Count());
                     if CustomerContract.FindSet() then
                         repeat
+                            ContractCounter += 1;
+                            this.ProgressTracker.UpdateProgress(ContractCounter, StrSubstNo(ContractDetailLbl, CustomerContract."No."));
                             ProcessContractServiceCommitments(BillingTemplate, CustomerContract."No.", '', BillingDate, BillingToDate, BillingRhythmFilterText, AutomatedBilling);
+                            if ContractCounter mod CommitBatchSize = 0 then
+                                Commit();
                         until CustomerContract.Next() = 0;
+                    this.ProgressTracker.Finish();
                 end;
             "Service Partner"::Vendor:
                 begin
                     if FilterText <> '' then
                         VendorContract.SetView(FilterText);
                     BillingRhythmFilterText := VendorContract.GetFilter("Billing Rhythm Filter");
+                    this.ProgressTracker.StartActivity(CreatingProposalLbl, VendorContract.Count());
                     if VendorContract.FindSet() then
                         repeat
+                            ContractCounter += 1;
+                            this.ProgressTracker.UpdateProgress(ContractCounter, StrSubstNo(ContractDetailLbl, VendorContract."No."));
                             ProcessContractServiceCommitments(BillingTemplate, VendorContract."No.", '', BillingDate, BillingToDate, BillingRhythmFilterText, AutomatedBilling);
+                            if ContractCounter mod CommitBatchSize = 0 then
+                                Commit();
                         until VendorContract.Next() = 0;
+                    this.ProgressTracker.Finish();
                 end;
         end;
 
-        if AutomatedBilling then
+        // The remaining block only surfaces blocking credit memos to the user, so there is nothing to do
+        // on the automated/background path or when no UI is available.
+        if AutomatedBilling or not GuiAllowed() then
             exit;
 
         case BillingTemplate.Partner of
@@ -258,7 +362,7 @@ codeunit 8062 "Billing Proposal"
                     case BillingLine.Partner of
                         Enum::"Service Partner"::Customer:
                             if SalesHeaderGlobal.Get(SalesHeaderGlobal."Document Type"::"Credit Memo", BillingLine."Document No.") then
-                                if AutomatedBilling then
+                                if AutomatedBilling or not GuiAllowed() then
                                     ContractBillingErrLog.InsertLogFromSubscriptionLine(
                                         BillingTemplate.Code,
                                         ServiceCommitment,
@@ -267,7 +371,7 @@ codeunit 8062 "Billing Proposal"
                                     SalesHeaderGlobal.Mark(true);
                         Enum::"Service Partner"::Vendor:
                             if PurchaseHeaderGlobal.Get(PurchaseHeaderGlobal."Document Type"::"Credit Memo", BillingLine."Document No.") then
-                                if AutomatedBilling then
+                                if AutomatedBilling or not GuiAllowed() then
                                     ContractBillingErrLog.InsertLogFromSubscriptionLine(
                                         BillingTemplate.Code,
                                         ServiceCommitment,
@@ -279,9 +383,9 @@ codeunit 8062 "Billing Proposal"
             ServiceCommitment."Usage Based Billing":
                 begin
                     UsageDataBilling.Reset();
-                    UsageDataBilling.SetCurrentKey("Usage Data Import Entry No.", "Subscription Line Entry No.", Partner, "Document Type", "Charge End Date");
                     UsageDataBilling.FilterOnServiceCommitment(ServiceCommitment);
                     UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
+                    OnProcessSubscriptionLineOnAfterFilterUsageDataBilling(UsageDataBilling, ServiceCommitment);
                     SkipServiceCommitment := UsageDataBilling.IsEmpty();
                 end;
             else
@@ -447,6 +551,7 @@ codeunit 8062 "Billing Proposal"
         case ServiceCommitment.Partner of
             ServiceCommitment.Partner::Customer:
                 begin
+                    CustomerContract.SetLoadFields("Sell-to Customer No.", "Detail Overview", "Currency Code");
                     CustomerContract.Get(ServiceCommitment."Subscription Contract No.");
                     BillingLine."Partner No." := CustomerContract."Sell-to Customer No.";
                     BillingLine."Detail Overview" := CustomerContract."Detail Overview";
@@ -454,6 +559,7 @@ codeunit 8062 "Billing Proposal"
                 end;
             ServiceCommitment.Partner::Vendor:
                 begin
+                    VendorContract.SetLoadFields("Pay-to Vendor No.", "Currency Code");
                     VendorContract.Get(ServiceCommitment."Subscription Contract No.");
                     BillingLine."Partner No." := VendorContract."Pay-to Vendor No.";
                     BillingLine."Currency Code" := VendorContract."Currency Code";
@@ -463,6 +569,7 @@ codeunit 8062 "Billing Proposal"
         BillingLine."Subscription Contract Line No." := ServiceCommitment."Subscription Contract Line No.";
         BillingLine."Discount %" := ServiceCommitment."Discount %";
         BillingLine.Discount := ServiceCommitment.Discount;
+        ServiceObject.SetLoadFields(Quantity);
         ServiceObject.Get(ServiceCommitment."Subscription Header No.");
         BillingLine."Service Object Quantity" := BillingLine.GetSign() * ServiceObject.Quantity;
         OnAfterUpdateBillingLineFromSubscriptionLine(BillingLine, ServiceCommitment);
@@ -558,6 +665,7 @@ codeunit 8062 "Billing Proposal"
         ClearBillingProposalOptionsMySuggestionsOnlyTxt: Label 'All billing proposals (user %1 only), Only current billing template proposal', Comment = '%1: User ID';
         ClearBillingProposalQst: Label 'Which billing proposal(s) should be deleted?';
         StrMenuResponse: Integer;
+        Counter: Integer;
     begin
         DisplayErrorIfNotAuthorizedToClearProposalOrDeleteDocuments();
         BillingTemplate.Get(BillingTemplateCode);
@@ -575,24 +683,44 @@ codeunit 8062 "Billing Proposal"
                     BillingLine.SetRange(Partner, BillingTemplate.Partner);
                     if BillingTemplate."My Suggestions Only" then
                         BillingLine.SetRange("User ID", UserId());
-                    BillingLine.DeleteAll(true);
+                    this.ProgressTracker.StartActivity(ClearingBillingProposalLbl, BillingLine.Count());
+                    if BillingLine.FindSet() then
+                        repeat
+                            Counter += 1;
+                            this.ProgressTracker.UpdateProgress(Counter, BillingLine."Subscription Contract No.");
+                            BillingLine.Delete(true);
+                        until BillingLine.Next() = 0;
+                    this.ProgressTracker.Finish();
                 end;
             2:
                 begin
                     BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
-                    BillingLine.DeleteAll(true);
+                    this.ProgressTracker.StartActivity(ClearingBillingProposalLbl, BillingLine.Count());
+                    if BillingLine.FindSet() then
+                        repeat
+                            Counter += 1;
+                            this.ProgressTracker.UpdateProgress(Counter, BillingLine."Subscription Contract No.");
+                            BillingLine.Delete(true);
+                        until BillingLine.Next() = 0;
+                    this.ProgressTracker.Finish();
                 end;
         end;
     end;
 
     internal procedure DeleteBillingLines(var BillingLine: Record "Billing Line")
+    var
+        Counter: Integer;
     begin
         BillingLine.SetCurrentKey("Subscription Header No.", "Subscription Line Entry No.", "Billing to");
         BillingLine.SetAscending("Billing to", false);
+        this.ProgressTracker.StartActivity(DeletingBillingLinesLbl, BillingLine.Count());
         if BillingLine.FindSet() then
             repeat
-                BillingLine.Delete(true)
+                Counter += 1;
+                this.ProgressTracker.UpdateProgress(Counter, BillingLine."Subscription Contract No.");
+                BillingLine.Delete(true);
             until BillingLine.Next() = 0;
+        this.ProgressTracker.Finish();
     end;
 
     local procedure DeleteBillingLinesForServiceObject(var BillingLine: Record "Billing Line")
@@ -895,17 +1023,21 @@ codeunit 8062 "Billing Proposal"
         DeleteBillingDocumentQst: Label 'Which contract billing documents should be deleted?';
         DeleteBillingDocumentOptionsTxt: Label 'All Documents,Documents from current billing template only';
         DeleteBillingDocumentOptionsMySuggestionsOnlyTxt: Label 'All Documents (user %1 only),Documents from current billing template only', Comment = '%1: User ID';
+        PreviousDocumentNo: Code[20];
         StrMenuResponse: Integer;
+        Counter: Integer;
     begin
+        PreviousDocumentNo := '';
         DisplayErrorIfNotAuthorizedToClearProposalOrDeleteDocuments();
         BillingTemplate.Get(BillingTemplateCode);
         if BillingTemplate."My Suggestions Only" then
             StrMenuResponse := Dialog.StrMenu(StrSubstNo(DeleteBillingDocumentOptionsMySuggestionsOnlyTxt, UserId()), 1, DeleteBillingDocumentQst)
         else
             StrMenuResponse := Dialog.StrMenu(DeleteBillingDocumentOptionsTxt, 1, DeleteBillingDocumentQst);
-        BillingLine.SetLoadFields("Subscription Header No.", "Subscription Line Entry No.", "Billing to", "Document Type", "Document No.", "Partner", "User ID");
-        BillingLine.SetCurrentKey("Subscription Header No.", "Subscription Line Entry No.", "Billing to");
-        BillingLine.SetAscending("Billing to", false);
+        // Sort by document so same-document billing lines are adjacent; the loop skips duplicate document nos so each
+        // document is deleted exactly once and the progress counter reflects documents, not billing lines.
+        BillingLine.SetLoadFields("Document Type", "Document No.", "Partner", "User ID", "Billing Template Code");
+        BillingLine.SetCurrentKey("Document Type", "Document No.");
         BillingLine.SetFilter("Document No.", '<>%1', '');
         case StrMenuResponse of
             0:
@@ -915,20 +1047,50 @@ codeunit 8062 "Billing Proposal"
                     BillingLine.SetRange(Partner, BillingTemplate.Partner);
                     if BillingTemplate."My Suggestions Only" then
                         BillingLine.SetRange("User ID", UserId());
+                    this.ProgressTracker.StartActivity(DeletingDocumentsLbl, this.CountDistinctDocuments(BillingLine));
                     if BillingLine.FindSet() then
                         repeat
-                            DeleteBillingDocuments(BillingLine);
+                            if BillingLine."Document No." <> PreviousDocumentNo then begin
+                                Counter += 1;
+                                this.ProgressTracker.UpdateProgress(Counter, BillingLine."Document No.");
+                                this.DeleteBillingDocuments(BillingLine);
+                                PreviousDocumentNo := BillingLine."Document No.";
+                            end;
                         until BillingLine.Next() = 0;
+                    this.ProgressTracker.Finish();
                 end;
             2:
                 begin
                     BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+                    this.ProgressTracker.StartActivity(DeletingDocumentsLbl, this.CountDistinctDocuments(BillingLine));
                     if BillingLine.FindSet() then
                         repeat
-                            DeleteBillingDocuments(BillingLine);
+                            if BillingLine."Document No." <> PreviousDocumentNo then begin
+                                Counter += 1;
+                                this.ProgressTracker.UpdateProgress(Counter, BillingLine."Document No.");
+                                this.DeleteBillingDocuments(BillingLine);
+                                PreviousDocumentNo := BillingLine."Document No.";
+                            end;
                         until BillingLine.Next() = 0;
+                    this.ProgressTracker.Finish();
                 end;
         end;
+    end;
+
+    local procedure CountDistinctDocuments(var BillingLine: Record "Billing Line"): Integer
+    var
+        PrevDocumentNo: Code[20];
+        DocCount: Integer;
+    begin
+        PrevDocumentNo := '';
+        if BillingLine.FindSet() then
+            repeat
+                if BillingLine."Document No." <> PrevDocumentNo then begin
+                    DocCount += 1;
+                    PrevDocumentNo := BillingLine."Document No.";
+                end;
+            until BillingLine.Next() = 0;
+        exit(DocCount);
     end;
 
     local procedure DeleteBillingDocuments(BillingLine: Record "Billing Line")
@@ -993,6 +1155,11 @@ codeunit 8062 "Billing Proposal"
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckSkipSubscriptionLineOnElse(SubscriptionLine: Record "Subscription Line"; var SkipSubscriptionLine: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnProcessSubscriptionLineOnAfterFilterUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; SubscriptionLine: Record "Subscription Line")
     begin
     end;
 
