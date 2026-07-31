@@ -263,14 +263,31 @@ codeunit 148150 "FI Company Field Report Test"
         GeneralPostingSetup: Record "General Posting Setup";
         VATPostingSetup: Record "VAT Posting Setup";
     begin
-        GeneralPostingSetup.SetRange("Gen. Bus. Posting Group", GenBusPostingGroup);
         LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
-        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
         LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        EnsurePostingSetups(GeneralPostingSetup, VATPostingSetup, GenBusPostingGroup, VATBusPostingGroup);
 
         exit(
             LibraryInventory.CreateItemNoWithPostingSetup(
                 GeneralPostingSetup."Gen. Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
+    end;
+
+    local procedure EnsurePostingSetups(GeneralPostingSetup: Record "General Posting Setup"; VATPostingSetup: Record "VAT Posting Setup"; GenBusPostingGroup: Code[20]; VATBusPostingGroup: Code[20])
+    var
+        MatchingGeneralPostingSetup: Record "General Posting Setup";
+        MatchingVATPostingSetup: Record "VAT Posting Setup";
+    begin
+        if not MatchingGeneralPostingSetup.Get(GenBusPostingGroup, GeneralPostingSetup."Gen. Prod. Posting Group") then begin
+            MatchingGeneralPostingSetup := GeneralPostingSetup;
+            MatchingGeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
+            MatchingGeneralPostingSetup.Insert(true);
+        end;
+
+        if not MatchingVATPostingSetup.Get(VATBusPostingGroup, VATPostingSetup."VAT Prod. Posting Group") then begin
+            MatchingVATPostingSetup := VATPostingSetup;
+            MatchingVATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
+            MatchingVATPostingSetup.Insert(true);
+        end;
     end;
 
     local procedure InitializeReminderMemoReport()
@@ -772,7 +789,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServiceContractReportHandler,ConfirmUIHandler')]
+    [HandlerFunctions('ServiceContractReportHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractReport()
     var
@@ -799,7 +816,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServiceContractQuoteReportHandler,ConfirmUIHandler')]
+    [HandlerFunctions('ServiceContractQuoteReportHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractQuoteReport()
     var
@@ -823,13 +840,6 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceContractQuoteReport."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
         ServiceContractQuoteReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [ConfirmHandler]
-    [Scope('OnPrem')]
-    procedure ConfirmUIHandler(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := false;
     end;
 
     [RequestPageHandler]
