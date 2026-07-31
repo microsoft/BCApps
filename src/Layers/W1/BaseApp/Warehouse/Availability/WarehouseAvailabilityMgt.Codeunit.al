@@ -934,18 +934,12 @@ codeunit 7314 "Warehouse Availability Mgt."
         BinType: Record "Bin Type";
         Location: Record Location;
         Bin: Record Bin;
+        CreatePick: Codeunit "Create Pick";
         ShipBinTypeFilter: Text;
         QtyOnShipmentBins: Decimal;
         DefaultBinIsShipType: Boolean;
     begin
-        BinType.SetRange(Ship, true);
-        if BinType.FindSet() then
-            repeat
-                if ShipBinTypeFilter = '' then
-                    ShipBinTypeFilter := BinType.Code
-                else
-                    ShipBinTypeFilter += '|' + BinType.Code;
-            until BinType.Next() = 0;
+        ShipBinTypeFilter := CreatePick.GetBinTypeFilter(1);
 
         if ShipBinTypeFilter <> '' then begin
             WarehouseEntry.SetLoadFields("Qty. (Base)");

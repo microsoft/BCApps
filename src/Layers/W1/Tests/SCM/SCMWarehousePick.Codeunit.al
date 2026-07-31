@@ -2522,6 +2522,90 @@ codeunit 137055 "SCM Warehouse Pick"
         VerifyPick(SalesHeaderSecond."No.", Item."No.", Location.Code, RemainingQty);
     end;
 
+    [Test]
+    [HandlerFunctions('ReservationPageHandler,WhseItemTrackingLinesAssignLotAndExpirationPageHandler')]
+    [Scope('OnPrem')]
+    procedure CreatePickForRemainingQtyWithFEFOWhenPreviousPickPlacedInNonDefaultShipmentBin()
+    var
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ShipZone: Record Zone;
+        DefaultShipmentBin: Record Bin;
+        NonDefaultShipmentBin: Record Bin;
+        SalesHeaderFirst: Record "Sales Header";
+        SalesHeaderSecond: Record "Sales Header";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LotNo: Code[50];
+        ExpirationDate: Date;
+        TotalQty: Decimal;
+        FirstShipmentQty: Decimal;
+        RemainingQty: Decimal;
+    begin
+        // [FEATURE] [FEFO] [Item Tracking]
+        // [SCENARIO 642378] Create Pick for the remaining quantity of a lot-tracked, FEFO-picked item succeeds when a
+        // previous registered pick placed the picked-but-not-shipped quantity into a Ship-type bin other than the
+        // location's default Shipment Bin.
+        // [SCENARIO 642378] This exercises the FEFO branch (ReqFEFOPick): the pickable quantity in the warehouse must be
+        // measured only across pick bins. Otherwise the quantity already picked into the non-default ship bin is treated
+        // as still pickable, the reservation cover is wrongly removed and the second pick fails with
+        // "Nothing to handle. The quantity to be picked is in bin ..., which is not set up for picking.".
+        Initialize();
+
+        // [GIVEN] Directed put-away and pick location with Pick According to FEFO and two Ship-type bins in the SHIP zone.
+        LibraryWarehouse.CreateFullWMSLocation(Location, 2);
+        Location.Validate("Pick According to FEFO", true);
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        LibraryWarehouse.FindZone(ShipZone, Location.Code, LibraryWarehouse.SelectBinType(false, true, false, false), false);
+        LibraryWarehouse.FindBin(DefaultShipmentBin, Location.Code, ShipZone.Code, 1);      // Location's default Shipment Bin.
+        LibraryWarehouse.FindBin(NonDefaultShipmentBin, Location.Code, ShipZone.Code, 2);   // Alternative Ship-type bin.
+
+        // [GIVEN] A single lot (with expiration date) of a lot-tracked item is in a pick bin, split across two shipments.
+        TotalQty := LibraryRandom.RandIntInRange(100, 200);
+        FirstShipmentQty := LibraryRandom.RandIntInRange(1, TotalQty - 1);
+        RemainingQty := TotalQty - FirstShipmentQty;
+        CreateItemWithLotTrackingAndExpirationDate(Item, ItemTrackingCode);
+        LotNo := LibraryUtility.GenerateGUID();
+        ExpirationDate := CalcDate('<+30D>', WorkDate());
+        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, TotalQty, LotNo, ExpirationDate);
+
+        // [GIVEN] The first sales order, reserved against inventory, is FEFO-picked into the non-default Ship-type bin, but not shipped.
+        CreateReleaseAndReserveSalesOrder(SalesHeaderFirst, Location.Code, Item."No.", FirstShipmentQty, true);
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeaderFirst);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeaderFirst."No.");
+        UpdateShipmentBinOnWhseShipment(WarehouseShipmentHeader, NonDefaultShipmentBin.Code);
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [GIVEN] The first pick places the FEFO-assigned lot into the non-default Ship-type bin (not the default Shipment Bin).
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick, Location.Code, SalesHeaderFirst."No.",
+            WarehouseActivityLine."Action Type"::Place);
+        WarehouseActivityLine.TestField("Bin Code", NonDefaultShipmentBin.Code);
+        WarehouseActivityLine.TestField("Lot No.", LotNo);
+
+        FindWarehouseActivityHeader(WarehouseActivityHeader, WarehouseActivityHeader.Type::Pick, Location.Code, SalesHeaderFirst."No.");
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [GIVEN] After registration the picked quantity sits in the non-default Ship-type bin, not the default Shipment Bin.
+        VerifyQuantityOnBin(Location.Code, NonDefaultShipmentBin.Code, Item."No.", LotNo, FirstShipmentQty);
+        VerifyQuantityOnBin(Location.Code, DefaultShipmentBin.Code, Item."No.", LotNo, 0);
+
+        // [WHEN] Create Pick for a second sales order for the remaining quantity.
+        CreateReleaseAndReserveSalesOrder(SalesHeaderSecond, Location.Code, Item."No.", RemainingQty, false);
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeaderSecond);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeaderSecond."No.");
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [THEN] The pick for the remaining quantity is created (before the fix it failed with "Nothing to handle").
+        VerifyPick(SalesHeaderSecond."No.", Item."No.", Location.Code, RemainingQty);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
@@ -3118,6 +3202,31 @@ codeunit 137055 "SCM Warehouse Pick"
         CalculateAndPostWhseAdjustment(Item, LocationCode);
     end;
 
+    local procedure UpdateInventoryInPickBinWithLotAndExpiration(Item: Record Item; LocationCode: Code[10]; Quantity: Decimal; LotNo: Code[50]; ExpirationDate: Date)
+    var
+        Zone: Record Zone;
+        Bin: Record Bin;
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+    begin
+        EnsureGeneralPostingSetupForItem(Item);
+        LibraryWarehouse.FindZone(Zone, LocationCode, LibraryWarehouse.SelectBinType(false, false, true, true), false);
+        LibraryWarehouse.FindBin(Bin, LocationCode, Zone.Code, 1);
+        LibraryWarehouse.WarehouseJournalSetup(LocationCode, WarehouseJournalTemplate, WarehouseJournalBatch);
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LibraryWarehouse.CreateWhseJournalLine(
+          WarehouseJournalLine, WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name,
+          LocationCode, Zone.Code, Bin.Code,
+          WarehouseJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Quantity);
+
+        // Assign the lot and expiration date to the warehouse journal line so the adjustment creates lot-tracked inventory.
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(ExpirationDate);
+        LibraryVariableStorage.Enqueue(Quantity);
+        WarehouseJournalLine.OpenItemTrackingLines();
+
+        CalculateAndPostWhseAdjustment(Item, LocationCode);
+    end;
+
     local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -3323,6 +3432,20 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseActivityLine.FindFirst();
         WarehouseActivityLine.TestField("Item No.", ItemNo);
         WarehouseActivityLine.TestField("Location Code", LocationCode);
+    end;
+
+    local procedure VerifyQuantityOnBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; LotNo: Code[50]; ExpectedQty: Decimal)
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Lot No.", LotNo);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        Assert.AreEqual(
+            ExpectedQty, WarehouseEntry."Qty. (Base)",
+            StrSubstNo('Unexpected quantity of lot %1 in bin %2.', LotNo, BinCode));
     end;
 
     local procedure VerifyRemainingQunatityOnPick(SourceNo: Code[20]; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
@@ -3661,6 +3784,16 @@ codeunit 137055 "SCM Warehouse Pick"
         ItemTrackingLines."Lot No.".SetValue(LotNo);
         ItemTrackingLines."Quantity (Base)".SetValue(Qty);
         ItemTrackingLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure WhseItemTrackingLinesAssignLotAndExpirationPageHandler(var WhseItemTrackingLines: TestPage "Whse. Item Tracking Lines")
+    begin
+        WhseItemTrackingLines."Lot No.".SetValue(LibraryVariableStorage.DequeueText());
+        WhseItemTrackingLines."Expiration Date".SetValue(LibraryVariableStorage.DequeueDate());
+        WhseItemTrackingLines.Quantity.SetValue(LibraryVariableStorage.DequeueDecimal());
+        WhseItemTrackingLines.OK().Invoke();
     end;
 
     [ConfirmHandler]
