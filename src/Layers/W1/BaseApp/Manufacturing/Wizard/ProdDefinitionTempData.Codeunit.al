@@ -38,7 +38,7 @@ codeunit 99001016 "Prod. Definition Temp Data"
         RoutingBOMSourceType: Enum "Prod. Definition Source";
         ProdOrderStatus: Enum "Production Order Status";
         TempProdOrderNoLbl: Label 'TEMP-%1', Locked = true, MaxLength = 20;
-        ProductionOrderQtyZeroOrNegativeErr: Label 'Cannot create a production order from Sales Line %1 line %2: the calculated quantity (%3) is zero or negative because the line is fully or over-reserved.', Comment = '%1 = Document No., %2 = Line No., %3 = Quantity';
+        ProductionOrderQtyZeroOrNegativeErr: Label 'Cannot create a production order because the calculated quantity is zero or negative.';
         ShowSalesLineLbl: Label 'Show sales line';
         BOMForLbl: Label 'BOM for %1', Comment = '%1 = Item Description';
         TempBOMNoLbl: Label 'TEMP-BOM-%1', Locked = true, MaxLength = 20;
@@ -132,7 +132,7 @@ codeunit 99001016 "Prod. Definition Temp Data"
         if TempProdOrder.Quantity <= 0 then begin
             ProductionOrderQtyErrorInfo.DataClassification := DataClassification::CustomerContent;
             ProductionOrderQtyErrorInfo.ErrorType := ErrorType::Client;
-            ProductionOrderQtyErrorInfo.Message := StrSubstNo(ProductionOrderQtyZeroOrNegativeErr, SalesLine."Document No.", SalesLine."Line No.", TempProdOrder.Quantity);
+            ProductionOrderQtyErrorInfo.Message := ProductionOrderQtyZeroOrNegativeErr;
             ProductionOrderQtyErrorInfo.RecordId := SalesLine.RecordId;
             ProductionOrderQtyErrorInfo.PageNo := Page::"Sales Order";
             ProductionOrderQtyErrorInfo.AddNavigationAction(ShowSalesLineLbl);

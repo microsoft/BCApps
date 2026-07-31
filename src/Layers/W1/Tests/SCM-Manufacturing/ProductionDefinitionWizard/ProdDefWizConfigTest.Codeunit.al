@@ -110,7 +110,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         Commit();
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
-        // [THEN] BOMLinesPart.Enabled = true because DefineItemStructure mode forces Edit regardless of Show setup
+        // [THEN] BOMLinesPart can be edited by enable CreateBOMVersionField, even though setup = Show (which normally disables editing)
         Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         Assert.IsFalse(ActualEditBOMLines, BOMLinesEditableForcedEditLbl);
         Assert.IsTrue(CreateBOMVersionFieldEnabled, CreateBOMVersionFieldEnabledLbl);

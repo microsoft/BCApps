@@ -173,7 +173,6 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
             "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
 
         // [WHEN] User attempts to set SaveBOMRoutingToSource = StockkeepingUnit
-        ActualSKUNotAllowedErrorRaised := false;
         Commit();
         asserterror ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 

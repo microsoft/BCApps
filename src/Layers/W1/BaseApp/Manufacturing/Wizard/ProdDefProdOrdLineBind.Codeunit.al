@@ -66,6 +66,8 @@ codeunit 99001023 "Prod. Def. ProdOrdLine Bind"
     begin
         if StoredProdOrderLine."Prod. Order No." = '' then
             exit;
+        if not ProdOrderRoutingLine.IsTemporary() then
+            exit;
         if ProdOrderRoutingLine."Prod. Order No." <> StoredProdOrderLine."Prod. Order No." then
             exit;
         if ProdOrderRoutingLine.Status <> StoredProdOrderLine.Status then
