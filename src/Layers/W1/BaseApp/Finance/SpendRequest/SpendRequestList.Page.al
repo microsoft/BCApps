@@ -45,7 +45,7 @@ page 6840 "Spend Request List"
                 {
                     Caption = 'Remaining Amount (LCY)';
                     AutoFormatType = 1;
-                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the difference between estimated amount and actually spent amount.';
                     Importance = Additional;
                 }

@@ -70,7 +70,7 @@ page 6841 "Spend Request Card"
                 {
                     Caption = 'Remaining Amount (LCY)';
                     AutoFormatType = 1;
-                    AutoFormatExpression = Rec."Currency Code";
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the difference between estimated amount and actually spent amount.';
                     Importance = Additional;
                 }
