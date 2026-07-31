@@ -98,6 +98,8 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Job WIP Warning");
         ListOfTablesToMigrate.Add(Database::"Job");
         ListOfTablesToMigrate.Add(Database::"Job Archive");
+        ListOfTablesToMigrate.Add(Database::"Job Assigned Resource");
+        ListOfTablesToMigrate.Add(Database::"Job Assigned Resource Archive");
         ListOfTablesToMigrate.Add(Database::"Jobs Setup");
         ListOfTablesToMigrate.Add(Database::"Language");
         ListOfTablesToMigrate.Add(Database::"Last Used Chart");
@@ -687,6 +689,10 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Tenant Media");
         ListOfTablesToMigrate.Add(Database::"Tenant Media Set");
         ListOfTablesToMigrate.Add(Database::"Tenant Media Thumbnails");
+        ListOfTablesToMigrate.Add(Database::"Tenant Report Layout");
+        ListOfTablesToMigrate.Add(Database::"Tenant Report Layout Cfg");
+        ListOfTablesToMigrate.Add(Database::"Tenant Report Layout Override");
+        ListOfTablesToMigrate.Add(Database::"Tenant Report Layout Selection");
 
         // internal tables
         ListOfTablesToMigrate.Add(8703); // Database::"Feature Uptake"
