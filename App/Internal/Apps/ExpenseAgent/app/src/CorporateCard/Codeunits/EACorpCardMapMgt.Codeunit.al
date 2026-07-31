@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 using System.IO;
 using System.Utilities;
 
-codeunit 7256 EACorpCardMapMgt
+codeunit 7227 EACorpCardMapMgt
 {
     Access = Internal;
 
@@ -55,6 +55,9 @@ codeunit 7256 EACorpCardMapMgt
         TempOutStr: OutStream;
     begin
         if Handled then
+            exit;
+
+        if CorpCardProvider."Feed Type" = CorpCardProvider."Feed Type"::API then
             exit;
 
         if not ProviderRefreshed.Get(CorpCardProvider.Code) then

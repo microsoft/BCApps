@@ -2,7 +2,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.IO;
 
-codeunit 6915 "Create Corp Card Setup"
+codeunit 7232 EACreateCorpCardSetup
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -83,6 +83,8 @@ codeunit 6915 "Create Corp Card Setup"
             EnsureDataExchLineAndColumns(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok, true);
             EnsureDataExchMapping(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
             EnsureFieldMappings(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
+
+            EnsureSamplePayloadForProvider(CorpCardProvider);
         end;
     end;
 
@@ -233,6 +235,7 @@ codeunit 6915 "Create Corp Card Setup"
             CorpCardProvider."Data Exch Map Code" := DataExchLineCode;
             CorpCardProvider."Import Frequency (Min)" := 1440;
             CorpCardProvider.Insert(true);
+            EnsureSamplePayloadForProvider(CorpCardProvider);
             exit;
         end;
 
@@ -247,6 +250,188 @@ codeunit 6915 "Create Corp Card Setup"
         if CorpCardProvider."Import Frequency (Min)" = 0 then
             CorpCardProvider."Import Frequency (Min)" := 1440;
         CorpCardProvider.Modify(true);
+        EnsureSamplePayloadForProvider(CorpCardProvider);
+    end;
+
+    local procedure EnsureSamplePayloadForProvider(var CorpCardProvider: Record EACorpCardProvider)
+    var
+        PayloadOutStr: OutStream;
+        SamplePayload: Text;
+        SampleFileName: Text[250];
+    begin
+        CorpCardProvider.CalcFields("Source Payload");
+        if CorpCardProvider."Source Payload".HasValue then
+            exit;
+
+        if not GetProviderSamplePayload(CorpCardProvider.Code, SamplePayload, SampleFileName) then
+            exit;
+
+        Clear(CorpCardProvider."Source Payload");
+        CorpCardProvider."Source Payload".CreateOutStream(PayloadOutStr, TextEncoding::UTF8);
+        PayloadOutStr.WriteText(SamplePayload);
+        CorpCardProvider."Source File Name" := CopyStr(SampleFileName, 1, MaxStrLen(CorpCardProvider."Source File Name"));
+        CorpCardProvider.Modify(true);
+    end;
+
+    local procedure GetProviderSamplePayload(ProviderCode: Code[20]; var SamplePayload: Text; var SampleFileName: Text[250]): Boolean
+    var
+        PrimaryCardId: Code[50];
+    begin
+        PrimaryCardId := BuildProviderSampleCardId(ProviderCode, 1);
+        if PrimaryCardId = '' then
+            exit(false);
+
+        case ProviderCode of
+            CorpCardCsvProviderCodeTok:
+                begin
+                    SamplePayload := BuildCsvSamplePayload(PrimaryCardId);
+                    SampleFileName := CorpCardCsvSampleFileNameTok;
+                    exit(true);
+                end;
+            CorpCardXmlProviderCodeTok:
+                begin
+                    SamplePayload := BuildXmlSamplePayload(PrimaryCardId);
+                    SampleFileName := CorpCardXmlSampleFileNameTok;
+                    exit(true);
+                end;
+            CorpCardIsoProviderCodeTok:
+                begin
+                    SamplePayload := BuildIsoSamplePayload(PrimaryCardId);
+                    SampleFileName := CorpCardIsoSampleFileNameTok;
+                    exit(true);
+                end;
+            CorpCardCamt053ProviderCodeTok:
+                begin
+                    SamplePayload := BuildCamt053SamplePayload(PrimaryCardId);
+                    SampleFileName := CorpCardCamt053SampleFileNameTok;
+                    exit(true);
+                end;
+            CorpCardCamt054ProviderCodeTok:
+                begin
+                    SamplePayload := BuildCamt054SamplePayload(PrimaryCardId);
+                    SampleFileName := CorpCardCamt054SampleFileNameTok;
+                    exit(true);
+                end;
+        end;
+
+        exit(false);
+    end;
+
+    local procedure BuildProviderSampleCardId(ProviderCode: Code[20]; SequenceNo: Integer): Code[50]
+    var
+        PrefixTxt: Text;
+    begin
+        PrefixTxt := GetProviderSampleCardPrefix(ProviderCode);
+        if PrefixTxt = '' then
+            exit('');
+
+        exit(CopyStr(StrSubstNo('%1-%2', PrefixTxt, PadNumberLeft(SequenceNo, 4)), 1, 50));
+    end;
+
+    local procedure BuildCsvSamplePayload(CardId: Code[50]): Text
+    begin
+        exit(
+            'ProviderTransId,CardId,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes' + NewLineTxt() +
+            'CSVTXN0001,' + CardId + ',2026-06-02,2026-06-03,19.63,USD,Contoso Air,4511,US,Seeded CSV sample');
+    end;
+
+    local procedure BuildXmlSamplePayload(CardId: Code[50]): Text
+    begin
+        exit(
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<CorporateCardTransactions>' +
+                '<Transaction>' +
+                    '<ProviderTransId>XMLTXN0001</ProviderTransId>' +
+                    '<CardId>' + CardId + '</CardId>' +
+                    '<TransDate>2026-06-02</TransDate>' +
+                    '<PostingDate>2026-06-03</PostingDate>' +
+                    '<Amount>19.63</Amount>' +
+                    '<CurrencyCode>USD</CurrencyCode>' +
+                    '<MerchantRaw>Contoso Air</MerchantRaw>' +
+                    '<MCC>4511</MCC>' +
+                    '<Country>US</Country>' +
+                    '<Notes>Seeded XML sample</Notes>' +
+                '</Transaction>' +
+            '</CorporateCardTransactions>');
+    end;
+
+    local procedure BuildIsoSamplePayload(CardId: Code[50]): Text
+    begin
+        exit(
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<Document>' +
+                '<Notification>' +
+                    '<Transaction>' +
+                        '<ProviderTransId>ISOTXN0001</ProviderTransId>' +
+                        '<CardId>' + CardId + '</CardId>' +
+                        '<TransDate>2026-06-02</TransDate>' +
+                        '<PostingDate>2026-06-03</PostingDate>' +
+                        '<Amount>19.63</Amount>' +
+                        '<CurrencyCode>USD</CurrencyCode>' +
+                        '<MerchantRaw>Contoso Air</MerchantRaw>' +
+                        '<MCC>4511</MCC>' +
+                        '<Country>US</Country>' +
+                        '<Notes>Seeded ISO20022 sample</Notes>' +
+                    '</Transaction>' +
+                '</Notification>' +
+            '</Document>');
+    end;
+
+    local procedure BuildCamt053SamplePayload(CardId: Code[50]): Text
+    begin
+        exit(
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<Document>' +
+                '<BkToCstmrStmt>' +
+                    '<Stmt>' +
+                        '<Ntry>' +
+                            '<BookgDt><Dt>2026-06-03</Dt></BookgDt>' +
+                            '<ValDt><Dt>2026-06-03</Dt></ValDt>' +
+                            '<NtryDtls>' +
+                                '<TxDtls>' +
+                                    '<Refs><EndToEndId>CAMT53TXN001</EndToEndId></Refs>' +
+                                    '<RmtInf><Ustrd>' + CardId + '</Ustrd></RmtInf>' +
+                                    '<AmtDtls><TxAmt><Amt Ccy="USD">19.63</Amt></TxAmt></AmtDtls>' +
+                                    '<RltdPties><Cdtr><Nm>Contoso Air</Nm><PstlAdr><Ctry>US</Ctry></PstlAdr></Cdtr></RltdPties>' +
+                                    '<AddtlTxInf>4511</AddtlTxInf>' +
+                                '</TxDtls>' +
+                            '</NtryDtls>' +
+                        '</Ntry>' +
+                    '</Stmt>' +
+                '</BkToCstmrStmt>' +
+            '</Document>');
+    end;
+
+    local procedure BuildCamt054SamplePayload(CardId: Code[50]): Text
+    begin
+        exit(
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<Document>' +
+                '<BkToCstmrStmt>' +
+                    '<Stmt>' +
+                        '<Ntry>' +
+                            '<NtryDtls>' +
+                                '<TxDtls>' +
+                                    '<Refs><EndToEndId>CAMT54TXN001</EndToEndId></Refs>' +
+                                    '<RmtInf><Ustrd>' + CardId + '</Ustrd></RmtInf>' +
+                                    '<RltdDts><IntrBkSttlmDt><Dt>2026-06-03</Dt></IntrBkSttlmDt></RltdDts>' +
+                                    '<AmtDtls><TxAmt><Amt Ccy="USD">19.63</Amt></TxAmt></AmtDtls>' +
+                                    '<RltdPties><Cdtr><Nm>Contoso Air</Nm><PstlAdr><Ctry>US</Ctry></PstlAdr></Cdtr></RltdPties>' +
+                                    '<AddtlTxInf>4511</AddtlTxInf>' +
+                                '</TxDtls>' +
+                            '</NtryDtls>' +
+                        '</Ntry>' +
+                    '</Stmt>' +
+                '</BkToCstmrStmt>' +
+            '</Document>');
+    end;
+
+    local procedure NewLineTxt(): Text
+    var
+        NewLineChar: Char;
+    begin
+        NewLineChar := 10;
+        exit(Format(NewLineChar));
     end;
 
     local procedure EnsureCorpCardSetup()
@@ -956,5 +1141,10 @@ codeunit 6915 "Create Corp Card Setup"
         CorpCardIsoProviderDescriptionLbl: Label 'Corporate Card ISO20022 Provider';
         CorpCardCamt053ProviderDescriptionLbl: Label 'Corporate Card CAMT053 Provider';
         CorpCardCamt054ProviderDescriptionLbl: Label 'Corporate Card CAMT054 Provider';
+        CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
+        CorpCardXmlSampleFileNameTok: Label 'CorpCard-Sample-60.xml', Locked = true;
+        CorpCardIsoSampleFileNameTok: Label 'CorpCardISO20022Sample.xml', Locked = true;
+        CorpCardCamt053SampleFileNameTok: Label 'CorpCard-Sample-60-SEPA-CAMT053.xml', Locked = true;
+        CorpCardCamt054SampleFileNameTok: Label 'CorpCard-Sample-60-SEPA-CAMT054.xml', Locked = true;
         CardIDTok: Label 'CARD-%1', Locked = true;
 }

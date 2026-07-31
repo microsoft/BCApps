@@ -2,7 +2,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.IO;
 
-codeunit 6916 "Create Corp Card L3 Demo"
+codeunit 7234 EACreateCorpCardL3Demo
 {
     Access = Internal;
     InherentEntitlements = X;

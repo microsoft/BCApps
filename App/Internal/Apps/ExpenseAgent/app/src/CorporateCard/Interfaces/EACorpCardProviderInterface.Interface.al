@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-interface IEACorpCardProvider
+interface EACorpCardProviderInterface
 {
     procedure Download(var CorpCardBatch: Record EACorpCardBatch);
     procedure ParseToStaging(BatchNo: Integer);

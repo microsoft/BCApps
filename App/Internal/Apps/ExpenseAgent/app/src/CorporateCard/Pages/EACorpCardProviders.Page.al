@@ -48,6 +48,13 @@ page 7224 EACorpCardProviders
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the source file name associated with the payload content.';
                 }
+                field("Source Payload Records"; GetSourcePayloadRecordCount())
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Source Payload Records';
+                    Editable = false;
+                    ToolTip = 'Specifies the number of transaction records detected in the uploaded source payload.';
+                }
                 field("Detected Source Format"; GetDetectedSourceFormat())
                 {
                     ApplicationArea = Basic, Suite;
@@ -265,7 +272,7 @@ page 7224 EACorpCardProviders
 
     local procedure InitializeDataExchangeForProvider()
     var
-        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
+        CreateCorpCardSetup: Codeunit EACreateCorpCardSetup;
     begin
         CreateCorpCardSetup.EnsureDataExchangeForProvider(Rec);
         CurrPage.Update(false);
@@ -291,6 +298,128 @@ page 7224 EACorpCardProviders
             exit(NotSetLbl);
 
         exit(UnknownLbl);
+    end;
+
+    local procedure GetSourcePayloadRecordCount(): Integer
+    var
+        ProviderRefreshed: Record EACorpCardProvider;
+        PayloadInStr: InStream;
+        PayloadTxt: Text;
+        SourceFileNameLower: Text;
+        DataExchDefCodeUpper: Text;
+    begin
+        if not ProviderRefreshed.Get(Rec.Code) then
+            exit(0);
+
+        ProviderRefreshed.CalcFields("Source Payload");
+        if not ProviderRefreshed."Source Payload".HasValue then
+            exit(0);
+
+        ProviderRefreshed."Source Payload".CreateInStream(PayloadInStr, TextEncoding::UTF8);
+        PayloadTxt := ReadStreamAsText(PayloadInStr);
+        if PayloadTxt = '' then
+            exit(0);
+
+        SourceFileNameLower := LowerCase(ProviderRefreshed."Source File Name");
+        DataExchDefCodeUpper := UpperCase(ProviderRefreshed."Data Exch Def Code");
+
+        if (StrPos(SourceFileNameLower, '.csv') > 0) or (StrPos(DataExchDefCodeUpper, 'CSV') > 0) then
+            exit(GetCsvRecordCount(PayloadTxt));
+
+        if (StrPos(SourceFileNameLower, 'camt054') > 0) or (StrPos(SourceFileNameLower, 'camt.054') > 0) or (StrPos(DataExchDefCodeUpper, 'CAMT054') > 0) then
+            exit(CountOccurrences(PayloadTxt, '<TxDtls>'));
+
+        if (StrPos(SourceFileNameLower, 'camt') > 0) or (StrPos(DataExchDefCodeUpper, 'CAMT') > 0) then
+            exit(CountOccurrences(PayloadTxt, '<Ntry>'));
+
+        if (StrPos(SourceFileNameLower, '.xml') > 0) or (StrPos(DataExchDefCodeUpper, 'XML') > 0) or (StrPos(DataExchDefCodeUpper, 'ISO') > 0) then
+            exit(CountOccurrences(PayloadTxt, '<Transaction>'));
+
+        exit(CountOccurrences(PayloadTxt, '<Transaction>'));
+    end;
+
+    local procedure ReadStreamAsText(var PayloadInStr: InStream): Text
+    var
+        LineTxt: Text;
+        NewLineChar: Char;
+        ResultTxt: Text;
+    begin
+        NewLineChar := 10;
+        while not PayloadInStr.EOS do begin
+            PayloadInStr.ReadText(LineTxt);
+            if ResultTxt <> '' then
+                ResultTxt += Format(NewLineChar);
+            ResultTxt += LineTxt;
+        end;
+
+        exit(ResultTxt);
+    end;
+
+    local procedure GetCsvRecordCount(PayloadTxt: Text): Integer
+    var
+        Count: Integer;
+        Remaining: Text;
+        LineTxt: Text;
+        NewLinePos: Integer;
+        HeaderHandled: Boolean;
+        CRChar: Char;
+    begin
+        Remaining := PayloadTxt;
+        CRChar := 13;
+        while Remaining <> '' do begin
+            NewLinePos := StrPos(Remaining, Format(10));
+            if NewLinePos = 0 then begin
+                LineTxt := Remaining;
+                Remaining := '';
+            end else begin
+                LineTxt := CopyStr(Remaining, 1, NewLinePos - 1);
+                Remaining := CopyStr(Remaining, NewLinePos + 1);
+            end;
+
+            LineTxt := LineTxt.Replace(Format(CRChar), '').Trim();
+            if LineTxt = '' then
+                continue;
+
+            if not HeaderHandled then begin
+                HeaderHandled := true;
+                if IsCsvHeaderLine(LineTxt) then
+                    continue;
+            end;
+
+            Count += 1;
+        end;
+
+        exit(Count);
+    end;
+
+    local procedure IsCsvHeaderLine(LineTxt: Text): Boolean
+    var
+        LowerLineTxt: Text;
+    begin
+        LowerLineTxt := LowerCase(LineTxt);
+        exit((StrPos(LowerLineTxt, 'providertransid') > 0) and (StrPos(LowerLineTxt, 'cardid') > 0));
+    end;
+
+    local procedure CountOccurrences(SourceTxt: Text; Token: Text): Integer
+    var
+        Count: Integer;
+        Position: Integer;
+        SearchFrom: Integer;
+    begin
+        if (SourceTxt = '') or (Token = '') then
+            exit(0);
+
+        SearchFrom := 1;
+        repeat
+            Position := StrPos(CopyStr(SourceTxt, SearchFrom), Token);
+            if Position = 0 then
+                break;
+
+            Count += 1;
+            SearchFrom := SearchFrom + Position + StrLen(Token) - 1;
+        until SearchFrom > StrLen(SourceTxt);
+
+        exit(Count);
     end;
 
 }

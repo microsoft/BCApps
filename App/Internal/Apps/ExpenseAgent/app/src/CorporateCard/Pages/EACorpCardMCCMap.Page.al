@@ -21,7 +21,6 @@ page 7225 EACorpCardMCCMap
                 field(MCC; Rec.MCC)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the merchant category code.';
                 }
                 field("Expense Category"; Rec."Expense Category")
                 {

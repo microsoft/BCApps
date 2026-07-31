@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7099 EACorpCardDetails
+page 7226 EACorpCardDetails
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Level 3 Details';

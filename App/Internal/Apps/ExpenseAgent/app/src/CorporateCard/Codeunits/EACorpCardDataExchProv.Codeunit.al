@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 using System.IO;
 using System.Utilities;
 
-codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
+codeunit 7224 EACorpCardDataExchProv implements EACorpCardProviderInterface
 {
     Access = Internal;
     Permissions = tabledata "Data Exch." = rimd,
@@ -30,7 +30,7 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
     var
         DataExch: Record "Data Exch.";
         CorpCardProvider: Record EACorpCardProvider;
-        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
+        CreateCorpCardSetup: Codeunit EACreateCorpCardSetup;
     begin
         CorpCardProvider.Get(CorpCardBatch."Provider Code");
         CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
@@ -62,7 +62,7 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
         CorpCardMapMgt: Codeunit EACorpCardMapMgt;
-        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
+        CreateCorpCardSetup: Codeunit EACreateCorpCardSetup;
         PostImportOrch: Codeunit EACorpCardPostImportOrch;
     begin
         CorpCardBatch.Get(BatchNo);

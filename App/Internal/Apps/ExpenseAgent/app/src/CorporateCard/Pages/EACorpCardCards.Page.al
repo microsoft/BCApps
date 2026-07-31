@@ -36,7 +36,6 @@ page 7221 EACorpCardCards
                 field("Masked Card No."; Rec."Masked Card No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the masked card number.';
                 }
                 field("Expense User No."; Rec."Expense User No.")
                 {

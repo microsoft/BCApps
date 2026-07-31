@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7246 EACorpCardDedupMgt
+codeunit 7226 EACorpCardDedupMgt
 {
     Access = Internal;
 

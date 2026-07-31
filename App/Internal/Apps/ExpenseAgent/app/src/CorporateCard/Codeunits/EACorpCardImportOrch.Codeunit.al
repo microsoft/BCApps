@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7242 EACorpCardImportOrch
+codeunit 7222 EACorpCardImportOrch
 {
     Access = Internal;
 
@@ -13,7 +13,7 @@ codeunit 7242 EACorpCardImportOrch
         CorpCardBatch: Record EACorpCardBatch;
         CorpCardProvReg: Codeunit EACorpCardProvReg;
         AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
-        CorpCardProviderImpl: Interface IEACorpCardProvider;
+        CorpCardProviderImpl: Interface EACorpCardProviderInterface;
     begin
         CorpCardProvReg.ResolveProvider(CorpCardProvider, CorpCardProviderImpl);
 

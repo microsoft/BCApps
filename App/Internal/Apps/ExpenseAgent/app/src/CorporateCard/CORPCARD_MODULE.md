@@ -15,7 +15,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 ### Design Principles
 
 1. **Automated Import Pipeline** - Provider-driven file import with field mapping validation
-2. **Multi-Format Support** - CSV, XML, ISO20022, CAMT.053, and CAMT.054 mapping profiles
+2. **Multi-Format Support** - API, CSV, XML, ISO20022, CAMT.053, and CAMT.054 mapping profiles
 3. **Configurable Creation Mode** - AutoDraft can create one draft per imported transaction
 4. **Scheduled Processing** - Job Queue integration for recurring imports with retry resilience
 5. **Standard Workflows** - Leverages platform Expense Report approval and GL posting
@@ -82,7 +82,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 
 ## Objects Created
 
-### Codeunits (11 total)
+### Codeunits (12 total)
 
 | ID | Name | Purpose | Key Procedures |
 |----|------|---------|-----------------|
@@ -97,6 +97,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 | 7218 | EACorpCardApprovalMgt | Expense Report approval workflow | SubmitReportForApproval, ReleaseReportForPosting, RejectReport |
 | 7219 | EACorpCardReportMgt | Expense Report aggregation | CreateReportFromCorpCardExpenses, AddExpenseToReport, ReleaseExpenseForReporting |
 | 7223 | EACorpCardJQRunner | Job Queue entry point with error resilience | OnRun (Job Queue trigger) |
+| 7257 | EACorpCardApiSourceProv | API source payload provider (Phase 1) | OnProvideSourceContent, DownloadSourceContent, AddAuthHeaders |
 
 ### Pages (13 total)
 
@@ -134,7 +135,8 @@ The module uses only **platform tables**:
 ```
 Provider.Download()
     → Creates Data Exchange record
-    → Injects source file content (CSV/XML/CAMT)
+    → Injects source file content (API/CSV/XML/CAMT)
+    → API source is resolved via OnProvideSourceContent event subscriber
             ↓
 Provider.ParseToStaging()
     → Validates field mappings (EACorpCardMapMgt)
@@ -234,7 +236,59 @@ Platform ExpenseReportPost (Codeunit 6987)
 2. **Configure Providers**
    - Navigate: Corp Card Providers
    - For each provider: Set Code, Name, Enable flag
-   - Upload first payload or configure API connection
+    - Upload first payload or configure API connection
+    - For API providers set:
+      - Feed Type = API
+      - API Endpoint = bank/provider endpoint
+      - Auth Type = None, ApiKey, OAuth2, or Basic
+      - Secret Ref = Azure Key Vault secret name (required for all auth types except None)
+    - Keep Data Exchange Definition/Mapping configured for the response payload format
+
+#### Phase 1 Configuration Example (API Provider)
+
+Use the following as a baseline provider record for testing:
+
+| Field | Example Value | Notes |
+|------|----------------|-------|
+| Code | `CORPCARDAPI` | Provider identifier (max 20 chars) |
+| Description | `Corporate Card API (Sandbox)` | Free text |
+| Enabled | `true` | Required to run import |
+| Feed Type | `API` | Routes through API source provider |
+| Auth Type | `ApiKey` | `None`, `ApiKey`, `OAuth2`, or `Basic` |
+| API Endpoint | `https://sandbox.bank.example.com/v1/corp-card/transactions` | Phase 1 uses HTTP GET |
+| Secret Ref | `CorpCardApiKeySandbox` | Azure Key Vault secret name |
+| Data Exch Def Code | `EACCCSV` | Must match response format mapping |
+| Data Exch Map Code | `CSV` | Header/detail mapping line code |
+| Source File Name | `CorpCardApiPayload.csv` | Optional, helps format detection |
+| Import Frequency (Min) | `1440` | Daily schedule example |
+
+Validation checklist for this sample:
+- `Test Import` creates a batch and stores Data Exchange content.
+- Parsed rows appear in Corp Card Transactions.
+- No mandatory mapping errors for Card Id, Provider Trans Id, Trans Date, Amount.
+
+#### Phase 1 Configuration Example (OAuth2 Bearer Token)
+
+Use the following when the provider expects an `Authorization: Bearer <token>` header and the token is stored in Key Vault:
+
+| Field | Example Value | Notes |
+|------|----------------|-------|
+| Code | `CORPCARDOAUTH` | Provider identifier (max 20 chars) |
+| Description | `Corporate Card API (OAuth2 Token)` | Free text |
+| Enabled | `true` | Required to run import |
+| Feed Type | `API` | Routes through API source provider |
+| Auth Type | `OAuth2` | Phase 1 uses secret value as bearer token |
+| API Endpoint | `https://sandbox.bank.example.com/v2/transactions` | Phase 1 uses HTTP GET |
+| Secret Ref | `CorpCardOAuthBearerSandbox` | Azure Key Vault secret with bearer token value |
+| Data Exch Def Code | `EACCL3VAT` | Use mapping that matches API payload structure |
+| Data Exch Map Code | `L3HDR` | Header mapping for transaction rows |
+| Source File Name | `CorpCardApiPayload.xml` | Optional, helps format detection |
+| Import Frequency (Min) | `60` | Hourly schedule example |
+
+Validation checklist for this sample:
+- `Test Import` returns HTTP 2xx and creates a batch.
+- Imported transactions include required mapped fields.
+- If Level 3 payload is returned, `L3DTL` rows are parsed and visible in Level 3 details.
 
 3. **Configure Import Parameters**
     - Navigate: Expense Agent Setup → Corporate Card
@@ -253,7 +307,7 @@ Platform ExpenseReportPost (Codeunit 6987)
 
 1. **Apply Corp Card Default Settings**
     - Navigate: Expense Agent Setup → Setup → Apply corp card default settings
-    - Runs codeunit Create Corp Card Setup and now also initializes MCC mappings and related Expense Categories.
+    - Runs codeunit EACreateCorpCardSetup and now also initializes MCC mappings and related Expense Categories.
     - MCC/category seeding is idempotent (existing records are not duplicated).
 
     Seeded MCC mappings from sample feeds:
@@ -376,9 +430,23 @@ All events logged to platform telemetry with:
 
 | System | Method | Details |
 |--------|--------|---------|
-| **Bank/Card Processor** | Provider.Download() | OAuth2/API/SFTP file download |
+| **Bank/Card Processor** | Provider.Download() | API pull (Phase 1) or file payload import via Data Exchange |
 | **GL (via Report Posting)** | ExpenseReportPost (6987) | Platform handles journal creation |
 | **Approval Workflow** | Standard Expense Agent workflow | Uses existing approval rules & routes |
+
+### API Provider Integration (Phase 1)
+
+- Feed Type `API` is routed through the existing provider pipeline.
+- Source content is injected by codeunit `EACorpCardApiSourceProv` through the `OnProvideSourceContent` event.
+- Retrieved API payload is written into the Data Exchange file content blob and parsed by existing mappings.
+- Existing post-import orchestration is unchanged (normalization, matching, draft creation, L3 detail handling).
+
+Auth behavior in Phase 1:
+- `None`: no auth header is added.
+- `ApiKey`: sends header `x-api-key: <secret>`.
+- `OAuth2`: sends header `Authorization: Bearer <secret>` (pre-issued token pattern).
+- `Basic`: sends header `Authorization: Basic <secret>`.
+- `Cert`: currently not supported in Phase 1.
 
 ---
 
@@ -556,6 +624,9 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 3. **Regex Performance:** Complex regex patterns may slow normalization (use specific patterns)
 4. **Single Approver:** Approval workflow uses first approver from setup (no chain routing)
 5. **No Receipt Matching:** Does not support image-based receipt OCR (future enhancement)
+6. **API Scope (Phase 1):** API ingestion uses HTTP GET and relies on Data Exchange mappings for response parsing; no custom request body/verb configuration yet
+7. **OAuth2 Scope (Phase 1):** OAuth2 auth type uses a secret value as bearer token and does not yet perform dynamic token acquisition per provider
+8. **Certificate Auth (Phase 1):** Certificate-based provider auth is not yet implemented
 
 ---
 
@@ -580,6 +651,16 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 2. Job Queue scheduled? → EACorpCardProviders page, Schedule Import action
 3. Job Queue running? → Monitor Job Queue Entry table for status
 4. Provider credentials valid? → Test via "Test Import" action on provider
+
+### API Provider Returns No Transactions
+
+**Symptom:** API provider import runs but no staging transactions are created  
+**Check:**
+1. Provider Feed Type is `API`
+2. API endpoint is reachable from environment and returns non-empty payload
+3. Auth Type/Secret Ref are correct and secret exists in Azure Key Vault
+4. Data Exchange Definition/Line Mapping match the API response structure
+5. Imported response format aligns with expected parser profile (XML/CSV/etc.)
 
 ### Matching Accuracy Low
 
@@ -623,11 +704,11 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 ## Object ID Allocation
 
 **Range:** [7210–7299] (90 IDs)  
-**Used in Sprint 3:** 7210-7219, 7223 (11 codeunits + 7 pages)  
-**Available:** 7220-7222, 7225-7299 (78 IDs for future enhancements)
+**Used in Sprint 3:** 7210-7219, 7223, 7257 (12 codeunits + 7 pages)  
+**Available:** 7220-7222, 7225-7256, 7258-7299 (77 IDs for future enhancements)
 
 ---
 
-**Document Version:** 1.4  
-**Last Updated:** 2026-07-30  
-**Module Status:** Active (CSV/XML/ISO20022/CAMT.053/CAMT.054 import and AutoDraft 1:1 flow enabled)
+**Document Version:** 1.5  
+**Last Updated:** 2026-07-31  
+**Module Status:** Active (API/CSV/XML/ISO20022/CAMT.053/CAMT.054 import and AutoDraft 1:1 flow enabled)

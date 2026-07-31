@@ -6,9 +6,9 @@ namespace Microsoft.ExpenseAgent;
 
 /// <summary>
 /// Creates draft Expense records from corporate card transactions.
-/// Implements IEACorpCardExpWriter interface to populate expense fields from transaction data.
+/// Implements EACorpCardExpWriterInterface to populate expense fields from transaction data.
 /// </summary>
-codeunit 7212 EACorpCardExpWriter implements IEACorpCardExpWriter
+codeunit 7212 EACorpCardExpWriter implements EACorpCardExpWriterInterface
 {
     Access = Internal;
     Permissions = tabledata "Expense VAT Specification" = rimd;
