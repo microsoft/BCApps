@@ -1,4 +1,4 @@
-#if not CLEAN28
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,7 +14,7 @@ codeunit 10815 "Sales FR"
     InherentPermissions = X;
     ObsoleteReason = 'Feature SalesFR will be enabled by default in version 31.0.';
     ObsoleteState = Pending;
-    ObsoleteTag = '28.0';
+    ObsoleteTag = '29.0';
 
     var
         FeatureKeyIdTok: Label 'SalesFR', Locked = true;

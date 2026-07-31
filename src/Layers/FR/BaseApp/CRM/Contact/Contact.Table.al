@@ -946,12 +946,12 @@ table 5050 Contact
             Caption = 'Stock Capital';
             OptimizeForTextSearch = true;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA29
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
             ObsoleteReason = 'Moved to Sales FR app.';
-#if CLEAN28
+#if CLEAN29
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
 #else

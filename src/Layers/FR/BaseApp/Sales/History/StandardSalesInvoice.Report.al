@@ -21,7 +21,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
-#if not CLEAN28
+#if not CLEAN29
 using Microsoft.Inventory.Item;
 #endif
 using Microsoft.Inventory.Ledger;
@@ -249,7 +249,7 @@ report 1306 "Standard Sales - Invoice"
             column(ShipToAddress8; ShipToAddr[8])
             {
             }
-#if not CLEAN28
+#if not CLEAN29
             column(AlternativeAddress_Lbl; AlternativeAddressTxt)
             {
             }
@@ -1495,7 +1495,7 @@ report 1306 "Standard Sales - Invoice"
         PriceLbl: Label 'Price';
         PricePerLbl: Label 'Price per';
         LCYTxt: label ' (LCY)';
-#if not CLEAN28
+#if not CLEAN29
         IncludesGoodsLbl: Label 'Sales invoice includes only goods.';
         IncludesServicesLbl: Label 'Sales invoice includes only services.';
         IncludesGoodsAndServicesLbl: Label 'Sales invoice includes goods and services.';
@@ -1515,8 +1515,8 @@ report 1306 "Standard Sales - Invoice"
         CompanyAddr: array[8] of Text[100];
         CustAddr: array[8] of Text[100];
         ShipToAddr: array[8] of Text[100];
-#if not CLEAN28
-        [Obsolete('Moved to Sales FR app', '28.0')]
+#if not CLEAN29
+        [Obsolete('Moved to Sales FR app', '29.0')]
         AlternativeAddress: array[8] of Text[100];
 #endif
         FormattedLineAmount: Text;
@@ -1525,8 +1525,8 @@ report 1306 "Standard Sales - Invoice"
         FormattedVATPct: Text;
         LineDiscountPctText: Text;
         PmtDiscText: Text;
-#if not CLEAN28
-        [Obsolete('Moved to Sales FR app', '28.0')]
+#if not CLEAN29
+        [Obsolete('Moved to Sales FR app', '29.0')]
         AlternativeAddressTxt: Text;
 #endif
         TotalExclVATText: Text[50];
@@ -1619,7 +1619,7 @@ report 1306 "Standard Sales - Invoice"
         exit(CurrReport.Preview() or MailManagement.IsHandlingGetEmailBody());
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure GetGoodsAndServicesText(): Text
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -1793,7 +1793,7 @@ report 1306 "Standard Sales - Invoice"
     end;
 
     local procedure FormatAddressFields(var SalesInvoiceHeader: Record "Sales Invoice Header")
-#if not CLEAN28
+#if not CLEAN29
     var
         i: Integer;
 #endif
@@ -1801,7 +1801,7 @@ report 1306 "Standard Sales - Invoice"
         FormatAddr.GetCompanyAddr(SalesInvoiceHeader."Responsibility Center", RespCenter, CompanyInfo, CompanyAddr);
         FormatAddr.SalesInvBillTo(CustAddr, SalesInvoiceHeader);
         ShowShippingAddr := FormatAddr.SalesInvShipTo(ShipToAddr, CustAddr, SalesInvoiceHeader);
-#if not CLEAN28
+#if not CLEAN29
         if ShowShippingAddr then begin
             for i := 1 to 8 do
                 AlternativeAddress[i] := ShipToAddr[i];

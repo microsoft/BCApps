@@ -19,7 +19,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
-#if not CLEAN28
+#if not CLEAN29
 using Microsoft.Inventory.Item;
 #endif
 using Microsoft.Inventory.Location;
@@ -274,7 +274,7 @@ report 1303 "Standard Sales - Draft Invoice"
             column(ShipToAddress8; ShipToAddr[8])
             {
             }
-#if not CLEAN28
+#if not CLEAN29
             column(AlternativeAddress_Lbl; AlternativeAddressTxt)
             {
             }
@@ -973,7 +973,7 @@ report 1303 "Standard Sales - Draft Invoice"
                 CalcFields("Work Description");
                 ShowWorkDescription := "Work Description".HasValue;
 
-#if not CLEAN28
+#if not CLEAN29
                 FormatAddressFields(Header);
 #else
                 FormatAddr.GetCompanyAddr("Responsibility Center", RespCenter, CompanyInfo, CompanyAddr);
@@ -1152,7 +1152,7 @@ report 1303 "Standard Sales - Draft Invoice"
         CustAddr: array[8] of Text[100];
         ChecksPayableText: Text;
         ShipToAddr: array[8] of Text[100];
-#if not CLEAN28
+#if not CLEAN29
         AlternativeAddress: array[8] of Text[100];
 #endif
         CompanyAddr: array[8] of Text[100];
@@ -1167,7 +1167,7 @@ report 1303 "Standard Sales - Draft Invoice"
         TotalVATAmountLCY: Decimal;
         PrevLineAmount: Decimal;
         PmtDiscText: Text;
-#if not CLEAN28
+#if not CLEAN29
         AlternativeAddressTxt: Text;
 #endif
         PaymentInstructionsTxt: Text;
@@ -1228,7 +1228,7 @@ report 1303 "Standard Sales - Draft Invoice"
         PriceLbl: Label 'Price';
         PricePerLbl: Label 'Price per';
         LCYTxt: label ' (LCY)';
-#if not CLEAN28
+#if not CLEAN29
         IncludesGoodsLbl: Label 'Sales invoice includes only goods.';
         IncludesServicesLbl: Label 'Sales invoice includes only services.';
         IncludesGoodsAndServicesLbl: Label 'Sales invoice includes goods and services.';
@@ -1296,7 +1296,7 @@ report 1303 "Standard Sales - Draft Invoice"
         exit(CurrReport.Preview() or MailManagement.IsHandlingGetEmailBody());
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure GetGoodsAndServicesText(): Text
     var
         SalesLine: Record "Sales Line";
@@ -1372,7 +1372,7 @@ report 1303 "Standard Sales - Draft Invoice"
         exit(true);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure FormatAddressFields(var SalesHeader: Record "Sales Header")
     var
         i: Integer;

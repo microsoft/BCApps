@@ -5745,7 +5745,7 @@ codeunit 136201 "Marketing Contacts"
         ContactList.Close();
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     procedure CustomerHasSirenNoFromContact()
     var

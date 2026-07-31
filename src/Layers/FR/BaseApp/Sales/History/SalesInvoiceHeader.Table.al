@@ -1283,12 +1283,12 @@ table 112 "Sales Invoice Header"
                 UpdateDisputeStatus();
             end;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA29
         field(10801; "VAT Paid on Debits"; Boolean)
         {
             Caption = 'VAT Paid on Debits';
             ObsoleteReason = 'Moved to Sales FR app.';
-#if CLEAN28
+#if CLEAN29
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
 #else

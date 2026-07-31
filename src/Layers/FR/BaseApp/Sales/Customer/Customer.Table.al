@@ -2321,12 +2321,12 @@ table 18 Customer
             Caption = 'Contact Graph Id';
             OptimizeForTextSearch = true;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA29
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
             ObsoleteReason = 'Moved to Sales FR app.';
-#if CLEAN28
+#if CLEAN29
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
 #else
@@ -2589,7 +2589,7 @@ table 18 Customer
         RemovePaymentRoleranceQst: Label 'Do you want to remove payment tolerance from entries that are currently open?';
         CreateNewCustTxt: Label 'Create a new customer card for %1', Comment = '%1 is the name to be used to create the customer. ';
         SelectCustErr: Label 'You must select an existing customer.';
-#if not CLEAN28
+#if not CLEAN29
         SirenNoTemplateTxt: Label '%1: %2', Locked = true;
 #endif
         CustNotRegisteredTxt: Label 'This customer is not registered. To continue, choose one of the following options:';
@@ -2981,7 +2981,7 @@ table 18 Customer
                 exit(CustomerPriceGroup."Price Calculation Method");
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Obsolete('GetSIRENNoWithCaption() moved to Sales FR app', '29.0')]
     procedure GetSIRENNoWithCaption(): Text
     begin
@@ -4963,6 +4963,9 @@ table 18 Customer
     begin
     end;
 
+#pragma warning disable AS0018
+#pragma warning restore AS0018
+
     /// <summary>
     /// Raised before opening the contact card from ShowContact.
     /// </summary>
@@ -4991,6 +4994,9 @@ table 18 Customer
     local procedure OnGetCustNoOpenCardOnAfterOnAfterCustomerFilterFromStart(var Customer: Record Customer)
     begin
     end;
+
+#pragma warning disable AS0018
+#pragma warning restore AS0018
 
     /// <summary>
     /// Raised before displaying the customer blocked error message.

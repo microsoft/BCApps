@@ -20,7 +20,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
-#if not CLEAN28
+#if not CLEAN29
 using Microsoft.Inventory.Item;
 #endif
 using Microsoft.Inventory.Ledger;
@@ -283,7 +283,7 @@ report 1307 "Standard Sales - Credit Memo"
             column(ShipToAddress8; ShipToAddr[8])
             {
             }
-#if not CLEAN28
+#if not CLEAN29
             column(CustomerSirenNo; Cust.GetSIRENNoWithCaption())
             {
             }
@@ -1181,7 +1181,7 @@ report 1307 "Standard Sales - Credit Memo"
         ClosingLbl: Label 'Sincerely';
         BodyLbl: Label 'Thank you for your business. Your credit memo is attached to this message.';
         LCYTxt: label ' (LCY)';
-#if not CLEAN28
+#if not CLEAN29
         IncludesGoodsLbl: Label 'Sales credit memo includes only goods.';
         IncludesServicesLbl: Label 'Sales credit memo includes only services.';
         IncludesGoodsAndServicesLbl: Label 'Sales credit memo includes goods and services.';
@@ -1291,7 +1291,7 @@ report 1307 "Standard Sales - Credit Memo"
         DisplayAssemblyInformation := DisplayAsmInfo;
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure GetGoodsAndServicesText(): Text
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
