@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PEPPOL BIS Ordering 3.0 — No AnticipatedMonetaryTotal element.
+     SubTotal and Total must be derived from line sums via ComputeSalesTotalsFromLines.
+     Line 1: 5 x 200 = 1000, Line 2: 10 x 100 = 1000, so SubTotal = 2000, TotalVAT = 500, Total = 2500.
+     No discount lines so TotalDiscount = 0. -->
+<Order xmlns="urn:oasis:names:specification:ubl:schema:xsd:Order-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+    <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order:3</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:ordering:01:1.0</cbc:ProfileID>
+    <cbc:ID>ORD-1004</cbc:ID>
+    <cbc:IssueDate>2026-03-01</cbc:IssueDate>
+    <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+    <cac:BuyerCustomerParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="0088">1234567890128</cbc:EndpointID>
+            <cac:PartyName>
+                <cbc:Name>Buyer Corp AS</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:BuyerCustomerParty>
+    <cac:SellerSupplierParty>
+        <cac:Party>
+            <cac:PartyName>
+                <cbc:Name>Seller Ltd.</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:SellerSupplierParty>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="XYZ">500.00</cbc:TaxAmount>
+    </cac:TaxTotal>
+    <!-- No cac:AnticipatedMonetaryTotal -->
+    <cac:OrderLine>
+        <cac:LineItem>
+            <cbc:ID>1</cbc:ID>
+            <cbc:Quantity unitCode="EA">5</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">1000.00</cbc:LineExtensionAmount>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">200.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Widget A</cbc:Name>
+                <cac:SellersItemIdentification>
+                    <cbc:ID>WIDGET-A</cbc:ID>
+                </cac:SellersItemIdentification>
+                <cac:ClassifiedTaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>25</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>VAT</cbc:ID>
+                    </cac:TaxScheme>
+                </cac:ClassifiedTaxCategory>
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+    <cac:OrderLine>
+        <cac:LineItem>
+            <cbc:ID>2</cbc:ID>
+            <cbc:Quantity unitCode="EA">10</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">1000.00</cbc:LineExtensionAmount>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">100.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Widget B</cbc:Name>
+                <cac:SellersItemIdentification>
+                    <cbc:ID>WIDGET-B</cbc:ID>
+                </cac:SellersItemIdentification>
+                <cac:ClassifiedTaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>25</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>VAT</cbc:ID>
+                    </cac:TaxScheme>
+                </cac:ClassifiedTaxCategory>
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+</Order>

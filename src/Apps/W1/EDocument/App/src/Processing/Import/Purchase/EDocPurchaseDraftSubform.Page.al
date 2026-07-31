@@ -72,6 +72,14 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Lookup = true;
                     ShowMandatory = true;
                 }
+                field("Name"; MatchedEntityName)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Name';
+                    ToolTip = 'Specifies the name of the matched item, G/L account, or other entity for this line. This value is read-only and reflects the matched record, not the extracted invoice description.';
+                    Editable = false;
+                    Visible = false;
+                }
                 field("VAT Prod. Posting Group"; Rec."[BC] VAT Prod. Posting Group")
                 {
                     ApplicationArea = All;
@@ -338,7 +346,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         TempEDocumentPOMatchWarnings: Record "E-Doc PO Match Warning";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr : Text;
+        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr, MatchedEntityName : Text;
         LineAmount: Decimal;
         DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
@@ -364,6 +372,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     begin
         if EDocumentPurchaseLine.Get(Rec."E-Document Entry No.", Rec."Line No.") then;
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
+        MatchedEntityName := Rec.GetMatchedEntityName();
         SetHasAdditionalColumns();
         UpdateCalculatedAmounts(false);
         IsLineMatchedToOrderLine := EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(EDocumentPurchaseLine);

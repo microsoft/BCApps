@@ -125,7 +125,6 @@ pageextension 18768 "Purchase Journal TDS" extends "Purchase Journal"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

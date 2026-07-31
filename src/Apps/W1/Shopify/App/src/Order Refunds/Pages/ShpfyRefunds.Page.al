@@ -41,7 +41,7 @@ page 30147 "Shpfy Refunds"
                 field("Updated At"; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the refund was update in Shopify';
+                    ToolTip = 'Specifies the date and time when the refund was updated in Shopify.';
                     Visible = false;
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")

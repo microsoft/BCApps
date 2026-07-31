@@ -58,7 +58,6 @@ pageextension 18840 "Sales Journal" extends "Sales Journal"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

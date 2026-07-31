@@ -12,9 +12,13 @@ using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.IO;
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.EServices.EDocument.OrderMatch;
+#if not CLEAN29
 using Microsoft.EServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.EServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.eServices.EDocument.Service.Participant;
 
@@ -36,16 +40,21 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Doc. Service Supported Type" = X,
         table "E-Doc. Order Match" = X,
         table "E-Doc. Imported Line" = X,
+#if not CLEAN29
         table "E-Doc. PO Match Prop. Buffer" = X,
+#endif
         table "Service Participant" = X,
         table "E-Doc. Import Parameters" = X,
         table "E-Document Header Mapping" = X,
         table "E-Document Line Mapping" = X,
         table "E-Document Purchase Header" = X,
         table "E-Document Purchase Line" = X,
+        table "E-Document Sales Header" = X,
+        table "E-Document Sales Line" = X,
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
         table "E-Doc Sample Purch. Inv File" = X,
+        table "E-Document Message" = X,
 #if not CLEAN28
 #pragma warning disable AL0432
         table "EDoc Historical Matching Setup" = X,
@@ -88,9 +97,12 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Pre-Map Service Inv. Line" = X,
         codeunit "EDoc PEPPOL BIS 3.0" = X,
         codeunit "E-Doc. Line Matching" = X,
+#if not CLEAN29
         codeunit "E-Doc. PO AOAI Function" = X,
         codeunit "E-Doc. PO Copilot Matching" = X,
+#endif
         codeunit "E-Doc. Attachment Processor" = X,
+        codeunit "E-Doc. Message Mgt." = X,
         codeunit "Service Participant" = X,
         page "E-Doc. Changes Part" = X,
         page "E-Doc. Changes Preview" = X,
@@ -111,8 +123,10 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "E-Doc. Purchase Order Sub" = X,
         page "E-Doc. Order Map. Activities" = X,
         page "E-Doc Service Supported Types" = X,
+#if not CLEAN29
         page "E-Doc. PO Copilot Prop" = X,
         page "E-Doc. PO Match Prop. Sub" = X,
+#endif
         page "E-Doc. Order Match Act." = X,
         page "E-Doc. Select PO Lines" = X,
         page "E-Doc. Select Receipt Lines" = X,
@@ -122,10 +136,13 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "E-Doc. Read. Purch. Lines" = X,
         page "E-Doc. Readable Purchase Doc." = X,
         page "E-Document Purchase Draft" = X,
+        page "E-Document Sales Draft" = X,
+        page "E-Doc. Sales Draft Subform" = X,
         page "Inbound E-Doc. Factbox" = X,
         page "Inbound E-Documents" = X,
         page "Outbound E-Doc. Factbox" = X,
         page "Outbound E-Documents" = X,
+        page "E-Document Messages FactBox" = X,
         codeunit ActionContext = X,
         codeunit "Consent Manager Default Impl." = X,
         codeunit "Download Document" = X,
@@ -146,6 +163,11 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Integration Action Status" = X,
         codeunit "Mark Fetched" = X,
         codeunit "Prepare Purchase E-Doc. Draft" = X,
+        codeunit "Prepare Sales E-Doc. Draft" = X,
+        codeunit "EDoc Prepare Sales Draft" = X,
+        codeunit "E-Doc. Sales Providers" = X,
+        codeunit "E-Doc. Create Sales Order" = X,
+        codeunit "E-Doc. Sales Doc. Helper" = X,
         codeunit "Receive Documents" = X,
         codeunit ReceiveContext = X,
         codeunit "Send Runner" = X,

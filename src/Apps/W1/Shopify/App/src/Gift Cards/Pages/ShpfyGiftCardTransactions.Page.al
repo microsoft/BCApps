@@ -74,7 +74,7 @@ page 30111 "Shpfy Gift Card Transactions"
                 field("Created At"; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time at which the transaction is processed.';
+                    ToolTip = 'Specifies the date and time when the transaction was created in Shopify.';
                 }
                 field(Authorization; Rec.Authorization)
                 {
