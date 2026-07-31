@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.ReceivablesPayables;
 
-using Microsoft;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -423,26 +422,6 @@ table 383 "Detailed CV Ledg. Entry Buffer"
             Caption = 'Non-Deductible VAT Amount ACY';
             Editable = false;
         }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-            DataClassification = SystemMetadata;
-        }
-        field(7000001; "Document Situation"; Enum "ES Document Situation")
-        {
-            Caption = 'Document Situation';
-            DataClassification = SystemMetadata;
-        }
-        field(7000002; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-            DataClassification = SystemMetadata;
-        }
-        field(7000003; "Document Status"; Enum "ES Document Status")
-        {
-            Caption = 'Document Status';
-            DataClassification = SystemMetadata;
-        }
     }
 
     keys
@@ -566,9 +545,6 @@ table 383 "Detailed CV Ledg. Entry Buffer"
         DtldCVLedgEntryBuf.SetRange("Use Tax", NewDtldCVLedgEntryBuf."Use Tax");
         DtldCVLedgEntryBuf.SetRange(
           "Tax Jurisdiction Code", NewDtldCVLedgEntryBuf."Tax Jurisdiction Code");
-        DtldCVLedgEntryBuf.SetRange("Bill No.", NewDtldCVLedgEntryBuf."Bill No.");
-        DtldCVLedgEntryBuf.SetRange("Document Situation", NewDtldCVLedgEntryBuf."Document Situation");
-        DtldCVLedgEntryBuf.SetRange("Document Status", NewDtldCVLedgEntryBuf."Document Status");
 
         IsHandled := false;
         OnBeforeCreateDtldCVLedgEntryBuf(DtldCVLedgEntryBuf, NewDtldCVLedgEntryBuf, NextDtldBufferEntryNo, IsHandled, CVLedgEntryBuf);
@@ -648,8 +624,6 @@ table 383 "Detailed CV Ledg. Entry Buffer"
         "Initial Entry Global Dim. 1" := GenJnlLine."Shortcut Dimension 1 Code";
         "Initial Entry Global Dim. 2" := GenJnlLine."Shortcut Dimension 2 Code";
         "Initial Document Type" := GenJnlLine."Document Type";
-        "Bill No." := GenJnlLine."Bill No.";
-        "Applies-to Bill No." := GenJnlLine."Applies-to Bill No.";
 
         OnAfterCopyFromGenJnlLine(Rec, GenJnlLine);
     end;

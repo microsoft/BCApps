@@ -315,18 +315,6 @@ page 22 "Customer List"
                               "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
                 Visible = false;
             }
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("No.");
-                Visible = true;
-            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;

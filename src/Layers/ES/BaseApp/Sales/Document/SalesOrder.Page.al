@@ -12,7 +12,6 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
@@ -34,7 +33,7 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
-using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
@@ -1092,18 +1091,6 @@ page 42 "Sales Order"
                 SubPageLink = "No." = field("No."),
                               "Document Type" = field("Document Type");
             }
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Sell-to Customer No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Sell-to Customer No.");
-                Visible = true;
-            }
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -1640,19 +1627,6 @@ page 42 "Sales Order"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
-                action(CalculateInvoiceDiscount)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
-                    Image = CalculateDiscount;
-                    ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
-
-                    trigger OnAction()
-                    begin
-                        ApproveCalcInvDisc();
-                        SalesCalcDiscountByType.ResetRecalculateInvoiceDisc(Rec);
-                    end;
-                }
                 group("Create Purchase Document")
                 {
                     Caption = 'Create Purchase Document';
@@ -1696,6 +1670,20 @@ page 42 "Sales Order"
                             PurchDocFromSalesDoc.CreatePurchaseInvoice(Rec, SelectedSalesLine);
                         end;
                     }
+                }
+                action(CalculateInvoiceDiscount)
+                {
+                    AccessByPermission = TableData "Cust. Invoice Disc." = R;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Calculate &Inv. and Pmt. Discounts';
+                    Image = CalculateDiscount;
+                    ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
+
+                    trigger OnAction()
+                    begin
+                        ApproveCalcInvDisc();
+                        SalesCalcDiscountByType.ResetRecalculateInvoiceDisc(Rec);
+                    end;
                 }
                 action(GetRecurringSalesLines)
                 {
@@ -2622,7 +2610,6 @@ page 42 "Sales Order"
 
         if (Rec."No." <> '') and (Rec."Sell-to Customer No." = '') then
             DocumentIsPosted := (not Rec.Get(Rec."Document Type", Rec."No."));
-
         PaymentServiceVisible := PaymentServiceSetup.IsPaymentServiceVisible();
 
         if GuiAllowed() then

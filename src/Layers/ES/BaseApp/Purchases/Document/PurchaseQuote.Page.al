@@ -815,12 +815,6 @@ page 49 "Purchase Quote"
                 SubPageLink = "No." = field("Pay-to Vendor No."),
                               "Date Filter" = field("Date Filter");
             }
-            part(Control1903433907; "Cartera Payables Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Pay-to Vendor No.");
-                Visible = true;
-            }
             part(Control1903435607; "Vendor Hist. Buy-from FactBox")
             {
                 ApplicationArea = Suite;

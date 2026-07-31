@@ -453,7 +453,6 @@ table 112 "Sales Invoice Header"
                 CustLedgEntry.SetCurrentKey("Document No.");
                 CustLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
                 CustLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
-                CustLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
                 OnLookupAppliesToDocNoOnAfterSetFilters(CustLedgEntry, Rec);
                 PAGE.Run(0, CustLedgEntry);
             end;
@@ -1284,10 +1283,6 @@ table 112 "Sales Invoice Header"
                 UpdateDisputeStatus();
             end;
         }
-        field(7000000; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
         field(7000001; "Cust. Bank Acc. Code"; Code[20])
         {
             Caption = 'Cust. Bank Acc. Code';
@@ -1297,7 +1292,6 @@ table 112 "Sales Invoice Header"
         field(7000003; "Pay-at Code"; Code[10])
         {
             Caption = 'Pay-at Code';
-            TableRelation = "Customer Pmt. Address".Code where("Customer No." = field("Bill-to Customer No."));
             ObsoleteReason = 'Address is taken from the fields Bill-to Address, Bill-to City, etc.';
             ObsoleteState = Removed;
             ObsoleteTag = '25.0';

@@ -238,6 +238,8 @@ codeunit 11 "Gen. Jnl.-Check Line"
             exit;
 
         GenJournalLine.TestField("Document No.", ErrorInfo.Create());
+
+        OnAfterTestDocumentNo(GenJournalLine);
     end;
 
     local procedure TestAccountAndBalAccountType(var GenJnlLine: Record "Gen. Journal Line")
@@ -1536,6 +1538,15 @@ codeunit 11 "Gen. Jnl.-Check Line"
     /// <param name="IsHandled">Set to true to skip standard journal line validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeRunCheck(var GenJournalLine: Record "Gen. Journal Line"; OverrideDimErr: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after validating document number field requirements for journal lines.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for document number requirements.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterTestDocumentNo(GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 

@@ -371,6 +371,8 @@ codeunit 227 "VendEntry-Apply Posted Entries"
                     CheckAdditionalCurrency(ApplyUnapplyParameters."Posting Date", DtldVendLedgEntry."Posting Date");
                     AddCurrChecked := true;
                 end;
+                CheckInitialDocumentType(
+                    DtldVendLedgEntry, ApplyUnapplyParameters."Document No.", ApplyUnapplyParameters."Posting Date");
                 CheckReversal(DtldVendLedgEntry."Vendor Ledger Entry No.");
                 if DtldVendLedgEntry."Transaction No." <> 0 then
                     CheckUnappliedEntries(DtldVendLedgEntry);
@@ -425,6 +427,18 @@ codeunit 227 "VendEntry-Apply Posted Entries"
             exit;
 
         ExchRateAdjmtRunHandler.RunVendExchRateAdjustment(GenJnlLine, TempVendorLedgerEntry);
+    end;
+
+    local procedure CheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; DocNo: Code[20]; PostingDate: Date)
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeCheckInitialDocumentType(DtldVendLedgEntry, DocNo, PostingDate, IsHandled);
+        if IsHandled then
+            exit;
+
+        OnAfterCheckInitialDocumentType(DtldVEndLedgEntry);
     end;
 
     local procedure CheckPostingDate(ApplyUnapplyParameters: Record "Apply Unapply Parameters"; var MaxPostingDate: Date)
@@ -790,6 +804,27 @@ codeunit 227 "VendEntry-Apply Posted Entries"
 
     [IntegrationEvent(false, false)]
     local procedure OnApplyOnBeforePmtTolVend(VendLedgEntry: Record "Vendor Ledger Entry"; var PaymentToleranceMgt: Codeunit "Payment Tolerance Management"; PreviewMode: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after checking initial document Type
+    /// </summary>
+    /// <param name="DtldVendLedgEntry">The detailed vendor ledger entry.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before checking initial document Type
+    /// </summary>
+    /// <param name="DtldVendLedgEntry">The detailed vendor ledger entry.</param>
+    /// <param name="DocNo">The document number.</param>
+    /// <param name="PostingDate">The posting date.</param>
+    /// <param name="IsHandled">Indicates whether the event is handled.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; DocNo: Code[20]; PostingDate: Date; var IsHandled: Boolean)
     begin
     end;
 

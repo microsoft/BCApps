@@ -69,8 +69,4 @@ enum 89 "Gen. Journal Template Type"
     {
         Caption = 'Projects';
     }
-    value(12; Cartera)
-    {
-        Caption = 'Cartera';
-    }
 }

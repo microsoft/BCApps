@@ -45,7 +45,6 @@ using System.Utilities;
 
 codeunit 6620 "Copy Document Mgt."
 {
-    Permissions = TableData "Cust. Ledger Entry" = rim;
 
     trigger OnRun()
     begin
@@ -127,9 +126,6 @@ codeunit 6620 "Copy Document Mgt."
 #pragma warning restore AA0074
         FromDocOccurrenceNo: Integer;
         FromDocVersionNo: Integer;
-        Text1100000: Label 'At least one document of %1 No. %2 is closed or in a Bill Group';
-        Text1100001: Label 'This will avoid the document to be settled';
-        Text1100002: Label 'The posting process of %3 No. %4 wont settle any document';
         SkipCopyFromDescription: Boolean;
         SkipTestCreditLimit: Boolean;
         WarningDone: Boolean;
@@ -708,7 +704,7 @@ codeunit 6620 "Copy Document Mgt."
             ((FromDocType = "Sales Document Type From"::"Posted Credit Memo") and
             not (ToSalesHeader."Document Type" in [ToSalesHeader."Document Type"::"Return Order", ToSalesHeader."Document Type"::"Credit Memo"]))
         then
-            UpdateCustLedgerEntry(ToSalesHeader, FromDocType, FromDocNo, FromSalesInvHeader);
+            UpdateCustLedgerEntry(ToSalesHeader, FromDocType, FromDocNo);
 
         HandleZeroAmountPostedInvoices(FromSalesInvHeader, ToSalesHeader, FromDocType, FromDocNo);
 
@@ -1266,7 +1262,7 @@ codeunit 6620 "Copy Document Mgt."
             ((FromDocType = "Purchase Document Type From"::"Posted Credit Memo") and
             not (ToPurchHeader."Document Type" in [ToPurchHeader."Document Type"::"Return Order", ToPurchHeader."Document Type"::"Credit Memo"]))
         then
-            UpdateVendLedgEntry(ToPurchHeader, FromDocType, FromDocNo, FromPurchInvHeader);
+            UpdateVendLedgEntry(ToPurchHeader, FromDocType, FromDocNo);
 
         HandleZeroAmountPostedPurchaseInvoices(FromPurchInvHeader, ToPurchHeader, FromDocType, FromDocNo);
 
@@ -4803,9 +4799,9 @@ codeunit 6620 "Copy Document Mgt."
                             RemainingQtyBase := FromPurchLine."Quantity (Base)";
 
                 if RemainingQtyBase <> 0 then begin
-                        if ItemLedgEntry.Positive then
-                            if IsSplitItemLedgEntry(ItemLedgEntry) then
-                                i := 2;
+                    if ItemLedgEntry.Positive then
+                        if IsSplitItemLedgEntry(ItemLedgEntry) then
+                            i := 2;
 
                     PurchLineBuf[i]."Quantity (Base)" := PurchLineBuf[i]."Quantity (Base)" + RemainingQtyBase;
                     if PurchLineBuf[i]."Qty. per Unit of Measure" = 0 then
@@ -6392,97 +6388,6 @@ codeunit 6620 "Copy Document Mgt."
         exit(CopyThisLine);
     end;
 
-    local procedure TestPurchEfecs(FromDocType: Enum "Gen. Journal Document Type"; var ToPurchHeader: Record "Purchase Header"; var FromPurchInvHeader: Record "Purch. Inv. Header"; var VendorLedgEntry: Record "Vendor Ledger Entry")
-    var
-        ErrorCount: Integer;
-        ApplyVendorEntries: Page "Apply Vendor Entries";
-    begin
-        ErrorCount := 0;
-        VendorLedgEntry.SetFilter(
-          "Document Type", '%1|%2', VendorLedgEntry."Document Type"::Invoice, VendorLedgEntry."Document Type"::Bill);
-        VendorLedgEntry.SetFilter("Document Situation", '<>%1', VendorLedgEntry."Document Situation"::" ");
-        if not VendorLedgEntry.Find('-') then
-            exit;
-
-        repeat
-            if VendorLedgEntry."Document Situation" <> VendorLedgEntry."Document Situation"::Cartera then
-                if not ((VendorLedgEntry."Document Situation" in
-                         [VendorLedgEntry."Document Situation"::"Closed Documents",
-                          VendorLedgEntry."Document Situation"::"Closed BG/PO"]) and
-                        (VendorLedgEntry."Document Status" = VendorLedgEntry."Document Status"::Rejected))
-                then
-                    ErrorCount := ErrorCount + 1;
-        until VendorLedgEntry.Next() = 0;
-        if ErrorCount = 0 then
-            if VendorLedgEntry.Find('-') then
-                repeat
-                    if VendorLedgEntry."Document Type" = VendorLedgEntry."Document Type"::Bill then begin
-                        ToPurchHeader."Applies-to ID" := FromPurchInvHeader."No.";
-                        ApplyVendorEntries.SetPurch(ToPurchHeader, VendorLedgEntry, ToPurchHeader.FieldNo("Applies-to ID"));
-                        ApplyVendorEntries.SetRecord(VendorLedgEntry);
-                        ApplyVendorEntries.SetTableView(VendorLedgEntry);
-                        ApplyVendorEntries.SetVendApplId(false);
-                    end else begin
-                        ToPurchHeader."Applies-to Doc. Type" := ToPurchHeader."Applies-to Doc. Type"::Invoice;
-                        ToPurchHeader."Applies-to Doc. No." := FromPurchInvHeader."No.";
-                    end
-                until VendorLedgEntry.Next() = 0
-            else
-                Message(Text1100000 +
-                  Text1100001 +
-                  Text1100002,
-                  Format(FromDocType),
-                  Format(FromPurchInvHeader."No."),
-                  Format(ToPurchHeader."Document Type"),
-                  Format(ToPurchHeader."No."));
-    end;
-
-    local procedure TestSalesEfecs(FromDocType: Enum "Gen. Journal Document Type"; var ToSalesHeader: Record "Sales Header"; var FromSalesInvHeader: Record "Sales Invoice Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")
-    var
-        ErrorCount: Integer;
-        ApplyCustEntries: Page "Apply Customer Entries";
-    begin
-        ErrorCount := 0;
-        CustLedgerEntry.SetFilter(
-          "Document Type", '%1|%2', CustLedgerEntry."Document Type"::Invoice, CustLedgerEntry."Document Type"::Bill);
-        CustLedgerEntry.SetFilter("Document Situation", '<>%1', CustLedgerEntry."Document Situation"::" ");
-        if not CustLedgerEntry.Find('-') then
-            exit;
-
-        repeat
-            if CustLedgerEntry."Document Situation" <> CustLedgerEntry."Document Situation"::Cartera then
-                if not ((CustLedgerEntry."Document Situation" in
-                         [CustLedgerEntry."Document Situation"::"Closed Documents",
-                          CustLedgerEntry."Document Situation"::"Closed BG/PO"]) and
-                        (CustLedgerEntry."Document Status" = CustLedgerEntry."Document Status"::Rejected))
-                then
-                    ErrorCount := ErrorCount + 1;
-
-        until CustLedgerEntry.Next() = 0;
-        if ErrorCount = 0 then
-            if CustLedgerEntry.Find('-') then
-                repeat
-                    if CustLedgerEntry."Document Type" = CustLedgerEntry."Document Type"::Bill then begin
-                        ToSalesHeader."Applies-to ID" := FromSalesInvHeader."No.";
-                        ApplyCustEntries.SetSales(ToSalesHeader, CustLedgerEntry, ToSalesHeader.FieldNo("Applies-to ID"));
-                        ApplyCustEntries.SetRecord(CustLedgerEntry);
-                        ApplyCustEntries.SetTableView(CustLedgerEntry);
-                        ApplyCustEntries.SetCustApplId(false);
-                    end else begin
-                        ToSalesHeader."Applies-to Doc. Type" := ToSalesHeader."Applies-to Doc. Type"::Invoice;
-                        ToSalesHeader."Applies-to Doc. No." := FromSalesInvHeader."No.";
-                    end
-                until CustLedgerEntry.Next() = 0
-            else
-                Message(Text1100000 +
-                  Text1100001 +
-                  Text1100002,
-                  Format(FromDocType),
-                  Format(FromSalesInvHeader."No."),
-                  Format(ToSalesHeader."Document Type"),
-                  Format(ToSalesHeader."No."));
-    end;
-
     local procedure CopyDocLines(RecalculateAmount: Boolean; var ToPurchLine: Record "Purchase Line"; var FromPurchLine: Record "Purchase Line")
     begin
         if not RecalculateAmount then
@@ -6694,8 +6599,6 @@ codeunit 6620 "Copy Document Mgt."
     begin
         OnBeforeCopyFieldsFromOldSalesHeader(ToSalesHeader, OldSalesHeader);
 
-        ToSalesHeader."Document Type" := OldSalesHeader."Document Type";
-        ToSalesHeader."No." := OldSalesHeader."No.";
         ToSalesHeader."No. Series" := OldSalesHeader."No. Series";
         ToSalesHeader."Posting Description" := OldSalesHeader."Posting Description";
         ToSalesHeader."Posting No." := OldSalesHeader."Posting No.";
@@ -6720,8 +6623,6 @@ codeunit 6620 "Copy Document Mgt."
     begin
         OnBeforeCopyFieldsFromOldPurchHeader(ToPurchHeader, OldPurchHeader, IncludeHeader, MoveNegLines);
 
-        ToPurchHeader."Document Type" := OldPurchHeader."Document Type";
-        ToPurchHeader."No." := OldPurchHeader."No.";
         ToPurchHeader."No. Series" := OldPurchHeader."No. Series";
         ToPurchHeader."Posting Description" := OldPurchHeader."Posting Description";
         ToPurchHeader."Posting No." := OldPurchHeader."Posting No.";
@@ -7327,7 +7228,16 @@ codeunit 6620 "Copy Document Mgt."
             Error(Text001, ToPurchHeader."Document Type", ToPurchHeader."No.");
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by W1 procedure and  codeunit "CRT Copy Document Mgt." in ES layer', '29.0')]
     procedure UpdateCustLedgerEntry(var ToSalesHeader: Record "Sales Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20]; FromSalesInvHeader: Record "Sales Invoice Header")
+    begin
+        FromSalesInvHeader.TestField("No.", FromDocNo);
+        UpdateCustLedgerEntry(ToSalesHeader, FromDocType, FromDocNo);
+    end;
+#endif
+
+    procedure UpdateCustLedgerEntry(var ToSalesHeader: Record "Sales Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
         IsHandled: Boolean;
@@ -7345,7 +7255,7 @@ codeunit 6620 "Copy Document Mgt."
         CustLedgEntry.SetRange("Document No.", FromDocNo);
         CustLedgEntry.SetRange("Customer No.", ToSalesHeader."Bill-to Customer No.");
         CustLedgEntry.SetRange(Open, true);
-        CustLedgEntry.SetRange("Document Situation", CustLedgEntry."Document Situation"::" ");
+        OnUpdateCustLedgEntryOnAfterSetFilters(CustLedgEntry, ToSalesHeader, FromDocType, FromDocNo);
         if CustLedgEntry.FindFirst() then begin
             ToSalesHeader."Bal. Account No." := '';
             if FromDocType = "Sales Document Type From"::"Posted Invoice" then begin
@@ -7361,13 +7271,21 @@ codeunit 6620 "Copy Document Mgt."
             CustLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
             CODEUNIT.Run(CODEUNIT::"Cust. Entry-Edit", CustLedgEntry);
         end else
-            if FromDocType = "Sales Document Type From"::"Posted Invoice" then
-                TestSalesEfecs(FromDocType, ToSalesHeader, FromSalesInvHeader, CustLedgEntry);
+            OnUpdateCustLedgEntryOnNoOpenEntries(CustLedgEntry, ToSalesHeader, FromDocType, FromDocNo);
 
         OnAfterUpdateCustLedgerEntry(ToSalesHeader, FromDocType, FromDocNo, CustLedgEntry);
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by W1 procedure and  codeunit "CRT Copy Document Mgt." in ES layer', '29.0')]
     procedure UpdateVendLedgEntry(var ToPurchHeader: Record "Purchase Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20]; FromPurchInvHeader: Record "Purch. Inv. Header")
+    begin
+        FromPurchInvHeader.TestField("No.", FromDocNo);
+        UpdateVendLedgEntry(ToPurchHeader, FromDocType, FromDocNo);
+    end;
+#endif
+
+    procedure UpdateVendLedgEntry(var ToPurchHeader: Record "Purchase Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
         IsHandled: Boolean;
@@ -7383,7 +7301,7 @@ codeunit 6620 "Copy Document Mgt."
             VendLedgEntry.SetRange("Document No.", FromDocNo);
             VendLedgEntry.SetRange("Vendor No.", ToPurchHeader."Pay-to Vendor No.");
             VendLedgEntry.SetRange(Open, true);
-            VendLedgEntry.SetRange("Document Situation", VendLedgEntry."Document Situation"::" ");
+            OnUpdateVendLedgEntryOnAfterSetFilters(VendLedgEntry, ToPurchHeader, FromDocType, FromDocNo);
             if VendLedgEntry.FindFirst() then begin
                 if FromDocType = "Purchase Document Type From"::"Posted Invoice" then begin
                     ToPurchHeader."Applies-to Doc. Type" := ToPurchHeader."Applies-to Doc. Type"::Invoice;
@@ -7398,8 +7316,7 @@ codeunit 6620 "Copy Document Mgt."
                 VendLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
                 CODEUNIT.Run(CODEUNIT::"Vend. Entry-Edit", VendLedgEntry);
             end else
-                if FromDocType = "Purchase Document Type From"::"Posted Invoice" then
-                    TestPurchEfecs(FromDocType, ToPurchHeader, FromPurchInvHeader, VendLedgEntry);
+                OnUpdateVendLedgEntryOnNoOpenEntries(VendLedgEntry, ToPurchHeader, FromDocType, FromDocNo);
         end;
 
         OnAfterUpdateVendLedgEntry(ToPurchHeader, FromDocNo, FromDocType, VendLedgEntry);
@@ -8336,8 +8253,7 @@ codeunit 6620 "Copy Document Mgt."
     /// <param name="CopyPostedDeferral">A boolean variable indicating if posted deferrals should be copied.</param>
     /// <param name="NextLineNo">The next line number for the target document.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCopyPurchLine(var ToPurchHeader: Record "Purchase Header"; FromPurchHeader: Record "Purchase Header"; FromPurchLine: Record "Purchase Line"; RecalculateAmount: Boolean; var CopyThisLine: Boolean; ToPurchLine: Record "Purchase Line"; MoveNegLines: Boolean; var RoundingLineInserted: Boolean; var Result: Boolean; var IsHandled: Boolean; FromPurchDocType: Enum "Purchase Document Type From"; DocLineNo: Integer;
-                                                                                                                                                                                                                                                                                                                                                                                                 RecalculateLines: Boolean; var LinesNotCopied: Integer; var CopyPostedDeferral: Boolean; var NextLineNo: Integer)
+    local procedure OnBeforeCopyPurchLine(var ToPurchHeader: Record "Purchase Header"; FromPurchHeader: Record "Purchase Header"; FromPurchLine: Record "Purchase Line"; RecalculateAmount: Boolean; var CopyThisLine: Boolean; ToPurchLine: Record "Purchase Line"; MoveNegLines: Boolean; var RoundingLineInserted: Boolean; var Result: Boolean; var IsHandled: Boolean; FromPurchDocType: Enum "Purchase Document Type From"; DocLineNo: Integer; RecalculateLines: Boolean; var LinesNotCopied: Integer; var CopyPostedDeferral: Boolean; var NextLineNo: Integer)
     begin
     end;
 
@@ -12643,6 +12559,26 @@ codeunit 6620 "Copy Document Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateJobPlanningLineOnAfterInitFromJobPlanningLine(var NewJobPlanningLine: Record "Job Planning Line"; JobPlanningLine: Record "Job Planning Line"; SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateCustLedgEntryOnAfterSetFilters(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ToSalesHeader: Record "Sales Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateVendLedgEntryOnAfterSetFilters(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var ToPurchHeader: Record "Purchase Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateCustLedgEntryOnNoOpenEntries(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ToSalesHeader: Record "Sales Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateVendLedgEntryOnNoOpenEntries(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var ToPurchHeader: Record "Purchase Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
     begin
     end;
 }

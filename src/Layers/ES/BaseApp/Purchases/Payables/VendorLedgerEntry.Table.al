@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-using Microsoft;
 using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
@@ -24,7 +23,6 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Remittance;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
 using System.Utilities;
@@ -246,15 +244,8 @@ table 25 "Vendor Ledger Entry"
             ToolTip = 'Specifies the due date on the entry.';
 
             trigger OnValidate()
-            var
-                PaymentTerms: Record "Payment Terms";
             begin
                 TestField(Open, true);
-                CheckBillSituation();
-                if PaymentTerms.Get("Payment Terms Code") then
-                    PaymentTerms.VerifyMaxNoDaysTillDueDate("Due Date", "Document Date", FieldCaption("Due Date"));
-                if "Document Situation" <> "Document Situation"::" " then
-                    DocMisc.UpdatePayableDueDate(Rec);
             end;
         }
         field(38; "Pmt. Discount Date"; Date)
@@ -550,8 +541,6 @@ table 25 "Vendor Ledger Entry"
                 TestField(Open, true);
                 CalcFields("Remaining Amount");
 
-                CheckBillSituation();
-
                 if AreOppositeSign("Amount to Apply", "Remaining Amount") then
                     FieldError("Amount to Apply", StrSubstNo(MustHaveSameSignErr, FieldCaption("Remaining Amount")));
 
@@ -597,6 +586,7 @@ table 25 "Vendor Ledger Entry"
             Caption = 'Payment Terms Code';
             Editable = false;
             TableRelation = "Payment Terms";
+            ToolTip = 'Specifies the payment terms that determine the due date and payment discount date for the entry.';
         }
         field(95; "G/L Register No."; Integer)
         {
@@ -622,15 +612,8 @@ table 25 "Vendor Ledger Entry"
             TableRelation = "Payment Method";
 
             trigger OnValidate()
-            var
-                CarteraDoc: Record "Cartera Doc.";
             begin
                 TestField(Open, true);
-                if "Payment Method Code" <> xRec."Payment Method Code" then begin
-                    ValidatePaymentMethod();
-                    CarteraDoc.UpdatePaymentMethodCode(
-                      "Document No.", "Vendor No.", "Bill No.", "Payment Method Code")
-                end;
             end;
         }
         field(173; "Applies-to Ext. Doc. No."; Code[35])
@@ -770,34 +753,6 @@ table 25 "Vendor Ledger Entry"
             Caption = 'Autodocument No.';
             Editable = false;
         }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-        }
-        field(7000001; "Document Situation"; Enum "ES Document Situation")
-        {
-            Caption = 'Document Situation';
-        }
-        field(7000002; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-        field(7000003; "Document Status"; Enum "ES Document Status")
-        {
-            Caption = 'Document Status';
-        }
-        field(7000005; "Remaining Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Remaining Amount (LCY) stats.';
-        }
-        field(7000006; "Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Amount (LCY) stats.';
-        }
     }
 
     keys
@@ -869,13 +824,9 @@ table 25 "Vendor Ledger Entry"
     }
 
     var
-        DocMisc: Codeunit "Document-Misc";
 #pragma warning disable AA0470
         MustHaveSameSignErr: Label 'must have the same sign as %1';
         MustNotBeLargerErr: Label 'must not be larger than %1';
-        CannotChangePmtMethodErr: Label 'For Cartera-based bills and invoices, you cannot change the Payment Method Code to this value.';
-        CheckBillSituationOrderErr: Label '%1 cannot be applied because it is included in a payment order. To apply the document, remove it from the payment order and try again.', Comment = '%1 - document type and number';
-        CheckBillSituationPostedErr: Label '%1 cannot be applied because it is included in a posted payment order.', Comment = '%1 - document type and number';
 #pragma warning restore AA0470
         NetBalanceOnHoldErr: Label 'General journal line number %3 on template name %1 batch name %2 is applied. Do you want to change On Hold value anyway?', Comment = '%1 - template name, %2 - batch name, %3 - line number';
 
@@ -1005,24 +956,6 @@ table 25 "Vendor Ledger Entry"
         exit("Original Currency Factor");
     end;
 
-    [Scope('OnPrem')]
-    procedure CheckBillSituation()
-    var
-        CarteraDoc: Record "Cartera Doc.";
-        PostedCarteraDoc: Record "Posted Cartera Doc.";
-    begin
-        OnBeforeCheckBillSituation(Rec);
-
-        case true of
-            CarteraDoc.Get(CarteraDoc.Type::Payable, "Entry No."):
-                if CarteraDoc."Bill Gr./Pmt. Order No." <> '' then
-                    Error(CheckBillSituationOrderErr, Description);
-            PostedCarteraDoc.Get(PostedCarteraDoc.Type::Payable, "Entry No."):
-                if PostedCarteraDoc."Bill Gr./Pmt. Order No." <> '' then
-                    Error(CheckBillSituationPostedErr, Description);
-        end;
-    end;
-
     procedure GetAdjustedCurrencyFactor(): Decimal
     begin
         if "Adjusted Currency Factor" = 0 then
@@ -1053,6 +986,22 @@ table 25 "Vendor Ledger Entry"
             if "Closed at Date" > "Due Date" then
                 exit('Attention');
         exit('');
+    end;
+
+    procedure SetAppliesToDocFilters(var GenJnlLine: Record "Gen. Journal Line")
+    begin
+        SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
+        SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
+
+        OnAfterSetAppliesToDocFilters(Rec, GenJnlLine);
+    end;
+
+    procedure ClearDocumentFilters()
+    begin
+        SetRange("Document Type");
+        SetRange("Document No.");
+
+        OnAfterClearDocumentFilters(Rec);
     end;
 
     procedure CopyFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
@@ -1096,12 +1045,10 @@ table 25 "Vendor Ledger Entry"
         "Creditor No." := GenJnlLine."Creditor No.";
         "Payment Reference" := GenJnlLine."Payment Reference";
         "Payment Method Code" := GenJnlLine."Payment Method Code";
+        "Payment Terms Code" := GenJnlLine."Payment Terms Code";
         "Exported to Payment File" := GenJnlLine."Exported to Payment File";
         "Generated Autodocument" := GenJnlLine."Generate AutoInvoices";
         "Autodocument No." := GenJnlLine."AutoDoc. No.";
-        "Payment Terms Code" := GenJnlLine."Payment Terms Code";
-        "Bill No." := GenJnlLine."Bill No.";
-        "Applies-to Bill No." := GenJnlLine."Applies-to Bill No.";
         if (GenJnlLine."Remit-to Code" <> '') then
             "Remit-to Code" := GenJnlLine."Remit-to Code";
         "VAT Reporting Date" := GenJnlLine."VAT Reporting Date";
@@ -1174,10 +1121,6 @@ table 25 "Vendor Ledger Entry"
         "Pmt. Tolerance (LCY)" := CVLedgerEntryBuffer."Pmt. Tolerance (LCY)";
         "Amount to Apply" := CVLedgerEntryBuffer."Amount to Apply";
         Prepayment := CVLedgerEntryBuffer.Prepayment;
-        "Bill No." := CVLedgerEntryBuffer."Bill No.";
-        "Document Situation" := CVLedgerEntryBuffer."Document Situation";
-        "Applies-to Bill No." := CVLedgerEntryBuffer."Applies-to Bill No.";
-        "Document Status" := CVLedgerEntryBuffer."Document Status";
 
         OnAfterCopyVendLedgerEntryFromCVLedgEntryBuffer(Rec, CVLedgerEntryBuffer);
     end;
@@ -1203,19 +1146,6 @@ table 25 "Vendor Ledger Entry"
               CurrExchRate.ExchangeAmount("Amount to Apply", FromCurrencyCode, ToCurrencyCode, PostingDate);
         end;
         OnAfterRecalculateAmounts(Rec, FromCurrencyCode, ToCurrencyCode, PostingDate);
-    end;
-
-    local procedure ValidatePaymentMethod()
-    var
-        PaymentMethod: Record "Payment Method";
-    begin
-        PaymentMethod.Get("Payment Method Code");
-        if (("Document Type" = "Document Type"::Bill) and not PaymentMethod."Create Bills") or
-           (("Document Type" = "Document Type"::Invoice) and
-            ("Document Situation" <> "Document Situation"::" ") and
-            not PaymentMethod."Invoices to Cartera")
-        then
-            Error(CannotChangePmtMethodErr);
     end;
 
     procedure UpdateAmountsForApplication(ApplnDate: Date; ApplnCurrencyCode: Code[10]; RoundAmounts: Boolean; UpdateMaxPaymentTolerance: Boolean)
@@ -1359,9 +1289,13 @@ table 25 "Vendor Ledger Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckBillSituation(var VendorLedgerEntry: Record "Vendor Ledger Entry")
+    local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Vendor Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterClearDocumentFilters(var Rec: Record "Vendor Ledger Entry")
     begin
     end;
 
 }
-

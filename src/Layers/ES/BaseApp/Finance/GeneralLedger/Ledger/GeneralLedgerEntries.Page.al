@@ -65,12 +65,6 @@ page 20 "General Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
-                field("Bill No."; Rec."Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the bill number related to the ledger entry.';
-                }
                 field("G/L Account No."; Rec."G/L Account No.")
                 {
                     ApplicationArea = Basic, Suite;

@@ -57,11 +57,6 @@ page 29 "Vendor Ledger Entries"
                     Editable = false;
                     Visible = false;
                 }
-                field("Autodocument No."; Rec."Autodocument No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'This field is used internally.';
-                }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
@@ -73,21 +68,6 @@ page 29 "Vendor Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = StyleTxt;
-                }
-                field("Bill No."; Rec."Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bill number related to the vendor ledger entry.';
-                }
-                field("Document Situation"; Rec."Document Situation")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document location.';
-                }
-                field("Document Status"; Rec."Document Status")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the status of the document.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {

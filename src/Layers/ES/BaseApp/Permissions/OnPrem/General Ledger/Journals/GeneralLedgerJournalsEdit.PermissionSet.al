@@ -8,7 +8,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.RateChange;
@@ -16,10 +15,6 @@ using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Comment;
-using Microsoft.Purchases.History;
-using Microsoft.Purchases.Payables;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Receivables;
 using System.IO;
 using System.Xml;
 
@@ -30,11 +25,6 @@ permissionset 4103 "General Ledger Journals - Edit"
     Caption = 'Create entries in G/L journals';
 
     Permissions =
-                  tabledata "Bill Group" = R,
-                  tabledata "Cartera Doc." = R,
-                  tabledata "Closed Bill Group" = R,
-                  tabledata "Closed Cartera Doc." = R,
-                  tabledata "Closed Payment Order" = R,
                   tabledata "Alloc. Acc. Manual Override" = R,
                   tabledata "Alloc. Account Distribution" = R,
                   tabledata "Allocation Account" = RIMD,
@@ -65,10 +55,6 @@ permissionset 4103 "General Ledger Journals - Edit"
                   tabledata "Gen. Product Posting Group" = R,
                   tabledata "General Posting Setup" = R,
                   tabledata "Intermediate Data Import" = Rimd,
-                  tabledata "Payment Order" = R,
-                  tabledata "Posted Bill Group" = R,
-                  tabledata "Posted Cartera Doc." = R,
-                  tabledata "Posted Payment Order" = R,
                   tabledata "Reason Code" = R,
                   tabledata "Referenced XML Schema" = RIMD,
                   tabledata "Source Code Setup" = R,
