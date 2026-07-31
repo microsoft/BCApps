@@ -9,6 +9,7 @@ using Microsoft.DataMigration.BC14Reimplementation;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Sales.Customer;
+using Microsoft.Foundation.PaymentTerms;
 
 codeunit 148915 "BC14 CustLedgerMigr Tests"
 {
@@ -197,8 +198,21 @@ codeunit 148915 "BC14 CustLedgerMigr Tests"
             Customer.Init();
             Customer."No." := CustomerNo;
             Customer."Customer Posting Group" := PostingGroupCode;
+            Customer."Payment Terms Code" := GetPaymentTermsCode();
             Customer.Insert();
         end;
+    end;
+
+    local procedure GetPaymentTermsCode(): Code[10]
+    var
+        PaymentTerms: Record "Payment Terms";
+    begin
+        if not PaymentTerms.FindFirst() then begin
+            PaymentTerms.Init();
+            PaymentTerms.Code := 'BC14PT';
+            PaymentTerms.Insert();
+        end;
+        exit(PaymentTerms.Code);
     end;
 
     local procedure InsertCustLedgerEntry(EntryNo: Integer; CustomerNo: Code[20]; PostingGroupCode: Code[20]; DocumentNo: Code[20]; RemainingAmount: Decimal)

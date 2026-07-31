@@ -9,6 +9,7 @@ using Microsoft.DataMigration.BC14Reimplementation;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Foundation.PaymentTerms;
 
 codeunit 148916 "BC14 VendLedgerMigr Tests"
 {
@@ -171,8 +172,21 @@ codeunit 148916 "BC14 VendLedgerMigr Tests"
             Vendor.Init();
             Vendor."No." := VendorNo;
             Vendor."Vendor Posting Group" := PostingGroupCode;
+            Vendor."Payment Terms Code" := GetPaymentTermsCode();
             Vendor.Insert();
         end;
+    end;
+
+    local procedure GetPaymentTermsCode(): Code[10]
+    var
+        PaymentTerms: Record "Payment Terms";
+    begin
+        if not PaymentTerms.FindFirst() then begin
+            PaymentTerms.Init();
+            PaymentTerms.Code := 'BC14PT';
+            PaymentTerms.Insert();
+        end;
+        exit(PaymentTerms.Code);
     end;
 
     local procedure InsertVendorLedgerEntry(EntryNo: Integer; VendorNo: Code[20]; PostingGroupCode: Code[20]; DocumentNo: Code[20]; RemainingAmount: Decimal)
