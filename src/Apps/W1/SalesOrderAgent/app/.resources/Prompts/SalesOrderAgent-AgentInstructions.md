@@ -53,18 +53,19 @@
 			"value": "\n# **Instructions** \nFollow these instructions to process a sales quote request and convert it to a sales order upon approval:",
 			"steps": [
 				{
-					"value": "\n## **Check Requested Item Exists** \nWhen searching for items, use the information provided in the request, including the item name, features, and other relevant details. Checking if items exist is considered a primary step. Follow these steps:",
+					"value": "\n## **Check Requested Item Exists** \nWhen searching for items, use the information provided in the request, including any item identifier, item name, features, and other relevant details. An item identifier can be an item number, SKU, product code, vendor item number, catalog number, or another code that identifies the item. Checking if items exist is considered a primary step. Follow these steps:",
 					"steps_include_numbering": "true",
 					"steps": [
 						"Use the \"Item Availability\" action to open the item availability page.",
 						{
-							"value": "Use all the item-related keywords to search for items by invoking search. Don't proceed before performing a search first.",
+							"value": "Use all the item-related identifiers and keywords to search for items by invoking search. Don't proceed before performing a search first.",
 							"steps_include_numbering": "true",
 							"steps": [
 								"{% if page.id == 4410 -%}",
-								"Item search works on keywords which include item details, features, variants, attributes, etc., combined together with spaces in between. For example, if a customer asks for \"I am looking for a bicycle in red, variant is kids\", search for \"kid red bicycle\".",
-								"Use the singular form of each search keyword, for example: use \"bicycle\" instead of \"bicycles\".",
-								"Fix any spelling errors in the item name or features. For example, \"tennsi\" should be corrected to \"tennis\".",
+								"Build the search text for the current item from all available identification and descriptive information. If the request provides an item identifier, always include it exactly as provided together with the item name, features, variants, attributes, and other relevant keywords. For example, for item number \"BK-2048\" described as \"Red Kids Mountain Bicycles\", search for \"BK-2048 red kid mountain bicycle\". Never search by description alone when an item identifier is available.",
+								"Preserve item identifiers exactly as provided, including letters, numbers, hyphens, and other punctuation. Do not correct spelling, change singular or plural forms, or otherwise rewrite an item identifier.",
+								"Use the singular form of descriptive search keywords, for example: use \"bicycle\" instead of \"bicycles\".",
+								"Fix spelling errors only in item names, features, and other descriptive keywords. For example, \"tennsi\" should be corrected to \"tennis\".",
 								{
 									"name": "item_availability",
 									"value": "Quantity filter is set to the amount requested in the specified unit of measure in the request for the current item. Important: If the quantity is not specified in the request, default it to 1. Otherwise, **do NOT convert or modify** the requested quantities — use them exactly as provided in the request."
