@@ -27,7 +27,7 @@ codeunit 99001502 "Subc. Business Setup Ext."
         AssistedSetupGroup: Enum "Assisted Setup Group";
         VideoCategory: Enum "Video Category";
     begin
-        if GuidedExperience.Exists("Guided Experience Type"::"Assisted Setup", ObjectType::Page, Page::"Subcontracting Setup Guide") then
+        if GuidedExperience.Exists("Guided Experience Type"::"Assisted Setup", ObjectType::Page, Page::"Subcontracting Setup Wizard") then
             exit;
 
         GuidedExperience.InsertAssistedSetup(
@@ -36,7 +36,7 @@ codeunit 99001502 "Subc. Business Setup Ext."
             AssistedSetupDescriptionLbl,
             5,
             ObjectType::Page,
-            Page::"Subcontracting Setup Guide",
+            Page::"Subcontracting Setup Wizard",
             AssistedSetupGroup::ReadyForBusiness,
             '',
             VideoCategory::ReadyForBusiness,

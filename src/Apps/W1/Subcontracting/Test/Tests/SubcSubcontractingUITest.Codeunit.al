@@ -65,21 +65,21 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Initialize();
 
         // [GIVEN] The Subcontracting assisted setup registration does not exist
-        AssistedSetupTestLibrary.Delete(Page::"Subcontracting Setup Guide");
+        AssistedSetupTestLibrary.Delete(Page::"Subcontracting Setup Wizard");
 
         // [WHEN] Assisted setups are registered
         AssistedSetupTestLibrary.CallOnRegister();
 
-        // [THEN] The Subcontracting setup guide is registered
-        Assert.IsTrue(AssistedSetupTestLibrary.Exists(Page::"Subcontracting Setup Guide"), 'The Subcontracting assisted setup should be registered.');
+        // [THEN] The Subcontracting setup wizard is registered
+        Assert.IsTrue(AssistedSetupTestLibrary.Exists(Page::"Subcontracting Setup Wizard"), 'The Subcontracting assisted setup should be registered.');
     end;
 
     [Test]
     [HandlerFunctions('SetupNotCompletedConfirmHandler')]
-    procedure SubcontractingSetupGuideShowsCompanyDefaultsAndConfigurationLinks()
+    procedure SubcontractingSetupWizardShowsCompanyDefaultsAndConfigurationLinks()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
-        SubcontractingSetupGuide: TestPage "Subcontracting Setup Guide";
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
         CreateProdOrderInfoLine: Boolean;
         SubcDefaultCompLocation: Enum "Components at Location";
@@ -87,7 +87,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SubcontractingBatchName: Code[10];
         SubcontractingTemplateName: Code[10];
     begin
-        // [SCENARIO 642233] The setup guide displays the installed company defaults and the next configuration links.
+        // [SCENARIO 642233] The setup wizard displays the installed company defaults and the next configuration links.
         Initialize();
 
         // [GIVEN] The company has Subcontracting defaults
@@ -99,45 +99,44 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SubcCompTransferLeadTime := ManufacturingSetup."Subc. Comp. Transfer Lead Time";
         SubcDefaultCompLocation := ManufacturingSetup."Subc. Default Comp. Location";
 
-        // [WHEN] The setup guide is opened
-        SubcontractingSetupGuide.OpenEdit();
+        // [WHEN] The setup wizard is opened
+        SubcontractingSetupWizard.OpenEdit();
 
         // [THEN] The welcome step is shown
-        Assert.IsFalse(SubcontractingSetupGuide.ActionBack.Enabled(), 'Back should be disabled on the welcome step.');
-        Assert.IsTrue(SubcontractingSetupGuide.ActionNext.Enabled(), 'Next should be enabled on the welcome step.');
-        Assert.IsFalse(SubcontractingSetupGuide.ActionFinish.Enabled(), 'Finish should be disabled on the welcome step.');
+        Assert.IsFalse(SubcontractingSetupWizard.ActionBack.Enabled(), 'Back should be disabled on the welcome step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be enabled on the welcome step.');
+        Assert.IsFalse(SubcontractingSetupWizard.ActionFinish.Enabled(), 'Finish should be disabled on the welcome step.');
 
         // [WHEN] The user continues to company defaults
-        SubcontractingSetupGuide.ActionNext.Invoke();
+        SubcontractingSetupWizard.ActionNext.Invoke();
 
         // [THEN] The defaults created during installation are displayed
-        SubcontractingSetupGuide."Subcontracting Template Name".AssertEquals(SubcontractingTemplateName);
-        SubcontractingSetupGuide."Subcontracting Batch Name".AssertEquals(SubcontractingBatchName);
-        SubcontractingSetupGuide."Create Prod. Order Info Line".AssertEquals(CreateProdOrderInfoLine);
-        SubcontractingSetupGuide."Component Direct Unit Cost".AssertEquals(ComponentDirectUnitCost);
-        SubcontractingSetupGuide."Subc. Comp. Transfer Lead Time".AssertEquals(SubcCompTransferLeadTime);
-        SubcontractingSetupGuide."Subc. Default Comp. Location".AssertEquals(SubcDefaultCompLocation);
-        Assert.IsTrue(SubcontractingSetupGuide.ActionBack.Enabled(), 'Back should be enabled on the company defaults step.');
-        Assert.IsTrue(SubcontractingSetupGuide.ActionNext.Enabled(), 'Next should be enabled on the company defaults step.');
+        SubcontractingSetupWizard."Subcontracting Template Name".AssertEquals(SubcontractingTemplateName);
+        SubcontractingSetupWizard."Subcontracting Batch Name".AssertEquals(SubcontractingBatchName);
+        SubcontractingSetupWizard."Create Prod. Order Info Line".AssertEquals(CreateProdOrderInfoLine);
+        SubcontractingSetupWizard."Component Direct Unit Cost".AssertEquals(ComponentDirectUnitCost);
+        SubcontractingSetupWizard."Subc. Comp. Transfer Lead Time".AssertEquals(SubcCompTransferLeadTime);
+        SubcontractingSetupWizard."Subc. Default Comp. Location".AssertEquals(SubcDefaultCompLocation);
+        Assert.IsTrue(SubcontractingSetupWizard.ActionBack.Enabled(), 'Back should be enabled on the company defaults step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be enabled on the company defaults step.');
 
         // [WHEN] The user continues to the final step
-        SubcontractingSetupGuide.ActionNext.Invoke();
+        SubcontractingSetupWizard.ActionNext.Invoke();
 
         // [THEN] Links to the remaining Subcontracting configuration are displayed
-        Assert.IsTrue(SubcontractingSetupGuide.WorkCentersLink.Visible(), 'The work centers link should be visible.');
-        Assert.IsTrue(SubcontractingSetupGuide.VendorsLink.Visible(), 'The vendors link should be visible.');
-        Assert.IsTrue(SubcontractingSetupGuide.LocationsLink.Visible(), 'The locations link should be visible.');
-        Assert.IsTrue(SubcontractingSetupGuide.SubcontractorPricesLink.Visible(), 'The subcontractor prices link should be visible.');
-        Assert.IsTrue(SubcontractingSetupGuide.ComponentSupplyMethodsLink.Visible(), 'The component supply methods link should be visible.');
-        Assert.IsTrue(SubcontractingSetupGuide.DocumentationLink.Visible(), 'The documentation link should be visible.');
-        Assert.IsTrue(SubcontractingSetupGuide.SubcontractingWorksheetLink.Visible(), 'The Subcontracting Worksheet link should be visible.');
-        Assert.IsFalse(SubcontractingSetupGuide.ActionNext.Enabled(), 'Next should be disabled on the final step.');
-        Assert.IsTrue(SubcontractingSetupGuide.ActionFinish.Enabled(), 'Finish should be enabled on the final step.');
+        Assert.IsTrue(SubcontractingSetupWizard.WorkCentersLink.Visible(), 'The work centers link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.VendorsLink.Visible(), 'The vendors link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.LocationsLink.Visible(), 'The locations link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.SubcontractorPricesLink.Visible(), 'The subcontractor prices link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.ComponentSupplyMethodsLink.Visible(), 'The component supply methods link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.DocumentationLink.Visible(), 'The documentation link should be visible.');
+        Assert.IsFalse(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be disabled on the final step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionFinish.Enabled(), 'Finish should be enabled on the final step.');
 
         // [WHEN] The user closes the guide without finishing the setup
         LibraryVariableStorage.Enqueue(SetupNotCompletedQst);
         LibraryVariableStorage.Enqueue(true);
-        SubcontractingSetupGuide.Close();
+        SubcontractingSetupWizard.Close();
 
         // [THEN] The expected confirmation was handled
         LibraryVariableStorage.AssertEmpty();
@@ -153,12 +152,12 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    procedure FinishingSubcontractingSetupGuideSavesDefaultsAndCompletesAssistedSetup()
+    procedure FinishingSubcontractingSetupWizardSavesDefaultsAndCompletesAssistedSetup()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
         GuidedExperience: Codeunit "Guided Experience";
-        SubcontractingSetupGuide: TestPage "Subcontracting Setup Guide";
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         CreateProdOrderInfoLine: Boolean;
         OriginalCreateProdOrderInfoLine: Boolean;
     begin
@@ -166,27 +165,27 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Initialize();
 
         // [GIVEN] The Subcontracting assisted setup is registered and incomplete
-        AssistedSetupTestLibrary.Delete(Page::"Subcontracting Setup Guide");
+        AssistedSetupTestLibrary.Delete(Page::"Subcontracting Setup Wizard");
         AssistedSetupTestLibrary.CallOnRegister();
-        AssistedSetupTestLibrary.SetStatusToNotCompleted(Page::"Subcontracting Setup Guide");
-        Assert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Subcontracting Setup Guide"), 'The assisted setup should initially be incomplete.');
+        AssistedSetupTestLibrary.SetStatusToNotCompleted(Page::"Subcontracting Setup Wizard");
+        Assert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Subcontracting Setup Wizard"), 'The assisted setup should initially be incomplete.');
 
-        // [GIVEN] A changed company default in the setup guide
+        // [GIVEN] A changed company default in the setup wizard
         ManufacturingSetup.Get();
         OriginalCreateProdOrderInfoLine := ManufacturingSetup."Create Prod. Order Info Line";
         CreateProdOrderInfoLine := not OriginalCreateProdOrderInfoLine;
-        SubcontractingSetupGuide.OpenEdit();
-        SubcontractingSetupGuide.ActionNext.Invoke();
-        SubcontractingSetupGuide."Create Prod. Order Info Line".SetValue(CreateProdOrderInfoLine);
-        SubcontractingSetupGuide.ActionNext.Invoke();
+        SubcontractingSetupWizard.OpenEdit();
+        SubcontractingSetupWizard.ActionNext.Invoke();
+        SubcontractingSetupWizard."Create Prod. Order Info Line".SetValue(CreateProdOrderInfoLine);
+        SubcontractingSetupWizard.ActionNext.Invoke();
 
-        // [WHEN] The user finishes the setup guide
-        SubcontractingSetupGuide.ActionFinish.Invoke();
+        // [WHEN] The user finishes the setup wizard
+        SubcontractingSetupWizard.ActionFinish.Invoke();
 
         // [THEN] The company default is saved and the assisted setup is completed
         ManufacturingSetup.Get();
         Assert.AreEqual(CreateProdOrderInfoLine, ManufacturingSetup."Create Prod. Order Info Line", 'The changed company default should be saved.');
-        Assert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Subcontracting Setup Guide"), 'The assisted setup should be completed.');
+        Assert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Subcontracting Setup Wizard"), 'The assisted setup should be completed.');
 
         ManufacturingSetup."Create Prod. Order Info Line" := OriginalCreateProdOrderInfoLine;
         ManufacturingSetup.Modify();

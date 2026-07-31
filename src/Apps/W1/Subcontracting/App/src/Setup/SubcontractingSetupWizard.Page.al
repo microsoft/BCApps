@@ -14,7 +14,7 @@ using System.Environment.Configuration;
 using System.Telemetry;
 using System.Utilities;
 
-page 99001505 "Subcontracting Setup Guide"
+page 99001505 "Subcontracting Setup Wizard"
 {
     ApplicationArea = All;
     Caption = 'Subcontracting Setup';
@@ -199,19 +199,6 @@ page 99001505 "Subcontracting Setup Guide"
                         Hyperlink(DocumentationUrlLbl);
                     end;
                 }
-                field(SubcontractingWorksheetLink; SubcontractingWorksheetLinkLbl)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Open the Subcontracting Worksheet';
-                    Editable = false;
-                    ShowCaption = false;
-                    ToolTip = 'Open the Subcontracting Worksheet page.';
-
-                    trigger OnDrillDown()
-                    begin
-                        Page.Run(Page::"Subc. Subcontracting Worksheet");
-                    end;
-                }
             }
         }
     }
@@ -306,7 +293,6 @@ page 99001505 "Subcontracting Setup Guide"
         LocationsLinkLbl: Label 'Set up locations';
         SetupNotCompletedQst: Label 'The Subcontracting setup is not complete. Are you sure you want to exit?';
         SubcontractingTok: Label 'Subcontracting', Locked = true;
-        SubcontractingWorksheetLinkLbl: Label 'Open the Subcontracting Worksheet';
         SubcontractorPricesLinkLbl: Label 'Set up subcontractor prices';
         VendorsLinkLbl: Label 'Set up vendors';
         WorkCentersLinkLbl: Label 'Set up subcontractor work centers';
@@ -341,7 +327,7 @@ page 99001505 "Subcontracting Setup Guide"
         SubcApplicationAreaMgmt: Codeunit "Subc. Application Area Mgmt.";
     begin
         CurrPage.SaveRecord();
-        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Subcontracting Setup Guide");
+        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Subcontracting Setup Wizard");
         FeatureTelemetry.LogUptake('0001Q7O', SubcontractingTok, Enum::"Feature Uptake Status"::"Set up");
         SubcApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
         SetupCompleted := true;
