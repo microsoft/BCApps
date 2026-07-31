@@ -97,5 +97,26 @@ report 685 "Payment Practice"
             Summary = 'Payment Practice by Vendor Size';
             LayoutFile = 'src/Reports/Payment Practice by Vendor Size.docx';
         }
+        layout(PaymentPractice_PeriodLayoutBody)
+        {
+            Type = Word;
+            LayoutFile = 'src/Reports/Payment Practice by PeriodBody.docx';
+            Caption = 'Body-only: Payment Practice by Period';
+            Summary = 'Body-only: Payment Practice by Period';
+        }
+        layout(PaymentPractice_SmallBusinessLayoutBody)
+        {
+            Type = Word;
+            LayoutFile = 'src/Reports/Payment Practice Small BusinessBody.docx';
+            Caption = 'Body-only: Payment Practice Small Business';
+            Summary = 'Body-only: Payment Practice Small Business';
+        }
+        layout(PaymentPractice_VendorSizeLayoutBody)
+        {
+            Type = Word;
+            LayoutFile = 'src/Reports/Payment Practice by Vendor SizeBody.docx';
+            Caption = 'Body-only: Payment Practice by Vendor Size';
+            Summary = 'Body-only: Payment Practice by Vendor Size';
+        }
     }
 }
