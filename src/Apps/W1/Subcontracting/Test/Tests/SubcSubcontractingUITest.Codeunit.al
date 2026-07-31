@@ -676,6 +676,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     [SendNotificationHandler]
     procedure SubcontractorLocationNotificationHandler(var SubcontractorLocationNotification: Notification): Boolean
     begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
         CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
         exit(true);
     end;
@@ -685,6 +688,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     var
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
     begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
         CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
         // Simulate choosing the Open Vendor Card notification action.
         SubcNotificationMgmt.OpenVendorCard(SubcontractorLocationNotification);
@@ -702,6 +708,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     [RecallNotificationHandler]
     procedure SubcontractorLocationRecallHandler(var SubcontractorLocationNotification: Notification): Boolean
     begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
         LibraryVariableStorage.Enqueue(RecallNotificationTok);
         LibraryVariableStorage.Enqueue(Format(SubcontractorLocationNotification.Id));
         exit(true);
