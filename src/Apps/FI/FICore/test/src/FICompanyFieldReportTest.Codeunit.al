@@ -261,33 +261,28 @@ codeunit 148150 "FI Company Field Report Test"
     local procedure CreateItemNo(GenBusPostingGroup: Code[20]; VATBusPostingGroup: Code[20]): Code[20]
     var
         GeneralPostingSetup: Record "General Posting Setup";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
         VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
     begin
-        LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
-        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
-        EnsurePostingSetups(GeneralPostingSetup, VATPostingSetup, GenBusPostingGroup, VATBusPostingGroup);
+        LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
+        LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProductPostingGroup.Code);
+        LibraryERM.SetGeneralPostingSetupSalesAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPrepAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
 
-        exit(
-            LibraryInventory.CreateItemNoWithPostingSetup(
-                GeneralPostingSetup."Gen. Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
-    end;
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup, VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", LibraryRandom.RandIntInRange(1, 25));
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
 
-    local procedure EnsurePostingSetups(GeneralPostingSetup: Record "General Posting Setup"; VATPostingSetup: Record "VAT Posting Setup"; GenBusPostingGroup: Code[20]; VATBusPostingGroup: Code[20])
-    var
-        MatchingGeneralPostingSetup: Record "General Posting Setup";
-        MatchingVATPostingSetup: Record "VAT Posting Setup";
-    begin
-        if not MatchingGeneralPostingSetup.Get(GenBusPostingGroup, GeneralPostingSetup."Gen. Prod. Posting Group") then begin
-            MatchingGeneralPostingSetup := GeneralPostingSetup;
-            MatchingGeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
-            MatchingGeneralPostingSetup.Insert(true);
-        end;
-
-        if not MatchingVATPostingSetup.Get(VATBusPostingGroup, VATPostingSetup."VAT Prod. Posting Group") then begin
-            MatchingVATPostingSetup := VATPostingSetup;
-            MatchingVATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
-            MatchingVATPostingSetup.Insert(true);
-        end;
+        exit(LibraryInventory.CreateItemNoWithPostingSetup(GenProductPostingGroup.Code, VATProductPostingGroup.Code));
     end;
 
     local procedure InitializeReminderMemoReport()
