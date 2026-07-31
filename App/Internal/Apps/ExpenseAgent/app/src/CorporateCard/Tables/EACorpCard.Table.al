@@ -53,7 +53,7 @@ table 7211 EACorpCard
         field(7; Blocked; Boolean)
         {
             Caption = 'Blocked';
-            ToolTip = 'Indicates whether the card is blocked.';
+            ToolTip = 'Specifies whether the card is blocked.';
         }
         field(8; "Valid From"; Date)
         {

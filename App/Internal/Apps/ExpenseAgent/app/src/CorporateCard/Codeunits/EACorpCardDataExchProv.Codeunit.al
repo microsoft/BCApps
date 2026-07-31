@@ -25,6 +25,7 @@ codeunit 7224 EACorpCardDataExchProv implements EACorpCardProviderInterface
         StrictLineValidationErr: Label 'Line %1 (provider %2): missing mapped field(s): %3. Verify Data Exchange definition %4 and mapping line %5.', Comment = '%1 = line no, %2 = provider code, %3 = field list, %4 = Data Exch Def Code, %5 = Data Exch Map Code';
         MissingLevel3LineErr: Label 'Provider %1: no parsed rows for detail line %2 in Data Exchange %3 (definition %4). Check Data Line Tag and column paths for Level 3 details.', Comment = '%1 = provider code, %2 = detail line code, %3 = Data Exch Entry No., %4 = Data Exch Def Code';
         MissingLevel3DetailForTransErr: Label 'Provider transaction %1 has no Level 3 detail rows. Verify incoming <Level3><TaxLine> content and detail line mapping %2 in definition %3.', Comment = '%1 = Provider Trans Id, %2 = detail line code, %3 = Data Exch Def Code';
+        ProviderTransIdXmlTok: Label '<ProviderTransId>%1</ProviderTransId>', Locked = true, Comment = '%1 = Provider Trans Id';
 
     procedure Download(var CorpCardBatch: Record EACorpCardBatch)
     var
@@ -691,7 +692,7 @@ codeunit 7224 EACorpCardDataExchProv implements EACorpCardProviderInterface
             XmlTxt += XmlLineTxt;
         end;
 
-        TransactionStartPos := StrPos(XmlTxt, StrSubstNo('<ProviderTransId>%1</ProviderTransId>', ProviderTransId));
+        TransactionStartPos := StrPos(XmlTxt, StrSubstNo(ProviderTransIdXmlTok, ProviderTransId));
         if TransactionStartPos = 0 then
             exit('');
 
