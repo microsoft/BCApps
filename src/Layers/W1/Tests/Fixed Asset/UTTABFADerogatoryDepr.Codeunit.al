@@ -18,6 +18,85 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure OnValidateDerogatoryCalcFirstAssignmentSucceeds()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+        CreateDepreciationBook(TaxDepreciationBook);
+
+        TaxDepreciationBook.Validate("Derogatory Calc.", NormalDepreciationBook.Code);
+
+        TaxDepreciationBook.TestField("Derogatory Calc.", NormalDepreciationBook.Code);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure OnValidateDerogatoryCalcRelationshipChangeToUsedBookErrors()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        OtherNormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        OtherTaxDepreciationBook: Record "Depreciation Book";
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+        CreateDepreciationBook(OtherNormalDepreciationBook);
+        CreateDepreciationBook(TaxDepreciationBook);
+        UpdateDerogatoryCalculationDepreciationBook(TaxDepreciationBook, NormalDepreciationBook.Code);
+        CreateDepreciationBook(OtherTaxDepreciationBook);
+        UpdateDerogatoryCalculationDepreciationBook(OtherTaxDepreciationBook, OtherNormalDepreciationBook.Code);
+
+        asserterror TaxDepreciationBook.Validate("Derogatory Calc.", OtherNormalDepreciationBook.Code);
+
+        Assert.ExpectedErrorCode(DialogErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ResolveImportedAmbiguousDerogatorySetupErrors()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        OtherTaxDepreciationBook: Record "Depreciation Book";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        DerogatoryDepreciationBookCode: Code[10];
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+        CreateDepreciationBook(TaxDepreciationBook);
+        TaxDepreciationBook."Derogatory Calc." := NormalDepreciationBook.Code;
+        TaxDepreciationBook.Modify();
+        CreateDepreciationBook(OtherTaxDepreciationBook);
+        OtherTaxDepreciationBook."Derogatory Calc." := NormalDepreciationBook.Code;
+        OtherTaxDepreciationBook.Modify();
+
+        asserterror DerogatoryPostingMgt.GetDerogatoryBookCode(NormalDepreciationBook.Code, DerogatoryDepreciationBookCode);
+
+        Assert.ExpectedError('More than one derogatory depreciation book');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure GeneratedMirrorRoleIsNotEligible()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        DerogatoryDepreciationBookCode: Code[10];
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+        CreateDepreciationBook(TaxDepreciationBook);
+        UpdateDerogatoryCalculationDepreciationBook(TaxDepreciationBook, NormalDepreciationBook.Code);
+
+        Assert.IsFalse(
+            DerogatoryPostingMgt.IsEligible(
+                LibraryUTUtility.GetNewCode(), NormalDepreciationBook.Code,
+                Enum::"Derogatory Posting Role"::"Generated Mirror", DerogatoryDepreciationBookCode),
+            'A generated mirror must not be eligible for another derogatory counterpart.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure OnValidateDerogatoryCalcDerogatoryDeprBookExistsError()
     var
         DepreciationBook: Record "Depreciation Book";
