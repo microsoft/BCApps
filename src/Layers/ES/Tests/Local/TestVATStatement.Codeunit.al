@@ -2693,10 +2693,19 @@ codeunit 147590 "Test VAT Statement"
 
     local procedure XMLReadVerifyNodeValue(ElementName: Text; Expected: Variant)
     var
+        FoundNodes: XmlNodeList;
         FoundNode: XmlNode;
+        NodeIndex: Integer;
     begin
-        if not XMLReadDoc.SelectSingleNode('//' + ElementName, FoundNode) then
+        XMLReadDoc.SelectNodes('//' + ElementName, FoundNodes);
+        if FoundNodes.Count() = 0 then
             Error(XMLReadMissingElementErr, ElementName);
+        for NodeIndex := 1 to FoundNodes.Count() do begin
+            FoundNodes.Get(NodeIndex, FoundNode);
+            if XMLReadEqual(Expected, FoundNode.AsXmlElement().InnerText()) then
+                exit;
+        end;
+        FoundNodes.Get(1, FoundNode);
         Assert.AreEqual(Format(Expected, 0, 9), FoundNode.AsXmlElement().InnerText(),
           StrSubstNo(XMLReadElementValueErr, ElementName));
     end;
@@ -2708,7 +2717,7 @@ codeunit 147590 "Test VAT Statement"
         NodeIndex: Integer;
     begin
         XMLReadDoc.SelectNodes('//' + RootNodeName + '//' + NodeName, FoundNodes);
-        for NodeIndex := 0 to FoundNodes.Count() - 1 do begin
+        for NodeIndex := 1 to FoundNodes.Count() do begin
             FoundNodes.Get(NodeIndex, FoundNode);
             if XMLReadEqual(ExpectedNodeValue, FoundNode.AsXmlElement().InnerText()) then
                 exit;
