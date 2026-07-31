@@ -175,7 +175,7 @@ table 6124 "E-Document Log"
             if EDocumentService.Get("Service Code") then
                 FileName += EDocumentService.GetDefaultFileExtension();
 
-        DownloadFromStream(InStr, '', '', '', FileName);
+        FileManagement.DownloadFromStreamHandler(InStr, '', '', '', FileName);
     end;
 
     internal procedure GetDataStorage(var TempBlob: Codeunit "Temp Blob"): Boolean
