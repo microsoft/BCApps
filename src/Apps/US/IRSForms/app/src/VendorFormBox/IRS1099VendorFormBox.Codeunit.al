@@ -141,6 +141,17 @@ codeunit 10037 "IRS 1099 Vendor Form Box"
         end;
     end;
 
+    procedure CheckVendorSubjectFor1099Reporting(VendorNo: Code[20]; PeriodNo: Code[20])
+    var
+        IRS1099VendorFormBoxSetup: Record "IRS 1099 Vendor Form Box Setup";
+        VendorNotSetupFor1099Err: Label 'Vendor %1 is not set up for IRS 1099 reporting in the reporting period %2.', Comment = '%1 = Vendor No., %2 = Period No.';
+    begin
+        if PeriodNo = '' then
+            exit;
+        if not IRS1099VendorFormBoxSetup.Get(PeriodNo, VendorNo) then
+            Error(VendorNotSetupFor1099Err, VendorNo, PeriodNo);
+    end;
+
     local procedure ShowIfVendorHas1099CodePrevPeriodButNotCurrNotificationId(): Guid
     begin
         exit('4b87dd95-f7ba-4e72-909b-76ca6a1d8b6a');
