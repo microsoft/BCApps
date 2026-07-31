@@ -437,7 +437,6 @@ page 99000829 "Firm Planned Prod. Order"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
-                ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';
             }
         }
         area(Promoted)
