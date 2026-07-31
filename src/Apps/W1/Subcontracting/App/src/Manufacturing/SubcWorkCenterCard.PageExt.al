@@ -67,12 +67,6 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                 }
             }
         }
-#if not CLEAN28
-        modify("Subcontractor - Dispatch List")
-        {
-            Enabled = IsSubcontractingWorkCenter;
-        }
-#endif
     }
 
     trigger OnOpenPage()
