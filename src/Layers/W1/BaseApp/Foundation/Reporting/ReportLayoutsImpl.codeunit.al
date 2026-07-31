@@ -68,8 +68,8 @@ codeunit 9660 "Report Layouts Impl."
     begin
         if not ReportLayoutList."User Defined" then begin
             // Extension-installed layout: override the status rather than copying the layout.
-            // A layout that already has a global override is updated globally; otherwise the status
-            // override is company-specific (see CP0529-338 Q1). Mixed-scope selections and the
+            // A layout whose status is already overridden globally is updated globally; otherwise the
+            // status override is company-specific (see CP0529-338 Q1). Mixed-scope selections and the
             // global confirmation are handled by SetLayoutStatusBatch before this point.
             UpsertLayoutOverride(ReportLayoutList, LayoutStatusIsGlobalScope(ReportLayoutList), false, '', true, NewStatus, false, false);
             exit(true);
@@ -172,7 +172,8 @@ codeunit 9660 "Report Layouts Impl."
     /// </summary>
     /// <param name="ReportLayoutList">Record set with selected layouts (filtered/marked)</param>
     /// <param name="NewStatus">The new status to set</param>
-    /// <returns>Number of layouts updated (excludes extension-defined layouts)</returns>
+    /// <returns>Number of layouts updated — user-defined layouts in place, extension-installed layouts
+    /// through a "Tenant Report Layout Override" record</returns>
     internal procedure SetLayoutStatusBatch(var ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status"): Integer
     var
         CustomDimensions: Dictionary of [Text, Text];
@@ -737,34 +738,31 @@ codeunit 9660 "Report Layouts Impl."
             AvailableInAllCompanies := ReportLayoutEditDialog.SelectedAvailableInAllCompanies();
             NewIsObsolete := ReportLayoutEditDialog.SelectedIsObsolete();
 
-            // An extension layout edited IN PLACE always overrides for the CURRENT company: the
-            // tenant-wide (global) decision is a governance act and is not offered here. A copy is an
-            // ordinary tenant layout, so its company scope keeps coming from "Available in All
-            // Companies" (read above).
-            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then
+            // Extension-installed layout, edited in place (not copied): write an override record rather
+            // than copying the layout. Only the properties the user actually changed are written, so
+            // pressing OK without editing anything writes nothing at all; IsObsolete is one-way.
+            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
+                // Such an edit always overrides for the CURRENT company: the tenant-wide (global)
+                // decision is a governance act and is deliberately not offered in the everyday edit
+                // dialog. A copy is an ordinary tenant layout, so its company scope keeps coming from
+                // "Available in All Companies" and is handled further below.
                 AvailableInAllCompanies := false;
 
-            // Extension-installed layout, edited in place (not copied): write an override for only the
-            // properties the user actually changed (a no-op OK writes nothing). IsObsolete is one-way.
-            // Ask first before an all-companies (global) override.
-            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
                 NewEditedLayoutName := SelectedReportLayoutList.Name;
                 ApplyDescription := NewDescription <> SelectedReportLayoutList."Description";
                 ApplyObsolete := NewIsObsolete and (not SelectedReportLayoutList.IsObsolete);
                 if not (ApplyDescription or ApplyObsolete) then
                     exit;
-            end;
 
-            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
                 UpsertLayoutOverride(SelectedReportLayoutList, AvailableInAllCompanies, ApplyDescription, NewDescription, false, Enum::"Report Layout Status"::Draft, ApplyObsolete, NewIsObsolete);
 
-                // Telemetry for the override path uses its OWN event id '0000RTQ', freshly allocated
-                // from the number series. It is deliberately not the Edit path's '0000N0H': that event
-                // carries a different custom-dimension schema (Old/New layout name and description),
-                // and reusing it here would change the meaning of an id existing queries already
-                // consume. The dimensions below are metadata only — the layout description is
-                // user-entered free text and is reported as a changed/not-changed flag rather than
-                // its content.
+                // Telemetry for the override path uses its OWN event id, freshly allocated from the
+                // number series rather than reusing the one the user-defined Edit path logs under:
+                // that event carries a different custom-dimension schema (Old/New layout name and
+                // description), and reusing it here would change the meaning of an id existing
+                // queries already consume. The dimensions below are metadata only — the layout
+                // description is user-entered free text and is reported as a changed/not-changed
+                // flag rather than its content.
                 CustomDimensions.Add('ReportId', Format(SelectedReportLayoutList."Report ID"));
                 CustomDimensions.Add('LayoutName', SelectedReportLayoutList.Name);
                 CustomDimensions.Add('DescriptionChanged', Format(ApplyDescription));
