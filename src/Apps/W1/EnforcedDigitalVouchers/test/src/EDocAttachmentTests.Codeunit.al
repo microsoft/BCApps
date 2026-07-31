@@ -19,6 +19,7 @@ codeunit 139649 "E-Doc. Attachment Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     var
         Assert: Codeunit Assert;
