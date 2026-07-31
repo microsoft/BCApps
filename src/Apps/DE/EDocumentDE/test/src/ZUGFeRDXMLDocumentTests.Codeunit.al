@@ -177,6 +177,31 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyBuyerOrderReference();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ExternalDocumentNo: Code[35];
+    begin
+        // [SCENARIO 644035] Export posted sales invoice creates electronic document in ZUGFeRD format with buyer order reference
+        Initialize();
+
+        // [GIVEN] Create and post sales invoice with external document no.
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithoutRoutingNo());
+        ExternalDocumentNo := LibraryRandom.RandText(MaxStrLen(ExternalDocumentNo));
+        SalesHeader.Validate("External Document No.", ExternalDocumentNo);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document is created with buyer order reference from external document no.
+        VerifyBuyerOrderReference(ExternalDocumentNo, TempXMLBuffer, '/rsm:CrossIndustryInvoice');
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatMandateBuyerReferenceAsYourReference();
     var
         SalesHeader: Record "Sales Header";
@@ -2327,6 +2352,14 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     begin
         Path := DocumentTok + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerOrderReferencedDocument/ram:IssuerAssignedID';
         Assert.AreEqual(OrderNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure VerifyBuyerOrderReference(ExternalDocumentNo: Code[35]; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
+    var
+        Path: Text;
+    begin
+        Path := DocumentTok + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID';
+        Assert.AreEqual(ExternalDocumentNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifySellerData(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
