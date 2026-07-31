@@ -48,6 +48,7 @@ using Microsoft.Finance.Payroll;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.RoleCenters;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Ledger;
@@ -395,6 +396,19 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifySalesValidationAgent();
         ClassifySalesReturnAgent();
         ClasifyScheduledPerformanceProfiling();
+        ClassifySpendRequests();
+    end;
+
+    local procedure ClassifySpendRequests()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        SetTableFieldsToNormal(Database::"Spend Request");
+        SetTableFieldsToNormal(Database::"Spend Request Detail");
+        SetTableFieldsToNormal(Database::"Spend Request To G/L Link");
+        SetFieldToPersonal(Database::"Spend Request", SpendRequest.FieldNo("Requested By"));
+        SetFieldToPersonal(Database::"Spend Request", SpendRequest.FieldNo("Approved/Rejected by User ID"));
+        SetFieldToPersonal(Database::"Spend Request", SpendRequest.FieldNo("Approved/Rejected by User Name"));
     end;
 
     local procedure ClassifyFinancialReports()
