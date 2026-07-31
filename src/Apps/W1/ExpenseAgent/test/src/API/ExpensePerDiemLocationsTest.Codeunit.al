@@ -9,7 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148349 "Expense PerDiem Locations Test"
 {
     Subtype = Test;
-    TestType = UnitTest;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var

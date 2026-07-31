@@ -9,6 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148318 "Expense Capabilities API Test"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
