@@ -232,7 +232,6 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
-        SpendRequestToGLLink: Record "Spend Request To G/L Link";
     begin
         if GLEntry2.Find('+') then
             repeat

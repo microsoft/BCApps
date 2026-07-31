@@ -226,7 +226,6 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
-        SpendRequestToGLLink: Record "Spend Request To G/L Link";
         TaxDiffRegister: Record "Tax Diff. Register";
         GLItemLedgerRelation: Record "G/L - Item Ledger Relation";
         ValueEntry: Record "Value Entry";
