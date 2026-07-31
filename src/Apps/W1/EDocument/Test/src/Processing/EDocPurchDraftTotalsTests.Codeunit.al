@@ -19,6 +19,9 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         LibraryEDoc: Codeunit "Library - E-Document";
+        ExpectedNotificationId: Guid;
+        ExpectedNotificationEntryNo: Integer;
+        SentNotificationCount: Integer;
 
     [Test]
     procedure AddSubTotalMismatchNotificationPersistsRecord()
@@ -83,12 +86,14 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
 
         // [WHEN] Editing the line quantity on the draft page
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
         EDocumentPurchaseDraft.Lines.Quantity.SetValue(3);
         EDocumentPurchaseDraft.Close();
 
         // [THEN] The header Sub Total / Total are unchanged (no overwrite from the sum of the lines)
         VerifyHeaderTotals(EDocumentPurchaseHeader, 1000, 1000);
+        VerifySubTotalMismatchNotificationShown();
     end;
 
     [Test]
@@ -109,6 +114,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
 
         // [GIVEN] The purchase draft page is open on "E" while the header Sub Total still matches the sum of the lines
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
         Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'No Sub Total Mismatch notification should exist before adding the line.');
 
@@ -123,6 +129,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [THEN] The Sub Total Mismatch notification is shown (SendNotificationHandler) and persisted for "E"
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A Sub Total Mismatch notification should exist after adding the line.');
+        VerifySubTotalMismatchNotificationShown();
     end;
 
     [Test]
@@ -167,10 +174,12 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
 
         // [WHEN] Opening the purchase draft for "E"
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
 
         // [THEN] One Sub Total Mismatch notification is persisted for "E"
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A header subtotal above the lines beyond tolerance must create a notification.');
+        VerifySubTotalMismatchNotificationShown();
 
         // [THEN] The extracted header totals remain unchanged
         VerifyHeaderTotals(EDocumentPurchaseHeader, 1000.02, 1000.02);
@@ -195,10 +204,12 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000.02);
 
         // [WHEN] Opening the purchase draft for "E"
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
 
         // [THEN] One Sub Total Mismatch notification is persisted for "E"
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A lines subtotal above the header beyond tolerance must create a notification.');
+        VerifySubTotalMismatchNotificationShown();
 
         // [THEN] The extracted header totals remain unchanged
         VerifyHeaderTotals(EDocumentPurchaseHeader, 1000, 1000);
@@ -246,8 +257,10 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         // [GIVEN] An inbound e-document "E" with header Sub Total 1000, line subtotal 1000.02, and a mismatch notification
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000.02);
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A Sub Total Mismatch notification must exist before reconciling the line.');
+        VerifySubTotalMismatchNotificationShown();
 
         // [WHEN] Changing the line direct unit cost to 1000
         EDocumentPurchaseDraft.Lines."Direct Unit Cost".SetValue(1000);
@@ -279,6 +292,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
         Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'No Sub Total Mismatch notification should exist before deleting the line.');
 
@@ -289,6 +303,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [THEN] One Sub Total Mismatch notification is persisted for "E"
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Deleting a line must create a Sub Total Mismatch notification.');
+        VerifySubTotalMismatchNotificationShown();
 
         // [THEN] The extracted header totals remain unchanged
         VerifyHeaderTotals(EDocumentPurchaseHeader, 1000, 1000);
@@ -339,6 +354,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         SetSubTotalMismatchDismissed(EDocument."Entry No", true);
 
         // [GIVEN] The draft is open and the notification is suppressed
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
         Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'The notification must be suppressed before the amount edit.');
 
@@ -348,6 +364,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         // [THEN] The notification is shown again and the dismissed state is cleared
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Editing an amount must re-arm and re-show the mismatch notification.');
         Assert.IsFalse(GetSubTotalMismatchDismissed(EDocument."Entry No"), 'Editing an amount must clear the dismissed state.');
+        VerifySubTotalMismatchNotificationShown();
         EDocumentPurchaseDraft.Close();
     end;
 
@@ -421,8 +438,10 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
     local procedure OpenPurchaseDraft(var EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft"; EDocument: Record "E-Document")
     begin
-        EDocumentPurchaseDraft.OpenEdit();
-        EDocumentPurchaseDraft.GoToRecord(EDocument);
+        // The page must be opened on the e-document so that OnOpenPage, which re-evaluates the
+        // Sub Total mismatch, runs with the record instead of an initialized one.
+        EDocumentPurchaseDraft.Trap();
+        Page.Run(Page::"E-Document Purchase Draft", EDocument);
         EDocumentPurchaseDraft.Lines.First();
     end;
 
@@ -482,9 +501,29 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         Notification.SetData(EDocumentNotificationRec.FieldName(ID), SubTotalMismatchNotificationId());
     end;
 
+    local procedure ExpectSubTotalMismatchNotification(EDocumentEntryNo: Integer)
+    begin
+        ExpectedNotificationId := SubTotalMismatchNotificationId();
+        ExpectedNotificationEntryNo := EDocumentEntryNo;
+        SentNotificationCount := 0;
+    end;
+
+    local procedure VerifySubTotalMismatchNotificationShown()
+    begin
+        Assert.IsTrue(SentNotificationCount > 0, 'The Sub Total Mismatch notification must be shown.');
+    end;
+
     [SendNotificationHandler]
     procedure SendNotificationHandler(var Notification: Notification): Boolean
+    var
+        EDocumentNotificationRec: Record "E-Document Notification";
+        ActualEntryNo: Integer;
     begin
+        SentNotificationCount += 1;
+        Assert.AreEqual(ExpectedNotificationId, Notification.Id, 'An unexpected notification was shown.');
+        Assert.AreEqual(Format(ExpectedNotificationId), Notification.GetData(EDocumentNotificationRec.FieldName(ID)), 'The notification carries an unexpected ID.');
+        Evaluate(ActualEntryNo, Notification.GetData(EDocumentNotificationRec.FieldName("E-Document Entry No.")));
+        Assert.AreEqual(ExpectedNotificationEntryNo, ActualEntryNo, 'The notification was shown for an unexpected e-document.');
         exit(true);
     end;
 }

@@ -240,24 +240,24 @@ codeunit 6123 "E-Document Notification"
     /// persisted Sub Total Mismatch notification accordingly. Used on the display path, where the notification
     /// is sent separately by <see cref="SendPurchaseDocumentDraftNotifications"/>.
     /// </summary>
-    /// <param name="EDocumentEntryNo">Id of e-document</param>
-    procedure EvaluateSubTotalMismatch(EDocumentEntryNo: Integer)
+    /// <param name="EDocumentPurchaseHeader">The draft header as currently loaded by the caller</param>
+    procedure EvaluateSubTotalMismatch(EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         PendingEDocumentPurchaseLine: Record "E-Document Purchase Line";
     begin
-        UpdateSubTotalMismatchNotification(EDocumentEntryNo, PendingEDocumentPurchaseLine, false, false, false, false);
+        UpdateSubTotalMismatchNotification(EDocumentPurchaseHeader, PendingEDocumentPurchaseLine, false, false, false, false);
     end;
 
     /// <summary>
     /// Re-evaluates the Sub Total Mismatch notification after the user changed an amount on the header,
     /// re-arming a previously dismissed notification.
     /// </summary>
-    /// <param name="EDocumentEntryNo">Id of e-document</param>
-    procedure EvaluateSubTotalMismatchOnHeaderEdit(EDocumentEntryNo: Integer)
+    /// <param name="EDocumentPurchaseHeader">The draft header as currently edited by the user</param>
+    procedure EvaluateSubTotalMismatchOnHeaderEdit(EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         PendingEDocumentPurchaseLine: Record "E-Document Purchase Line";
     begin
-        UpdateSubTotalMismatchNotification(EDocumentEntryNo, PendingEDocumentPurchaseLine, false, false, true, true);
+        UpdateSubTotalMismatchNotification(EDocumentPurchaseHeader, PendingEDocumentPurchaseLine, false, false, true, true);
     end;
 
     /// <summary>
@@ -268,13 +268,16 @@ codeunit 6123 "E-Document Notification"
     /// <param name="EDocumentPurchaseLine">The line as currently edited by the user</param>
     /// <param name="LineDeleted">Whether the line is being deleted</param>
     procedure EvaluateSubTotalMismatchOnLineEdit(EDocumentPurchaseLine: Record "E-Document Purchase Line"; LineDeleted: Boolean)
-    begin
-        UpdateSubTotalMismatchNotification(EDocumentPurchaseLine."E-Document Entry No.", EDocumentPurchaseLine, true, LineDeleted, true, true);
-    end;
-
-    local procedure UpdateSubTotalMismatchNotification(EDocumentEntryNo: Integer; PendingEDocumentPurchaseLine: Record "E-Document Purchase Line"; HasPendingLine: Boolean; PendingLineDeleted: Boolean; ReArm: Boolean; SendOnMismatch: Boolean)
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        if not EDocumentPurchaseHeader.Get(EDocumentPurchaseLine."E-Document Entry No.") then
+            exit;
+        UpdateSubTotalMismatchNotification(EDocumentPurchaseHeader, EDocumentPurchaseLine, true, LineDeleted, true, true);
+    end;
+
+    local procedure UpdateSubTotalMismatchNotification(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; PendingEDocumentPurchaseLine: Record "E-Document Purchase Line"; HasPendingLine: Boolean; PendingLineDeleted: Boolean; ReArm: Boolean; SendOnMismatch: Boolean)
+    var
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
@@ -282,11 +285,13 @@ codeunit 6123 "E-Document Notification"
         LinesSubTotal: Decimal;
         Difference: Decimal;
         Tolerance: Decimal;
+        EDocumentEntryNo: Integer;
         LineCount: Integer;
     begin
         if not IsSubTotalMismatchNotificationEnabled() then
             exit;
-        if not EDocumentPurchaseHeader.Get(EDocumentEntryNo) then
+        EDocumentEntryNo := EDocumentPurchaseHeader."E-Document Entry No.";
+        if EDocumentEntryNo = 0 then
             exit;
         if ReArm then
             ReArmSubTotalMismatchNotification(EDocumentEntryNo);
@@ -298,10 +303,9 @@ codeunit 6123 "E-Document Notification"
         Tolerance := LineCount * RoundingPrecision;
 
         CustomDimensions.Add('EntryNo', Format(EDocumentEntryNo));
-        CustomDimensions.Add('HeaderSubTotal', Format(EDocumentPurchaseHeader."Sub Total", 0, 9));
-        CustomDimensions.Add('LinesSubTotal', Format(LinesSubTotal, 0, 9));
-        CustomDimensions.Add('Tolerance', Format(Tolerance, 0, 9));
-        CustomDimensions.Add('Difference', Format(Difference, 0, 9));
+        CustomDimensions.Add('LineCount', Format(LineCount));
+        CustomDimensions.Add('WithinTolerance', Format(Difference <= Tolerance, 0, 9));
+        CustomDimensions.Add('DifferenceMagnitude', DifferenceMagnitudeBucket(Difference, EDocumentPurchaseHeader."Sub Total"));
 
         if Difference <> 0 then
             Telemetry.LogMessage('0000UVL', SubTotalMismatchNoToleranceTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
@@ -317,6 +321,22 @@ codeunit 6123 "E-Document Notification"
         AddSubTotalMismatchNotification(EDocumentEntryNo);
         if SendOnMismatch then
             SendSubTotalMismatchNotification(EDocumentEntryNo);
+    end;
+
+    local procedure DifferenceMagnitudeBucket(Difference: Decimal; HeaderSubTotal: Decimal): Text
+    var
+        RelativeDifference: Decimal;
+    begin
+        if Difference = 0 then
+            exit('None');
+        if HeaderSubTotal = 0 then
+            exit('Unknown');
+        RelativeDifference := Abs(Difference / HeaderSubTotal);
+        if RelativeDifference < 0.01 then
+            exit('Below1Pct');
+        if RelativeDifference < 0.1 then
+            exit('Below10Pct');
+        exit('AtLeast10Pct');
     end;
 
     local procedure CalculateLinesSubTotal(EDocumentEntryNo: Integer; PendingEDocumentPurchaseLine: Record "E-Document Purchase Line"; HasPendingLine: Boolean; PendingLineDeleted: Boolean; RoundingPrecision: Decimal; var LineCount: Integer) LinesSubTotal: Decimal
