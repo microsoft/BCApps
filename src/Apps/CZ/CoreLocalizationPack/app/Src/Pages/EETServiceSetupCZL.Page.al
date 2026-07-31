@@ -38,6 +38,8 @@ page 31142 "EET Service Setup CZL"
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
                     ToolTip = 'Specifies the settings for the simplified scheme sales.';
+                    // TODO: obsolete
+                    Visible = false;
                 }
                 field("Limit Response Time"; Rec."Limit Response Time")
                 {
