@@ -13,7 +13,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Enums;
@@ -819,11 +818,6 @@ table 1381 "Customer Templ."
         field(17111; "S/T Expiry Date"; Date)
         {
             Caption = 'S/T Expiry Date';
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
         }
         field(28070; "Tax Document Type"; Option)
         {

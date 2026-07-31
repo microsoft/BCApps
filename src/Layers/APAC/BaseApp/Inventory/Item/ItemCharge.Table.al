@@ -8,7 +8,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 
@@ -99,11 +98,6 @@ table 5800 "Item Charge"
             begin
                 Rec.ValidateShortcutDimCode(2, "Global Dimension 2 Code");
             end;
-        }
-        field(28040; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
         }
     }
 

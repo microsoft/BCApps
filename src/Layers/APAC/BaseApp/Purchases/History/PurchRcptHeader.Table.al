@@ -16,7 +16,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -609,15 +608,6 @@ table 120 "Purch. Rcpt. Header"
         field(11622; "ABN Division Part No."; Text[3])
         {
             Caption = 'ABN Division Part No.';
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "Actual Vendor No."; Code[20])
-        {
-            Caption = 'Actual Vendor No.';
         }
     }
 

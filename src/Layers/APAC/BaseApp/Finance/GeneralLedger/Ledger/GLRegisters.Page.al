@@ -10,7 +10,6 @@ using Microsoft.Finance.Dimension.Correction;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.Foundation.AuditCodes;
@@ -113,16 +112,6 @@ page 116 "G/L Registers"
                 field("To VAT Entry No."; Rec."To VAT Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                }
-                field("From WHT Entry No."; Rec."From WHT Entry No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the first WHT entry number in the register.';
-                }
-                field("To WHT Entry No."; Rec."To WHT Entry No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last entry number in the register.';
                 }
                 field("No. of Transactions"; Rec."No. of Transactions")
                 {
@@ -279,13 +268,6 @@ page 116 "G/L Registers"
                         DimensionCorrectionMgt.CreateCorrectionFromGLRegister(GLRegsiter, DimensionCorrection);
                         Page.Run(PAGE::"Dimension Correction Draft", DimensionCorrection);
                     end;
-                }
-                action("WHT Entries")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'WHT Entries';
-                    RunObject = Codeunit "G/L Reg.-WHT Entries";
-                    ToolTip = 'View the withholding tax entries for the register.';
                 }
             }
         }

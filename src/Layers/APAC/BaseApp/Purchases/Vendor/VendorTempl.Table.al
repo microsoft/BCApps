@@ -13,7 +13,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Enums;
@@ -493,15 +492,6 @@ table 1383 "Vendor Templ."
         field(17100; "IRD No."; Text[30])
         {
             Caption = 'IRD No.';
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28042; "WHT Registration ID"; Text[20])
-        {
-            Caption = 'WHT Registration ID';
         }
         field(28043; "ID No."; Text[20])
         {

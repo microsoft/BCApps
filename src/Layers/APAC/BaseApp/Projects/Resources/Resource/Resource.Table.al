@@ -11,7 +11,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.ExtendedText;
@@ -692,11 +691,6 @@ table 156 Resource
             Caption = 'Default Deferral Template Code';
             ToolTip = 'Specifies the default template that governs how to defer revenues and expenses to the periods when they occurred.';
             TableRelation = "Deferral Template"."Deferral Code";
-        }
-        field(28040; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
         }
     }
 

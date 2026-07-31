@@ -11,7 +11,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -761,22 +760,6 @@ table 123 "Purch. Inv. Line"
             ToolTip = 'Specifies the number of fixed assets that is being purchased.';
             MinValue = 0;
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
-        }
-        field(28042; "WHT Absorb Base"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'WHT Absorb Base';
-        }
         field(28081; "VAT Base (ACY)"; Decimal)
         {
             AutoFormatType = 1;
@@ -838,9 +821,6 @@ table 123 "Purch. Inv. Line"
             IncludedFields = "Quantity (Base)";
         }
         key(Key4; "Buy-from Vendor No.")
-        {
-        }
-        key(Key5; "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
         {
         }
         key(Key6; "Order No.", "Order Line No.", "Posting Date")

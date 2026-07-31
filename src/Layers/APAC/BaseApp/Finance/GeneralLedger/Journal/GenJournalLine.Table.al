@@ -27,7 +27,6 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -3957,58 +3956,6 @@ table 81 "Gen. Journal Line"
                 end;
             end;
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
-        }
-        field(28042; "WHT Absorb Base"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            Caption = 'WHT Absorb Base';
-        }
-        field(28043; "WHT Entry No."; Integer)
-        {
-            Caption = 'WHT Entry No.';
-        }
-        field(28044; "WHT Report Line No."; Code[20])
-        {
-            Caption = 'WHT Report Line No.';
-        }
-        field(28045; "Skip WHT"; Boolean)
-        {
-            Caption = 'Skip WHT';
-        }
-        field(28046; "Certificate Printed"; Boolean)
-        {
-            Caption = 'Certificate Printed';
-        }
-        field(28047; "WHT Payment"; Boolean)
-        {
-            Caption = 'WHT Payment';
-
-            trigger OnValidate()
-            begin
-                ReadGLSetup();
-                if not GLSetup."Manual Sales WHT Calc." then
-                    "WHT Payment" := false;
-            end;
-        }
-        field(28048; "Actual Vendor No."; Code[20])
-        {
-            Caption = 'Actual Vendor No.';
-            TableRelation = Vendor;
-        }
-        field(28049; "Is WHT"; Boolean)
-        {
-            Caption = 'Is WHT';
-        }
         field(28081; "VAT Base (ACY)"; Decimal)
         {
             AutoFormatType = 1;
@@ -4193,11 +4140,6 @@ table 81 "Gen. Journal Line"
                 GenJnlAlloc.DeleteAll();
         end;
 
-        TempWHTEntry.SetRange("Document Type", "Document Type");
-        TempWHTEntry.SetRange("Original Document No.", "Document No.");
-        if TempWHTEntry.FindFirst() then
-            TempWHTEntry.DeleteAll();
-
         DeferralUtilities.DeferralCodeOnDelete(
             DeferralDocType::"G/L".AsInteger(),
             "Journal Template Name", "Journal Batch Name", 0, '', "Line No.");
@@ -4355,7 +4297,6 @@ table 81 "Gen. Journal Line"
         DocDate: Date;
         CustBankAcc: Record "Customer Bank Account";
         VendBankAcc: Record "Vendor Bank Account";
-        TempWHTEntry: Record "Temp WHT Entry";
         Text1500001: Label '%1 and %2 must be identical or %1 must be Blank.';
         Text020: Label 'You have not selected the Adjustment Applies-to, Do you still want to continue with the Document.';
         Text021: Label 'The posting has been interrupted to respect the warning.';
@@ -7082,8 +7023,6 @@ table 81 "Gen. Journal Line"
             "Recipient Bank Account" := '';
         if xRec."Account No." <> '' then begin
             ClearPostingGroups();
-            "WHT Business Posting Group" := '';
-            "WHT Product Posting Group" := '';
             "Tax Area Code" := '';
             "Tax Liable" := false;
             "Tax Group Code" := '';
@@ -7091,6 +7030,7 @@ table 81 "Gen. Journal Line"
             "Ship-to/Order Address Code" := '';
             "Sell-to/Buy-from No." := '';
             UpdateCountryCodeAndVATRegNo('');
+            OnCleanLineOnAfterUpdateCountryCodeAndVATRegNo(Rec, xRec);
         end;
 
         case "Account Type" of
@@ -8183,8 +8123,7 @@ table 81 "Gen. Journal Line"
             "Gen. Prod. Posting Group" := GLAcc."Gen. Prod. Posting Group";
             "VAT Bus. Posting Group" := GLAcc."VAT Bus. Posting Group";
             "VAT Prod. Posting Group" := GLAcc."VAT Prod. Posting Group";
-            "WHT Business Posting Group" := GLAcc."WHT Business Posting Group";
-            "WHT Product Posting Group" := GLAcc."WHT Product Posting Group";
+            OnGetGLAccountOnAfterCopyVATSetupToJnlLines(Rec, GLAcc);
         end;
         "Tax Area Code" := GLAcc."Tax Area Code";
         "Tax Liable" := GLAcc."Tax Liable";
@@ -8192,8 +8131,7 @@ table 81 "Gen. Journal Line"
         if Rec."Posting Date" <> 0D then
             if "Posting Date" = ClosingDate("Posting Date") then begin
                 ClearPostingGroups();
-                "WHT Business Posting Group" := '';
-                "WHT Product Posting Group" := '';
+                OnGetAccountNoOnAfterClearPostingGroupsForClosingDate(Rec);
             end;
         Validate("Deferral Code", GLAcc."Default Deferral Template Code");
 
@@ -8274,8 +8212,6 @@ table 81 "Gen. Journal Line"
         if not SetCurrencyCode("Bal. Account Type", "Bal. Account No.") then
             "Currency Code" := Cust."Currency Code";
         ClearPostingGroups();
-        "WHT Business Posting Group" := Cust."WHT Business Posting Group";
-        "WHT Product Posting Group" := '';
         CheckConfirmDifferentCustomerAndBillToCustomer(Cust, "Account No.");
         OnGetCustomerAccountOnBeforeValidatePaymentTermsCode(Rec, Cust, HideValidationDialog);
         Validate("Payment Terms Code");
@@ -8350,7 +8286,6 @@ table 81 "Gen. Journal Line"
         Vend.Get("Account No.");
         Vend.CheckBlockedVendOnJnls(Vend, "Document Type", false);
         CheckICPartner(Vend."IC Partner Code", "Account Type", "Account No.");
-        "Skip WHT" := Vend.ABN <> '';
         UpdateDescription(Vend.Name);
         "Payment Method Code" := Vend."Payment Method Code";
         "Creditor No." := Vend."Creditor No.";
@@ -8366,8 +8301,6 @@ table 81 "Gen. Journal Line"
         if not SetCurrencyCode("Bal. Account Type", "Bal. Account No.") then
             "Currency Code" := Vend."Currency Code";
         ClearPostingGroups();
-        "WHT Business Posting Group" := Vend."WHT Business Posting Group";
-        "WHT Product Posting Group" := '';
         CheckConfirmDifferentVendorAndPayToVendor(Vend, "Account No.");
         Validate("Payment Terms Code");
         CheckPaymentTolerance();
@@ -13210,13 +13143,14 @@ table 81 "Gen. Journal Line"
     /// This event allows developers to add custom logic after the "Remaining Amount" field has been calculated on the Vendor Ledger Entry.
     /// </summary>
     /// <param name="VendorLedgerEntry">The Vendor Ledger Entry record with the calculated "Remaining Amount".</param>
+    /// <param name="GenJournalLine">The Gen. Journal Line record.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterShouldCheckAdjustmentAppliesTo(var GenJournalLine: Record "Gen. Journal Line"; var ShouldCheck: Boolean)
+    local procedure OnGetVendLedgerEntryOnAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetVendLedgerEntryOnAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
+    local procedure OnAfterShouldCheckAdjustmentAppliesTo(var GenJournalLine: Record "Gen. Journal Line"; var ShouldCheck: Boolean)
     begin
     end;
 
@@ -13268,6 +13202,21 @@ table 81 "Gen. Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetAccCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; var CurrencyCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetGLAccountOnAfterCopyVATSetupToJnlLines(var Rec: Record "Gen. Journal Line"; var GLAcc: Record "G/L Account")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetAccountNoOnAfterClearPostingGroupsForClosingDate(var Rec: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCleanLineOnAfterUpdateCountryCodeAndVATRegNo(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line")
     begin
     end;
 }

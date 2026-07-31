@@ -13,7 +13,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -462,18 +461,6 @@ table 55 "Invoice Posting Buffer"
             Caption = 'No. of Fixed Asset Cards';
             DataClassification = SystemMetadata;
             MinValue = 0;
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            DataClassification = SystemMetadata;
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            DataClassification = SystemMetadata;
-            TableRelation = "WHT Product Posting Group";
         }
         field(28081; "VAT Base (ACY)"; Decimal)
         {

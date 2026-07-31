@@ -879,7 +879,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         GenJnlLine."Account No." := SalesHeader."Bill-to Customer No.";
         GenJnlLine.CopyFromSalesHeader(SalesHeader);
         GenJnlLine.SetCurrencyFactor(SalesHeader."Currency Code", SalesHeader."Currency Factor");
-        GenJnlLine."WHT Business Posting Group" := SalesHeader."WHT Business Posting Group";
 
         GenJnlLine."System-Created Entry" := true;
 
@@ -908,16 +907,9 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         if IsHandled then
             exit;
 
-        GenJnlLine.Amount := -TotalSalesLine."Amount Including VAT" + SalesHeader."WHT Amount";
-        GenJnlLine."Source Currency Amount" := -TotalSalesLine."Amount Including VAT" + SalesHeader."WHT Amount";
-        if (SalesHeader."WHT Amount" <> 0) and (SalesHeader."Currency Code" <> '') then
-            GenJnlLine."Amount (LCY)" :=
-              -(TotalSalesLineLCY."Amount Including VAT" -
-                Round(
-                  CurrExchRate.ExchangeAmtFCYToLCY(
-                    SalesHeader."Posting Date", SalesHeader."Currency Code", SalesHeader."WHT Amount", SalesHeader."Currency Factor")))
-        else
-            GenJnlLine."Amount (LCY)" := -(TotalSalesLineLCY."Amount Including VAT" - SalesHeader."WHT Amount");
+        GenJnlLine.Amount := -TotalSalesLine."Amount Including VAT";
+        GenJnlLine."Source Currency Amount" := -TotalSalesLine."Amount Including VAT";
+        GenJnlLine."Amount (LCY)" := -TotalSalesLineLCY."Amount Including VAT";
         GenJnlLine."Sales/Purch. (LCY)" := -TotalSalesLineLCY.Amount;
         GenJnlLine."Profit (LCY)" := -(TotalSalesLineLCY.Amount - TotalSalesLineLCY."Unit Cost (LCY)");
         GenJnlLine."Inv. Discount (LCY)" := -TotalSalesLineLCY."Inv. Discount Amount";
@@ -925,6 +917,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         GenJnlLine."Orig. Pmt. Disc. Possible(LCY)" :=
             CurrExchRate.ExchangeAmtFCYToLCY(
                 SalesHeader.GetUseDate(), SalesHeader."Currency Code", -TotalSalesLine."Pmt. Discount Amount", SalesHeader."Currency Factor");
+
+        SalesPostInvoiceEvents.RunOnAfterInitGenJnlLineAmountFieldsFromTotalLines(GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY);
     end;
 
     /// <summary>
@@ -970,7 +964,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             if GenJnlBatch.FindFirst() then
                 GenJournalLine.Validate("Journal Batch Name", GenJnlBatch.Name);
         end;
-        GenJournalLine."WHT Business Posting Group" := SalesHeader."WHT Business Posting Group";
 
         GenJournalLine.CopyDocumentFields(
             GenJournalLine."Document Type"::" ", InvoicePostingParameters."Document No.",

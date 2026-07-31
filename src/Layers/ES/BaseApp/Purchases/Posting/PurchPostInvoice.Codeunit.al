@@ -153,6 +153,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         if PurchLine."Deferral Code" <> '' then
             GetAmountsForDeferral(PurchLine, AmtToDefer, AmtToDeferACY, DeferralAccount);
 
+        PurchPostInvoiceEvents.RunOnPrepareLineOnBeforeSetInvoiceDiscountPosting(PurchHeader, PurchLine, GenPostingSetup, TotalAmount, TotalAmountACY);
+
         InvoiceDiscountPosting := PurchSetup."Post Invoice Discount";
         PurchPostInvoiceEvents.RunOnPrepareLineOnAfterSetInvoiceDiscountPosting(PurchHeader, PurchLine, InvoiceDiscountPosting);
         if InvoiceDiscountPosting then begin

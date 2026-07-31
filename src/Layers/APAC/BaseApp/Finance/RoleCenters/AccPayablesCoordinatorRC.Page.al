@@ -9,7 +9,6 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Item;
@@ -219,73 +218,6 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Report "Purchase Receipts";
                 ToolTip = 'View the list of purchase receipts.';
             }
-            action("Purch. - Tax Invoice")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Purch. - Tax Invoice';
-                Image = "Report";
-                RunObject = Report "Purch. - Tax Invoice";
-                ToolTip = 'Create a new purchase tax credit invoice.';
-            }
-            action("Purch. - Tax Credit Memo")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Purch. - Tax Credit Memo';
-                Image = "Report";
-                RunObject = Report "Purch. - Tax Cr. Memo";
-                ToolTip = 'Create a new purchase tax credit memo.';
-            }
-            separator(Action1500008)
-            {
-            }
-            action("WHT Certificate")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT Certificate';
-                Image = "Report";
-                RunObject = Report "WHT Certificate";
-                ToolTip = 'View the withholding tax certificate.';
-            }
-            action("WHT Certificate Preprint")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT Certificate Preprint';
-                Image = "Report";
-                RunObject = Report "WHT certificate preprint";
-                ToolTip = 'View the withholding tax certificate.';
-            }
-            action("WHT Certificate TH - Copy")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT Certificate TH - Copy';
-                Image = "Report";
-                RunObject = Report "WHT Certificate TH - Copy";
-                ToolTip = 'View the withholding tax certificate.';
-            }
-            action("WHT Certificate Preprint - Copy")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT Certificate Preprint - Copy';
-                Image = "Report";
-                RunObject = Report "WHT certificate preprint Copy";
-                ToolTip = 'View the withholding tax certificate.';
-            }
-            action("WHT Certificate - Other")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT Certificate - Other';
-                Image = "Report";
-                RunObject = Report "WHT Certificate - Other";
-                ToolTip = 'View the withholding tax certificate.';
-            }
-            action("WHT Certificate - Other Copy")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT Certificate - Other Copy';
-                Image = "Report";
-                RunObject = Report "WHT Certificate - Other Copy";
-                ToolTip = 'View the withholding tax certificate.';
-            }
             separator(Action1500015)
             {
             }
@@ -450,20 +382,6 @@ page 9002 "Acc. Payables Coordinator RC"
                     Image = GLRegisters;
                     RunObject = Page "G/L Registers";
                     ToolTip = 'View posted G/L entries.';
-                }
-                action("Posted Purch. Tax Invoices")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Purch. Tax Invoices';
-                    RunObject = Page "Posted Purch. Tax Invoices";
-                    ToolTip = 'View the list of posted documents.';
-                }
-                action("Posted Purch. Tax Credit Memos")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Purch. Tax Credit Memos';
-                    RunObject = Page "Posted Purch. Tax Cr. Memos";
-                    ToolTip = 'View the list of posted documents.';
                 }
             }
         }

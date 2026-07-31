@@ -19,7 +19,6 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
@@ -361,65 +360,6 @@ page 9004 "Bookkeeper Role Center"
                 RunObject = Report "EC Sales List";
                 ToolTip = 'Calculate VAT amounts from sales, and submit the amounts to a tax authority.';
             }
-            separator(Action1500019)
-            {
-            }
-            action("WHT PND 1")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT PND 1';
-                Image = "Report";
-                RunObject = Report "WHT PND 1";
-                ToolTip = 'Open the WHT PND 1 report.';
-            }
-            action("WHT PND 2")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT PND 2';
-                Image = "Report";
-                RunObject = Report "WHT PND 2";
-                ToolTip = 'Open the WHT PND 2 report.';
-            }
-            action("WHT PND 3")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT PND 3';
-                Image = "Report";
-                RunObject = Report "WHT PND 3";
-                ToolTip = 'Open the WHT PND 3 report.';
-            }
-            action("WHT PND 53")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT PND 53';
-                Image = "Report";
-                RunObject = Report "WHT Report - PND 53";
-                ToolTip = 'Open the WHT PND 53 report.';
-            }
-            action("Certificate of Creditable tax")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Certificate of Creditable tax';
-                Image = "Report";
-                RunObject = Report "Certificate of Creditable tax";
-                ToolTip = 'Start the process of submitting the certificate of creditable tax.';
-            }
-            action("Monthly Remittance Return WHT")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Monthly Remittance Return WHT';
-                Image = "Report";
-                RunObject = Report "Monthly Remittance Return  WHT";
-                ToolTip = 'Start the process of creating the monthly remittance return for withholding tax.';
-            }
-            action("E-Filing")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'E-Filing';
-                Image = "Report";
-                RunObject = Report "E-Filing";
-                ToolTip = 'Start the electronic submission of withholding tax report.';
-            }
             separator(Action1500024)
             {
             }
@@ -652,34 +592,6 @@ page 9004 "Bookkeeper Role Center"
                     RunObject = Page "Posted Purchase Credit Memos";
                     ToolTip = 'Open the list of posted purchase credit memos.';
                 }
-                action("Posted Sales Tax Invoices")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Sales Tax Invoices';
-                    RunObject = Page "Posted Sales Tax Invoices";
-                    ToolTip = 'View the list of posted documents.';
-                }
-                action("Posted Sales Tax Credit Memos")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Sales Tax Credit Memos';
-                    RunObject = Page "Posted Sales Tax Cr. Memos";
-                    ToolTip = 'View the list of posted documents.';
-                }
-                action("Posted Purch. Tax Invoices")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Purch. Tax Invoices';
-                    RunObject = Page "Posted Purch. Tax Invoices";
-                    ToolTip = 'View the list of posted documents.';
-                }
-                action("Posted Purch. Tax Credit Memos")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Purch. Tax Credit Memos';
-                    RunObject = Page "Posted Purch. Tax Cr. Memos";
-                    ToolTip = 'View the list of posted documents.';
-                }
                 action("Issued Reminders")
                 {
                     ApplicationArea = Suite;
@@ -906,14 +818,6 @@ page 9004 "Bookkeeper Role Center"
                 Image = SettleOpenTransactions;
                 RunObject = Report "Calc. and Post VAT Settlement";
                 ToolTip = 'Close open VAT entries and transfers purchase and sales VAT amounts to the VAT settlement account. For every VAT posting group, the batch job finds all the VAT entries in the VAT Entry table that are included in the filters in the definition window.';
-            }
-            action("Calc. and Post WHT Settlement")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Calc. and Post WHT Settlement';
-                Image = "Report";
-                RunObject = Report "Calc. and Post WHT Settlement";
-                ToolTip = 'Start the process of calculating and posting the withholding tax settlement.';
             }
             action("Adjust Settlement Exch. Rates")
             {

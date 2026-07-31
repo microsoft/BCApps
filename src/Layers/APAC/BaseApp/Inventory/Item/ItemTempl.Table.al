@@ -10,7 +10,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
@@ -1155,16 +1154,6 @@ table 1382 "Item Templ."
             trigger OnValidate()
             begin
                 ValidateItemField(FieldNo("Common Item No."));
-            end;
-        }
-        field(28040; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
-
-            trigger OnValidate()
-            begin
-                ValidateItemField(FieldNo("WHT Product Posting Group"));
             end;
         }
     }

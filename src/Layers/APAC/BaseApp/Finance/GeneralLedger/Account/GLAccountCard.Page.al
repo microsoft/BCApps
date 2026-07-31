@@ -12,7 +12,6 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Pricing.Calculation;
@@ -212,16 +211,6 @@ page 17 "G/L Account Card"
                 field("Default IC Partner G/L Acc. No"; Rec."Default IC Partner G/L Acc. No")
                 {
                     ApplicationArea = Intercompany;
-                }
-                field("WHT Business Posting Group"; Rec."WHT Business Posting Group")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a WHT business posting group.';
-                }
-                field("WHT Product Posting Group"; Rec."WHT Product Posting Group")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a WHT Product posting group.';
                 }
                 field("Default Deferral Template Code"; Rec."Default Deferral Template Code")
                 {
@@ -472,14 +461,6 @@ page 17 "G/L Account Card"
                 RunObject = Page "G/L Registers";
                 ToolTip = 'View posted G/L entries.';
             }
-            action("WHT Posting Setup")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'WHT Posting Setup';
-                Image = VATPostingSetup;
-                RunObject = Page "WHT Posting Setup";
-                ToolTip = 'View the information posting.';
-            }
             action(DocsWithoutIC)
             {
                 ApplicationArea = Basic, Suite;
@@ -662,9 +643,6 @@ page 17 "G/L Account Card"
                 {
                 }
                 actionref("Apply Template_Promoted"; "Apply Template")
-                {
-                }
-                actionref("WHT Posting Setup_Promoted"; "WHT Posting Setup")
                 {
                 }
             }

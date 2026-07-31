@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.GeneralLedger.Ledger;
 
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Utilities;
@@ -141,16 +140,6 @@ table 45 "G/L Register"
             Editable = false;
             FieldClass = FlowField;
             ToolTip = 'Specifies the number of general ledger transactions in this register.';
-        }
-        field(28040; "From WHT Entry No."; Integer)
-        {
-            Caption = 'From WHT Entry No.';
-            TableRelation = "WHT Entry";
-        }
-        field(28041; "To WHT Entry No."; Integer)
-        {
-            Caption = 'To WHT Entry No.';
-            TableRelation = "WHT Entry";
         }
     }
 

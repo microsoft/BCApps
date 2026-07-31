@@ -17,7 +17,6 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Setup;
@@ -346,7 +345,7 @@ table 37 "Sales Line"
                 if HasTypeToFillMandatoryFields() then begin
                     if Type <> Type::"Fixed Asset" then
                         ValidateVATProdPostingGroup();
-                    Validate("WHT Product Posting Group");
+                    OnValidateNoOnAfterValidateVATProdPostingGroup(Rec, xRec);
                 end;
 
                 UpdatePrepmtSetupFields();
@@ -4139,22 +4138,6 @@ table 37 "Sales Line"
             Caption = 'Prepmt. VAT Base Deducted';
             Editable = false;
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
-        }
-        field(28042; "WHT Absorb Base"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = "Currency Code";
-            Caption = 'WHT Absorb Base';
-        }
         field(28043; "Full GST"; Decimal)
         {
             AutoFormatType = 1;
@@ -4857,7 +4840,6 @@ table 37 "Sales Line"
         Description := GLAcc.Name;
         "Gen. Prod. Posting Group" := GLAcc."Gen. Prod. Posting Group";
         "VAT Prod. Posting Group" := GLAcc."VAT Prod. Posting Group";
-        "WHT Product Posting Group" := GLAcc."WHT Product Posting Group";
         "Tax Group Code" := GLAcc."Tax Group Code";
         "Allow Invoice Disc." := false;
         "Allow Item Charge Assignment" := false;
@@ -4912,7 +4894,6 @@ table 37 "Sales Line"
         "Units per Parcel" := Item."Units per Parcel";
         "Gen. Prod. Posting Group" := Item."Gen. Prod. Posting Group";
         "VAT Prod. Posting Group" := Item."VAT Prod. Posting Group";
-        "WHT Product Posting Group" := Item."WHT Product Posting Group";
         "Tax Group Code" := Item."Tax Group Code";
         "Item Category Code" := Item."Item Category Code";
         Nonstock := Item."Created From Nonstock Item";
@@ -4962,7 +4943,6 @@ table 37 "Sales Line"
         "Unit Cost (LCY)" := Res."Unit Cost";
         "Gen. Prod. Posting Group" := Res."Gen. Prod. Posting Group";
         "VAT Prod. Posting Group" := Res."VAT Prod. Posting Group";
-        "WHT Product Posting Group" := Res."WHT Product Posting Group";
         "Tax Group Code" := Res."Tax Group Code";
         "Allow Item Charge Assignment" := false;
         OnCopyFromResourceOnBeforeApplyResUnitCost(Rec, Res, SalesHeader);
@@ -4992,7 +4972,6 @@ table 37 "Sales Line"
         Description := ItemCharge.Description;
         "Gen. Prod. Posting Group" := ItemCharge."Gen. Prod. Posting Group";
         "VAT Prod. Posting Group" := ItemCharge."VAT Prod. Posting Group";
-        "WHT Product Posting Group" := ItemCharge."WHT Product Posting Group";
         "Tax Group Code" := ItemCharge."Tax Group Code";
         "Allow Invoice Disc." := false;
         "Allow Item Charge Assignment" := false;
@@ -10312,7 +10291,6 @@ table 37 "Sales Line"
         "Bill-to Customer No." := SalesHeader."Bill-to Customer No.";
         "Price Calculation Method" := SalesHeader."Price Calculation Method";
         "Gen. Bus. Posting Group" := SalesHeader."Gen. Bus. Posting Group";
-        "WHT Business Posting Group" := SalesHeader."WHT Business Posting Group";
         "VAT Bus. Posting Group" := SalesHeader."VAT Bus. Posting Group";
         "Exit Point" := SalesHeader."Exit Point";
         Area := SalesHeader.Area;
@@ -11123,7 +11101,7 @@ table 37 "Sales Line"
     /// <returns>The quantity in the base unit of measure.</returns>
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
-        IsHandled: Boolean;        
+        IsHandled: Boolean;
     begin
         OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName);
 
@@ -16226,6 +16204,11 @@ table 37 "Sales Line"
     /// <param name="RequiresVATRoundingAdjustment">Specifies whether VAT rounding adjustment is required.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVATRoundingAdjustment(var SalesLine: Record "Sales Line"; StatusCheckSuspended: Boolean; var RequiresVATRoundingAdjustment: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateNoOnAfterValidateVATProdPostingGroup(var Rec: Record "Sales Line"; var xRec: Record "Sales Line")
     begin
     end;
 }

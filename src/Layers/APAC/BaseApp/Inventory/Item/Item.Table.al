@@ -9,7 +9,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Comment;
@@ -2253,11 +2252,6 @@ table 27 Item
             Editable = false;
             FieldClass = FlowField;
             AutoFormatType = 0;
-        }
-        field(28040; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
         }
         field(99000752; "Single-Level Material Cost"; Decimal)
         {
