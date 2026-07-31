@@ -80,7 +80,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] An inbound e-document with header Sub Total intentionally different from the sum of the lines
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
 
         // [WHEN] Editing the line quantity on the draft page
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
@@ -106,7 +106,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] An inbound e-document "E" whose header Sub Total (1000) matches its single line (1000)
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
 
         // [GIVEN] The purchase draft page is open on "E" while the header Sub Total still matches the sum of the lines
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
@@ -139,7 +139,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] An inbound e-document "E" with one line whose subtotal differs from the header by exactly 0.01
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 1000.01);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000.01);
 
         // [WHEN] Opening the purchase draft for "E"
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
@@ -164,7 +164,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] An inbound e-document "E" with header Sub Total 1000.02 and line subtotal 1000
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000.02);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
 
         // [WHEN] Opening the purchase draft for "E"
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
@@ -192,7 +192,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] An inbound e-document "E" with header Sub Total 1000 and line subtotal 1000.02
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 1000.02);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000.02);
 
         // [WHEN] Opening the purchase draft for "E"
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
@@ -219,8 +219,8 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] An inbound e-document "E" with two lines that each round from 500.004 to 500
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000.02);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500.004);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 20000, 1, 500.004);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500.004);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500.004);
 
         // [WHEN] Opening the purchase draft for "E"
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
@@ -245,7 +245,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] An inbound e-document "E" with header Sub Total 1000, line subtotal 1000.02, and a mismatch notification
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 1000.02);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000.02);
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A Sub Total Mismatch notification must exist before reconciling the line.');
 
@@ -277,8 +277,8 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] An inbound e-document "E" with header Sub Total 1000 matching two lines of 500
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 20000, 1, 500);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
         Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'No Sub Total Mismatch notification should exist before deleting the line.');
 
@@ -308,7 +308,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] A draft with header Sub Total 1000 and a single line subtotal 500 (mismatch beyond tolerance)
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
 
         // [GIVEN] The notification row is already marked as dismissed for the user
         SetSubTotalMismatchDismissed(EDocument."Entry No", true);
@@ -335,7 +335,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] A draft with header Sub Total 1000, one line subtotal 500 (mismatch), marked as dismissed
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
         SetSubTotalMismatchDismissed(EDocument."Entry No", true);
 
         // [GIVEN] The draft is open and the notification is suppressed
@@ -365,7 +365,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [GIVEN] A draft with a persisted Sub Total Mismatch notification
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
-        CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
         EDocumentNotification.AddSubTotalMismatchNotification(EDocument."Entry No");
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'The notification must be shown before dismissing.');
 
@@ -403,21 +403,20 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock, Enum::"E-Document Import Process"::"Version 2.0");
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
-        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader := LibraryEDoc.MockPurchaseDraftPrepared(EDocument);
         EDocumentPurchaseHeader."Sub Total" := HeaderSubTotal;
+        EDocumentPurchaseHeader."Total VAT" := 0;
         EDocumentPurchaseHeader.Total := HeaderSubTotal;
-        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseHeader.Modify();
     end;
 
-    local procedure CreatePurchaseLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line"; EDocumentEntryNo: Integer; LineNo: Integer; Quantity: Decimal; UnitPrice: Decimal)
+    local procedure CreatePurchaseLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line"; EDocument: Record "E-Document"; Quantity: Decimal; UnitPrice: Decimal)
     begin
-        Clear(EDocumentPurchaseLine);
-        EDocumentPurchaseLine."E-Document Entry No." := EDocumentEntryNo;
-        EDocumentPurchaseLine."Line No." := LineNo;
+        EDocumentPurchaseLine := LibraryEDoc.InsertPurchaseDraftLine(EDocument);
         EDocumentPurchaseLine.Description := 'Totals test line';
         EDocumentPurchaseLine.Quantity := Quantity;
         EDocumentPurchaseLine."Unit Price" := UnitPrice;
-        EDocumentPurchaseLine.Insert();
+        EDocumentPurchaseLine.Modify();
     end;
 
     local procedure OpenPurchaseDraft(var EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft"; EDocument: Record "E-Document")
