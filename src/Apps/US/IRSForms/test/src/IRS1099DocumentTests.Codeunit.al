@@ -1393,6 +1393,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         PeriodNo: Code[20];
         InvNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO 620132] Setting IRS 1099 Reporting Period on vendor ledger entry of a vendor with no 1099 setup raises an error
 
         Initialize();
@@ -1427,6 +1428,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         FormBoxNo: Code[20];
         InvNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO 620132] Vendor WITH 1099 setup can still validate form box on its ledger entry without error
 
         Initialize();
@@ -1462,6 +1464,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         PeriodNo: Code[20];
         InvNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO 620132] Clearing IRS 1099 Reporting Period on a non-1099 vendor ledger entry does not raise an error
 
         Initialize();
