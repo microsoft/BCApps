@@ -265,10 +265,8 @@ page 46 "Sales Order Subform"
                         UpdateEditableOnRow();
 
                         LookupSelectionRestored := Rec.RestoreLookupSelectionWithResult();
-                        AutoReserveItemFromLookup := LookupSelectionRestored;
                         if (Rec."No." <> xRec."No.") or LookupSelectionRestored then
-                            NoOnAfterValidate();
-                        AutoReserveItemFromLookup := false;
+                            NoOnAfterValidateInternal(LookupSelectionRestored);
                         if Rec."No." <> xRec."No." then begin
                             ResetxRecAmountValues();
                             CalculateTotals();
@@ -1799,7 +1797,6 @@ page 46 "Sales Order Subform"
         VariantCodeMandatory: Boolean;
         LocationCodeVisible: Boolean;
         CurrPageIsEditable: Boolean;
-        AutoReserveItemFromLookup: Boolean;
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
         IsSaaSExcelAddinEnabled: Boolean;
@@ -2065,12 +2062,17 @@ page 46 "Sales Order Subform"
     /// Handles post-validation logic after the No. field is validated.
     /// </summary>
     procedure NoOnAfterValidate()
+    begin
+        NoOnAfterValidateInternal(false);
+    end;
+
+    local procedure NoOnAfterValidateInternal(AutoReserveFromLookup: Boolean)
     var
         NoHasChanged: Boolean;
     begin
         OnBeforeNoOnAfterValidate(Rec, xRec);
 
-        NoHasChanged := (Rec."No." <> xRec."No.") or AutoReserveItemFromLookup;
+        NoHasChanged := (Rec."No." <> xRec."No.") or AutoReserveFromLookup;
 
         InsertExtendedText(false);
         if (Rec.Type = Rec.Type::"Charge (Item)") and (Rec."No." <> xRec."No.") and

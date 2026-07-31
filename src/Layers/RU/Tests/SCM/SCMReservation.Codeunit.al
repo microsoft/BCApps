@@ -30,6 +30,7 @@ codeunit 137049 "SCM Reservation"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryItemReference: Codeunit "Library - Item Reference";
         isInitialized: Boolean;
         MessageCounter: Integer;
         InitialInventory: Decimal;
@@ -2671,6 +2672,67 @@ codeunit 137049 "SCM Reservation"
         SalesLine.CalcFields("Reserved Qty. (Base)");
         Assert.AreNotEqual(0, SalesLine."Outstanding Qty. (Base)", OutstandingQuantityErr);
         Assert.AreEqual(SalesLine."Outstanding Qty. (Base)", SalesLine."Reserved Qty. (Base)", ReservedQuantityErr);
+    end;
+
+    [Test]
+    procedure LookupAutoReserveStateDoesNotSurviveErrorInSalesOrder()
+    var
+        Item: Record Item;
+        ItemReference: Record "Item Reference";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SCMReservationSubscriber: Codeunit "SCM Sales Order Management";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [Reservation] [Sales Order]
+        // [SCENARIO] The Description-lookup auto-reserve state must not survive a validation error and leak into a later Item Reference validation where the item is unchanged.
+        Initialize();
+
+        // [GIVEN] An item with "Reserve" = Always and inventory available.
+        CreateItemAndUpdateInventory(Item, LibraryRandom.RandIntInRange(50, 100));
+        Item.Get(Item."No.");  // Re-read the item as posting the item journal updated its rowversion.
+        Item.Validate(Reserve, Item.Reserve::Always);
+        Item.Modify(true);
+
+        // [GIVEN] A bar code item reference for the item (also makes the "Item Reference No." field visible on the subform).
+        LibraryItemReference.CreateItemReference(ItemReference, Item."No.", ItemReference."Reference Type"::"Bar Code", '');
+
+        // [GIVEN] A sales order line for the item that is not yet reserved.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
+        SalesLine.CalcFields("Reserved Qty. (Base)");
+        SalesLine.TestField("Reserved Qty. (Base)", 0);
+
+        // [GIVEN] The Description lookup selection is recorded and the Description is cleared, so validating it takes the restored-lookup path.
+        SaveItemLookupSelection(SalesLine, Item);
+        SalesLine.Description := '';
+        SalesLine.Modify();
+
+        // [GIVEN] The setup is committed so that the sales line and item reference survive the rollback caused by the upcoming asserterror.
+        // The leaked page-global state that this test guards against lives in memory and is unaffected by the rollback.
+        Commit();
+
+        // [GIVEN] The post-validation flow is forced to fail for this document, simulating an error during the Description-lookup validation.
+        SCMReservationSubscriber.SetForceErrorForDocumentNo(SalesHeader."No.");
+        BindSubscription(SCMReservationSubscriber);
+
+        SalesOrder.OpenEdit();
+        SalesOrder.GotoRecord(SalesHeader);
+        SalesOrder.SalesLines.First();
+
+        // [WHEN] Validating the Description errors out (the old page-global flag would skip its reset here).
+        asserterror SalesOrder.SalesLines.Description.SetValue(Item.Description);
+
+        // [WHEN] The error condition is removed and the user retries by validating the Item Reference No. while the item, and therefore "No.", is unchanged.
+        UnbindSubscription(SCMReservationSubscriber);
+        SalesOrder.SalesLines."Item Reference No.".SetValue(ItemReference."Reference No.");
+        SalesOrder.Close();
+
+        // [THEN] No reservation is created, because the item was not newly selected through the Description lookup during the retry.
+        SelectSalesLine(SalesLine, SalesHeader."No.");
+        SalesLine.TestField("No.", Item."No.");
+        SalesLine.CalcFields("Reserved Qty. (Base)");
+        SalesLine.TestField("Reserved Qty. (Base)", 0);
     end;
 
     local procedure Initialize()
