@@ -4021,7 +4021,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         RemainingAmount: Decimal;
         IsHandled: Boolean;
         Result: Boolean;
-        SufficientEntriesFound: Boolean;
     begin
         IsHandled := false;
         OnBeforePrepareTempCustledgEntry(GenJnlLine, NewCVLedgEntryBuf, Cust, ApplyingDate, Result, IsHandled, TempOldCustLedgEntry);
@@ -4104,11 +4103,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     if PaymentToleranceMgt.CheckCalcPmtDiscCVCust(NewCVLedgEntryBuf, TempOldCustLedgEntry, 0, false, false) then
                         TempOldCustLedgEntry."Remaining Amount" -= TempOldCustLedgEntry.GetRemainingPmtDiscPossible(NewCVLedgEntryBuf."Posting Date");
                     RemainingAmount += TempOldCustLedgEntry."Remaining Amount";
-                    if (Cust."Application Method" = Cust."Application Method"::"Apply to Oldest") and
-                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" <= 0)
-                    then
-                        SufficientEntriesFound := true;
-                until (TempOldCustLedgEntry.Next() = 0) or SufficientEntriesFound;
+                until TempOldCustLedgEntry.Next() = 0;
                 TempOldCustLedgEntry.SetRange(Positive, RemainingAmount < 0);
             end else
                 TempOldCustLedgEntry.SetRange(Positive);
@@ -4884,7 +4879,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         RemainingAmount: Decimal;
         IsHandled: Boolean;
         Result: Boolean;
-        SufficientEntriesFound: Boolean;
     begin
         IsHandled := false;
         OnBeforePrepareTempVendLedgEntry(GenJnlLine, NewCVLedgEntryBuf, TempOldVendLedgEntry, Vend, ApplyingDate, Result, IsHandled);
@@ -4962,11 +4956,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     if PaymentToleranceMgt.CheckCalcPmtDiscCVVend(NewCVLedgEntryBuf, TempOldVendLedgEntry, 0, false, false) then
                         TempOldVendLedgEntry."Remaining Amount" -= TempOldVendLedgEntry.GetRemainingPmtDiscPossible(NewCVLedgEntryBuf."Posting Date");
                     RemainingAmount += TempOldVendLedgEntry."Remaining Amount";
-                    if (Vend."Application Method" = Vend."Application Method"::"Apply to Oldest") and
-                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" <= 0)
-                    then
-                        SufficientEntriesFound := true;
-                until (TempOldVendLedgEntry.Next() = 0) or SufficientEntriesFound;
+                until TempOldVendLedgEntry.Next() = 0;
                 TempOldVendLedgEntry.SetRange(Positive, RemainingAmount < 0);
             end else
                 TempOldVendLedgEntry.SetRange(Positive);
@@ -4983,7 +4973,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         RemainingAmount: Decimal;
         IsHandled: Boolean;
         Result: Boolean;
-        SufficientEntriesFound: Boolean;
     begin
         IsHandled := false;
         OnBeforePrepareTempEmplLedgEntry(GenJnlLine, NewCVLedgEntryBuf, TempOldEmplLedgEntry, Employee, ApplyingDate, Result, IsHandled);
@@ -5046,11 +5035,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                       TempOldEmplLedgEntry."Currency Code", NewCVLedgEntryBuf."Currency Code", NewCVLedgEntryBuf."Posting Date");
                     OnPrepareTempEmplLedgEntryOnBeforeUpdateRemainingAmount(TempOldEmplLedgEntry, NewCVLedgEntryBuf);
                     RemainingAmount += TempOldEmplLedgEntry."Remaining Amount";
-                    if (Employee."Application Method" = Employee."Application Method"::"Apply to Oldest") and
-                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" <= 0)
-                    then
-                        SufficientEntriesFound := true;
-                until (TempOldEmplLedgEntry.Next() = 0) or SufficientEntriesFound;
+                until TempOldEmplLedgEntry.Next() = 0;
                 TempOldEmplLedgEntry.SetRange(Positive, RemainingAmount < 0);
             end else
                 TempOldEmplLedgEntry.SetRange(Positive);
