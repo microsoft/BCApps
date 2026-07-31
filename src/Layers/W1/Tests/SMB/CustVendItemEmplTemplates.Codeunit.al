@@ -40,6 +40,7 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         ItemTemplateAllowInvoiceDiscErr: Label 'Item template should have value "Allow Invoice Disc." set to %1', Comment = '%1 = value of "Allow Invoice Disc." field which can be either true or false.';
         ItemAllowInvoiceDiscErr: Label 'Item should have received the value "Allow Invoice Disc." = % from the Item Template', Comment = '%1 = value of "Allow Invoice Disc." field which can be either true or false.';
         ItemTrackingCodeErr: Label '%1 should be empty', Comment = '%1 = Field Caption';
+        BlankOptionAttributeErr: Label 'You must enter a value for the Option attribute %1. Blank values are not allowed for Option-type attributes.', Comment = '%1 - attribute name';
 
     [Test]
     [Scope('OnPrem')]
@@ -3354,10 +3355,13 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         ItemCategoryCard.OpenEdit();
         ItemCategoryCard.GotoRecord(ItemCategory);
 
-        // [WHEN] User adds a new attribute line, selects an Option-type attribute, leaves the value blank, and closes the page.
+        // [WHEN] User adds a new attribute line, selects an Option-type attribute, and validates a blank value.
         ItemCategoryCard.Attributes.New();
         ItemCategoryCard.Attributes."Attribute Name".SetValue(ItemAttribute.Name);
-        ItemCategoryCard.Close();
+        asserterror ItemCategoryCard.Attributes.Value.SetValue('');
+
+        // [THEN] The blank Option value is rejected with the expected error.
+        Assert.ExpectedError(StrSubstNo(BlankOptionAttributeErr, ItemAttribute.Name));
 
         // [THEN] Verify no record is created in Item Attribute Value Mapping.
         ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
