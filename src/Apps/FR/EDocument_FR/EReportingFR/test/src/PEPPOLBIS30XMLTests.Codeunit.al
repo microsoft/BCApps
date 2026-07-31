@@ -291,27 +291,33 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     procedure ExportSalesInvIncludesRegulatoryCommentAsNote()
     var
         SalesCommentLine: Record "Sales Comment Line";
+        SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
         CommentText: Text[80];
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
     begin
-        // [SCENARIO] A maintained French regulatory comment is automatically prefixed with its type in a UBL header note
+        // [SCENARIO] A French regulatory comment is carried through posting and exported with its type in a UBL header note
         Initialize();
 
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        InvoiceNo := CreateSalesInvoiceWithLine(CustomerNo);
         CommentText := 'No discount is granted for early payment.';
-        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::"Posted Invoice";
-        SalesCommentLine."No." := SalesInvoiceHeader."No.";
+        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
+        SalesCommentLine."No." := InvoiceNo;
         SalesCommentLine."Line No." := 5000;
         SalesCommentLine.Comment := 'Ordinary comment that must not be exported';
         SalesCommentLine.Insert();
         SalesCommentLine.Init();
-        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::"Posted Invoice";
-        SalesCommentLine."No." := SalesInvoiceHeader."No.";
+        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
+        SalesCommentLine."No." := InvoiceNo;
         SalesCommentLine."Line No." := 10000;
         SalesCommentLine."FR Regulatory Comment Type" := SalesCommentLine."FR Regulatory Comment Type"::AAB;
         SalesCommentLine.Comment := CommentText;
         SalesCommentLine.Insert();
+        SalesHeader.Get("Sales Document Type"::Invoice, InvoiceNo);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
@@ -340,6 +346,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceParticipant.Insert();
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
+        CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
         Assert.AreEqual(EndpointId,
@@ -348,6 +355,9 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreEqual('0225',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
+        Assert.AreEqual('',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification ID'));
     end;
 
     #endregion
@@ -687,6 +697,27 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure CheckRaisesErrorWhenCompanyParticipantSchemeIsMissing()
+    var
+        ServiceParticipant: Record "Service Participant";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [SCENARIO] Check rejects a company participant identifier without its scheme even when SIRET is valid
+        Initialize();
+
+        ServiceParticipant.Init();
+        ServiceParticipant.Service := EDocumentService.Code;
+        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Company;
+        ServiceParticipant."Participant Identifier" := CompanyInformation."Registration No.";
+        ServiceParticipant.Insert();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        Assert.ExpectedError('Participant Identifier and French Identifier Scheme must both be specified for French electronic invoicing.');
+    end;
+
+    [Test]
     procedure CheckRaisesErrorWhenBuyerElectronicAddressIsMissing()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -728,11 +759,10 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustomerNo: Code[20];
     begin
-        // [SCENARIO] Check rejects a service participant identifier without its French identifier scheme
+        // [SCENARIO] Check rejects a service participant identifier without its French identifier scheme even when the customer endpoint is valid
         Initialize();
 
-        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
-        ClearCustomerVATRegistrationNo(CustomerNo);
+        CustomerNo := CreateCustomer('buyer@example.com', "Electronic Address Scheme"::"EM");
         ServiceParticipant.Init();
         ServiceParticipant.Service := EDocumentService.Code;
         ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Customer;
@@ -753,11 +783,10 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustomerNo: Code[20];
     begin
-        // [SCENARIO] Check rejects a French identifier scheme without its service participant identifier
+        // [SCENARIO] Check rejects a French identifier scheme without its service participant identifier even when the customer endpoint is valid
         Initialize();
 
-        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
-        ClearCustomerVATRegistrationNo(CustomerNo);
+        CustomerNo := CreateCustomer('buyer@example.com', "Electronic Address Scheme"::"EM");
         ServiceParticipant.Init();
         ServiceParticipant.Service := EDocumentService.Code;
         ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Customer;
