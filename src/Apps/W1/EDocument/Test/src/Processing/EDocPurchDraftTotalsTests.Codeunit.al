@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.Currency;
 using Microsoft.Purchases.Vendor;
 
 codeunit 135648 "E-Doc Purch Draft Totals Tests"
@@ -19,6 +20,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         LibraryEDoc: Codeunit "Library - E-Document";
+        LibraryUtility: Codeunit "Library - Utility";
         ExpectedNotificationId: Guid;
         ExpectedNotificationEntryNo: Integer;
         SentNotificationCount: Integer;
@@ -395,6 +397,307 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         Assert.IsTrue(GetSubTotalMismatchDismissed(EDocument."Entry No"), 'Dismissing must mark the notification as dismissed.');
     end;
 
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure HeaderSubTotalEditBeyondToleranceCreatesMismatchNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Editing the header Amount Excl. VAT so it diverges from the lines creates and shows the mismatch notification
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" whose header Sub Total (1000) matches its single line (1000)
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
+
+        // [GIVEN] The purchase draft page is open on "E" without a mismatch
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
+        OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
+        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'No Sub Total Mismatch notification should exist before the header edit.');
+
+        // [WHEN] Setting the header Amount Excl. VAT to 1500
+        EDocumentPurchaseDraft."Amount Excl. VAT".SetValue(1500);
+
+        // [THEN] The Sub Total Mismatch notification is persisted and shown for "E"
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Editing the header Sub Total beyond the tolerance must create a notification.');
+        VerifySubTotalMismatchNotificationShown();
+
+        // [THEN] The edited header totals are kept
+        VerifyHeaderTotals(EDocumentPurchaseHeader, 1500, 1500);
+        EDocumentPurchaseDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure HeaderSubTotalEditToMatchLinesRemovesMismatchNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Editing the header Amount Excl. VAT so it matches the lines removes the mismatch notification
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" with header Sub Total 1500 and a single line of 1000
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1500);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
+
+        // [GIVEN] The purchase draft page is open on "E" and the mismatch notification was shown
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
+        OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A Sub Total Mismatch notification must exist before the header edit.');
+        VerifySubTotalMismatchNotificationShown();
+
+        // [WHEN] Setting the header Amount Excl. VAT to 1000
+        EDocumentPurchaseDraft."Amount Excl. VAT".SetValue(1000);
+
+        // [THEN] The Sub Total Mismatch notification is removed for "E"
+        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Reconciling the header Sub Total must remove the notification.');
+
+        // [THEN] The edited header totals are kept
+        VerifyHeaderTotals(EDocumentPurchaseHeader, 1000, 1000);
+        EDocumentPurchaseDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure HeaderSubTotalEditReArmsDismissedMismatchNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Editing the header Amount Excl. VAT re-arms a previously dismissed mismatch notification
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" with header Sub Total 1000, a single line of 500, and a dismissed notification
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
+        SetSubTotalMismatchDismissed(EDocument."Entry No", true);
+
+        // [GIVEN] The purchase draft page is open on "E" and the notification is suppressed
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
+        OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
+        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'The notification must be suppressed before the header edit.');
+
+        // [WHEN] Setting the header Amount Excl. VAT to 1500 (lines subtotal 500, still a mismatch)
+        EDocumentPurchaseDraft."Amount Excl. VAT".SetValue(1500);
+
+        // [THEN] The notification is shown again and the dismissed state is cleared
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Editing the header Sub Total must re-arm and re-show the mismatch notification.');
+        Assert.IsFalse(GetSubTotalMismatchDismissed(EDocument."Entry No"), 'Editing the header Sub Total must clear the dismissed state.');
+        VerifySubTotalMismatchNotificationShown();
+        EDocumentPurchaseDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure CurrencyCodeEditToCoarserRoundingRemovesMismatchNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Changing the header Currency Code to a currency with a coarser rounding precision widens the tolerance and removes the mismatch notification
+        Initialize();
+
+        // [GIVEN] A currency "C" with Amount Rounding Precision 1
+        CurrencyCode := CreateCurrencyWithRoundingPrecision(1);
+
+        // [GIVEN] An inbound e-document "E" in local currency with header Sub Total 1000.5 and a single line of 1000
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000.5);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
+
+        // [GIVEN] The purchase draft page is open on "E" and the mismatch notification was shown for the 0.01 tolerance
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
+        OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A Sub Total Mismatch notification must exist in local currency.');
+        VerifySubTotalMismatchNotificationShown();
+
+        // [WHEN] Setting the header Currency Code to "C"
+        EDocumentPurchaseDraft."Currency Code".SetValue(CurrencyCode);
+
+        // [THEN] The 0.5 difference is within the one-line tolerance of 1 and the notification is removed
+        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A coarser rounding precision must widen the tolerance and remove the notification.');
+        EDocumentPurchaseDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure CurrencyCodeEditToFinerRoundingCreatesMismatchNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Changing the header Currency Code to local currency narrows the tolerance and creates the mismatch notification
+        Initialize();
+
+        // [GIVEN] A currency "C" with Amount Rounding Precision 1
+        CurrencyCode := CreateCurrencyWithRoundingPrecision(1);
+
+        // [GIVEN] An inbound e-document "E" in "C" with header Sub Total 1000.5 and a single line of 1000
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000.5);
+        SetHeaderCurrencyCode(EDocumentPurchaseHeader, CurrencyCode);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
+
+        // [GIVEN] The purchase draft page is open on "E" without a mismatch because the tolerance is 1
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
+        OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
+        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'No Sub Total Mismatch notification should exist for the coarse rounding precision.');
+
+        // [WHEN] Clearing the header Currency Code so local currency rounding applies
+        EDocumentPurchaseDraft."Currency Code".SetValue('');
+
+        // [THEN] The 0.5 difference exceeds the one-line tolerance of 0.01 and the notification is shown
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A finer rounding precision must narrow the tolerance and create the notification.');
+        VerifySubTotalMismatchNotificationShown();
+        EDocumentPurchaseDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure LineDeletionEvaluationExcludesDeletedLineAndCreatesNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentNotification: Codeunit "E-Document Notification";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] The line deletion evaluation, as run by the subform OnDeleteRecord trigger, excludes the line being deleted while it is still persisted
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" with header Sub Total 1000 matching two lines "L1" and "L2" of 500
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
+        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'No Sub Total Mismatch notification should exist while the lines match the header.');
+
+        // [WHEN] Evaluating the mismatch for "L2" as deleted, before the row is removed from the database
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
+        EDocumentNotification.EvaluateSubTotalMismatchOnLineEdit(EDocumentPurchaseLine, true);
+
+        // [THEN] The remaining line subtotal of 500 no longer matches the header and the notification is shown
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Deleting a line must exclude it from the lines subtotal and create a notification.');
+        VerifySubTotalMismatchNotificationShown();
+
+        // [THEN] The extracted header totals remain unchanged
+        VerifyHeaderTotals(EDocumentPurchaseHeader, 1000, 1000);
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure LineDeletionEvaluationReconcilingSubTotalRemovesNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentNotification: Codeunit "E-Document Notification";
+        EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Deleting the line that caused the divergence removes the mismatch notification
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" with header Sub Total 1000 and lines "L1" of 1000 and "L2" of 500
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
+
+        // [GIVEN] The purchase draft page is open on "E" and the mismatch notification was shown
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
+        OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'A Sub Total Mismatch notification must exist before deleting the line.');
+        VerifySubTotalMismatchNotificationShown();
+
+        // [WHEN] Evaluating the mismatch for "L2" as deleted
+        EDocumentNotification.EvaluateSubTotalMismatchOnLineEdit(EDocumentPurchaseLine, true);
+
+        // [THEN] The remaining line subtotal of 1000 matches the header and the notification is removed
+        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Deleting the diverging line must remove the notification.');
+
+        // [THEN] The extracted header totals remain unchanged
+        VerifyHeaderTotals(EDocumentPurchaseHeader, 1000, 1000);
+        EDocumentPurchaseDraft.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure DismissVendorMatchNotificationKeepsRowMarkedDismissed()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentNotification: Codeunit "E-Document Notification";
+        DismissNotification: Notification;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Dismissing the Vendor Matched By Name Not Address notification keeps the row and marks it as dismissed
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" with a Vendor Matched By Name Not Address notification
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
+        EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocument."Entry No");
+
+        // [GIVEN] The notification is sent for "E"
+        ExpectVendorMatchNotification(EDocument."Entry No");
+        EDocumentNotification.SendPurchaseDocumentDraftNotifications(EDocument."Entry No");
+        VerifyNotificationSentCount(1);
+
+        // [WHEN] The Dismiss action runs
+        DismissNotification := BuildVendorMatchNotification(EDocument."Entry No");
+        EDocumentNotification.DismissVendorMatchedByNameNotAddressNotification(DismissNotification);
+
+        // [THEN] The row is kept and marked as dismissed
+        Assert.AreEqual(1, CountVendorMatchNotificationRows(EDocument."Entry No"), 'Dismissing must keep the persisted notification row.');
+        Assert.IsTrue(GetVendorMatchDismissed(EDocument."Entry No"), 'Dismissing must mark the notification as dismissed.');
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure DismissedVendorMatchNotificationIsNotSentAgain()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentNotification: Codeunit "E-Document Notification";
+        DismissNotification: Notification;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A dismissed Vendor Matched By Name Not Address notification is not sent again when the draft notifications are sent
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" with a Vendor Matched By Name Not Address notification that was sent once
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
+        EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocument."Entry No");
+        ExpectVendorMatchNotification(EDocument."Entry No");
+        EDocumentNotification.SendPurchaseDocumentDraftNotifications(EDocument."Entry No");
+        VerifyNotificationSentCount(1);
+
+        // [GIVEN] The user dismissed the notification
+        DismissNotification := BuildVendorMatchNotification(EDocument."Entry No");
+        EDocumentNotification.DismissVendorMatchedByNameNotAddressNotification(DismissNotification);
+
+        // [WHEN] Sending the purchase draft notifications for "E" again
+        EDocumentNotification.SendPurchaseDocumentDraftNotifications(EDocument."Entry No");
+
+        // [THEN] The notification is not sent a second time
+        VerifyNotificationSentCount(1);
+    end;
+
     local procedure Initialize()
     var
         EDocument: Record "E-Document";
@@ -403,7 +706,6 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocumentNotificationRec: Record "E-Document Notification";
     begin
-        EDocumentNotificationRec.SetRange(Type, "E-Document Notification Type"::"Sub Total Mismatch");
         EDocumentNotificationRec.SetRange("User Id", UserId());
         EDocumentNotificationRec.DeleteAll();
         EDocumentPurchaseLine.DeleteAll();
@@ -443,6 +745,25 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         EDocumentPurchaseDraft.Trap();
         Page.Run(Page::"E-Document Purchase Draft", EDocument);
         EDocumentPurchaseDraft.Lines.First();
+    end;
+
+    local procedure CreateCurrencyWithRoundingPrecision(RoundingPrecision: Decimal): Code[10]
+    var
+        Currency: Record Currency;
+    begin
+        // The Code validation raises the base application missing exchange rates notification, which would reach the shared notification handler.
+        Currency.Init();
+        Currency.Code := CopyStr(LibraryUtility.GenerateRandomCode(Currency.FieldNo(Code), Database::Currency), 1, MaxStrLen(Currency.Code));
+        Currency."Amount Rounding Precision" := RoundingPrecision;
+        Currency."Unit-Amount Rounding Precision" := RoundingPrecision;
+        Currency.Insert();
+        exit(Currency.Code);
+    end;
+
+    local procedure SetHeaderCurrencyCode(var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; CurrencyCode: Code[10])
+    begin
+        EDocumentPurchaseHeader."Currency Code" := CurrencyCode;
+        EDocumentPurchaseHeader.Modify();
     end;
 
     local procedure CountSubTotalMismatchNotifications(EDocumentEntryNo: Integer): Integer
@@ -511,6 +832,50 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
     local procedure VerifySubTotalMismatchNotificationShown()
     begin
         Assert.IsTrue(SentNotificationCount > 0, 'The Sub Total Mismatch notification must be shown.');
+    end;
+
+    local procedure VerifyNotificationSentCount(ExpectedCount: Integer)
+    begin
+        Assert.AreEqual(ExpectedCount, SentNotificationCount, 'The notification was sent an unexpected number of times.');
+    end;
+
+    local procedure VendorMatchNotificationId(): Guid
+    begin
+        exit('bc0d8537-8e8d-4d94-a07a-a5a54c729d2a');
+    end;
+
+    local procedure CountVendorMatchNotificationRows(EDocumentEntryNo: Integer): Integer
+    var
+        EDocumentNotificationRec: Record "E-Document Notification";
+    begin
+        EDocumentNotificationRec.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        EDocumentNotificationRec.SetRange(Type, "E-Document Notification Type"::"Vendor Matched By Name Not Address");
+        EDocumentNotificationRec.SetRange("User Id", UserId());
+        exit(EDocumentNotificationRec.Count());
+    end;
+
+    local procedure GetVendorMatchDismissed(EDocumentEntryNo: Integer): Boolean
+    var
+        EDocumentNotificationRec: Record "E-Document Notification";
+    begin
+        if EDocumentNotificationRec.Get(EDocumentEntryNo, VendorMatchNotificationId(), UserId()) then
+            exit(EDocumentNotificationRec.Dismissed);
+        exit(false);
+    end;
+
+    local procedure BuildVendorMatchNotification(EDocumentEntryNo: Integer) Notification: Notification
+    var
+        EDocumentNotificationRec: Record "E-Document Notification";
+    begin
+        Notification.SetData(EDocumentNotificationRec.FieldName("E-Document Entry No."), Format(EDocumentEntryNo));
+        Notification.SetData(EDocumentNotificationRec.FieldName(ID), VendorMatchNotificationId());
+    end;
+
+    local procedure ExpectVendorMatchNotification(EDocumentEntryNo: Integer)
+    begin
+        ExpectedNotificationId := VendorMatchNotificationId();
+        ExpectedNotificationEntryNo := EDocumentEntryNo;
+        SentNotificationCount := 0;
     end;
 
     [SendNotificationHandler]
