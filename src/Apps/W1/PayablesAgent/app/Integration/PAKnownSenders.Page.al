@@ -29,7 +29,7 @@ page 3313 "PA Known Senders"
                 field("Sender Policy"; Rec."Sender Policy")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies how an incoming email from this sender is handled. ''Ask'' requests human review. ''Approve'' processes without review (effective when overall email review is ''Only if untrusted''). ''Reject'' ignores the email.';
+                    ToolTip = 'Specifies how an incoming email from this sender is handled. ''Ask'' requests human review. ''Approve'' processes without review (effective when overall email review is ''Manage per sender''). ''Reject'' ignores the email.';
                 }
             }
         }

@@ -236,7 +236,7 @@ page 3304 "Payables Agent Setup"
                     field(MailboxFolder; TempOutlookSetup."Email Folder")
                     {
                         Caption = 'Folder';
-                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When a folder is set and email review is ''Only if untrusted'', every email in it is treated as trusted and skips review, so the known-senders list is not consulted.';
+                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When a folder is set and email review is ''Manage per sender'', every email in it is treated as trusted and skips review, so the known-senders list is not consulted.';
                         Editable = false;
 
                         trigger OnAssistEdit()
@@ -316,7 +316,7 @@ page 3304 "Payables Agent Setup"
                     {
                         Caption = 'Email review';
                         ShowMandatory = true;
-                        ToolTip = 'Specifies when the agent should request human review before processing an incoming email. ''Only if untrusted'' skips review for previously approved senders and any email that arrives in a configured subfolder.';
+                        ToolTip = 'Specifies when the agent should request human review before processing an incoming email. ''Manage per sender'' skips review for previously approved senders and any email that arrives in a configured subfolder.';
 
                         trigger OnValidate()
                         begin
@@ -610,6 +610,6 @@ page 3304 "Payables Agent Setup"
         ManageKnownSendersLbl: Label 'Manage known senders';
         KnownSendersHintLbl: Label 'Add your regular senders and set the review policy for each. Approve emails automatically for senders you trust.';
         FolderIgnoresListConfirmLbl: Label 'You have %1 known senders. With subfolder ''%2'' configured, the agent will process every email there without consulting the list. The list is kept and will be used again if you remove the subfolder. Continue?', Comment = '%1 = number of known senders, %2 = folder name';
-        PolicyIgnoresListConfirmLbl: Label 'You have %1 known senders. The list won''t affect processing while review is set to ''%2''. The list is kept and will be used again if you switch back to ''Only if untrusted''. Continue?', Comment = '%1 = number of known senders, %2 = review policy';
+        PolicyIgnoresListConfirmLbl: Label 'You have %1 known senders. The list won''t affect processing while review is set to ''%2''. The list is kept and will be used again if you switch back to ''Manage per sender''. Continue?', Comment = '%1 = number of known senders, %2 = review policy';
 
 }
