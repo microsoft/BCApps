@@ -326,11 +326,12 @@ codeunit 139983 "Subc. Management Library"
     var
         ReqJnlManagement: Codeunit ReqJnlManagement;
         JnlSelected: Boolean;
+        NoJournalSelectedErr: Label 'No Journal Batch is selected.';
         Handled: Boolean;
     begin
         ReqJnlManagement.WkshTemplateSelection(Page::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, RequisitionLine, JnlSelected);
         if not JnlSelected then
-            Error('');
+            Error(NoJournalSelectedErr);
         OnBeforeOpenJournal(RequisitionLine, Handled);
         if Handled then
             exit;
