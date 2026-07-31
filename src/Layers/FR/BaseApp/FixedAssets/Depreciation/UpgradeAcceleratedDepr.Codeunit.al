@@ -36,8 +36,8 @@ codeunit 5868 "Upgrade Accelerated Depr."
         if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetAcceleratedDepreciationUpgradeTag()) then
             exit;
 
-        TransferFields(Database::"Gen. Journal Line", 10861, 5865); //  10861 - the existing field "Derogatory Line", 5865 - the new field "Is Derogatory";
-        TransferFields(Database::"Posted Gen. Journal Line", 10861, 5865); //  10861 - the existing field "Derogatory Line", 5865 - the new field "Is Derogatory";
+        // "Gen. Journal Line"/"Posted Gen. Journal Line"."Is Derogatory" (field 5865) was introduced only by an
+        // unshipped W1 feature commit and removed by the redesign-derogatory-mirroring change; no data transfer is required.
         TransferFields(Database::"Depreciation Book", 10800, 5865); //  10800 - the existing field "Derogatory Calculation", 5865 - the new field "Derogatory Calc.";
         TransferFields(Database::"Depreciation Book", 10802, 5867); //  10802 - the existing field "G/L Integration - Derogatory", 5867 - the new field "Integration G/L - Derogatory";
         TransferFields(Database::"FA Depreciation Book", 10801, 5865); //  10801 - the existing field "Last Derogatory Date", 5865 - the new field "Derogatory Amount";

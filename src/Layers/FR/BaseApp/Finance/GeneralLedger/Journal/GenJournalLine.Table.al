@@ -3630,11 +3630,6 @@ table 81 "Gen. Journal Line"
                     FieldError("Recurring Method");
             end;
         }
-        field(5865; "Is Derogatory"; Boolean)
-        {
-            Caption = 'Derogatory Line';
-            Editable = false;
-        }
         /// <summary>
         /// Non-deductible VAT percentage for VAT compliance and partial VAT deduction calculations.
         /// </summary>
@@ -4179,8 +4174,10 @@ table 81 "Gen. Journal Line"
         GLSetupRead: Boolean;
         CustBankAcc: Record "Customer Bank Account";
         VendBankAcc: Record "Vendor Bank Account";
+#if not CLEAN29
         DerogDeprBook: Record "Depreciation Book";
         DerogFADeprBook: Record "FA Depreciation Book";
+#endif
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
         NotExistErr: Label 'Document number %1 does not exist or is already closed.', Comment = '%1=Document number';
@@ -6033,35 +6030,21 @@ table 81 "Gen. Journal Line"
     begin
 #if not CLEAN29
         if AcceleratedDeprFeature.IsEnabled() then
-            "Is Derogatory" := false
-        else
-            "Derogatory Line" := false;
-#else
-        "Is Derogatory" := false;
-#endif
+            exit;
+
+        // Retained legacy heuristic for companies still using the pre-move "Derogatory Calculation" setup field;
+        // once the feature is enabled (or after CLEAN29), eligibility is resolved centrally at posting time instead.
+        "Derogatory Line" := false;
         if ("Account Type" = "Account Type"::"Fixed Asset") and
            ("Account No." <> '') and
            ("Depreciation Book Code" <> '')
         then begin
-#if not CLEAN29
-            if AcceleratedDeprFeature.IsEnabled() then
-                DerogDeprBook.SetRange("Derogatory Calc.", "Depreciation Book Code")
-            else
-                DerogDeprBook.SetRange("Derogatory Calculation", "Depreciation Book Code");
-#else
-            DerogDeprBook.SetRange("Derogatory Calc.", "Depreciation Book Code");
-#endif
+            DerogDeprBook.SetRange("Derogatory Calculation", "Depreciation Book Code");
             if DerogDeprBook.FindFirst() then
                 if DerogFADeprBook.Get("Account No.", DerogDeprBook.Code) then
-#if not CLEAN29
-            if AcceleratedDeprFeature.IsEnabled() then
-                        "Is Derogatory" := true
-                    else
-                        "Derogatory Line" := true;
-#else
-                    "Is Derogatory" := true;
-#endif
+                    "Derogatory Line" := true;
         end;
+#endif
     end;
 
     procedure GetCustLedgerEntry()

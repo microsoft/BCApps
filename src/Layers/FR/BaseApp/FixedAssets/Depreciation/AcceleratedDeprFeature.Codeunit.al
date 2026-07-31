@@ -5,7 +5,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Depreciation;
 
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
@@ -93,16 +92,12 @@ codeunit 5866 "Accelerated Depr. Feature" implements "Feature Data Update"
 
     local procedure CountRecords()
     var
-        GenJournalLine: Record "Gen. Journal Line";
-        PostedGenJournalLine: Record "Posted Gen. Journal Line";
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         FALedgEntry: Record "FA Ledger Entry";
         FAPostingGr: Record "FA Posting Group";
         FAReclassJnlLine: Record "FA Reclass. Journal Line";
     begin
-        InsertDocumentEntry(Database::"Gen. Journal Line", GenJournalLine.TableCaption(), GenJournalLine.Count());
-        InsertDocumentEntry(Database::"Posted Gen. Journal Line", PostedGenJournalLine.TableCaption(), PostedGenJournalLine.Count());
         InsertDocumentEntry(Database::"Depreciation Book", DeprBook.TableCaption(), DeprBook.Count());
         InsertDocumentEntry(Database::"FA Depreciation Book", FADeprBook.TableCaption(), FADeprBook.Count());
         InsertDocumentEntry(Database::"FA Ledger Entry", FALedgEntry.TableCaption(), FALedgEntry.Count());
@@ -124,26 +119,14 @@ codeunit 5866 "Accelerated Depr. Feature" implements "Feature Data Update"
 
     local procedure UpgradeAcceleratedDepreciation()
     var
-        GenJournalLine: Record "Gen. Journal Line";
-        PostedGenJournalLine: Record "Posted Gen. Journal Line";
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         FALedgEntry: Record "FA Ledger Entry";
         FAPostingGr: Record "FA Posting Group";
         FAReclassJnlLine: Record "FA Reclass. Journal Line";
     begin
-        if GenJournalLine.FindSet() then
-            repeat
-                GenJournalLine."Is Derogatory" := GenJournalLine."Derogatory Line";
-                GenJournalLine.Modify();
-            until GenJournalLine.Next() = 0;
-
-        if PostedGenJournalLine.FindSet() then
-            repeat
-                PostedGenJournalLine."Is Derogatory" := PostedGenJournalLine."Derogatory Line";
-                PostedGenJournalLine.Modify();
-            until PostedGenJournalLine.Next() = 0;
-
+        // "Gen. Journal Line"/"Posted Gen. Journal Line"."Is Derogatory" was introduced only by an unshipped W1
+        // feature commit and removed by the redesign-derogatory-mirroring change; no data transfer is required.
         if DeprBook.FindSet() then
             repeat
                 DeprBook."Derogatory Calc." := DeprBook."Derogatory Calculation";

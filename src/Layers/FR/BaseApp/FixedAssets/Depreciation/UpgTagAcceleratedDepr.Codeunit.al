@@ -14,10 +14,16 @@ codeunit 5867 "Upg. Tag Accelerated Depr."
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetAcceleratedDepreciationUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetDerogatoryLinkageUpgradeTag());
     end;
 
     internal procedure GetAcceleratedDepreciationUpgradeTag(): Code[250]
     begin
         exit('MS-581204-AcceleratedDepreciationUpgradeTag-20260206');
+    end;
+
+    internal procedure GetDerogatoryLinkageUpgradeTag(): Code[250]
+    begin
+        exit('MS-581204-DerogatoryLinkageUpgradeTag-20260730');
     end;
 }
