@@ -11,6 +11,11 @@ codeunit 9558 "Table Key Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    procedure Disable(IndexKey: KeyRef)
+    begin
+        Database.AlterKey(IndexKey, false);
+    end;
+
     procedure DisableAll(TableNo: Integer): Boolean
     begin
         exit(AlterAll(TableNo, false));
