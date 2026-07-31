@@ -109,41 +109,13 @@ codeunit 10812 "Feature - Sales FR" implements "Feature Data Update"
 
     local procedure UpgradeSalesFR()
     var
-        Customer: Record Customer;
-        Contact: Record Contact;
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        SalesHeader: Record "Sales Header";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesFRHelperProcedures: Codeunit "Sales FR Helper Procedures";
     begin
-        if Customer.FindSet() then
-            repeat
-                Customer."SIREN No. FR" := Customer."SIREN No.";
-                Customer.Modify();
-            until Customer.Next() = 0;
-
-        if Contact.FindSet() then
-            repeat
-                Contact."SIREN No. FR" := Contact."SIREN No.";
-                Contact.Modify();
-            until Contact.Next() = 0;
-
-        if SalesCrMemoHeader.FindSet() then
-            repeat
-                SalesCrMemoHeader."VAT Paid on Debits FR" := SalesCrMemoHeader."VAT Paid on Debits";
-                SalesCrMemoHeader.Modify();
-            until SalesCrMemoHeader.Next() = 0;
-
-        if SalesHeader.FindSet() then
-            repeat
-                SalesHeader."VAT Paid on Debits FR" := SalesHeader."VAT Paid on Debits";
-                SalesHeader.Modify();
-            until SalesHeader.Next() = 0;
-
-        if SalesInvoiceHeader.FindSet() then
-            repeat
-                SalesInvoiceHeader."VAT Paid on Debits FR" := SalesInvoiceHeader."VAT Paid on Debits";
-                SalesInvoiceHeader.Modify();
-            until SalesInvoiceHeader.Next() = 0;
+        SalesFRHelperProcedures.TransferFields(Database::Customer, 10805, 10806, ''); // 10805 - the existing field "SIREN No.", 10806 - the new field "SIREN No. FR";
+        SalesFRHelperProcedures.TransferFields(Database::Contact, 10805, 10806, ''); // 10805 - the existing field "SIREN No.", 10806 - the new field "SIREN No. FR";
+        SalesFRHelperProcedures.TransferFields(Database::"Sales Header", 10801, 10802, false); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
+        SalesFRHelperProcedures.TransferFields(Database::"Sales Cr.Memo Header", 10801, 10802, false); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
+        SalesFRHelperProcedures.TransferFields(Database::"Sales Invoice Header", 10801, 10802, false); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
     end;
 
     local procedure SetUpgradeTag(DataUpgradeExecuted: Boolean)

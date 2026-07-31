@@ -59,11 +59,13 @@ codeunit 148004 "ERM Sales Report"
         SalesInvoiceHeader.SetRecFilter();
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
+        LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('CustomerSirenNo', Customer.GetSIRENNoWithCaptionFR());
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -86,11 +88,13 @@ codeunit 148004 "ERM Sales Report"
         Commit();
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
+        LibraryVariableStorage.Enqueue(true); // request page opened expectation
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('CustomerSirenNo', Customer.GetSIRENNoWithCaptionFR());
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -116,11 +120,13 @@ codeunit 148004 "ERM Sales Report"
         SalesCrMemoHeader.SetRecFilter();
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Invoice
+        LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
         Report.Run(Report::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('CustomerSirenNo', Customer.GetSIRENNoWithCaptionFR());
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -142,11 +148,13 @@ codeunit 148004 "ERM Sales Report"
         SalesInvoiceHeader.SetRecFilter();
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
+        LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', SalesInvoiceHeader.FieldCaption("VAT Paid on Debits FR"));
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -168,11 +176,13 @@ codeunit 148004 "ERM Sales Report"
         SalesInvoiceHeader.SetRecFilter();
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
+        LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -191,11 +201,13 @@ codeunit 148004 "ERM Sales Report"
         Commit();
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
+        LibraryVariableStorage.Enqueue(true); // request page opened expectation
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', SalesHeader.FieldCaption("VAT Paid on Debits FR"));
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -214,11 +226,13 @@ codeunit 148004 "ERM Sales Report"
         Commit();
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
+        LibraryVariableStorage.Enqueue(true); // request page opened expectation
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -240,11 +254,13 @@ codeunit 148004 "ERM Sales Report"
         SalesCrMemoHeader.SetRecFilter();
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Credit Memo
+        LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
         REPORT.Run(REPORT::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', SalesCrMemoHeader.FieldCaption("VAT Paid on Debits FR"));
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -266,11 +282,13 @@ codeunit 148004 "ERM Sales Report"
         SalesCrMemoHeader.SetRecFilter();
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Credit Memo
+        LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
         REPORT.Run(REPORT::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -341,6 +359,7 @@ codeunit 148004 "ERM Sales Report"
     [Scope('OnPrem')]
     procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice FR")
     begin
+        StandardSalesInvoice.DisplayShipmentInformation.SetValue(LibraryVariableStorage.DequeueBoolean());
         StandardSalesInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -348,6 +367,8 @@ codeunit 148004 "ERM Sales Report"
     [Scope('OnPrem')]
     procedure DraftSalesInvoiceRequestPageHandler(var StandardSalesDraftInvoice: TestRequestPage "Stand. Sales-Draft Invoice FR")
     begin
+        // Consume the queued expectation so the test can assert the request page was opened exactly once.
+        LibraryVariableStorage.DequeueBoolean();
         StandardSalesDraftInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -356,7 +377,7 @@ codeunit 148004 "ERM Sales Report"
     procedure StdSalesCrMemoRequestPageHandler(var StandardSalesCreditMemo: TestRequestPage "Standard Sales-Credit Memo FR")
     begin
         if StandardSalesCreditMemo.Editable then;
-        StandardSalesCreditMemo.DisplayShipmentInformation.SetValue(true);
+        StandardSalesCreditMemo.DisplayShipmentInformation.SetValue(LibraryVariableStorage.DequeueBoolean());
         StandardSalesCreditMemo.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
         Sleep(200);
     end;

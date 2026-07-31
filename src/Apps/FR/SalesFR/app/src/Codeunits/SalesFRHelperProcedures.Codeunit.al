@@ -8,21 +8,14 @@ codeunit 10807 "Sales FR Helper Procedures"
 {
     Access = Internal;
 
-    procedure TransferFields(TableId: Integer; SourceFieldNo: Integer; TargetFieldNo: Integer)
+    procedure TransferFields(TableId: Integer; SourceFieldNo: Integer; TargetFieldNo: Integer; DefaultValue: Variant)
     var
-        RecRef: RecordRef;
-        TargetFieldRef: FieldRef;
-        SourceFieldRef: FieldRef;
+        DataTransfer: DataTransfer;
     begin
-        RecRef.Open(TableId, false);
-        SourceFieldRef := RecRef.Field(SourceFieldNo);
-        SourceFieldRef.SetFilter('<>%1', '');
-
-        if RecRef.FindSet() then
-            repeat
-                TargetFieldRef := RecRef.Field(TargetFieldNo);
-                TargetFieldRef.Value := SourceFieldRef.Value;
-                RecRef.Modify(false);
-            until RecRef.Next() = 0;
+        DataTransfer.SetTables(TableId, TableId);
+        DataTransfer.AddSourceFilter(SourceFieldNo, '<>%1', DefaultValue);
+        DataTransfer.AddFieldValue(SourceFieldNo, TargetFieldNo);
+        DataTransfer.UpdateAuditFields := false;
+        DataTransfer.CopyFields();
     end;
 }

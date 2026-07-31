@@ -38,11 +38,11 @@ codeunit 10814 "Install Sales FR"
         if UpgradeTag.HasUpgradeTag(UpgTagSalesFR.GetSalesFRUpgradeTag()) then
             exit;
 
-        SalesFRHelperProcedures.TransferFields(Database::Customer, 10805, 10806); // 10805 - the existing field "SIREN No.", 10806 - the new field "SIREN No. FR";
-        SalesFRHelperProcedures.TransferFields(Database::Contact, 10805, 10806); // 10805 - the existing field "SIREN No.", 10806 - the new field "SIREN No. FR";
-        SalesFRHelperProcedures.TransferFields(Database::"Sales Header", 10801, 10802); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
-        SalesFRHelperProcedures.TransferFields(Database::"Sales Cr.Memo Header", 10801, 10802); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
-        SalesFRHelperProcedures.TransferFields(Database::"Sales Invoice Header", 10801, 10802); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
+        SalesFRHelperProcedures.TransferFields(Database::Customer, 10805, 10806, ''); // 10805 - the existing field "SIREN No.", 10806 - the new field "SIREN No. FR";
+        SalesFRHelperProcedures.TransferFields(Database::Contact, 10805, 10806, ''); // 10805 - the existing field "SIREN No.", 10806 - the new field "SIREN No. FR";
+        SalesFRHelperProcedures.TransferFields(Database::"Sales Header", 10801, 10802, false); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
+        SalesFRHelperProcedures.TransferFields(Database::"Sales Cr.Memo Header", 10801, 10802, false); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
+        SalesFRHelperProcedures.TransferFields(Database::"Sales Invoice Header", 10801, 10802, false); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
 
         UpgradeTag.SetUpgradeTag(UpgTagSalesFR.GetSalesFRUpgradeTag());
     end;
