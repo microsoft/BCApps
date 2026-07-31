@@ -10,6 +10,7 @@ report 5066 "Questionnaire - Handouts"
 {
     ApplicationArea = RelationshipMgmt;
     Caption = 'Questionnaire - Handouts';
+    ToolTip = 'View your profile questionnaire for the contact. You can print this report to have a printed copy of the questions that are within the profile questionnaire.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

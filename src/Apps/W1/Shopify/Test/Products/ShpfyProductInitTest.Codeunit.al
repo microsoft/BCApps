@@ -281,6 +281,9 @@ codeunit 139603 "Shpfy Product Init Test"
         PriceListLine: Record "Price List Line";
     begin
         LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceListHeader."Price Type"::Sale, PriceListHeader."Source Type"::"All Customers", '');
+        // Allow each line to carry its own date range; otherwise the line dates must match the (empty) header dates.
+        PriceListHeader.Validate("Allow Updating Defaults", true);
+        PriceListHeader.Modify(true);
 
         // Discount that applies up to and including the boundary date.
         PriceListLine.Init();
