@@ -7,6 +7,7 @@ namespace Microsoft.DataMigration.BC14Reimplementation;
 
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 
 codeunit 46948 "BC14 Item Ledger Migrator" implements "BC14 Migrator"
 {
@@ -171,6 +172,22 @@ codeunit 46948 "BC14 Item Ledger Migrator" implements "BC14 Migrator"
         exit(BC14ValueEntry."Cost Amount (Actual)");
     end;
 
+    /// <summary>
+    /// True when the location is flagged as an in-transit location. Positive-adjustment item journal
+    /// lines cannot use such a location (BC restricts in-transit locations to transfer orders), so the
+    /// on-hand rebuild skips these entries.
+    /// </summary>
+    local procedure IsInTransitLocation(LocationCode: Code[10]): Boolean
+    var
+        Location: Record Location;
+    begin
+        if LocationCode = '' then
+            exit(false);
+        if not Location.Get(LocationCode) then
+            exit(false);
+        exit(Location."Use As In-Transit");
+    end;
+
     internal procedure GetTemplateName(): Code[10]
     var
         ItemJournalTemplate: Record "Item Journal Template";
@@ -223,6 +240,13 @@ codeunit 46948 "BC14 Item Ledger Migrator" implements "BC14 Migrator"
             exit;
         // Guard the unit-cost division below; a zero-quantity entry carries no stock to rebuild.
         if BC14ItemLedgerEntry.Quantity = 0 then
+            exit;
+
+        // In-transit locations (stock currently moving between locations on an open transfer order)
+        // reject positive-adjustment item journal lines - BC allows an in-transit location on transfer
+        // orders only. This on-hand cannot be rebuilt through the inventory journal, so it is left to
+        // the historical-phase archive rather than logged as a per-record failure the user cannot fix.
+        if IsInTransitLocation(BC14ItemLedgerEntry."Location Code") then
             exit;
 
         TemplateName := GetTemplateName();
