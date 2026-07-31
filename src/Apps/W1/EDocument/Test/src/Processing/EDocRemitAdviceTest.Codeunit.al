@@ -12,7 +12,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Reports;
-using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
@@ -21,6 +20,7 @@ using System.Utilities;
 codeunit 139541 "E-Doc. Remit. Advice Test"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
@@ -596,7 +596,6 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
     var
         EDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         LibraryVariableStorage.Clear();
         Clear(EDocImplState);
@@ -626,13 +625,6 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         Vendor.Modify(true);
 
         CreatePaymentJournalBatch();
-
-        PurchasesPayablesSetup.Get();
-        if (PurchasesPayablesSetup."Invoice Nos." = '') or (PurchasesPayablesSetup."Posted Invoice Nos." = '') then begin
-            PurchasesPayablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-            PurchasesPayablesSetup.Validate("Posted Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-            PurchasesPayablesSetup.Modify(true);
-        end;
 
         IsInitialized := true;
     end;
