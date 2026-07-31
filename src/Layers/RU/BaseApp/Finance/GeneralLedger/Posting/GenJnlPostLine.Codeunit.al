@@ -6355,7 +6355,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     begin
                                         GetVendorPostingGroup(GenJournalLine, VendorPostingGroup);
                                         AccNo2 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                        AccNo3 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);                                    
+                                        AccNo3 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
                                     end;
                                 GenJournalLine."Account Type"::Employee:
                                     begin
@@ -6364,8 +6364,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                         AccNo3 := EmployeePostingGroup.GetPayablesAccount();
                                     end;
                             end;
-                            CreateGLEntryGainLoss(GenJournalLine, AccNo2, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
-                            CreateGLEntryGainLoss(GenJournalLine, AccNo3, -DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                            if AccNo2 <> AccNo3 then begin
+                                CreateGLEntryGainLoss(GenJournalLine, AccNo2, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                                CreateGLEntryGainLoss(GenJournalLine, AccNo3, -DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                            end;
                         end;
                     end;
                     if not Unapply then
