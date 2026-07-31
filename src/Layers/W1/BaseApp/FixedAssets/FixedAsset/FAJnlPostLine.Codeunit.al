@@ -39,7 +39,13 @@ codeunit 5632 "FA Jnl.-Post Line"
         CalculateAcqCostDepr: Codeunit "Calculate Acq. Cost Depr.";
         MakeFALedgEntry: Codeunit "Make FA Ledger Entry";
         MakeMaintenanceLedgEntry: Codeunit "Make Maintenance Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        InsertedFALedgEntry: Record "FA Ledger Entry";
+        LastSourceFALedgEntry: Record "FA Ledger Entry";
+        InsertedMaintenanceLedgEntry: Record "Maintenance Ledger Entry";
+        CurrentPostingRole: Enum "Derogatory Posting Role";
+        CurrentDerogatorySourceEntryNo: Integer;
         FANo: Code[20];
         BudgetNo: Code[20];
         DeprBookCode: Code[10];
@@ -62,9 +68,19 @@ codeunit 5632 "FA Jnl.-Post Line"
 #pragma warning restore AA0074
 
     procedure FAJnlPostLine(FAJnlLine: Record "FA Journal Line"; CheckLine: Boolean)
+    begin
+        Clear(LastSourceFALedgEntry);
+        FAJnlPostLineWithContext(FAJnlLine, CheckLine, CurrentPostingRole::Source, 0);
+    end;
+
+    local procedure FAJnlPostLineWithContext(FAJnlLine: Record "FA Journal Line"; CheckLine: Boolean; PostingRole: Enum "Derogatory Posting Role"; DerogatorySourceEntryNo: Integer)
     var
         IsHandled: Boolean;
     begin
+        CurrentPostingRole := PostingRole;
+        CurrentDerogatorySourceEntryNo := DerogatorySourceEntryNo;
+        Clear(InsertedFALedgEntry);
+        Clear(InsertedMaintenanceLedgEntry);
         IsHandled := false;
         OnBeforeFAJnlPostLine(FAJnlLine, FAInsertLedgEntry, CheckLine, IsHandled);
         if not IsHandled then begin
@@ -95,6 +111,9 @@ codeunit 5632 "FA Jnl.-Post Line"
             end;
         end;
 
+        if PostingRole = PostingRole::Source then
+            PostDerogatoryCounterpart(FAJnlLine);
+
         OnAfterFAJnlPostLine(FAJnlLine);
     end;
 
@@ -112,6 +131,11 @@ codeunit 5632 "FA Jnl.-Post Line"
 
     procedure GenJnlPostLineContinue(GenJnlLine: Record "Gen. Journal Line"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: Integer; NextGLEntryNo: Integer; GLRegisterNo: Integer)
     begin
+        CurrentPostingRole := CurrentPostingRole::Source;
+        CurrentDerogatorySourceEntryNo := 0;
+        Clear(LastSourceFALedgEntry);
+        Clear(InsertedFALedgEntry);
+        Clear(InsertedMaintenanceLedgEntry);
         FAInsertLedgEntry.SetGLRegisterNo(GLRegisterNo);
         if GenJnlLine."Account No." = '' then
             exit;
@@ -148,9 +172,16 @@ codeunit 5632 "FA Jnl.-Post Line"
             PostFixedAsset();
         end;
 
+        LastSourceFALedgEntry := InsertedFALedgEntry;
         FAInsertLedgEntry.CopyRecordLinksToFALedgEntry(GenJnlLine);
+        PostDerogatoryCounterpart(GenJnlLine);
 
         OnAfterGenJnlPostLine(GenJnlLine);
+    end;
+
+    procedure GetLastSourceFALedgerEntry(): Record "FA Ledger Entry"
+    begin
+        exit(LastSourceFALedgEntry);
     end;
 
     local procedure PostFixedAsset()
@@ -193,9 +224,11 @@ codeunit 5632 "FA Jnl.-Post Line"
                 if not DeprLine() then begin
                     OnPostFixedAssetOnBeforeInsertEntry(FALedgEntry);
                     FAInsertLedgEntry.SetOrgGenJnlLine(true);
-                    FAInsertLedgEntry.InsertFA(FALedgEntry);
+                    FALedgEntry."Derogatory Source Entry No." := CurrentDerogatorySourceEntryNo;
+                    FAInsertLedgEntry.InsertFA(FALedgEntry, InsertedFALedgEntry);
                     FAInsertLedgEntry.SetOrgGenJnlLine(false);
                 end;
+                FALedgEntry."Derogatory Source Entry No." := 0;
                 PostSalvageValue(FALedgEntry);
             end;
         end;
@@ -232,10 +265,51 @@ codeunit 5632 "FA Jnl.-Post Line"
             SetBudgetAssetNo();
         OnPostMaintenanceOnBeforeInsertEntry(MaintenanceLedgEntry);
         FAInsertLedgEntry.SetOrgGenJnlLine(true);
-        FAInsertLedgEntry.InsertMaintenance(MaintenanceLedgEntry);
+        MaintenanceLedgEntry."Derogatory Source Entry No." := CurrentDerogatorySourceEntryNo;
+        FAInsertLedgEntry.InsertMaintenance(MaintenanceLedgEntry, InsertedMaintenanceLedgEntry);
         FAInsertLedgEntry.SetOrgGenJnlLine(false);
         if PostBudget() then
             PostBudgetAsset();
+    end;
+
+    local procedure PostDerogatoryCounterpart(SourceFAJournalLine: Record "FA Journal Line")
+    var
+        DerogatoryFAJournalLine: Record "FA Journal Line";
+        SourceEntryNo: Integer;
+    begin
+        if SourceFAJournalLine."FA Posting Type" = SourceFAJournalLine."FA Posting Type"::Maintenance then
+            SourceEntryNo := InsertedMaintenanceLedgEntry."Entry No."
+        else
+            SourceEntryNo := InsertedFALedgEntry."Entry No.";
+        if SourceEntryNo = 0 then
+            exit;
+        if not DerogatoryPostingMgt.MakeDerogatoryJournalLine(DerogatoryFAJournalLine, SourceFAJournalLine, CurrentPostingRole::Source) then
+            exit;
+
+        if SourceFAJournalLine."FA Error Entry No." <> 0 then
+            DerogatoryFAJournalLine."FA Error Entry No." :=
+                GetNextMatchingFALedgEntry(SourceFAJournalLine, SourceFAJournalLine."FA Error Entry No.", DerogatoryFAJournalLine."Depreciation Book Code");
+        FAJnlPostLineWithContext(DerogatoryFAJournalLine, true, CurrentPostingRole::"Generated Mirror", SourceEntryNo);
+    end;
+
+    local procedure PostDerogatoryCounterpart(SourceGenJournalLine: Record "Gen. Journal Line")
+    var
+        DerogatoryFAJournalLine: Record "FA Journal Line";
+        SourceEntryNo: Integer;
+    begin
+        if SourceGenJournalLine."FA Posting Type" = SourceGenJournalLine."FA Posting Type"::Maintenance then
+            SourceEntryNo := InsertedMaintenanceLedgEntry."Entry No."
+        else
+            SourceEntryNo := InsertedFALedgEntry."Entry No.";
+        if SourceEntryNo = 0 then
+            exit;
+        if not DerogatoryPostingMgt.MakeDerogatoryJournalLine(DerogatoryFAJournalLine, SourceGenJournalLine, CurrentPostingRole::Source) then
+            exit;
+
+        if SourceGenJournalLine."FA Error Entry No." <> 0 then
+            DerogatoryFAJournalLine."FA Error Entry No." :=
+                GetNextMatchingFALedgEntry(DerogatoryFAJournalLine, SourceGenJournalLine."FA Error Entry No.", DerogatoryFAJournalLine."Depreciation Book Code");
+        FAJnlPostLineWithContext(DerogatoryFAJournalLine, true, CurrentPostingRole::"Generated Mirror", SourceEntryNo);
     end;
 
     local procedure PostDisposalEntry(var FALedgEntry: Record "FA Ledger Entry")
@@ -276,8 +350,10 @@ codeunit 5632 "FA Jnl.-Post Line"
             PostReverseType(FALedgEntry);
         if DeprBook."Disposal Calculation Method" = DeprBook."Disposal Calculation Method"::Gross then
             FAInsertLedgEntry.SetOrgGenJnlLine(true);
-        FAInsertLedgEntry.InsertFA(FALedgEntry);
+        FALedgEntry."Derogatory Source Entry No." := CurrentDerogatorySourceEntryNo;
+        FAInsertLedgEntry.InsertFA(FALedgEntry, InsertedFALedgEntry);
         FAInsertLedgEntry.SetOrgGenJnlLine(false);
+        FALedgEntry."Derogatory Source Entry No." := 0;
         FALedgEntry."Automatic Entry" := true;
         FAInsertLedgEntry.SetNetdisposal(false);
         if (DeprBook."Disposal Calculation Method" =
@@ -802,4 +878,3 @@ codeunit 5632 "FA Jnl.-Post Line"
     begin
     end;
 }
-

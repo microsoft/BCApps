@@ -1892,6 +1892,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if not IsHandled then
                 FAJnlPostLine.GenJnlPostLine(
                     GenJnlLine, GLEntry2.Amount, GLEntry2."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Acquisition Cost" then
+                GenJnlLine.GetDerogatorySetup();
             if GenJnlLine."Is Derogatory" then begin
                 MakeDerogatoryFAJnlLine(FAJnlLine, GenJnlLine);
                 if GenJnlLine."FA Error Entry No." <> 0 then
@@ -5957,6 +5959,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit(false);
         exit(VendorLedgerEntry."Document Type" <> GenJournalLine."Document Type");
     end;
+
     local procedure GetEmplDtldCVLedgEntryBufferAccNo(var GenJournalLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"): Code[20]
     var
         EmployeeLedgerEntry: Record "Employee Ledger Entry";

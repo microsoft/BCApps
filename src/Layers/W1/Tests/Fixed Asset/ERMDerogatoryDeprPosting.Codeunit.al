@@ -88,6 +88,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         CreatePostFAJournalLines(FANo, NormalDeprBookCode);
 
         CheckFALedgerEntries(FANo, TaxDeprBookCode);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]
@@ -551,6 +552,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         FATaxDeprBook.CalcFields("Book Value");
         Assert.AreNotEqual(0, FATaxDeprBook."Book Value", DerogatoryAcqErr);
         Assert.AreEqual(FANormalDeprBook."Book Value", FATaxDeprBook."Book Value", DerogatoryAcqErr);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     local procedure CreateFAWithNormalAndTaxFADeprBooks(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10]): Code[20]
@@ -954,6 +956,23 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         Assert.IsFalse(FALedgEntry.IsEmpty, NoPurchInvoiceExistErr);
         FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
         Assert.IsFalse(FALedgEntry.IsEmpty, NoPurchInvoiceExistErr);
+    end;
+
+    local procedure VerifyLinkedCounterparts(FANo: Code[20]; NormalDepreciationBookCode: Code[10]; TaxDepreciationBookCode: Code[10])
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+    begin
+        SourceFALedgerEntry.SetRange("FA No.", FANo);
+        SourceFALedgerEntry.SetRange("Depreciation Book Code", NormalDepreciationBookCode);
+        SourceFALedgerEntry.SetRange("Automatic Entry", false);
+        SourceFALedgerEntry.FindSet();
+        repeat
+            SourceFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+            CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.", SourceFALedgerEntry."Entry No.");
+            CounterpartFALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBookCode);
+            Assert.AreEqual(1, CounterpartFALedgerEntry.Count, NumberFAEntryErr);
+        until SourceFALedgerEntry.Next() = 0;
     end;
 
     local procedure VerifyFinalDepreciationWithNegativeDerogatory(FixedAssetNo: Code[20])
