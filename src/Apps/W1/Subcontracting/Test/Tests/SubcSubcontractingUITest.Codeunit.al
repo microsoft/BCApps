@@ -425,25 +425,29 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    [HandlerFunctions('VendorCardHandler')]
-    procedure SubcontractorLocationNotificationActionOpensVendorCard()
+    [HandlerFunctions('SubcontractorLocationNotificationActionHandler,SubcontractorLocationRecallHandler,VendorCardHandler')]
+    procedure WorkCenterCardSubcontractorLocationNotificationActionOpensVendorCard()
     var
         Vendor: Record Vendor;
-        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
-        SubcontractorLocationNotification: Notification;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
     begin
         // [SCENARIO 642229] The notification action opens the selected subcontractor vendor.
         Initialize();
 
-        // [GIVEN] A notification containing a subcontractor vendor number
+        // [GIVEN] A Work Center and a vendor without a Subcontracting Location Code
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
         Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
-        SubcontractorLocationNotification.SetData(VendorNoTok, Vendor."No.");
 
-        // [WHEN] The Open Vendor Card notification action is invoked
-        SubcNotificationMgmt.OpenVendorCard(SubcontractorLocationNotification);
+        // [WHEN] The vendor is selected as the subcontractor and the notification action is invoked
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
 
-        // [THEN] The Vendor Card opens for the selected vendor
+        // [THEN] The notification is sent for the vendor and the Vendor Card opens for that vendor
+        VerifySubcontractorLocationNotification(Vendor."No.");
         Assert.AreEqual(Vendor."No.", LibraryVariableStorage.DequeueText(), VendorCardNoErr);
+        WorkCenterCard.Close();
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -672,11 +676,27 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     [SendNotificationHandler]
     procedure SubcontractorLocationNotificationHandler(var SubcontractorLocationNotification: Notification): Boolean
     begin
+        CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
+        exit(true);
+    end;
+
+    [SendNotificationHandler]
+    procedure SubcontractorLocationNotificationActionHandler(var SubcontractorLocationNotification: Notification): Boolean
+    var
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
+    begin
+        CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
+        // Simulate choosing the Open Vendor Card notification action.
+        SubcNotificationMgmt.OpenVendorCard(SubcontractorLocationNotification);
+        exit(true);
+    end;
+
+    local procedure CaptureSubcontractorLocationNotification(SubcontractorLocationNotification: Notification)
+    begin
         LibraryVariableStorage.Enqueue(SendNotificationTok);
         LibraryVariableStorage.Enqueue(Format(SubcontractorLocationNotification.Id));
         LibraryVariableStorage.Enqueue(SubcontractorLocationNotification.Message);
         LibraryVariableStorage.Enqueue(SubcontractorLocationNotification.GetData(VendorNoTok));
-        exit(true);
     end;
 
     [RecallNotificationHandler]
