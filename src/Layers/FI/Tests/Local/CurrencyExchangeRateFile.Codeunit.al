@@ -1,5 +1,8 @@
-codeunit 148151 CurrencyExchangeRateFile
+codeunit 144001 CurrencyExchangeRateFile
 {
+    ObsoleteReason = 'Moved to the FI Core app.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     EventSubscriberInstance = Manual;
     Subtype = Test;
     TestPermissions = Disabled;
@@ -16,12 +19,12 @@ codeunit 148151 CurrencyExchangeRateFile
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         FileMgt: Codeunit "File Management";
         CurrencyExchangeRateFile: File;
-        CurrencyFileExtTxt: Label 'dat', Locked = true;
-        EuroCodeTok: Label 'EUR', Locked = true;
-        USDCodeTok: Label 'USD', Locked = true;
-        CurrencyExchRateImportText1090000Err: Label 'File does not contain Exchange rates in LCY Currency';
-        CurrencyExchRateImportText1090001Msg: Label 'New Exchange Rates updated ';
-        CurrencyExchRateImportText1090002Msg: Label 'No updated currencies';
+        CurrencyFileExtTxt: Label 'dat';
+        EuroCodeTok: Label 'EUR';
+        USDCodeTok: Label 'USD';
+        Codeunit32000001Text1090000Err: Label 'File does not contain Exchange rates in LCY Currency';
+        Codeunit32000001Text1090001Msg: Label 'New Exchange Rates updated ';
+        Codeunit32000001Text1090002Msg: Label 'No updated currencies';
         IsInitialized: Boolean;
         ImportFileName: Text;
 
@@ -36,7 +39,7 @@ codeunit 148151 CurrencyExchangeRateFile
         CurrencyExchangeRateFile.SetImportFileName(
           SetupCurrencyExchangeRateFile(''));
         BindSubscription(CurrencyExchangeRateFile);
-        CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
+        CODEUNIT.Run(CODEUNIT::"Currency Exchange Rate");
 
         // Verification: no handler functions are needed.
     end;
@@ -57,7 +60,7 @@ codeunit 148151 CurrencyExchangeRateFile
         CurrencyExchangeRateFile.SetImportFileName(
           SetupCurrencyExchangeRateFile(BadData));
         BindSubscription(CurrencyExchangeRateFile);
-        CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
+        CODEUNIT.Run(CODEUNIT::"Currency Exchange Rate");
 
         // Verification is done in the Text1090002MessageHandler
     end;
@@ -74,7 +77,7 @@ codeunit 148151 CurrencyExchangeRateFile
         CurrencyExchangeRateFile.SetImportFileName(
           SetupCurrencyExchangeRateFile(CreateCurrencyLine(USDCodeTok, false, EuroCodeTok)));
         BindSubscription(CurrencyExchangeRateFile);
-        CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
+        CODEUNIT.Run(CODEUNIT::"Currency Exchange Rate");
 
         Verify(USDCodeTok);
     end;
@@ -91,7 +94,7 @@ codeunit 148151 CurrencyExchangeRateFile
         CurrencyExchangeRateFile.SetImportFileName(
           SetupCurrencyExchangeRateFile(CreateCurrencyLine(EuroCodeTok, true, EuroCodeTok)));
         BindSubscription(CurrencyExchangeRateFile);
-        CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
+        CODEUNIT.Run(CODEUNIT::"Currency Exchange Rate");
 
         Verify(EuroCodeTok);
     end;
@@ -107,9 +110,9 @@ codeunit 148151 CurrencyExchangeRateFile
         CurrencyExchangeRateFile.SetImportFileName(
           SetupCurrencyExchangeRateFile(CreateCurrencyLine(EuroCodeTok, true, USDCodeTok)));
         BindSubscription(CurrencyExchangeRateFile);
-        asserterror CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
+        asserterror CODEUNIT.Run(CODEUNIT::"Currency Exchange Rate");
 
-        Assert.ExpectedError(CurrencyExchRateImportText1090000Err);
+        Assert.ExpectedError(Codeunit32000001Text1090000Err);
     end;
 
     [Test]
@@ -124,7 +127,7 @@ codeunit 148151 CurrencyExchangeRateFile
         CurrencyExchangeRateFile.SetImportFileName(
           SetupCurrencyExchangeRateFile(CreateCurrencyLine('AAA', false, EuroCodeTok)));
         BindSubscription(CurrencyExchangeRateFile);
-        CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
+        CODEUNIT.Run(CODEUNIT::"Currency Exchange Rate");
 
         // Verification is done in the Text1090002MessageHandler
     end;
@@ -193,14 +196,14 @@ codeunit 148151 CurrencyExchangeRateFile
     [Scope('OnPrem')]
     procedure Text1090002MessageHandler(Message: Text)
     begin
-        Assert.AreEqual(Format(CurrencyExchRateImportText1090002Msg), Message, 'Wrong status message.');
+        Assert.AreEqual(Format(Codeunit32000001Text1090002Msg), Message, 'Wrong status message.');
     end;
 
     [MessageHandler]
     [Scope('OnPrem')]
     procedure Text1090001MessageHandler(Message: Text)
     begin
-        Assert.AreEqual(Format(CurrencyExchRateImportText1090001Msg), Message, 'Wrong status message.');
+        Assert.AreEqual(Format(Codeunit32000001Text1090001Msg), Message, 'Wrong status message.');
     end;
 
     local procedure Verify(CurrencyCode: Code[3])
@@ -225,9 +228,10 @@ codeunit 148151 CurrencyExchangeRateFile
         exit(CurrencyExchangeRateFileName);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Currency Exch. Rate Import", 'OnBeforeFileImport', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Currency Exchange Rate", 'OnBeforeFileImport', '', false, false)]
     local procedure OnBeforeFileImport(var FileName: Text)
     begin
         FileName := ImportFileName;
     end;
 }
+
