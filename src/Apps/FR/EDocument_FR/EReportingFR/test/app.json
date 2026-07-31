@@ -42,12 +42,15 @@
   "idRanges": [
     {
       "from": 148145,
-      "to": 148148
+      "to": 148152
     }
   ],
   "features": [
     "TranslationFile",
     "TranslationsWithNamespaces"
+  ],
+  "resourceFolders": [
+    ".resources"
   ],
   "target": "OnPrem",
   "resourceExposurePolicy": {
