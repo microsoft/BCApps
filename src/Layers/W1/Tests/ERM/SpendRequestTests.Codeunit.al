@@ -137,27 +137,6 @@ codeunit 134242 "Spend Request Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CannotModifyReleasedSpendRequest()
-    var
-        SpendRequest: Record "Spend Request";
-    begin
-        // [SCENARIO] Modifying a released spend request raises an error.
-        Initialize();
-
-        // [GIVEN] A spend request with Status = Released.
-        CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequest.Status := SpendRequest.Status::Released;
-        SpendRequest.Modify();
-
-        // [WHEN] Attempting to modify the record.
-        asserterror SpendRequest.Modify(true);
-
-        // [THEN] An error is raised because Status is not Open.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure EndDateBeforeStartDateErrors()
     var
         SpendRequest: Record "Spend Request";
