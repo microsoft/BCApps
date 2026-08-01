@@ -1031,7 +1031,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         CreateAndReleaseExpenseReport(ExpenseUser, ExpenseReportHeader);
 
         // [GIVEN] Submit Expense Report for Approval.
-        SubmitExpenseReportForApproval(ExpenseReportHeader);
+        ExpenseReportHeader.PerformManualPendingApproval(ExpenseUser[1]."No.");
 
         // [GIVEN] Expense Report is pending approval with the current user as approver.
         VerifyExpenseReportDocumentStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
@@ -1069,7 +1069,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         CreateAndReleaseExpenseReport(ExpenseUser, ExpenseReportHeader);
 
         // [GIVEN] Submit Expense Report for Approval.
-        SubmitExpenseReportForApproval(ExpenseReportHeader);
+        ExpenseReportHeader.PerformManualPendingApproval(ExpenseUser[1]."No.");
 
         // [GIVEN] Expense Report is pending approval with the current user as approver.
         VerifyExpenseReportDocumentStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
@@ -1087,7 +1087,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    [HandlerFunctions('ExpensesModalPageHandler')]
     procedure ApproveActionNotVisibleWhenAgentDisabledOnExpenseReportCard()
     var
         ExpenseUser: array[2] of Record "Expense User";
@@ -1105,7 +1105,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
 
         // [GIVEN] Create, Release and Submit Expense Report for Approval.
         CreateAndReleaseExpenseReport(ExpenseUser, ExpenseReportHeader);
-        SubmitExpenseReportForApproval(ExpenseReportHeader);
+        ExpenseReportHeader.PerformManualPendingApproval(ExpenseUser[1]."No.");
         VerifyExpenseReportDocumentStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
 
         // [GIVEN] Disable Agent.
