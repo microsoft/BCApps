@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.Currency;
 
 codeunit 148338 EACorpCardTestLib
 {
@@ -28,6 +29,8 @@ codeunit 148338 EACorpCardTestLib
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         CreateCorpCardSetup.CreateDefaults();
         CreateCorpCardL3Demo.CreateDefaults();
+        EnsureCurrencyExchangeRate('USD');
+        EnsureCurrencyExchangeRate('EUR');
     end;
 
     internal procedure DeleteCorpCardTransactionalData()
@@ -112,5 +115,30 @@ codeunit 148338 EACorpCardTestLib
         PayloadOutStream.WriteText(SourcePayload);
         CorpCardProvider."Source File Name" := SourceFileName;
         CorpCardProvider.Modify(true);
+    end;
+
+    local procedure EnsureCurrencyExchangeRate(CurrencyCode: Code[10])
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        if not Currency.Get(CurrencyCode) then begin
+            Currency.Init();
+            Currency.Validate(Code, CurrencyCode);
+            Currency.Insert(true);
+        end;
+
+        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
+        CurrencyExchangeRate.DeleteAll();
+
+        CurrencyExchangeRate.Init();
+        CurrencyExchangeRate.Validate("Currency Code", CurrencyCode);
+        CurrencyExchangeRate.Validate("Starting Date", DMY2Date(1, 1, 2000));
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Relational Currency Code", '');
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 1);
+        CurrencyExchangeRate.Insert(true);
     end;
 }
