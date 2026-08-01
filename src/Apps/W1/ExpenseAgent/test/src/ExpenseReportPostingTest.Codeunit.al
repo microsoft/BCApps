@@ -2757,7 +2757,6 @@ codeunit 148302 "Expense Report Posting Test"
         PostCode: Record "Post Code";
         Currency: Record Currency;
         Employee: Record Employee;
-        UserSetup: Record "User Setup";
         ExpensePaymentMethod: Record "Expense Payment Method";
         ExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
@@ -2778,9 +2777,6 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [GIVEN] Enable Expense Approval Workflow in Agent Setup.
         LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(true);
-
-        // [GIVEN] Create or Find User Setup.
-        LibraryDocumentApprovals.CreateOrFindUserSetup(UserSetup, CopyStr(UserId, 1, 50));
 
         // [GIVEN] Find "Post Code".
         LibraryERM.FindPostCode(PostCode);
@@ -2809,8 +2805,6 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [GIVEN] Get "Expense User".
         ExpenseUser.Get(Expense."Expense User No.");
-        ExpenseUser.Validate("User Id For Approvals", UserSetup."User ID");
-        ExpenseUser.Modify();
 
         // [GIVEN] Get "Employee".
         Employee.Get(ExpenseUser."Employee No.");
@@ -2829,6 +2823,11 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [GIVEN] Create User Setups and chain of approvers.
         CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
+
+        // [GIVEN] Set User Id For Approvals on Expense User.
+        ExpenseUser.Get(Expense."Expense User No.");
+        ExpenseUser.Validate("User Id For Approvals", CurrentUserSetup."User ID");
+        ExpenseUser.Modify();
 
         // [GIVEN] Create Expense Report.
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", Currency.Code, Expense."VAT Bus. Posting Group");
@@ -4297,7 +4296,7 @@ codeunit 148302 "Expense Report Posting Test"
                 PostedExpenseReportLine."Line No."));
     end;
 
-    // This test is currently disabled via App/DisabledTests/ExpenseReportPostingTest.DisabledTest.json because the foreign-currency Source Currency Amount rounding on the balancing G/L entry differs under non-W1 localizations (AT/DE/DK/ES/FR).
+    // This test is currently disabled via DisabledTests/Expense_Agent_Tests/Expense_Agent_Tests.DisabledTest.json because the foreign-currency Source Currency Amount rounding on the balancing G/L entry differs under non-W1 localizations (AT/DE/DK/ES/FR).
     [Test]
     [HandlerFunctions('ConfirmHandler,AddExpensesToExpenseReportModalPageHandler,ExpenseReportPageHandler')]
     procedure ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsExpenseDate()
@@ -4368,7 +4367,7 @@ codeunit 148302 "Expense Report Posting Test"
         VerifyRefundableAmountInPostedExpenseReportLine(Expense, ExpectedAmount, ExpectedAmountLCY);
     end;
 
-    // This test is currently disabled via App/DisabledTests/ExpenseReportPostingTest.DisabledTest.json because the foreign-currency Source Currency Amount rounding on the balancing G/L entry differs under non-W1 localizations (AT/DE/DK/ES/FR).
+    // This test is currently disabled via DisabledTests/Expense_Agent_Tests/Expense_Agent_Tests.DisabledTest.json because the foreign-currency Source Currency Amount rounding on the balancing G/L entry differs under non-W1 localizations (AT/DE/DK/ES/FR).
     [Test]
     [HandlerFunctions('ConfirmHandler,AddExpensesToExpenseReportModalPageHandler,ExpenseReportPageHandler')]
     procedure ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsPostingDate()
@@ -6225,7 +6224,7 @@ codeunit 148302 "Expense Report Posting Test"
         VerifyExpenseAndJobLedgerEntry(Expense[3], PostedExpenseReportHeader, Amount, Amount, Amount, Amount);
     end;
 
-    // This test is currently disabled via App/DisabledTests/ExpenseReportPostingTest.DisabledTest.json because the foreign-currency Source Currency Amount rounding on the balancing G/L entry differs under non-W1 localizations (AT/DE/DK/ES/FR).
+    // This test is currently disabled via DisabledTests/Expense_Agent_Tests/Expense_Agent_Tests.DisabledTest.json because the foreign-currency Source Currency Amount rounding on the balancing G/L entry differs under non-W1 localizations (AT/DE/DK/ES/FR).
     [Test]
     [HandlerFunctions('ConfirmHandler,AddExpensesToExpenseReportModalPageHandler,ExpenseReportPageHandler')]
     procedure ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsPostingDateWithMultipleFCYLinesAndEmployeePaid()
@@ -6408,7 +6407,7 @@ codeunit 148302 "Expense Report Posting Test"
         VerifyExpenseAndJobLedgerEntry(Expense[3], PostedExpenseReportHeader, Amount, Amount, Amount, Amount);
     end;
 
-    // This test is currently disabled via App/DisabledTests/ExpenseReportPostingTest.DisabledTest.json because the foreign-currency Source Currency Amount rounding on the balancing G/L entry differs under non-W1 localizations (AT/DE/DK/ES/FR).
+    // This test is currently disabled via DisabledTests/Expense_Agent_Tests/Expense_Agent_Tests.DisabledTest.json because the foreign-currency Source Currency Amount rounding on the balancing G/L entry differs under non-W1 localizations (AT/DE/DK/ES/FR).
     [Test]
     [HandlerFunctions('ConfirmHandler,AddExpensesToExpenseReportModalPageHandler,ExpenseReportPageHandler')]
     procedure ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsExpenseDateWithMultipleFCYLinesAndEmployeePaid()
@@ -6710,6 +6709,7 @@ codeunit 148302 "Expense Report Posting Test"
         Workflow: Record Workflow;
         ExpensePostingGroup: Record "Expense Posting Group";
         UserSetup: Record "User Setup";
+        User: Record User;
         GeneralLedgerSetup: Record "General Ledger Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
@@ -6717,6 +6717,11 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         UserSetup.DeleteAll();
+
+        // Remove test-created users to stay within the CI license user cap; keep the current session user.
+        User.SetFilter("User Security ID", '<>%1', UserSecurityId());
+        User.DeleteAll();
+
         // Turn off Additional Reporting Currency to avoid extra "Residual caused by rounding" G/L entries
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."Additional Reporting Currency" := '';

@@ -1123,6 +1123,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
     local procedure Initialize()
     var
         UserSetup: Record "User Setup";
+        User: Record User;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"WF Demo Exp. Report Approvals");
@@ -1138,6 +1139,9 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         LibraryExpense.CleanTransactionalData();
         LibraryWorkflow.DisableAllWorkflows();
         UserSetup.DeleteAll();
+        // Remove test-created users to stay within the CI license user cap; keep the current session user.
+        User.SetFilter("User Security ID", '<>%1', UserSecurityId());
+        User.DeleteAll();
         if IsInitialized then
             exit;
 

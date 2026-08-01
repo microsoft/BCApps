@@ -2178,6 +2178,7 @@ codeunit 148305 "Expense Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseItemization.FieldCaption(Quantity), 1, ExpenseItemization.TableCaption()));
     end;
 
+    // This test is currently disabled via DisabledTests/Expense_Agent_Tests/Expense_Agent_Tests.DisabledTest.json because setting the Expense Itemization "Start Date" is validated against the license-allowed month window ('??11*|??12*|??01*|??02*'), and the CI WorkDate can fall outside that range.
     [Test]
     [HandlerFunctions('ExactMessageHandler,SetDateInExpenseItemizationsModalPageHandler')]
     procedure DescriptionMustBeFlowFromExpenseToExpenseItemization()
