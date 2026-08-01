@@ -34,7 +34,6 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
-        LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
         InvalidApprovalStatusErr: Label 'Status must be Released or Rejected for Expense Report No. %1.', Comment = '%1 - Expense Report No.';
         ReOpenMustBeDisabledErr: Label 'Reopen action must be disabled.';
@@ -1132,6 +1131,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdateVATPostingSetup();
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
         LibraryExpense.UpdateUseRulesInAgentSetup(true);
@@ -1239,7 +1239,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
     begin
         LibraryDocumentApprovals.CreateOrFindUserSetup(CurrentUserSetup, CopyStr(UserId, 1, 50));
 
-        UserEmail := LibraryUtility.GenerateRandomEmail();
+        UserEmail := GenerateUniqueEmail();
         CreateAndUpdateUserWithEmail(CurrentUserSetup."User ID", UserEmail);
 
         LibraryExpense.CreateExpenseUser(ExpenseUser[1]);
@@ -1281,7 +1281,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
 
         // [2] Approver - the current user.
         LibraryDocumentApprovals.CreateOrFindUserSetup(CurrentUserSetup, CopyStr(UserId, 1, 50));
-        UserEmail := LibraryUtility.GenerateRandomEmail();
+        UserEmail := GenerateUniqueEmail();
         CreateAndUpdateUserWithEmail(CurrentUserSetup."User ID", UserEmail);
 
         LibraryExpense.CreateExpenseUser(ExpenseUser[2]);
@@ -1324,6 +1324,14 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         User."User Name" := UserName;
         User."Authentication Email" := UserEmail;
         User.Insert(true);
+    end;
+
+    local procedure GenerateUniqueEmail(): Text[80]
+    begin
+        // A globally unique authentication email. LibraryUtility.GenerateRandomEmail() is deterministic per test
+        // (the framework resets the random seed each test), which causes duplicate authentication email collisions
+        // across tests when the session user record is reused.
+        exit(CopyStr(DelChr(LowerCase(Format(CreateGuid())), '=', '{}-') + '@test.local', 1, 80));
     end;
 
     local procedure VerifyApproverInExpenseReport(var ExpenseReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; ApproverExpenseUserID: Code[50])

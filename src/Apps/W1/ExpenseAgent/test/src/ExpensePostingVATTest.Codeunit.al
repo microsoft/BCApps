@@ -407,6 +407,7 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VATSetup: Record "VAT Setup";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Posting VAT Test");
         LibraryExpense.CleanUpBeforeTesting();
@@ -425,6 +426,7 @@ codeunit 148330 "Expense Posting VAT Test"
         VATSetup.Validate("Non-Deductible VAT Is Enabled", true);
         VATSetup.Modify(true);
 
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
         LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
