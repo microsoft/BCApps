@@ -191,7 +191,6 @@ codeunit 4591 "SOA Item Search"
         SearchKeyWordsTrimmed: List of [Text];
         SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
         SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
-        UnresolvedVariantRequests: Dictionary of [Text, Boolean];
         EmptyItemVariants: Dictionary of [Text, List of [Code[10]]];
         AvailableMatchingItemVariants: Dictionary of [Text, Code[10]];
         AvailableAlternativeItemVariants: Dictionary of [Text, Code[10]];
@@ -206,6 +205,8 @@ codeunit 4591 "SOA Item Search"
         SearchType: Text;
         OriginalFilterGroup: Integer;
         CountBeforeAvailabilityCheck: Integer;
+        RejectedItemCount: Integer;
+        RejectedVariantCount: Integer;
         ApplyAvailabilityFilter: Boolean;
         ItemSelectorUsed: Boolean;
     begin
@@ -247,8 +248,10 @@ codeunit 4591 "SOA Item Search"
                 if CandidateArray.Count() > 0 then begin
                     SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
                     MessageContent := TaskMessageReader.GetLastIncomingMessageContent(AgentTaskID);
-                    if SelectBestItem(ItemFilter, SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants, UnresolvedVariantRequests) then begin
-                        NormalizeVariantAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, UnresolvedVariantRequests);
+                    if SelectBestItem(ItemFilter, SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants, RejectedItemCount, RejectedVariantCount) then begin
+                        TelemetryCustomDimension.Add('ItemSelectorEmptySelection', Format((SelectedMatchingItemFilter = '') and (SelectedAlternativeItemFilter = '')));
+                        TelemetryCustomDimension.Add('ItemSelectorRejectedItemCount', Format(RejectedItemCount));
+                        TelemetryCustomDimension.Add('ItemSelectorRejectedVariantCount', Format(RejectedVariantCount));
                         ItemSelectorUsed := true;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
                         TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(CountFilterItems(SelectedMatchingItemFilter)));
@@ -284,6 +287,7 @@ codeunit 4591 "SOA Item Search"
                         ItemFilter := BuildFilteredItemFilter(ItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, EmptyItemVariants, AvailableItemVariants);
             end;
 
+        Found := false;
         if ItemFilter <> '' then begin
             Item.CopyFilters(Rec);
 
@@ -309,28 +313,27 @@ codeunit 4591 "SOA Item Search"
         OnAfterFindRecordItem(ItemFilter, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode);
     end;
 
-    local procedure SelectBestItem(ItemFilter: Text; SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var UnresolvedVariantRequests: Dictionary of [Text, Boolean]): Boolean
+    local procedure SelectBestItem(ItemFilter: Text; SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var RejectedItemCount: Integer; var RejectedVariantCount: Integer): Boolean
     var
         Item: Record Item;
         ItemSelector: Codeunit "SOA Item Selector";
         ItemNoToSystemId: Dictionary of [Text, Text];
         RawSelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
         RawSelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
-        RawUnresolvedVariantRequests: Dictionary of [Text, Boolean];
         RawSelectedMatchingItemFilter: Text;
         RawSelectedAlternativeItemFilter: Text;
         SelectedMatchingItemNo: Text;
         SelectedAlternativeItemNo: Text;
-        UnresolvedVariantItemNo: Text;
     begin
         SelectedMatchingItemFilter := '';
         SelectedAlternativeItemFilter := '';
         Clear(SelectedMatchingItemVariants);
         Clear(SelectedAlternativeItemVariants);
-        Clear(UnresolvedVariantRequests);
+        RejectedItemCount := 0;
+        RejectedVariantCount := 0;
 
         if CandidateArray.Count() > 0 then
-            if ItemSelector.SelectBestMatchingItemWithVariantsAndUnresolvedRequests(SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, RawSelectedMatchingItemVariants, RawSelectedAlternativeItemVariants, RawUnresolvedVariantRequests) then begin
+            if ItemSelector.SelectBestMatchingItems(SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, RawSelectedMatchingItemVariants, RawSelectedAlternativeItemVariants) then begin
                 RawSelectedMatchingItemFilter := SelectedMatchingItemFilter;
                 RawSelectedAlternativeItemFilter := SelectedAlternativeItemFilter;
 
@@ -346,140 +349,14 @@ codeunit 4591 "SOA Item Search"
                     until Item.Next() = 0;
 
                 foreach SelectedMatchingItemNo in RawSelectedMatchingItemFilter.Split('|') do
-                    AddSelectedItem(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedMatchingItemNo, ItemNoToSystemId, RawSelectedMatchingItemVariants);
+                    AddSelectedItem(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedMatchingItemNo, ItemNoToSystemId, RawSelectedMatchingItemVariants, RejectedItemCount, RejectedVariantCount);
 
                 foreach SelectedAlternativeItemNo in RawSelectedAlternativeItemFilter.Split('|') do
-                    AddSelectedItem(SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SelectedAlternativeItemNo, ItemNoToSystemId, RawSelectedAlternativeItemVariants);
+                    AddSelectedItem(SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SelectedAlternativeItemNo, ItemNoToSystemId, RawSelectedAlternativeItemVariants, RejectedItemCount, RejectedVariantCount);
 
-                foreach UnresolvedVariantItemNo in RawUnresolvedVariantRequests.Keys() do
-                    if ItemNoToSystemId.ContainsKey(UnresolvedVariantItemNo) then
-                        UnresolvedVariantRequests.Add(ItemNoToSystemId.Get(UnresolvedVariantItemNo), RawUnresolvedVariantRequests.Get(UnresolvedVariantItemNo));
-
-                if (SelectedMatchingItemFilter <> '') or (SelectedAlternativeItemFilter <> '') or (UnresolvedVariantRequests.Count() > 0) then
-                    exit(true);
+                exit(true);
             end;
         exit(false);
-    end;
-
-    local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; UnresolvedVariantRequests: Dictionary of [Text, Boolean])
-    begin
-        AddAllowedUnresolvedVariantAlternatives(SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, UnresolvedVariantRequests);
-        RemoveUnresolvedAlternativeItemsWithoutVariants(SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, UnresolvedVariantRequests);
-        RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants, UnresolvedVariantRequests);
-    end;
-
-    local procedure AddAllowedUnresolvedVariantAlternatives(var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; UnresolvedVariantRequests: Dictionary of [Text, Boolean])
-    var
-        Item: Record Item;
-        ItemVariant: Record "Item Variant";
-        VariantCodes: List of [Code[10]];
-        ItemSystemId: Text;
-    begin
-        Item.SetLoadFields("No.");
-        ItemVariant.SetLoadFields(Code);
-        foreach ItemSystemId in UnresolvedVariantRequests.Keys() do begin
-            if not UnresolvedVariantRequests.Get(ItemSystemId) then
-                continue;
-
-            Clear(VariantCodes);
-            if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
-                VariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
-                if VariantCodes.Count() > 0 then
-                    continue;
-            end;
-
-            if not Item.GetBySystemId(ItemSystemId) then
-                continue;
-
-            ItemVariant.SetRange("Item No.", Item."No.");
-            if ItemVariant.FindSet() then
-                repeat
-                    VariantCodes.Add(ItemVariant.Code);
-                until ItemVariant.Next() = 0;
-
-            if VariantCodes.Count() = 0 then
-                continue;
-
-            if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then
-                SelectedAlternativeItemVariants.Set(ItemSystemId, VariantCodes)
-            else begin
-                SelectedAlternativeItemVariants.Add(ItemSystemId, VariantCodes);
-                if SelectedAlternativeItemFilter = '' then
-                    SelectedAlternativeItemFilter := ItemSystemId
-                else
-                    SelectedAlternativeItemFilter += '|' + ItemSystemId;
-            end;
-        end;
-    end;
-
-    local procedure RemoveUnresolvedAlternativeItemsWithoutVariants(var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; UnresolvedVariantRequests: Dictionary of [Text, Boolean])
-    var
-        NewSelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
-        VariantCodes: List of [Code[10]];
-        ItemSystemId: Text;
-        NewSelectedAlternativeItemFilter: Text;
-    begin
-        if SelectedAlternativeItemFilter = '' then
-            exit;
-
-        foreach ItemSystemId in SelectedAlternativeItemFilter.Split('|') do begin
-            Clear(VariantCodes);
-            if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then
-                VariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
-
-            if UnresolvedVariantRequests.ContainsKey(ItemSystemId) and (VariantCodes.Count() = 0) then
-                continue;
-
-            if NewSelectedAlternativeItemFilter = '' then
-                NewSelectedAlternativeItemFilter := ItemSystemId
-            else
-                NewSelectedAlternativeItemFilter += '|' + ItemSystemId;
-
-            if not NewSelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then
-                NewSelectedAlternativeItemVariants.Add(ItemSystemId, VariantCodes);
-        end;
-
-        SelectedAlternativeItemFilter := NewSelectedAlternativeItemFilter;
-        SelectedAlternativeItemVariants := NewSelectedAlternativeItemVariants;
-    end;
-
-    local procedure RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; UnresolvedVariantRequests: Dictionary of [Text, Boolean])
-    var
-        NewSelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
-        AlternativeVariantCodes: List of [Code[10]];
-        MatchingVariantCodes: List of [Code[10]];
-        ItemSystemId: Text;
-        NewSelectedMatchingItemFilter: Text;
-    begin
-        if SelectedMatchingItemFilter = '' then
-            exit;
-
-        foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
-            Clear(MatchingVariantCodes);
-            if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
-                MatchingVariantCodes := SelectedMatchingItemVariants.Get(ItemSystemId);
-
-            if MatchingVariantCodes.Count() = 0 then
-                if UnresolvedVariantRequests.ContainsKey(ItemSystemId) then
-                    continue
-                else
-                    if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
-                        AlternativeVariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
-                        if AlternativeVariantCodes.Count() > 0 then
-                            continue;
-                    end;
-
-            if NewSelectedMatchingItemFilter = '' then
-                NewSelectedMatchingItemFilter := ItemSystemId
-            else
-                NewSelectedMatchingItemFilter += '|' + ItemSystemId;
-
-            if not NewSelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
-                NewSelectedMatchingItemVariants.Add(ItemSystemId, MatchingVariantCodes);
-        end;
-
-        SelectedMatchingItemFilter := NewSelectedMatchingItemFilter;
-        SelectedMatchingItemVariants := NewSelectedMatchingItemVariants;
     end;
 
     local procedure BuildCandidateArrayFromItemFilter(ItemFilter: Text; var CandidateArray: JsonArray)
@@ -558,7 +435,7 @@ codeunit 4591 "SOA Item Search"
         until TempItem.Next() = 0;
     end;
 
-    local procedure AddSelectedItem(var SelectedItemFilter: Text; var SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedItemNo: Text; ItemNoToSystemId: Dictionary of [Text, Text]; RawSelectedItemVariants: Dictionary of [Text, List of [Code[10]]])
+    local procedure AddSelectedItem(var SelectedItemFilter: Text; var SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedItemNo: Text; ItemNoToSystemId: Dictionary of [Text, Text]; RawSelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; var RejectedItemCount: Integer; var RejectedVariantCount: Integer)
     var
         ItemVariant: Record "Item Variant";
         RawVariantCodes: List of [Code[10]];
@@ -568,14 +445,18 @@ codeunit 4591 "SOA Item Search"
     begin
         if SelectedItemNo = '' then
             exit;
-        if not ItemNoToSystemId.ContainsKey(SelectedItemNo) then
+        if not ItemNoToSystemId.ContainsKey(SelectedItemNo) then begin
+            RejectedItemCount += 1;
             exit;
+        end;
 
         if RawSelectedItemVariants.ContainsKey(SelectedItemNo) then begin
             RawVariantCodes := RawSelectedItemVariants.Get(SelectedItemNo);
             foreach VariantCode in RawVariantCodes do
                 if ItemVariant.Get(CopyStr(SelectedItemNo, 1, MaxStrLen(ItemVariant."Item No.")), VariantCode) then
-                    ValidVariantCodes.Add(VariantCode);
+                    ValidVariantCodes.Add(VariantCode)
+                else
+                    RejectedVariantCount += 1;
 
             if (RawVariantCodes.Count() > 0) and (ValidVariantCodes.Count() = 0) then
                 exit;

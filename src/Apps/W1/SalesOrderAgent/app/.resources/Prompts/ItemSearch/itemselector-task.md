@@ -11,7 +11,7 @@ The payload can also contain `message_content`. Use it only as supporting contex
 - Use `message_content` to recover intent that clearly applies to the item in the `search_query`, such as "any color", a size, or an age group omitted from the extracted query.
 - A message can request multiple items. Do not select an item or variant merely because it appears elsewhere in `message_content`.
 - Apply a variant signal from `message_content` only when it clearly refers to the same product identified by the `search_query`.
-- If the `search_query` names only an item and `message_content` provides no relevant same-item variant signal, return an empty `variant_code`.
+- If the `search_query` names only an item and `message_content` provides no relevant same-item variant signal, omit `variant_code`.
 
 Each candidate contains:
 - system_id
@@ -145,34 +145,35 @@ For broad queries (e.g., product families):
 
 ### VARIANT SELECTION
 
-When a selected item has available variants in the Variants column, return `variant_code` using these rules:
+When a selected item has available variants in the Variants column, include `variant_code` using these rules:
 
 - Return the exact variant code when the query, or supporting message context for the same item, explicitly specifies a variant code or variant description.
 - Return the best semantic variant code when the query, or supporting message context for the same item, implies a variant using natural language, such as color, size, age group, or another value present in the Variants data.
-- Return an empty string when the query names only the item and the supporting message context does not clearly identify a variant for that same item.
-- Return an empty string when the item has no matching variant data.
+- Omit `variant_code` when the query names only the item and the supporting message context does not clearly identify a variant for that same item.
+- Omit `variant_code` when the item has no matching variant data.
 - Do not invent or normalize variant codes. The returned `variant_code` must be a code present in the candidate's Variants data.
 - For broad variant wording such as "any color", choose a valid variant for that item only if the wording clearly requests a variant family and any variant in that family is acceptable.
 - Alternative variant suggestions must be close substitutes for the requested variant. Do not suggest variants that change the customer's core intent.
 - Never suggest a variant that changes fit, compatibility, or another non-interchangeable requirement unless the customer explicitly allows that change. This rule overrides every instruction to return alternatives.
-- Infer the requested variant dimension from the query and the candidate's variant codes and descriptions. A requested value absent from the Variants data does not make the base product unrelated or remove it from consideration.
-- Treat presentation-only dimensions, such as color, finish, pattern, or decorative style, as interchangeable by default because they preserve form, fit, function, safety, and compatibility. Set `alternatives_allowed` to true unless the customer explicitly requires the exact value or rejects substitutions.
+- Infer the requested variant dimension from the query and the candidate's variant codes and descriptions.
+- Treat presentation-only dimensions, such as color, finish, pattern, or decorative style, as interchangeable by default because they preserve form, fit, function, safety, and compatibility, unless the customer explicitly requires the exact value or rejects substitutions.
 - Treat dimensions that can affect suitability, such as physical fit, dimensions, capacity, compatibility, technical specification, safety classification, or intended user group, as non-interchangeable by default. Similarity, ordering, proximity, or availability of another value does not make it a valid substitute.
 - Availability does not make a variant interchangeable. Select the requested variant when it exists in the Variants data; downstream logic will evaluate its availability.
-- If the query explicitly or semantically requests a variant value, never return that item as `matching` with an empty `variant_code`. An empty variant would incorrectly imply that the requested item can be fulfilled without resolving the variant.
-- When a requested variant value is absent from an item's Variants data, add the item to `unresolved_variant_requests`. Set `alternatives_allowed` to true only when changing that variant preserves suitability; otherwise set it to false.
-- Always add the base item to `unresolved_variant_requests` when it matches the requested product but the requested variant value is absent, even when `selected_items` contains only concrete alternatives or is otherwise empty.
-- Do not add an item to `unresolved_variant_requests` when the requested variant exists in its Variants data. Select the exact variant and let downstream logic evaluate availability.
-- When you return a matching item with a specific `variant_code`, also return up to 3 genuinely interchangeable variants for the same item as additional `selected_items` entries with confidence `alternative`. Return no variant alternatives for fit, compatibility, or other non-interchangeable requirements.
-- If the requested variant is not present in the Variants data, return up to 3 valid variants for the same item with confidence `alternative` only when that variant dimension is interchangeable. Do not also return the item with an empty `variant_code`. Return no variant alternatives when changing the requested variant would affect fit, compatibility, or another non-interchangeable requirement.
+- If the query explicitly or semantically requests a variant value, never return that item as `matching` without `variant_code`. An omitted variant would incorrectly imply that the requested item can be fulfilled without resolving the variant.
+- Set `variant_match` to `matching` when `variant_code` fulfills the explicit or semantic variant request.
+- Set `variant_match` to `alternative` when `variant_code` is a safe substitute for the requested variant.
+- Set `variant_match` to `not_requested` only when no variant was requested, and omit `variant_code`.
+- When you return a matching item with a specific `variant_code`, also return up to 3 genuinely interchangeable variants for the same item as additional `selected_items` entries with confidence `alternative` and `variant_match` `alternative`. Return no variant alternatives for fit, compatibility, or other non-interchangeable requirements.
+- If the requested variant is not present in the Variants data, return up to 3 valid variants for the same item with confidence `alternative` and `variant_match` `alternative` only when that variant dimension is interchangeable. Do not also return the item without `variant_code`.
+- If the requested variant is not present and changing it would affect fit, compatibility, or another non-interchangeable requirement, do not return that item or any of its variants. Return an empty `selected_items` array when no other item qualifies.
 - You may return the same `item_no` more than once only when each entry has a different non-empty `variant_code`.
 
 Examples:
 - "Variant: BLUE" for an item with variant code BLUE -> `variant_code`: "BLUE"
 - "black bicycle" for an item with a BLACK variant -> `variant_code`: "BLACK"
 - "age group 3-5" for an item with variant AGE - 3-5 -> `variant_code`: "AGE - 3-5"
-- An item name with no variant signal -> `variant_code`: ""
-- A request for an unavailable presentation-only variant -> set `alternatives_allowed` to true, return valid same-item variants as alternatives, and do not return the item with an empty `variant_code`
+- An item name with no variant signal -> omit `variant_code`
+- A request for an unavailable presentation-only variant -> return valid same-item variants as alternatives and do not return the item without `variant_code`
 - A request for a specific non-interchangeable variant value -> return the exact variant when present and no other variant values as alternatives unless the customer explicitly permits flexibility
 
 ---
@@ -207,11 +208,8 @@ Examples:
 Return:
 
 selected_items: [
-  { "item_no": "<No.>", "variant_code": "<Variant Code or empty string>", "confidence": "matching" | "alternative", "variant_resolution": "not_requested" | "resolved" | "unresolved_interchangeable" | "unresolved_non_interchangeable" }
-]
-
-unresolved_variant_requests: [
-  { "item_no": "<No.>", "alternatives_allowed": true | false }
+  { "item_no": "<No.>", "variant_code": "<Variant Code when selected>", "confidence": "matching" | "alternative", "variant_match": "matching" | "alternative", "reason": "<Concise item and variant decision>" },
+  { "item_no": "<No.>", "confidence": "matching" | "alternative", "variant_match": "not_requested", "reason": "<Concise item decision>" }
 ]
 
 Rules:
@@ -220,8 +218,8 @@ Rules:
 - Sort by relevance within each group
 - Do not include duplicate item+variant pairs
 - Return empty array ONLY if no items qualify as "matching" or "alternative"
-- Set `variant_resolution` to `not_requested` only when no variant value was requested, `resolved` when `variant_code` resolves the request, and one of the `unresolved_*` values when the requested value is absent
-- Always return `unresolved_variant_requests`; use an empty array when no requested variant value is absent from the candidate Variants data
+- Set `variant_match` to `not_requested` only when no variant value was requested and omit `variant_code`; use `matching` when `variant_code` fulfills the request and `alternative` when it is a safe substitute
+- Include `reason` for every selected item with a concise explanation of both the item match and variant decision
 
 ---
 
@@ -239,11 +237,10 @@ Candidates:
 
 Output:
 selected_items: [
-  { "item_no": "20001", "variant_code": "", "confidence": "matching", "variant_resolution": "not_requested" },
-  { "item_no": "20002", "variant_code": "", "confidence": "matching", "variant_resolution": "not_requested" },
-  { "item_no": "20003", "variant_code": "", "confidence": "alternative", "variant_resolution": "not_requested" }
+  { "item_no": "20001", "confidence": "matching", "variant_match": "not_requested", "reason": "Exact semantic match for wireless mouse; no variant was requested." },
+  { "item_no": "20002", "confidence": "matching", "variant_match": "not_requested", "reason": "Bluetooth is a wireless mouse technology; no variant was requested." },
+  { "item_no": "20003", "confidence": "alternative", "variant_match": "not_requested", "reason": "Related mouse product, but it is wired rather than wireless; no variant was requested." }
 ]
-unresolved_variant_requests: []
 
 ---
 
@@ -259,11 +256,10 @@ Candidates:
 
 Output:
 selected_items: [
-  { "item_no": "50001", "variant_code": "", "confidence": "matching", "variant_resolution": "not_requested" },
-  { "item_no": "50002", "variant_code": "", "confidence": "alternative", "variant_resolution": "not_requested" },
-  { "item_no": "50003", "variant_code": "", "confidence": "alternative", "variant_resolution": "not_requested" }
+  { "item_no": "50001", "confidence": "matching", "variant_match": "not_requested", "reason": "Pressure valve with the requested vendor item number VX100; no variant was requested." },
+  { "item_no": "50002", "confidence": "alternative", "variant_match": "not_requested", "reason": "Same product family with a different vendor item number; no variant was requested." },
+  { "item_no": "50003", "confidence": "alternative", "variant_match": "not_requested", "reason": "Same product family with a different vendor item number; no variant was requested." }
 ]
-unresolved_variant_requests: []
 
 ---
 
@@ -279,11 +275,10 @@ Candidates:
 
 Output:
 selected_items: [
-  { "item_no": "80001", "variant_code": "", "confidence": "matching", "variant_resolution": "not_requested" },
-  { "item_no": "80003", "variant_code": "", "confidence": "matching", "variant_resolution": "not_requested" },
-  { "item_no": "80002", "variant_code": "", "confidence": "alternative", "variant_resolution": "not_requested" }
+  { "item_no": "80001", "confidence": "matching", "variant_match": "not_requested", "reason": "Flow sensor with the requested vendor item number FS-10; no variant was requested." },
+  { "item_no": "80003", "confidence": "matching", "variant_match": "not_requested", "reason": "Flow sensor product with the requested vendor item number FS-10; no variant was requested." },
+  { "item_no": "80002", "confidence": "alternative", "variant_match": "not_requested", "reason": "Same flow sensor family with a different vendor item number; no variant was requested." }
 ]
-unresolved_variant_requests: []
 
 ---
 
@@ -296,11 +291,8 @@ Candidates:
 
 Output:
 selected_items: [
-  { "item_no": "L100", "variant_code": "BLACK", "confidence": "alternative", "variant_resolution": "unresolved_interchangeable" },
-  { "item_no": "L100", "variant_code": "WHITE", "confidence": "alternative", "variant_resolution": "unresolved_interchangeable" }
-]
-unresolved_variant_requests: [
-  { "item_no": "L100", "alternatives_allowed": true }
+  { "item_no": "L100", "variant_code": "BLACK", "confidence": "alternative", "variant_match": "alternative", "reason": "Matching desk lamp with black as a safe color alternative to unavailable bronze." },
+  { "item_no": "L100", "variant_code": "WHITE", "confidence": "alternative", "variant_match": "alternative", "reason": "Matching desk lamp with white as a safe color alternative to unavailable bronze." }
 ]
 
 ---
@@ -314,6 +306,3 @@ Candidates:
 
 Output:
 selected_items: []
-unresolved_variant_requests: [
-  { "item_no": "P100", "alternatives_allowed": false }
-]

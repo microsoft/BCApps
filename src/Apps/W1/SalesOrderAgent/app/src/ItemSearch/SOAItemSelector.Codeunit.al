@@ -21,39 +21,22 @@ codeunit 4417 "SOA Item Selector"
         PromptUnavailableFailureTok: Label 'PromptUnavailable', Locked = true;
         AOAIOperationFailureTok: Label 'AOAIOperationFailed', Locked = true;
         MissingFunctionCallFailureTok: Label 'MissingFunctionCall', Locked = true;
+        MalformedFunctionResponseFailureTok: Label 'MalformedFunctionResponse', Locked = true;
         ItemSelectorExceptionTelemetryMsg: Label 'Item selector failed with an exception.', Locked = true;
         ItemSelectorResponseFailureTelemetryMsg: Label 'Item selector failed before producing a selection.', Locked = true;
 
     /// <summary>
-    /// Evaluates multiple item candidates using AOAI to select the best match based on search query and item data.
-    /// Only invoked when there are multiple candidates.
+    /// Evaluates item candidates using AOAI to select matching and alternative item variants.
     /// </summary>
-    /// <param name="SearchQuery">The original search query text (e.g., "WENGLOR,REFLEX,SENSOR,YD54PA3")</param>
-    /// <param name="CandidateArray">JsonArray containing candidate items with system_id and column_values</param>
-    /// <param name="MatchingItemFilter">Output: Pipe-delimited Item No. values selected as matching items</param>
-    /// <param name="AlternativeItemFilter">Output: Pipe-delimited Item No. values selected as alternative items</param>
-    /// <returns>True if matching or alternative items were selected, false if no selection made</returns>
-    internal procedure SelectBestMatchingItem(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text): Boolean
-    var
-        DummyMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
-        DummyAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
-    begin
-        exit(SelectBestMatchingItemWithVariants(SearchQuery, CandidateArray, MatchingItemFilter, AlternativeItemFilter, DummyMatchingItemVariants, DummyAlternativeItemVariants));
-    end;
-
-    internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Boolean
-    begin
-        exit(SelectBestMatchingItemWithVariants(SearchQuery, '', CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants));
-    end;
-
-    internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Boolean
-    var
-        DummyUnresolvedVariantRequests: Dictionary of [Text, Boolean];
-    begin
-        exit(SelectBestMatchingItemWithVariantsAndUnresolvedRequests(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants, DummyUnresolvedVariantRequests));
-    end;
-
-    internal procedure SelectBestMatchingItemWithVariantsAndUnresolvedRequests(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var UnresolvedVariantRequests: Dictionary of [Text, Boolean]): Boolean
+    /// <param name="SearchQuery">The extracted item search query.</param>
+    /// <param name="MessageContent">Supporting context from the incoming message.</param>
+    /// <param name="CandidateArray">Candidate items with system_id and column_values.</param>
+    /// <param name="MatchingItemFilter">Pipe-delimited Item No. values selected as matching items.</param>
+    /// <param name="AlternativeItemFilter">Pipe-delimited Item No. values selected as alternative items.</param>
+    /// <param name="MatchingItemVariants">Variant codes selected for matching items.</param>
+    /// <param name="AlternativeItemVariants">Variant codes selected for alternative items.</param>
+    /// <returns>True when the selector produced a valid result, including a valid empty result; otherwise false.</returns>
+    internal procedure SelectBestMatchingItems(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Boolean
     var
         ErrorCallStack: Text;
         ErrorText: Text;
@@ -65,10 +48,9 @@ codeunit 4417 "SOA Item Selector"
         AlternativeItemFilter := '';
         Clear(MatchingItemVariants);
         Clear(AlternativeItemVariants);
-        Clear(UnresolvedVariantRequests);
 
         ClearLastError();
-        if not TrySelectBestMatchingItem(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants, UnresolvedVariantRequests, FailureCategory, StatusCode, FailureDetails) then begin
+        if not TrySelectBestMatchingItems(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants, FailureCategory, StatusCode, FailureDetails) then begin
             ErrorText := GetLastErrorText(true);
             ErrorCallStack := GetLastErrorCallStack();
             LogItemSelectorException(CandidateArray.Count(), ErrorText, ErrorCallStack);
@@ -80,12 +62,12 @@ codeunit 4417 "SOA Item Selector"
             exit(false);
         end;
 
-        exit((MatchingItemFilter <> '') or (AlternativeItemFilter <> '') or (UnresolvedVariantRequests.Count() > 0));
+        exit(true);
     end;
 
     [NonDebuggable]
     [TryFunction]
-    local procedure TrySelectBestMatchingItem(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var UnresolvedVariantRequests: Dictionary of [Text, Boolean]; var FailureCategory: Text; var StatusCode: Text; var FailureDetails: Text)
+    local procedure TrySelectBestMatchingItems(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var FailureCategory: Text; var StatusCode: Text; var FailureDetails: Text)
     var
         ItemSelectorFunc: Codeunit "SOA Item Selector Func";
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -94,6 +76,7 @@ codeunit 4417 "SOA Item Selector"
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        FunctionResponseFailureCategory: Text;
         SystemPrompt: SecretText;
     begin
         // Get the system prompt for item selection
@@ -133,10 +116,18 @@ codeunit 4417 "SOA Item Selector"
         // Extract matching and alternative items from function response
         foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do begin
             ItemSelectorFunc.Execute(AOAIFunctionResponse.GetArguments());
-            ItemSelectorFunc.GetSelectionResultWithVariantsAndUnresolvedRequests(MatchingItems, AlternativeItems, MatchingItemVariants, AlternativeItemVariants, UnresolvedVariantRequests);
-            if (MatchingItems <> '') or (AlternativeItems <> '') or (UnresolvedVariantRequests.Count() > 0) then
-                exit;
+            if not ItemSelectorFunc.IsSelectionResultValid() then begin
+                FunctionResponseFailureCategory := ItemSelectorFunc.GetSelectionResultFailureCategory();
+                continue;
+            end;
+
+            ItemSelectorFunc.GetSelectionResult(MatchingItems, AlternativeItems, MatchingItemVariants, AlternativeItemVariants);
+            exit;
         end;
+
+        FailureCategory := FunctionResponseFailureCategory;
+        if FailureCategory = '' then
+            FailureCategory := MalformedFunctionResponseFailureTok;
     end;
 
     local procedure LogItemSelectorException(CandidateCount: Integer; ErrorText: Text; ErrorCallStack: Text)

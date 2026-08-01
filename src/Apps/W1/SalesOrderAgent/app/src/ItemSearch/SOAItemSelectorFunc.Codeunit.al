@@ -18,12 +18,16 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         AlternativeItems: Text;
         MatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
         AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
-        UnresolvedVariantRequests: Dictionary of [Text, Boolean];
+        SelectionResultValid: Boolean;
+        SelectionResultFailureCategory: Text;
         FunctionNameTok: Label 'select_best_matching_item', Locked = true;
         MatchingTok: Label 'matching', Locked = true;
         AlternativeTok: Label 'alternative', Locked = true;
-        UnresolvedInterchangeableTok: Label 'unresolved_interchangeable', Locked = true;
-        UnresolvedNonInterchangeableTok: Label 'unresolved_non_interchangeable', Locked = true;
+        NotRequestedTok: Label 'not_requested', Locked = true;
+        MalformedFunctionResponseFailureTok: Label 'MalformedFunctionResponse', Locked = true;
+        InvalidItemNumberFailureTok: Label 'InvalidItemNumber', Locked = true;
+        InvalidVariantCodeFailureTok: Label 'InvalidVariantCode', Locked = true;
+        RejectedVariantMatchCombinationFailureTok: Label 'RejectedVariantMatchCombination', Locked = true;
 
     [NonDebuggable]
     procedure GetPrompt(): JsonObject
@@ -37,95 +41,95 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
 
     procedure Execute(Arguments: JsonObject): Variant
     var
-        ResultToken, ItemToken : JsonToken;
+        ResultToken: JsonToken;
         SelectedItemsArray: JsonArray;
-        ItemObject: JsonObject;
-        ItemNo: Text;
-        VariantCode: Text;
-        VariantResolution: Text;
-        Confidence: Text;
-        AlternativesAllowed: Boolean;
     begin
         MatchingItems := '';
         AlternativeItems := '';
         Clear(MatchingItemVariants);
         Clear(AlternativeItemVariants);
-        Clear(UnresolvedVariantRequests);
+        SelectionResultValid := false;
+        SelectionResultFailureCategory := MalformedFunctionResponseFailureTok;
 
-        // Parse per-item confidence payloads and separate into matching/alternative lists.
-        if Arguments.Get('selected_items', ResultToken) then
-            if ResultToken.IsArray() then begin
-                SelectedItemsArray := ResultToken.AsArray();
-                foreach ItemToken in SelectedItemsArray do
-                    if ItemToken.IsObject() then begin
-                        ItemNo := '';
-                        VariantCode := '';
-                        VariantResolution := '';
-                        Confidence := '';
-                        ItemObject := ItemToken.AsObject();
-                        if ItemObject.Get('item_no', ResultToken) then
-                            ItemNo := ResultToken.AsValue().AsText()
-                        else
-                            continue;
+        if not Arguments.Get('selected_items', ResultToken) or not ResultToken.IsArray() then
+            exit;
+        SelectedItemsArray := ResultToken.AsArray();
+        if not ParseSelectedItems(SelectedItemsArray) then
+            exit;
 
-                        if ItemObject.Get('variant_code', ResultToken) then
-                            VariantCode := ResultToken.AsValue().AsText();
-                        VariantCode := VariantCode.Trim();
-                        if not IsAllowedVariantCodeFormat(VariantCode) then
-                            continue;
-
-                        if ItemObject.Get('confidence', ResultToken) then
-                            Confidence := ResultToken.AsValue().AsText()
-                        else
-                            continue;
-
-                        if ItemNo = '' then
-                            continue;
-
-                        if Confidence = MatchingTok then begin
-                            if AddItemToList(MatchingItems, ItemNo) then
-                                AddVariantCodeToDictionary(MatchingItemVariants, ItemNo, VariantCode);
-                        end
-                        else
-                            if Confidence = AlternativeTok then
-                                if AddItemToList(AlternativeItems, ItemNo) then
-                                    AddVariantCodeToDictionary(AlternativeItemVariants, ItemNo, VariantCode);
-
-                        if ItemObject.Get('variant_resolution', ResultToken) then
-                            VariantResolution := ResultToken.AsValue().AsText();
-                        case VariantResolution of
-                            UnresolvedInterchangeableTok:
-                                if not UnresolvedVariantRequests.ContainsKey(ItemNo) then
-                                    UnresolvedVariantRequests.Add(ItemNo, true);
-                            UnresolvedNonInterchangeableTok:
-                                if not UnresolvedVariantRequests.ContainsKey(ItemNo) then
-                                    UnresolvedVariantRequests.Add(ItemNo, false);
-                        end;
-                    end;
-            end;
-
-        if Arguments.Get('unresolved_variant_requests', ResultToken) then
-            if ResultToken.IsArray() then begin
-                SelectedItemsArray := ResultToken.AsArray();
-                foreach ItemToken in SelectedItemsArray do
-                    if ItemToken.IsObject() then begin
-                        ItemObject := ItemToken.AsObject();
-                        if not ItemObject.Get('item_no', ResultToken) then
-                            continue;
-                        ItemNo := ResultToken.AsValue().AsText().Trim();
-                        if not IsAllowedItemNoFormat(ItemNo) then
-                            continue;
-
-                        if not ItemObject.Get('alternatives_allowed', ResultToken) then
-                            continue;
-                        AlternativesAllowed := ResultToken.AsValue().AsBoolean();
-
-                        if not UnresolvedVariantRequests.ContainsKey(ItemNo) then
-                            UnresolvedVariantRequests.Add(ItemNo, AlternativesAllowed);
-                    end;
-            end;
+        SelectionResultValid := true;
+        SelectionResultFailureCategory := '';
 
         exit(MatchingItems);
+    end;
+
+    local procedure ParseSelectedItems(SelectedItemsArray: JsonArray): Boolean
+    var
+        ItemToken: JsonToken;
+        ResultToken: JsonToken;
+        ItemObject: JsonObject;
+        Confidence: Text;
+        ItemNo: Text;
+        VariantCode: Text;
+        VariantMatch: Text;
+    begin
+        foreach ItemToken in SelectedItemsArray do begin
+            if not ItemToken.IsObject() then
+                exit(false);
+
+            ItemObject := ItemToken.AsObject();
+            if not ItemObject.Get('item_no', ResultToken) or not ResultToken.IsValue() then
+                exit(SetSelectionResultFailure(InvalidItemNumberFailureTok));
+            ItemNo := ResultToken.AsValue().AsText().Trim();
+            if not IsAllowedItemNoFormat(ItemNo) then
+                exit(SetSelectionResultFailure(InvalidItemNumberFailureTok));
+
+            VariantCode := '';
+            if ItemObject.Get('variant_code', ResultToken) then begin
+                if not ResultToken.IsValue() then
+                    exit(SetSelectionResultFailure(InvalidVariantCodeFailureTok));
+                VariantCode := ResultToken.AsValue().AsText().Trim();
+            end;
+            if not IsAllowedVariantCodeFormat(VariantCode) then
+                exit(SetSelectionResultFailure(InvalidVariantCodeFailureTok));
+
+            if not ItemObject.Get('variant_match', ResultToken) or not ResultToken.IsValue() then
+                exit(SetSelectionResultFailure(RejectedVariantMatchCombinationFailureTok));
+            VariantMatch := ResultToken.AsValue().AsText();
+            if (VariantMatch <> MatchingTok) and (VariantMatch <> AlternativeTok) and (VariantMatch <> NotRequestedTok) then
+                exit(SetSelectionResultFailure(RejectedVariantMatchCombinationFailureTok));
+            if ((VariantCode = '') and (VariantMatch <> NotRequestedTok)) or
+               ((VariantCode <> '') and (VariantMatch = NotRequestedTok))
+            then
+                exit(SetSelectionResultFailure(RejectedVariantMatchCombinationFailureTok));
+
+            if not ItemObject.Get('confidence', ResultToken) or not ResultToken.IsValue() then
+                exit(false);
+            Confidence := ResultToken.AsValue().AsText();
+            if (Confidence <> MatchingTok) and (Confidence <> AlternativeTok) then
+                exit(false);
+
+            if not ItemObject.Get('reason', ResultToken) or not ResultToken.IsValue() then
+                exit(false);
+
+            if Confidence = MatchingTok then begin
+                if not AddItemToList(MatchingItems, ItemNo) then
+                    exit(SetSelectionResultFailure(InvalidItemNumberFailureTok));
+                AddVariantCodeToDictionary(MatchingItemVariants, ItemNo, VariantCode);
+            end else begin
+                if not AddItemToList(AlternativeItems, ItemNo) then
+                    exit(SetSelectionResultFailure(InvalidItemNumberFailureTok));
+                AddVariantCodeToDictionary(AlternativeItemVariants, ItemNo, VariantCode);
+            end;
+        end;
+
+        exit(true);
+    end;
+
+    local procedure SetSelectionResultFailure(FailureCategory: Text): Boolean
+    begin
+        SelectionResultFailureCategory := FailureCategory;
+        exit(false);
     end;
 
     local procedure AddItemToList(var ItemList: Text; var ItemNo: Text): Boolean
@@ -234,22 +238,22 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         exit(FunctionNameTok);
     end;
 
-    internal procedure GetSelectionResult(var MatchingItemsFilter: Text; var AlternativeItemsFilter: Text)
+    internal procedure IsSelectionResultValid(): Boolean
+    begin
+        exit(SelectionResultValid);
+    end;
+
+    internal procedure GetSelectionResultFailureCategory(): Text
+    begin
+        exit(SelectionResultFailureCategory);
+    end;
+
+    internal procedure GetSelectionResult(var MatchingItemsFilter: Text; var AlternativeItemsFilter: Text; var MatchingVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeVariants: Dictionary of [Text, List of [Code[10]]])
     begin
         MatchingItemsFilter := MatchingItems;
         AlternativeItemsFilter := AlternativeItems;
-    end;
-
-    internal procedure GetSelectionResultWithVariants(var MatchingItemsFilter: Text; var AlternativeItemsFilter: Text; var MatchingVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeVariants: Dictionary of [Text, List of [Code[10]]])
-    begin
-        GetSelectionResult(MatchingItemsFilter, AlternativeItemsFilter);
         MatchingVariants := MatchingItemVariants;
         AlternativeVariants := AlternativeItemVariants;
     end;
 
-    internal procedure GetSelectionResultWithVariantsAndUnresolvedRequests(var MatchingItemsFilter: Text; var AlternativeItemsFilter: Text; var MatchingVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeVariants: Dictionary of [Text, List of [Code[10]]]; var UnresolvedRequests: Dictionary of [Text, Boolean])
-    begin
-        GetSelectionResultWithVariants(MatchingItemsFilter, AlternativeItemsFilter, MatchingVariants, AlternativeVariants);
-        UnresolvedRequests := UnresolvedVariantRequests;
-    end;
 }
