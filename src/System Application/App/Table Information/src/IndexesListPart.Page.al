@@ -38,6 +38,11 @@ page 8704 "Indexes List Part"
                     Caption = 'Index Name';
                     ToolTip = 'Specifies the name of the index.';
                 }
+                field("Index Type"; Rec."Index Type")
+                {
+                    Caption = 'Index Type';
+                    ToolTip = 'Specifies whether the row represents a regular database index or a SIFT structure.';
+                }
                 field(Enabled; Rec.Enabled)
                 {
                     Caption = 'Enabled in Database';
@@ -179,7 +184,7 @@ page 8704 "Indexes List Part"
 
                     if Company.FindSet() then
                         repeat
-                            if DatabaseIndex.Get(Rec.TableId, Rec."Index Name", Company.Name, Rec."Source App ID") then
+                            if DatabaseIndex.Get(Rec.TableId, Rec."Index Name", Company.Name, Rec."Source App ID", Rec."Index Type") then
                                 IndexManagement.DisableIndex(DatabaseIndex);
                         until Company.Next() = 0;
 
@@ -203,10 +208,9 @@ page 8704 "Indexes List Part"
                 trigger OnAction()
                 var
                     KeyRec: Record "Key";
-                    IndexManagement: Codeunit "Index Management";
                 begin
                     if FindKeyFromDatabaseIndex(Rec, KeyRec) then
-                        IndexManagement.EnableKey(KeyRec, Rec."Company Name");
+                        EnableIndex(KeyRec, Rec."Company Name", Rec."Index Type" = Rec."Index Type"::SIFT);
 
                     Message(TurnOnIndexQueueInfoMsg);
                 end;
@@ -222,14 +226,13 @@ page 8704 "Indexes List Part"
                 var
                     Company: Record Company;
                     KeyRec: Record "Key";
-                    IndexManagement: Codeunit "Index Management";
                 begin
                     if not FindKeyFromDatabaseIndex(Rec, KeyRec) then
                         exit;
 
                     if Company.FindSet() then
                         repeat
-                            IndexManagement.EnableKey(KeyRec, Company.Name);
+                            EnableIndex(KeyRec, Company.Name, Rec."Index Type" = Rec."Index Type"::SIFT);
                         until Company.Next() = 0;
 
                     Message(TurnOnIndexQueueInfoMsg);
@@ -265,6 +268,7 @@ page 8704 "Indexes List Part"
     var
         DatabaseIndex: Record "Database Index";
         KeyRec: Record "Key";
+        IndexName: Text[128];
     begin
         // Combines the indexes from "Database Index" and "Key" virtual tables. "Database Index" contains all indexes currently in the database,
         // including those automatically created by the database engine, while "Key" contains all metadata defined keys.
@@ -282,22 +286,39 @@ page 8704 "Indexes List Part"
         KeyRec.SetRange(KeyRec.SQLIndex);
         if KeyRec.FindSet() then
             repeat
-                if Rec.Get(LinkTableId, KeyRec."Key name", SetCompanyName, KeyRec."Source App ID") then
-                    continue;
+                if KeyRec.MaintainSQLIndex or not KeyRec.Enabled then begin
+                    IndexName := GetKeyIndexName(KeyRec, false);
+                    if not Rec.Get(LinkTableId, IndexName, SetCompanyName, KeyRec."Source App ID", Rec."Index Type"::Index) then
+                        InsertDisabledIndex(KeyRec, false);
+                end;
 
-                Clear(Rec);
-
-                Rec.TableId := KeyRec.TableNo;
-                Rec."Column Names" := KeyRec."Key";
-                Rec."Company Name" := CopyStr(SetCompanyName, 1, MaxStrLen(Rec."Company Name"));
-                Rec.Unique := KeyRec.Unique;
-                Rec.Enabled := false;
-                Rec."Metadata Defined" := true;
-                Rec."Index Name" := KeyRec."Key name";
-                Rec."Source App ID" := KeyRec."Source App ID";
-
-                Rec.Insert();
+                if KeyRec.MaintainSIFTIndex then begin
+                    IndexName := GetKeyIndexName(KeyRec, true);
+                    if not Rec.Get(LinkTableId, IndexName, SetCompanyName, KeyRec."Source App ID", Rec."Index Type"::SIFT) then
+                        InsertDisabledIndex(KeyRec, true);
+                end;
             until KeyRec.Next() = 0;
+    end;
+
+    local procedure InsertDisabledIndex(KeyRec: Record "Key"; IsSift: Boolean)
+    begin
+        Clear(Rec);
+
+        Rec.TableId := KeyRec.TableNo;
+        Rec."Column Names" := KeyRec."Key";
+        Rec."Company Name" := CopyStr(SetCompanyName, 1, MaxStrLen(Rec."Company Name"));
+        Rec.Unique := KeyRec.Unique and not IsSift;
+        Rec.Enabled := false;
+        Rec."Metadata Defined" := true;
+        Rec."Index Name" := GetKeyIndexName(KeyRec, IsSift);
+        Rec."Source App ID" := KeyRec."Source App ID";
+        if IsSift then begin
+            Rec."Index Type" := Rec."Index Type"::SIFT;
+            Rec."Included Fields" := KeyRec.SumIndexFields;
+        end else
+            Rec."Index Type" := Rec."Index Type"::Index;
+
+        Rec.Insert();
     end;
 
     procedure SetCompanyFilter(NewCompanyName: Text)
@@ -309,10 +330,39 @@ page 8704 "Indexes List Part"
     end;
 
     local procedure FindKeyFromDatabaseIndex(DatabaseIndex: Record "Database Index"; var KeyRec: Record "Key"): Boolean
+    var
+        IsSift: Boolean;
     begin
         KeyRec.SetRange(KeyRec.TableNo, DatabaseIndex.TableId);
-        KeyRec.SetRange(KeyRec."Key name", DatabaseIndex."Index Name");
-        exit(KeyRec.FindFirst());
+        KeyRec.SetRange(KeyRec."Source App ID", DatabaseIndex."Source App ID");
+        IsSift := DatabaseIndex."Index Type" = DatabaseIndex."Index Type"::SIFT;
+        if KeyRec.FindSet() then
+            repeat
+                if GetKeyIndexName(KeyRec, IsSift) = DatabaseIndex."Index Name" then
+                    exit(true);
+            until KeyRec.Next() = 0;
+
+        exit(false);
+    end;
+
+    local procedure GetKeyIndexName(KeyRec: Record "Key"; IsSift: Boolean): Text[128]
+    var
+        IndexManagement: Codeunit "Index Management";
+    begin
+        if KeyRec."Key name" <> '' then
+            exit(KeyRec."Key name");
+
+        exit(IndexManagement.GetKeyIndexName(KeyRec, IsSift));
+    end;
+
+    local procedure EnableIndex(KeyRec: Record "Key"; CompanyName: Text; IsSift: Boolean)
+    var
+        IndexManagement: Codeunit "Index Management";
+    begin
+        if IsSift then
+            IndexManagement.EnableSiftKey(KeyRec, CompanyName)
+        else
+            IndexManagement.EnableKey(KeyRec, CompanyName);
     end;
 
     var
