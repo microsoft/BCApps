@@ -14,6 +14,7 @@ codeunit 148342 EACorpCardPhase3Tests
 
     var
         Assert: Codeunit "Assert";
+        EACorpCardTestLib: Codeunit EACorpCardTestLib;
         LibraryExpense: Codeunit "Library - Expense";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
@@ -293,7 +294,8 @@ codeunit 148342 EACorpCardPhase3Tests
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::EACorpCardPhase3Tests);
-        InitializeCorpCardData();
+        EACorpCardTestLib.InitializeCorpCardData();
+        DeleteCorpCardTransactionalData();
 
         if IsInitialized then
             exit;
@@ -309,21 +311,6 @@ codeunit 148342 EACorpCardPhase3Tests
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::EACorpCardPhase3Tests);
-    end;
-
-    local procedure InitializeCorpCardData()
-    var
-        ExpenseUser: Record "Expense User";
-        CreateCorpCardSetup: Codeunit EACreateCorpCardSetup;
-        CreateCorpCardL3Demo: Codeunit EACreateCorpCardL3Demo;
-    begin
-        LibraryExpense.CleanUpBeforeTesting();
-        LibraryExpense.CleanTransactionalData();
-        DeleteCorpCardTransactionalData();
-
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        CreateCorpCardSetup.CreateDefaults();
-        CreateCorpCardL3Demo.CreateDefaults();
     end;
 
     local procedure DeleteCorpCardTransactionalData()
