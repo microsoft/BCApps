@@ -11,6 +11,9 @@ codeunit 148338 EACorpCardTestLib
     var
         Assert: Codeunit "Assert";
         LibraryExpense: Codeunit "Library - Expense";
+        NoBatchCreatedForProviderTxt: Label 'No batch was created for provider %1.', Comment = '%1 = provider code', Locked = true;
+        ProviderTransactionNotImportedTxt: Label 'Provider transaction %1 was not imported for provider %2.', Comment = '%1 = provider transaction ID, %2 = provider code', Locked = true;
+        ProviderNotFoundTxt: Label 'Provider %1 was not found.', Comment = '%1 = provider code', Locked = true;
 
     internal procedure InitializeCorpCardData()
     var
@@ -48,7 +51,7 @@ codeunit 148338 EACorpCardTestLib
 
         CorpCardBatch.Reset();
         CorpCardBatch.SetRange("Provider Code", ProviderCode);
-        Assert.IsTrue(CorpCardBatch.FindLast(), StrSubstNo('No batch was created for provider %1.', ProviderCode));
+        Assert.IsTrue(CorpCardBatch.FindLast(), StrSubstNo(NoBatchCreatedForProviderTxt, ProviderCode));
     end;
 
     internal procedure CountTransForBatch(BatchNo: Integer; ProviderCode: Code[20]): Integer
@@ -85,7 +88,7 @@ codeunit 148338 EACorpCardTestLib
         CorpCardTrans.SetRange("Batch No.", BatchNo);
         CorpCardTrans.SetRange("Provider Code", ProviderCode);
         CorpCardTrans.SetRange("Provider Trans Id", ProviderTransId);
-        Assert.IsTrue(CorpCardTrans.FindFirst(), StrSubstNo('Provider transaction %1 was not imported for provider %2.', ProviderTransId, ProviderCode));
+        Assert.IsTrue(CorpCardTrans.FindFirst(), StrSubstNo(ProviderTransactionNotImportedTxt, ProviderTransId, ProviderCode));
     end;
 
     internal procedure SumExpenseVatSpecAmounts(ExpenseNo: Code[20]): Decimal
@@ -102,7 +105,7 @@ codeunit 148338 EACorpCardTestLib
         CorpCardProvider: Record EACorpCardProvider;
         PayloadOutStream: OutStream;
     begin
-        Assert.IsTrue(CorpCardProvider.Get(ProviderCode), StrSubstNo('Provider %1 was not found.', ProviderCode));
+        Assert.IsTrue(CorpCardProvider.Get(ProviderCode), StrSubstNo(ProviderNotFoundTxt, ProviderCode));
 
         Clear(CorpCardProvider."Source Payload");
         CorpCardProvider."Source Payload".CreateOutStream(PayloadOutStream, TextEncoding::UTF8);
