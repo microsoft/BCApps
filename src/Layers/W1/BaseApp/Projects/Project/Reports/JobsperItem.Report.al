@@ -14,6 +14,7 @@ report 1014 "Jobs per Item"
     AdditionalSearchTerms = 'Jobs per Item';
     ApplicationArea = Jobs;
     Caption = 'Projects per Item';
+    ToolTip = 'View on which project a specific item is used.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
