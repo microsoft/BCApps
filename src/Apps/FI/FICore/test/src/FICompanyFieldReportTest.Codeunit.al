@@ -262,6 +262,8 @@ codeunit 148150 "FI Company Field Report Test"
     var
         GeneralPostingSetup: Record "General Posting Setup";
         GenProductPostingGroup: Record "Gen. Product Posting Group";
+        Item: Record Item;
+        Location: Record Location;
         VATPostingSetup: Record "VAT Posting Setup";
         VATProductPostingGroup: Record "VAT Product Posting Group";
     begin
@@ -282,7 +284,10 @@ codeunit 148150 "FI Company Field Report Test"
         VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
         VATPostingSetup.Modify(true);
 
-        exit(LibraryInventory.CreateItemNoWithPostingSetup(GenProductPostingGroup.Code, VATProductPostingGroup.Code));
+        Item.Get(LibraryInventory.CreateItemNoWithPostingSetup(GenProductPostingGroup.Code, VATProductPostingGroup.Code));
+        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
+
+        exit(Item."No.");
     end;
 
     local procedure InitializeReminderMemoReport()
