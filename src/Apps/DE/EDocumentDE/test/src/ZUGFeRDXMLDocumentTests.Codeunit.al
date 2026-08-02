@@ -1886,7 +1886,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckSalesHeader(SalesHeader);
 
         // [THEN] The error names the E-Mail field of Company Information
-        Assert.ExpectedError(CompanyInfo.FieldCaption("E-Mail"));
+        Assert.ExpectedTestFieldError(CompanyInfo.FieldCaption("E-Mail"), '');
 
         SetCompleteCompanyInfoContact();
     end;
