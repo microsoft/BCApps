@@ -108,6 +108,7 @@ codeunit 11039 "ZUGFeRD Export Context"
     /// a plain print, a context that was started but never set, and a blank push all leave the
     /// legacy FindLast lookup in "Export ZUGFeRD Document" intact.
     /// </summary>
+    /// <returns>True when a bound context carries a non-blank E-Document Service; otherwise false.</returns>
     procedure HasContext() Result: Boolean
     begin
         OnHasContext(Result);
@@ -117,6 +118,7 @@ codeunit 11039 "ZUGFeRD Export Context"
     /// Returns the E-Document Service pushed by the format via <see cref="SetEDocumentService"/> on
     /// the active bound instance, or a blank record when no context is bound.
     /// </summary>
+    /// <param name="EDocumentService">Receives the bound E-Document Service, or a blank record when no context is bound.</param>
     procedure GetEDocumentService(var EDocumentService: Record "E-Document Service")
     begin
         OnGetEDocumentService(EDocumentService);
