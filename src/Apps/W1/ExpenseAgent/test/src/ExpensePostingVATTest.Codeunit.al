@@ -451,14 +451,13 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseAgentSetup.TestField("Default VAT Bus. Posting Group");
         if VATPostingSetup."VAT Prod. Posting Group" = '' then begin
             LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-            VATPostingSetup.Init();
-            VATPostingSetup.Validate("VAT Prod. Posting Group", VATProductPostingGroup.Code);
-            VATPostingSetup.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
-            VATPostingSetup.Validate("VAT Identifier",
-                LibraryUtility.GenerateRandomCode(VATPostingSetup.FieldNo("VAT Identifier"), DATABASE::"VAT Posting Setup"));
+            LibraryERM.CreateVATPostingSetup(VATPostingSetup, ExpenseAgentSetup."Default VAT Bus. Posting Group", VATProductPostingGroup.Code);
+
+            if VATPostingSetup."VAT Identifier" = '' then
+                VATPostingSetup.Validate("VAT Identifier", LibraryUtility.GenerateRandomCode(VATPostingSetup.FieldNo("VAT Identifier"), DATABASE::"VAT Posting Setup"));
             VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
             VATPostingSetup.Validate("VAT %", VATRate);
-            VATPostingSetup.Insert(true);
+            VATPostingSetup.Modify(true);
         end;
 
         LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, CategoryCode, true);
