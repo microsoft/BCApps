@@ -1,3 +1,4 @@
+#if not CLEAN29
 codeunit 144001 CurrencyExchangeRateFile
 {
     ObsoleteReason = 'Moved to the FI Core app.';
@@ -234,4 +235,5 @@ codeunit 144001 CurrencyExchangeRateFile
         FileName := ImportFileName;
     end;
 }
+#endif
 
