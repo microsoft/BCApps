@@ -1282,12 +1282,13 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         // [2] Approver - the current user.
         LibraryDocumentApprovals.CreateOrFindUserSetup(CurrentUserSetup, CopyStr(UserId, 1, 50));
         UserEmail := GenerateUniqueEmail();
-        CreateAndUpdateUserWithEmail(CurrentUserSetup."User ID", UserEmail);
+        CreateAndUpdateUserWithEmail(CopyStr(UserId(), 1, 50), UserEmail);
 
         LibraryExpense.CreateExpenseUser(ExpenseUser[2]);
         ExpenseUser[2].Validate("E-mail", UserEmail);
         ExpenseUser[2].Validate("Can Approve", true);
         ExpenseUser[2].Validate("Entra Id", CreateGuid());
+        ExpenseUser[2]."User Id For Approvals" := CopyStr(UserId(), 1, 50);
         ExpenseUser[2].Modify();
 
         // Submitter's approver is the current user.
