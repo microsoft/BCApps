@@ -16,3 +16,5 @@ updates:
     - dependency-name: "microsoft/AL-Go/*"
   labels:
     - "Automation"
+  cooldown:
+    default-days: 7
