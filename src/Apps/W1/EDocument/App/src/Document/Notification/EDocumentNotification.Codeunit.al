@@ -114,8 +114,8 @@ codeunit 6123 "E-Document Notification"
         EDocumentEntryNo: Integer;
         Id: Guid;
     begin
-        Evaluate(EDocumentEntryNo, Notification.GetData(EDocumentNotification.FieldName("E-Document Entry No.")));
-        Evaluate(Id, Notification.GetData(EDocumentNotification.FieldName(ID)));
+        if not TryGetNotificationKeys(Notification, EDocumentEntryNo, Id) then
+            exit;
         if not EDocumentNotification.Get(EDocumentEntryNo, Id, UserId()) then
             exit;
         EDocumentNotification.Dismissed := true;
@@ -153,12 +153,21 @@ codeunit 6123 "E-Document Notification"
         EDocumentEntryNo: Integer;
         Id: Guid;
     begin
-        Evaluate(EDocumentEntryNo, Notification.GetData(EDocumentNotification.FieldName("E-Document Entry No.")));
-        Evaluate(Id, Notification.GetData(EDocumentNotification.FieldName(ID)));
+        if not TryGetNotificationKeys(Notification, EDocumentEntryNo, Id) then
+            exit;
         if not EDocumentNotification.Get(EDocumentEntryNo, Id, UserId()) then
             exit;
         EDocumentNotification.Dismissed := true;
         EDocumentNotification.Modify(true);
+    end;
+
+    local procedure TryGetNotificationKeys(Notification: Notification; var EDocumentEntryNo: Integer; var Id: Guid): Boolean
+    var
+        EDocumentNotification: Record "E-Document Notification";
+    begin
+        if not Evaluate(EDocumentEntryNo, Notification.GetData(EDocumentNotification.FieldName("E-Document Entry No."))) then
+            exit(false);
+        exit(Evaluate(Id, Notification.GetData(EDocumentNotification.FieldName(ID))));
     end;
 
     /// <summary>
@@ -271,6 +280,10 @@ codeunit 6123 "E-Document Notification"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
+        if not IsSubTotalMismatchNotificationEnabled() then
+            exit;
+        if EDocumentPurchaseLine."E-Document Entry No." = 0 then
+            exit;
         if not EDocumentPurchaseHeader.Get(EDocumentPurchaseLine."E-Document Entry No.") then
             exit;
         UpdateSubTotalMismatchNotification(EDocumentPurchaseHeader, EDocumentPurchaseLine, true, LineDeleted, true, true);
@@ -287,6 +300,7 @@ codeunit 6123 "E-Document Notification"
         Tolerance: Decimal;
         EDocumentEntryNo: Integer;
         LineCount: Integer;
+        NotificationExisted: Boolean;
     begin
         if not IsSubTotalMismatchNotificationEnabled() then
             exit;
@@ -307,20 +321,30 @@ codeunit 6123 "E-Document Notification"
         CustomDimensions.Add('WithinTolerance', Format(Difference <= Tolerance, 0, 9));
         CustomDimensions.Add('DifferenceMagnitude', DifferenceMagnitudeBucket(Difference, EDocumentPurchaseHeader."Sub Total"));
 
-        if Difference <> 0 then
-            Telemetry.LogMessage('0000UVL', SubTotalMismatchNoToleranceTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-
         if Difference <= Tolerance then begin
             RemoveSubTotalMismatchNotification(EDocumentEntryNo);
             exit;
         end;
 
-        Telemetry.LogMessage('0000UVM', SubTotalMismatchNotificationShownTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        // Only log on the transition into the mismatch state, not on every subsequent amount edit.
+        NotificationExisted := SubTotalMismatchNotificationExists(EDocumentEntryNo);
+        if not NotificationExisted then
+            Telemetry.LogMessage('0000UVL', SubTotalMismatchNoToleranceTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+
         if IsSubTotalMismatchDismissed(EDocumentEntryNo) then
             exit;
         AddSubTotalMismatchNotification(EDocumentEntryNo);
+        if not NotificationExisted then
+            Telemetry.LogMessage('0000UVM', SubTotalMismatchNotificationShownTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
         if SendOnMismatch then
             SendSubTotalMismatchNotification(EDocumentEntryNo);
+    end;
+
+    local procedure SubTotalMismatchNotificationExists(EDocumentEntryNo: Integer): Boolean
+    var
+        EDocumentNotification: Record "E-Document Notification";
+    begin
+        exit(EDocumentNotification.Get(EDocumentEntryNo, GetSubTotalMismatchNotificationId(), UserId()));
     end;
 
     local procedure DifferenceMagnitudeBucket(Difference: Decimal; HeaderSubTotal: Decimal): Text
