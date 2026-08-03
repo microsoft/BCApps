@@ -183,5 +183,30 @@
     "codeunitId": 148319,
     "codeunitName": "Cancel Posted Exp. Report Test",
     "method": "CancelMultiLineReportGeneratesNewTransactionNoForReversedLines"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "HotelMultiSubcatDiffVAT"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "VATEntriesPerHotelSubcat"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "GLEntriesCorrectVATAmounts"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "HotelRefundableSubcat"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "VATSpecApprovedAndRejectedLines"
   }
 ]
