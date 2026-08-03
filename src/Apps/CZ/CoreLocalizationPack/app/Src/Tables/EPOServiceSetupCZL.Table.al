@@ -5,17 +5,18 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Integration;
+using System.Privacy;
 
 table 11724 "EPO Service Setup CZL"
 {
     Caption = 'EPO Service Setup';
+    DataClassification = SystemMetadata;
 
     fields
     {
         field(1; "Primary Key"; Code[10])
         {
             Caption = 'Primary Key';
-            DataClassification = CustomerContent;
         }
         field(2; "Open Form Endpoint"; Text[250])
         {
@@ -31,7 +32,6 @@ table 11724 "EPO Service Setup CZL"
         field(10; "Limit Response Time"; Integer)
         {
             Caption = 'Limit Response Time';
-            DataClassification = CustomerContent;
             InitValue = 2000;
             MinValue = 2000;
         }
@@ -39,12 +39,18 @@ table 11724 "EPO Service Setup CZL"
         {
 
             Caption = 'Enabled';
-            DataClassification = CustomerContent;
 
             trigger OnValidate()
+            var
+                CustomerConsentMgt: Codeunit "Customer Consent Mgt.";
             begin
-                if Enabled then
+                if Enabled then begin
+                    if not CustomerConsentMgt.ConfirmUserConsent() then begin
+                        Enabled := false;
+                        exit;
+                    end;
                     TestField("Open Form Endpoint");
+                end;
             end;
         }
     }

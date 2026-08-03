@@ -16,6 +16,8 @@ codeunit 31175 "EPO API Submission CZL"
         HttpResponseMessage: Codeunit "Http Response Message";
         FormUrl: Text;
         UrlXPathTok: Label 'URL', Locked = true;
+        EPOServiceNotEnabledErr: Label 'The EPO service is not enabled. Enable it in the EPO Service Setup page.';
+        ShowEPOServiceSetupLbl: Label 'Show EPO Service Setup';
 
     [TryFunction]
     procedure TrySend(Content: XmlDocument)
@@ -25,8 +27,9 @@ codeunit 31175 "EPO API Submission CZL"
         ResponseXmlDocument: XmlDocument;
         UrlXmlNode: XmlNode;
     begin
-        EPOServiceSetupCZL.Get();
-        EPOServiceSetupCZL.TestField(Enabled, true);
+        GetOrInitEPOServiceSetup();
+        if not EPOServiceSetupCZL.Enabled then
+            Error(CreateEPOServiceNotEnabledErrorInfo());
 
         HttpContent := HttpContent.Create(Content);
         RestClient.Initialize();
@@ -50,15 +53,30 @@ codeunit 31175 "EPO API Submission CZL"
         exit(HttpResponseMessage);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Connection", 'OnRegisterServiceConnection', '', false, false)]
-    local procedure HandleEPOServiceConnection(var ServiceConnection: Record "Service Connection")
-    var
-        EPOServiceSetupRecordRef: RecordRef;
+    local procedure GetOrInitEPOServiceSetup()
     begin
         if not EPOServiceSetupCZL.Get() then begin
             EPOServiceSetupCZL.Init();
             EPOServiceSetupCZL.Insert();
         end;
+    end;
+
+    local procedure CreateEPOServiceNotEnabledErrorInfo(): ErrorInfo
+    var
+        EPOServiceNotEnabledErrorInfo: ErrorInfo;
+    begin
+        EPOServiceNotEnabledErrorInfo := ErrorInfo.Create(EPOServiceNotEnabledErr);
+        EPOServiceNotEnabledErrorInfo.AddNavigationAction(ShowEPOServiceSetupLbl);
+        EPOServiceNotEnabledErrorInfo.PageNo(Page::"EPO Service Setup CZL");
+        exit(EPOServiceNotEnabledErrorInfo);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Service Connection", 'OnRegisterServiceConnection', '', false, false)]
+    local procedure HandleEPOServiceConnection(var ServiceConnection: Record "Service Connection")
+    var
+        EPOServiceSetupRecordRef: RecordRef;
+    begin
+        GetOrInitEPOServiceSetup();
         EPOServiceSetupRecordRef.GetTable(EPOServiceSetupCZL);
 
         if EPOServiceSetupCZL.Enabled then

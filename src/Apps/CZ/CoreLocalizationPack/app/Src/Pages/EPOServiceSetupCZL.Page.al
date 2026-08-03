@@ -113,8 +113,6 @@ page 11705 "EPO Service Setup CZL"
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
-    var
-        EnableServiceQst: Label 'The %1 is not enabled. Are you sure you want to exit?', Comment = '%1 = pagecaption';
     begin
         if not Rec.Enabled then
             exit(ConfirmManagement.GetResponse(StrSubstNo(EnableServiceQst, CurrPage.Caption), true))
@@ -124,10 +122,11 @@ page 11705 "EPO Service Setup CZL"
         ConfirmManagement: Codeunit "Confirm Management";
         ShowEnableWarning: Text;
         EditableByNotEnabled: Boolean;
+        EnableServiceQst: Label 'The %1 is not enabled. Are you sure you want to exit?', Comment = '%1 = pagecaption';
+        EnabledWarningTxt: Label 'You must disable the service before you can make changes.';
+        DisableEnableQst: Label 'Do you want to disable the EPO service?';
 
     local procedure UpdateBasedOnEnable()
-    var
-        EnabledWarningTxt: Label 'You must disable the service before you can make changes.';
     begin
         EditableByNotEnabled := not Rec.Enabled;
         ShowEnableWarning := '';
@@ -136,8 +135,6 @@ page 11705 "EPO Service Setup CZL"
     end;
 
     local procedure DrilldownShowEnableWarning()
-    var
-        DisableEnableQst: Label 'Do you want to disable the EPO service?';
     begin
         if ConfirmManagement.GetResponse(DisableEnableQst, true) then begin
             Rec.Enabled := false;
