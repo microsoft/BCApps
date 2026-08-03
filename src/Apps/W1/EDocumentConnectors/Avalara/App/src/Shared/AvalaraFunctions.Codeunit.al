@@ -190,7 +190,7 @@ codeunit 6800 "Avalara Functions"
             AvalaraInputField.Insert();
         end;
 
-        Session.LogMessage('', StrSubstNo(FieldsLoadedMsg, FieldsArray.Count(), MandateInput), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+        Session.LogMessage('0000UVW', StrSubstNo(FieldsLoadedMsg, FieldsArray.Count(), MandateInput), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
     end;
 
     /// <summary>
@@ -210,7 +210,7 @@ codeunit 6800 "Avalara Functions"
     begin
         // Validate input
         if Mandate = '' then begin
-            Session.LogMessage('', 'Empty mandate provided to GetAvailableMediaTypesForMandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+            Session.LogMessage('0000UVX', 'Empty mandate provided to GetAvailableMediaTypesForMandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
             exit(GetDefaultMediaTypes());
         end;
 
@@ -221,13 +221,13 @@ codeunit 6800 "Avalara Functions"
 
         // Handle API failure
         if ResponseContent = '' then begin
-            Session.LogMessage('', StrSubstNo(FailedToRetrieveMediaTypesMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+            Session.LogMessage('0000UVY', StrSubstNo(FailedToRetrieveMediaTypesMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
             exit(GetDefaultMediaTypes());
         end;
 
         // Parse JSON response
         if not TryParseMediaTypesResponse(ResponseContent, ResponseJson, ValueArray) then begin
-            Session.LogMessage('', StrSubstNo(InvalidJsonResponseMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+            Session.LogMessage('0000UVZ', StrSubstNo(InvalidJsonResponseMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
             exit(GetDefaultMediaTypes());
         end;
 
@@ -238,7 +238,7 @@ codeunit 6800 "Avalara Functions"
         if MediaTypeList.Count = 0 then
             exit(GetDefaultMediaTypes());
 
-        Session.LogMessage('', StrSubstNo(RetrievedMediaTypesMsg, MediaTypeList.Count, Mandate), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+        Session.LogMessage('0000UW0', StrSubstNo(RetrievedMediaTypesMsg, MediaTypeList.Count, Mandate), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
 
         exit(MediaTypeList);
     end;

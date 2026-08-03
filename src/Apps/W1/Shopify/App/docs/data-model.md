@@ -33,7 +33,9 @@ The Shop's `GetEmptySyncTime()` returns `2004-01-01` as a sentinel for "never sy
 
 A Shopify product is a parent container holding one or more variants. In BC terms, a Product maps to an Item, and Variants map to Item Variants. The Product table stores the Shopify product ID (BigInteger), description, title, status, and crucially three hash fields: `"Image Hash"`, `"Tags Hash"`, and `"Description Html Hash"`. These enable the export flow to skip API calls when nothing has changed.
 
-Each Variant belongs to a Product (via `"Product Id"`) and can map to both an Item and an Item Variant via their respective SystemIds. Variants carry the pricing fields (Price, Compare at Price, Unit Cost) and up to three option name/value pairs that represent Shopify's variant options (size, color, etc.).
+Each Variant belongs to a Product (via `"Product Id"`) and can map to both an Item and an Item Variant via their respective SystemIds. Variants carry the pricing fields (Price, Compare at Price, Unit Cost) and up to three option name/value pairs that represent Shopify's variant options (size, color, etc.). Variants also store the customs fields that Shopify exposes on the variant's inventory item: HS code as `"Tariff No."` and origin country as `"Country/Region of Origin Code"`.
+
+*Updated: 2026-07-29 -- Variant customs fields now participate in product sync*
 
 Inventory Items represent the inventory-trackable entries for each variant at each Shopify location. Shop Inventory combines the location mapping with the calculated stock level.
 
@@ -51,6 +53,10 @@ The `"Item SystemId"` field on both Product and Variant is a GUID linking to BC'
 
 The HTML description is stored in a Blob field (`"Description as HTML"`) because AL's Text fields cap at 2048 characters and Shopify product descriptions can be substantially longer. The hash is computed when the description is set (via `SetDescriptionHtml()`) and compared during export to avoid unnecessary API updates.
 
+The Shop's `"Sync HS Code and Country"` setting controls whether BC item tariff and country values are copied to Shopify variants, and whether imported Shopify inventory-item values are applied back to BC items. Existing-item updates only apply values that resolve to BC Tariff Number or Country/Region records, so a blank or unmapped Shopify value does not wipe an existing BC value.
+
+*Updated: 2026-07-29 -- HS code and country of origin sync now works in both directions*
+
 ## Order lifecycle
 
 Orders flow through a staging pipeline: first they appear in Orders to Import (lightweight records with just the Shopify order ID and basic metadata), then they are imported into Order Header and Order Lines, and finally processed into BC Sales Orders or Sales Invoices.
@@ -59,14 +65,21 @@ The Order Header is one of the largest tables in the connector. It stores comple
 
 Order Lines carry the item-level detail including the Shopify variant ID, mapped BC item number, quantities, and dual-currency amounts. Special line types include tips and gift cards, identified by boolean flags.
 
-Order Attributes and Order Line Attributes store Shopify's custom attributes (key-value pairs that merchants can attach to orders). Order Tax Lines track per-tax-rate amounts, including a `"Channel Liable"` flag for marketplace tax collection.
+Order Shipping Charges store Shopify shipping lines separately from item lines so the connector can preserve their title, source, discount, and dual-currency amounts before projecting them to BC sales lines. Their tax lines now use the same `Shpfy Order Tax Line` table as order and item-line taxes, parented by the Shopify shipping line ID.
+
+Order Attributes and Order Line Attributes store Shopify's custom attributes (key-value pairs that merchants can attach to orders). Order Tax Lines track per-tax-rate amounts, including a `"Channel Liable"` flag for marketplace tax collection. The `"Parent Id"` can point at an order, an order line, or a shipping charge; currency formatting resolves through whichever parent exists.
+
+*Updated: 2026-07-29 -- Shipping charges now retain their linked tax lines*
 
 ```mermaid
 erDiagram
     ORDERS_TO_IMPORT ||--|| ORDER_HEADER : imports_to
     ORDER_HEADER ||--o{ ORDER_LINE : contains
+    ORDER_HEADER ||--o{ ORDER_SHIPPING_CHARGES : charges
     ORDER_HEADER ||--o{ ORDER_ATTRIBUTE : has
     ORDER_HEADER ||--o{ ORDER_TAX_LINE : taxed_by
+    ORDER_LINE ||--o{ ORDER_TAX_LINE : taxed_by
+    ORDER_SHIPPING_CHARGES ||--o{ ORDER_TAX_LINE : taxed_by
 ```
 
 The dual currency design deserves attention. Every monetary field on the Order Header exists twice: once in the shop's base currency (`"Total Amount"`, `"Discount Amount"`, etc.) and once in the presentment currency (`"Presentment Total Amount"`, `"Presentment Discount Amount"`, etc.). The Shop's `"Currency Handling"` setting controls which set of amounts is used when creating BC sales documents. The `"Processed Currency Handling"` field on the order captures which mode was actually used, so re-processing uses the same logic.

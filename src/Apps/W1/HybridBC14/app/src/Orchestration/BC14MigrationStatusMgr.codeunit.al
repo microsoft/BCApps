@@ -170,6 +170,7 @@ codeunit 46858 "BC14 Migration Status Mgr."
             exit;
 
         HybridReplicationSummary."End Time" := CurrentDateTime();
+        WriteSummaryDetails(HybridReplicationSummary, UpgradeFailedLbl);
         WriteSummaryStatus(HybridReplicationSummary, HybridReplicationSummary.Status::UpgradeFailed);
     end;
 
@@ -189,6 +190,7 @@ codeunit 46858 "BC14 Migration Status Mgr."
 
         if AnyCompanyHasFailedUpgrade() then begin
             HybridReplicationSummary."End Time" := CurrentDateTime();
+            WriteSummaryDetails(HybridReplicationSummary, UpgradeFailedLbl);
             WriteSummaryStatus(HybridReplicationSummary, HybridReplicationSummary.Status::UpgradeFailed);
             exit;
         end;
@@ -498,6 +500,15 @@ codeunit 46858 "BC14 Migration Status Mgr."
         HybridReplicationSummary.Modify();
     end;
 
+    local procedure WriteSummaryDetails(var HybridReplicationSummary: Record "Hybrid Replication Summary"; HeadlineText: Text)
+    var
+        OutStr: OutStream;
+    begin
+        Clear(HybridReplicationSummary.Details);
+        HybridReplicationSummary.Details.CreateOutStream(OutStr, TextEncoding::UTF8);
+        OutStr.WriteText(HeadlineText);
+    end;
+
     #endregion
 
     var
@@ -505,4 +516,5 @@ codeunit 46858 "BC14 Migration Status Mgr."
         CompanyStatusMissingErr: Label 'No upgrade status row exists for company %1. Run replication first.', Comment = '%1 = Company Name';
         UnexpectedStartStateErr: Label 'Cannot start upgrade for company %1: company is already in state %2. Reset the company state before retrying.', Comment = '%1 = Company Name, %2 = current Upgrade Status';
         UpgradeInProgressLbl: Label 'Upgrade in Progress';
+        UpgradeFailedLbl: Label 'Business Central 14 upgrade failed. See the Business Central 14 Migration Errors page for details.';
 }

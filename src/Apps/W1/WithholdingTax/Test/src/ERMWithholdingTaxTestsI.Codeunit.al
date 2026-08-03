@@ -1784,6 +1784,58 @@ codeunit 148321 "ERM Withholding Tax Tests I"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
+    procedure WHTEntryAmountRoundedToCurrencyPrecisionForFCYPurchInvoice()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        WHTEntry: Record "Withholding Tax Entry";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VendorNo: Code[20];
+        GLAccountNo: Code[20];
+        CurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        LineAmount: Decimal;
+        ExpectedWHTAmount: Decimal;
+    begin
+        // [FEATURE] [Purchase] [Currency] [Rounding]
+        // [SCENARIO 641864] WHT Entry Amount for a foreign currency Purchase Invoice is rounded to the Currency's "Amount Rounding Precision", not to the LCY precision.
+        Initialize();
+
+        // [GIVEN] Company LCY has "Amount Rounding Precision" = 1 (zero-decimal LCY, e.g. TWD).
+        UpdateGeneralLedgerSetup(true, false);
+        SetGLSetupAmountRoundingPrecision(1);
+        UpdatePurchasesPayableSetup();
+
+        // [GIVEN] WHT Posting Setup with realized type Invoice and "Withholding Tax %" = 10.
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        CreateWHTPostingSetup(WHTPostingSetup, 10);
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+
+        // [GIVEN] Create Vendor and GL Account with Posting Setup.
+        VendorNo := CreateVendorNoWithoutABN(VATPostingSetup."VAT Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        GLAccountNo := CreateGLAccountWithPostingSetup(VATPostingSetup."VAT Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group");
+
+        // [GIVEN] A foreign currency with "Amount Rounding Precision" = 0.01 (e.g. USD).
+        CurrencyCode := CreateCurrencyWithRoundingPrecision(0.01);
+
+        // [WHEN] Post a foreign currency Purchase Invoice with Base = 250.5.
+        LineAmount := 250.5;
+        DocumentNo := CreateAndPostFCYPurchaseInvoiceWithFixedAmount(WHTPostingSetup, VendorNo, GLAccountNo, CurrencyCode, LineAmount);
+
+        // [THEN] WHT Entry Amount = 25.05 (Base * 10% rounded to the currency's 0.01), not 25 (LCY whole-number precision).
+        ExpectedWHTAmount := Round(LineAmount * WHTPostingSetup."Withholding Tax %" / 100, 0.01);
+        WHTEntry.SetRange("Document No.", DocumentNo);
+        Assert.RecordCount(WHTEntry, 1);
+        WHTEntry.FindFirst();
+        Assert.AreEqual(LineAmount, WHTEntry.Base, StrSubstNo(AmountErr, WHTEntry.FieldCaption(Base), LineAmount));
+        Assert.AreEqual(ExpectedWHTAmount, WHTEntry.Amount, StrSubstNo(AmountErr, WHTEntry.FieldCaption(Amount), ExpectedWHTAmount));
+
+        // [CLEANUP] Reset the company's "Amount Rounding Precision" to 0.01 (default).
+        SetGLSetupAmountRoundingPrecision(0.01);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure VerifyExternalDocumentNoAndBaseAmountOnWithholdingTaxEntry()
     var
         WithholdingTaxPostingSetup: Record "Withholding Tax Posting Setup";
@@ -1843,66 +1895,6 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         // [SCENARIO 285194] after Unapplied Vendor Ledger Entry on Posted Payment Journal with WHT, G/L Entry - Amount correctly calculated.
         Initialize();
         UnapplyVendorLedgerEntryAmount('');  // Currency as blank.
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure GreaterThanRuleBelowThresholdCreatesWHTEntryOnPurchaseInvoice()
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        WHTPostingSetup: Record "Withholding Tax Posting Setup";
-        DocumentNo: Code[20];
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 641041] "Greater than" Calculation Rule generates a WHT Entry when the invoice amount is below the minimum invoice amount.
-        Initialize();
-
-        // [GIVEN] WHT enabled and a WHT Posting Setup with Calculation Rule "Greater than" and Minimum Invoice Amount 200.
-        UpdateGeneralLedgerSetup(true, false);
-        UpdateWHTCertificateNosOnPurchSetup();
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        CreateWHTPostingSetupWithCalcRule(WHTPostingSetup, WHTPostingSetup."Wthldg. Tax Calculation Rule"::"Greater than", 200);
-
-        // [WHEN] A purchase invoice for 120 (below the minimum) is posted.
-        DocumentNo :=
-          CreateAndPostPurchaseDocumentWithWHTAndAmount(
-            WHTPostingSetup, "Purchase Document Type"::Invoice,
-            CreateVendorWithPostingGroup(VATPostingSetup."VAT Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group"),
-            CreateGLAccount(VATPostingSetup."VAT Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group"), 120);
-
-        // [THEN] A WHT Entry is created for the posted invoice.
-        VerifyWHTEntryExists(DocumentNo);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure GreaterThanRuleAboveThresholdDoesNotCreateWHTEntryOnPurchaseInvoice()
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        WHTPostingSetup: Record "Withholding Tax Posting Setup";
-        DocumentNo: Code[20];
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 641041] "Greater than" Calculation Rule does not generate a WHT Entry when the invoice amount is above the minimum invoice amount.
-        Initialize();
-
-        // [GIVEN] WHT enabled and a WHT Posting Setup with Calculation Rule "Greater than" and Minimum Invoice Amount 200.
-        UpdateGeneralLedgerSetup(true, false);
-        UpdateWHTCertificateNosOnPurchSetup();
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        CreateWHTPostingSetupWithCalcRule(WHTPostingSetup, WHTPostingSetup."Wthldg. Tax Calculation Rule"::"Greater than", 200);
-
-        // [WHEN] A purchase invoice for 300 (above the minimum) is posted.
-        DocumentNo :=
-          CreateAndPostPurchaseDocumentWithWHTAndAmount(
-            WHTPostingSetup, "Purchase Document Type"::Invoice,
-            CreateVendorWithPostingGroup(VATPostingSetup."VAT Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group"),
-            CreateGLAccount(VATPostingSetup."VAT Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group"), 300);
-
-        // [THEN] No WHT Entry is created for the posted invoice.
-        VerifyWHTEntryDoesNotExist(DocumentNo);
     end;
 
     local procedure Initialize()
@@ -2162,6 +2154,58 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         exit(Currency.Code);
     end;
 
+    local procedure UpdatePurchasesPayableSetup()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Wthldg. Tax Certificate Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure CreateCurrencyWithRoundingPrecision(AmountRoundingPrecision: Decimal): Code[10]
+    var
+        Currency: Record Currency;
+    begin
+        LibraryERM.CreateCurrency(Currency);
+        LibraryERM.SetCurrencyGainLossAccounts(Currency);
+        Currency.Validate("Amount Rounding Precision", AmountRoundingPrecision);
+        Currency.Validate("Invoice Rounding Precision", AmountRoundingPrecision);
+        Currency.Validate("Residual Gains Account", Currency."Realized Gains Acc.");
+        Currency.Validate("Residual Losses Account", Currency."Realized Losses Acc.");
+        Currency.Modify(true);
+
+        LibraryERM.CreateRandomExchangeRate(Currency.Code);
+        exit(Currency.Code);
+    end;
+
+    local procedure CreateAndPostFCYPurchaseInvoiceWithFixedAmount(WHTPostingSetup: Record "Withholding Tax Posting Setup"; VendorNo: Code[20]; GLAccountNo: Code[20]; CurrencyCode: Code[10]; LineAmount: Decimal) DocumentNo: Code[20]
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        CreatePurchaseHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo, CurrencyCode);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+        PurchaseLine.Validate("Direct Unit Cost", LineAmount);
+        PurchaseLine.Validate("Wthldg. Tax Bus. Post. Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        PurchaseLine.Validate("Wthldg. Tax Prod. Post. Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group");
+        PurchaseLine.Modify(true);
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
+        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        PurchaseHeader.Modify(true);
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+    end;
+
+    local procedure SetGLSetupAmountRoundingPrecision(NewAmountRoundingPrecision: Decimal)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Amount Rounding Precision" := NewAmountRoundingPrecision;
+        GeneralLedgerSetup.Modify(true);
+    end;
+
     local procedure CreateGeneralJournalLineWithCurrency(var GenJournalLine: Record "Gen. Journal Line"; WHTPostingSetup: Record "Withholding Tax Posting Setup"; AccountType: Enum "Gen. Journal Account Type"; DocumentType: Enum "Gen. Journal Document Type"; AccountNo: Code[20]; AppliesToDocNo: Code[20]; CurrencyCode: Code[10]; Amount: Decimal)
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -2292,15 +2336,17 @@ codeunit 148321 "ERM Withholding Tax Tests I"
     var
         WHTBusinessPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
         WHTProductPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+        WHTRevenueTypes: Record "Withholding Tax Revenue Types";
     begin
         LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusinessPostingGroup);
         LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProductPostingGroup);
+        LibraryWithholdingTax.CreateWHTRevenueTypes(WHTRevenueTypes);
         CreateWHTPostingSetupWithRealizedWHTType(
           WHTPostingSetup, WHTBusinessPostingGroup.Code, WHTProductPostingGroup.Code,
-          WHTPostingSetup."Realized Withholding Tax Type"::Invoice, WHTPct);
+          WHTPostingSetup."Realized Withholding Tax Type"::Invoice, WHTPct, WHTRevenueTypes.Code);
     end;
 
-    local procedure CreateWHTPostingSetupWithRealizedWHTType(var WHTPostingSetup: Record "Withholding Tax Posting Setup"; WHTBusinessPostingGroup: Code[20]; WHTProductPostingGroup: Code[20]; RealizedWHTType: Option; WHTPct: Decimal)
+    local procedure CreateWHTPostingSetupWithRealizedWHTType(var WHTPostingSetup: Record "Withholding Tax Posting Setup"; WHTBusinessPostingGroup: Code[20]; WHTProductPostingGroup: Code[20]; RealizedWHTType: Option; WHTPct: Decimal; WHTRevenueType: Code[10])
     var
         BankAccount: Record "Bank Account";
         GLAccount: Record "G/L Account";
@@ -2311,6 +2357,7 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         WHTPostingSetup.Validate("Withholding Tax %", WHTPct);
         WHTPostingSetup.Validate("Realized Withholding Tax Type", RealizedWHTType);
         WHTPostingSetup.Validate("Prepaid Wthldg. Tax Acc. Code", GLAccount."No.");
+        WHTPostingSetup.Validate("Revenue Type", WHTRevenueType);
         WHTPostingSetup.Validate("Payable Wthldg. Tax Acc. Code", WHTPostingSetup."Prepaid Wthldg. Tax Acc. Code");
         WHTPostingSetup.Validate("Wthldg. Tax Min. Inv. Amount", LibraryRandom.RandDecInRange(60, 90, 2));
         WHTPostingSetup.Validate("Bal. Payable Account No.", BankAccount."No.");
@@ -2350,11 +2397,13 @@ codeunit 148321 "ERM Withholding Tax Tests I"
     var
         WHTBusinessPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
         WHTProductPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+        WHTRevenueTypes: Record "Withholding Tax Revenue Types";
     begin
         LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusinessPostingGroup);
         LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProductPostingGroup);
+        LibraryWithholdingTax.CreateWHTRevenueTypes(WHTRevenueTypes);
         CreateWHTPostingSetupWithRealizedWHTType(
-        WHTPostingSetup, WHTBusinessPostingGroup.Code, WHTProductPostingGroup.Code, WHTPostingSetup."Realized Withholding Tax Type"::Payment, LibraryRandom.RandIntInRange(30, 40));
+        WHTPostingSetup, WHTBusinessPostingGroup.Code, WHTProductPostingGroup.Code, WHTPostingSetup."Realized Withholding Tax Type"::Payment, LibraryRandom.RandIntInRange(30, 40), WHTRevenueTypes.Code);
     end;
 
     local procedure FindAndUpdateSetupsWithGSTAndWHTAndZeroVAT(var VATPostingSetup: Record "VAT Posting Setup"; var WHTPostingSetup: Record "Withholding Tax Posting Setup")
@@ -2735,11 +2784,11 @@ codeunit 148321 "ERM Withholding Tax Tests I"
       var GenJournalLine: array[3] of Record "Gen. Journal Line";
       WHTPostingSetup: Record "Withholding Tax Posting Setup";
       AccountType: Enum "Gen. Journal Account Type";
-      DocumentType: Enum "Gen. Journal Document Type";
-      AccountNo: array[3] of Code[20];
-      AppliesToDocNo: array[3] of Code[20];
-      CurrencyCode: Code[10];
-      Amount: array[3] of Decimal)
+                       DocumentType: Enum "Gen. Journal Document Type";
+                       AccountNo: array[3] of Code[20];
+                       AppliesToDocNo: array[3] of Code[20];
+                       CurrencyCode: Code[10];
+                       Amount: array[3] of Decimal)
     var
         GenJournalBatch: Record "Gen. Journal Batch";
         NoSeriesBatch: Codeunit "No. Series - Batch";
@@ -2781,49 +2830,6 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         Vendor.Validate("Wthldg. Tax Bus. Post. Group", WHTBusPostingGroup);
         Vendor.Modify(true);
         exit(Vendor."No.");
-    end;
-
-    local procedure CreateWHTPostingSetupWithCalcRule(var WHTPostingSetup: Record "Withholding Tax Posting Setup"; CalculationRule: Option; MinInvoiceAmount: Decimal)
-    var
-        WHTBusinessPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
-        WHTProductPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
-        WHTRevenueTypes: Record "Withholding Tax Revenue Types";
-    begin
-        LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusinessPostingGroup);
-        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProductPostingGroup);
-        CreateWHTPostingSetupWithRealizedWHTType(
-          WHTPostingSetup, WHTBusinessPostingGroup.Code, WHTProductPostingGroup.Code,
-          WHTPostingSetup."Realized Withholding Tax Type"::Invoice, LibraryRandom.RandIntInRange(10, 20));
-        LibraryWithholdingTax.CreateWHTRevenueTypes(WHTRevenueTypes);
-        WHTPostingSetup.Validate("Revenue Type", WHTRevenueTypes.Code);
-        WHTPostingSetup.Validate("Wthldg. Tax Calculation Rule", CalculationRule);
-        WHTPostingSetup.Validate("Wthldg. Tax Min. Inv. Amount", MinInvoiceAmount);
-        WHTPostingSetup.Modify(true);
-    end;
-
-    local procedure VerifyWHTEntryExists(DocumentNo: Code[20])
-    var
-        WHTEntry: Record "Withholding Tax Entry";
-    begin
-        WHTEntry.SetRange("Document No.", DocumentNo);
-        Assert.RecordIsNotEmpty(WHTEntry);
-    end;
-
-    local procedure VerifyWHTEntryDoesNotExist(DocumentNo: Code[20])
-    var
-        WHTEntry: Record "Withholding Tax Entry";
-    begin
-        WHTEntry.SetRange("Document No.", DocumentNo);
-        Assert.RecordIsEmpty(WHTEntry);
-    end;
-
-    local procedure UpdateWHTCertificateNosOnPurchSetup()
-    var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-    begin
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Wthldg. Tax Certificate Nos.", LibraryERM.CreateNoSeriesCode());
-        PurchasesPayablesSetup.Modify(true);
     end;
 
     [ModalPageHandler]

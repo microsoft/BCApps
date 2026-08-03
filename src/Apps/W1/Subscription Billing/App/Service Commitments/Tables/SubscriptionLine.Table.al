@@ -614,6 +614,9 @@ table 8059 "Subscription Line"
         {
 
         }
+        key(Key4; "Supplier Reference Entry No.", "Subscription Line Start Date")
+        {
+        }
     }
 
     trigger OnInsert()
@@ -1831,9 +1834,7 @@ table 8059 "Subscription Line"
 
     internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
-        UsageDataBilling.SetRange("Subscription Header No.", Rec."Subscription Header No.");
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
-        UsageDataBilling.SetRange(Partner, Rec.Partner);
         UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetFilter("Charge Start Date", '>=%1', BillingFromDate);

@@ -66,29 +66,31 @@ pageextension 6132 "E-Doc. Purchase Order" extends "Purchase Order"
         }
         addlast(Prompting)
         {
+#if not CLEAN29
             action(MatchToOrderCopilotEnabled)
             {
                 Caption = 'Map E-Document Lines';
                 ToolTip = 'Map received E-Document to the Purchase Order';
                 ApplicationArea = All;
                 Image = SparkleFilled;
-                Visible = ShowMapToEDocument;
-
-                trigger OnAction()
-                var
-                    EDocument: Record "E-Document";
-                    EDocOrderMatch: Codeunit "E-Doc. Line Matching";
-                begin
-                    EDocument.GetBySystemId(Rec."E-Document Link");
-                    EDocOrderMatch.RunMatching(EDocument, true);
-                end;
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+                ObsoleteTag = '29.0';
             }
+#endif
         }
         addlast(Category_Process)
         {
+#if not CLEAN29
             actionref(MapEDocumentCE_Promoted; MatchToOrderCopilotEnabled)
             {
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+                ObsoleteTag = '29.0';
             }
+#endif
             actionref(MapEDocument_Promoted; MatchToOrder)
             {
             }

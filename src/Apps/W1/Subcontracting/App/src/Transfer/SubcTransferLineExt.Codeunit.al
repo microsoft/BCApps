@@ -154,5 +154,6 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         TransferLine."Subc. Work Center No." := TempTransferLine."Subc. Work Center No.";
         TransferLine."Subc. Operation No." := TempTransferLine."Subc. Operation No.";
         TransferLine."Subc. Return Order" := TempTransferLine."Subc. Return Order";
+        TransferLine."Transfer WIP Item" := TempTransferLine."Transfer WIP Item";
     end;
 }

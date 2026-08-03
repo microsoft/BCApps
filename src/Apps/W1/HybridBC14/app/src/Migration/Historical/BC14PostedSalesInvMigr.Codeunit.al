@@ -5,7 +5,6 @@
 
 namespace Microsoft.DataMigration.BC14Reimplementation;
 
-using Microsoft.DataMigration;
 using Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
 using Microsoft.Sales.History;
 
@@ -119,8 +118,6 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
     var
         BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";
         BC14ArchSalesInvHeader: Record "BC14 Arch. Sales Inv. Header";
-        BC14HistoricalTransfer: Codeunit "BC14 Historical Transfer";
-        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
         HeaderDataTransfer: DataTransfer;
         MigratedOn: DateTime;
         LastCommitAt: DateTime;
@@ -139,23 +136,11 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
         if LastArchivedNo <> '' then
             Session.LogMessage('0000TX9', StrSubstNo(HeaderTransferResumedLbl, LastArchivedNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
 
-        // Fast path: inside Intelligent Cloud migration scope the platform permits cross-extension
-        // DataTransfer (destination lives in the BC14 Historical Data extension). Outside that
-        // scope (e.g., a background rerun) DataTransfer would be rejected, so fall back to a
-        // per-record AL copy via TransferFields.
-        if HybridCloudManagement.IsIntelligentCloudEnabled() then begin
-            HeaderDataTransfer.SetTables(Database::"BC14 Posted Sales Inv Header", Database::"BC14 Arch. Sales Inv. Header");
-            // Explicitly enumerate business fields instead of relying on CopyRows' auto-mapping.
-            // Auto-mapping also copies system fields like $systemId, which collide with the
-            // destination table's unique constraint on $systemId during the bulk INSERT pre-flight.
-            BC14HistoricalTransfer.AddMatchingFieldMappings(HeaderDataTransfer, Database::"BC14 Posted Sales Inv Header", Database::"BC14 Arch. Sales Inv. Header");
-            HeaderDataTransfer.AddConstantValue(CurrentDateTime(), BC14ArchSalesInvHeader.FieldNo("Migrated On"));
-            if LastArchivedNo <> '' then
-                HeaderDataTransfer.AddSourceFilter(BC14PostedSalesInvHeader.FieldNo("No."), '>%1', LastArchivedNo);
-            HeaderDataTransfer.CopyRows();
-            exit;
-        end;
-
+        // DataTransfer.CopyRows() is only permitted inside platform upgrade/install codeunits, and
+        // this migration always runs as a background task/session. Calling it here would always throw
+        // "DataTransfer is only usable during upgrade or install" and leave historical errors
+        // unresolved on rerun. Always use the per-record batched copy; the OnConfigureHeaderDataTransfer
+        // override above still lets an upgrade-context caller opt into DataTransfer.
         if CommitIntervalMs = 0 then
             CommitIntervalMs := 90000; // 1.5 minutes
         if MaxBatchSize = 0 then
@@ -191,8 +176,6 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
     var
         BC14PostedSalesInvLine: Record "BC14 Posted Sales Inv Line";
         BC14ArchSalesInvLine: Record "BC14 Arch. Sales Inv. Line";
-        BC14HistoricalTransfer: Codeunit "BC14 Historical Transfer";
-        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
         LineDataTransfer: DataTransfer;
         LastCommitAt: DateTime;
         LastArchivedDocNo: Code[20];
@@ -211,17 +194,11 @@ codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
         if LastArchivedDocNo <> '' then
             Session.LogMessage('0000TX8', StrSubstNo(LineTransferResumedLbl, LastArchivedDocNo, LastArchivedLineNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
 
-        if HybridCloudManagement.IsIntelligentCloudEnabled() then begin
-            LineDataTransfer.SetTables(Database::"BC14 Posted Sales Inv Line", Database::"BC14 Arch. Sales Inv. Line");
-            BC14HistoricalTransfer.AddMatchingFieldMappings(LineDataTransfer, Database::"BC14 Posted Sales Inv Line", Database::"BC14 Arch. Sales Inv. Line");
-            // CopyRows is atomic, so the line archive is all-or-nothing in the IC path; filtering
-            // strictly past the last archived document keeps a rerun-after-success idempotent.
-            if LastArchivedDocNo <> '' then
-                LineDataTransfer.AddSourceFilter(BC14PostedSalesInvLine.FieldNo("Document No."), '>%1', LastArchivedDocNo);
-            LineDataTransfer.CopyRows();
-            exit;
-        end;
-
+        // DataTransfer.CopyRows() is only permitted inside platform upgrade/install codeunits, and
+        // this migration always runs as a background task/session. Calling it here would always throw
+        // "DataTransfer is only usable during upgrade or install" and leave historical errors
+        // unresolved on rerun. Always use the per-record batched copy; the OnConfigureLineDataTransfer
+        // override above still lets an upgrade-context caller opt into DataTransfer.
         if CommitIntervalMs = 0 then
             CommitIntervalMs := 90000; // 1.5 minutes
         if MaxBatchSize = 0 then
