@@ -138,7 +138,7 @@ codeunit 4417 "SOA Item Selector"
     begin
         TelemetryDimensions.Add('CandidateCount', Format(CandidateCount));
         TelemetryDimensions.Add('Error', ErrorText);
-        FeatureTelemetry.LogError('0000QB3', SOASetup.GetFeatureName(), 'Item Selector Exception', ItemSelectorExceptionTelemetryMsg, ErrorCallStack, TelemetryDimensions);
+        FeatureTelemetry.LogError('', SOASetup.GetFeatureName(), 'Item Selector Exception', ItemSelectorExceptionTelemetryMsg, ErrorCallStack, TelemetryDimensions);
     end;
 
     local procedure LogItemSelectorResponseFailure(CandidateCount: Integer; FailureCategory: Text; StatusCode: Text; FailureDetails: Text)
@@ -153,7 +153,7 @@ codeunit 4417 "SOA Item Selector"
             TelemetryDimensions.Add('StatusCode', StatusCode);
         if FailureDetails <> '' then
             TelemetryDimensions.Add('Error', FailureDetails);
-        FeatureTelemetry.LogError('0000QB4', SOASetup.GetFeatureName(), 'Item Selector Response Failure', ItemSelectorResponseFailureTelemetryMsg, '', TelemetryDimensions);
+        FeatureTelemetry.LogError('', SOASetup.GetFeatureName(), 'Item Selector Response Failure', ItemSelectorResponseFailureTelemetryMsg, '', TelemetryDimensions);
     end;
 
     [NonDebuggable]
