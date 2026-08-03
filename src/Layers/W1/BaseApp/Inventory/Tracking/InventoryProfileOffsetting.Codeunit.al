@@ -1051,7 +1051,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
                         then
                             IncreaseQtyToMeetDemand(SupplyInvtProfile, DemandInvtProfile, false, RespectPlanningParm, false);
 
-                    if (TempSKU."Reordering Policy" = TempSKU."Reordering Policy"::"Maximum Qty.") and DemandForAdditionalProfile then      
+                    if (TempSKU."Reordering Policy" = TempSKU."Reordering Policy"::"Maximum Qty.") and DemandForAdditionalProfile then
                         DecreaseQtyForMaxQty(SupplyInvtProfile, SupplyIleInvtProfile."Untracked Quantity");
                     if SupplyInvtProfile."Untracked Quantity" < DemandInvtProfile."Untracked Quantity" then
                         SupplyExists := CloseSupply(DemandInvtProfile, SupplyInvtProfile)
