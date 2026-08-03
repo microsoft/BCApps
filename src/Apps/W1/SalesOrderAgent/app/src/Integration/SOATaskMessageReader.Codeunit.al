@@ -12,7 +12,8 @@ codeunit 4420 "SOA Task Message Reader"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task Message" = r;
+    Permissions = tabledata "Agent Task Message" = r,
+                  tabledata "Agent Task Message Attachment" = r;
 
     internal procedure GetLastIncomingMessageContent(AgentTaskID: BigInteger): Text
     var
@@ -44,7 +45,39 @@ codeunit 4420 "SOA Task Message Reader"
 
         AgentTaskMessage.Content.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.Read(MessageContent);
+        AppendAttachmentContent(AgentTaskMessage, MessageContent);
         exit(MessageContent);
+    end;
+
+    local procedure AppendAttachmentContent(AgentTaskMessage: Record "Agent Task Message"; var MessageContent: Text)
+    var
+        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
+        AttachmentContent: Text;
+        MessageContentBuilder: TextBuilder;
+        InStream: InStream;
+    begin
+        AgentTaskMessageAttachment.ReadIsolation := IsolationLevel::ReadCommitted;
+        AgentTaskMessageAttachment.SetAutoCalcFields("Text Content");
+        AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskMessage."Task ID");
+        AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
+        AgentTaskMessageAttachment.SetRange(Ignored, false);
+        if not AgentTaskMessageAttachment.FindSet() then
+            exit;
+
+        MessageContentBuilder.Append(MessageContent);
+        repeat
+            Clear(AttachmentContent);
+            AgentTaskMessageAttachment."Text Content".CreateInStream(InStream, TextEncoding::UTF8);
+            InStream.Read(AttachmentContent);
+            if AttachmentContent <> '' then begin
+                MessageContentBuilder.AppendLine('');
+                MessageContentBuilder.AppendLine('<attachment>');
+                MessageContentBuilder.AppendLine(AttachmentContent);
+                MessageContentBuilder.Append('</attachment>');
+            end;
+        until AgentTaskMessageAttachment.Next() = 0;
+
+        MessageContent := MessageContentBuilder.ToText();
     end;
 
     local procedure ErrorTaskContextMismatch()
