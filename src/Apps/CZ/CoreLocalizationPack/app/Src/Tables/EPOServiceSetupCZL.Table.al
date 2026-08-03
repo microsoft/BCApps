@@ -70,13 +70,12 @@ table 11724 "EPO Service Setup CZL"
     end;
 
     var
-        BaseUrlTok: Label 'https://mojedane.gov.cz/dpr/', Locked = true;
-        OpenFormUriTok: Label 'epo_podani?otevriFormular=1', Locked = true;
+        EPOAPIMgt: Codeunit "EPO API Mgt. CZL";
 
     procedure SetURLToDefault()
     begin
         TestField(Enabled, false);
-        Validate("Open Form Endpoint", GetDefaultOpenFormUrl());
+        Validate("Open Form Endpoint", EPOAPIMgt.GetDefaultOpenFormUrl());
     end;
 
     local procedure CheckUrl(Url: Text[250])
@@ -84,11 +83,6 @@ table 11724 "EPO Service Setup CZL"
         HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
     begin
         HttpWebRequestMgt.CheckUrl(Url);
-    end;
-
-    procedure GetDefaultOpenFormUrl(): Text
-    begin
-        exit(BaseUrlTok + OpenFormUriTok);
     end;
 }
 

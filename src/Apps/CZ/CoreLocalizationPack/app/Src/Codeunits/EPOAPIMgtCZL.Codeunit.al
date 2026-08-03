@@ -7,50 +7,66 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Utilities;
 using System.RestClient;
 
-codeunit 31175 "EPO API Submission CZL"
+codeunit 31175 "EPO API Mgt. CZL"
 {
     Access = Internal;
 
     var
         EPOServiceSetupCZL: Record "EPO Service Setup CZL";
         HttpResponseMessage: Codeunit "Http Response Message";
-        FormUrl: Text;
         UrlXPathTok: Label 'URL', Locked = true;
+        BaseUrlTok: Label 'https://mojedane.gov.cz/dpr/', Locked = true;
         EPOServiceNotEnabledErr: Label 'The EPO service is not enabled. Enable it in the EPO Service Setup page.';
+        OpenFormUriTok: Label 'epo_podani?otevriFormular=1', Locked = true;
         ShowEPOServiceSetupLbl: Label 'Show EPO Service Setup';
 
+    var
+
     [TryFunction]
-    procedure TrySend(Content: XmlDocument)
+    procedure TryGetFormUrl(Content: XmlDocument; var FormUrl: Text)
     var
         HttpContent: Codeunit "Http Content";
-        RestClient: Codeunit "Rest Client";
-        ResponseXmlDocument: XmlDocument;
+        ResponseHttpContent: Codeunit "Http Content";
         UrlXmlNode: XmlNode;
     begin
         GetOrInitEPOServiceSetup();
-        if not EPOServiceSetupCZL.Enabled then
-            Error(CreateEPOServiceNotEnabledErrorInfo());
 
         HttpContent := HttpContent.Create(Content);
-        RestClient.Initialize();
-        RestClient.SetTimeOut(EPOServiceSetupCZL."Limit Response Time");
-        HttpResponseMessage := RestClient.Post(EPOServiceSetupCZL."Open Form Endpoint", HttpContent);
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            Error(HttpResponseMessage.GetErrorMessage());
-
-        ResponseXmlDocument := HttpResponseMessage.GetContent().AsXmlDocument();
-        ResponseXmlDocument.SelectSingleNode(UrlXPathTok, UrlXmlNode);
-        FormUrl := UrlXmlNode.AsXmlElement().InnerText;
+        TrySend(EPOServiceSetupCZL."Open Form Endpoint", EPOServiceSetupCZL."Limit Response Time", HttpContent, ResponseHttpContent);
+        ResponseHttpContent.AsXmlDocument().SelectSingleNode(UrlXPathTok, UrlXmlNode);
+        FormUrl := UrlXmlNode.AsXmlElement().InnerText();
     end;
 
-    procedure GetFormUrl(): Text
+    [TryFunction]
+    local procedure TrySend(RequestUri: Text; Timeout: Duration; RequestHttpContent: Codeunit "Http Content"; var ResponseHttpContent: Codeunit "Http Content")
+    var
+        RestClient: Codeunit "Rest Client";
     begin
-        exit(FormUrl);
+        CheckEPOServiceEnabled();
+
+        RestClient.Initialize();
+        RestClient.SetTimeOut(Timeout);
+        HttpResponseMessage := RestClient.Post(RequestUri, RequestHttpContent);
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
+            Error(HttpResponseMessage.GetErrorMessage());
+        ResponseHttpContent := HttpResponseMessage.GetContent();
     end;
 
     procedure GetHttpResponse(): Codeunit "Http Response Message"
     begin
         exit(HttpResponseMessage);
+    end;
+
+    procedure GetDefaultOpenFormUrl(): Text
+    begin
+        exit(BaseUrlTok + OpenFormUriTok);
+    end;
+
+    local procedure CheckEPOServiceEnabled()
+    begin
+        GetOrInitEPOServiceSetup();
+        if not EPOServiceSetupCZL.Enabled then
+            Error(CreateEPOServiceNotEnabledErrorInfo());
     end;
 
     local procedure GetOrInitEPOServiceSetup()
@@ -65,9 +81,9 @@ codeunit 31175 "EPO API Submission CZL"
     var
         EPOServiceNotEnabledErrorInfo: ErrorInfo;
     begin
-        EPOServiceNotEnabledErrorInfo := ErrorInfo.Create(EPOServiceNotEnabledErr);
+        EPOServiceNotEnabledErrorInfo.Message := EPOServiceNotEnabledErr;
+        EPOServiceNotEnabledErrorInfo.PageNo := Page::"EPO Service Setup CZL";
         EPOServiceNotEnabledErrorInfo.AddNavigationAction(ShowEPOServiceSetupLbl);
-        EPOServiceNotEnabledErrorInfo.PageNo(Page::"EPO Service Setup CZL");
         exit(EPOServiceNotEnabledErrorInfo);
     end;
 
