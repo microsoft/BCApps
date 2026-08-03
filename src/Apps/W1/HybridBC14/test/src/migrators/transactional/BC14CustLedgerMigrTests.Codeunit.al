@@ -5,6 +5,7 @@
 
 namespace Microsoft.DataMigration.BC14.Tests;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.DataMigration.BC14Reimplementation;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -199,6 +200,7 @@ codeunit 148915 "BC14 CustLedgerMigr Tests"
             Customer."No." := CustomerNo;
             Customer."Customer Posting Group" := PostingGroupCode;
             Customer."Payment Terms Code" := GetPaymentTermsCode();
+            Customer."Payment Method Code" := GetPaymentMethodCode();
             Customer.Insert();
         end;
     end;
@@ -213,6 +215,18 @@ codeunit 148915 "BC14 CustLedgerMigr Tests"
             PaymentTerms.Insert();
         end;
         exit(PaymentTerms.Code);
+    end;
+
+    local procedure GetPaymentMethodCode(): Code[10]
+    var
+        PaymentMethod: Record "Payment Method";
+    begin
+        if not PaymentMethod.FindFirst() then begin
+            PaymentMethod.Init();
+            PaymentMethod.Code := 'BC14PM';
+            PaymentMethod.Insert();
+        end;
+        exit(PaymentMethod.Code);
     end;
 
     local procedure InsertCustLedgerEntry(EntryNo: Integer; CustomerNo: Code[20]; PostingGroupCode: Code[20]; DocumentNo: Code[20]; RemainingAmount: Decimal)
