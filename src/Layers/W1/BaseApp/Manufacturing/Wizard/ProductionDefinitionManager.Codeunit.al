@@ -136,6 +136,7 @@ codeunit 99001017 "Production Definition Manager"
         GetShowEditTypesForScenario(ScenarioType, BOMRoutingDisplay, ProdCompDisplay);
 
         if ShouldSkipUserInteraction(BOMRoutingDisplay, ProdCompDisplay) then begin
+            FeatureTelemetry.LogUptake('0000PDW0', ProdDefWizardFeatureNameTok, Enum::"Feature Uptake Status"::Discovered);
             TempData.BuildTemporaryStructureFromBOMRouting();
             exit(true);
         end;
