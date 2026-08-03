@@ -17,6 +17,7 @@ codeunit 148150 "FI Company Field Report Test"
         BusinessIdentityCodeTxt: Text[20];
         RegisteredHomeCityTxt: Text[50];
         VendorCrMemoNoTxt: Label '123';
+        IsInitialized: Boolean;
 
     local procedure Initialize()
     var
@@ -29,11 +30,16 @@ codeunit 148150 "FI Company Field Report Test"
         BusinessIdentityCodeTxt := '01234567890123456789';
         RegisteredHomeCityTxt := '01234567890123456789012345678901234567890123456789';
 
+        LibraryVariableStorage.Clear();
+        LibraryReportDataset.Reset();
+
+        if IsInitialized then
+            exit;
+
         LibrarySales.SetCreditWarningsToNoWarnings();
         LibrarySales.SetStockoutWarning(false);
         LibraryERM.SetLCYCode('EUR');
         LibraryService.SetupServiceMgtNoSeries();
-        LibraryVariableStorage.Clear();
 
         if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
             FeatureKey.Enabled := FeatureKey.Enabled::None;
@@ -45,7 +51,6 @@ codeunit 148150 "FI Company Field Report Test"
         end;
 
         EnableVATVIESDeclarationFeature();
-        LibraryReportDataset.Reset();
         CompanyInformation.Get();
         CompanyInformation."Business Identity Code" := BusinessIdentityCodeTxt;
         CompanyInformation."Registered Home City" := RegisteredHomeCityTxt;
@@ -77,6 +82,7 @@ codeunit 148150 "FI Company Field Report Test"
         SalesAndReceivablesSetup."Default Number" := '';
         SalesAndReceivablesSetup.Modify();
 
+        IsInitialized := true;
         Commit();
     end;
 
