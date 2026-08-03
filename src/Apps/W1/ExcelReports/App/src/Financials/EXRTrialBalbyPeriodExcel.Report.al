@@ -91,6 +91,12 @@ report 4408 "EXR Trial Bal by Period Excel"
                         Caption = 'Period Length';
                         ToolTip = 'Specifies the period for which data is shown in the report. For example, enter "1M" for one month, "30D" for thirty days, "3Q" for three quarters, or "5Y" for five years.';
                     }
+                    field(ShowLinesWithZeroValuesField; ShowLinesWithZeroValues)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Show Lines with Zero Values';
+                        ToolTip = 'Specifies whether to include lines where all calculated amounts are zero.';
+                    }
                     // Used to set the date filter on the report header across multiple languages
                     field(RequestDateFilter; DateFilter)
                     {
@@ -162,6 +168,7 @@ report 4408 "EXR Trial Bal by Period Excel"
     var
         ExcelReportsTelemetry: Codeunit "Excel Reports Telemetry";
         DateFilter: Text;
+        ShowLinesWithZeroValues: Boolean;
 
     protected var
         CompanyInformation: Record "Company Information";
@@ -231,7 +238,7 @@ report 4408 "EXR Trial Bal by Period Excel"
         EXRTrialBalanceBuffer."Balance (Debit)" := LocalGLAccountBalance."Debit Amount";
         EXRTrialBalanceBuffer."Balance (Credit)" := LocalGLAccountBalance."Credit Amount";
         EXRTrialBalanceBuffer.CheckAllZero();
-        if not EXRTrialBalanceBuffer."All Zero" then
+        if ShowLinesWithZeroValues or not EXRTrialBalanceBuffer."All Zero" then
             EXRTrialBalanceBuffer.Insert(true);
     end;
 }
