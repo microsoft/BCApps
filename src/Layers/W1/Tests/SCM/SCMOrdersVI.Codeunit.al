@@ -3404,6 +3404,35 @@
     end;
 
     [Test]
+    procedure InsertingTemporarySalesLineWithoutSalesHeader()
+    var
+        TempSalesLine: Record "Sales Line" temporary;
+        NonExistentDocumentNo: Code[20];
+    begin
+        // [SCENARIO 643231] A temporary Sales Line can be inserted even when no Sales Header exists,
+        // without needing to call SetSalesHeader or SetSuppressSalesHeaderExistsVerification.
+        Initialize();
+
+        // [GIVEN] No Sales Header exists for the referenced Document No.
+        NonExistentDocumentNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A temporary Sales Line referencing the non-existent Sales Header.
+        TempSalesLine.Init();
+        TempSalesLine."Document Type" := TempSalesLine."Document Type"::Order;
+        TempSalesLine."Document No." := NonExistentDocumentNo;
+        TempSalesLine."Line No." := LibraryUtility.GetNewRecNo(TempSalesLine, TempSalesLine.FieldNo("Line No."));
+
+        // [WHEN] The temporary Sales Line is inserted.
+        // [THEN] Insert succeeds without raising CannotInsertSalesLineWithoutHeaderErr, because the check is skipped for temporary records.
+        TempSalesLine.Insert(true);
+
+        Assert.IsTrue(TempSalesLine.IsTemporary(), 'The Sales Line under test must be temporary.');
+        Assert.IsTrue(
+            TempSalesLine.Get(TempSalesLine."Document Type", TempSalesLine."Document No.", TempSalesLine."Line No."),
+            'The temporary Sales Line should be retrievable after Insert.');
+    end;
+
+    [Test]
     procedure InsertingPurchaseLineBeforePurchaseHeader()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -3475,6 +3504,35 @@
 
         // [WHEN] [THEN] The Purchase Line can be inserted.
         PurchaseLine.Insert(true);
+    end;
+
+    [Test]
+    procedure InsertingTemporaryPurchaseLineWithoutPurchaseHeader()
+    var
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        NonExistentDocumentNo: Code[20];
+    begin
+        // [SCENARIO 643231] A temporary Purchase Line can be inserted even when no Purchase Header exists,
+        // without needing to call SetPurchHeader or SetSuppressPurchaseHeaderExistsVerification.
+        Initialize();
+
+        // [GIVEN] No Purchase Header exists for the referenced Document No.
+        NonExistentDocumentNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A temporary Purchase Line referencing the non-existent Purchase Header.
+        TempPurchaseLine.Init();
+        TempPurchaseLine."Document Type" := TempPurchaseLine."Document Type"::Order;
+        TempPurchaseLine."Document No." := NonExistentDocumentNo;
+        TempPurchaseLine."Line No." := LibraryUtility.GetNewRecNo(TempPurchaseLine, TempPurchaseLine.FieldNo("Line No."));
+
+        // [WHEN] The temporary Purchase Line is inserted.
+        // [THEN] Insert succeeds without raising CannotInsertPurchLineWithoutHeaderErr, because the check is skipped for temporary records.
+        TempPurchaseLine.Insert(true);
+
+        Assert.IsTrue(TempPurchaseLine.IsTemporary(), 'The Purchase Line under test must be temporary.');
+        Assert.IsTrue(
+            TempPurchaseLine.Get(TempPurchaseLine."Document Type", TempPurchaseLine."Document No.", TempPurchaseLine."Line No."),
+            'The temporary Purchase Line should be retrievable after Insert.');
     end;
 
     [Test]
