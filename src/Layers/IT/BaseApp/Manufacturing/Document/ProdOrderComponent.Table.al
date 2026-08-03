@@ -233,8 +233,8 @@ table 5407 "Prod. Order Component"
                                 ProdOrderLine."Location Code");
                                 Validate("Location Code", SKU."Components at Location");
 #endif
+                            end;
                         end;
-                    end;
                 end;
                 if Format("Lead-Time Offset") <> '' then begin
                     "Due Date" :=
@@ -1774,9 +1774,8 @@ table 5407 "Prod. Order Component"
     var
         ProdOrderLine: Record "Prod. Order Line";
         WMSManagement: Codeunit "WMS Management";
-        IsHandled: Boolean;
     begin
-      OnBeforeGetDefaultConsumptionBin(Rec, ProdOrderRtngLine, BinCode);
+        OnBeforeGetDefaultConsumptionBin(Rec, ProdOrderRtngLine, BinCode);
 
         if not IsTemporary() then begin
             ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
@@ -1911,7 +1910,7 @@ table 5407 "Prod. Order Component"
     var
         ProdOrderComp2: Record "Prod. Order Component";
         OverwriteBinCode, IsHandled : Boolean;
-     begin
+    begin
         OnBeforeUpdateBin(ProdOrderComp, FieldNo, FieldCaption, IsHandled);
         if IsHandled then
             exit;
@@ -2493,7 +2492,7 @@ table 5407 "Prod. Order Component"
     begin
     end;
 
-     [IntegrationEvent(false, false)]
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDefaultConsumptionBin(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var BinCode: Code[20])
     begin
     end;
