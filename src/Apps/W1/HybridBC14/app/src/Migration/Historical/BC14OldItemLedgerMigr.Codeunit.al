@@ -153,6 +153,12 @@ codeunit 46947 "BC14 Old Item Ledger Migr." implements "BC14 Migrator"
             exit;
         repeat
             BC14OldItemLedgEntry.Init();
+            // The buffer's working field 100 ("Journal Batch Name", Code[10]) is stamped on open
+            // entries by the on-hand item migrator and collides with this archive table's field 100
+            // ("Cost Amount (Actual)", Decimal). Clear it before TransferFields so a batch code is
+            // never copied into the decimal cost field (which would fail at runtime); the actual
+            // cost is computed explicitly below.
+            BC14ItemLedgerEntry."Journal Batch Name" := '';
             BC14OldItemLedgEntry.TransferFields(BC14ItemLedgerEntry, true);
             BC14OldItemLedgEntry."Cost Amount (Actual)" := CalcCostAmount(BC14ItemLedgerEntry."Entry No.");
             BC14OldItemLedgEntry."Migrated On" := MigratedOn;
