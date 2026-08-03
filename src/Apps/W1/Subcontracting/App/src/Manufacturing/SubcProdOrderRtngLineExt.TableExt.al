@@ -12,6 +12,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing Line"
 {
     fields
@@ -276,3 +277,4 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
             until ProdOrderLine.Next() = 0;
     end;
 }
+#pragma warning restore AS0072, AS0136

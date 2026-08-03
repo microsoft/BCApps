@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Document;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Subform"
 {
     layout
@@ -125,3 +126,4 @@ pageextension 20533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Subfor
         SubcProdOrderFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 }
+#pragma warning restore AS0072, AS0136

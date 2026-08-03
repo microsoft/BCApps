@@ -6,7 +6,9 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Security.AccessControl;
 
+#pragma warning disable AS0072, AS0136
 permissionsetextension 20500 "D365 READ - Subcontracting" extends "D365 READ"
 {
     IncludedPermissionSets = "Subcontract. - Read";
 }
+#pragma warning restore AS0072, AS0136

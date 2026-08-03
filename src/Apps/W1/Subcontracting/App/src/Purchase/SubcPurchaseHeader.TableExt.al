@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20509 "Subc. Purchase Header" extends "Purchase Header"
 {
     AllowInCustomizations = AsReadOnly;
@@ -42,3 +43,4 @@ tableextension 20509 "Subc. Purchase Header" extends "Purchase Header"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

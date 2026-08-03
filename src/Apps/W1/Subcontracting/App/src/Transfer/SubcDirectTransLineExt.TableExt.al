@@ -9,6 +9,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20523 "Subc. DirectTrans. Line Ext" extends "Direct Trans. Line"
 {
     AllowInCustomizations = AsReadOnly;
@@ -85,3 +86,4 @@ tableextension 20523 "Subc. DirectTrans. Line Ext" extends "Direct Trans. Line"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

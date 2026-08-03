@@ -14,6 +14,7 @@ using Microsoft.Utilities;
 using System.Reflection;
 using System.Text;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20560 "Subc. Purch. Factbox Mgmt."
 {
     var
@@ -639,3 +640,4 @@ codeunit 20560 "Subc. Purch. Factbox Mgmt."
         TransferLine.SetRange("Derived From Line No.", 0);
     end;
 }
+#pragma warning restore AS0072, AS0136

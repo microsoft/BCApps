@@ -9,6 +9,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20519 "Subc. Transfer Shpt. Line Ext" extends "Transfer Shipment Line"
 {
     AllowInCustomizations = AsReadOnly;
@@ -85,3 +86,4 @@ tableextension 20519 "Subc. Transfer Shpt. Line Ext" extends "Transfer Shipment 
         }
     }
 }
+#pragma warning restore AS0072, AS0136

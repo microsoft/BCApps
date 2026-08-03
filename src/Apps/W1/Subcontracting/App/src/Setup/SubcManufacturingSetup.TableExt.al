@@ -8,6 +8,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Setup;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
 {
     fields
@@ -87,3 +88,4 @@ tableextension 20501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

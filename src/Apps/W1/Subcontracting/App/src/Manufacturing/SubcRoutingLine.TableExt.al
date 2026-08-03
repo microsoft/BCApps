@@ -8,6 +8,7 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20560 "Subc. Routing Line" extends "Routing Line"
 {
     AllowInCustomizations = AsReadWrite;
@@ -117,3 +118,4 @@ tableextension 20560 "Subc. Routing Line" extends "Routing Line"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

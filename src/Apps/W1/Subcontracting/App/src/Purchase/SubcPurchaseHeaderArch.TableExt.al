@@ -8,6 +8,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20511 "Subc. Purchase Header Arch" extends "Purchase Header Archive"
 {
     AllowInCustomizations = AsReadOnly;
@@ -32,3 +33,4 @@ tableextension 20511 "Subc. Purchase Header Arch" extends "Purchase Header Archi
         }
     }
 }
+#pragma warning restore AS0072, AS0136
