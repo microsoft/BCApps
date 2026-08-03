@@ -288,9 +288,10 @@ codeunit 46948 "BC14 Item Ledger Migrator" implements "BC14 Migrator"
             exit;
 
         // Unit cost = the entry's actual total cost spread over its original quantity. Applied to the
-        // remaining quantity below, this rebuilds both on-hand quantity and inventory value. Because
-        // "Automatic Cost Posting" is off by default, posting this adjustment writes only the item and
-        // value ledger (not G/L), so it does not double-count against the separate G/L Entry migrator.
+        // remaining quantity below, this rebuilds both on-hand quantity and inventory value. Posting
+        // these adjustments writes only the item and value ledger, not the G/L: "BC14 Item Journal
+        // Post Action" suppresses inventory posting to the G/L while the batches post, so the rebuilt
+        // on-hand does not double-count against the separate G/L Entry migrator.
         UnitCost := CalcCostAmount(BC14ItemLedgerEntry."Entry No.") / BC14ItemLedgerEntry.Quantity;
 
         DocumentNo := BC14ItemLedgerEntry."Document No.";

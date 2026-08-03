@@ -7,7 +7,6 @@ namespace Microsoft.DataMigration.BC14Reimplementation;
 
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Posting;
-using Microsoft.Inventory.Setup;
 
 codeunit 46949 "BC14 Item Journal Post Action" implements "BC14 Post Migration Action"
 {
@@ -39,15 +38,12 @@ codeunit 46949 "BC14 Item Journal Post Action" implements "BC14 Post Migration A
         BC14CompanySettings: Record BC14CompanyMigrationInfo;
         BC14ItemLedgerMigrator: Codeunit "BC14 Item Ledger Migrator";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        BC14InvPostGLGuard: Codeunit "BC14 Inv. Post. G/L Guard";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         TemplateName: Code[10];
         SkipPosting: Boolean;
         BatchCount: Integer;
         FailedBatchCount: Integer;
-        InventorySetup: Record "Inventory Setup";
-        OrigAutomaticCostPosting: Boolean;
-        OrigExpectedCostPosting: Boolean;
-        CostPostingDisabled: Boolean;
     begin
         BC14CompanySettings.GetSingleInstance();
         SkipPosting := BC14CompanySettings.GetSkipPostingJournalBatches();
@@ -64,19 +60,11 @@ codeunit 46949 "BC14 Item Journal Post Action" implements "BC14 Post Migration A
 
         // Rebuilding on-hand as positive adjustments must not post inventory cost to the G/L: the
         // G/L balances are migrated separately by the G/L entry migrator, so posting cost here as
-        // well would double-count inventory value and would additionally require the full General
-        // Posting Setup accounts (Inventory Adjmt. Account, ...) in the target. Automatic cost
-        // posting is disabled for the duration of the item journal posting and restored afterwards.
-        InventorySetup.Get();
-        OrigAutomaticCostPosting := InventorySetup."Automatic Cost Posting";
-        OrigExpectedCostPosting := InventorySetup."Expected Cost Posting to G/L";
-        if OrigAutomaticCostPosting or OrigExpectedCostPosting then begin
-            InventorySetup."Automatic Cost Posting" := false;
-            InventorySetup."Expected Cost Posting to G/L" := false;
-            InventorySetup.Modify();
-            Commit();
-            CostPostingDisabled := true;
-        end;
+        // well would double-count inventory value and would additionally require the full Inventory
+        // Posting Setup and General Posting Setup accounts (Inventory Account, Inventory Adjmt.
+        // Account, ...) in the target. The guard suppresses inventory posting to the G/L for the
+        // duration of the item journal posting; it is turned off again once posting completes.
+        BC14InvPostGLGuard.SetSuppressInvtPostingToGL(true);
 
         // Find and post all BC14 item migration batches. Unlike the gen. journal post action, invalid
         // (Amount = 0) lines are NOT cleaned up first: an item received at zero cost is legitimate
@@ -101,14 +89,8 @@ codeunit 46949 "BC14 Item Journal Post Action" implements "BC14 Post Migration A
                 end;
             until ItemJournalBatch.Next() = 0;
 
-        // Restore the original cost-posting configuration regardless of how many batches posted.
-        if CostPostingDisabled then begin
-            InventorySetup.Get();
-            InventorySetup."Automatic Cost Posting" := OrigAutomaticCostPosting;
-            InventorySetup."Expected Cost Posting to G/L" := OrigExpectedCostPosting;
-            InventorySetup.Modify();
-            Commit();
-        end;
+        // Stop suppressing inventory posting to the G/L now that all migration batches have posted.
+        BC14InvPostGLGuard.SetSuppressInvtPostingToGL(false);
 
         Session.LogMessage('0000ZC1', StrSubstNo(PostMigrationItemJournalsCompletedLbl, BatchCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
 
