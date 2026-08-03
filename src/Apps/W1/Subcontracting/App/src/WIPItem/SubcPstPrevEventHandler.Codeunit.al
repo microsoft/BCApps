@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-codeunit 99001567 "Subc. Pst. Prev. Event Handler"
+codeunit 20567 "Subc. Pst. Prev. Event Handler"
 {
     EventSubscriberInstance = Manual;
     SingleInstance = true;

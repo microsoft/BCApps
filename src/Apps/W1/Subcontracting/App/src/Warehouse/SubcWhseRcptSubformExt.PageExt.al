@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Document;
 
-pageextension 99001533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Subform"
+pageextension 20533 "Subc. Whse Rcpt Subform Ext." extends "Whse. Receipt Subform"
 {
     layout
     {

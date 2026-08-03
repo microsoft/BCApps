@@ -22,7 +22,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Utilities;
 
-codeunit 99001557 "Subc. Purchase Order Creator"
+codeunit 20557 "Subc. Purchase Order Creator"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";

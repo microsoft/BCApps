@@ -13,7 +13,7 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-codeunit 99001511 "Subc. Synchronize Management"
+codeunit 20511 "Subc. Synchronize Management"
 {
     var
 #if not CLEAN29

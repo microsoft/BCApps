@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Document;
 
-page 99001561 "Subc. WIP Adjustment"
+page 20561 "Subc. WIP Adjustment"
 {
     ApplicationArea = Subcontracting;
     Caption = 'WIP Adjustment';

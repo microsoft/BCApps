@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001508 "WIP Ledger Entry Type"
+enum 20508 "WIP Ledger Entry Type"
 {
     Extensible = true;
     value(0; "Positive Adjustment")

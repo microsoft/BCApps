@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Transfer;
 
-codeunit 99001539 "Subc. TransOrderPostShpt Ext"
+codeunit 20539 "Subc. TransOrderPostShpt Ext"
 {
 #if not CLEAN29
     var

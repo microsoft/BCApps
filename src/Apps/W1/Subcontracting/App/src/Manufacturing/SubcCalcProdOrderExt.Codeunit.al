@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 
-codeunit 99001517 "Subc. Calc. Prod. Order Ext."
+codeunit 20517 "Subc. Calc. Prod. Order Ext."
 {
 #if not CLEAN29
     var

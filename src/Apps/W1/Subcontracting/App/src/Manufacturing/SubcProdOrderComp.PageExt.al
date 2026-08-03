@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-pageextension 99001512 "Subc. Prod Order Comp" extends "Prod. Order Components"
+pageextension 20512 "Subc. Prod Order Comp" extends "Prod. Order Components"
 {
     layout
     {
