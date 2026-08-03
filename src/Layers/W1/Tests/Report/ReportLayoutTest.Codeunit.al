@@ -795,20 +795,26 @@ codeunit 134600 "Report Layout Test"
         VerifyJobTaskNo(20000, SalesLine[2]."Job Task No.");
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TestLenghtOfDescriptionCustomReportLayout()
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         CustomReportSelection: Record "Custom Report Selection";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 252058] Length of "Custom Report Layout"."Description" shoud be equal to length of "Custom Report Selection"."Custom Report Description"
 
+#pragma warning disable AL0432
         LibraryTablesUT.CompareFieldTypeAndLength(
           CustomReportLayout, CustomReportLayout.FieldNo(Description),
           CustomReportSelection, CustomReportSelection.FieldNo("Custom Report Description"));
+#pragma warning restore AL0432
     end;
+#endif
 
     [Test]
     [HandlerFunctions('MessageHandler')]

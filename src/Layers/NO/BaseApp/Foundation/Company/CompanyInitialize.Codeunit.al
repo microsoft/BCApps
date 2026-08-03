@@ -781,7 +781,9 @@ codeunit 2 "Company-Initialize"
     var
         AssistedCompanySetupStatus: Record "Assisted Company Setup Status";
         ApplicationAreaSetup: Record "Application Area Setup";
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         ReportLayoutSelection: Record "Report Layout Selection";
         ExperienceTierSetup: Record "Experience Tier Setup";
     begin

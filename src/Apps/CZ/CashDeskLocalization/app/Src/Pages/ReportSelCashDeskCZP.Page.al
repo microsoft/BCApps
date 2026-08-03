@@ -120,12 +120,16 @@ page 31222 "Report Sel. - Cash Desk CZP"
                     ToolTip = 'Specifies the ID of the custom email body layout that is used.';
                     Visible = false;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = false;
                 }
+#pragma warning restore AL0432
+#endif
             }
         }
         area(factboxes)

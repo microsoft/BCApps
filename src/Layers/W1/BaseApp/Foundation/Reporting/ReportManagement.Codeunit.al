@@ -154,7 +154,9 @@ codeunit 44 ReportManagement
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'SelectReportLayoutCode', '', false, false)]
     local procedure SelectReportLayoutCode(ObjectId: Integer; var LayoutCode: Text; var LayoutType: Option "None",RDLC,Word,Excel,Custom; var Success: Boolean)
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         FeatureKey: Record "Feature Key";
         ReportLayoutSelection: Record "Report Layout Selection";
         DesignTimeReportSelection: Codeunit "Design-time Report Selection";
@@ -218,7 +220,9 @@ codeunit 44 ReportManagement
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'FetchReportLayoutByCode', '', false, false)]
     local procedure FetchReportLayoutByCode(ObjectId: Integer; LayoutCode: Text; var TargetStream: OutStream; var Success: Boolean)
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         TempBlobIn: codeunit "Temp Blob";
         TempInStream: InStream;
     begin
