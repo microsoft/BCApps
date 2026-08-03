@@ -32,6 +32,7 @@ page 2503 "Extension Installation"
 
         MarketplaceExtnDeployment.SetAppID(Rec.ID);
         MarketplaceExtnDeployment.SetPreviewKey(Rec.PreviewKey);
+        MarketplaceExtnDeployment.SetPublisherType(Rec.PublisherType);
         MarketplaceExtnDeployment.RunModal();
         if MarketplaceExtnDeployment.GetInstalledSelected() then
             if not IsNullGuid(Rec.ID) then begin

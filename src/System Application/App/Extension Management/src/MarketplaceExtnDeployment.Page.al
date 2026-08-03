@@ -24,7 +24,7 @@ page 2510 "Marketplace Extn Deployment"
         {
             group(DisclaimerStep)
             {
-                Visible = Step = Step::Disclaimer;
+                Visible = (Step = Step::Disclaimer) and IsThirdPartyPublisher();
                 ShowCaption = false;
 
                 group(DisclaimerHeader)
@@ -168,8 +168,8 @@ page 2510 "Marketplace Extn Deployment"
                 Caption = 'Back';
                 ToolTip = 'Go back to the previous step.';
                 InFooterBar = true;
-                Enabled = Step <> Step::Disclaimer;
-                Visible = Step <> Step::Disclaimer;
+                Enabled = (Step <> Step::Disclaimer) or not IsThirdPartyPublisher();
+                Visible = (Step <> Step::Disclaimer) or not IsThirdPartyPublisher();
 
                 trigger OnAction()
                 begin
@@ -186,7 +186,7 @@ page 2510 "Marketplace Extn Deployment"
                 Caption = 'Continue';
                 ToolTip = 'Continue to the next step.';
                 InFooterBar = true;
-                Visible = Step = Step::Disclaimer;
+                Visible = (Step = Step::Disclaimer) and IsThirdPartyPublisher();
 
                 trigger OnAction()
                 begin
@@ -236,6 +236,18 @@ page 2510 "Marketplace Extn Deployment"
             InstallPreview := true;
     end;
 
+    internal procedure SetPublisherType(NewPublisherType: Text)
+    begin
+        PublisherType := NewPublisherType;
+    end;
+
+    local procedure IsThirdPartyPublisher(): Boolean
+    begin
+        // If PublisherType is empty or "Microsoft", return false (not third-party)
+        // Otherwise, return true (third-party)
+        exit((PublisherType <> '') and (PublisherType <> 'Microsoft'));
+    end;
+
     trigger OnInit()
     var
         LanguageManagement: Codeunit Language;
@@ -243,7 +255,11 @@ page 2510 "Marketplace Extn Deployment"
         LanguageID := GlobalLanguage();
         LanguageName := LanguageManagement.GetWindowsLanguageName(LanguageID);
         Clear(InstallSelected);
-        Step := Step::Disclaimer;
+        // For Microsoft-published apps, skip the disclaimer and go straight to installation
+        if IsThirdPartyPublisher() then
+            Step := Step::Disclaimer
+        else
+            Step := Step::Installation;
     end;
 
     trigger OnOpenPage()
@@ -259,6 +275,7 @@ page 2510 "Marketplace Extn Deployment"
         InstallSelected: Boolean;
         InstallPreview: Boolean;
         AppID: Guid;
+        PublisherType: Text;
         Step: Option Disclaimer,Installation;
         ActiveUsersLbl: Label 'Note: There might be other users working in the system.';
         WarningLbl: Label 'Installing extensions during business hours will disrupt other users.';

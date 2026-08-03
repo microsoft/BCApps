@@ -217,7 +217,7 @@ codeunit 2501 "Extension Marketplace"
     end;
 
     [TryFunction]
-    procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
+    procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text; PublisherType: Text);
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
         ExtensionInstallationPage: Page "Extension Installation";
@@ -232,12 +232,13 @@ codeunit 2501 "Extension Marketplace"
         TempExtensionInstallationRecord.SetRange(ID, AppId);
         TempExtensionInstallationRecord.ID := AppId;
         TempExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(TempExtensionInstallationRecord.ResponseUrl));
+        TempExtensionInstallationRecord.PublisherType := CopyStr(PublisherType, 1, MaxStrLen(TempExtensionInstallationRecord.PublisherType));
         ExtensionInstallationPage.SetRecord(TempExtensionInstallationRecord);
         ExtensionInstallationPage.RunModal();
     end;
 
     [TryFunction]
-    procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
+    procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text; PublisherType: Text)
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
         ExtensionInstallationPage: Page "Extension Installation";
@@ -250,6 +251,7 @@ codeunit 2501 "Extension Marketplace"
         TempExtensionInstallationRecord.SetRange(ID, AppId);
         TempExtensionInstallationRecord.ID := AppId;
         TempExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(TempExtensionInstallationRecord.ResponseUrl));
+        TempExtensionInstallationRecord.PublisherType := CopyStr(PublisherType, 1, MaxStrLen(TempExtensionInstallationRecord.PublisherType));
         ExtensionInstallationPage.SetRecord(TempExtensionInstallationRecord);
         ExtensionInstallationPage.RunModal();
     end;
@@ -276,7 +278,7 @@ codeunit 2501 "Extension Marketplace"
         end;
     end;
 
-    procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text);
+    procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text; PublisherType: Text);
     var
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
@@ -284,7 +286,7 @@ codeunit 2501 "Extension Marketplace"
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
-        if not InstallAppsourceExtension(AppId, TelemetryURL) then // successful installation returns false
+        if not InstallAppsourceExtension(AppId, TelemetryURL, PublisherType) then // successful installation returns false
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
                 MySessionSettings.Init();

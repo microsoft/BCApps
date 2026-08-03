@@ -40,5 +40,12 @@ table 2503 "Extension Installation"
         {
             Caption = 'Response URL';
         }
+        /// <summary>
+        /// The publisher type of the extension (e.g., 'Microsoft' or 'ThirdParty').
+        /// </summary>
+        field(4; PublisherType; Text[200])
+        {
+            Caption = 'Publisher Type';
+        }
     }
 }
