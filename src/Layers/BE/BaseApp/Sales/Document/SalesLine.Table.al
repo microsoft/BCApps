@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -5080,7 +5080,7 @@ table 37 "Sales Line"
     /// <summary>
     /// Sets the value of the SuppressSalesHeaderExistsVerification variable.
     /// </summary>
-    /// <param name="NewSuppressSalesHeaderExistsVerification">Set to true to suppress the sales header existence verification on insert.</param> 
+    /// <param name="NewSuppressSalesHeaderExistsVerification">Set to true to suppress the sales header existence verification on insert.</param>
     procedure SetSuppressSalesHeaderExistsVerification(NewSuppressSalesHeaderExistsVerification: Boolean)
     begin
         SuppressSalesHeaderExistsVerification := NewSuppressSalesHeaderExistsVerification;
@@ -10418,7 +10418,9 @@ table 37 "Sales Line"
         if SuppressSalesHeaderExistsVerification then
             exit;
 
-        if not SalesHeaderToVerify.Get("Document Type", "Document No.") then
+        SalesHeaderToVerify.SetRange("Document Type", "Document Type");
+        SalesHeaderToVerify.SetRange("No.", "Document No.");
+        if SalesHeaderToVerify.IsEmpty() then
             Error(CannotInsertSalesLineWithoutHeaderErr);
     end;
 

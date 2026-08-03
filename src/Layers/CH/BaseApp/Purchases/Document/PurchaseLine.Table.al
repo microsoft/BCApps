@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -4974,7 +4974,7 @@ table 39 "Purchase Line"
     /// <summary>
     /// Sets the value of the SuppressPurchaseHeaderExistsVerification variable.
     /// </summary>
-    /// <param name="NewSuppressPurchaseHeaderExistsVerification">Set to true to suppress the purchase header existence verification on insert.</param> 
+    /// <param name="NewSuppressPurchaseHeaderExistsVerification">Set to true to suppress the purchase header existence verification on insert.</param>
     procedure SetSuppressPurchaseHeaderExistsVerification(NewSuppressPurchaseHeaderExistsVerification: Boolean)
     begin
         SuppressPurchaseHeaderExistsVerification := NewSuppressPurchaseHeaderExistsVerification;
@@ -6891,7 +6891,9 @@ table 39 "Purchase Line"
         if SuppressPurchaseHeaderExistsVerification then
             exit;
 
-        if not PurchaseHeaderToVerify.Get("Document Type", "Document No.") then
+        PurchaseHeaderToVerify.SetRange("Document Type", "Document Type");
+        PurchaseHeaderToVerify.SetRange("No.", "Document No.");
+        if PurchaseHeaderToVerify.IsEmpty() then
             Error(CannotInsertPurchLineWithoutHeaderErr);
     end;
 
