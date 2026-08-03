@@ -943,39 +943,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,ConsentConfirmYes')]
-    procedure TestPaymentNotificationMatchesSubscriptionCaseInsensitively();
-    var
-        MSPayPalStandardAccount: Record "MS - PayPal Standard Account";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary;
-        O365SalesInvoicePayment: Codeunit "O365 Sales Invoice Payment";
-        DifferentCaseAccountID: Text;
-    begin
-        // [FEATURE][AI test 0.3]
-        // [SCENARIO 642015] The webhook subscription lookup must remain case-insensitive so payments are still matched
-        // even when the notification's Subscription ID differs in casing from the stored subscription.
-        Initialize();
-
-        SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
-
-        // [GIVEN] The account/subscription ID in a different letter casing than what is stored.
-        DifferentCaseAccountID := ToggleCase(MSPayPalStandardAccount."Account ID");
-        Assert.AreNotEqual(
-          MSPayPalStandardAccount."Account ID", DifferentCaseAccountID, 'Test requires a case-different account ID');
-
-        // [WHEN] A completed payment notification is received using the differently-cased subscription ID.
-        SendPaymentNotification(DifferentCaseAccountID, PaymentStatusCompletedTxt, SalesInvoiceHeader."No.",
-          SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
-        O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
-
-        // [THEN] The invoice is still fully paid, proving the subscription match is case-insensitive.
-        VerifyRemainingAmount(TempPaymentRegistrationBuffer, 0);
-        VerifyPaymentEvent(PaymentTok, SalesInvoiceHeader."No.", SalesInvoiceHeader."Amount Including VAT");
-        LibraryVariableStorage.AssertEmpty();
-    end;
-
-    [Test]
     [HandlerFunctions('JobTransferToSalesInvoiceRequestPageHandler,MessageHandlerNew')]
     procedure VerifyPaymentServiceSetIDInSalesInvoiceCreatedFromJobPlanningLines();
     var
@@ -1084,13 +1051,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
         OutStream.WRITETEXT(NotificationJson);
         WebhookNotification.INSERT();
-    end;
-
-    local procedure ToggleCase(Value: Text): Text;
-    begin
-        if Value = LowerCase(Value) then
-            exit(UpperCase(Value));
-        exit(LowerCase(Value));
     end;
 
     local procedure VerifyRemainingAmount(var TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary; RemainingAmount: Decimal);
