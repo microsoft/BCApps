@@ -230,6 +230,8 @@ report 4408 "EXR Trial Bal by Period Excel"
         EXRTrialBalanceBuffer.Balance := LocalGLAccount."Balance at Date";
         EXRTrialBalanceBuffer."Balance (Debit)" := LocalGLAccountBalance."Debit Amount";
         EXRTrialBalanceBuffer."Balance (Credit)" := LocalGLAccountBalance."Credit Amount";
-        EXRTrialBalanceBuffer.Insert(true);
+        EXRTrialBalanceBuffer.CheckAllZero();
+        if not EXRTrialBalanceBuffer."All Zero" then
+            EXRTrialBalanceBuffer.Insert(true);
     end;
 }
