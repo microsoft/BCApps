@@ -38,7 +38,7 @@ codeunit 4420 "SOA Task Message Reader"
         AgentTaskMessage.SetRange("Task ID", AgentTaskID);
         AgentTaskMessage.SetRange(Type, AgentTaskMessage.Type::Input);
         AgentTaskMessage.SetFilter(Status, '<>%1&<>%2', AgentTaskMessage.Status::Discarded, AgentTaskMessage.Status::Rejected);
-        AgentTaskMessage.SetCurrentKey(SystemCreatedAt);
+        AgentTaskMessage.SetCurrentKey("Task ID", SystemCreatedAt);
         AgentTaskMessage.Ascending(false);
         if not AgentTaskMessage.FindFirst() then
             exit('');

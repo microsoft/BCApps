@@ -21,13 +21,20 @@ codeunit 4591 "SOA Item Search"
 
     var
         AgentTaskID: BigInteger;
+        TaskMessageContent: Text;
+        TaskMessageContentLoaded: Boolean;
         ResolvedItemVariants: Dictionary of [Text, Code[10]];
         NotificationMsg: Label 'The available inventory for item %1 is lower than the entered quantity at this location at the requested shipment date.', Comment = '%1=Item Description';
         NotificationCTPDateMsg: Label 'Earliest possible shipping date for the new quantity is %1.', Comment = '%1=Earliest Shipment Date';
 
     procedure SetAgentTaskID(NewAgentTaskID: BigInteger)
     begin
+        if AgentTaskID = NewAgentTaskID then
+            exit;
+
         AgentTaskID := NewAgentTaskID;
+        Clear(TaskMessageContent);
+        TaskMessageContentLoaded := false;
     end;
 
     [TryFunction]
@@ -201,7 +208,6 @@ codeunit 4591 "SOA Item Search"
         ItemFilter: Text;
         SelectedMatchingItemFilter: Text;
         SelectedAlternativeItemFilter: Text;
-        MessageContent: Text;
         SearchType: Text;
         OriginalFilterGroup: Integer;
         CountBeforeAvailabilityCheck: Integer;
@@ -250,8 +256,7 @@ codeunit 4591 "SOA Item Search"
                 // Run item selection for all candidate payloads so variant resolution is consistent.
                 if CandidateArray.Count() > 0 then begin
                     SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
-                    MessageContent := TaskMessageReader.GetLastIncomingMessageContent(AgentTaskID);
-                    if SelectBestItem(ItemFilter, SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants, RejectedItemCount, RejectedVariantCount) then begin
+                    if SelectBestItem(ItemFilter, SearchQuery, GetTaskMessageContent(TaskMessageReader), CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants, RejectedItemCount, RejectedVariantCount) then begin
                         TelemetryCustomDimension.Add('ItemSelectorEmptySelection', Format((SelectedMatchingItemFilter = '') and (SelectedAlternativeItemFilter = '')));
                         TelemetryCustomDimension.Add('ItemSelectorRejectedItemCount', Format(RejectedItemCount));
                         TelemetryCustomDimension.Add('ItemSelectorRejectedVariantCount', Format(RejectedVariantCount));
@@ -314,6 +319,16 @@ codeunit 4591 "SOA Item Search"
 
         IsHandled := true;
         OnAfterFindRecordItem(ItemFilter, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode);
+    end;
+
+    local procedure GetTaskMessageContent(TaskMessageReader: Codeunit "SOA Task Message Reader"): Text
+    begin
+        if not TaskMessageContentLoaded then begin
+            TaskMessageContent := TaskMessageReader.GetLastIncomingMessageContent(AgentTaskID);
+            TaskMessageContentLoaded := true;
+        end;
+
+        exit(TaskMessageContent);
     end;
 
     local procedure SelectBestItem(ItemFilter: Text; SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var RejectedItemCount: Integer; var RejectedVariantCount: Integer): Boolean

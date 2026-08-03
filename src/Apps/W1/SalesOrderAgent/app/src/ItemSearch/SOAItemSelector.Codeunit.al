@@ -51,8 +51,8 @@ codeunit 4417 "SOA Item Selector"
 
         ClearLastError();
         if not TrySelectBestMatchingItems(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants, FailureCategory, StatusCode, FailureDetails) then begin
-            ErrorText := GetLastErrorText(true);
             ErrorCallStack := GetLastErrorCallStack();
+            ErrorText := GetLastErrorText(true);
             LogItemSelectorException(CandidateArray.Count(), ErrorText, ErrorCallStack);
             exit(false);
         end;
