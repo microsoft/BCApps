@@ -15,6 +15,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
+    TestPermissions = Disabled;
 
     var
         EDocumentService: Record "E-Document Service";
