@@ -1051,9 +1051,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
                         then
                             IncreaseQtyToMeetDemand(SupplyInvtProfile, DemandInvtProfile, false, RespectPlanningParm, false);
 
-                    OnBeforeDecreaseQtyForMaxQty(SupplyInvtProfile, DemandInvtProfile, RequisitionLine, TempSKU);
-
-                    if (TempSKU."Reordering Policy" = TempSKU."Reordering Policy"::"Maximum Qty.") and DemandForAdditionalProfile then
+                    if (TempSKU."Reordering Policy" = TempSKU."Reordering Policy"::"Maximum Qty.") and DemandForAdditionalProfile then      
                         DecreaseQtyForMaxQty(SupplyInvtProfile, SupplyIleInvtProfile."Untracked Quantity");
                     if SupplyInvtProfile."Untracked Quantity" < DemandInvtProfile."Untracked Quantity" then
                         SupplyExists := CloseSupply(DemandInvtProfile, SupplyInvtProfile)
@@ -1106,7 +1104,14 @@ codeunit 99000854 "Inventory Profile Offsetting"
     end;
 
     local procedure DecreaseQtyForMaxQty(var SupplyInvtProfile: Record "Inventory Profile"; ReduceQty: Decimal)
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeDecreaseQtyForMaxQty(SupplyInvtProfile, TempSKU, ReduceQty, IsHandled);
+        If IsHandled then 
+            exit;
+        
         if ReduceQty > 0 then begin
             SupplyInvtProfile."Remaining Quantity (Base)" -= ReduceQty;
             SupplyInvtProfile."Quantity (Base)" -= ReduceQty;
@@ -6114,7 +6119,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeDecreaseQtyForMaxQty(var SupplyInvtProfile: Record "Inventory Profile"; var DemandInvtProfile: Record "Inventory Profile"; var RequisitionLine: Record "Requisition Line"; var TempSKU: Record "Stockkeeping Unit" temporary)
+    local procedure OnBeforeDecreaseQtyForMaxQty(var SupplyInvtProfile: Record "Inventory Profile"; var TempSKU: Record "Stockkeeping Unit" temporary, ReduceQty: Decimal; var IsHandled: Boolean)
     begin
     end;
 }
