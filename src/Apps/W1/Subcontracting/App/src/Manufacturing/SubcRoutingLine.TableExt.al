@@ -99,6 +99,7 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
                 if "Transfer WIP Item" then begin
                     CalcFields(Subcontracting);
                     TestField(Subcontracting, true);
+                    TestField(Type, Type::"Work Center");
                 end;
             end;
         }

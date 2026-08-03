@@ -102,6 +102,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
                 if "Transfer WIP Item" then begin
                     CalcFields(Subcontracting);
                     TestField(Subcontracting, true);
+                    TestField(Type, Type::"Work Center");
                 end;
             end;
         }

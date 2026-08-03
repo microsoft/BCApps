@@ -106,7 +106,7 @@ pageextension 99001509 "Subc. Routing Version Lines" extends "Routing Version Li
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        TransferWIPItemEnabled := Rec.Subcontracting;
+        TransferWIPItemEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
     end;
 
     procedure ShowRelatedSubcontractorPrices()
