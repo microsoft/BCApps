@@ -45,7 +45,6 @@ pageextension 18667 "Cash Receipt Journal TDS" extends "Cash Receipt Journal"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

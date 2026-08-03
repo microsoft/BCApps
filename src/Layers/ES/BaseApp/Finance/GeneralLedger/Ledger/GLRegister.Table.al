@@ -183,7 +183,7 @@ table 45 "G/L Register"
 
     }
 
-    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+    procedure GetNextRegisterNo(UseLegacyPosting: Boolean): Integer
     begin
         if not UseLegacyPosting then
             exit(GetNextEntryNo());

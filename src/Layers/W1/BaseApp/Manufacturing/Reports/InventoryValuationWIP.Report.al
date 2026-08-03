@@ -12,6 +12,7 @@ report 5802 "Inventory Valuation - WIP"
 {
     ApplicationArea = Manufacturing;
     Caption = 'Production Order - WIP';
+    ToolTip = 'View inventory valuation for selected production orders in your WIP inventory. The report also shows information about the value of consumption, capacity usage and output in WIP. The printed report only shows invoiced amounts, that is, the cost of entries that have been posted as invoiced.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
 
@@ -185,6 +186,14 @@ report 5802 "Inventory Valuation - WIP"
                     LastOutput := 0;
                     AtLastDate := 0;
                     LastWIP := 0;
+                    ValueOfWIP := 0;
+                    ValueOfMatConsump := 0;
+                    ValueOfCap := 0;
+                    ValueOfOutput := 0;
+                    ValueOfInvOutput1 := 0;
+                    ValueOfExpOutput1 := 0;
+                    ValueOfExpOutput2 := 0;
+                    ValueOfCostPstdToGL := 0;
 
                     if (CountRecord = LengthRecord) and IsNotWIP() then begin
                         ValueEntryOnPostDataItem();
@@ -207,13 +216,6 @@ report 5802 "Inventory Valuation - WIP"
                     end;
 
                     if not IsNotWIP() then begin
-                        ValueOfWIP := 0;
-                        ValueOfMatConsump := 0;
-                        ValueOfCap := 0;
-                        ValueOfOutput := 0;
-                        ValueOfInvOutput1 := 0;
-                        ValueOfExpOutput1 := 0;
-                        ValueOfExpOutput2 := 0;
                         if EntryFound then
                             ValueOfCostPstdToGL := "Cost Posted to G/L";
 

@@ -116,7 +116,6 @@ pageextension 18245 "GST Cash Payment Voucher Ext" extends "Cash Payment Voucher
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

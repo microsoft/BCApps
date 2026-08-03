@@ -4901,6 +4901,56 @@ codeunit 137074 "SCM Capacity Requirements"
             ProdOrderRoutingLine.Caption()));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure FirmPlannedProdOrderCapacityNeedNotAffectedByPostedReleasedOrderWithSameNo()
+    var
+        Item: Record Item;
+        ReleasedProductionOrder: Record "Production Order";
+        FirmPlannedProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProdOrderCapacityNeed: Record "Prod. Order Capacity Need";
+        Qty: Decimal;
+        SetupTime: Decimal;
+        RunTime: Decimal;
+    begin
+        // [FEATURE] [Routing] [Production Order] [Output] [AI Test]
+        // [SCENARIO 592931] Firm Planned prod. order capacity need is not reduced by the posted output of a Released prod. order that shares the same "No.".
+        // Capacity Ledger Entry is keyed by "Order No." with no production order status, so before the fix the Firm Planned
+        // refresh read the Released order's postings and corrupted its "Allocated Time".
+        Initialize();
+        Qty := LibraryRandom.RandIntInRange(100, 200);
+        SetupTime := LibraryRandom.RandIntInRange(10, 20);
+        RunTime := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] Production item with one-line routing. "Setup Time" = 10, "Run Time" = 20.
+        CreateProductionItemWithOneLineRouting(Item, SetupTime, RunTime, 0, 0, 080000T, 160000T, WorkDate());
+
+        // [GIVEN] Released production order for the item, refreshed, with full output posted (creates capacity ledger entries under its "No.").
+        CreateAndRefreshForwardReleasedProductionOrder(ReleasedProductionOrder, Item."No.", Qty, WorkDate(), 080000T);
+        FindFirstProdOrderRoutingLine(ProdOrderRoutingLine, ReleasedProductionOrder."No.");
+        CreateAndPostOutputJnlLine(ProdOrderRoutingLine, Item."No.", Qty, SetupTime, RunTime * Qty);
+
+        // [GIVEN] Firm Planned production order for the same item, created with the SAME "No." as the Released order.
+        CreateFirmPlannedProdOrderWithSpecificNo(FirmPlannedProductionOrder, ReleasedProductionOrder."No.", Item."No.", Qty);
+
+        // [WHEN] The Firm Planned production order is refreshed.
+        FirmPlannedProductionOrder.SetUpdateEndDate();
+        FirmPlannedProductionOrder.Validate("Starting Date", WorkDate());
+        FirmPlannedProductionOrder.Validate("Starting Time", 080000T);
+        FirmPlannedProductionOrder.Validate("Due Date", WorkDate() + 1);
+        FirmPlannedProductionOrder.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(FirmPlannedProductionOrder, true, true, true, true, false);
+
+        // [THEN] Firm Planned capacity need is unaffected by the Released order's postings: "Allocated Time" = "Needed Time".
+        ProdOrderRoutingLine.Reset();
+        ProdOrderRoutingLine.SetRange(Status, FirmPlannedProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", FirmPlannedProductionOrder."No.");
+        ProdOrderRoutingLine.FindFirst();
+        VerifyCapacityNeedTime(ProdOrderRoutingLine, ProdOrderCapacityNeed."Time Type"::"Setup Time", SetupTime, SetupTime);
+        VerifyCapacityNeedTime(ProdOrderRoutingLine, ProdOrderCapacityNeed."Time Type"::"Run Time", RunTime * Qty, RunTime * Qty);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6223,6 +6273,18 @@ codeunit 137074 "SCM Capacity Requirements"
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.SetRange("Item No.", ProductionOrder."Source No.");
         ProdOrderLine.FindFirst();
+    end;
+
+    local procedure CreateFirmPlannedProdOrderWithSpecificNo(var FirmPlannedProductionOrder: Record "Production Order"; ProdOrderNo: Code[20]; SourceNo: Code[20]; Qty: Decimal)
+    begin
+        FirmPlannedProductionOrder.Init();
+        FirmPlannedProductionOrder.Status := FirmPlannedProductionOrder.Status::"Firm Planned";
+        FirmPlannedProductionOrder."No." := ProdOrderNo;
+        FirmPlannedProductionOrder.Insert(true);
+        FirmPlannedProductionOrder.Validate("Source Type", FirmPlannedProductionOrder."Source Type"::Item);
+        FirmPlannedProductionOrder.Validate("Source No.", SourceNo);
+        FirmPlannedProductionOrder.Validate(Quantity, Qty);
+        FirmPlannedProductionOrder.Modify(true);
     end;
 
     [StrMenuHandler]

@@ -29,6 +29,8 @@ permissionset 9886 "D365 JOBS, EDIT"
                   tabledata "Duplicate Price Line" = RIMD,
                   tabledata Job = IMD,
                   tabledata "Job Archive" = IMD,
+                  tabledata "Job Assigned Resource" = IMD,
+                  tabledata "Job Assigned Resource Archive" = IMD,
                   tabledata "Job Cue" = IMD,
                   tabledata "Job Entry No." = IMD,
                   tabledata "Job G/L Account Price" = IMD,

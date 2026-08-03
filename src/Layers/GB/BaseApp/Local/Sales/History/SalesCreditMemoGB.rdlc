@@ -7,7 +7,6 @@
         <DataProvider>SQL</DataProvider>
         <ConnectString />
       </ConnectionProperties>
-      <rd:SecurityType>None</rd:SecurityType>
       <rd:DataSourceID>ac26dbb3-1527-456a-bb0a-96bcf8e77882</rd:DataSourceID>
     </DataSource>
   </DataSources>
@@ -6971,7 +6970,7 @@ Cstr(Fields!AppliesToCaption.Value)
                                 </Filter>
                               </Filters>
                               <Top>13.90939cm</Top>
-                              <Height>4.58615cm</Height>
+                              <Height>4.58614cm</Height>
                               <Width>6.66666cm</Width>
                               <ZIndex>4</ZIndex>
                               <Visibility>
@@ -8591,7 +8590,7 @@ Cstr(Fields!AppliesToCaption.Value)
                                 </Filter>
                               </Filters>
                               <Top>11.01031cm</Top>
-                              <Height>2.82219cm</Height>
+                              <Height>2.8222cm</Height>
                               <Width>17.78241cm</Width>
                               <ZIndex>5</ZIndex>
                               <Visibility>
@@ -8643,7 +8642,7 @@ Cstr(Fields!AppliesToCaption.Value)
         <Height>19.63209cm</Height>
         <Style />
       </Body>
-      <Width>17.78246cm</Width>
+      <Width>18cm</Width>
       <Page>
         <PageHeader>
           <Height>10.23056cm</Height>
@@ -8667,10 +8666,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>200pt</Top>
-              <Left>11.74579cm</Left>
+              <Top>210.5pt</Top>
+              <Left>11.45761cm</Left>
               <Height>11pt</Height>
-              <Width>3.16146cm</Width>
+              <Width>3.42033cm</Width>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
               </Style>
@@ -8792,10 +8791,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>210pt</Top>
-              <Left>11.74579cm</Left>
+              <Top>220.5pt</Top>
+              <Left>11.45761cm</Left>
               <Height>11pt</Height>
-              <Width>3.16146cm</Width>
+              <Width>3.42033cm</Width>
               <ZIndex>5</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -8818,10 +8817,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>190pt</Top>
-              <Left>11.74579cm</Left>
+              <Top>200.5pt</Top>
+              <Left>11.45761cm</Left>
               <Height>11pt</Height>
-              <Width>3.16146cm</Width>
+              <Width>3.42033cm</Width>
               <ZIndex>6</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -8844,10 +8843,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>180pt</Top>
-              <Left>11.74579cm</Left>
+              <Top>190.5pt</Top>
+              <Left>11.45761cm</Left>
               <Height>11pt</Height>
-              <Width>3.16146cm</Width>
+              <Width>3.42033cm</Width>
               <ZIndex>7</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -8871,9 +8870,9 @@ Cstr(Fields!AppliesToCaption.Value)
                 </Paragraph>
               </Paragraphs>
               <Top>160pt</Top>
-              <Left>11.74579cm</Left>
+              <Left>11.45763cm</Left>
               <Height>11pt</Height>
-              <Width>3.16146cm</Width>
+              <Width>3.44962cm</Width>
               <ZIndex>8</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -8897,9 +8896,9 @@ Cstr(Fields!AppliesToCaption.Value)
                 </Paragraph>
               </Paragraphs>
               <Top>150pt</Top>
-              <Left>11.74579cm</Left>
+              <Left>11.45761cm</Left>
               <Height>11pt</Height>
-              <Width>3.16146cm</Width>
+              <Width>3.48953cm</Width>
               <ZIndex>9</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -8924,10 +8923,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>200pt</Top>
-              <Left>14.94714cm</Left>
+              <Top>210.5pt</Top>
+              <Left>14.91783cm</Left>
               <Height>11pt</Height>
-              <Width>2.79882cm</Width>
+              <Width>2.82813cm</Width>
               <ZIndex>10</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -8955,7 +8954,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>220pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>8.5004cm</Width>
+              <Width>8.25636cm</Width>
               <ZIndex>11</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9008,7 +9007,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>241pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>14.58121cm</Width>
+              <Width>14.54471cm</Width>
               <ZIndex>13</ZIndex>
               <Visibility>
                 <Hidden>=IIF(code.GetData(46)&lt;&gt;"",False,True)</Hidden>
@@ -9037,10 +9036,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>140pt</Top>
-              <Left>11.74579cm</Left>
+              <Top>140.75pt</Top>
+              <Left>11.47063cm</Left>
               <Height>11pt</Height>
-              <Width>6.01317cm</Width>
+              <Width>6.28833cm</Width>
               <ZIndex>14</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9065,10 +9064,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>130pt</Top>
-              <Left>11.74579cm</Left>
+              <Top>130.75pt</Top>
+              <Left>11.47063cm</Left>
               <Height>11pt</Height>
-              <Width>6.01317cm</Width>
+              <Width>6.28833cm</Width>
               <ZIndex>15</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9091,9 +9090,9 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>140pt</Top>
+              <Top>140.75pt</Top>
               <Height>11pt</Height>
-              <Width>11.70165cm</Width>
+              <Width>11.45761cm</Width>
               <ZIndex>16</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9116,9 +9115,9 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>130pt</Top>
+              <Top>130.75pt</Top>
               <Height>11pt</Height>
-              <Width>11.70165cm</Width>
+              <Width>11.45761cm</Width>
               <ZIndex>17</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9144,7 +9143,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>170pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>8.5004cm</Width>
+              <Width>8.25636cm</Width>
               <ZIndex>18</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9195,7 +9194,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>251pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>14.58121cm</Width>
+              <Width>14.54471cm</Width>
               <ZIndex>20</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9220,10 +9219,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>220pt</Top>
-              <Left>14.93609cm</Left>
+              <Top>230.5pt</Top>
+              <Left>14.90678cm</Left>
               <Height>11pt</Height>
-              <Width>2.80987cm</Width>
+              <Width>2.83918cm</Width>
               <ZIndex>21</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9246,10 +9245,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>220pt</Top>
-              <Left>4.62432in</Left>
+              <Top>230.5pt</Top>
+              <Left>4.51087in</Left>
               <Height>11pt</Height>
-              <Width>3.16146cm</Width>
+              <Width>3.4203cm</Width>
               <ZIndex>22</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9277,7 +9276,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>190pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>8.5004cm</Width>
+              <Width>8.25636cm</Width>
               <ZIndex>23</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9303,7 +9302,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>160pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>8.5004cm</Width>
+              <Width>8.25636cm</Width>
               <ZIndex>24</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9357,7 +9356,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>200pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>8.5004cm</Width>
+              <Width>8.25636cm</Width>
               <ZIndex>26</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9385,7 +9384,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>180pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>8.5004cm</Width>
+              <Width>8.25636cm</Width>
               <ZIndex>27</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9410,10 +9409,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>210pt</Top>
-              <Left>14.94714cm</Left>
+              <Top>220.5pt</Top>
+              <Left>14.91783cm</Left>
               <Height>11pt</Height>
-              <Width>2.79882cm</Width>
+              <Width>2.82813cm</Width>
               <ZIndex>28</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9438,10 +9437,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>190pt</Top>
-              <Left>14.94714cm</Left>
+              <Top>200.5pt</Top>
+              <Left>14.91783cm</Left>
               <Height>11pt</Height>
-              <Width>2.79882cm</Width>
+              <Width>2.84113cm</Width>
               <ZIndex>29</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9466,10 +9465,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>180pt</Top>
-              <Left>14.93609cm</Left>
+              <Top>190.5pt</Top>
+              <Left>14.90678cm</Left>
               <Height>11pt</Height>
-              <Width>2.80987cm</Width>
+              <Width>2.83918cm</Width>
               <ZIndex>30</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9520,9 +9519,9 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>120pt</Top>
+              <Top>120.75pt</Top>
               <Height>11pt</Height>
-              <Width>11.70165cm</Width>
+              <Width>11.45761cm</Width>
               <ZIndex>32</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9573,9 +9572,9 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>110pt</Top>
+              <Top>110.75pt</Top>
               <Height>11pt</Height>
-              <Width>11.70165cm</Width>
+              <Width>11.45761cm</Width>
               <ZIndex>34</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9600,10 +9599,10 @@ Cstr(Fields!AppliesToCaption.Value)
                   </Style>
                 </Paragraph>
               </Paragraphs>
-              <Top>120pt</Top>
-              <Left>11.74579cm</Left>
+              <Top>120.75pt</Top>
+              <Left>11.47063cm</Left>
               <Height>11pt</Height>
-              <Width>6.01317cm</Width>
+              <Width>6.28833cm</Width>
               <ZIndex>35</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9626,9 +9625,9 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>100pt</Top>
+              <Top>100.75pt</Top>
               <Height>11pt</Height>
-              <Width>11.70165cm</Width>
+              <Width>11.45761cm</Width>
               <ZIndex>36</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9654,9 +9653,9 @@ Cstr(Fields!AppliesToCaption.Value)
                 </Paragraph>
               </Paragraphs>
               <Top>110pt</Top>
-              <Left>11.74579cm</Left>
+              <Left>11.45763cm</Left>
               <Height>11pt</Height>
-              <Width>6.01317cm</Width>
+              <Width>6.28833cm</Width>
               <ZIndex>37</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9679,9 +9678,9 @@ Cstr(Fields!AppliesToCaption.Value)
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>90pt</Top>
+              <Top>90.75pt</Top>
               <Height>11pt</Height>
-              <Width>11.70165cm</Width>
+              <Width>11.45761cm</Width>
               <ZIndex>38</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9707,9 +9706,9 @@ Cstr(Fields!AppliesToCaption.Value)
                 </Paragraph>
               </Paragraphs>
               <Top>100pt</Top>
-              <Left>11.74579cm</Left>
+              <Left>11.45763cm</Left>
               <Height>11pt</Height>
-              <Width>6.01317cm</Width>
+              <Width>6.28833cm</Width>
               <ZIndex>39</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9734,7 +9733,7 @@ Cstr(Fields!AppliesToCaption.Value)
               </Paragraphs>
               <Top>80pt</Top>
               <Height>11pt</Height>
-              <Width>11.70165cm</Width>
+              <Width>11.45761cm</Width>
               <ZIndex>40</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9760,9 +9759,9 @@ Cstr(Fields!AppliesToCaption.Value)
                 </Paragraph>
               </Paragraphs>
               <Top>89.90002pt</Top>
-              <Left>11.74579cm</Left>
+              <Left>11.45763cm</Left>
               <Height>11pt</Height>
-              <Width>6.01317cm</Width>
+              <Width>6.28833cm</Width>
               <ZIndex>41</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9787,7 +9786,7 @@ Cstr(Fields!AppliesToCaption.Value)
               </Paragraphs>
               <Top>70pt</Top>
               <Height>11pt</Height>
-              <Width>11.70165cm</Width>
+              <Width>11.45761cm</Width>
               <ZIndex>42</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9841,7 +9840,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>210pt</Top>
               <Left>3.20125cm</Left>
               <Height>11pt</Height>
-              <Width>8.5004cm</Width>
+              <Width>8.25636cm</Width>
               <ZIndex>44</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9867,9 +9866,9 @@ Cstr(Fields!AppliesToCaption.Value)
                 </Paragraph>
               </Paragraphs>
               <Top>70pt</Top>
-              <Left>11.74577cm</Left>
+              <Left>11.45761cm</Left>
               <Height>11pt</Height>
-              <Width>6.01319cm</Width>
+              <Width>6.28835cm</Width>
               <ZIndex>45</ZIndex>
               <Visibility>
                 <Hidden>=IIF(code.GetData(35)&lt;&gt;"",False,True)</Hidden>
@@ -9924,7 +9923,7 @@ Cstr(Fields!AppliesToCaption.Value)
               <Top>230pt</Top>
               <Left>3.20125cm</Left>
               <Height>0.15278in</Height>
-              <Width>14.54471cm</Width>
+              <Width>8.25636cm</Width>
               <ZIndex>47</ZIndex>
               <Style>
                 <VerticalAlign>Middle</VerticalAlign>
@@ -9948,9 +9947,9 @@ Cstr(Fields!AppliesToCaption.Value)
                 </Paragraph>
               </Paragraphs>
               <Top>170pt</Top>
-              <Left>11.74579cm</Left>
-              <Height>11pt</Height>
-              <Width>3.16146cm</Width>
+              <Left>11.45763cm</Left>
+              <Height>20pt</Height>
+              <Width>1.54469cm</Width>
               <ZIndex>48</ZIndex>
               <Style>
                 <Border>
@@ -9972,15 +9971,16 @@ Cstr(Fields!AppliesToCaption.Value)
                       </Style>
                     </TextRun>
                   </TextRuns>
+                  <ListLevel>1</ListLevel>
                   <Style>
                     <TextAlign>Right</TextAlign>
                   </Style>
                 </Paragraph>
               </Paragraphs>
               <Top>170pt</Top>
-              <Left>14.94714cm</Left>
-              <Height>11pt</Height>
-              <Width>2.79882cm</Width>
+              <Left>13.00232cm</Left>
+              <Height>20pt</Height>
+              <Width>4.74364cm</Width>
               <ZIndex>49</ZIndex>
               <Style>
                 <Border>

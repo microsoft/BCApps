@@ -96,8 +96,8 @@ codeunit 99000854 "Inventory Profile Offsetting"
         NextStateTxt: Label 'StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop';
         NextState: Option StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop;
         LotAccumulationPeriodStartDate: Date;
-        PlanningParametersTakenFromItemCardTxt: Label 'Planning Parameters were taken from Item card because %1 is %2 but SKU does not exist for Item %3 at Location %4', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
-        SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned because SKU does not exist and %3 at Location is %4', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
+        PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
+        SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
 
 #if not CLEAN27
     [Obsolete('Replaced by same procedure without parameter Manufacturing Setup', '27.0')]
@@ -2858,8 +2858,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
             UpdateReqLineQuantity(SupplyInventoryProfile);
             UpdateReqLineOriginalQuantity(SupplyInventoryProfile);
             ReqLine."Net Quantity (Base)" :=
-              (ReqLine."Remaining Quantity" - ReqLine."Original Quantity") *
-              ReqLine."Qty. per Unit of Measure";
+              ReqLine."Remaining Qty. (Base)" - ReqLine."Original Quantity" * ReqLine."Qty. per Unit of Measure";
             OnAdjustPlanLineAfterValidateQuantity(ReqLine, SupplyInventoryProfile);
         end;
         UpdateOriginalDueDate(SupplyInventoryProfile);
@@ -2901,6 +2900,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
     local procedure UpdateReqLineQuantity(var SupplyInventoryProfile: Record "Inventory Profile")
     var
+        QtyRoundingPrecisionBase: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2911,6 +2911,17 @@ codeunit 99000854 "Inventory Profile Offsetting"
         ReqLine.Validate(
             Quantity,
             Round(SupplyInventoryProfile."Remaining Quantity (Base)" / SupplyInventoryProfile."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()));
+
+        QtyRoundingPrecisionBase := ReqLine."Qty. Rounding Precision (Base)";
+        if QtyRoundingPrecisionBase = 0 then
+            QtyRoundingPrecisionBase := UOMMgt.QtyRndPrecision();
+        if Abs(ReqLine."Quantity (Base)" - SupplyInventoryProfile."Remaining Quantity (Base)") <=
+            (SupplyInventoryProfile."Qty. per Unit of Measure" * UOMMgt.QtyRndPrecision() + QtyRoundingPrecisionBase) / 2
+        then
+            if ReqLine."Quantity (Base)" <> SupplyInventoryProfile."Remaining Quantity (Base)" then begin
+                ReqLine."Remaining Qty. (Base)" := SupplyInventoryProfile."Remaining Quantity (Base)";
+                ReqLine."Quantity (Base)" := SupplyInventoryProfile."Remaining Quantity (Base)";
+            end;
     end;
 
     local procedure UpdateReqLineOriginalQuantity(var SupplyInventoryProfile: Record "Inventory Profile")

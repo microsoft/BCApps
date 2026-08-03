@@ -16,6 +16,11 @@ using System.Utilities;
 codeunit 20410 "Qlty. Result Evaluation"
 {
     TableNo = "Qlty. Inspection Line";
+    Permissions = tabledata "Qlty. Test" = r,
+                  tabledata "Qlty. Inspection Result" = r,
+                  tabledata "Qlty. Inspection Header" = rm,
+                  tabledata "Qlty. Inspection Line" = rim,
+                  tabledata "Qlty. I. Result Condit. Conf." = r;
 
     var
         IsDefaultNumberTok: Label '<>0', Locked = true;
@@ -104,7 +109,9 @@ codeunit 20410 "Qlty. Result Evaluation"
                                 LoopConditionMet := QltyBooleanParsing.GetBooleanFor(TestValue) = QltyBooleanParsing.GetBooleanFor(Condition)
                             else
                                 LoopConditionMet := CheckIfValueIsString(TestValue, Condition, QltyCaseSensitivity);
-                        QltyTestValueType::"Value Type Text", QltyTestValueType::"Value Type Option", QltyTestValueType::"Value Type Table Lookup", QltyTestValueType::"Value Type Text Expression":
+                        QltyTestValueType::"Value Type Option", QltyTestValueType::"Value Type Table Lookup":
+                            LoopConditionMet := CheckIfValueIsInPredefinedList(TestValue, Condition, QltyCaseSensitivity);
+                        QltyTestValueType::"Value Type Text", QltyTestValueType::"Value Type Text Expression":
                             LoopConditionMet := CheckIfValueIsString(TestValue, Condition, QltyCaseSensitivity);
                         QltyTestValueType::"Value Type Date":
                             begin
@@ -699,6 +706,37 @@ codeunit 20410 "Qlty. Result Evaluation"
         TempTestStringValueQltyTest.SetFilter("Allowable Values", AcceptableValue);
         exit(not TempTestStringValueQltyTest.IsEmpty());
     end;
+
+    internal procedure CheckIfValueIsInPredefinedList(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
+    var
+        SingleAcceptableValue: Text;
+    begin
+        // Option and Table Lookup tests use a fixed set of predefined values. Their conditions are a
+        // comma or pipe separated list of literal values that may contain special filter characters such
+        // as parentheses, so they must be compared literally instead of being interpreted as a filter.
+        if IsAnythingExceptEmptyCondition(AcceptableValue) then
+            exit(ValueToCheck <> '');
+
+        if IsBlankOrEmptyCondition(AcceptableValue) then
+            exit(true);
+
+        if QltyCaseSensitivity = QltyCaseSensitivity::Insensitive then begin
+            ValueToCheck := ValueToCheck.ToLower();
+            AcceptableValue := AcceptableValue.ToLower();
+        end;
+
+        AcceptableValue := AcceptableValue.Replace('|', ',');
+        foreach SingleAcceptableValue in AcceptableValue.Split(',') do begin
+            SingleAcceptableValue := SingleAcceptableValue.Trim();
+            if SingleAcceptableValue = '' then
+                continue;
+            if ValueToCheck = SingleAcceptableValue then
+                exit(true);
+        end;
+
+        exit(false);
+    end;
+
 
     /// <summary>
     /// OnBeforeEvaluateResult gives an opportunity to change how a result is evaluated.
