@@ -58,9 +58,33 @@ Describe "BuildOptimization" {
     Context "Get-AffectedApps" {
         It "returns the E-Document Core change as affecting the full connector/test/demo-data set" {
             $affected = Get-AffectedApps -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $baseFolder -Graph $graph
-            # E-Document Core fans out to every connector, country demo-data, format and test app that depends on it.
-            $affected.Count | Should -Be 50
-            $affected | Should -Contain 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
+            $eDocumentCore = 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
+
+            # E-Document Core fans out to every connector, country demo-data, format and test app
+            # that depends on it. Asserted as an invariant rather than a fixed count: the count
+            # tracks how many apps happen to depend on E-Document Core today, so a hard-coded
+            # number silently rots every time one is added (and this workflow only runs on PRs
+            # that touch build/**, so nothing catches it in between).
+            $affected | Should -Contain $eDocumentCore
+            $affected.Count | Should -BeGreaterThan 1
+            $affected.Count | Should -BeLessThan $graph.Count -Because 'the change must not fan out to the whole repository'
+
+            foreach ($appId in $affected) {
+                if ($appId -eq $eDocumentCore) { continue }
+                $dependsOnCore = $false
+                $toVisit = [System.Collections.Generic.Queue[string]]::new()
+                $seen = [System.Collections.Generic.HashSet[string]]::new()
+                $toVisit.Enqueue($appId)
+                while ($toVisit.Count -gt 0 -and -not $dependsOnCore) {
+                    $current = $toVisit.Dequeue()
+                    if (-not $seen.Add($current)) { continue }
+                    foreach ($dependency in @($graph[$current].Dependencies)) {
+                        if ($dependency -eq $eDocumentCore) { $dependsOnCore = $true; break }
+                        if ($graph.ContainsKey($dependency)) { $toVisit.Enqueue($dependency) }
+                    }
+                }
+                $dependsOnCore | Should -BeTrue -Because "$($graph[$appId].Name) is only affected if it depends on E-Document Core"
+            }
         }
 
         It "includes all connectors and tests for E-Document Core change" {
