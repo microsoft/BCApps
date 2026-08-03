@@ -168,8 +168,8 @@ page 2510 "Marketplace Extn Deployment"
                 Caption = 'Back';
                 ToolTip = 'Go back to the previous step.';
                 InFooterBar = true;
-                Enabled = (Step <> Step::Disclaimer) or not IsThirdPartyPublisher();
-                Visible = (Step <> Step::Disclaimer) or not IsThirdPartyPublisher();
+                Enabled = (Step = Step::Installation) and IsThirdPartyPublisher();
+                Visible = (Step = Step::Installation) and IsThirdPartyPublisher();
 
                 trigger OnAction()
                 begin
@@ -243,9 +243,7 @@ page 2510 "Marketplace Extn Deployment"
 
     local procedure IsThirdPartyPublisher(): Boolean
     begin
-        // If PublisherType is empty or "Microsoft", return false (not third-party)
-        // Otherwise, return true (third-party)
-        exit((PublisherType <> '') and (PublisherType <> 'Microsoft'));
+        exit(LowerCase(PublisherType) <> 'microsoft');
     end;
 
     trigger OnInit()

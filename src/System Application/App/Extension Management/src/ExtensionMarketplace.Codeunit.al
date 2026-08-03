@@ -217,6 +217,12 @@ codeunit 2501 "Extension Marketplace"
     end;
 
     [TryFunction]
+    procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
+    begin
+        InstallAppsourceExtension(MarketplaceApplicationId, TelemetryURL, '');
+    end;
+
+    [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text; PublisherType: Text);
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
