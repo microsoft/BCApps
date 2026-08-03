@@ -11,8 +11,8 @@ page 37024 "Inventory by Location"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory by Location';
-    AboutTitle = 'About Inventory by Location';
+    Caption = 'Inventory by Location (Power BI)';
+    AboutTitle = 'About Inventory by Location (Power BI)';
     AboutText = 'The Inventory by Location report shows inventory quantities by item and by location. ';
 
     layout

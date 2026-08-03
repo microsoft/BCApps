@@ -11,8 +11,8 @@ page 37010 "Purchases Decomposition"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Decomposition';
-    AboutTitle = 'About Purchases Decomposition';
+    Caption = 'Purchases Decomposition (Power BI)';
+    AboutTitle = 'About Purchases Decomposition (Power BI)';
     AboutText = 'The Purchases Decomposition report visually breaks down Purchase Amount into its contributing factors, allowing users to explore and analyze data hierarchies in detail.';
 
     layout

@@ -7,8 +7,8 @@ page 8104 "Revenue by Customer Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Revenue by Customer';
-    AboutTitle = 'About Revenue by Customer';
+    Caption = 'Revenue by Customer (Power BI)';
+    AboutTitle = 'About Revenue by Customer (Power BI)';
     AboutText = 'The Revenue by Customer report breaks down subscription performance by customer and item, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Monthly Net Profit %. This report provides detailed insights into which customers and items are driving subscription revenue and profitability.';
 
     layout

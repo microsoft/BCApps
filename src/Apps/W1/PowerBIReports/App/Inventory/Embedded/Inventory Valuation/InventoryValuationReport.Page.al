@@ -11,8 +11,8 @@ page 37065 "Inventory Valuation Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory Valuation Report';
-    AboutTitle = 'About Inventory Valuation Report';
+    Caption = 'Inventory Valuation Report (Power BI)';
+    AboutTitle = 'About Inventory Valuation Report (Power BI)';
     AboutText = 'The Inventory Valuation Report offers a consolidated view of all inventory valuation report pages, conveniently embedded into a single page for easy access.';
 
     layout
