@@ -13,12 +13,15 @@ codeunit 1073 "MS - PayPal Webhook Management"
     trigger OnRun();
     var
         MSPayPalTransactionsMgt: Codeunit "MS - PayPal Transactions Mgt.";
+        MSPayPalStandardMgt: Codeunit "MS - PayPal Standard Mgt.";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         InvoiceNo: Text;
         InvoiceNoCode: Code[20];
         TotalAmount: Decimal;
     begin
         if MSPayPalTransactionsMgt.ValidateNotification(Rec, InvoiceNo, TotalAmount) then begin
             InvoiceNoCode := COPYSTR(InvoiceNo, 1, MAXSTRLEN(InvoiceNoCode));
+            FeatureTelemetry.LogUsage('0000LHW', MSPayPalStandardMgt.GetFeatureTelemetryName(), ProcessingWebhookNotificationTxt);
             if not PostPaymentForInvoice(InvoiceNoCode, TotalAmount) then begin
                 Session.LogMessage('00008IH', PaymentRegistrationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PayPalTelemetryCategoryTok);
                 exit;
@@ -45,16 +48,18 @@ codeunit 1073 "MS - PayPal Webhook Management"
     local procedure SyncToNavOnWebhookNotificationInsert(var Rec: Record "Webhook Notification"; RunTrigger: Boolean);
     var
         WebhookSubscription: Record "Webhook Subscription";
-        MSPayPalStandardMgt: Codeunit "MS - PayPal Standard Mgt.";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         AccountID: Text[250];
         BackgroundSessionAllowed: Boolean;
     begin
         if Rec.IsTemporary() then
             exit;
 
+        // Skip optional runtime processing (telemetry, subscription lookup, payment scheduling)
+        // when notifications are inserted during a Cloud Migration / upgrade.
+        if GetExecutionContext() = ExecutionContext::Upgrade then
+            exit;
+
         Session.LogMessage('00008IP', ProcessingWebhookNotificationTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PayPalTelemetryCategoryTok);
-        FeatureTelemetry.LogUsage('0000LHW', MSPayPalStandardMgt.GetFeatureTelemetryName(), ProcessingWebhookNotificationTxt);
 
         AccountID := Rec."Subscription ID";
         WebhookSubscription.SetFilter("Subscription ID", '@%1', AccountID);
