@@ -1877,10 +1877,9 @@ codeunit 99000854 "Inventory Profile Offsetting"
           SupplyInvtProfile."Quantity (Base)" +
           SupplyInvtProfile."Remaining Quantity (Base)" -
           TempQty;
-        SupplyInvtProfile.Modify();
 
-        OnAfterIncreaseQty(SupplyInvtProfile);
-
+        OnIncreaseQtyOnBeforeSupplyInvtProfileModify(SupplyInvtProfile, NeededQty, RespectPlanningParm, TempSKU);
+        SupplyInvtProfile.Modify();     
     end;
 
     local procedure InsertEmergencyOrderSupply(var SupplyInvtProfile: Record "Inventory Profile"; var DemandInvtProfile: Record "Inventory Profile"; var LastAvailableInventory: Decimal; var LastProjectedInventory: Decimal; PlanningStartDate: Date)
@@ -6114,7 +6113,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterIncreaseQty(var SupplyInvtProfile: Record "Inventory Profile")
+    local procedure OnIncreaseQtyOnBeforeSupplyInvtProfileModify(var SupplyInvtProfile: Record "Inventory Profile"; NeededQty: Decimal; RespectPlanningParm: Boolean; var TempSKU: Record "Stockkeeping Unit" temporary)
     begin
     end;
 }
