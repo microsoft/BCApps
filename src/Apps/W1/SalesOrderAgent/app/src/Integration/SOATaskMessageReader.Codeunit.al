@@ -49,7 +49,7 @@ codeunit 4420 "SOA Task Message Reader"
         exit(MessageContent);
     end;
 
-    local procedure AppendAttachmentContent(AgentTaskMessage: Record "Agent Task Message"; var MessageContent: Text)
+    internal procedure AppendAttachmentContent(AgentTaskMessage: Record "Agent Task Message"; var MessageContent: Text)
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
         AttachmentContent: Text;
