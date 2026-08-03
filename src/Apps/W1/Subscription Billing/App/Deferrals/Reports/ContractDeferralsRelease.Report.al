@@ -152,7 +152,7 @@ report 8051 "Contract Deferrals Release"
         end;
 
         if (CustomerContractDeferral.Amount <> 0) or (CustomerContractDeferral."Discount Amount" <> 0) then
-            CheckGenPostingSetup(CustomerContractDeferral."Gen. Bus. Posting Group", CustomerContractDeferral."Gen. Prod. Posting Group", Enum::"Service Partner"::Customer);
+            CheckGenPostingSetup(CustomerContractDeferral."Gen. Bus. Posting Group", CustomerContractDeferral."Gen. Prod. Posting Group", Enum::"Service Partner"::Customer, CustomerContractDeferral."G/L Account No." <> '');
 
         CustomerContractDeferral.Released := true;
         CustomerContractDeferral."Release Posting Date" := PostingDate;
@@ -165,7 +165,7 @@ report 8051 "Contract Deferrals Release"
                 CustomerContractDeferral."Subscription Contract No.",
                 CustomerContractDeferral."Entry No.",
                 CustomerContractDeferral."Dimension Set ID",
-                GenPostingSetup."Cust. Sub. Contract Account",
+                GetContractAccount(CustomerContractDeferral."G/L Account No.", GenPostingSetup."Cust. Sub. Contract Account"),
                 GenPostingSetup."Cust. Sub. Contr. Def Account",
                 CustomerContractDeferral."Gen. Bus. Posting Group",
                 CustomerContractDeferral."Gen. Prod. Posting Group",
@@ -209,7 +209,7 @@ report 8051 "Contract Deferrals Release"
         end;
 
         if (VendorContractDeferral.Amount <> 0) or (VendorContractDeferral."Discount Amount" <> 0) then
-            CheckGenPostingSetup(VendorContractDeferral."Gen. Bus. Posting Group", VendorContractDeferral."Gen. Prod. Posting Group", Enum::"Service Partner"::Vendor);
+            CheckGenPostingSetup(VendorContractDeferral."Gen. Bus. Posting Group", VendorContractDeferral."Gen. Prod. Posting Group", Enum::"Service Partner"::Vendor, VendorContractDeferral."G/L Account No." <> '');
 
         VendorContractDeferral.Released := true;
         VendorContractDeferral."Release Posting Date" := PostingDate;
@@ -222,7 +222,7 @@ report 8051 "Contract Deferrals Release"
                 VendorContractDeferral."Subscription Contract No.",
                 VendorContractDeferral."Entry No.",
                 VendorContractDeferral."Dimension Set ID",
-                GenPostingSetup."Vend. Sub. Contract Account",
+                GetContractAccount(VendorContractDeferral."G/L Account No.", GenPostingSetup."Vend. Sub. Contract Account"),
                 GenPostingSetup."Vend. Sub. Contr. Def. Account",
                 VendorContractDeferral."Gen. Bus. Posting Group",
                 VendorContractDeferral."Gen. Prod. Posting Group",
@@ -261,23 +261,32 @@ report 8051 "Contract Deferrals Release"
         end;
     end;
 
-    local procedure CheckGenPostingSetup(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; Partner: Enum "Service Partner")
+    local procedure CheckGenPostingSetup(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; Partner: Enum "Service Partner"; ContractAccountTakenFromDeferral: Boolean)
     begin
         GenPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup);
         case Partner of
             Enum::"Service Partner"::Customer:
                 begin
-                    GenPostingSetup.TestField("Cust. Sub. Contract Account");
+                    if not ContractAccountTakenFromDeferral then
+                        GenPostingSetup.TestField("Cust. Sub. Contract Account");
                     if LineDiscountPosting then
                         GenPostingSetup.TestField("Sales Line Disc. Account");
                 end;
             Enum::"Service Partner"::Vendor:
                 begin
-                    GenPostingSetup.TestField("Vend. Sub. Contract Account");
+                    if not ContractAccountTakenFromDeferral then
+                        GenPostingSetup.TestField("Vend. Sub. Contract Account");
                     if LineDiscountPosting then
                         GenPostingSetup.TestField("Purch. Line Disc. Account");
                 end;
         end;
+    end;
+
+    local procedure GetContractAccount(DeferralGLAccountNo: Code[20]; GenPostingSetupContractAccount: Code[20]): Code[20]
+    begin
+        if DeferralGLAccountNo <> '' then
+            exit(DeferralGLAccountNo);
+        exit(GenPostingSetupContractAccount);
     end;
 
     local procedure GetPostingAmount(Amount: Decimal; DiscountAmount: Decimal): Decimal
