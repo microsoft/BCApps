@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20522 "Subc. Trans Shpt Header Ext." extends "Transfer Shipment Header"
 {
     AllowInCustomizations = AsReadOnly;
@@ -56,3 +57,4 @@ tableextension 20522 "Subc. Trans Shpt Header Ext." extends "Transfer Shipment H
         key(Key99001501; "Source ID", "Subc. Source Type") { }
     }
 }
+#pragma warning restore AS0072, AS0136

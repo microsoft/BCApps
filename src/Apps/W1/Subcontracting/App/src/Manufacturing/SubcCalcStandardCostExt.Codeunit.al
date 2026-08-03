@@ -8,6 +8,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.StandardCost;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20514 "Subc. Calc.StandardCost Ext."
 {
 #if not CLEAN28
@@ -59,3 +60,4 @@ codeunit 20514 "Subc. Calc.StandardCost Ext."
         SubcSessionState.SetDate('OnAfterSetProperties', NewCalculationDate);
     end;
 }
+#pragma warning restore AS0072, AS0136

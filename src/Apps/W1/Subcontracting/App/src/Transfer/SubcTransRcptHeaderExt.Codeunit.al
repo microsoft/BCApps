@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20542 "Subc. Trans Rcpt Header Ext"
 {
     [EventSubscriber(ObjectType::Table, Database::"Transfer Receipt Header", OnAfterCopyFromTransferHeader, '', false, false)]
@@ -31,3 +32,4 @@ codeunit 20542 "Subc. Trans Rcpt Header Ext"
         TransferReceiptHeader."Subcontr. PO Line No." := TransferHeader."Subcontr. PO Line No.";
     end;
 }
+#pragma warning restore AS0072, AS0136

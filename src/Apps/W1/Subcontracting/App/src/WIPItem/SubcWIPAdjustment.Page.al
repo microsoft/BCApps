@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Document;
 
+#pragma warning disable AS0072, AS0136
 page 20561 "Subc. WIP Adjustment"
 {
     ApplicationArea = Subcontracting;
@@ -438,3 +439,4 @@ page 20561 "Subc. WIP Adjustment"
             Error(NewQuantityExceedsProdOrderQtyErr, ProdOrderLine."Quantity (Base)");
     end;
 }
+#pragma warning restore AS0072, AS0136

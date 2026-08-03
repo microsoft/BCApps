@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20500 "Subc. Session State"
 {
     SingleInstance = true;
@@ -115,3 +116,4 @@ codeunit 20500 "Subc. Session State"
             ReturnRecordID := RecordIDDictionary.Get(StoredKey);
     end;
 }
+#pragma warning restore AS0072, AS0136

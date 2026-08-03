@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Journal;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20508 "Subc. Item Journal Line Ext." extends "Item Journal Line"
 {
     AllowInCustomizations = AsReadOnly;
@@ -47,3 +48,4 @@ tableextension 20508 "Subc. Item Journal Line Ext." extends "Item Journal Line"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

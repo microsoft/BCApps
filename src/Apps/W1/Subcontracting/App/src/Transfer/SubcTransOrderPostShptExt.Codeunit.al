@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Transfer;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20539 "Subc. TransOrderPostShpt Ext"
 {
 #if not CLEAN28
@@ -54,3 +55,4 @@ codeunit 20539 "Subc. TransOrderPostShpt Ext"
         TransShptLine."Subc. Routing Reference No." := TransLine."Subc. Routing Reference No.";
     end;
 }
+#pragma warning restore AS0072, AS0136

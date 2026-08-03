@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20527 "Subc. Pstd. Transfer Shpt" extends "Posted Transfer Shipment"
 {
     layout
@@ -51,3 +52,4 @@ pageextension 20527 "Subc. Pstd. Transfer Shpt" extends "Posted Transfer Shipmen
         }
     }
 }
+#pragma warning restore AS0072, AS0136

@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20524 "Subc. PO Subform" extends "Purchase Order Subform"
 {
     layout
@@ -128,3 +129,4 @@ pageextension 20524 "Subc. PO Subform" extends "Purchase Order Subform"
         SubcProdOrderFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 }
+#pragma warning restore AS0072, AS0136

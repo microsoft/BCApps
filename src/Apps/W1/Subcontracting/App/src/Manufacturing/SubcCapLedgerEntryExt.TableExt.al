@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20504 "Subc. Cap Ledger Entry Ext." extends "Capacity Ledger Entry"
 {
     AllowInCustomizations = AsReadOnly;
@@ -32,3 +33,4 @@ tableextension 20504 "Subc. Cap Ledger Entry Ext." extends "Capacity Ledger Entr
         }
     }
 }
+#pragma warning restore AS0072, AS0136

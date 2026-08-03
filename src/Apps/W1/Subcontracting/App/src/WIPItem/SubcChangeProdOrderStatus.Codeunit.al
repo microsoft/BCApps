@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20549 "Subc. Change Prod.Order Status"
 {
     Permissions = TableData "Subcontractor WIP Ledger Entry" = RIMD;
@@ -122,3 +123,4 @@ Comment = '%1=Transfer Header No';
         SubcontractorWIPLedgerEntry.ModifyAll("Prod. Order No.", ToProdOrder."No.");
     end;
 }
+#pragma warning restore AS0072, AS0136

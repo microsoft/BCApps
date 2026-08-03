@@ -10,6 +10,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20520 "Subc. Prod. Order Rtng. Ext."
 {
     var
@@ -315,3 +316,4 @@ codeunit 20520 "Subc. Prod. Order Rtng. Ext."
         exit(false);
     end;
 }
+#pragma warning restore AS0072, AS0136
