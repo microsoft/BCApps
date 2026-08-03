@@ -3267,7 +3267,7 @@
         // [THEN] The Purchase Line can be inserted.
         PurchaseLine.Insert(true);
 
-        // [WHEN] Prepare another Sales Line, do not invoke SetPurchHeader.
+        // [WHEN] Prepare another Purchase Line, do not invoke SetPurchHeader.
         PurchaseLine."Line No." := LibraryUtility.GetNewRecNo(PurchaseLine, PurchaseLine.FieldNo("Line No."));
 
         // [THEN] The Purchase Line can be inserted.
