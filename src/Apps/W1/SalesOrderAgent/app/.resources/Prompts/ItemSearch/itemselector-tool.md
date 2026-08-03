@@ -9,7 +9,7 @@
       "properties": {
         "selected_items": {
           "type": "array",
-          "description": "Selected items with item and variant match classifications.",
+          "description": "Selected items with item and variant match classifications. For a variant-specific request, keep alternatives on the best matching item unless the customer explicitly requests different products.",
           "items": {
             "type": "object",
             "properties": {
@@ -29,7 +29,7 @@
               "variant_match": {
                 "type": "string",
                 "enum": ["matching", "alternative", "not_requested"],
-                "description": "Whether variant_code fulfills the variant request, is a safe substitute, or is omitted because no variant was requested"
+                "description": "Whether variant_code fulfills the variant request, is a safe interchangeable substitute, or is omitted because no variant was requested. Never classify changes to size, fit, compatibility, capacity, technical specification, safety classification, or intended user as alternative unless the customer explicitly permits that change."
               },
               "reason": {
                 "type": "string",

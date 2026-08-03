@@ -230,14 +230,17 @@ codeunit 4591 "SOA Item Search"
         if not GetItemFilters(ItemFilter, SearchKeyWordsTrimmed, SearchType) then //Search for the items using the entity search
             exit;
 
-        if (ItemFilter <> '') and (CandidateArray.Count() = 0) then
-            BuildCandidateArrayFromItemFilter(ItemFilter, CandidateArray);
-
         if (ItemFilter = '') and (SplitSearchKeywords <> '') then begin
             BroaderItemSearch.BroaderItemSearch(ItemFilter, SplitSearchKeywords.TrimEnd(','), CandidateArray);
             MatchingItem := false;
             SearchType := 'broader_item_search';
         end;
+
+        if ItemFilter <> '' then
+            if CandidateArray.Count() = 0 then
+                BuildCandidateArrayFromItemFilter(ItemFilter, CandidateArray)
+            else
+                AddVariantsToCandidateArray(ItemFilter, CandidateArray);
 
         if SOASetup.FindFirst() then
             if ItemFilter <> '' then begin
@@ -351,12 +354,35 @@ codeunit 4591 "SOA Item Search"
                 foreach SelectedMatchingItemNo in RawSelectedMatchingItemFilter.Split('|') do
                     AddSelectedItem(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedMatchingItemNo, ItemNoToSystemId, RawSelectedMatchingItemVariants, RejectedItemCount, RejectedVariantCount);
 
+                RawSelectedAlternativeItemFilter := PreferConcreteVariantAlternatives(RawSelectedAlternativeItemFilter, RawSelectedAlternativeItemVariants);
                 foreach SelectedAlternativeItemNo in RawSelectedAlternativeItemFilter.Split('|') do
                     AddSelectedItem(SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SelectedAlternativeItemNo, ItemNoToSystemId, RawSelectedAlternativeItemVariants, RejectedItemCount, RejectedVariantCount);
 
                 exit(true);
             end;
         exit(false);
+    end;
+
+    local procedure PreferConcreteVariantAlternatives(AlternativeItemFilter: Text; AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Text
+    var
+        VariantCodes: List of [Code[10]];
+        AlternativeItemNo: Text;
+        ConcreteVariantAlternativeFilter: Text;
+    begin
+        foreach AlternativeItemNo in AlternativeItemFilter.Split('|') do
+            if AlternativeItemVariants.ContainsKey(AlternativeItemNo) then begin
+                VariantCodes := AlternativeItemVariants.Get(AlternativeItemNo);
+                if VariantCodes.Count() > 0 then
+                    if ConcreteVariantAlternativeFilter = '' then
+                        ConcreteVariantAlternativeFilter := AlternativeItemNo
+                    else
+                        ConcreteVariantAlternativeFilter += '|' + AlternativeItemNo;
+            end;
+
+        if ConcreteVariantAlternativeFilter <> '' then
+            exit(ConcreteVariantAlternativeFilter);
+
+        exit(AlternativeItemFilter);
     end;
 
     local procedure BuildCandidateArrayFromItemFilter(ItemFilter: Text; var CandidateArray: JsonArray)
@@ -433,6 +459,80 @@ codeunit 4591 "SOA Item Search"
             CandidateObject.Add('column_values', ColumnValuesObject);
             CandidateArray.Add(CandidateObject);
         until TempItem.Next() = 0;
+    end;
+
+    internal procedure AddVariantsToCandidateArray(ItemFilter: Text; var CandidateArray: JsonArray)
+    var
+        Item: Record Item;
+        ItemNoFilterBuilder: Record Item;
+        ItemVariant: Record "Item Variant";
+        CandidateToken: JsonToken;
+        ColumnValuesToken: JsonToken;
+        SystemIdToken: JsonToken;
+        CandidateObject: JsonObject;
+        ColumnValuesObject: JsonObject;
+        EnrichedCandidateArray: JsonArray;
+        VariantArray: JsonArray;
+        VariantObject: JsonObject;
+        ItemNoBySystemId: Dictionary of [Guid, Code[20]];
+        ItemVariants: Dictionary of [Code[20], JsonArray];
+        ItemNoFilterTextBuilder: TextBuilder;
+        CandidateSystemId: Guid;
+        ItemNo: Code[20];
+    begin
+        Item.SetLoadFields("No.", SystemId);
+        Item.SetFilter(SystemId, ItemFilter);
+        if not Item.FindSet() then
+            exit;
+
+        repeat
+            ItemNoBySystemId.Add(Item.SystemId, Item."No.");
+
+            ItemNoFilterBuilder.SetRange("No.", Item."No.");
+            if ItemNoFilterTextBuilder.Length() > 0 then
+                ItemNoFilterTextBuilder.Append('|');
+            ItemNoFilterTextBuilder.Append(ItemNoFilterBuilder.GetFilter("No."));
+        until Item.Next() = 0;
+
+        ItemVariant.SetLoadFields("Item No.", Code, Description, "Description 2");
+        ItemVariant.SetFilter("Item No.", ItemNoFilterTextBuilder.ToText());
+        if ItemVariant.FindSet() then
+            repeat
+                Clear(VariantArray);
+                if ItemVariants.Get(ItemVariant."Item No.", VariantArray) then;
+
+                Clear(VariantObject);
+                VariantObject.Add('Code', ItemVariant.Code);
+                VariantObject.Add('Description', ItemVariant.Description);
+                VariantObject.Add('Description 2', ItemVariant."Description 2");
+                VariantArray.Add(VariantObject);
+
+                if ItemVariants.ContainsKey(ItemVariant."Item No.") then
+                    ItemVariants.Set(ItemVariant."Item No.", VariantArray)
+                else
+                    ItemVariants.Add(ItemVariant."Item No.", VariantArray);
+            until ItemVariant.Next() = 0;
+
+        foreach CandidateToken in CandidateArray do begin
+            CandidateObject := CandidateToken.AsObject();
+            Clear(ColumnValuesObject);
+            if CandidateObject.Get('column_values', ColumnValuesToken) and ColumnValuesToken.IsObject() then
+                ColumnValuesObject := ColumnValuesToken.AsObject();
+
+            Clear(VariantArray);
+            Clear(CandidateSystemId);
+            if CandidateObject.Get('system_id', SystemIdToken) and Evaluate(CandidateSystemId, SystemIdToken.AsValue().AsText()) then
+                if ItemNoBySystemId.Get(CandidateSystemId, ItemNo) then
+                    if ItemVariants.Get(ItemNo, VariantArray) then;
+
+            ColumnValuesObject.Remove('Variants');
+            ColumnValuesObject.Add('Variants', VariantArray);
+            CandidateObject.Remove('column_values');
+            CandidateObject.Add('column_values', ColumnValuesObject);
+            EnrichedCandidateArray.Add(CandidateObject);
+        end;
+
+        CandidateArray := EnrichedCandidateArray;
     end;
 
     local procedure AddSelectedItem(var SelectedItemFilter: Text; var SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedItemNo: Text; ItemNoToSystemId: Dictionary of [Text, Text]; RawSelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; var RejectedItemCount: Integer; var RejectedVariantCount: Integer)

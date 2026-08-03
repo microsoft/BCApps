@@ -147,6 +147,8 @@ For broad queries (e.g., product families):
 
 When a selected item has available variants in the Variants column, include `variant_code` using these rules:
 
+- A variant-specific request narrows the selection; it does not make the requested item an item-level mismatch. First identify the best matching item, then resolve the variant only within that item.
+- When a variant is requested, do not return different `item_no` values merely because the requested variant is missing or may be unavailable. Return another item only when the customer explicitly asks to consider different products, brands, or models.
 - Return the exact variant code when the query, or supporting message context for the same item, explicitly specifies a variant code or variant description.
 - Return the best semantic variant code when the query, or supporting message context for the same item, implies a variant using natural language, such as color, size, age group, or another value present in the Variants data.
 - Omit `variant_code` when the query names only the item and the supporting message context does not clearly identify a variant for that same item.
@@ -166,7 +168,7 @@ When a selected item has available variants in the Variants column, include `var
 - When `variant_match` is `alternative`, set overall `confidence` to `alternative` so the substitute requires customer confirmation even when the item itself is a direct match.
 - When you return a matching item with a specific `variant_code`, also return up to 3 genuinely interchangeable variants for the same item as additional `selected_items` entries with confidence `alternative` and `variant_match` `alternative`. Return no variant alternatives for fit, compatibility, or other non-interchangeable requirements.
 - If the requested variant is not present in the Variants data, return up to 3 valid variants for the same item with confidence `alternative` and `variant_match` `alternative` only when that variant dimension is interchangeable. Do not also return the item without `variant_code`.
-- If the requested variant is not present and changing it would affect fit, compatibility, or another non-interchangeable requirement, do not return that item or any of its variants. Return an empty `selected_items` array when no other item qualifies.
+- If the requested variant is not present and changing it would affect fit, compatibility, or another non-interchangeable requirement, do not return that item, any of its variants, or unrelated item alternatives. Return an empty `selected_items` array unless the customer explicitly requested different products.
 - You may return the same `item_no` more than once only when each entry has a different non-empty `variant_code`.
 
 Examples:
@@ -176,6 +178,7 @@ Examples:
 - An item name with no variant signal -> omit `variant_code`
 - A request for an unavailable presentation-only variant -> return valid same-item variants as alternatives and do not return the item without `variant_code`
 - A request for a specific non-interchangeable variant value -> return the exact variant when present and no other variant values as alternatives unless the customer explicitly permits flexibility
+- For every non-interchangeable variant dimension: if the requested value exists, return only that exact variant; if it does not exist, return an empty `selected_items` array. Never substitute a different value or product based on similarity, proximity, or availability unless the customer explicitly permits that dimension to change or asks for different products.
 
 ---
 
@@ -194,11 +197,14 @@ Examples:
 
 ### ALTERNATIVE RULES
 
-- If at least one "matching" item exists:
+- When no variant is requested, or when the customer explicitly asks to consider different products, and at least one "matching" item exists:
   → include up to 3 "alternative" items (if sufficiently relevant)
 
-- If no "matching" items exist:
+- When no variant is requested, or when the customer explicitly asks to consider different products, and no "matching" items exist:
   → return best "alternative" items only
+
+- When a variant is requested and the customer did not ask for different products:
+  → do not return alternative `item_no` values; only safe concrete variants of the best matching item may be alternatives
 
 - DO NOT force alternatives when relevance is weak
 

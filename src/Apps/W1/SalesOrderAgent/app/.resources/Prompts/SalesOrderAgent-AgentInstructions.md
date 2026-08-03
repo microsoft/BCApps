@@ -127,7 +127,7 @@
 							"steps": [
 								"Provide a table of all available options for each item, including their descriptions, availability level, price (incl. discount) and unit of measure.",
 								"Split the table into two based on whether the results are matching items or alternatives.",
-								"If there are item results with matching item false, the email should indicate that the queried item is not found but there are alternative items available.",
+								"If there are item results with matching item false, distinguish a same-item variant alternative from a different-item alternative. When the result is the requested product with a different Variant Code, explain that the requested variant is unavailable and offer the result as an alternative variant; do not say that the product itself was not found. Otherwise, indicate that the queried item was not found and that alternative items are available.",
 								{
 									"name": "capable_to_promise",
 									"value": "Provide a table listing all items that are currently unavailable but can be shipped on a later date, including their descriptions, earliest shipment date, price (incl. discount) and unit of measure."
