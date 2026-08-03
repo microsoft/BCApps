@@ -13,11 +13,17 @@ codeunit 20570 "Subc. Upgrade Tag Def. Ext."
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetSubcontractingUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetReqWkshTemplateTypeUpgradeTag());
     end;
 
     internal procedure GetSubcontractingUpgradeTag(): Code[250]
     begin
         exit('MS-406123-Subcontracting-20260601');
+    end;
+
+    internal procedure GetReqWkshTemplateTypeUpgradeTag(): Code[250]
+    begin
+        exit('MS-644283-SubcReqWkshTemplTypeRenumber-20260803');
     end;
 }
 #pragma warning restore AS0072, AS0136
