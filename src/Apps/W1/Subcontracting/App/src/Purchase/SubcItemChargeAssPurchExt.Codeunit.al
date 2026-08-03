@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20536 "Subc. ItemChargeAssPurchExt"
 {
     var
@@ -59,3 +60,4 @@ codeunit 20536 "Subc. ItemChargeAssPurchExt"
         until FromPurchRcptLine.Next() = 0;
     end;
 }
+#pragma warning restore AS0072, AS0136

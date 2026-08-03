@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Vendor;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20516 "Subc. Vendor Card" extends "Vendor Card"
 {
     layout
@@ -41,3 +42,4 @@ pageextension 20516 "Subc. Vendor Card" extends "Vendor Card"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

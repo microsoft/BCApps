@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Purchases.RoleCenters;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20541 "Subc. Purch. Agent Role Center" extends "Purchasing Agent Role Center"
 {
     actions
@@ -25,3 +26,4 @@ pageextension 20541 "Subc. Purch. Agent Role Center" extends "Purchasing Agent R
         }
     }
 }
+#pragma warning restore AS0072, AS0136

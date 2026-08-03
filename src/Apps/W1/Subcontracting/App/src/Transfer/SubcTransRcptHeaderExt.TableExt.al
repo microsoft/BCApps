@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20521 "Subc. Trans Rcpt Header Ext." extends "Transfer Receipt Header"
 {
     AllowInCustomizations = AsReadOnly;
@@ -50,3 +51,4 @@ tableextension 20521 "Subc. Trans Rcpt Header Ext." extends "Transfer Receipt He
         key(Key99001501; "Source ID", "Subc. Source Type") { }
     }
 }
+#pragma warning restore AS0072, AS0136

@@ -11,6 +11,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20534 "Subc. Purchase Line Ext"
 {
     var
@@ -457,3 +458,4 @@ codeunit 20534 "Subc. Purchase Line Ext"
         OpenItemTrackingOfProdOrderLine(PurchaseLine, true);
     end;
 }
+#pragma warning restore AS0072, AS0136

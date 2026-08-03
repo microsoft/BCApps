@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20567 "Subc. Pst. Prev. Event Handler"
 {
     EventSubscriberInstance = Manual;
@@ -61,3 +62,4 @@ codeunit 20567 "Subc. Pst. Prev. Event Handler"
         OutTempSubcontractorWIPLedgerEntry.Copy(TempSubcontractorWIPLedgerEntry, true);
     end;
 }
+#pragma warning restore AS0072, AS0136

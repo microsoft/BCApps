@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using System.Security.User;
 
+#pragma warning disable AS0072, AS0136
 page 20504 "Subc. Subcontracting Worksheet"
 {
     ApplicationArea = Subcontracting;
@@ -446,3 +447,4 @@ page 20504 "Subc. Subcontracting Worksheet"
     begin
     end;
 }
+#pragma warning restore AS0072, AS0136

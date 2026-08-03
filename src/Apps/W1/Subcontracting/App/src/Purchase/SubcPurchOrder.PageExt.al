@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20523 "Subc. Purch. Order" extends "Purchase Order"
 {
     layout
@@ -128,3 +129,4 @@ pageextension 20523 "Subc. Purch. Order" extends "Purchase Order"
         HasSubcontractingContext := SubcontractingManagement.IsSubcontractingPurchaseDocument(Rec);
     end;
 }
+#pragma warning restore AS0072, AS0136

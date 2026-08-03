@@ -9,6 +9,7 @@ using Microsoft.Manufacturing.Setup;
 #endif
 using System.Environment.Configuration;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20571 "Subc. Application Area Mgmt."
 {
     Access = Internal;
@@ -47,3 +48,4 @@ codeunit 20571 "Subc. Application Area Mgmt."
 
     end;
 }
+#pragma warning restore AS0072, AS0136

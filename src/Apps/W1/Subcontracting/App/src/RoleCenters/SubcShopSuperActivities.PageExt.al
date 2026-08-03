@@ -8,6 +8,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20549 "Subc. Shop Super. Activities" extends "Shop Supervisor Activities"
 {
     layout
@@ -66,3 +67,4 @@ pageextension 20549 "Subc. Shop Super. Activities" extends "Shop Supervisor Acti
         }
     }
 }
+#pragma warning restore AS0072, AS0136
