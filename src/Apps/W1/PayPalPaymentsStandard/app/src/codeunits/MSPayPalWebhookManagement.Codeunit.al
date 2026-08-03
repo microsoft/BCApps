@@ -40,6 +40,7 @@ codeunit 1073 "MS - PayPal Webhook Management"
         NoRemainingPaymentsTxt: Label 'The payment is ignored because no payment remains.', Locked = true;
         OverpaymentTxt: Label 'The payment is ignored because of overpayment.', Locked = true;
         ProcessingWebhookNotificationTxt: Label 'Processing webhook notification.', Locked = true;
+        SkippingWebhookNotificationDuringUpgradeTxt: Label 'Skipping webhook notification processing because the execution context is Upgrade (e.g. Cloud Migration).', Locked = true;
         RegisteringPaymentTxt: Label 'Registering the payment.', Locked = true;
         PaymentRegistrationFailedTxt: Label 'Payment registration failed.', Locked = true;
         PaymentRegistrationSucceedTxt: Label 'Payment registration succeed.', Locked = true;
@@ -54,10 +55,11 @@ codeunit 1073 "MS - PayPal Webhook Management"
         if Rec.IsTemporary() then
             exit;
 
-        // Skip optional runtime processing (telemetry, subscription lookup, payment scheduling)
-        // when notifications are inserted during a Cloud Migration / upgrade.
-        if GetExecutionContext() = ExecutionContext::Upgrade then
+        // Skip runtime processing when notifications are inserted during a Cloud Migration / upgrade.
+        if GetExecutionContext() = ExecutionContext::Upgrade then begin
+            Session.LogMessage('0000QVX', SkippingWebhookNotificationDuringUpgradeTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PayPalTelemetryCategoryTok);
             exit;
+        end;
 
         Session.LogMessage('00008IP', ProcessingWebhookNotificationTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PayPalTelemetryCategoryTok);
 

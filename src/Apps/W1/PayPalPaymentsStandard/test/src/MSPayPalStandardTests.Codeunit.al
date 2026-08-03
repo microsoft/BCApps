@@ -972,6 +972,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         // [THEN] The invoice is still fully paid, proving the subscription match is case-insensitive.
         VerifyRemainingAmount(TempPaymentRegistrationBuffer, 0);
         VerifyPaymentEvent(PaymentTok, SalesInvoiceHeader."No.", SalesInvoiceHeader."Amount Including VAT");
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
