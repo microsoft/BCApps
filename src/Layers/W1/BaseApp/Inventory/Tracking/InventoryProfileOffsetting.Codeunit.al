@@ -1925,7 +1925,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
         TempQty: Decimal;
         NewRemainingQty: Decimal;
         IsHandled: Boolean;
-        Result: Boolean;
     begin
         IsHandled := false;
         OnBeforeDecreaseQty(SupplyInvtProfile, ReduceQty, TempSKU, IsHandled);
