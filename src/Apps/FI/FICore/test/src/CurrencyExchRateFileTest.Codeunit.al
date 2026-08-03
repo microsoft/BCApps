@@ -14,6 +14,7 @@ codeunit 148151 "Currency Exch. Rate File Test"
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         FileMgt: Codeunit "File Management";
         CurrencyExchangeRateFile: File;
         CurrencyFileExtTxt: Label 'dat', Locked = true;
@@ -42,7 +43,7 @@ codeunit 148151 "Currency Exch. Rate File Test"
     end;
 
     [Test]
-    [HandlerFunctions('Text1090002MessageHandler')]
+    [HandlerFunctions('NoUpdatedCurrenciesMessageHandler')]
     [Scope('OnPrem')]
     procedure ReadCurrencyFileWithWrongFormat()
     var
@@ -59,11 +60,13 @@ codeunit 148151 "Currency Exch. Rate File Test"
         BindSubscription(CurrencyExchangeRateFile);
         CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
 
-        // Verification is done in the Text1090002MessageHandler
+        Assert.AreEqual(
+            CurrencyExchRateImportText1090002Msg, LibraryVariableStorage.DequeueText(), 'Wrong status message.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
-    [HandlerFunctions('Text1090001MessageHandler')]
+    [HandlerFunctions('NewExchangeRatesUpdatedMessageHandler')]
     [Scope('OnPrem')]
     procedure ReadNonEMUCurrencyFile()
     var
@@ -76,11 +79,14 @@ codeunit 148151 "Currency Exch. Rate File Test"
         BindSubscription(CurrencyExchangeRateFile);
         CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
 
+        Assert.AreEqual(
+            CurrencyExchRateImportText1090001Msg, LibraryVariableStorage.DequeueText(), 'Wrong status message.');
+        LibraryVariableStorage.AssertEmpty();
         Verify(USDCodeTok);
     end;
 
     [Test]
-    [HandlerFunctions('Text1090001MessageHandler')]
+    [HandlerFunctions('NewExchangeRatesUpdatedMessageHandler')]
     [Scope('OnPrem')]
     procedure ReadEMUCurrencyFile()
     var
@@ -93,6 +99,9 @@ codeunit 148151 "Currency Exch. Rate File Test"
         BindSubscription(CurrencyExchangeRateFile);
         CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
 
+        Assert.AreEqual(
+            CurrencyExchRateImportText1090001Msg, LibraryVariableStorage.DequeueText(), 'Wrong status message.');
+        LibraryVariableStorage.AssertEmpty();
         Verify(EuroCodeTok);
     end;
 
@@ -113,7 +122,7 @@ codeunit 148151 "Currency Exch. Rate File Test"
     end;
 
     [Test]
-    [HandlerFunctions('Text1090002MessageHandler')]
+    [HandlerFunctions('NoUpdatedCurrenciesMessageHandler')]
     [Scope('OnPrem')]
     procedure ReadNonExistingCurrencyFile()
     var
@@ -126,7 +135,9 @@ codeunit 148151 "Currency Exch. Rate File Test"
         BindSubscription(CurrencyExchangeRateFile);
         CODEUNIT.Run(CODEUNIT::"Currency Exch. Rate Import");
 
-        // Verification is done in the Text1090002MessageHandler
+        Assert.AreEqual(
+            CurrencyExchRateImportText1090002Msg, LibraryVariableStorage.DequeueText(), 'Wrong status message.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -191,16 +202,16 @@ codeunit 148151 "Currency Exch. Rate File Test"
 
     [MessageHandler]
     [Scope('OnPrem')]
-    procedure Text1090002MessageHandler(Message: Text)
+    procedure NoUpdatedCurrenciesMessageHandler(Message: Text)
     begin
-        Assert.AreEqual(Format(CurrencyExchRateImportText1090002Msg), Message, 'Wrong status message.');
+        LibraryVariableStorage.Enqueue(Message);
     end;
 
     [MessageHandler]
     [Scope('OnPrem')]
-    procedure Text1090001MessageHandler(Message: Text)
+    procedure NewExchangeRatesUpdatedMessageHandler(Message: Text)
     begin
-        Assert.AreEqual(Format(CurrencyExchRateImportText1090001Msg), Message, 'Wrong status message.');
+        LibraryVariableStorage.Enqueue(Message);
     end;
 
     local procedure Verify(CurrencyCode: Code[3])
