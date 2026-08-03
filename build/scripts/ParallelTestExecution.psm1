@@ -709,6 +709,15 @@ function Invoke-PerProjectTestRun {
     $cached = Get-CachedTestRunResult -ContainerName $parameters.containerName
     if ($null -ne $cached) { return $cached }
 
+    # When invoked by Run-AlPipeline the parameters hashtable carries a 'tenant' (typically
+    # 'default'). When invoked by the AL-Go RunTests action's override seam (useSeparateTestAction)
+    # no tenant is supplied, so fall back to the container's default tenant. This tenant is only used
+    # as the reference tenant for enumerating installed test apps; the actual test dispatch fans out
+    # across the operational tenants returned by Get-AvailableBcTenants.
+    if ([string]::IsNullOrEmpty($parameters.tenant)) {
+        $parameters["tenant"] = "default"
+    }
+
     $testType = Get-ALGoSetting -Key "testType"
     $country = Get-ALGoSetting -Key "country"
     $bucketNumber = if ($testType -eq "Legacy") { Get-ALGoSetting -Key "bucketNumber" } else { 0 }

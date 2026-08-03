@@ -97,4 +97,43 @@ Describe "ParallelTestExecution app-name resolution" {
             $result | Should -Not -Contain 'Projects-Json-Key'
         }
     }
+
+    Context "Invoke-PerProjectTestRun reference tenant defaulting" {
+        BeforeEach {
+            # No cached result, so the function proceeds to enumerate installed apps.
+            Mock -ModuleName ParallelTestExecution -CommandName Get-CachedTestRunResult -MockWith { $null }
+            Mock -ModuleName ParallelTestExecution -CommandName Get-ALGoSetting -MockWith {
+                param([string]$Key)
+                switch ($Key) { 'testType' { 'UnitTest' } 'country' { 'w1' } default { $null } }
+            }
+            # Capture the tenant the function forwards. Return a non-null installed list so the
+            # downstream call binds, then force an empty bucket so the function exits early
+            # (before any parallel dispatch / dot-sourced script execution).
+            $script:capturedTenant = '<<unset>>'
+            Mock -ModuleName ParallelTestExecution -CommandName Get-InstalledTestAppNames -MockWith {
+                param([string]$ContainerName, [string]$Tenant, [string]$Country)
+                $script:capturedTenant = $Tenant
+                return @('SomeApp')
+            }
+            Mock -ModuleName ParallelTestExecution -CommandName Get-AppNamesForBucket -MockWith { @() }
+        }
+
+        It "defaults the reference tenant to 'default' when the caller supplies none (RunTests override seam)" {
+            $params = @{ containerName = 'c'; credential = 'cred' }
+
+            Invoke-PerProjectTestRun -parameters $params | Should -BeTrue
+
+            $script:capturedTenant | Should -Be 'default'
+            $params['tenant'] | Should -Be 'default'
+        }
+
+        It "keeps the caller-supplied tenant (Run-AlPipeline path)" {
+            $params = @{ containerName = 'c'; credential = 'cred'; tenant = 'tenant-42' }
+
+            Invoke-PerProjectTestRun -parameters $params | Should -BeTrue
+
+            $script:capturedTenant | Should -Be 'tenant-42'
+            $params['tenant'] | Should -Be 'tenant-42'
+        }
+    }
 }
