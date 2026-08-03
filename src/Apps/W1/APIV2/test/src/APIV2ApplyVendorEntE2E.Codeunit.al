@@ -20,6 +20,7 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
         ApplyVendorEntriesServiceTxt: Label 'applyVendorEntries';
         DocumentNumberTxt: Label 'documentNumber';
         VendorNumberTxt: Label 'vendorNumber';
+        VendorDoesNotExistErr: Label 'The Vendor does not exist', Locked = true;
         isInitialized: Boolean;
 
     [Test]
@@ -96,9 +97,11 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
         Commit();
 
         // [WHEN] we GET the applyVendorEntries for the line
-        // [THEN] the request fails because the payment does not have a vendor
+        // [THEN] the request fails with a 400 because the payment does not have a vendor
         TargetURL := GetApplyVendorEntriesURL(JournalName, VendorPaymentGUID);
         asserterror LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        Assert.ExpectedError('400');
+        Assert.ExpectedError(VendorDoesNotExistErr);
     end;
 
     [Test]
