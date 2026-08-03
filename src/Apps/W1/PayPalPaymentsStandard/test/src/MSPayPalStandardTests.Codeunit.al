@@ -915,6 +915,64 @@ codeunit 139500 "MS - PayPal Standard Tests"
     end;
 
     [Test]
+    procedure TestWebhookNotificationWithSpecialCharactersInSubscriptionIDDoesNotBlockInsert();
+    var
+        WebhookNotification: Record "Webhook Notification";
+        OutStream: OutStream;
+        SubscriptionIDWithSpecialChars: Text;
+    begin
+        // [SCENARIO 642015] Inserting a webhook notification from another service (e.g. Shopify) during Cloud Migration,
+        // whose Subscription ID contains filter special characters, must not throw a filter exception on insert.
+        Initialize();
+
+        // [GIVEN] A Subscription ID that contains characters that are special in a filter expression.
+        SubscriptionIDWithSpecialChars := 'Test&(Sub|scription)<ID>*..@=%1';
+
+        // [WHEN] A webhook notification with such a Subscription ID is inserted (this fires the PayPal insert subscriber).
+        WebhookNotification.INIT();
+        WebhookNotification.VALIDATE(ID, CREATEGUID());
+        WebhookNotification.VALIDATE(
+          "Subscription ID", COPYSTR(SubscriptionIDWithSpecialChars, 1, MAXSTRLEN(WebhookNotification."Subscription ID")));
+        WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
+        OutStream.WRITETEXT('{}');
+
+        // [THEN] The insert succeeds without a filter exception and no PayPal payment is processed.
+        WebhookNotification.INSERT();
+        VerifyNoPaymentEvent();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConsentConfirmYes')]
+    procedure TestPaymentNotificationMatchesSubscriptionCaseInsensitively();
+    var
+        MSPayPalStandardAccount: Record "MS - PayPal Standard Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary;
+        O365SalesInvoicePayment: Codeunit "O365 Sales Invoice Payment";
+        DifferentCaseAccountID: Text;
+    begin
+        // [SCENARIO 642015] The webhook subscription lookup must remain case-insensitive so payments are still matched
+        // even when the notification's Subscription ID differs in casing from the stored subscription.
+        Initialize();
+
+        SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
+
+        // [GIVEN] The account/subscription ID in a different letter casing than what is stored.
+        DifferentCaseAccountID := ToggleCase(MSPayPalStandardAccount."Account ID");
+        Assert.AreNotEqual(
+          MSPayPalStandardAccount."Account ID", DifferentCaseAccountID, 'Test requires a case-different account ID');
+
+        // [WHEN] A completed payment notification is received using the differently-cased subscription ID.
+        SendPaymentNotification(DifferentCaseAccountID, PaymentStatusCompletedTxt, SalesInvoiceHeader."No.",
+          SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
+        O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
+
+        // [THEN] The invoice is still fully paid, proving the subscription match is case-insensitive.
+        VerifyRemainingAmount(TempPaymentRegistrationBuffer, 0);
+        VerifyPaymentEvent(PaymentTok, SalesInvoiceHeader."No.", SalesInvoiceHeader."Amount Including VAT");
+    end;
+
+    [Test]
     [HandlerFunctions('JobTransferToSalesInvoiceRequestPageHandler,MessageHandlerNew')]
     procedure VerifyPaymentServiceSetIDInSalesInvoiceCreatedFromJobPlanningLines();
     var
@@ -1023,6 +1081,13 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
         OutStream.WRITETEXT(NotificationJson);
         WebhookNotification.INSERT();
+    end;
+
+    local procedure ToggleCase(Value: Text): Text;
+    begin
+        if Value = LOWERCASE(Value) then
+            exit(UPPERCASE(Value));
+        exit(LOWERCASE(Value));
     end;
 
     local procedure VerifyRemainingAmount(var TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary; RemainingAmount: Decimal);
