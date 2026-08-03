@@ -28,6 +28,12 @@
       - test discovery, which every test project drives from the INSTALLED apps
         ("runTestsInAllInstalledTestApps": true), sees exactly the apps it sees today.
 
+    Changed apps are published IN PLACE rather than unpublished first. Business Central refuses
+    to unpublish an extension while another PUBLISHED extension depends on it, and retaining
+    dependents published is the entire point, so the unpublish set can never be dependency
+    closed. Publishing the newly built version alongside the artifact's older one avoids that
+    completely, and is allowed because every app is uninstalled before anything is published.
+
     Only the publish/sync work is skipped - the container still ends up in today's shape.
 
 .NOTES
@@ -745,14 +751,17 @@ function Get-AppsNeverInContainer {
 .SYNOPSIS
     Splits the apps currently in the container into the ones to unpublish and the ones to keep.
 .DESCRIPTION
-    Unpublish an app when its source changed since the artifact commit, when this repository does
-    not produce it at all, or when it must never be in a test container. Everything else is kept
-    published and synchronized - the caller uninstalls it so that the container reaches the same
-    state AL-Go's publish step produces today.
+    Unpublish an app only when this repository does not produce it at all, or when it must never
+    be in a test container. Everything else - including apps whose source changed - is kept
+    published and synchronized, and the caller uninstalls it.
+
+    Changed apps are deliberately not unpublished. Business Central refuses to unpublish an
+    extension while another PUBLISHED extension depends on it, so with dependents retained the
+    unpublish set can never be dependency closed. The build instead publishes the new version in
+    place, alongside the artifact's older one; that is allowed because everything was uninstalled
+    first. Test-ShouldPublishAppFile still forces a publish for changed apps.
 .PARAMETER InstalledApps
     Output of Get-BcContainerAppInfo (needs Name and Publisher), sorted DependenciesLast.
-.PARAMETER ChangedApps
-    App keys ("Publisher_Name") whose source changed since the artifact commit.
 .PARAMETER KnownApps
     App keys this repository produces. Apps outside this set are unpublished, matching today's
     behavior where the container only ever holds apps this build publishes.
@@ -768,14 +777,8 @@ function Split-ContainerApps {
         [object[]] $InstalledApps,
         [Parameter(Mandatory)]
         [AllowEmptyCollection()]
-        [string[]] $ChangedApps,
-        [Parameter(Mandatory)]
-        [AllowEmptyCollection()]
         [string[]] $KnownApps
     )
-
-    $changed = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($key in $ChangedApps) { [void]$changed.Add($key) }
 
     $known = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($key in $KnownApps) { [void]$known.Add($key) }
@@ -788,7 +791,15 @@ function Split-ContainerApps {
 
     foreach ($app in $InstalledApps) {
         $key = Get-AppKey -Publisher $app.Publisher -Name $app.Name
-        if ($never.Contains($app.Name) -or $changed.Contains($key) -or (-not $known.Contains($key))) {
+
+        # Changed apps are deliberately NOT unpublished. Business Central refuses to unpublish an
+        # extension while another PUBLISHED extension depends on it, and keeping dependents
+        # published is the whole point here - so the unpublish set could never be dependency
+        # closed. Instead the build publishes the new version in place, alongside the artifact's
+        # older one (29.0.2147483647.x vs the artifact's 29.0.<build>.0). That is allowed because
+        # every app was uninstalled first, which is the precondition for publishing a new version
+        # over an existing one.
+        if ($never.Contains($app.Name) -or (-not $known.Contains($key))) {
             $toUnpublish += $app
         }
         else {

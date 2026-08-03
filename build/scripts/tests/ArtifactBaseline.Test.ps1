@@ -335,40 +335,42 @@ Describe "ArtifactBaseline" {
             )
         }
 
-        It "keeps unchanged apps and unpublishes changed ones" {
-            $split = Split-ContainerApps -InstalledApps $script:installed -ChangedApps @('Microsoft_E-Document Core') -KnownApps $script:known
-            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Contain 'E-Document Core'
+        It "leaves changed apps published, because they are replaced in place" {
+            # Business Central refuses to unpublish an extension while a published extension
+            # depends on it, and dependents are retained by design. The new version is published
+            # over the artifact's copy instead.
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
+            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Not -Contain 'E-Document Core'
+            @($split.ToKeep | ForEach-Object { $_.Name }) | Should -Contain 'E-Document Core'
             @($split.ToKeep | ForEach-Object { $_.Name }) | Should -Contain 'Base Application'
             @($split.ToKeep | ForEach-Object { $_.Name }) | Should -Contain 'Tests-Local'
         }
 
         It "always unpublishes apps that must never be in a test container" {
-            $split = Split-ContainerApps -InstalledApps $script:installed -ChangedApps @() -KnownApps $script:known
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
             @($split.ToKeep | ForEach-Object { $_.Name }) | Should -Not -Contain 'Prevent Metadata Updates Library'
             @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Contain 'Prevent Metadata Updates Library'
         }
 
         It "unpublishes apps this repository does not produce" {
-            $split = Split-ContainerApps -InstalledApps $script:installed -ChangedApps @() -KnownApps $script:known
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
             @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Contain 'Third Party Thing'
         }
 
         It "does not confuse apps that share a name but differ in publisher" {
             $installed = @(New-ContainerApp 'Tests-Local' -Publisher 'Contoso')
-            $split = Split-ContainerApps -InstalledApps $installed -ChangedApps @() -KnownApps @('Microsoft_Tests-Local')
+            $split = Split-ContainerApps -InstalledApps $installed -KnownApps @('Microsoft_Tests-Local')
             @($split.ToKeep).Count | Should -Be 0
             @($split.ToUnpublish).Count | Should -Be 1
         }
 
-        It "keeps nothing when everything changed" {
-            $changed = @($script:installed | ForEach-Object { Get-AppKey -Publisher $_.Publisher -Name $_.Name })
-            $split = Split-ContainerApps -InstalledApps $script:installed -ChangedApps $changed -KnownApps $script:known
-            @($split.ToKeep).Count | Should -Be 0
-            @($split.ToUnpublish).Count | Should -Be $script:installed.Count
+        It "unpublishes only the apps this repository does not produce, whatever changed" {
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
+            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Be @('Prevent Metadata Updates Library', 'Third Party Thing')
         }
 
         It "handles an empty container" {
-            $split = Split-ContainerApps -InstalledApps @() -ChangedApps @() -KnownApps $script:known
+            $split = Split-ContainerApps -InstalledApps @() -KnownApps $script:known
             @($split.ToKeep).Count | Should -Be 0
             @($split.ToUnpublish).Count | Should -Be 0
         }

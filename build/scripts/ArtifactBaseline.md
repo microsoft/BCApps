@@ -35,15 +35,15 @@ leave the rest alone.
 NAV build            ->  artifact manifest.json   { "bcAppsCommit": "<sha>" }
 BCApps PR build      ->  git diff <sha>..HEAD     -> changed files
                      ->  attribute each file to the app that OWNS it
-                     ->  keep the rest published; unpublish and republish only those
+                     ->  keep the rest published; republish in place only those
 ```
 
 1. `NewBcContainer.ps1` reads the artifact manifest, diffs the commit, and decides which apps to
    keep.
-2. **Every app is uninstalled**, and only the changed ones (plus apps this repo does not produce,
-   plus apps that must never be in a test container) are unpublished. The retained apps are left
-   **published and synchronized but not installed** - exactly the state AL-Go's publish step
-   leaves an app in today.
+2. **Every app is uninstalled**, and only apps this repo does not produce, plus apps that must
+   never be in a test container, are unpublished. Everything else is left **published and
+   synchronized but not installed** - exactly the state AL-Go's publish step leaves an app in
+   today.
 3. `PublishBcContainerApp.ps1` skips the `.app` files whose app is retained and unchanged. New
    apps and anything the container does not hold are published as usual.
 4. `ImportTestDataInBcContainer.ps1` and the test runner are untouched.
@@ -99,6 +99,33 @@ publish a stale localized Base Application - a correctness bug, not a missed opt
 The country is taken from the artifact url (`.../sandbox/29.0.53247.0/w1` -> `w1`), which is the
 country the container is built for.
 
+### In-place publishing, not unpublish-then-publish
+
+Changed apps are **not** unpublished. Business Central refuses to unpublish an extension while
+another *published* extension depends on it, and retaining dependents published is the entire
+point of this change - so the unpublish set can never be dependency closed. A first CI run proved
+it, failing with:
+
+```
+The Extension cannot be unpublished because it is required by the following apps:
+Subscription Billing Demo Data by Microsoft 29.0.53221.0
+    at UnPublish-BcContainerApp <- NewBcContainer.ps1
+```
+
+Note this is also what the original dependency-expansion approach was quietly buying: not just
+binary validity, but a dependency-closed unpublish set. Restoring expansion would fix the error
+and destroy the benefit, because Base Application is in the changed set in nearly every window
+and everything depends on it.
+
+Instead the newly built version is published **over** the artifact's copy. The build produces
+`29.0.2147483647.x` against the artifact's `29.0.<build>.0`, and BC allows several versions of an
+extension to be published at once. The precondition - that dependent apps are uninstalled before
+a new version is published - is already met, because the hook uninstalls every app first.
+
+**Open risk:** installation must resolve to the newly published version. Testing the artifact's
+stale copy would be worse than not optimizing at all, so this needs to be confirmed on a real run
+before the feature is enabled anywhere.
+
 ## NAV side (implemented)
 
 The NAV enlistment already knows the commit: **BCApps is a git submodule of NAV**
@@ -152,7 +179,7 @@ Requirements that still hold:
 | --- | --- |
 | `build/scripts/ArtifactBaseline.psm1` | manifest reading, commit resolution, git diff, changed-app computation, container reconciliation |
 | `build/scripts/tests/ArtifactBaseline.Test.ps1` | 35 Pester tests |
-| `build/scripts/NewBcContainer.ps1` | unpublishes only the changed apps instead of everything |
+| `build/scripts/NewBcContainer.ps1` | unpublishes only apps this repo does not produce; changed apps are republished in place |
 | `build/scripts/PublishBcContainerApp.ps1` | skips publishing apps the artifact already has, unchanged |
 
 Change detection reuses the dependency graph in `build/scripts/BuildOptimization.psm1`, so an

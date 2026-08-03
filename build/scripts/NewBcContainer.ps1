@@ -49,7 +49,7 @@ try {
         Write-Host "ARTIFACT BASELINE: usable=$($baseline.IsUsable) commit=$($baseline.BaselineCommit) - $($baseline.Reason)"
 
         if ($baseline.IsUsable) {
-            $split = Split-ContainerApps -InstalledApps @($installedApps) -ChangedApps @($baseline.ChangedApps) -KnownApps @($baseline.KnownApps)
+            $split = Split-ContainerApps -InstalledApps @($installedApps) -KnownApps @($baseline.KnownApps)
             $appsToRemove = @($split.ToUnpublish)
             $appsToKeep = @($split.ToKeep)
             Write-Host "ARTIFACT BASELINE: reusing $($appsToKeep.Count) app(s) from the artifact, refreshing $($appsToRemove.Count)"
