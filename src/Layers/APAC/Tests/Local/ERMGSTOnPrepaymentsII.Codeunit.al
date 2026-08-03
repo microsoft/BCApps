@@ -1025,17 +1025,22 @@ codeunit 141027 "ERM GST On Prepayments II"
     [Scope('OnPrem')]
     procedure GSTOnSalesPrepmtCrMemoAfterPartialFinalInvoice()
     var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesLine: Record "Sales Line";
         DocumentNo: Code[20];
+        PrepmtInvoiceNo2: Code[20];
         DeductedVATAmount: Decimal;
         DeductedVATBase: Decimal;
+        Deducted2VATAmount: Decimal;
+        Deducted2VATBase: Decimal;
         PrepmtInvVATAmount: Decimal;
+        PrepmtInv2VATAmount: Decimal;
     begin
-        // [SCENARIO 8896] GST on a Sales Prepayment Credit Memo posted after a partial final Invoice excludes the prepayment GST that the partial Invoice already deducted.
+        // [SCENARIO 8896] GST on a Sales Prepayment Credit Memo posted after a partial final Invoice excludes the prepayment GST that the partial Invoice already deducted, and the posted entries of a later re-invoice cycle are correct.
 
         // [GIVEN] Full GST On Prepayment. Create Sales Order, post Sales Prepayment Invoice and make payment for the same.
         Initialize();
@@ -1069,6 +1074,44 @@ codeunit 141027 "ERM GST On Prepayments II"
         Assert.AreNearlyEqual(
           PrepmtInvVATAmount - DeductedVATAmount, SalesCrMemoHeader."Amount Including VAT" - SalesCrMemoHeader.Amount,
           LibraryERM.GetAmountRoundingPrecision(), AmountMustMatchMsg);
+
+        // [THEN] The deducted GST fields start a clean cycle after the Credit Memo.
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.TestField("Prepmt. VAT Amount Deducted", 0);
+        SalesLine.TestField("Prepmt. VAT Base Deducted", 0);
+
+        // [GIVEN] Re-invoice the prepayment.
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        PrepmtInvoiceNo2 := NoSeriesBatch.GetNextNo(SalesHeader."Posting No. Series");
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        SalesInvoiceHeader.Get(PrepmtInvoiceNo2);
+        SalesInvoiceHeader.CalcFields(Amount, "Amount Including VAT");
+        PrepmtInv2VATAmount := SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount;
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+
+        // [WHEN] Post the remaining final Invoice.
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);  // Post as Ship and Invoice.
+
+        // [THEN] The final Invoice reverses exactly the GST charged by the re-invoiced prepayment.
+        GetPrepmtDeductedVATOnSalesInvoice(DocumentNo, Deducted2VATAmount, Deducted2VATBase);
+        Assert.AreNearlyEqual(
+          PrepmtInv2VATAmount, Deducted2VATAmount, LibraryERM.GetAmountRoundingPrecision(), AmountMustMatchMsg);
+
+        // [THEN] The Customer Ledger Entry of the final Invoice matches the posted document amount.
+        SalesInvoiceHeader.Get(DocumentNo);
+        SalesInvoiceHeader.CalcFields("Amount Including VAT");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Document No.", DocumentNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields(Amount);
+        Assert.AreNearlyEqual(
+          SalesInvoiceHeader."Amount Including VAT", CustLedgerEntry.Amount,
+          LibraryERM.GetAmountRoundingPrecision(), AmountMustMatchMsg);
+
+        // [THEN] The G/L and GST Sales Entries of the final Invoice carry the remaining amounts.
+        VerifyGLAndGSTSalesEntry(
+          SalesLine."No.", DocumentNo, SalesLine."Amount Including VAT" / 2,
+          -(SalesLine.Amount / 2) * SalesLine."VAT %" / 100, -SalesLine.Amount / 2);
 
         // Tear Down.
         UpdateLocalFunctionalitiesOnGeneralLedgerSetup(
