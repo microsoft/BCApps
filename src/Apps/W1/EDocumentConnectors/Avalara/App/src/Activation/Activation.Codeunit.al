@@ -162,7 +162,7 @@ codeunit 6378 Activation
     begin
         // Use Insert(true) to trigger table triggers and validation
         if not ActivationHeader.Insert(true) then begin
-            Session.LogMessage('', 'Failed to insert Activation Header', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
+            Session.LogMessage('0000UWD', 'Failed to insert Activation Header', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
             exit(false);
         end;
 
@@ -204,7 +204,7 @@ codeunit 6378 Activation
 
         // Use Insert(true) to trigger table triggers and validation
         if not ActivationMandate.Insert(true) then
-            Session.LogMessage('', 'Failed to insert Activation Mandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
+            Session.LogMessage('0000UWE', 'Failed to insert Activation Mandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
     end;
 
     local procedure GetNestedJsonText(JsonObj: JsonObject; ParentFieldName: Text; ChildFieldName: Text): Text
