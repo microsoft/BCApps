@@ -11,8 +11,8 @@ page 36984 "Financial Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Financial Overview';
-    AboutTitle = 'About Financial Overview';
+    Caption = 'Financial Overview (Power BI)';
+    AboutTitle = 'About Financial Overview (Power BI)';
     AboutText = 'The Financial Overview provides a snapshot of the organization''s financial health and performance. This page displays key performance indicators that give stakeholders a clear view of revenue, profitability, and financial stability. ';
 
     layout

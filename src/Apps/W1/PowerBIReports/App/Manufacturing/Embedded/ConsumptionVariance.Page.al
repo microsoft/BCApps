@@ -11,8 +11,8 @@ page 37046 "Consumption Variance"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Consumption Variance';
-    AboutTitle = 'About Consumption Variance';
+    Caption = 'Consumption Variance (Power BI)';
+    AboutTitle = 'About Consumption Variance (Power BI)';
     AboutText = 'View your consumption cost variance % viewed over a timeline you can define to see trends. Analyze by each production order and filter by Work Centre to see the detail behind the overall percentages.';
 
     layout

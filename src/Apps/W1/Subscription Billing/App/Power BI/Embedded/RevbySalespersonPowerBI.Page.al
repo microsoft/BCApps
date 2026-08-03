@@ -7,8 +7,8 @@ page 8102 "Rev. by Salesperson Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Revenue by Salesperson';
-    AboutTitle = 'About Revenue by Salesperson';
+    Caption = 'Revenue by Salesperson (Power BI)';
+    AboutTitle = 'About Revenue by Salesperson (Power BI)';
     AboutText = 'The Revenue by Salesperson report breaks down subscription performance by Salesperson, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Churn.';
 
     layout

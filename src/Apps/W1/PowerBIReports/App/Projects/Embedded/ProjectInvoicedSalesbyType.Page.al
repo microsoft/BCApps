@@ -11,8 +11,8 @@ page 37038 "Project Invoiced Sales by Type"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Invoiced Sales by Type';
-    AboutTitle = 'About Project Invoiced Sales by Type';
+    Caption = 'Project Invoiced Sales by Type (Power BI)';
+    AboutTitle = 'About Project Invoiced Sales by Type (Power BI)';
     AboutText = 'The Project Invoiced Sales by Type report details invoiced sales for a project categorized by line type. It includes key KPIs such as % Invoiced, Billable Invoiced Price, and Billable Total Price, providing a clear overview of project invoicing performance and statistics.';
 
     layout

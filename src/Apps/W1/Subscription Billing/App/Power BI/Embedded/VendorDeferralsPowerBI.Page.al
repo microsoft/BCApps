@@ -7,8 +7,8 @@ page 8111 "Vendor Deferrals Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Vendor Deferrals';
-    AboutTitle = 'About Vendor Deferrals';
+    Caption = 'Vendor Deferrals (Power BI)';
+    AboutTitle = 'About Vendor Deferrals (Power BI)';
     AboutText = 'The Vendor Deferrals report provides an overview of deferred vs. released subscription cost amount.';
 
     layout
