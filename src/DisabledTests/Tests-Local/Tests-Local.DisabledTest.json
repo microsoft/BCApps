@@ -20525,5 +20525,125 @@
     "codeunitName": "MX CFDI",
     "method": "PaymentStampDatesMatchWhenPostingDateIsToday",
     "bug": "639636"
+  },
+  {
+    "codeunitId": 144714,
+    "codeunitName": "ERM FA Reports Test",
+    "method": "FAMovementAct",
+    "bug": "RU: FA report decimal formatting, disabled in NAV (bug 618779)"
+  },
+  {
+    "codeunitId": 144714,
+    "codeunitName": "ERM FA Reports Test",
+    "method": "PostedFAMovementAct",
+    "bug": "RU: FA report decimal formatting, disabled in NAV (bug 618779)"
+  },
+  {
+    "codeunitId": 144002,
+    "codeunitName": "ERM Curr. Adjmt. Prepmt. Purch",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144004,
+    "codeunitName": "ERM RU SE Fixes",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144006,
+    "codeunitName": "ERM Item Storno",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "ERM VAT Reinstatement",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144009,
+    "codeunitName": "ERM VAT Agent",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144010,
+    "codeunitName": "ERM Future Expences",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144507,
+    "codeunitName": "ERM FA Depreciation Bonus",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144509,
+    "codeunitName": "ERM FA Depreciation Groups",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144510,
+    "codeunitName": "ERM FA Charges Allocation",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144515,
+    "codeunitName": "ERM Tax Accounting",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144721,
+    "codeunitName": "ERM Tax Register Report",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 147123,
+    "codeunitName": "ERM VAT Posting Preview",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 147126,
+    "codeunitName": "ERM Manual VAT Settlement",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 147140,
+    "codeunitName": "ERM Sales VAT Ledger Export",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 147141,
+    "codeunitName": "ERM Purchase VAT Ledger Export",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144519,
+    "codeunitName": "ERM Tax Calc Mgt.",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144021,
+    "codeunitName": "Exch.Rate Adjmt. Prepmt. Purch",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144517,
+    "codeunitName": "ERM Tax Register Mgt.",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
   }
 ]
