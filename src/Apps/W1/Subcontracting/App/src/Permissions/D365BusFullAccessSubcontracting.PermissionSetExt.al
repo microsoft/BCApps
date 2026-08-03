@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 20501 "D365 BUS FULL ACCESS - Subcontracting" extends "D365 BUS FULL ACCESS"
 {
-    IncludedPermissionSets = "Subcontract - Edit";
+    IncludedPermissionSets = "Subcontract. - Edit";
 }

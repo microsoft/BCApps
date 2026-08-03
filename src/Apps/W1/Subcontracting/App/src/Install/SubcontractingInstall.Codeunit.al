@@ -35,20 +35,16 @@ codeunit 20501 "Subcontracting Install"
 
     local procedure HandleFreshInstallPerCompany()
     var
-        SubcontractingDataMigration: Codeunit "Subc. Data Migration";
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
         SetSubcontractingFeatureOnInstall();
-        SubcontractingDataMigration.SetRenumberedDataMigrationTag();
     end;
 
     local procedure HandleReinstallPerCompany()
     var
-        SubcontractingDataMigration: Codeunit "Subc. Data Migration";
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
-        SubcontractingDataMigration.MigrateRenumberedData();
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
         SetSubcontractingFeatureOnInstall();
     end;

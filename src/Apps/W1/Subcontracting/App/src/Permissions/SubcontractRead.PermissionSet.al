@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 20502 "Subcontract - Read"
+permissionset 20502 "Subcontract. - Read"
 {
     Caption = 'Subcontracting - Read';
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "Subcontract - Objs";
+    IncludedPermissionSets = "Subcontract. - Objs";
 
     Permissions =
         tabledata "Subcontractor Price" = R,
