@@ -6,7 +6,7 @@ namespace Microsoft.SubscriptionBilling;
 /// All dialog interaction is guarded by GuiAllowed, so callers are safe to use it from background
 /// Job Queue sessions without additional guards.
 /// </summary>
-codeunit 8035 "Progress Tracker"
+codeunit 8035 "Sub. Billing Progress Tracker"
 {
     var
         Window: Dialog;
