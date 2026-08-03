@@ -741,7 +741,6 @@ page 9006 "Order Processor Role Center"
                         Caption = 'Customer - &Order Summary';
                         Image = "Report";
                         RunObject = Report "Customer - Order Summary";
-                        ToolTip = 'View the quantity not yet shipped for each customer in three periods of 30 days each, starting from a selected date. There are also columns with orders to be shipped before and after the three periods and a column with the total order detail for each customer. The report can be used to analyze a company''s expected sales volume.';
                     }
 #if not CLEAN28
                     action("Customer - &Top 10 List")
@@ -800,7 +799,6 @@ page 9006 "Order Processor Role Center"
                         Caption = 'Inventory - Sales &Back Orders';
                         Image = "Report";
                         RunObject = Report "Inventory - Sales Back Orders";
-                        ToolTip = 'View a list with the order lines whose shipment date has been exceeded. The following information is shown for the individual orders for each item: number, customer name, customer''s telephone number, shipment date, order quantity and quantity on back order. The report also shows whether there are other items for the customer on back order.';
                     }
                     action("Sales Order Status")
                     {
