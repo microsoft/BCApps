@@ -174,18 +174,17 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
     local procedure PopulateEDocumentPurchaseLine(FieldsJsonObject: JsonObject; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
     var
         DerivedDiscount: Decimal;
+        QuantityProvided: Boolean;
     begin
         EDocumentJsonHelper.SetCurrencyValueInField('amount', FieldsJsonObject, TempEDocPurchaseLine."Sub Total", TempEDocPurchaseLine."Currency Code");
         EDocumentJsonHelper.SetStringValueInField('description', MaxStrLen(TempEDocPurchaseLine.Description), FieldsJsonObject, TempEDocPurchaseLine.Description);
         EDocumentJsonHelper.SetCurrencyValueInField('unitPrice', FieldsJsonObject, TempEDocPurchaseLine."Unit Price", TempEDocPurchaseLine."Currency Code");
-        EDocumentJsonHelper.SetNumberValueInField('quantity', FieldsJsonObject, TempEDocPurchaseLine.Quantity);
-        if TempEDocPurchaseLine.Quantity < 0 then
-            TempEDocPurchaseLine.Quantity := 0;
-        if TempEDocPurchaseLine.Quantity = 0 then
-            if (TempEDocPurchaseLine."Unit Price" <> 0) and (TempEDocPurchaseLine."Sub Total" <> 0) then
-                TempEDocPurchaseLine.Quantity := Round(TempEDocPurchaseLine."Sub Total" / TempEDocPurchaseLine."Unit Price", 0.00001)
-            else
-                TempEDocPurchaseLine.Quantity := 1;
+        QuantityProvided := EDocumentJsonHelper.SetNumberValueInField('quantity', FieldsJsonObject, TempEDocPurchaseLine.Quantity);
+        if not QuantityProvided then
+            TempEDocPurchaseLine.Quantity := 1
+        else
+            if TempEDocPurchaseLine.Quantity < 0 then
+                TempEDocPurchaseLine.Quantity := 0;
         EDocumentJsonHelper.SetStringValueInField('productCode', MaxStrLen(TempEDocPurchaseLine."Product Code"), FieldsJsonObject, TempEDocPurchaseLine."Product Code");
         EDocumentJsonHelper.SetStringValueInField('unit', MaxStrLen(TempEDocPurchaseLine."Unit of Measure"), FieldsJsonObject, TempEDocPurchaseLine."Unit of Measure");
         EDocumentJsonHelper.SetDateValueInField('date', FieldsJsonObject, TempEDocPurchaseLine.Date);
