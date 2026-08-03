@@ -6113,7 +6113,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnIncreaseQtyOnBeforeSupplyInvtProfileModify(var SupplyInvtProfile: Record "Inventory Profile"; NeededQty: Decimal; RespectPlanningParm: Boolean; var TempSKU: Record "Stockkeeping Unit" temporary)
+    local procedure OnIncreaseQtyOnBeforeSupplyInvtProfileModify(var SupplyInventoryProfile: Record "Inventory Profile"; NeededQuantity: Decimal; RespectPlanningParameters: Boolean; var TempStockkeepingUnit: Record "Stockkeeping Unit" temporary)
     begin
     end;
 }
