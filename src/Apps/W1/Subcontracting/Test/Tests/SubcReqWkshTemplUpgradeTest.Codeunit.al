@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Subcontracting;
-using System.TestLibraries.Utilities;
 
 codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
 {
