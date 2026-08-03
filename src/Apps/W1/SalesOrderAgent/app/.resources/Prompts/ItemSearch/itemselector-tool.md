@@ -24,7 +24,7 @@
               "confidence": {
                 "type": "string",
                 "enum": ["matching", "alternative"],
-                "description": "The item-level match classification."
+                "description": "The overall selection classification used to separate direct matches from suggestions. Must be alternative when variant_match is alternative."
               },
               "variant_match": {
                 "type": "string",

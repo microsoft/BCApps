@@ -108,6 +108,8 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
             Confidence := ResultToken.AsValue().AsText();
             if (Confidence <> MatchingTok) and (Confidence <> AlternativeTok) then
                 exit(false);
+            if (Confidence = MatchingTok) and (VariantMatch = AlternativeTok) then
+                exit(SetSelectionResultFailure(RejectedVariantMatchCombinationFailureTok));
 
             if not ItemObject.Get('reason', ResultToken) or not ResultToken.IsValue() then
                 exit(false);

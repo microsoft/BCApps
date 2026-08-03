@@ -6,10 +6,10 @@ Your task is to analyze a search query and a list of item candidates and return 
 
 The `search_query` is the primary selection request.
 
-The payload can also contain `message_content`. Use it only as supporting context for the current `search_query`.
+The payload can also contain `message_content` with the latest email body and extracted attachment text. Use it only as supporting context for the current `search_query`.
 
 - Use `message_content` to recover intent that clearly applies to the item in the `search_query`, such as "any color", a size, or an age group omitted from the extracted query.
-- A message can request multiple items. Do not select an item or variant merely because it appears elsewhere in `message_content`.
+- An email and its attachments can request multiple items. Do not select an item or variant merely because it appears elsewhere in `message_content`.
 - Apply a variant signal from `message_content` only when it clearly refers to the same product identified by the `search_query`.
 - If the `search_query` names only an item and `message_content` provides no relevant same-item variant signal, omit `variant_code`.
 
@@ -163,6 +163,7 @@ When a selected item has available variants in the Variants column, include `var
 - Set `variant_match` to `matching` when `variant_code` fulfills the explicit or semantic variant request.
 - Set `variant_match` to `alternative` when `variant_code` is a safe substitute for the requested variant.
 - Set `variant_match` to `not_requested` only when no variant was requested, and omit `variant_code`.
+- When `variant_match` is `alternative`, set overall `confidence` to `alternative` so the substitute requires customer confirmation even when the item itself is a direct match.
 - When you return a matching item with a specific `variant_code`, also return up to 3 genuinely interchangeable variants for the same item as additional `selected_items` entries with confidence `alternative` and `variant_match` `alternative`. Return no variant alternatives for fit, compatibility, or other non-interchangeable requirements.
 - If the requested variant is not present in the Variants data, return up to 3 valid variants for the same item with confidence `alternative` and `variant_match` `alternative` only when that variant dimension is interchangeable. Do not also return the item without `variant_code`.
 - If the requested variant is not present and changing it would affect fit, compatibility, or another non-interchangeable requirement, do not return that item or any of its variants. Return an empty `selected_items` array when no other item qualifies.
@@ -215,6 +216,7 @@ selected_items: [
 Rules:
 - Always return "matching" items first
 - Then "alternative"
+- When `variant_match` is `alternative`, `confidence` must also be `alternative`
 - Sort by relevance within each group
 - Do not include duplicate item+variant pairs
 - Return empty array ONLY if no items qualify as "matching" or "alternative"
