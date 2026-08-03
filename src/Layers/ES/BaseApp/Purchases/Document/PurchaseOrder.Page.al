@@ -289,6 +289,11 @@ page 50 "Purchase Order"
                     ShowMandatory = VendorInvoiceNoMandatory;
                     Editable = IsVendorInvoiceEditable;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Basic, Suite;

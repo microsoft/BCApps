@@ -5,6 +5,8 @@
 
 namespace Microsoft.WithholdingTax;
 
+using Microsoft.WithholdingTax.Employee;
+
 permissionset 6785 "WHT - Read"
 {
     Caption = 'Withholding Tax - Read';
@@ -21,5 +23,8 @@ permissionset 6785 "WHT - Read"
         tabledata "Withholding Tax Posting Buffer" = R,
         tabledata "Withholding Tax Posting Setup" = R,
         tabledata "Wthldg. Tax Prod. Post. Group" = R,
-        tabledata "Withholding Tax Revenue Types" = R;
+        tabledata "Withholding Tax Revenue Types" = R,
+        tabledata "Withholding Tax Group" = R,
+        tabledata "Withholding Tax Group Line" = R,
+        tabledata "WHT Threshold Accumulator" = R;
 }

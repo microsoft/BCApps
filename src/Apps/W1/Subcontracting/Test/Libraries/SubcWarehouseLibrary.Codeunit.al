@@ -502,6 +502,22 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
+    /// Creates a bin-mandatory location that requires warehouse receipts but not warehouse put-aways.
+    /// </summary>
+    /// <param name="Location">The location record which will be created and updated</param>
+    /// <param name="ReceiveBin">The receipt bin record which will be created and assigned to the location</param>
+    internal procedure CreateLocationWithRequireReceiveOnlyAndBinMandatory(var Location: Record Location; var ReceiveBin: Record Bin)
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, true, false);
+        Location.Validate("Require Receive", true);
+        Location.Validate("Require Put-away", false);
+        LibraryWarehouse.CreateBin(ReceiveBin, Location.Code, 'RECEIVE', '', '');
+        Location.Validate("Receipt Bin Code", ReceiveBin.Code);
+        Location.Modify(true);
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
+    end;
+
+    /// <summary>
     /// Creates a location with bin mandatory enabled only.
     /// </summary>
     /// <param name="Location">The location record which will be created and updated</param>
