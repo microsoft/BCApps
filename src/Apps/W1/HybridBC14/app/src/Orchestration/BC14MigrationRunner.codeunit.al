@@ -513,6 +513,7 @@ codeunit 46875 "BC14 Migration Runner"
         MigratorEnums.Add("BC14 Setup Migrator"::"Customer Posting Group");
         MigratorEnums.Add("BC14 Setup Migrator"::"Vendor Posting Group");
         MigratorEnums.Add("BC14 Setup Migrator"::"Inventory Posting Group");
+        MigratorEnums.Add("BC14 Setup Migrator"::"Inventory Posting Setup");
         MigratorEnums.Add("BC14 Setup Migrator"::"General Posting Setup");
         MigratorEnums.Add("BC14 Setup Migrator"::"VAT Posting Setup");
         MigratorEnums.Add("BC14 Setup Migrator"::"Payment Terms");
