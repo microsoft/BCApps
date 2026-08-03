@@ -2,6 +2,7 @@
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -39,6 +40,8 @@
         WrongValueErr: Label 'Wrong value of the field %1 in table %2.', Comment = '%1 = Field name, %2 = Table name';
         MissingSheetDataErr: Label 'Sheet %1 is either missing or does not contain the correct data.', Comment = '%1 = Sheet number';
         TextValueDuplicateErr: Label 'Text value %1 should appear exactly once in Excel export, but found %2 occurrences', Comment = '%1 = Text value, %2 = Occurrence count';
+        AuditLogWrittenTooEarlyErr: Label 'The audit log entry for financial report %1 must not be written before the report has finished processing.', Comment = '%1 = Financial report name';
+        SheetNameTok: Label 'Sheet%1', Locked = true;
         IsInitialized: Boolean;
 
     [Test]
@@ -2900,6 +2903,41 @@
         Assert.AreEqual(1, FinancialReportAuditLog.Count(), 'Audit log entry was not created after export the financial report to PDF.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('NameValueLookupModalPageHandler')]
+    procedure FinRepAuditLogOnExcelDoesNotBlockModalPage()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        FinancialReportAuditLog: Record "Financial Report Audit Log";
+        ERMAccountScheduleII: Codeunit "ERM Account Schedule II";
+    begin
+        // [SCENARIO 641100] Export Acc. Sched. to Excel does not hold a write transaction open while the report processes its data item
+        Initialize();
+
+        // [GIVEN] A financial report "FR"
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+
+        // [GIVEN] A subscriber that opens a modal page while the report processes its data item, like the sheet selection does when updating an existing workbook with several sheets
+        BindSubscription(ERMAccountScheduleII);
+
+        // [WHEN] The financial report is exported to Excel
+        AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
+        AccScheduleLine.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        RunExportAccSchedule(AccScheduleLine, AccScheduleName);
+        UnbindSubscription(ERMAccountScheduleII);
+
+        // [THEN] The modal page was shown without a write transaction being open
+        // NameValueLookupModalPageHandler
+
+        // [THEN] An audit log entry is created for the action
+        FinancialReportAuditLog.SetRange("Report Name", AccScheduleName.Name);
+        FinancialReportAuditLog.SetRange(User, UserId);
+        FinancialReportAuditLog.SetRange(Format, FinancialReportAuditLog.Format::Excel);
+        Assert.AreEqual(1, FinancialReportAuditLog.Count(), 'Audit log entry was not created after export the financial report to Excel.');
+    end;
+
     procedure FinancialReportWithBlockedStatus()
     var
         AccScheduleName: Record "Acc. Schedule Name";
@@ -3795,5 +3833,40 @@
     procedure RenameDefinitionConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure NameValueLookupModalPageHandler(var NameValueLookup: TestPage "Name/Value Lookup")
+    begin
+        NameValueLookup.OK().Invoke();
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Export Acc. Sched. to Excel", 'OnIntegerOnAfterGetRecordOnAfterAccSchedLineSetFilter', '', false, false)]
+    local procedure RunModalPageOnAfterAccSchedLineSetFilter(var AccScheduleLine: Record "Acc. Schedule Line")
+    var
+        FinancialReportAuditLog: Record "Financial Report Audit Log";
+        TempNameValueBuffer: Record "Name/Value Buffer" temporary;
+        FinancialReportName: Code[10];
+    begin
+        FinancialReportName := AccScheduleLine.GetRangeMin("Schedule Name");
+
+        InsertNameValueBufferLine(TempNameValueBuffer, 1);
+        InsertNameValueBufferLine(TempNameValueBuffer, 2);
+        TempNameValueBuffer.FindFirst();
+        Page.RunModal(Page::"Name/Value Lookup", TempNameValueBuffer);
+
+        FinancialReportAuditLog.SetRange("Report Name", FinancialReportName);
+        FinancialReportAuditLog.SetRange(User, UserId);
+        FinancialReportAuditLog.SetRange(Format, FinancialReportAuditLog.Format::Excel);
+        Assert.AreEqual(0, FinancialReportAuditLog.Count(), StrSubstNo(AuditLogWrittenTooEarlyErr, FinancialReportName));
+    end;
+
+    local procedure InsertNameValueBufferLine(var TempNameValueBuffer: Record "Name/Value Buffer" temporary; LineNo: Integer)
+    begin
+        TempNameValueBuffer.Init();
+        TempNameValueBuffer.ID := LineNo;
+        TempNameValueBuffer.Name := CopyStr(StrSubstNo(SheetNameTok, LineNo), 1, MaxStrLen(TempNameValueBuffer.Name));
+        TempNameValueBuffer.Value := TempNameValueBuffer.Name;
+        TempNameValueBuffer.Insert();
     end;
 }
