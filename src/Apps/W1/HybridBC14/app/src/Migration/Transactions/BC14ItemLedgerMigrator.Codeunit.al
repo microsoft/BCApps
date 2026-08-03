@@ -8,6 +8,7 @@ namespace Microsoft.DataMigration.BC14Reimplementation;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Warehouse.Structure;
 
 codeunit 46948 "BC14 Item Ledger Migrator" implements "BC14 Migrator"
 {
@@ -188,6 +189,37 @@ codeunit 46948 "BC14 Item Ledger Migrator" implements "BC14 Migrator"
         exit(Location."Use As In-Transit");
     end;
 
+    /// <summary>
+    /// Ensures a bin-mandatory location can receive the positive adjustment, returning false when the
+    /// on-hand cannot be rebuilt through the item journal. A directed put-away and pick location posts
+    /// the adjustment to its Adjustment Bin (the journal line must not name it explicitly), so that bin
+    /// has to exist. A non-directed bin-mandatory location needs a bin on the line itself: the item's
+    /// default bin is kept when already assigned, otherwise the Adjustment Bin is used as a fallback.
+    /// </summary>
+    local procedure TryResolvePostingBin(var ItemJournalLine: Record "Item Journal Line"): Boolean
+    var
+        Location: Record Location;
+        Bin: Record Bin;
+    begin
+        if ItemJournalLine."Location Code" = '' then
+            exit(true);
+        if not Location.Get(ItemJournalLine."Location Code") then
+            exit(true);
+        if not Location."Bin Mandatory" then
+            exit(true);
+
+        if Location."Directed Put-away and Pick" then
+            exit((Location."Adjustment Bin Code" <> '') and Bin.Get(Location.Code, Location."Adjustment Bin Code"));
+
+        if ItemJournalLine."Bin Code" <> '' then
+            exit(true);
+        if (Location."Adjustment Bin Code" <> '') and Bin.Get(Location.Code, Location."Adjustment Bin Code") then begin
+            ItemJournalLine.Validate("Bin Code", Location."Adjustment Bin Code");
+            exit(true);
+        end;
+        exit(false);
+    end;
+
     internal procedure GetTemplateName(): Code[10]
     var
         ItemJournalTemplate: Record "Item Journal Template";
@@ -274,6 +306,16 @@ codeunit 46948 "BC14 Item Ledger Migrator" implements "BC14 Migrator"
         ItemJournalLine."Document No." := DocumentNo;
         ItemJournalLine.Validate("Item No.", BC14ItemLedgerEntry."Item No.");
         ItemJournalLine.Validate("Location Code", BC14ItemLedgerEntry."Location Code");
+
+        // A positive adjustment on a bin-mandatory location must resolve to a valid bin. Validate
+        // ("Location Code") above assigns the item's default bin when one exists; for locations where
+        // no postable bin can be determined (for example a directed put-away and pick location whose
+        // warehouse bin setup is not migrated) the on-hand cannot be rebuilt through the item journal,
+        // so it is left to the historical archive rather than failing posting with "The Bin does not
+        // exist".
+        if not TryResolvePostingBin(ItemJournalLine) then
+            exit;
+
         ItemJournalLine.Validate(Quantity, BC14ItemLedgerEntry."Remaining Quantity");
         ItemJournalLine.Validate("Unit Cost", UnitCost);
         ItemJournalLine.Description := CopyStr(BC14ItemLedgerEntry.Description, 1, MaxStrLen(ItemJournalLine.Description));
