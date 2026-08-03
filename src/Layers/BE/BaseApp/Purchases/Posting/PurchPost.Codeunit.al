@@ -3851,7 +3851,7 @@ codeunit 90 "Purch.-Post"
                             PurchLineQty := PurchLine."Qty. to Receive"
                 end;
 
-                OnSumPurchLines2OnBeforeDivideAmount(PurchHeader, PurchLine, QtyType);
+                OnSumPurchLines2OnBeforeDivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty);
                 DivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty, TempVATAmountLine, TempVATAmountLineRemainder);
                 OnSumPurchLines2OnAfterDivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty, TempVATAmountLine, TempVATAmountLineRemainder);
                 PurchLine.Quantity := PurchLineQty;
@@ -10691,7 +10691,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSumPurchLines2OnBeforeDivideAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping)
+    local procedure OnSumPurchLines2OnBeforeDivideAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping; var PurchLineQty: Decimal)
     begin
     end;
 
