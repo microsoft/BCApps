@@ -7,12 +7,12 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.ProductionBOM;
 
-tableextension 99001531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
+tableextension 20531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001522; "Component Supply Method"; Enum "Component Supply Method")
+        field(20522; "Component Supply Method"; Enum "Component Supply Method")
         {
             Caption = 'Component Supply Method';
             DataClassification = CustomerContent;

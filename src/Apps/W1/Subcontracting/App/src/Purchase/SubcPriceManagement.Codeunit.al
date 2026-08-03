@@ -19,7 +19,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-codeunit 99001508 "Subc. Price Management"
+codeunit 20508 "Subc. Price Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";

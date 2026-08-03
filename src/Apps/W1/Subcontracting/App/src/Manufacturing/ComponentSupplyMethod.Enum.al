@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001500 "Component Supply Method"
+enum 20500 "Component Supply Method"
 {
     Extensible = true;
     // No supply method is selected.
