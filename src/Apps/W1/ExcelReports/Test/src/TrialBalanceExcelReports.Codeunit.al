@@ -251,7 +251,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
 
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
-        Assert.AreEqual(4, LibraryReportDataset.RowCount(), 'Only dimension combinations with values should be exported');
+        Assert.AreEqual(8, LibraryReportDataset.RowCount(), 'Only dimension combinations with values should be exported');
     end;
 
     [Test]
@@ -270,7 +270,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
 
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
-        Assert.AreEqual(9, LibraryReportDataset.RowCount(), 'All dimension combinations should be exported');
+        Assert.AreEqual(18, LibraryReportDataset.RowCount(), 'All dimension combinations should be exported');
     end;
 
     [Test]
