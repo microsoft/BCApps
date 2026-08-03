@@ -30,7 +30,6 @@ codeunit 137049 "SCM Reservation"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryERM: Codeunit "Library - ERM";
-        LibraryItemReference: Codeunit "Library - Item Reference";
         isInitialized: Boolean;
         MessageCounter: Integer;
         InitialInventory: Decimal;
@@ -38,6 +37,8 @@ codeunit 137049 "SCM Reservation"
         TotalQuantityErr: Label 'Total Quantity must match.';
         ReservedQuantityErr: Label 'Current Reserved Quantity must match.';
         OutstandingQuantityErr: Label 'The sales line should have an outstanding quantity to reserve.';
+        LookupSelectionNotSavedErr: Label 'The lookup selection should be saved before the Description is validated.';
+        LookupSelectionNotClearedErr: Label 'The saved lookup selection must be cleared even when the post-validation flow errors, so it cannot leak into a later validation.';
         CancelReservationTxt: Label 'Do you want to cancel all reservations';
         NegativeAdjQty: Decimal;
         OutputQuantity: Option Partial,Full,Excess;
@@ -2678,14 +2679,14 @@ codeunit 137049 "SCM Reservation"
     procedure LookupAutoReserveStateDoesNotSurviveErrorInSalesOrder()
     var
         Item: Record Item;
-        ItemReference: Record "Item Reference";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        LookupStateManager: Codeunit "Lookup State Manager";
         SCMReservationSubscriber: Codeunit "SCM Sales Order Management";
         SalesOrder: TestPage "Sales Order";
     begin
         // [FEATURE] [Reservation] [Sales Order]
-        // [SCENARIO] The Description-lookup auto-reserve state must not survive a validation error and leak into a later Item Reference validation where the item is unchanged.
+        // [SCENARIO] The saved lookup selection must be cleared even when the post-validation flow errors, so the auto-reserve state cannot leak into a later validation.
         Initialize();
 
         // [GIVEN] An item with "Reserve" = Always and inventory available.
@@ -2693,9 +2694,6 @@ codeunit 137049 "SCM Reservation"
         Item.Get(Item."No.");  // Re-read the item as posting the item journal updated its rowversion.
         Item.Validate(Reserve, Item.Reserve::Always);
         Item.Modify(true);
-
-        // [GIVEN] A bar code item reference for the item (also makes the "Item Reference No." field visible on the subform).
-        LibraryItemReference.CreateItemReference(ItemReference, Item."No.", ItemReference."Reference Type"::"Bar Code", '');
 
         // [GIVEN] A sales order line for the item that is not yet reserved.
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
@@ -2708,9 +2706,12 @@ codeunit 137049 "SCM Reservation"
         SalesLine.Description := '';
         SalesLine.Modify();
 
-        // [GIVEN] The setup is committed so that the sales line and item reference survive the rollback caused by the upcoming asserterror.
-        // The leaked page-global state that this test guards against lives in memory and is unaffected by the rollback.
+        // [GIVEN] The setup is committed so the sales line survives the rollback caused by the upcoming asserterror.
+        // The saved lookup selection lives in the single-instance "Lookup State Manager" and is not affected by the rollback.
         Commit();
+
+        // [GIVEN] The lookup selection is pending in the single-instance state manager.
+        Assert.IsTrue(LookupStateManager.IsRecordSaved(), LookupSelectionNotSavedErr);
 
         // [GIVEN] The post-validation flow is forced to fail for this document, simulating an error during the Description-lookup validation.
         SCMReservationSubscriber.SetForceErrorForDocumentNo(SalesHeader."No.");
@@ -2720,15 +2721,15 @@ codeunit 137049 "SCM Reservation"
         SalesOrder.GotoRecord(SalesHeader);
         SalesOrder.SalesLines.First();
 
-        // [WHEN] Validating the Description errors out (the old page-global flag would skip its reset here).
+        // [WHEN] Validating the Description errors out after the saved lookup selection has already been consumed.
         asserterror SalesOrder.SalesLines.Description.SetValue(Item.Description);
-
-        // [WHEN] The error condition is removed and the user retries by validating the Item Reference No. while the item, and therefore "No.", is unchanged.
         UnbindSubscription(SCMReservationSubscriber);
-        SalesOrder.SalesLines."Item Reference No.".SetValue(ItemReference."Reference No.");
-        SalesOrder.Close();
 
-        // [THEN] No reservation is created, because the item was not newly selected through the Description lookup during the retry.
+        // [THEN] The saved lookup selection was cleared before the error, so it cannot leak into a later validation.
+        Assert.IsFalse(LookupStateManager.IsRecordSaved(), LookupSelectionNotClearedErr);
+
+        // [THEN] The sales line remains unreserved because the errored validation rolled back.
+        SalesOrder.Close();
         SelectSalesLine(SalesLine, SalesHeader."No.");
         SalesLine.TestField("No.", Item."No.");
         SalesLine.CalcFields("Reserved Qty. (Base)");
