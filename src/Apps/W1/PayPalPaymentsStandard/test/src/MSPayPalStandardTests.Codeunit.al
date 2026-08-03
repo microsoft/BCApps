@@ -921,6 +921,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         OutStream: OutStream;
         SubscriptionIDWithSpecialChars: Text;
     begin
+        // [FEATURE][AI test 0.3]
         // [SCENARIO 642015] Inserting a webhook notification from another service (e.g. Shopify) during Cloud Migration,
         // whose Subscription ID contains filter special characters, must not throw a filter exception on insert.
         Initialize();
@@ -929,15 +930,15 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SubscriptionIDWithSpecialChars := 'Test&(Sub|scription)<ID>*..@=%1';
 
         // [WHEN] A webhook notification with such a Subscription ID is inserted (this fires the PayPal insert subscriber).
-        WebhookNotification.INIT();
-        WebhookNotification.VALIDATE(ID, CREATEGUID());
-        WebhookNotification.VALIDATE(
-          "Subscription ID", COPYSTR(SubscriptionIDWithSpecialChars, 1, MAXSTRLEN(WebhookNotification."Subscription ID")));
-        WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
-        OutStream.WRITETEXT('{}');
+        WebhookNotification.Init();
+        WebhookNotification.Validate(ID, CreateGuid());
+        WebhookNotification.Validate(
+          "Subscription ID", CopyStr(SubscriptionIDWithSpecialChars, 1, MaxStrLen(WebhookNotification."Subscription ID")));
+        WebhookNotification.Notification.CreateOutStream(OutStream);
+        OutStream.WriteText('{}');
 
         // [THEN] The insert succeeds without a filter exception and no PayPal payment is processed.
-        WebhookNotification.INSERT();
+        WebhookNotification.Insert();
         VerifyNoPaymentEvent();
     end;
 
@@ -951,6 +952,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         O365SalesInvoicePayment: Codeunit "O365 Sales Invoice Payment";
         DifferentCaseAccountID: Text;
     begin
+        // [FEATURE][AI test 0.3]
         // [SCENARIO 642015] The webhook subscription lookup must remain case-insensitive so payments are still matched
         // even when the notification's Subscription ID differs in casing from the stored subscription.
         Initialize();
@@ -1085,9 +1087,9 @@ codeunit 139500 "MS - PayPal Standard Tests"
 
     local procedure ToggleCase(Value: Text): Text;
     begin
-        if Value = LOWERCASE(Value) then
-            exit(UPPERCASE(Value));
-        exit(LOWERCASE(Value));
+        if Value = LowerCase(Value) then
+            exit(UpperCase(Value));
+        exit(LowerCase(Value));
     end;
 
     local procedure VerifyRemainingAmount(var TempPaymentRegistrationBuffer: Record "Payment Registration Buffer" temporary; RemainingAmount: Decimal);
