@@ -2471,12 +2471,15 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseEmployee: Record "Warehouse Employee";
         Item: Record Item;
         ShipZone: Record Zone;
+        PickZone: Record Zone;
         DefaultShipmentBin: Record Bin;
         NonDefaultShipmentBin: Record Bin;
+        PickBin: Record Bin;
         SalesHeaderFirst: Record "Sales Header";
         SalesHeaderSecond: Record "Sales Header";
         WarehouseShipmentHeader: Record "Warehouse Shipment Header";
         WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
         TotalQty: Decimal;
         FirstShipmentQty: Decimal;
         RemainingQty: Decimal;
@@ -2495,6 +2498,8 @@ codeunit 137055 "SCM Warehouse Pick"
         LibraryWarehouse.FindZone(ShipZone, Location.Code, LibraryWarehouse.SelectBinType(false, true, false, false), false);
         LibraryWarehouse.FindBin(DefaultShipmentBin, Location.Code, ShipZone.Code, 1);      // Location's default Shipment Bin.
         LibraryWarehouse.FindBin(NonDefaultShipmentBin, Location.Code, ShipZone.Code, 2);   // Alternative Ship-type bin.
+        LibraryWarehouse.FindZone(PickZone, Location.Code, LibraryWarehouse.SelectBinType(false, false, true, true), false);
+        LibraryWarehouse.FindBin(PickBin, Location.Code, PickZone.Code, 1);                 // Pick bin the remaining quantity must be sourced from.
 
         // [GIVEN] A random quantity of an item is in a pick bin, split across two shipments.
         TotalQty := LibraryRandom.RandIntInRange(100, 200);
@@ -2520,6 +2525,12 @@ codeunit 137055 "SCM Warehouse Pick"
 
         // [THEN] The pick for the remaining quantity is created (before the fix it failed with "Nothing to handle").
         VerifyPick(SalesHeaderSecond."No.", Item."No.", Location.Code, RemainingQty);
+
+        // [THEN] The Take line sources the remaining quantity from the pick bin, not from a ship bin.
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick, Location.Code, SalesHeaderSecond."No.",
+            WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.TestField("Bin Code", PickBin.Code);
     end;
 
     [Test]

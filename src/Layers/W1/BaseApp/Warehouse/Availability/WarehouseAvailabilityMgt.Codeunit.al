@@ -937,7 +937,7 @@ codeunit 7314 "Warehouse Availability Mgt."
         CreatePick: Codeunit "Create Pick";
         ShipBinTypeFilter: Text;
         QtyOnShipmentBins: Decimal;
-        DefaultBinIsShipType: Boolean;
+        DefaultBinAlreadyCounted: Boolean;
     begin
         ShipBinTypeFilter := CreatePick.GetBinTypeFilter(1);
 
@@ -954,10 +954,10 @@ codeunit 7314 "Warehouse Availability Mgt."
 
         if Location.Get(LocationCode) and (Location."Shipment Bin Code" <> '') then
             if Bin.Get(LocationCode, Location."Shipment Bin Code") then begin
-                if Bin."Bin Type Code" <> '' then
+                if (ShipBinTypeFilter <> '') and (Bin."Bin Type Code" <> '') then
                     if BinType.Get(Bin."Bin Type Code") then
-                        DefaultBinIsShipType := BinType.Ship;
-                if not DefaultBinIsShipType then
+                        DefaultBinAlreadyCounted := BinType.Ship;
+                if not DefaultBinAlreadyCounted then
                     QtyOnShipmentBins += CalcQtyOnBin(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
             end;
 
