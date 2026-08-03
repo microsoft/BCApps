@@ -5104,7 +5104,8 @@ table 39 "Purchase Line"
                     PurchHeader.TestField("Currency Factor");
                     Currency.Get(PurchHeader."Currency Code");
                     Currency.TestField("Amount Rounding Precision");
-                end
+                end;
+                CurrencyFactor := CalcCurrencyFactorACY();
             end else
                 Clear(PurchHeader);
 
