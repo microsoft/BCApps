@@ -301,10 +301,10 @@ table 6840 "Spend Request"
     }
     fieldgroups
     {
-        fieldgroup(DropDown; "No.", Type, "Requested By", Purpose, Status)
+        fieldgroup(DropDown; "No.", Type, Purpose, Status)
         {
         }
-        fieldgroup(Brick; "No.", Purpose, "Requested By", Status, "Total Expected Amount")
+        fieldgroup(Brick; "No.", Purpose, Status, "Total Expected Amount")
         {
         }
     }
