@@ -55,9 +55,9 @@ page 5734 "Item Category Attributes"
                         ItemAttribute.SetLoadFields(Type);
                         ItemAttribute.Get(Rec."Attribute ID");
                         if (ItemAttribute.Type = ItemAttribute.Type::Option) and (Rec.Value = '') then
-                            Error(BlankOptionAttributeNotificationMsg, Rec."Attribute Name");
-
-                        ChangeDefaultValue();
+                            Error(BlankOptionAttributeNotificationMsg, Rec."Attribute Name")
+                        else
+                            ChangeDefaultValue();
                     end;
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
@@ -161,7 +161,7 @@ page 5734 "Item Category Attributes"
         RowEditable: Boolean;
         StyleTxt: Text;
         ChangingDefaultValueMsg: Label 'The new default value will not apply to items that use the current item category, ''''%1''''. It will only apply to new items.', Comment = '%1 - item category code';
-        DeleteItemInheritedParentCategoryAttributesQst: Label 'One or more items belong to item category ''''%1''''.\\Do you want to delete the inherited item attributes for the items in question?', Comment = '%1 - item category code,%2 - item category code';
+        DeleteItemInheritedParentCategoryAttributesQst: Label 'One or more items belong to item category ''''%1''''.\\Do you want to delete the inherited item attributes for the items in question?', Comment = '%1 - item category code';
         BlankOptionAttributeNotificationMsg: Label 'You must enter a value for the Option attribute %1. Blank values are not allowed for Option-type attributes.', Comment = '%1 - attribute name';
 
     protected var
@@ -354,6 +354,7 @@ page 5734 "Item Category Attributes"
         exit(ItemCategoryCode);
     end;
 
+    [Obsolete('The blank Option attribute notification has been replaced by an error, so this procedure is no longer used.', '29.0')]
     procedure GetBlankOptionAttributeNotificationID(): Guid
     begin
         exit('1ab28806-432f-46cc-844e-85b0fc36f883');
