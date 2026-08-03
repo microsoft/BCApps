@@ -72,7 +72,7 @@
 								},
 								{
 									"name": "item_availability",
-									"value": "Date filter is set to request date for the current item. When setting the date filter, consider the entire period before the requested date, including dates before today. Use the standard date filter without single quotes."
+									"value": "Set the Date Filter only when the customer explicitly requests delivery on or by a specific date for the current item. Use that requested delivery date and consider the entire period before it, including dates before today. Do not use or infer a delivery date from a document date, order date, issue date, creation date, or any other date that does not explicitly state when the customer wants the item delivered. If the customer does not explicitly request a delivery date, leave the Date Filter unchanged and use its default value. When setting the Date Filter, use the standard date filter without single quotes."
 								},
 								{
 									"name": "item_availability",
