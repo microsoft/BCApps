@@ -167,56 +167,131 @@ Describe "ArtifactBaseline" {
         }
     }
 
+    Context "Get-ArtifactCountry" {
+        It "reads the country the artifact was built for" {
+            Get-ArtifactCountry -ArtifactUrl 'https://bcinsider.azurefd.net/sandbox/29.0.53247.0/w1?sv=x' | Should -Be 'w1'
+            Get-ArtifactCountry -ArtifactUrl 'https://bcinsider.azurefd.net/sandbox/29.0.53247.0/dk' | Should -Be 'dk'
+        }
+
+        It "returns nothing for a url it cannot read" {
+            Get-ArtifactCountry -ArtifactUrl 'not a url' | Should -BeNullOrEmpty
+        }
+    }
+
+    Context "Get-LayerChain" {
+        It "returns just the base layer for W1" {
+            @(Get-LayerChain -CountryCode 'W1' -BaseFolder $script:baseFolder) | Should -Be @('W1')
+        }
+
+        It "accepts the lower case country from an artifact url" {
+            @(Get-LayerChain -CountryCode 'w1' -BaseFolder $script:baseFolder) | Should -Be @('W1')
+        }
+
+        It "walks baseLayer to the root, base first" {
+            @(Get-LayerChain -CountryCode 'DK' -BaseFolder $script:baseFolder) | Should -Be @('W1', 'DK')
+            @(Get-LayerChain -CountryCode 'AT' -BaseFolder $script:baseFolder) | Should -Be @('W1', 'DACH', 'AT')
+            @(Get-LayerChain -CountryCode 'US' -BaseFolder $script:baseFolder) | Should -Be @('W1', 'NA', 'US')
+        }
+
+        It "returns nothing for a country that is not a view" {
+            @(Get-LayerChain -CountryCode 'base' -BaseFolder $script:baseFolder).Count | Should -Be 0
+        }
+    }
+
     Context "Get-ChangedAppNames" {
         BeforeAll {
             $script:graph = Get-AppDependencyGraph -BaseFolder $script:baseFolder
         }
 
-        It "maps an app change to the app and its dependents" {
-            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -Graph $script:graph
+        It "maps a change to the app that owns it" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
             $result.IsUsable | Should -BeTrue
             $result.ChangedApps | Should -Contain 'Microsoft_E-Document Core'
-            $result.ChangedApps | Should -Contain 'Microsoft_E-Document Core Tests'
-            $result.ChangedApps.Count | Should -BeLessThan $script:graph.Count
             $result.KnownApps | Should -Contain 'Microsoft_Base Application'
         }
 
-        It "reuses everything when only unrelated files changed" {
-            $result = Get-ChangedAppNames -ChangedFiles @('README.md') -BaseFolder $script:baseFolder -Graph $script:graph
+        It "does NOT expand to dependents, because their published binaries are still valid" {
+            # This is the whole point: dependency expansion answers "which tests must run".
+            # A dependent whose own source did not change is byte-identical to the artifact's
+            # copy and still resolves, because dependencies are pinned at <major>.<minor>.0.0.
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.ChangedApps | Should -Not -Contain 'Microsoft_E-Document Core Tests'
+            $result.ChangedApps.Count | Should -Be 1
+        }
+
+        It "keeps every app reusable when Base Application changes" {
+            # Everything depends on Base Application, so expanding to dependents would refresh
+            # the whole container - and Base Application changes in nearly every window.
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/W1/BaseApp/Bank/Check/CheckManagement.Codeunit.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeTrue
+            $result.ChangedApps | Should -Be @('Microsoft_Base Application')
+        }
+
+        It "resolves a layer file through the country's view chain" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/W1/Tests/ERM/Some.Codeunit.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.ChangedApps | Should -Be @('Microsoft_Tests-ERM')
+        }
+
+        It "attributes a country layer for a build of that country" {
+            # src/Layers/DK carries no app.json - it overlays the base layer in the DK view.
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/DK/BaseApp/Some.Table.al') -BaseFolder $script:baseFolder -CountryCode 'dk' -Graph $script:graph
+            $result.IsUsable | Should -BeTrue
+            $result.ChangedApps | Should -Be @('Microsoft_Base Application')
+        }
+
+        It "ignores a layer that is not part of the country's chain" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/DK/BaseApp/Some.Table.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
             $result.IsUsable | Should -BeTrue
             $result.ChangedApps.Count | Should -Be 0
         }
 
-        It "reports no changes for an empty diff and still lists the known apps" {
-            $result = Get-ChangedAppNames -ChangedFiles @() -BaseFolder $script:baseFolder -Graph $script:graph
-            $result.IsUsable | Should -BeTrue
-            $result.ChangedApps.Count | Should -Be 0
-            $result.KnownApps | Should -Contain 'Microsoft_Base Application'
-        }
-
-        It "gives up when a fullBuildPattern matches" {
-            $result = Get-ChangedAppNames -ChangedFiles @('build/scripts/NewBcContainer.ps1') -BaseFolder $script:baseFolder -Graph $script:graph
+        It "gives up on a layer change when the country has no view" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/W1/BaseApp/Some.Table.al') -BaseFolder $script:baseFolder -CountryCode 'base' -Graph $script:graph
             $result.IsUsable | Should -BeFalse
-            $result.Reason | Should -Match 'fullBuildPatterns'
+            $result.Reason | Should -Match 'layer chain'
         }
 
-        It "gives up when settings that change compilation are touched" {
-            # These match no fullBuildPattern and map to no app, but they change preprocessor
-            # symbols, analyzers or which apps a project builds.
-            foreach ($file in @('.github/AL-Go-Settings.json', 'build/projects/Test Apps W1/.AL-Go/settings.json')) {
-                $result = Get-ChangedAppNames -ChangedFiles @($file) -BaseFolder $script:baseFolder -Graph $script:graph
-                $result.IsUsable | Should -BeFalse -Because "$file can change how apps are compiled"
+        It "ignores changes that cannot invalidate an app already published" {
+            # None of these are compiled into a retained app: the artifact and platform pins in
+            # particular fetch a NEWER artifact, which makes the diff smaller, not larger.
+            $inert = @(
+                'build/Packages.json'
+                'build/scripts/NewBcContainer.ps1'
+                'build/projects/Test Apps W1/.AL-Go/settings.json'
+                '.github/AL-Go-Settings.json'
+                '.github/workflows/PullRequestHandler.yaml'
+                'src/rulesets/base.ruleset.json'
+                'src/DisabledTests/Tests-ERM/Tests-ERM.DisabledTest.json'
+                'README.md'
+            )
+            foreach ($file in $inert) {
+                $result = Get-ChangedAppNames -ChangedFiles @($file) -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+                $result.IsUsable | Should -BeTrue -Because "$file cannot change a binary that is already in the artifact"
+                $result.ChangedApps.Count | Should -Be 0 -Because "$file belongs to no app"
             }
         }
 
-        It "gives up when an unmapped src file changed (full build fallback)" {
-            $result = Get-ChangedAppNames -ChangedFiles @('src/SomeUnmappedFile.al') -BaseFolder $script:baseFolder -Graph $script:graph
+        It "reports no changes for an empty diff and still lists the known apps" {
+            $result = Get-ChangedAppNames -ChangedFiles @() -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeTrue
+            $result.ChangedApps.Count | Should -Be 0
+            $result.KnownApps | Should -Contain 'Microsoft_Base Application'
+        }
+
+        It "gives up when a src file maps to no app" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/SomeUnmappedFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
             $result.IsUsable | Should -BeFalse
-            $result.Reason | Should -Match 'apps are affected'
+            $result.Reason | Should -Match 'could not be attributed'
+        }
+
+        It "gives up on a path it does not recognize at all" {
+            $result = Get-ChangedAppNames -ChangedFiles @('some/new/toplevel/thing.ps1') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'not recognized'
         }
 
         It "gives up when more than the allowed ratio of apps changed" {
-            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -Graph $script:graph -MaxChangedRatio 0.01
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph -MaxChangedRatio 0.0001
             $result.IsUsable | Should -BeFalse
             $result.Reason | Should -Match 'more than the'
         }
@@ -354,6 +429,18 @@ Describe "ArtifactBaseline" {
             $result.BaselineCommit | Should -Be $script:head
             $result.ChangedApps.Count | Should -Be 0
             $result.KnownApps.Count | Should -BeGreaterThan 300
+        }
+
+        It "derives the country from the artifact url and resolves the view chain" {
+            $w1Artifact = Join-Path $script:cache 'sandbox\29.0.53000.0\w1'
+            New-Item -Path $w1Artifact -ItemType Directory -Force | Out-Null
+            @{ country = 'W1'; version = '29.0.53000.0'; bcAppsCommit = $script:head } |
+                ConvertTo-Json | Set-Content -Path (Join-Path $w1Artifact 'manifest.json') -Encoding UTF8
+
+            $result = Resolve-ArtifactBaseline -ArtifactUrl 'https://bcinsider.example/sandbox/29.0.53000.0/w1' -BaseFolder $script:baseFolder -BuildMode 'IntegrationTests'
+
+            $result.IsUsable | Should -BeTrue
+            $result.BaselineCommit | Should -Be $script:head
         }
 
         It "is not usable for a build mode that changes compilation" {

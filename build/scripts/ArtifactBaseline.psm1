@@ -15,9 +15,9 @@
     .app file is uploaded, extracted, validated and schema-synced.
 
     The apps in the artifact are built from a known BCApps commit. When the artifact manifest
-    carries that commit (see Eng\Core\Lib\BCAppsVersion.psm1 in the NAV repository), this module
-    computes which apps changed between it and the commit being built, so the build can keep the
-    unchanged ones instead of republishing them.
+    carries that commit (stamped by Get-BCAppsCommitSha in Eng\Normal\Lib\SubmodulesHelper.psm1
+    in the NAV repository), this module computes which apps changed between it and the commit
+    being built, so the build can keep the unchanged ones instead of republishing them.
 
     IMPORTANT - what "keeping" means. Retained apps are UNINSTALLED but left published and
     synchronized. That is exactly the state AL-Go's publish step leaves an app in today
@@ -32,8 +32,13 @@
 
 .NOTES
     Anything that cannot be proven safe falls back to today's behavior (clean the container and
-    publish everything): unknown/unreachable commit, a build mode that changes compilation,
-    changes matching the full-build patterns, or a change set so large that reuse buys nothing.
+    publish everything): unknown/unreachable commit, a build mode that changes compilation, a
+    changed file that cannot be attributed to an app, or a change set so large that reuse buys
+    nothing.
+
+    Note what is deliberately NOT a trigger. A retained app is never compiled by this build, so
+    rulesets, analyzer baselines and the artifact/platform pins cannot invalidate it, and
+    dependents of a changed app are not refreshed - see Get-ChangedAppNames.
 #>
 
 $ErrorActionPreference = "Stop"
@@ -50,16 +55,32 @@ $script:AppsNeverInContainer = @(
     'Prevent Metadata Updates Library'
 )
 
-# Changed files that force a full rebuild of the container, on top of the repository's
-# fullBuildPatterns. fullBuildPatterns is tuned for AL-Go's compile skipping; these are the
-# inputs that change how apps are COMPILED or which apps a project builds, and therefore break
-# equivalence with the binaries in the artifact.
-$script:ExtraFullBuildPatterns = @(
-    '.github/*',
-    '.github/**/*',
-    'build/projects/*/.AL-Go/settings.json',
-    '.AL-Go/settings.json'
+# Changed files that cannot invalidate an app that is already published in the artifact.
+#
+# A retained app is never compiled by this build - its binary is fixed inside the artifact - so
+# no repository-side setting can retroactively change it. Rulesets, analyzer baselines and
+# disabled-test lists are diagnostic or test-selection inputs: they can fail a build, they cannot
+# make a published .app wrong.
+#
+# The artifact and platform pins are listed deliberately. Bumping them (UpdateBCArtifactVersion,
+# roughly weekly) downloads a NEWER artifact carrying a NEWER bcAppsCommit, which makes the diff
+# smaller. Treating them as a full-refresh trigger would mean the commit that improves this
+# optimization is the one that switches it off.
+$script:PatternsThatCannotInvalidateApps = @(
+    'build/*'               # build tooling, package pins, per-project AL-Go settings
+    '.github/*'             # workflows and the repository-wide AL-Go settings
+    'src/DisabledTests/*'   # which tests are disabled, not what a binary contains
+    'src/rulesets/*'        # analyzer rulesets - diagnostics only
+    '*.md'
+    '.gitignore'
+    '.gitattributes'
+    '.editorconfig'
+    '.vscode/*'
 )
+
+# Layers are not apps. A country layer folder carries no app.json of its own: it overlays the
+# base layer, and PreCompileApp.ps1 composes src/Views/<CC> from the chain before compiling.
+$script:LayersConfigPath = 'src/Layers/.config/views_config.json'
 
 #region Artifact manifest
 
@@ -114,6 +135,35 @@ function Get-ArtifactFolder {
     }
 
     return $null
+}
+
+<#
+.SYNOPSIS
+    Reads the country a BC artifact was built for from its url.
+.DESCRIPTION
+    'https://<host>/sandbox/29.0.53247.0/w1?sas' -> 'w1'. The container is built for that
+    country, so it is also the view its apps were compiled from.
+.OUTPUTS
+    The country code, or an empty string.
+#>
+function Get-ArtifactCountry {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        [string] $ArtifactUrl
+    )
+
+    try {
+        $path = ([uri]$ArtifactUrl).AbsolutePath.Trim('/')
+    }
+    catch {
+        return ''
+    }
+
+    $segments = @($path -split '/' | Where-Object { $_ })
+    if ($segments.Count -eq 0) { return '' }
+    return $segments[-1]
 }
 
 <#
@@ -342,11 +392,78 @@ function Test-BuildModeChangesCompilation {
 
 <#
 .SYNOPSIS
-    Maps changed files to the set of apps that must be refreshed in the container.
+    Resolves the layer chain a country is compiled from.
 .DESCRIPTION
-    Reuses the dependency graph from BuildOptimization.psm1: each changed file is mapped to the
-    app that owns it, and the set is expanded downstream so that everything depending on a
-    changed app is refreshed too.
+    src/Layers/.config/views_config.json declares a baseLayer per country. PreCompileApp.ps1
+    composes src/Views/<CC> from that chain, so a change in layer L only reaches a build of
+    country CC when L is part of chain(CC).
+
+        W1 -> [W1]        DK -> [W1, DK]        AT -> [W1, DACH, AT]
+
+    Returned base-first, so callers can search most-specific-first by walking it backwards.
+.OUTPUTS
+    String[] of layer names, or an empty array when the country is unknown.
+#>
+function Get-LayerChain {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param(
+        [Parameter(Mandatory)]
+        [string] $CountryCode,
+        [Parameter(Mandatory)]
+        [string] $BaseFolder
+    )
+
+    $configPath = Join-Path $BaseFolder ($script:LayersConfigPath -replace '/', '\')
+    if (-not (Test-Path $configPath)) {
+        return @()
+    }
+
+    try {
+        $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+    }
+    catch {
+        return @()
+    }
+
+    $names = @($config.PSObject.Properties.Name)
+    $resolved = $names | Where-Object { $_ -eq $CountryCode }
+    if (-not $resolved) {
+        # Artifact urls are lower case ('.../sandbox/29.0.0.0/w1'), the config is not.
+        $resolved = $names | Where-Object { $_ -eq $CountryCode.ToUpperInvariant() }
+    }
+    if (-not $resolved) {
+        return @()
+    }
+
+    $chain = @()
+    $current = @($resolved)[0]
+    $guard = 0
+    while ($current -and $guard -lt 32) {
+        if ($chain -contains $current) { break }
+        $chain = @($current) + $chain
+        $current = $config.$current.baseLayer
+        $guard++
+    }
+
+    return @($chain)
+}
+
+<#
+.SYNOPSIS
+    Maps changed files to the apps whose published binary is no longer valid.
+.DESCRIPTION
+    Only the app that OWNS a changed file needs republishing. Dependents are deliberately not
+    expanded: BuildOptimization's Get-AffectedApps answers "which tests must run", where a change
+    in a dependency can change a dependent's behavior. That is a different question from "which
+    published binaries are still valid". An app whose own source did not change has identical
+    source at both commits, is already published, installed and synchronized in the restored
+    database, and still resolves its dependencies because BCApps pins them at <major>.<minor>.0.0.
+
+    Expanding to dependents makes this useless in practice: Base Application changes in nearly
+    every multi-day window, and everything depends on it, so every app would be refreshed.
+
+    Layer files are resolved through the country's view chain - see Get-LayerChain.
 .OUTPUTS
     PSCustomObject with IsUsable, Reason, ChangedApps and KnownApps (both "Publisher_Name").
 #>
@@ -359,6 +476,7 @@ function Get-ChangedAppNames {
         [string[]] $ChangedFiles,
         [Parameter(Mandatory)]
         [string] $BaseFolder,
+        [string] $CountryCode = '',
         [double] $MaxChangedRatio = 0.75,
         [hashtable] $Graph
     )
@@ -381,41 +499,96 @@ function Get-ChangedAppNames {
         }
     }
 
-    if (Test-FullBuildPatternsMatch -ChangedFiles $ChangedFiles -BaseFolder $BaseFolder) {
-        return & $notUsable 'A changed file matches fullBuildPatterns - everything is rebuilt'
+    # Repository-relative app folder -> app key, so a changed path can be attributed without
+    # touching the disk once per file.
+    $rootPrefix = [System.IO.Path]::GetFullPath($BaseFolder).TrimEnd('\', '/')
+    $folderToApp = @{}
+    foreach ($node in $Graph.Values) {
+        if (-not $node.AppFolder) { continue }
+        $relative = [System.IO.Path]::GetFullPath($node.AppFolder)
+        if (-not $relative.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) { continue }
+        $relative = $relative.Substring($rootPrefix.Length).Trim('\', '/').Replace('\', '/')
+        $folderToApp[$relative.ToLowerInvariant()] = Get-AppKey -Publisher $node.Publisher -Name $node.Name
     }
+
+    $chain = @()
+    if ($CountryCode) {
+        $chain = @(Get-LayerChain -CountryCode $CountryCode -BaseFolder $BaseFolder)
+    }
+
+    $changedKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
     foreach ($file in $ChangedFiles) {
-        $normalized = $file.Replace('\', '/')
-        foreach ($pattern in $script:ExtraFullBuildPatterns) {
-            if ($normalized -like $pattern) {
-                return & $notUsable "Changed file '$normalized' can change how apps are compiled (matches '$pattern')"
+        $normalized = "$file".Replace('\', '/').Trim('/')
+        if (-not $normalized) { continue }
+
+        $ignore = $false
+        foreach ($pattern in $script:PatternsThatCannotInvalidateApps) {
+            if ($normalized -like $pattern) { $ignore = $true; break }
+        }
+        if ($ignore) { continue }
+
+        if ($normalized -match '^src/Layers/([^/]+)/(.+)$') {
+            $layer = $Matches[1]
+            $rest = $Matches[2]
+
+            if ($chain.Count -eq 0) {
+                return & $notUsable "Changed file '$normalized' is in a layer but the layer chain for country '$CountryCode' could not be resolved"
             }
+            if ($chain -notcontains $layer) {
+                # Compiled into another country's view only.
+                continue
+            }
+
+            $key = $null
+            $segments = @($rest -split '/')
+            # Longest folder prefix first, so 'Tests/ERM' wins over 'Tests'.
+            for ($take = $segments.Count - 1; $take -ge 1 -and -not $key; $take--) {
+                $prefix = ($segments[0..($take - 1)]) -join '/'
+                for ($i = $chain.Count - 1; $i -ge 0 -and -not $key; $i--) {
+                    $candidate = "src/layers/$($chain[$i])/$prefix".ToLowerInvariant()
+                    if ($folderToApp.ContainsKey($candidate)) { $key = $folderToApp[$candidate] }
+                }
+            }
+
+            if (-not $key) {
+                return & $notUsable "Changed file '$normalized' could not be attributed to an app in the '$CountryCode' view"
+            }
+            [void]$changedKeys.Add($key)
+            continue
         }
+
+        if ($normalized -like 'src/*') {
+            $key = $null
+            $segments = @($normalized -split '/')
+            for ($take = $segments.Count - 1; $take -ge 1 -and -not $key; $take--) {
+                $prefix = (($segments[0..($take - 1)]) -join '/').ToLowerInvariant()
+                if ($folderToApp.ContainsKey($prefix)) { $key = $folderToApp[$prefix] }
+            }
+
+            if (-not $key) {
+                return & $notUsable "Changed file '$normalized' could not be attributed to an app"
+            }
+            [void]$changedKeys.Add($key)
+            continue
+        }
+
+        return & $notUsable "Changed file '$normalized' is not recognized - refreshing everything"
     }
 
-    $affectedIds = @(Get-AffectedApps -ChangedFiles $ChangedFiles -BaseFolder $BaseFolder -Graph $Graph)
-
-    if ($affectedIds.Count -ge $Graph.Count) {
-        return & $notUsable "All $($Graph.Count) apps are affected"
+    if ($changedKeys.Count -ge $Graph.Count -and $Graph.Count -gt 0) {
+        return & $notUsable "All $($Graph.Count) apps changed"
     }
 
-    $ratio = if ($Graph.Count -gt 0) { [double]$affectedIds.Count / [double]$Graph.Count } else { 0 }
+    $ratio = if ($Graph.Count -gt 0) { [double]$changedKeys.Count / [double]$Graph.Count } else { 0 }
     if ($ratio -gt $MaxChangedRatio) {
-        return & $notUsable "$($affectedIds.Count) of $($Graph.Count) apps affected ($([math]::Round($ratio * 100, 1))%) - more than the $([math]::Round($MaxChangedRatio * 100, 1))% limit"
-    }
-
-    $changedApps = @()
-    foreach ($id in $affectedIds) {
-        if ($Graph.ContainsKey($id)) {
-            $changedApps += Get-AppKey -Publisher $Graph[$id].Publisher -Name $Graph[$id].Name
-        }
+        return & $notUsable "$($changedKeys.Count) of $($Graph.Count) apps changed ($([math]::Round($ratio * 100, 1))%) - more than the $([math]::Round($MaxChangedRatio * 100, 1))% limit"
     }
 
     return [PSCustomObject]@{
         IsUsable    = $true
-        Reason      = "$($affectedIds.Count) of $($Graph.Count) apps changed since the artifact"
-        ChangedApps = @($changedApps | Sort-Object -Unique)
+        Reason      = "$($changedKeys.Count) of $($Graph.Count) apps changed since the artifact"
+        ChangedApps = @($changedKeys | Sort-Object)
         KnownApps   = $knownApps
     }
 }
@@ -435,6 +608,7 @@ function Resolve-ArtifactBaseline {
         [Parameter(Mandatory)]
         [string] $BaseFolder,
         [string] $BuildMode = '',
+        [string] $CountryCode = '',
         [double] $MaxChangedRatio = 0.75
     )
 
@@ -483,7 +657,14 @@ function Resolve-ArtifactBaseline {
 
     Write-Host "ARTIFACT BASELINE: $($changedFiles.Count) file(s) changed since artifact commit $baselineCommit"
 
-    $changed = Get-ChangedAppNames -ChangedFiles $changedFiles -BaseFolder $BaseFolder -MaxChangedRatio $MaxChangedRatio
+    # The artifact url ends in the country the container is built for, which is also the name of
+    # the view its apps were compiled from.
+    if (-not $CountryCode) {
+        $CountryCode = Get-ArtifactCountry -ArtifactUrl $ArtifactUrl
+    }
+    Write-Host "ARTIFACT BASELINE: country '$CountryCode', layer chain '$((Get-LayerChain -CountryCode $CountryCode -BaseFolder $BaseFolder) -join ' -> ')'"
+
+    $changed = Get-ChangedAppNames -ChangedFiles $changedFiles -BaseFolder $BaseFolder -CountryCode $CountryCode -MaxChangedRatio $MaxChangedRatio
     $result.IsUsable = $changed.IsUsable
     $result.Reason = $changed.Reason
     $result.ChangedApps = $changed.ChangedApps
@@ -745,11 +926,13 @@ function Clear-ArtifactBaselineState {
 
 Export-ModuleMember -Function @(
     'Get-ArtifactFolder'
+    'Get-ArtifactCountry'
     'Get-ArtifactManifest'
     'Get-ArtifactBaselineCommit'
     'Test-CommitAvailable'
     'Get-ChangedFilesSinceCommit'
     'Test-BuildModeChangesCompilation'
+    'Get-LayerChain'
     'Get-ChangedAppNames'
     'Resolve-ArtifactBaseline'
     'Get-AppKey'

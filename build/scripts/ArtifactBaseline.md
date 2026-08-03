@@ -34,7 +34,7 @@ leave the rest alone.
 ```
 NAV build            ->  artifact manifest.json   { "bcAppsCommit": "<sha>" }
 BCApps PR build      ->  git diff <sha>..HEAD     -> changed files
-                     ->  app dependency graph      -> changed apps + their dependents
+                     ->  attribute each file to the app that OWNS it
                      ->  keep the rest published; unpublish and republish only those
 ```
 
@@ -60,6 +60,45 @@ Step 2 is what makes this safe. Because retained apps end up *published but not 
 
 Only the publish/sync work is skipped - the container still ends up in today's shape.
 
+### Only the owning app, never its dependents
+
+The set of apps to refresh is **not** expanded down the dependency graph.
+`BuildOptimization`'s `Get-AffectedApps` does expand, because it answers a different question -
+*which tests must run* - where a change in a dependency can change a dependent's behaviour.
+
+*Which published binaries are still valid* is not that question. An app whose own source did not
+change has identical source at both commits, is already published, installed and synchronized in
+the restored database, and still resolves its dependencies because BCApps pins them at
+`<major>.<minor>.0.0`, so a refreshed Base Application at `29.0.2147483647.x` still satisfies it.
+
+This is not a marginal difference. Measured on a real 16-commit, 3-day window
+(`1e77e9c2..28ff6645`, 432 changed files, 841 apps): expanding to dependents marks **841 of 841
+apps**, because `src/Layers/W1/BaseApp` changed and everything depends on Base Application.
+Attributing to the owning app marks **10**. Base Application changes in nearly every multi-day
+window, so expansion would make this optimization fire approximately never.
+
+### Layers are resolved through the country's view chain
+
+A country layer folder carries no `app.json`. `PreCompileApp.ps1` calls `New-GDLView`, which
+composes `src/Views/<CC>` from a chain of layers declared in `src/Layers/.config/views_config.json`
+and compiles the localized app from that view:
+
+```
+W1   -> [W1]           DK -> [W1, DK]
+NA   -> [W1, NA]       US -> [W1, NA, US]
+DACH -> [W1, DACH]     AT -> [W1, DACH, AT]
+```
+
+So a change to `src/Layers/<L>/<AppFolder>/**` marks `<AppFolder>` for republish in a build of
+country `CC` **only when `L` is part of `chain(CC)`**, and the app identity is resolved by walking
+that chain from the most specific layer back to the base. For a `Test Apps W1` build the RU, IT,
+ES … layer changes are genuinely irrelevant; for `Test Apps DK` a `src/Layers/DK/BaseApp` change
+*does* invalidate that container's Base Application. Ignoring country layers altogether would
+publish a stale localized Base Application - a correctness bug, not a missed optimization.
+
+The country is taken from the artifact url (`.../sandbox/29.0.53247.0/w1` -> `w1`), which is the
+country the container is built for.
+
 ## NAV side (implemented)
 
 The NAV enlistment already knows the commit: **BCApps is a git submodule of NAV**
@@ -68,10 +107,15 @@ artifact manifest:
 
 | File (NAV) | Change |
 | --- | --- |
-| `Eng/Core/Lib/BCAppsVersion.psm1` | new - resolves the BCApps submodule commit/branch, best effort |
-| `Eng/Core/Lib/BCAppsVersion.test.psm1` / `.test.ps1` | new - 9 tests against real throwaway git enlistments |
-| `Eng/Core/Helpers/CreateFullApplicationNugetPackage.ps1` | `GetDatabaseManifestContent` adds the properties (this is the manifest of the sandbox/country artifact) |
-| `Eng/Operations/Scripts/Docker/Publish-OnPremArtifactsForDocker.psm1` | same for the two on-prem artifact manifests |
+| `Eng/Normal/Lib/SubmodulesHelper.psm1` | `Get-BCAppsCommitSha` - resolves the BCApps submodule commit, returning empty when the submodule is dirty |
+| `Eng/Normal/Lib/SubmodulesHelper.test.psm1` / `.test.ps1` | tests against real throwaway git enlistments |
+| `Eng/Core/Helpers/CreateFullApplicationNugetPackage.ps1` | `GetDatabaseManifestContent` adds `bcAppsCommit` (this is the manifest of the sandbox/country artifact) |
+
+Shipped in NAV PR 251642 on 2026-07-31. Verified in a published artifact:
+`sandbox/29.0.53247.0/w1` and `.../dk` both carry
+`"bcAppsCommit": "1e77e9c2e8d4c58e45e32be2876550dbb68b773c"`, which is a real commit on BCApps
+`main`. The repository-level `base` artifact is *not* stamped, but no `Test Apps` project uses it -
+`Test Apps W1` sets `country: w1` and each localization project sets its own.
 
 The resulting manifest:
 
@@ -134,11 +178,41 @@ Any of these gives up on reuse and behaves exactly like today:
 | Commit not reachable from the clone | Cannot diff. A shallow (CI) clone is fetched once; a complete clone is never made shallow |
 | `git diff` fails | Cannot diff |
 | Build mode changes compilation | Different preprocessor symbols mean the artifact binaries are not equivalent. Derived from the settings (any build mode whose `conditionalSettings` set `preprocessorSymbols` - today that is `Clean`), **not** an allow-list of `Default`: no container-building project uses `Default`, they build in `IntegrationTests` / `UncategorizedTests` / `LegacyTestsBucket1` / `LegacyTestsBucket2` |
-| A changed file matches `fullBuildPatterns` | AL-Go recompiles everything, so the container must be rebuilt too |
-| A changed file is `.github/**` or a project `settings.json` | These change *how* apps compile (preprocessor symbols, analyzers, rulesets) or which apps a project builds, but match no `fullBuildPattern` and map to no app |
 | A changed `src/` file cannot be mapped to an app | Unknown blast radius |
-| More than 75% of apps affected | Reuse buys nothing |
+| A changed layer file belongs to a country with no resolvable view chain | Cannot tell which app it compiles into |
+| A changed path is not recognized at all | Unknown blast radius |
+| More than 75% of apps changed | Reuse buys nothing |
 | Feature setting absent / `BCAPPS_ARTIFACT_BASELINE=disabled` | Explicitly off |
+
+### What is deliberately *not* a trigger
+
+A retained app is never compiled by this build - its binary is fixed inside the artifact - so no
+repository-side setting can retroactively change it. These therefore do **not** force a full
+clean:
+
+| Path | Why not |
+| --- | --- |
+| `src/rulesets/*` | Analyzer rules are a diagnostic input. They can fail a build; they cannot make a published `.app` wrong |
+| `src/DisabledTests/*` | Controls which tests run, not what a binary contains |
+| `build/*` | Build tooling, package pins and per-project AL-Go settings. If a project's `appFolders` changes, a removed app is unpublished anyway (it is no longer in `KnownApps`) and an added app arrives with new files that are attributed normally |
+| `.github/*` | Workflows and the repository-wide AL-Go settings. Preprocessor-symbol changes are caught by the build-mode guard above |
+| `*.md`, `.gitignore`, `.vscode/*` | Not compiled |
+
+The artifact and platform pins deserve their own note. `UpdateBCArtifactVersion` bumps them
+roughly weekly:
+
+```
+.github/AL-Go-Settings.json   artifact   29.0.53094.0 -> 29.0.53221.0
+build/Packages.json           BCPlatform 29.0.53093.0 -> 29.0.53216.0
+```
+
+Bumping a pin downloads a **newer** artifact, carrying a **newer** `bcAppsCommit`, which makes the
+diff *smaller*. Treating those files as a full-refresh trigger would mean the commit that improves
+this optimization is the one that switches it off.
+
+Note also that `fullBuildPatterns` is **not** consulted. It is tuned for AL-Go's compile skipping
+and test selection; on the measured window it vetoes reuse on `build/Packages.json` and
+`src/DisabledTests/*`, neither of which can invalidate a published binary.
 
 Additional guarantees:
 
