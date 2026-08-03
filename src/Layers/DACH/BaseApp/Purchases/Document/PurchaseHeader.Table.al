@@ -21,6 +21,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
@@ -305,8 +306,12 @@ table 38 "Purchase Header"
 
                 if (xRec."Buy-from Vendor No." = "Buy-from Vendor No.") and
                    (xRec."Pay-to Vendor No." <> "Pay-to Vendor No.")
-                then
-                    RecreatePurchLines(PayToVendorTxt);
+                then begin
+                    IsHandled := false;
+                    OnValidatePayToVendorNoOnBeforeRecreatePurchLines(Rec, xRec, IsHandled);
+                    if not IsHandled then
+                        RecreatePurchLines(PayToVendorTxt);
+                end;
 
                 if not SkipPayToContact then
                     UpdatePayToCont("Pay-to Vendor No.");
@@ -2164,6 +2169,36 @@ table 38 "Purchase Header"
                     "VAT Base Discount %" := GLSetup."VAT Tolerance %";
                 Validate("VAT Base Discount %");
             end;
+        }
+        field(146; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this purchase document relates to.';
+            TableRelation = "Spend Request" where(Status = const(Approved));
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                DimensionSetIDArr: array[10] of Integer;
+            begin
+                if Rec."Spend Request No." = '' then begin
+                    Rec."Spend Request Close" := false;
+                    exit;
+                end;
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close");
+                if SpendRequest."Dimension Set ID" <> 0 then begin
+                    DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                    DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                    Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                end;
+            end;
+        }
+        field(147; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the purchase document is posted.';
+            DataClassification = CustomerContent;
         }
         field(151; "Quote No."; Code[20])
         {
@@ -7988,6 +8023,12 @@ table 38 "Purchase Header"
                 exit(GetRangeMax("Buy-from Contact No."));
     end;
 
+    procedure GetContactDetails(var BuyFromContact: Record Contact; var PayToContact: Record Contact)
+    begin
+        BuyFromContact.GetOrClear("Buy-from Contact No.");
+        PayToContact.GetOrClear("Pay-to Contact No.");
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var PurchaseHeader: Record "Purchase Header"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     begin
@@ -8910,6 +8951,11 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidatePaytoVendorNoBeforeRecreateLines(var PurchaseHeader: Record "Purchase Header"; CallingFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePayToVendorNoOnBeforeRecreatePurchLines(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 

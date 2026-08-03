@@ -2308,7 +2308,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value EvaluationMode="Auto">=First(Fields!VATCaption_GenJnlLine.Value)</Value>
+                                                    <Value EvaluationMode="Auto">=First(Fields!VATNumberCaption_GenJnlLine.Value)</Value>
                                                     <Style>
                                                       <FontFamily>Segoe UI Semibold</FontFamily>
                                                       <FontSize>7pt</FontSize>
@@ -2550,7 +2550,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value EvaluationMode="Auto">=First(Fields!BalVATCodeCaption_GenJnlLine.Value)</Value>
+                                                    <Value EvaluationMode="Auto">=First(Fields!BalVATNumberCaption_GenJnlLine.Value)</Value>
                                                     <Style>
                                                       <FontFamily>Segoe UI Semibold</FontFamily>
                                                       <FontSize>7pt</FontSize>
@@ -2939,7 +2939,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value EvaluationMode="Auto">=Fields!VATCode_GenJnlLine.Value</Value>
+                                                    <Value EvaluationMode="Auto">=Fields!VATNumber_GenJnlLine.Value</Value>
                                                     <Style>
                                                       <FontFamily>Segoe UI</FontFamily>
                                                       <FontSize>7pt</FontSize>
@@ -3187,7 +3187,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value EvaluationMode="Auto">=Fields!BalVATCode_GenJnlLine.Value</Value>
+                                                    <Value EvaluationMode="Auto">=Fields!BalVATNumber_GenJnlLine.Value</Value>
                                                     <Style>
                                                       <FontFamily>Segoe UI</FontFamily>
                                                       <FontSize>7pt</FontSize>

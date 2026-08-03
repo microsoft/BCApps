@@ -21,6 +21,7 @@ codeunit 134881 "ERM Exch. Rate Adjmt. Vendor"
         AmountMismatchErr: Label '%1 field must be %2 in %3 table for %4 field %5.';
         ExpectedUnrealizedDtldVendEntryErr: Label 'Expected Unrealized Loss/Gain Detailed Vendor Ledger Entry for vendor %1.', Comment = '%1 = Vendor No.';
         PostingGroupMismatchErr: Label 'Posting Group in Detailed Vendor Ledger Entry must be %1 for vendor %2.', Comment = '%1 = Expected Posting Group Code, %2 = Vendor No.';
+        UnexpectedAdjustedEntryErr: Label 'No Unrealized Loss/Gain Detailed Vendor Ledger Entry was expected for Posting Group %1.', Comment = '%1 = Posting Group Code';
 
     [Test]
     [Scope('OnPrem')]
@@ -936,6 +937,128 @@ codeunit 134881 "ERM Exch. Rate Adjmt. Vendor"
             StrSubstNo(PostingGroupMismatchErr, VendorPostingGroup2.Code, Vendor2."No."));
     end;
 
+    [Test]
+    procedure ExchRateAdjmtVendorFilterAdjustsDefaultPostingGroupOnly()
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        AltVendorPostingGroup: Record "Vendor Posting Group";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [Adjust Exchange Rate] [Detailed Ledger Entry] [Posting Group]
+        // [SCENARIO] Exchange Rate Adjustment filtered by the vendor's default Posting Group only adjusts ledger entries that carry that Posting Group
+        Initialize();
+
+        // [GIVEN] Allow Multiple Posting Groups is enabled in Purchases & Payables Setup.
+        SetPurchAllowMultiplePostingGroups();
+
+        // [GIVEN] Create a new Currency with exchange rate.
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Vendor with default Posting Group "VPG1", allowing multiple posting groups, and a linked alternate Posting Group "VPG2".
+        CreateVendorAllowMultiplePostingGroups(Vendor, VendorPostingGroup, AltVendorPostingGroup, CurrencyCode);
+
+        // [GIVEN] Post an invoice for the vendor with the default Posting Group "VPG1".
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        CreateVendorInvoiceJnlLine(GenJournalLine, GenJournalBatch, Vendor."No.", -LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Post an invoice for the vendor with the alternate Posting Group "VPG2".
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        CreateVendorInvoiceJnlLine(GenJournalLine, GenJournalBatch, Vendor."No.", -LibraryRandom.RandIntInRange(500, 1000));
+        GenJournalLine.Validate("Posting Group", AltVendorPostingGroup.Code);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed.
+        ModifyExchRateForCurrency(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates filtered to the default Vendor Posting Group "VPG1".
+        RunExchRateAdjustmentWithVendorPostingGroupFilter(CurrencyCode, Vendor."No.", VendorPostingGroup.Code);
+
+        // [THEN] An Unrealized Loss/Gain Detailed Vendor Ledger Entry exists for Posting Group "VPG1".
+        DetailedVendorLedgEntry.SetRange("Vendor No.", Vendor."No.");
+        DetailedVendorLedgEntry.SetFilter(
+            "Entry Type", '%1|%2',
+            DetailedVendorLedgEntry."Entry Type"::"Unrealized Loss",
+            DetailedVendorLedgEntry."Entry Type"::"Unrealized Gain");
+        DetailedVendorLedgEntry.SetRange("Posting Group", VendorPostingGroup.Code);
+        Assert.IsFalse(
+            DetailedVendorLedgEntry.IsEmpty(),
+            StrSubstNo(ExpectedUnrealizedDtldVendEntryErr, Vendor."No."));
+
+        // [THEN] No Unrealized Loss/Gain Detailed Vendor Ledger Entry exists for the alternate Posting Group "VPG2".
+        DetailedVendorLedgEntry.SetRange("Posting Group", AltVendorPostingGroup.Code);
+        Assert.IsTrue(
+            DetailedVendorLedgEntry.IsEmpty(),
+            StrSubstNo(UnexpectedAdjustedEntryErr, AltVendorPostingGroup.Code));
+    end;
+
+    [Test]
+    procedure ExchRateAdjmtVendorFilterAdjustsAlternatePostingGroup()
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        AltVendorPostingGroup: Record "Vendor Posting Group";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [Adjust Exchange Rate] [Detailed Ledger Entry] [Posting Group]
+        // [SCENARIO] Exchange Rate Adjustment filtered by an alternate Vendor Posting Group adjusts the ledger entries carrying that Posting Group even though the vendor's master Posting Group differs, proving the master record Posting Group filter is cleared.
+        Initialize();
+
+        // [GIVEN] Allow Multiple Posting Groups is enabled in Purchases & Payables Setup.
+        SetPurchAllowMultiplePostingGroups();
+
+        // [GIVEN] Create a new Currency with exchange rate.
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Vendor with default Posting Group "VPG1", allowing multiple posting groups, and a linked alternate Posting Group "VPG2".
+        CreateVendorAllowMultiplePostingGroups(Vendor, VendorPostingGroup, AltVendorPostingGroup, CurrencyCode);
+
+        // [GIVEN] Post an invoice for the vendor with the default Posting Group "VPG1".
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        CreateVendorInvoiceJnlLine(GenJournalLine, GenJournalBatch, Vendor."No.", -LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Post an invoice for the vendor with the alternate Posting Group "VPG2".
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        CreateVendorInvoiceJnlLine(GenJournalLine, GenJournalBatch, Vendor."No.", -LibraryRandom.RandIntInRange(500, 1000));
+        GenJournalLine.Validate("Posting Group", AltVendorPostingGroup.Code);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed.
+        ModifyExchRateForCurrency(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates filtered to the alternate Vendor Posting Group "VPG2" (not the vendor's master Posting Group).
+        RunExchRateAdjustmentWithVendorPostingGroupFilter(CurrencyCode, Vendor."No.", AltVendorPostingGroup.Code);
+
+        // [THEN] An Unrealized Loss/Gain Detailed Vendor Ledger Entry exists for the alternate Posting Group "VPG2", proving the master record filter was cleared and the ledger entry was still adjusted.
+        DetailedVendorLedgEntry.SetRange("Vendor No.", Vendor."No.");
+        DetailedVendorLedgEntry.SetFilter(
+            "Entry Type", '%1|%2',
+            DetailedVendorLedgEntry."Entry Type"::"Unrealized Loss",
+            DetailedVendorLedgEntry."Entry Type"::"Unrealized Gain");
+        DetailedVendorLedgEntry.SetRange("Posting Group", AltVendorPostingGroup.Code);
+        Assert.IsFalse(
+            DetailedVendorLedgEntry.IsEmpty(),
+            StrSubstNo(ExpectedUnrealizedDtldVendEntryErr, Vendor."No."));
+
+        // [THEN] No Unrealized Loss/Gain Detailed Vendor Ledger Entry exists for the default Posting Group "VPG1".
+        DetailedVendorLedgEntry.SetRange("Posting Group", VendorPostingGroup.Code);
+        Assert.IsTrue(
+            DetailedVendorLedgEntry.IsEmpty(),
+            StrSubstNo(UnexpectedAdjustedEntryErr, VendorPostingGroup.Code));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -955,6 +1078,7 @@ codeunit 134881 "ERM Exch. Rate Adjmt. Vendor"
         Commit();
 
         LibrarySetupStorage.SaveGeneralLedgerSetup();
+        LibrarySetupStorage.SavePurchasesSetup();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ERM Exch. Rate Adjmt. Vendor");
     end;
@@ -1163,6 +1287,43 @@ codeunit 134881 "ERM Exch. Rate Adjmt. Vendor"
         BankAccount.Validate("Currency Code", CurrencyCode);
         BankAccount.Validate("Bank Acc. Posting Group", BankAccountPostingGroup.Code);
         BankAccount.Modify(true);
+    end;
+
+    local procedure SetPurchAllowMultiplePostingGroups()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Allow Multiple Posting Groups", true);
+        PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure CreateVendorAllowMultiplePostingGroups(var Vendor: Record Vendor; var VendorPostingGroup: Record "Vendor Posting Group"; var AltVendorPostingGroup: Record "Vendor Posting Group"; CurrencyCode: Code[10])
+    begin
+        CreateVendorWithNewPostingGroup(Vendor, VendorPostingGroup, CurrencyCode);
+        LibraryPurchase.CreateVendorPostingGroup(AltVendorPostingGroup);
+        AltVendorPostingGroup.Validate("Payables Account", LibraryERM.CreateGLAccountNo());
+        AltVendorPostingGroup.Modify(true);
+        LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup.Code, AltVendorPostingGroup.Code);
+        Vendor.Validate("Allow Multiple Posting Groups", true);
+        Vendor.Modify(true);
+    end;
+
+    local procedure RunExchRateAdjustmentWithVendorPostingGroupFilter(CurrencyCode: Code[10]; VendorNo: Code[20]; VendorPostingGroupCode: Code[20])
+    var
+        Currency: Record Currency;
+        Vendor: Record Vendor;
+        ExchRateAdjustment: Report "Exch. Rate Adjustment";
+    begin
+        Currency.SetRange(Code, CurrencyCode);
+        Vendor.SetRange("No.", VendorNo);
+        Vendor.SetRange("Vendor Posting Group", VendorPostingGroupCode);
+        ExchRateAdjustment.SetTableView(Currency);
+        ExchRateAdjustment.SetTableView(Vendor);
+        ExchRateAdjustment.InitializeRequest2(0D, WorkDate(), 'Test', WorkDate(), LibraryUtility.GenerateGUID(), true, false);
+        ExchRateAdjustment.UseRequestPage(false);
+        ExchRateAdjustment.SetHideUI(true);
+        ExchRateAdjustment.Run();
     end;
 }
 

@@ -1936,6 +1936,71 @@ codeunit 136209 "Marketing Opportunity Mgmt"
                 Format(OpportunityEntry."Action Type"::Skip)));
     end;
 
+    [Test]
+    procedure ChancesOfSuccessRevertsToCurrentStageOnActionTypeUpdate()
+    var
+        ActiveOpportunityEntry: Record "Opportunity Entry";
+        Opportunity: Record Opportunity;
+        OpportunityEntry: Record "Opportunity Entry";
+        SalesCycle: Record "Sales Cycle";
+        SaleCycleStage1: Record "Sales Cycle Stage";
+        SaleCycleStage2: Record "Sales Cycle Stage";
+        Stage1Chances: Decimal;
+        Stage2Chances: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Changing Action Type to Update reverts Chances of Success % to the current stage value
+        Initialize();
+
+        // [GIVEN] Sales Cycle "SC" with Stage 1 having Chances of Success % "C1" and Stage 2 having Chances of Success % "C2"
+        LibraryMarketing.CreateSalesCycle(SalesCycle);
+        CreateSalesCycleStage(SaleCycleStage1, SalesCycle.Code);
+        Stage1Chances := SaleCycleStage1."Chances of Success %";
+        CreateSalesCycleStage(SaleCycleStage2, SalesCycle.Code);
+        Stage2Chances := SaleCycleStage2."Chances of Success %";
+
+        // [GIVEN] Opportunity "O" on Stage 1 with active entry
+        LibraryMarketing.CreateOpportunity(Opportunity, LibraryMarketing.CreateCompanyContactNo());
+        Opportunity."Sales Cycle Code" := SalesCycle.Code;
+        Opportunity.Status := Opportunity.Status::"In Progress";
+        Opportunity.Modify();
+
+        CreateOppEntryForUpdateEstimates(ActiveOpportunityEntry, SalesCycle.Code, SaleCycleStage1.Stage, Stage1Chances);
+        ActiveOpportunityEntry."Opportunity No." := Opportunity."No.";
+        ActiveOpportunityEntry.Active := true;
+        ActiveOpportunityEntry.Modify();
+
+        // [GIVEN] New Opportunity Entry "OE" initialized for the wizard with CreateStageList defaulting to Action Type = Next
+        CreateOppEntryForUpdateEstimates(OpportunityEntry, SalesCycle.Code, SaleCycleStage1.Stage, Stage1Chances);
+        OpportunityEntry."Opportunity No." := Opportunity."No.";
+        OpportunityEntry.Modify();
+        OpportunityEntry.CreateStageList();
+
+        // [GIVEN] WizardActionTypeValidate2 called for Action Type = Next sets Chances of Success % to Stage 2 value
+        OpportunityEntry."Action Type" := OpportunityEntry."Action Type"::Next;
+        OpportunityEntry.WizardActionTypeValidate2();
+        OpportunityEntry.Get(OpportunityEntry."Entry No.");
+        Assert.AreEqual(
+            Stage2Chances,
+            OpportunityEntry."Chances of Success %",
+            StrSubstNo(
+                ChancesOfSuccessOverrideErr,
+                Format(OpportunityEntry."Action Type"::Next)));
+
+        // [WHEN] Action Type is changed to Update and WizardActionTypeValidate2 is called
+        OpportunityEntry."Action Type" := OpportunityEntry."Action Type"::Update;
+        OpportunityEntry.WizardActionTypeValidate2();
+
+        // [THEN] Chances of Success % reverts to Stage 1 value
+        OpportunityEntry.Get(OpportunityEntry."Entry No.");
+        Assert.AreEqual(
+            Stage1Chances,
+            OpportunityEntry."Chances of Success %",
+            StrSubstNo(
+                ChancesOfSuccessOverrideErr,
+                Format(OpportunityEntry."Action Type"::Update)));
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Marketing Opportunity Mgmt");
