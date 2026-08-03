@@ -34,24 +34,19 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
     // so re-running this after a successful migration (or during reinstall) is a no-op.
     internal procedure MigrateReqWkshTemplateTypeFromLegacyValue()
     var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
         ReqWkshTemplateRecordRef: RecordRef;
         TypeFieldRef: FieldRef;
     begin
         ReqWkshTemplateRecordRef.Open(Database::"Req. Wksh. Template");
-        TypeFieldRef := ReqWkshTemplateRecordRef.Field(ReqWkshTemplateTypeFieldNo());
+        TypeFieldRef := ReqWkshTemplateRecordRef.Field(ReqWkshTemplate.FieldNo("Type"));
         TypeFieldRef.SetRange(LegacySubcontractingTypeValue());
         if ReqWkshTemplateRecordRef.FindSet(true) then
             repeat
-                TypeFieldRef.Value := CurrentSubcontractingTypeValue();
-                ReqWkshTemplateRecordRef.Modify(true);
+                TypeFieldRef.Value := ReqWkshTemplate.Type::Subcontracting.AsInteger();
+                ReqWkshTemplateRecordRef.Modify();
             until ReqWkshTemplateRecordRef.Next() = 0;
         ReqWkshTemplateRecordRef.Close();
-    end;
-
-    local procedure ReqWkshTemplateTypeFieldNo(): Integer
-    begin
-        // "Req. Wksh. Template".Type field number (Microsoft.Inventory.Requisition namespace).
-        exit(99000750);
     end;
 
     local procedure LegacySubcontractingTypeValue(): Integer
@@ -59,12 +54,5 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
         // Raw value the Subcontracting enum extension value used before the object renumbering (Bug 644283).
         exit(99001500);
     end;
-
-    local procedure CurrentSubcontractingTypeValue(): Integer
-    begin
-        // Raw value the Subcontracting enum extension value uses after the object renumbering (Bug 644283).
-        exit(20500);
-    end;
-
 }
 #pragma warning restore AS0072, AS0136
