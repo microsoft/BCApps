@@ -8,6 +8,7 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.SyncEngine;
+using Microsoft.Inventory.Location;
 using Microsoft.Projects.Project.Archive;
 using Microsoft.Purchases.Archive;
 using Microsoft.Sales.Archive;
@@ -37,6 +38,7 @@ codeunit 3995 "Base Application Logs Delete"
                 tabledata "Integration Synch. Job" = rd,
                 tabledata "Integration Synch. Job Errors" = rd,
                 tabledata "Job Queue Log Entry" = rd,
+                tabledata Location = r,
                 tabledata "Posted Invt. Pick Header" = rd,
                 tabledata "Posted Invt. Put-away Header" = rd,
                 tabledata "Posted Whse. Receipt Header" = rd,
@@ -88,6 +90,8 @@ codeunit 3995 "Base Application Logs Delete"
         then
             exit;
 
+        ExcludeBinMandatoryLocationRecords(RecRef);
+
         // if no filters have been set, something is wrong.
         if (RecRef.GetFilters() = '') or (not RecRef.MarkedOnly()) then
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(NoFiltersErr, RecRef.Number, RecRef.Name));
@@ -97,6 +101,46 @@ codeunit 3995 "Base Application Logs Delete"
 
         // set handled
         Handled := true;
+    end;
+
+    local procedure ExcludeBinMandatoryLocationRecords(var RecRef: RecordRef)
+    var
+        Location: Record Location;
+        PostedInvtPickHeader: Record "Posted Invt. Pick Header";
+        PostedInvtPutawayHeader: Record "Posted Invt. Put-away Header";
+        LocationCodeFieldRef: FieldRef;
+        RecordId: RecordId;
+        RecordsToExclude: List of [RecordId];
+        LocationCode: Code[10];
+    begin
+        case RecRef.Number of
+            Database::"Posted Invt. Pick Header":
+                LocationCodeFieldRef := RecRef.Field(PostedInvtPickHeader.FieldNo("Location Code"));
+            Database::"Posted Invt. Put-away Header":
+                LocationCodeFieldRef := RecRef.Field(PostedInvtPutawayHeader.FieldNo("Location Code"));
+            else
+                exit;
+        end;
+
+        if not RecRef.MarkedOnly() then begin
+            if RecRef.FindSet() then
+                repeat
+                    RecRef.Mark(true);
+                until RecRef.Next() = 0;
+            RecRef.MarkedOnly(true);
+        end;
+
+        if RecRef.FindSet() then
+            repeat
+                LocationCode := LocationCodeFieldRef.Value;
+                if Location.Get(LocationCode) and Location."Bin Mandatory" then
+                    RecordsToExclude.Add(RecRef.RecordId);
+            until RecRef.Next() = 0;
+
+        foreach RecordId in RecordsToExclude do begin
+            RecRef.Get(RecordId);
+            RecRef.Mark(false);
+        end;
     end;
 
     local procedure LogCategory(): Enum "Retention Policy Log Category"
