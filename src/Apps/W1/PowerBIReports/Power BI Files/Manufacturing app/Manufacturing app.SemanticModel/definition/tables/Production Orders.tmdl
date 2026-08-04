@@ -547,7 +547,7 @@ table 'Production Orders'
 			VAR TimeFactor =
 			    LOOKUPVALUE (
 			        'Time Factors'[Time Factor],
-			        'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[Show Capacity In] )
+			        'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[type] )
 			    )
 			RETURN
 			    DIVIDE (
@@ -572,7 +572,7 @@ table 'Production Orders'
 			
 			VAR ManufacutringSetupTimeFactor = LOOKUPVALUE (
 			                                    'Time Factors'[Time Factor],
-			                                    'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[Show Capacity In] )
+			                                    'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[type] )
 			                                )
 			VAR Qty =  
 			        SUMX (
@@ -632,7 +632,7 @@ table 'Production Orders'
 			VAR TimeFactor =
 			    LOOKUPVALUE (
 			        'Time Factors'[Time Factor],
-			        'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[Show Capacity In] )
+			        'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[type] )
 			    )
 			RETURN
 			    CALCULATE (
@@ -684,7 +684,7 @@ table 'Production Orders'
 	measure 'Actual Time Used' = ```
 			
 			VAR TargetUOM =
-			    SELECTEDVALUE ( 'Manufacturing Setup'[Show Capacity In] )
+			    SELECTEDVALUE ( 'Manufacturing Setup'[type] )
 			VAR TargetTimeFactor =
 			    LOOKUPVALUE (
 			        'Time Factors'[Time Factor],
@@ -1031,5 +1031,5 @@ table 'Production Orders'
 
 	annotation PBI_NavigationStepName = Navigation
 
-	annotation PBI_ResultType = Exception
+	annotation PBI_ResultType = Table
 
