@@ -6783,11 +6783,11 @@ End Function
         <Field Name="DueDateCaption">
           <DataField>DueDateCaption</DataField>
         </Field>
-        <Field Name="Show_MIRLines">
-          <DataField>Show_MIRLines</DataField>
+        <Field Name="ShowMIRLines">
+          <DataField>ShowMIRLines</DataField>
         </Field>
-        <Field Name="DocDateCaption">
-          <DataField>DocDateCaption</DataField>
+        <Field Name="DocumentDateCaption">
+          <DataField>DocumentDateCaption</DataField>
         </Field>
         <Field Name="ContactPhoneNoLbl">
           <DataField>ContactPhoneNoLbl</DataField>
@@ -6816,14 +6816,14 @@ End Function
         <Field Name="CompanyInfo3Picture">
           <DataField>CompanyInfo3Picture</DataField>
         </Field>
-        <Field Name="DueDate_IssuedReminderHdr">
-          <DataField>DueDate_IssuedReminderHdr</DataField>
+        <Field Name="DueDate_IssuedReminderHeader">
+          <DataField>DueDate_IssuedReminderHeader</DataField>
         </Field>
-        <Field Name="PostDate_IssuedReminderHdr">
-          <DataField>PostDate_IssuedReminderHdr</DataField>
+        <Field Name="PostingDate_IssuedReminderHeader">
+          <DataField>PostingDate_IssuedReminderHeader</DataField>
         </Field>
-        <Field Name="YourRef_IssueReminderHdr">
-          <DataField>YourRef_IssueReminderHdr</DataField>
+        <Field Name="YourRef_IssuedReminderHeader">
+          <DataField>YourRef_IssuedReminderHeader</DataField>
         </Field>
         <Field Name="Contact_IssuedReminderHdr">
           <DataField>Contact_IssuedReminderHdr</DataField>
@@ -6831,20 +6831,20 @@ End Function
         <Field Name="ReferenceText">
           <DataField>ReferenceText</DataField>
         </Field>
-        <Field Name="VatRegNo_IssueReminderHdr">
-          <DataField>VatRegNo_IssueReminderHdr</DataField>
+        <Field Name="VATRegNo_IssuedReminderHeader">
+          <DataField>VATRegNo_IssuedReminderHeader</DataField>
         </Field>
         <Field Name="VATNoText">
           <DataField>VATNoText</DataField>
         </Field>
-        <Field Name="DocDate_IssueReminderHdr">
-          <DataField>DocDate_IssueReminderHdr</DataField>
+        <Field Name="DocDate_IssuedReminderHeader">
+          <DataField>DocDate_IssuedReminderHeader</DataField>
         </Field>
-        <Field Name="CustNo_IssueReminderHdr">
-          <DataField>CustNo_IssueReminderHdr</DataField>
+        <Field Name="CustNo_IssuedReminderHeader">
+          <DataField>CustNo_IssuedReminderHeader</DataField>
         </Field>
-        <Field Name="CompanyInfoBankAccNo">
-          <DataField>CompanyInfoBankAccNo</DataField>
+        <Field Name="CompanyInfoBankAccountNo">
+          <DataField>CompanyInfoBankAccountNo</DataField>
         </Field>
         <Field Name="CompanyInfoIBAN">
           <DataField>CompanyInfoIBAN</DataField>
@@ -6858,8 +6858,8 @@ End Function
         <Field Name="CompanyInfoHomePage">
           <DataField>CompanyInfoHomePage</DataField>
         </Field>
-        <Field Name="CompanyInfoEMail">
-          <DataField>CompanyInfoEMail</DataField>
+        <Field Name="CompanyInfoEmail">
+          <DataField>CompanyInfoEmail</DataField>
         </Field>
         <Field Name="CustAddr8">
           <DataField>CustAddr8</DataField>
@@ -6912,11 +6912,11 @@ End Function
         <Field Name="CompanyAddr1">
           <DataField>CompanyAddr1</DataField>
         </Field>
-        <Field Name="TextPage">
-          <DataField>TextPage</DataField>
+        <Field Name="PageCaption">
+          <DataField>PageCaption</DataField>
         </Field>
-        <Field Name="CompanyInfo_BankBranchNo">
-          <DataField>CompanyInfo_BankBranchNo</DataField>
+        <Field Name="CompanyInfoBankBranchNo">
+          <DataField>CompanyInfoBankBranchNo</DataField>
         </Field>
         <Field Name="PostingDateCaption">
           <DataField>PostingDateCaption</DataField>
@@ -6924,8 +6924,8 @@ End Function
         <Field Name="ReminderNoCaption">
           <DataField>ReminderNoCaption</DataField>
         </Field>
-        <Field Name="BankAccNoCaption">
-          <DataField>BankAccNoCaption</DataField>
+        <Field Name="BankAccountNoCaption">
+          <DataField>BankAccountNoCaption</DataField>
         </Field>
         <Field Name="IBANCaption">
           <DataField>IBANCaption</DataField>
@@ -6933,14 +6933,14 @@ End Function
         <Field Name="BankNameCaption">
           <DataField>BankNameCaption</DataField>
         </Field>
-        <Field Name="VAT_RegNoCaption">
-          <DataField>VAT_RegNoCaption</DataField>
+        <Field Name="VATRegNoCaption">
+          <DataField>VATRegNoCaption</DataField>
         </Field>
-        <Field Name="Email_Caption">
-          <DataField>Email_Caption</DataField>
+        <Field Name="EmailCaption">
+          <DataField>EmailCaption</DataField>
         </Field>
-        <Field Name="HomePage_Caption">
-          <DataField>HomePage_Caption</DataField>
+        <Field Name="HomePageCaption">
+          <DataField>HomePageCaption</DataField>
         </Field>
         <Field Name="PhoneNoCaption">
           <DataField>PhoneNoCaption</DataField>
@@ -6951,11 +6951,11 @@ End Function
         <Field Name="CompanyVATRegistrationNoCaption">
           <DataField>CompanyVATRegistrationNoCaption</DataField>
         </Field>
-        <Field Name="BankBranch_NoCaption">
-          <DataField>BankBranch_NoCaption</DataField>
+        <Field Name="BankBranchNoCaption">
+          <DataField>BankBranchNoCaption</DataField>
         </Field>
-        <Field Name="CustNo_IssueReminderHdrCaption">
-          <DataField>CustNo_IssueReminderHdrCaption</DataField>
+        <Field Name="CustNo_IssuedReminderHeaderCaption">
+          <DataField>CustNo_IssuedReminderHeaderCaption</DataField>
         </Field>
         <Field Name="DimText">
           <DataField>DimText</DataField>
@@ -6990,8 +6990,8 @@ End Function
         <Field Name="DueDate_IssuedReminderLine">
           <DataField>DueDate_IssuedReminderLine</DataField>
         </Field>
-        <Field Name="OriginalAmt_IssuedReminderLine">
-          <DataField>OriginalAmt_IssuedReminderLine</DataField>
+        <Field Name="OrgAmt_IssuedReminderLine">
+          <DataField>OrgAmt_IssuedReminderLine</DataField>
         </Field>
         <Field Name="OrgAmt_IssuedReminderLineFormat">
           <DataField>OrgAmt_IssuedReminderLineFormat</DataField>
@@ -6999,26 +6999,26 @@ End Function
         <Field Name="DocType_IssuedReminderLine">
           <DataField>DocType_IssuedReminderLine</DataField>
         </Field>
-        <Field Name="LineNo_IssuedReminderLine">
-          <DataField>LineNo_IssuedReminderLine</DataField>
+        <Field Name="No_IssuedReminderLine">
+          <DataField>No_IssuedReminderLine</DataField>
         </Field>
         <Field Name="ShowInternalInfo">
           <DataField>ShowInternalInfo</DataField>
         </Field>
-        <Field Name="VAT_AmtIssRemHdrAddFeeInclVAT">
-          <DataField>VAT_AmtIssRemHdrAddFeeInclVAT</DataField>
+        <Field Name="VATAmtIssRemHdrAddFeeInclVAT">
+          <DataField>VATAmtIssRemHdrAddFeeInclVAT</DataField>
         </Field>
         <Field Name="VATAmtIssRemHdrAddFeeInclVATFormat">
           <DataField>VATAmtIssRemHdrAddFeeInclVATFormat</DataField>
         </Field>
-        <Field Name="NNCInterestAmt">
-          <DataField>NNCInterestAmt</DataField>
+        <Field Name="NNCInterestAmount">
+          <DataField>NNCInterestAmount</DataField>
         </Field>
         <Field Name="NNCInterestAmountFormat">
           <DataField>NNCInterestAmountFormat</DataField>
         </Field>
-        <Field Name="Total_RemIntAmount">
-          <DataField>Total_RemIntAmount</DataField>
+        <Field Name="TotalRemIntAmount">
+          <DataField>TotalRemIntAmount</DataField>
         </Field>
         <Field Name="TotalRemIntAmountFormat">
           <DataField>TotalRemIntAmountFormat</DataField>
@@ -7038,8 +7038,8 @@ End Function
         <Field Name="TotalInclVATText">
           <DataField>TotalInclVATText</DataField>
         </Field>
-        <Field Name="NNCVATAmt">
-          <DataField>NNCVATAmt</DataField>
+        <Field Name="NNCVATAmount">
+          <DataField>NNCVATAmount</DataField>
         </Field>
         <Field Name="NNCVATAmountFormat">
           <DataField>NNCVATAmountFormat</DataField>
@@ -7056,14 +7056,14 @@ End Function
         <Field Name="TotalVATAmtFormat">
           <DataField>TotalVATAmtFormat</DataField>
         </Field>
-        <Field Name="RemNo_IssuedReminderLine">
-          <DataField>RemNo_IssuedReminderLine</DataField>
+        <Field Name="Rem_IssuedReminderLine">
+          <DataField>Rem_IssuedReminderLine</DataField>
         </Field>
         <Field Name="InterestAmountCaption">
           <DataField>InterestAmountCaption</DataField>
         </Field>
-        <Field Name="VAT_AmountCaption">
-          <DataField>VAT_AmountCaption</DataField>
+        <Field Name="VATAmountCaption">
+          <DataField>VATAmountCaption</DataField>
         </Field>
         <Field Name="RemAmt_IssuedReminderLineCaption">
           <DataField>RemAmt_IssuedReminderLineCaption</DataField>
@@ -7071,8 +7071,8 @@ End Function
         <Field Name="DocNo_IssuedReminderLineCaption">
           <DataField>DocNo_IssuedReminderLineCaption</DataField>
         </Field>
-        <Field Name="OriginalAmt_IssuedReminderLineCaption">
-          <DataField>OriginalAmt_IssuedReminderLineCaption</DataField>
+        <Field Name="OrgAmt_IssuedReminderLineCaption">
+          <DataField>OrgAmt_IssuedReminderLineCaption</DataField>
         </Field>
         <Field Name="DocType_IssuedReminderLineCaption">
           <DataField>DocType_IssuedReminderLineCaption</DataField>
@@ -7086,14 +7086,14 @@ End Function
         <Field Name="RemainingAmountText">
           <DataField>RemainingAmountText</DataField>
         </Field>
-        <Field Name="Desc1_IssuedReminderLine">
-          <DataField>Desc1_IssuedReminderLine</DataField>
+        <Field Name="Desc2_IssuedReminderLine">
+          <DataField>Desc2_IssuedReminderLine</DataField>
         </Field>
-        <Field Name="LineNo1_IssuedReminderLine">
-          <DataField>LineNo1_IssuedReminderLine</DataField>
+        <Field Name="LineNo2_IssuedReminderLine">
+          <DataField>LineNo2_IssuedReminderLine</DataField>
         </Field>
-        <Field Name="VATAmtLineAmtIncludVAT">
-          <DataField>VATAmtLineAmtIncludVAT</DataField>
+        <Field Name="VATAmtLineAmtInclVAT">
+          <DataField>VATAmtLineAmtInclVAT</DataField>
         </Field>
         <Field Name="VATAmtLineAmtInclVATFormat">
           <DataField>VATAmtLineAmtInclVATFormat</DataField>
@@ -7110,38 +7110,38 @@ End Function
         <Field Name="VALVATBaseFormat">
           <DataField>VALVATBaseFormat</DataField>
         </Field>
-        <Field Name="VALVATBaseVALVATAmt">
-          <DataField>VALVATBaseVALVATAmt</DataField>
+        <Field Name="VALVATBaseVALVATAmount">
+          <DataField>VALVATBaseVALVATAmount</DataField>
         </Field>
         <Field Name="VALVATBaseVALVATAmountFormat">
           <DataField>VALVATBaseVALVATAmountFormat</DataField>
         </Field>
-        <Field Name="VATAmtLineVAT">
-          <DataField>VATAmtLineVAT</DataField>
+        <Field Name="VATAmountLineVAT">
+          <DataField>VATAmountLineVAT</DataField>
         </Field>
         <Field Name="VATAmountLineVATFormat">
           <DataField>VATAmountLineVATFormat</DataField>
         </Field>
-        <Field Name="AmountIncVATCaption">
-          <DataField>AmountIncVATCaption</DataField>
+        <Field Name="AmountIncludingVATCaption">
+          <DataField>AmountIncludingVATCaption</DataField>
         </Field>
-        <Field Name="VAT_AmountCaption1">
-          <DataField>VAT_AmountCaption1</DataField>
+        <Field Name="VATAmountCaption1">
+          <DataField>VATAmountCaption1</DataField>
         </Field>
-        <Field Name="VAT_BaseCaption">
-          <DataField>VAT_BaseCaption</DataField>
+        <Field Name="VATBaseCaption">
+          <DataField>VATBaseCaption</DataField>
         </Field>
-        <Field Name="VAT_PercentCaption">
-          <DataField>VAT_PercentCaption</DataField>
+        <Field Name="VATPercentCaption">
+          <DataField>VATPercentCaption</DataField>
         </Field>
-        <Field Name="VAT_AmountSpecificationCaption">
-          <DataField>VAT_AmountSpecificationCaption</DataField>
+        <Field Name="VATAmountSpecificationCaption">
+          <DataField>VATAmountSpecificationCaption</DataField>
         </Field>
         <Field Name="ContinuedCaption">
           <DataField>ContinuedCaption</DataField>
         </Field>
-        <Field Name="Total_Caption">
-          <DataField>Total_Caption</DataField>
+        <Field Name="TotalCaption">
+          <DataField>TotalCaption</DataField>
         </Field>
         <Field Name="VATClauseVATIdentifier">
           <DataField>VATClauseVATIdentifier</DataField>
@@ -7188,20 +7188,20 @@ End Function
         <Field Name="VALVATBaseLCYFormat">
           <DataField>VALVATBaseLCYFormat</DataField>
         </Field>
-        <Field Name="VATAmtLineVATCtrl107">
-          <DataField>VATAmtLineVATCtrl107</DataField>
+        <Field Name="VATAmtLineVAT1">
+          <DataField>VATAmtLineVAT1</DataField>
         </Field>
         <Field Name="VATAmtLineVAT1Format">
           <DataField>VATAmtLineVAT1Format</DataField>
         </Field>
-        <Field Name="VAT_AmountCaption2">
-          <DataField>VAT_AmountCaption2</DataField>
+        <Field Name="VATAmountCaption2">
+          <DataField>VATAmountCaption2</DataField>
         </Field>
-        <Field Name="VAT_Base1Caption">
-          <DataField>VAT_Base1Caption</DataField>
+        <Field Name="VATBase1Caption">
+          <DataField>VATBase1Caption</DataField>
         </Field>
-        <Field Name="VAT_PercentCaption1">
-          <DataField>VAT_PercentCaption1</DataField>
+        <Field Name="VATPercentCaption1">
+          <DataField>VATPercentCaption1</DataField>
         </Field>
         <Field Name="ContinuedCaption1">
           <DataField>ContinuedCaption1</DataField>
@@ -7232,6 +7232,66 @@ End Function
         </Field>
         <Field Name="FinalTotalInclVATFormat">
           <DataField>FinalTotalInclVATFormat</DataField>
+        </Field>
+        <Field Name="TotalCaption1">
+          <DataField>TotalCaption1</DataField>
+        </Field>
+        <Field Name="Show_MIRLines">
+          <DataField>Show_MIRLines</DataField>
+        </Field>
+        <Field Name="CompanyInfo_BankBranchNo">
+          <DataField>CompanyInfo_BankBranchNo</DataField>
+        </Field>
+        <Field Name="VAT_RegNoCaption">
+          <DataField>VAT_RegNoCaption</DataField>
+        </Field>
+        <Field Name="Email_Caption">
+          <DataField>Email_Caption</DataField>
+        </Field>
+        <Field Name="HomePage_Caption">
+          <DataField>HomePage_Caption</DataField>
+        </Field>
+        <Field Name="BankBranch_NoCaption">
+          <DataField>BankBranch_NoCaption</DataField>
+        </Field>
+        <Field Name="VAT_AmtIssRemHdrAddFeeInclVAT">
+          <DataField>VAT_AmtIssRemHdrAddFeeInclVAT</DataField>
+        </Field>
+        <Field Name="VAT_AmtIssRemHdrAddFeeInclVATFormat">
+          <DataField>VAT_AmtIssRemHdrAddFeeInclVATFormat</DataField>
+        </Field>
+        <Field Name="Total_RemIntAmount">
+          <DataField>Total_RemIntAmount</DataField>
+        </Field>
+        <Field Name="Total_RemIntAmountFormat">
+          <DataField>Total_RemIntAmountFormat</DataField>
+        </Field>
+        <Field Name="VAT_AmountCaption">
+          <DataField>VAT_AmountCaption</DataField>
+        </Field>
+        <Field Name="VAT_AmountCaption1">
+          <DataField>VAT_AmountCaption1</DataField>
+        </Field>
+        <Field Name="VAT_BaseCaption">
+          <DataField>VAT_BaseCaption</DataField>
+        </Field>
+        <Field Name="VAT_PercentCaption">
+          <DataField>VAT_PercentCaption</DataField>
+        </Field>
+        <Field Name="VAT_AmountSpecificationCaption">
+          <DataField>VAT_AmountSpecificationCaption</DataField>
+        </Field>
+        <Field Name="Total_Caption">
+          <DataField>Total_Caption</DataField>
+        </Field>
+        <Field Name="VAT_AmountCaption2">
+          <DataField>VAT_AmountCaption2</DataField>
+        </Field>
+        <Field Name="VAT_Base1Caption">
+          <DataField>VAT_Base1Caption</DataField>
+        </Field>
+        <Field Name="VAT_PercentCaption1">
+          <DataField>VAT_PercentCaption1</DataField>
         </Field>
         <Field Name="Total_Caption1">
           <DataField>Total_Caption1</DataField>
