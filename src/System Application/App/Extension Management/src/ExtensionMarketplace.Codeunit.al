@@ -219,7 +219,7 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     begin
-        InstallAppsourceExtension(MarketplaceApplicationId, TelemetryURL, '');
+        exit(InstallAppsourceExtension(MarketplaceApplicationId, TelemetryURL, ''));
     end;
 
     [TryFunction]
@@ -246,7 +246,7 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
     begin
-        InstallAppsourceExtension(AppId, TelemetryURL, '');
+        exit(InstallAppsourceExtension(AppId, TelemetryURL, ''));
     end;
 
     [TryFunction]
