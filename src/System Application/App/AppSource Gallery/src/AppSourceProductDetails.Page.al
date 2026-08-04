@@ -186,7 +186,10 @@ page 2516 "AppSource Product Details"
                             exit;
 
                     PublisherType := AppSourceJsonUtilities.GetStringValue(ProductObject, 'publisherType');
-                    ExtensionManagement.InstallMarketplaceExtensionWithPublisher(AppID, PublisherType);
+                    if PublisherType = '' then
+                        ExtensionManagement.InstallMarketplaceExtension(AppID)
+                    else
+                        ExtensionManagement.InstallMarketplaceExtensionWithPublisher(AppID, PublisherType);
                 end;
             }
 

@@ -254,11 +254,7 @@ page 2510 "Marketplace Extn Deployment"
         LanguageName := LanguageManagement.GetWindowsLanguageName(LanguageID);
         Clear(InstallSelected);
         IsThirdPartyInstall := true;
-        // For Microsoft-published apps, skip the disclaimer and go straight to installation
-        if IsThirdPartyInstall then
-            Step := Step::Disclaimer
-        else
-            Step := Step::Installation;
+        Step := Step::Disclaimer;
     end;
 
     trigger OnOpenPage()

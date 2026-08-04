@@ -244,6 +244,12 @@ codeunit 2501 "Extension Marketplace"
     end;
 
     [TryFunction]
+    procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
+    begin
+        InstallAppsourceExtension(AppId, TelemetryURL, '');
+    end;
+
+    [TryFunction]
     procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text; PublisherType: Text)
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
@@ -301,6 +307,11 @@ codeunit 2501 "Extension Marketplace"
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
             end;
+    end;
+
+    procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text);
+    begin
+        InstallAppsourceExtensionWithRefreshSession(AppId, TelemetryURL, '');
     end;
 
     [TryFunction]
