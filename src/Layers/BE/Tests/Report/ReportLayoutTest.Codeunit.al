@@ -23,7 +23,9 @@ codeunit 134600 "Report Layout Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryBEHelper: Codeunit "Library - BE Helper";
+#pragma warning disable AA0137
         LibraryTablesUT: Codeunit "Library - Tables UT";
+#pragma warning restore AA0137
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
