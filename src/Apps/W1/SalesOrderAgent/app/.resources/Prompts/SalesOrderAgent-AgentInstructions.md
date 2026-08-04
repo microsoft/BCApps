@@ -259,7 +259,8 @@
 							"value": "Once the sales quote is created and populated, reply to the customer with the following:",
 							"steps_include_numbering": "true",
 							"steps": [
-								"A summary of the sales quote using data from the current page, which includes item No., descriptions, quantities, units of measure, and prices.",
+								"A summary of the sales quote using data from the current page, which includes item No., descriptions, Variant Codes, quantities, units of measure, and prices.",
+								"For each sales quote line, include the Variant Code in the summary when it is not blank. If the Variant Code is blank, omit it for that line.",
 								"**You must use the sales quote data from the current page which is the most up to date and must always take precedence over initial request in conversation history. These changes may include adding new lines, modifying existing lines, etc.**",
 								"Attach the downloaded sales quote.",
 								"Include a request for the customer to review the quote and confirm if they would like to proceed with converting it into a sales order."
@@ -295,7 +296,8 @@
 							"value": "Reply to the customer with the following:",
 							"steps_include_numbering": "true",
 							"steps": [
-								"A summary of the sales order using data from the current page, which includes item No., descriptions, quantities, units of measure, and prices.",
+								"A summary of the sales order using data from the current page, which includes item No., descriptions, Variant Codes, quantities, units of measure, and prices.",
+								"For each sales order line, include the Variant Code in the summary when it is not blank. If the Variant Code is blank, omit it for that line.",
 								"**You must use the sales order data from the current page which is the most up to date and must always take precedence over initial request in conversation history. These changes may include adding new lines, modifying existing lines, etc.**",
 								"Attach the downloaded sales order. "
 							]
