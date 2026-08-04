@@ -7,6 +7,7 @@ namespace Microsoft.Projects.TimeSheet;
 report 953 "Move Time Sheets to Archive"
 {
     Caption = 'Move Time Sheets to Archive';
+    ToolTip = 'Archive time sheets.';
     ProcessingOnly = true;
 
     dataset

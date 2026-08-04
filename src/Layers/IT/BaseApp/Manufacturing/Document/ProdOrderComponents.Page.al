@@ -14,6 +14,7 @@ using Microsoft.Manufacturing.Reports;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Structure;
 
+
 page 99000818 "Prod. Order Components"
 {
     AutoSplitKey = true;
@@ -177,10 +178,30 @@ page 99000818 "Prod. Order Components"
                 {
                     ApplicationArea = Manufacturing;
                 }
-                field("Act. Consumption (Qty)"; Rec."Act. Consumption (Qty)")
+                field("Act. Consumption (Qty)"; ActConsumptionQtyValue)
                 {
                     ApplicationArea = Manufacturing;
+                    AutoFormatType = 0;
                     Caption = 'Consumed Quantity (Base)';
+                    ToolTip = 'Specifies the quantity of the component that has been posted as consumed by the production order.';
+                    DecimalPlaces = 0 : 5;
+                    Editable = false;
+                    BlankZero = true;
+
+                    trigger OnDrillDown()
+                    var
+                        ItemLedgerEntry: Record "Item Ledger Entry";
+                    begin
+                        if not (Rec.Status in [Rec.Status::Released, Rec.Status::Finished]) then
+                            exit;
+                        ItemLedgerEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.", "Entry Type", "Prod. Order Comp. Line No.");
+                        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+                        ItemLedgerEntry.SetRange("Order No.", Rec."Prod. Order No.");
+                        ItemLedgerEntry.SetRange("Order Line No.", Rec."Prod. Order Line No.");
+                        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+                        ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", Rec."Line No.");
+                        Page.Run(0, ItemLedgerEntry);
+                    end;
                 }
 #if not CLEAN28
                 field("Qty. on Transfer Order (Base)"; Rec."Qty. on Transfer Order (Base)")
@@ -713,6 +734,11 @@ page 99000818 "Prod. Order Components"
         Rec.ShowShortcutDimCode(ShortcutDimCode);
         if Rec."Variant Code" = '' then
             VariantCodeMandatory := Item.IsVariantMandatory(true, Rec."Item No.");
+        if Rec.Status in [Rec.Status::Released, Rec.Status::Finished] then begin
+            Rec.CalcFields("Act. Consumption (Qty)");
+            ActConsumptionQtyValue := Rec."Act. Consumption (Qty)";
+        end else
+            ActConsumptionQtyValue := 0;
     end;
 
     trigger OnDeleteRecord(): Boolean
@@ -733,6 +759,7 @@ page 99000818 "Prod. Order Components"
     var
         ProdOrderAvailabilityMgt: Codeunit "Prod. Order Availability Mgt.";
         VariantCodeMandatory: Boolean;
+        ActConsumptionQtyValue: Decimal;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'You cannot reserve components with status %1.';

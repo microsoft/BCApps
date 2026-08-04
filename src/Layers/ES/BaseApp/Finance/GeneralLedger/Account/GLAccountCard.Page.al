@@ -232,6 +232,10 @@ page 17 "G/L Account Card"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that when this field is checked, the entries in this account will not be included in the 347 report.';
                 }
+                field("Spend Request Required"; Rec."Spend Request Required")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
             }
             group(Revaluation)
             {

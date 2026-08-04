@@ -19,6 +19,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
@@ -1110,6 +1111,25 @@ table 181 "Posted Gen. Journal Line"
             if ("Bal. Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
             else
             if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
+        }
+        /// <summary>
+        /// Specifies the spend request that this journal line relates to.
+        /// </summary>
+        field(140; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this journal line relates to.';
+            TableRelation = "Spend Request";
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
+        /// Specifies that the spend request will be closed when the journal line is posted.
+        /// </summary>
+        field(141; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the journal line is posted.';
+            DataClassification = CustomerContent;
         }
         /// <summary>
         /// Job queue status for background processing and automated journal posting operations.

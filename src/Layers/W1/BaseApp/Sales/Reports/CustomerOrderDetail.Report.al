@@ -18,6 +18,7 @@ report 108 "Customer - Order Detail"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Customer - Order Detail';
+    ToolTip = 'View a list of orders divided by customer. The order amounts are totaled for each customer and for the entire list. The report can be used, for example, to obtain an overview of sales over the short term or to analyze possible shipment problems.';
     DefaultRenderingLayout = Excel;
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;

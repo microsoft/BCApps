@@ -502,7 +502,7 @@ report 2000006 "File Non Euro SEPA Payments"
         AddElement(XMLNodeCurr, 'Amt', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'InstdAmt', Format(PmtJnlLine.Amount, 0, 9), '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'InstdAmt', Format(PmtJnlLine.Amount, 0, '<Precision,2:2><Standard Format,9>'), '', XMLNewChild);
         if PmtJnlLine."Currency Code" = '' then
             ISOCurrCode := CopyStr(GLSetup."LCY Code", 1, 3)
         else begin

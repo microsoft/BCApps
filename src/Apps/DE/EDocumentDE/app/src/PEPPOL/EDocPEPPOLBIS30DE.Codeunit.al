@@ -144,6 +144,9 @@ codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
         if Rec."Document Format" <> Enum::"E-Document Format"::"PEPPOL BIS 3.0 DE" then
             exit;
 
+        if Rec."Read into Draft Impl." = Rec."Read into Draft Impl."::Unspecified then
+            Rec."Read into Draft Impl." := Rec."Read into Draft Impl."::"PEPPOL BIS 3.0 DE";
+
         EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
         if not EDocServiceSupportedType.IsEmpty() then
             exit;

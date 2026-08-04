@@ -17,7 +17,7 @@ report 99001045 "Calc. Machine Center Calendar"
         dataitem("Machine Center"; "Machine Center")
         {
             DataItemTableView = sorting("No.");
-            RequestFilterFields = "No.";
+            RequestFilterFields = "No.", "Work Center No.";
 
             trigger OnAfterGetRecord()
             begin
