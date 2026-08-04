@@ -160,18 +160,12 @@ report 4 "Detail Trial Balance"
                         if not PrintReversedEntries and Reversed then
                             CurrReport.Skip();
 
-                        GLBalance := GLBalance + Amount;
-                        if ("Posting Date" = ClosingDate("Posting Date")) and
-                           not PrintClosingEntries
-                        then begin
-                            "Debit Amount" := 0;
-                            "Credit Amount" := 0;
-                        end;
+                        ClosingEntry := "Posting Date" = ClosingDate("Posting Date");
 
-                        if "Posting Date" = ClosingDate("Posting Date") then
-                            ClosingEntry := true
-                        else
-                            ClosingEntry := false;
+                        if ClosingEntry and not PrintClosingEntries then
+                            CurrReport.Skip();
+
+                        GLBalance := GLBalance + Amount;
 
                         NumberOfGLEntryLines += 1;
                     end;
