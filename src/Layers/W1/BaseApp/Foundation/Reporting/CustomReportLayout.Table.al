@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
 
+#pragma warning disable AS0105
 table 9650 "Custom Report Layout"
 {
     Caption = 'Custom Report Layout';
@@ -1108,3 +1109,4 @@ table 9650 "Custom Report Layout"
     end;
 #endif
 }
+#pragma warning restore AS0105
