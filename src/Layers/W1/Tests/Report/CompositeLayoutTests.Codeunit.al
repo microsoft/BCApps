@@ -211,6 +211,38 @@ codeunit 134619 "Composite Layout Tests"
         Assert.AreEqual(ThisLayoutSourceTok, HeaderSource, 'Header source should be the layout level.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PageShowsDecodedPartNamesNotComposite()
+    var
+        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
+        HeaderComposite: Text;
+    begin
+        // [SCENARIO 645022] The Tenant Report Layout Configuration page displays the plain header/footer and theme part
+        // names, not the raw <guid>::<name> composite reference stored in the Header/Theme Part Name columns.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A configuration row whose parts are stored as composite references (<guid>::<name>).
+        HeaderComposite := CreatePart('PageHF', Enum::"Report Layout Subtype"::HeaderFooter);
+        InsertCfg(TestReportID, 'Body', '', HeaderComposite, CreatePart('PageTheme', Enum::"Report Layout Subtype"::Theme));
+
+        // [WHEN] Opening the page on that row.
+        TenantReportLayoutCfgPage.OpenView();
+        TenantReportLayoutCfgPage.Filter.SetFilter("Report ID", Format(TestReportID));
+        Assert.IsTrue(TenantReportLayoutCfgPage.First(), 'The configured row should be shown on the page.');
+
+        // [THEN] The columns show the decoded part names, not the stored composite value.
+        Assert.AreEqual('PageHF', TenantReportLayoutCfgPage.HeaderPartDisplay.Value(), 'Header column should show the decoded part name.');
+        Assert.AreEqual('PageTheme', TenantReportLayoutCfgPage.ThemePartDisplay.Value(), 'Theme column should show the decoded part name.');
+
+        // [THEN] The stored value is still the composite reference, but the displayed value must not carry the '::' separator.
+        Assert.IsTrue(StrPos(HeaderComposite, '::') > 0, 'The stored value should be a composite reference.');
+        Assert.AreEqual(0, StrPos(TenantReportLayoutCfgPage.HeaderPartDisplay.Value(), '::'), 'The displayed value should not contain the composite separator.');
+
+        TenantReportLayoutCfgPage.Close();
+    end;
+
     local procedure Initialize()
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
@@ -236,6 +268,18 @@ codeunit 134619 "Composite Layout Tests"
         // that exact key so the suite cleans up after itself without touching any unrelated configuration.
         if TenantReportLayoutCfg.Get(0, '', CopyStr(CompanyFilter, 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))) then
             TenantReportLayoutCfg.Delete(true);
+    end;
+
+    local procedure EnableDocumentReportExperience()
+    var
+        FeatureKey: Record "Feature Key";
+        DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
+    begin
+        // Page 9663 gates its OnOpenPage on the Document Report Experience preview; enable it so the page can be opened.
+        if FeatureKey.Get(DocumentReportExperienceTok) then begin
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+            FeatureKey.Modify();
+        end;
     end;
 
     local procedure CreatePart(PartName: Text; Subtype: Enum "Report Layout Subtype"): Text
