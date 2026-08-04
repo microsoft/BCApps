@@ -13,6 +13,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
@@ -2139,6 +2140,38 @@ table 39 "Purchase Line"
             Caption = 'Prepmt. Pmt. Discount Amount';
             Editable = false;
         }
+        field(147; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this purchase document relates to.';
+            TableRelation = "Spend Request" where(Status = const(Approved));
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                DimensionSetIDArr: array[10] of Integer;
+            begin
+                if Rec."Spend Request No." = '' then begin
+                    Rec."Spend Request Close" := false;
+                    exit;
+                end;
+
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Unit Cost (LCY)" * Quantity);
+
+                if SpendRequest."Dimension Set ID" <> 0 then begin
+                    DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                    DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                    Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                end;
+            end;
+        }
+        field(148; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the purchase document is posted.';
+            DataClassification = CustomerContent;
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -4096,8 +4129,7 @@ table 39 "Purchase Line"
     trigger OnInsert()
     begin
         TestStatusOpen();
-        if not HasPurchHeader then
-            Error(CannotInsertPurchLineWithoutHeaderErr);
+        VerifyPurchaseHeaderExists();
 
         if Quantity <> 0 then begin
             OnBeforeVerifyReservedQty(Rec, xRec, 0);
@@ -4183,7 +4215,7 @@ table 39 "Purchase Line"
         HasBeenShown: Boolean;
         PrePaymentLineAmountEntered: Boolean;
         PurchSetupRead: Boolean;
-        HasPurchHeader: Boolean;
+        SuppressPurchaseHeaderExistsVerification: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'You cannot rename a %1.';
@@ -4922,11 +4954,15 @@ table 39 "Purchase Line"
     /// <summary>
     /// Assigns given purchase header to the global variable and initializes the currency variable.
     /// </summary>
+    /// <remarks>
+    /// The global PurchHeader is used whenever data from the purchase header is used in other procedures on the object.
+    /// SuppressPurchaseHeaderExistsVerification is implicitly set to true; call SetSuppressPurchaseHeaderExistsVerification afterwards to override this behavior.
+    /// </remarks>
     /// <param name="NewPurchHeader">Purchase header to be set.</param>
     procedure SetPurchHeader(NewPurchHeader: Record "Purchase Header")
     begin
         PurchHeader := NewPurchHeader;
-        HasPurchHeader := true;
+        SetSuppressPurchaseHeaderExistsVerification(true);
 
         if PurchHeader."Currency Code" = '' then
             Currency.InitRoundingPrecision()
@@ -4935,6 +4971,15 @@ table 39 "Purchase Line"
             Currency.Get(PurchHeader."Currency Code");
             Currency.TestField("Amount Rounding Precision");
         end;
+    end;
+
+    /// <summary>
+    /// Sets the value of the SuppressPurchaseHeaderExistsVerification variable.
+    /// </summary>
+    /// <param name="NewSuppressPurchaseHeaderExistsVerification">Set to true to suppress the purchase header existence verification on insert.</param>
+    procedure SetSuppressPurchaseHeaderExistsVerification(NewSuppressPurchaseHeaderExistsVerification: Boolean)
+    begin
+        SuppressPurchaseHeaderExistsVerification := NewSuppressPurchaseHeaderExistsVerification;
     end;
 
     /// <summary>
@@ -4957,14 +5002,13 @@ table 39 "Purchase Line"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeGetPurchHeader(Rec, PurchHeader, IsHandled, Currency, HasPurchHeader);
+        OnBeforeGetPurchHeader(Rec, PurchHeader, IsHandled, Currency, SuppressPurchaseHeaderExistsVerification);
         if IsHandled then
             exit;
 
         TestField("Document No.");
         if ("Document Type" <> PurchHeader."Document Type") or ("Document No." <> PurchHeader."No.") then
             if PurchHeader.Get(Rec."Document Type", Rec."Document No.") then begin
-                HasPurchHeader := true;
                 if PurchHeader."Currency Code" = '' then
                     Currency.InitRoundingPrecision()
                 else begin
@@ -4972,10 +5016,8 @@ table 39 "Purchase Line"
                     Currency.Get(PurchHeader."Currency Code");
                     Currency.TestField("Amount Rounding Precision");
                 end
-            end else begin
+            end else
                 Clear(PurchHeader);
-                HasPurchHeader := false;
-            end;
 
         OnAfterGetPurchHeader(Rec, PurchHeader, Currency);
         OutPurchHeader := PurchHeader;
@@ -5531,7 +5573,17 @@ table 39 "Purchase Line"
 
         CalcPrepaymentToDeduct();
 
+        if "Spend Request No." <> '' then
+            CheckSpendRequestAmount();
+
         OnAfterUpdateAmountsDone(Rec, xRec, CurrFieldNo);
+    end;
+
+    local procedure CheckSpendRequestAmount()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Unit Cost (LCY)" * Quantity);
     end;
 
     local procedure UpdateJobFields()
@@ -6845,6 +6897,22 @@ table 39 "Purchase Line"
 
         TestField("No.");
         TestField(Quantity);
+    end;
+
+    local procedure VerifyPurchaseHeaderExists()
+    var
+        PurchaseHeaderToVerify: Record "Purchase Header";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if SuppressPurchaseHeaderExistsVerification then
+            exit;
+
+        PurchaseHeaderToVerify.SetRange("Document Type", "Document Type");
+        PurchaseHeaderToVerify.SetRange("No.", "Document No.");
+        if PurchaseHeaderToVerify.IsEmpty() then
+            Error(CannotInsertPurchLineWithoutHeaderErr);
     end;
 
     /// <summary>
@@ -9371,6 +9439,7 @@ table 39 "Purchase Line"
     procedure ClearPurchaseHeader()
     begin
         Clear(PurchHeader);
+        SetSuppressPurchaseHeaderExistsVerification(false);
     end;
 
     local procedure GetBlockedItemNotificationID(): Guid
@@ -11646,6 +11715,14 @@ table 39 "Purchase Line"
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the purchase header for the purchase line.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line being processed.</param>
+    /// <param name="PurchaseHeader">The purchase header to get.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="Currency">The currency record.</param>
+    /// <param name="HasPurchHeader">Set to true to indicate whether the purchase header has been retrieved, which sets global variable SuppressPurchaseHeaderExistsVerification to skip the verification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPurchHeader(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; var Currency: Record Currency; var HasPurchHeader: Boolean)
     begin

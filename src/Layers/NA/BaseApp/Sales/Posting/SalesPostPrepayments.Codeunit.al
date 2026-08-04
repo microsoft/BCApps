@@ -700,7 +700,7 @@ codeunit 442 "Sales-Post Prepayments"
                     TempSalesLine.Insert();
                 end;
             until SalesLine.Next() = 0;
-UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineBuf, HasInvoiceDiscount);
+        UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineBuf, HasInvoiceDiscount);
 
         if SalesSetup."Invoice Rounding" then
             if InsertInvoiceRounding(
@@ -2083,8 +2083,11 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
     begin
         if HasInvoiceDiscount and (SalesHeader."Prepayment %" <> 0) then begin
             Currency.Initialize(SalesHeader."Currency Code");
-            SalesHeader.CalcFields(Amount);
-            PrepmtAmt := Round(SalesHeader.Amount * SalesHeader."Prepayment %" / 100, Currency."Amount Rounding Precision");
+            SalesHeader.CalcFields(Amount, "Amount Including VAT");
+            if SalesHeader."Prepmt. Include Tax" then
+                PrepmtAmt := Round(SalesHeader."Amount Including VAT" * SalesHeader."Prepayment %" / 100, Currency."Amount Rounding Precision")
+            else
+                PrepmtAmt := Round(SalesHeader.Amount * SalesHeader."Prepayment %" / 100, Currency."Amount Rounding Precision");
             if TotalPrepmtInvLineBuffer.Amount > PrepmtAmt then begin
                 DifferenceAmt := TotalPrepmtInvLineBuffer.Amount - PrepmtAmt;
 

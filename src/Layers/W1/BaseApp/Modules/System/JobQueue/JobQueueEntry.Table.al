@@ -1142,6 +1142,8 @@ table 472 "Job Queue Entry"
                 else
                     Message(ScheduledForPostingMsg, JobQueueEntry."User Session Started", JobQueueEntry."User ID");
             end;
+
+        OnAfterShowStatusMsg(Rec, JQID);
     end;
 
     procedure LookupRecordToProcess()
@@ -1207,6 +1209,7 @@ table 472 "Job Queue Entry"
     var
         InStr: InStream;
     begin
+        ReadIsolation(IsolationLevel::ReadCommitted);
         CalcFields(XML);
         if XML.HasValue() then begin
             XML.CreateInStream(InStr, TEXTENCODING::UTF8);
@@ -1710,6 +1713,11 @@ table 472 "Job Queue Entry"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetStatusValue(var JobQueueEntry: Record "Job Queue Entry"; var xJobQueueEntry: Record "Job Queue Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterShowStatusMsg(JobQueueEntry: Record "Job Queue Entry"; JQID: Guid)
     begin
     end;
 }

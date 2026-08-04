@@ -100,6 +100,14 @@ page 8901 "Finance Manager Role Center"
     // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
+
+    layout
+    {
+        area(rolecenter)
+        {
+        }
+    }
+
     actions
     {
         area(Sections)
@@ -1362,14 +1370,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Order Summary';
                         RunObject = report "Customer - Order Summary";
-                        Tooltip = 'Run the Customer - Order Summary report.';
                     }
                     action("Customer - Order Detail")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Order Detail';
                         RunObject = report "Customer - Order Detail";
-                        Tooltip = 'Run the Customer - Order Detail report.';
                     }
                     action("Customer - Labels")
                     {
@@ -1406,21 +1412,18 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer/Item Sales';
                         RunObject = report "Customer/Item Sales";
-                        Tooltip = 'Run the Customer/Item Sales report.';
                     }
                     action("Salesperson - Sales Statistics")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Salesperson Sales Statistics';
                         RunObject = report "Salesperson - Sales Statistics";
-                        Tooltip = 'Run the Salesperson Sales Statistics report.';
                     }
                     action("Salesperson - Commission")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Salesperson Commission';
                         RunObject = report "Salesperson - Commission";
-                        Tooltip = 'Run the Salesperson Commission report.';
                     }
 #if not CLEAN28
                     action("Customer - Sales List")
@@ -1675,42 +1678,36 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Purchase Statistics';
                         RunObject = report "Purchase Statistics";
-                        Tooltip = 'Run the Purchase Statistics report.';
                     }
                     action("Vendor Item Catalog")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor Item Catalog';
                         RunObject = report "Vendor Item Catalog";
-                        Tooltip = 'Run the Vendor Item Catalog report.';
                     }
                     action("Vendor Register")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor Register';
                         RunObject = report "Vendor Register";
-                        Tooltip = 'Run the Vendor Register report.';
                     }
                     action("Vendor - Balance to Date")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Balance to Date';
                         RunObject = report "Vendor - Balance to Date";
-                        Tooltip = 'Run the Vendor - Balance to Date report.';
                     }
                     action("Vendor - Detail Trial Balance")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Detail Trial Balance';
                         RunObject = report "Vendor - Detail Trial Balance";
-                        Tooltip = 'Run the Vendor - Detail Trial Balance report.';
                     }
                     action("Vendor - Labels")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Vendor - Labels';
                         RunObject = report "Vendor - Labels";
-                        Tooltip = 'Run the Vendor - Labels report.';
                     }
 #if not CLEAN28
                     action("Vendor - List")
@@ -1729,21 +1726,18 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Order Detail';
                         RunObject = report "Vendor - Order Detail";
-                        Tooltip = 'Run the Vendor - Order Detail report.';
                     }
                     action("Vendor - Order Summary")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Order Summary';
                         RunObject = report "Vendor - Order Summary";
-                        Tooltip = 'Run the Vendor - Order Summary report.';
                     }
                     action("Vendor - Purchase List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Purchase List';
                         RunObject = report "Vendor - Purchase List";
-                        Tooltip = 'Run the Vendor - Purchase List report.';
                     }
 #if not CLEAN28
                     action("Vendor - Summary Aging")
@@ -1772,14 +1766,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Trial Balance';
                         RunObject = report "Vendor - Trial Balance";
-                        Tooltip = 'Run the Vendor - Trial Balance report.';
                     }
                     action("Vendor/Item Purchases")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor/Item Purchases';
                         RunObject = report "Vendor/Item Purchases";
-                        Tooltip = 'Run the Vendor/Item Purchases report.';
                     }
                     action("Vendor Account Bills List")
                     {
@@ -2386,7 +2378,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Age Composition - Value';
                         RunObject = report "Item Age Composition - Value";
-                        Tooltip = 'Run the Item Age Composition - Value report.';
                     }
                     action("Item Register - Value")
                     {

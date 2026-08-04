@@ -10,12 +10,16 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 using System.Reflection;
+using System.TestLibraries.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 139990 "Subc. Subcontracting UI Test"
 {
@@ -32,6 +36,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting UI Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         SubcontractingMgmtLibrary.Initialize();
@@ -49,6 +54,159 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Subcontracting UI Test");
+    end;
+
+    [Test]
+    procedure SubcontractingAssistedSetupIsRegistered()
+    var
+        AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
+    begin
+        // [SCENARIO 642233] The Subcontracting assisted setup is registered with Guided Experience.
+        Initialize();
+
+        // [GIVEN] The Subcontracting assisted setup registration does not exist
+        AssistedSetupTestLibrary.Delete(Page::"Subcontracting Setup Wizard");
+
+        // [WHEN] Assisted setups are registered
+        AssistedSetupTestLibrary.CallOnRegister();
+
+        // [THEN] The Subcontracting setup wizard is registered
+        Assert.IsTrue(AssistedSetupTestLibrary.Exists(Page::"Subcontracting Setup Wizard"), 'The Subcontracting assisted setup should be registered.');
+    end;
+
+    [Test]
+    [HandlerFunctions('SetupNotCompletedConfirmHandler')]
+    procedure SubcontractingSetupWizardShowsCompanyDefaultsAndConfigurationLinks()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
+        ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
+        CreateProdOrderInfoLine: Boolean;
+        SubcDefaultCompLocation: Enum "Components at Location";
+        SubcCompTransferLeadTime: DateFormula;
+        SubcontractingBatchName: Code[10];
+        SubcontractingTemplateName: Code[10];
+    begin
+        // [SCENARIO 642233] The setup wizard displays the installed company defaults and the next configuration links.
+        Initialize();
+
+        // [GIVEN] The company has Subcontracting defaults
+        ManufacturingSetup.Get();
+        SubcontractingTemplateName := ManufacturingSetup."Subcontracting Template Name";
+        SubcontractingBatchName := ManufacturingSetup."Subcontracting Batch Name";
+        CreateProdOrderInfoLine := ManufacturingSetup."Create Prod. Order Info Line";
+        ComponentDirectUnitCost := ManufacturingSetup."Component Direct Unit Cost";
+        SubcCompTransferLeadTime := ManufacturingSetup."Subc. Comp. Transfer Lead Time";
+        SubcDefaultCompLocation := ManufacturingSetup."Subc. Default Comp. Location";
+
+        // [WHEN] The setup wizard is opened
+        SubcontractingSetupWizard.OpenEdit();
+
+        // [THEN] The welcome step is shown
+        Assert.IsFalse(SubcontractingSetupWizard.ActionBack.Enabled(), 'Back should be disabled on the welcome step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be enabled on the welcome step.');
+        Assert.IsFalse(SubcontractingSetupWizard.ActionFinish.Enabled(), 'Finish should be disabled on the welcome step.');
+
+        // [WHEN] The user continues to company defaults
+        SubcontractingSetupWizard.ActionNext.Invoke();
+
+        // [THEN] The defaults created during installation are displayed
+        SubcontractingSetupWizard."Subcontracting Template Name".AssertEquals(SubcontractingTemplateName);
+        SubcontractingSetupWizard."Subcontracting Batch Name".AssertEquals(SubcontractingBatchName);
+        SubcontractingSetupWizard."Create Prod. Order Info Line".AssertEquals(CreateProdOrderInfoLine);
+        SubcontractingSetupWizard."Component Direct Unit Cost".AssertEquals(ComponentDirectUnitCost);
+        SubcontractingSetupWizard."Subc. Comp. Transfer Lead Time".AssertEquals(SubcCompTransferLeadTime);
+        SubcontractingSetupWizard."Subc. Default Comp. Location".AssertEquals(SubcDefaultCompLocation);
+        Assert.IsTrue(SubcontractingSetupWizard.ActionBack.Enabled(), 'Back should be enabled on the company defaults step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be enabled on the company defaults step.');
+
+        // [WHEN] The user continues to the final step
+        SubcontractingSetupWizard.ActionNext.Invoke();
+
+        // [THEN] Links to the remaining Subcontracting configuration are displayed
+        Assert.IsTrue(SubcontractingSetupWizard.WorkCentersLink.Visible(), 'The work centers link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.VendorsLink.Visible(), 'The vendors link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.LocationsLink.Visible(), 'The locations link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.SubcontractorPricesLink.Visible(), 'The subcontractor prices link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.ComponentSupplyMethodsLink.Visible(), 'The component supply methods link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.DocumentationLink.Visible(), 'The documentation link should be visible.');
+        Assert.IsFalse(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be disabled on the final step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionFinish.Enabled(), 'Finish should be enabled on the final step.');
+
+        // [WHEN] The user closes the guide without finishing the setup
+        LibraryVariableStorage.Enqueue(SetupNotCompletedQst);
+        LibraryVariableStorage.Enqueue(true);
+        SubcontractingSetupWizard.Close();
+
+        // [THEN] The expected confirmation was handled
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] Opening and navigating the guide did not replace the installed defaults
+        ManufacturingSetup.Get();
+        Assert.AreEqual(SubcontractingTemplateName, ManufacturingSetup."Subcontracting Template Name", 'The Subcontracting template default should be preserved.');
+        Assert.AreEqual(SubcontractingBatchName, ManufacturingSetup."Subcontracting Batch Name", 'The Subcontracting batch default should be preserved.');
+        Assert.AreEqual(CreateProdOrderInfoLine, ManufacturingSetup."Create Prod. Order Info Line", 'The production order information line default should be preserved.');
+        Assert.AreEqual(ComponentDirectUnitCost, ManufacturingSetup."Component Direct Unit Cost", 'The component direct unit cost default should be preserved.');
+        Assert.AreEqual(SubcCompTransferLeadTime, ManufacturingSetup."Subc. Comp. Transfer Lead Time", 'The component transfer lead time default should be preserved.');
+        Assert.AreEqual(SubcDefaultCompLocation, ManufacturingSetup."Subc. Default Comp. Location", 'The default component location source should be preserved.');
+    end;
+
+    [Test]
+    procedure FinishingSubcontractingSetupWizardSavesDefaultsAndCompletesAssistedSetup()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
+        GuidedExperience: Codeunit "Guided Experience";
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
+        CreateProdOrderInfoLine: Boolean;
+        OriginalCreateProdOrderInfoLine: Boolean;
+    begin
+        // [SCENARIO 642233] Finishing the setup guide saves changes and marks the assisted setup as completed.
+        Initialize();
+
+        // [GIVEN] The Subcontracting assisted setup is registered and incomplete
+        AssistedSetupTestLibrary.Delete(Page::"Subcontracting Setup Wizard");
+        AssistedSetupTestLibrary.CallOnRegister();
+        AssistedSetupTestLibrary.SetStatusToNotCompleted(Page::"Subcontracting Setup Wizard");
+        Assert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Subcontracting Setup Wizard"), 'The assisted setup should initially be incomplete.');
+
+        // [GIVEN] A changed company default in the setup wizard
+        ManufacturingSetup.Get();
+        OriginalCreateProdOrderInfoLine := ManufacturingSetup."Create Prod. Order Info Line";
+        CreateProdOrderInfoLine := not OriginalCreateProdOrderInfoLine;
+        SubcontractingSetupWizard.OpenEdit();
+        SubcontractingSetupWizard.ActionNext.Invoke();
+        SubcontractingSetupWizard."Create Prod. Order Info Line".SetValue(CreateProdOrderInfoLine);
+        SubcontractingSetupWizard.ActionNext.Invoke();
+
+        // [WHEN] The user finishes the setup wizard
+        SubcontractingSetupWizard.ActionFinish.Invoke();
+
+        // [THEN] The company default is saved and the assisted setup is completed
+        ManufacturingSetup.Get();
+        Assert.AreEqual(CreateProdOrderInfoLine, ManufacturingSetup."Create Prod. Order Info Line", 'The changed company default should be saved.');
+        Assert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Subcontracting Setup Wizard"), 'The assisted setup should be completed.');
+
+        ManufacturingSetup."Create Prod. Order Info Line" := OriginalCreateProdOrderInfoLine;
+        ManufacturingSetup.Modify();
+    end;
+
+    [Test]
+    procedure ManufacturingSetupContainsDefaultComponentLocationSource()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        PageControl: Record "Page Control Field";
+    begin
+        // [SCENARIO 642233] Manufacturing Setup remains available for maintaining all Subcontracting company defaults.
+        Initialize();
+
+        // [WHEN] Controls on Manufacturing Setup are inspected
+        PageControl.SetRange(TableNo, Database::"Manufacturing Setup");
+        PageControl.SetRange(PageNo, Page::"Manufacturing Setup");
+        PageControl.SetRange(FieldNo, ManufacturingSetup.FieldNo("Subc. Default Comp. Location"));
+
+        // [THEN] Default Component Location Source is available for later maintenance
+        Assert.IsFalse(PageControl.IsEmpty(), StrSubstNo(ControlNotExistMsg, ManufacturingSetup.FieldCaption("Subc. Default Comp. Location")));
     end;
 
     [Test]
@@ -621,6 +779,46 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ItemLedgerEntry.Delete();
     end;
 
+    [Test]
+    procedure ItemLedgerEntriesSubcProdActionsEnabledForTransferViaSubcProdOrder()
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemLedgerEntries: TestPage "Item Ledger Entries";
+    begin
+        // [SCENARIO 641405] Subcontracting production actions on Item Ledger Entries are enabled for a Transfer-type entry
+        // [SCENARIO 641405] whose production order is referenced only through the Subc. Prod. Order fields (the base Order No. holds the transfer order).
+        Initialize();
+
+        // [GIVEN] A Transfer-type Item Ledger Entry whose base Order fields point at a transfer order,
+        //         while the production order is only referenced through the Subc. Prod. Order fields
+        ItemLedgerEntry.Init();
+        ItemLedgerEntry."Entry No." := GetNextItemLedgerEntryNo();
+        ItemLedgerEntry."Item No." := 'TEST-ITEM';
+        ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Transfer;
+        ItemLedgerEntry."Order Type" := ItemLedgerEntry."Order Type"::Transfer;
+        ItemLedgerEntry."Order No." := 'TRANSFER-001';
+        ItemLedgerEntry."Order Line No." := 10000;
+        ItemLedgerEntry."Subc. Prod. Order No." := 'PO-SUBC-001';
+        ItemLedgerEntry."Subc. Prod. Order Line No." := 10000;
+        ItemLedgerEntry.Insert();
+
+        // [WHEN] The Item Ledger Entries page is opened for that entry
+        ItemLedgerEntries.OpenView();
+        ItemLedgerEntries.GoToRecord(ItemLedgerEntry);
+
+        // [THEN] The Production Order action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order".Enabled(), ILEProdActionsNotEnabledErr);
+        // [THEN] The Production Order Routing action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order Routing".Enabled(), ILEProdActionsNotEnabledErr);
+        // [THEN] The Production Order Components action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order Components".Enabled(), ILEProdActionsNotEnabledErr);
+
+        ItemLedgerEntries.Close();
+
+        // Cleanup
+        ItemLedgerEntry.Delete();
+    end;
+
     local procedure GetNextItemLedgerEntryNo(): Integer
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -630,11 +828,19 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         exit(1);
     end;
 
+    [ConfirmHandler]
+    procedure SetupNotCompletedConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
@@ -648,4 +854,5 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ILEProdActionsNotEnabledErr: Label 'Production actions should be enabled for a subcontracting Item Ledger Entry.';
         ILEPurchActionsEnabledErr: Label 'Purchase Order action should not be enabled for a non-subcontracting Item Ledger Entry.';
         ILEPurchActionsNotEnabledErr: Label 'Purchase Order action should be enabled for a subcontracting Item Ledger Entry.';
+        SetupNotCompletedQst: Label 'The Subcontracting setup is not complete. Are you sure you want to exit?';
 }

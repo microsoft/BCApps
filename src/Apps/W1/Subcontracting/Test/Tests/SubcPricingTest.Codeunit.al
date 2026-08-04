@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
@@ -628,7 +629,7 @@ codeunit 139982 "Subc. Pricing Test"
             'A subcontractor price with blank Unit of Measure must appear in the FactBox when the purchase line has a specific UoM.');
     end;
 
- 
+
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -676,6 +677,72 @@ codeunit 139982 "Subc. Pricing Test"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Pricing Test");
     end;
 
+    [Test]
+    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
+    procedure DetailedCalculationReportUsesSubcontractorPricing()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        SubcPriceAmount: Decimal;
+        WorkCenterDirectCost: Decimal;
+        XmlParameters: Text;
+    begin
+        // [SCENARIO 638464] Report "Detailed Calculation" must use subcontractor pricing for
+        // work centers with a subcontractor when the Subcontracting app is installed, via
+        // the OnAfterGetRecordRoutingLineOnBeforeCalcRoutingCostPerUnit event.
+        Initialize();
+
+        // [GIVEN] Item with a routing that has a single Work Center operation.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        WorkCenterDirectCost := 50;
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Direct Unit Cost", WorkCenterDirectCost);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Validate("Indirect Cost %", 0);
+        WorkCenter.Validate("Overhead Rate", 0);
+        WorkCenter.Validate("Unit Cost", WorkCenterDirectCost);
+        WorkCenter.Modify(true);
+
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Run Time", 1);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Validate("Lot Size", 1);
+        Item.Modify(true);
+
+        // [GIVEN] A subcontractor price of 200 for this item/work center (different from WorkCenter."Direct Unit Cost" of 50).
+        SubcPriceAmount := 200;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", SubcPriceAmount);
+        SubcontractorPrice.Modify(true);
+
+        // [WHEN] Run the "Detailed Calculation" report (BaseApp 99000756) for this item.
+        Commit();
+        Item.SetRecFilter();
+        XmlParameters := Report.RunRequestPage(Report::"Detailed Calculation");
+        LibraryReportDataset.RunReportAndLoad(Report::"Detailed Calculation", Item, XmlParameters);
+
+        // [THEN] The ProdUnitCost in the report dataset equals the subcontractor price (200),
+        // not the Work Center's generic Direct Unit Cost (50).
+        LibraryReportDataset.AssertElementWithValueExists('ProdUnitCost', SubcPriceAmount);
+    end;
+
+    [RequestPageHandler]
+    procedure DetailedCalculationRequestPageHandler(var DetailedCalculationRequestPage: TestRequestPage "Detailed Calculation")
+    begin
+        // Empty handler used to close the request page. We use default settings.
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
@@ -683,6 +750,7 @@ codeunit 139982 "Subc. Pricing Test"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";

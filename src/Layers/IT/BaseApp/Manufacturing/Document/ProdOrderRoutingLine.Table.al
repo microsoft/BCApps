@@ -164,6 +164,7 @@ table 5409 "Prod. Order Routing Line"
                             MachineCtrTransferFields();
                         end;
                 end;
+                OnValidateNoOnBeforeModifyCapNeedEntries(Rec, xRec);
                 ModifyCapNeedEntries();
 
                 GetProdOrderLine();
@@ -1513,6 +1514,7 @@ table 5409 "Prod. Order Routing Line"
         ProdOrderLine.SetRange("Routing No.", "Routing No.");
         if ProdOrderLine.Find('-') then
             repeat
+                OnCalculateRoutingBackOnBeforeCalculateProdOrderDates(Rec, ProdOrderLine);
                 CalcProdOrder.CalculateProdOrderDates(ProdOrderLine, true);
                 OnCalculateRoutingBackOnAfterCalculateProdOrderDates(Rec, ProdOrderLine);
                 AdjustComponents(ProdOrderLine);
@@ -1569,6 +1571,7 @@ table 5409 "Prod. Order Routing Line"
         ProdOrderLine.SetRange("Routing No.", "Routing No.");
         if ProdOrderLine.Find('-') then
             repeat
+                OnCalculateRoutingForwardOnBeforeCalculateProdOrderDates(Rec, ProdOrderLine);
                 CalcProdOrder.CalculateProdOrderDates(ProdOrderLine, true);
                 OnCalculateRoutingForwardOnAfterCalculateProdOrderDates(Rec, ProdOrderLine);
                 AdjustComponents(ProdOrderLine);
@@ -2173,6 +2176,11 @@ table 5409 "Prod. Order Routing Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnValidateNoOnBeforeModifyCapNeedEntries(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; xProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromPlanningRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PlanningRoutingLine: Record "Planning Routing Line")
     begin
     end;
@@ -2198,7 +2206,17 @@ table 5409 "Prod. Order Routing Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnCalculateRoutingBackOnBeforeCalculateProdOrderDates(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnCalculateRoutingForwardOnAfterCalculateProdOrderDates(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalculateRoutingForwardOnBeforeCalculateProdOrderDates(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
     begin
     end;
 

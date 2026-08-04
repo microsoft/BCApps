@@ -101,7 +101,6 @@ page 951 "Time Sheet List"
                 Caption = 'Create Time Sheets';
                 Image = NewTimesheet;
                 RunObject = Report "Create Time Sheets";
-                ToolTip = 'Create new time sheets for resources.';
                 Visible = TimeSheetAdminActionsVisible;
             }
             action(MoveTimeSheetsToArchive)
@@ -110,7 +109,6 @@ page 951 "Time Sheet List"
                 Caption = 'Move Time Sheets to Archive';
                 Image = Archive;
                 RunObject = Report "Move Time Sheets to Archive";
-                ToolTip = 'Archive time sheets.';
                 Visible = TimeSheetAdminActionsVisible;
             }
         }

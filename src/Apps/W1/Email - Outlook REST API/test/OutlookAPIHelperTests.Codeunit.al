@@ -214,6 +214,66 @@ codeunit 139752 "Outlook API Helper Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveEmailsNonFileAttachmentsHandler')]
+    procedure TestRetrieveEmailWithNonFileAttachments()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        EmailMessage: Codeunit "Email Message";
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        InStream: InStream;
+        AttachmentContent: Text;
+    begin
+        // [SCENARIO] An email whose attachments include item/reference attachments (which Microsoft Graph
+        // returns without a 'contentBytes' property, e.g. bounce/NDR notifications) must not abort the batch.
+        // Only file attachments must be imported; the others are skipped gracefully.
+
+        // [GIVEN] An Outlook account exists
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'testuser@test.com';
+        OutlookAccount.Name := 'Test User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+
+        // [GIVEN] OAuth token request is skipped
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+
+        // [GIVEN] Filters are set to load attachments
+        TempFilters.Init();
+        TempFilters."Load Attachments" := true;
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::HTML;
+
+        // [WHEN] Emails are retrieved (response has an item attachment and a reference attachment
+        // without contentBytes, followed by a regular file attachment)
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] The email is imported instead of the whole batch failing with a missing 'contentBytes' error
+        EmailInbox.MarkedOnly(true);
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected an email inbox record to be created');
+        LibraryAssert.AreEqual('Test Bounce With Item Attachment', EmailInbox.Description, 'Unexpected email subject');
+
+        // [THEN] Only the file attachment is present; the item and reference attachments were skipped
+        EmailMessage.Get(EmailInbox."Message Id");
+        LibraryAssert.IsTrue(EmailMessage.Attachments_First(), 'Expected the file attachment to be imported');
+        LibraryAssert.AreEqual('report.txt', EmailMessage.Attachments_GetName(), 'Unexpected attachment name');
+        LibraryAssert.AreEqual('text/plain', EmailMessage.Attachments_GetContentType(), 'Unexpected content type');
+
+        EmailMessage.Attachments_GetContent(InStream);
+        InStream.ReadText(AttachmentContent);
+        LibraryAssert.AreEqual('RegularContent', AttachmentContent, 'Unexpected file attachment content');
+
+        // [THEN] There are no further attachments (item and reference attachments were not imported)
+        LibraryAssert.AreEqual(0, EmailMessage.Attachments_Next(), 'Only the file attachment should have been imported');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     [HandlerFunctions('GraphRetrieveEmailsWithHeadersHandler')]
     procedure TestRetrieveEmailPersistsInternetMessageHeaders()
     var
@@ -320,6 +380,104 @@ codeunit 139752 "Outlook API Helper Tests"
         LibraryAssert.IsFalse(EmailMessage.GetHeader('X-MS-Exchange-Organization-AuthAs', HeaderValue), 'AuthAs must not be persisted when Load Headers is false');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveEmailsUnsafeBodyHandler')]
+    procedure TestRetrieveEmailSanitizesBodyByDefault()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        EmailMessage: Codeunit "Email Message";
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        Body: Text;
+    begin
+        // [SCENARIO] By default, retrieved email bodies are sanitized, stripping unsafe HTML.
+
+        // [GIVEN] An Outlook account exists
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'testuser@test.com';
+        OutlookAccount.Name := 'Test User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+
+        // [GIVEN] OAuth token request is skipped
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+
+        // [GIVEN] Filters that do not opt out of sanitization (default)
+        TempFilters.Init();
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::HTML;
+
+        // [WHEN] Emails are retrieved (response body contains unsafe HTML)
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] An email inbox record was created
+        EmailInbox.MarkedOnly(true);
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected an email inbox record to be created');
+
+        // [THEN] The unsafe markup is stripped from the body, but safe content remains
+        EmailMessage.Get(EmailInbox."Message Id");
+        Body := EmailMessage.GetBody();
+        LibraryAssert.IsTrue(Body.Contains('Safe Content'), 'Safe content should be preserved');
+        LibraryAssert.IsFalse(Body.ToLower().Contains('<script'), 'Script element should be sanitized out by default');
+        LibraryAssert.IsFalse(Body.ToLower().Contains('onerror'), 'Event handler attribute should be sanitized out by default');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveEmailsUnsafeBodyHandler')]
+    procedure TestRetrieveEmailBypassSanitizationKeepsRawBody()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        EmailMessage: Codeunit "Email Message";
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        Body: Text;
+    begin
+        // [SCENARIO] When a first-party caller opts out via SetBypassBodySanitization, the raw
+        // email body (including unsafe HTML) is preserved unsanitized.
+
+        // [GIVEN] An Outlook account exists
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'testuser@test.com';
+        OutlookAccount.Name := 'Test User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+
+        // [GIVEN] OAuth token request is skipped
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+
+        // [GIVEN] Filters that opt out of body sanitization
+        TempFilters.Init();
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::HTML;
+        TempFilters.SetBypassBodySanitization(true);
+
+        // [WHEN] Emails are retrieved (response body contains unsafe HTML)
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] An email inbox record was created
+        EmailInbox.MarkedOnly(true);
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected an email inbox record to be created');
+
+        // [THEN] The raw body is kept verbatim, including the unsafe markup
+        EmailMessage.Get(EmailInbox."Message Id");
+        Body := EmailMessage.GetBody();
+        LibraryAssert.IsTrue(Body.Contains('Safe Content'), 'Safe content should be preserved');
+        LibraryAssert.IsTrue(Body.ToLower().Contains('<script'), 'Script element should be preserved when sanitization is bypassed');
+        LibraryAssert.IsTrue(Body.ToLower().Contains('onerror'), 'Event handler attribute should be preserved when sanitization is bypassed');
+    end;
+
     local procedure DeleteAllFromTablePlanAndUserPlan()
     var
         AzureADPlanTestLibraries: Codeunit "Azure AD Plan Test Library";
@@ -358,9 +516,29 @@ codeunit 139752 "Outlook API Helper Tests"
     end;
 
     [HttpClientHandler]
+    procedure GraphRetrieveEmailsNonFileAttachmentsHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RetrieveEmailFileTok: Label 'RetrieveEmailWithNonFileAttachments.txt', Locked = true;
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
+        Response.HttpStatusCode := 200;
+        exit(false);
+    end;
+
+    [HttpClientHandler]
     procedure GraphRetrieveEmailsWithHeadersHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         RetrieveEmailFileTok: Label 'RetrieveEmailWithHeaders.txt', Locked = true;
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
+        Response.HttpStatusCode := 200;
+        exit(false);
+    end;
+
+    [HttpClientHandler]
+    procedure GraphRetrieveEmailsUnsafeBodyHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RetrieveEmailFileTok: Label 'RetrieveEmailWithUnsafeBody.txt', Locked = true;
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
         Response.HttpStatusCode := 200;

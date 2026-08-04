@@ -18,6 +18,9 @@ page 8705 "Table Information Card"
     AdditionalSearchTerms = 'Database,Size,Storage';
     SourceTable = "Table Metadata";
     Caption = 'Table Data Management - Card';
+    DeleteAllowed = false;
+    InsertAllowed = false;
+    ModifyAllowed = false;
     DataCaptionExpression = StrSubstNo('%1 - %2', Rec.Name, Rec.ID);
     Permissions = tabledata "Table Metadata" = r,
                   tabledata "Database Index" = r;
@@ -83,7 +86,8 @@ page 8705 "Table Information Card"
                 SubPageLink = TableId = field(TableId),
                               "Company Name" = field("Company Name"),
                               "Source App ID" = field("Source App ID"),
-                              "Index Name" = field("Index Name");
+                              "Index Name" = field("Index Name"),
+                              "Index Type" = field("Index Type");
             }
         }
     }
