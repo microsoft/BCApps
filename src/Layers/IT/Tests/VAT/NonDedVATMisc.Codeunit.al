@@ -1222,7 +1222,7 @@ codeunit 134284 "Non Ded. VAT Misc."
         VATPostingSetup: Record "VAT Posting Setup";
         PostedInvoiceNo: Code[20];
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [Deferral]
         // [SCENARIO 640614] Deferral account nets to zero with 100% non-deductible VAT and multiple periods
         Initialize();
 
@@ -1244,10 +1244,13 @@ codeunit 134284 "Non Ded. VAT Misc."
         // [WHEN] Post the purchase invoice
         PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
-        // [THEN] The deferral account balance nets to exactly zero (no rounding residual)
+        // [THEN] Deferral G/L entries were posted on the deferral account
         GLEntry.SetRange("Document No.", PostedInvoiceNo);
         GLEntry.SetRange("Document Type", GLEntry."Document Type"::Invoice);
         GLEntry.SetRange("G/L Account No.", DeferralTemplate."Deferral Account");
+        Assert.RecordIsNotEmpty(GLEntry);
+
+        // [THEN] The deferral account balance nets to exactly zero (no rounding residual)
         GLEntry.CalcSums(Amount);
         Assert.AreEqual(0, GLEntry.Amount, DeferralAccountNetsToZeroErr);
 
@@ -1267,6 +1270,7 @@ codeunit 134284 "Non Ded. VAT Misc."
         LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
         LibraryERMCountryData.UpdatePurchasesPayablesSetup();
         LibrarySetupStorage.Save(Database::"VAT Setup");
+        LibrarySetupStorage.Save(Database::"Purchases & Payables Setup");
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Non Ded. VAT Misc.");
@@ -1556,6 +1560,15 @@ codeunit 134284 "Non Ded. VAT Misc."
         VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
         AssignDeductibleVATPct(VATPostingSetup, DeductiblePct);
         VATPostingSetup.Modify(true);
+    end;
+
+    local procedure SetCopyLineDescrToGLEntry(NewValue: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Copy Line Descr. to G/L Entry", NewValue);
+        PurchasesPayablesSetup.Modify(true);
     end;
 
     local procedure Create7DimensionValues(var DimensionValue: array[7] of Record "Dimension Value")
