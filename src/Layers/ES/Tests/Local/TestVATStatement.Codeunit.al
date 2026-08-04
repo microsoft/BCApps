@@ -24,8 +24,8 @@ codeunit 147590 "Test VAT Statement"
         FileManagement: Codeunit "File Management";
         Assert: Codeunit Assert;
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
+        LibraryXMLRead: Codeunit "Library - XML Read";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
-        XMLReadDoc: XmlDocument;
         IsInitialized: Boolean;
         KnownFailureUnexpErr: Label 'Unexpected value';
         WrongValueErr: Label 'Wrong value in generated txt file';
@@ -37,10 +37,6 @@ codeunit 147590 "Test VAT Statement"
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         AEATTransferenceValueErr: Label 'Value of 80 character should be accepted in AEATTransference File.';
         ECPercentErr: Label 'EC % must be %1 in %2.', Comment = '%1= Field Value, %2= Table Caption.';
-        XMLReadMissingElementErr: Label 'Element <%1> is missing.', Locked = true;
-        XMLReadElementValueErr: Label 'Unexpected value in xml file for Element <%1>.', Locked = true;
-        XMLReadAttributeValueErr: Label 'Unexpected value in xml file for Attribute <%1>.', Locked = true;
-        XMLReadNotFoundInSubtreeErr: Label 'Node <%1> with value <%2> was not found in subtree <%3>.', Comment = '%1 = node name, %2 = expected node value, %3 = subtree root node name.', Locked = true;
 
     [Test]
     [HandlerFunctions('TemplateSelectionModalPageHandler')]
@@ -405,7 +401,7 @@ codeunit 147590 "Test VAT Statement"
         FileName := CopyStr(RunXMLVATDeclaration(VATStatementLine, 0, 0, false), 1, 1024);
 
         // Verify - check the account amount printed in file
-        XMLReadInitialize(FileName);
+        LibraryXMLRead.Initialize(FileName);
         case IntegerDecimalPart of
             AEATTransferenceFormatXML."Value Type"::"Integer and Decimal Part":
                 BaseAmountText := ConvertStr(DelChr(Format(BaseAmount, 0, '<Precision,' +
@@ -416,11 +412,10 @@ codeunit 147590 "Test VAT Statement"
                 BaseAmountText := '0.' + DelChr(DelChr(Format(BaseAmount, 0, '<Decimal>'), '=', '.'), '=', ',');
         end;
 
-        if NodeType = AEATTransferenceFormatXML."Line Type"::Attribute then begin
-          asserterror XMLReadVerifyAttributeValue(RootNodeName, NodeName, BaseAmountText); // Bug
-          Assert.ExpectedError(KnownFailureUnexpErr);
-        end else
-            XMLReadVerifyNodeValueInSubtree(RootNodeName, NodeName, BaseAmountText);
+        if NodeType = AEATTransferenceFormatXML."Line Type"::Attribute then
+            asserterror LibraryXMLRead.VerifyAttributeValue(RootNodeName, NodeName, BaseAmountText) // Bug
+        else
+            LibraryXMLRead.VerifyNodeValueInSubtree(RootNodeName, NodeName, BaseAmountText);
     end;
 
     [Test]
@@ -549,7 +544,7 @@ codeunit 147590 "Test VAT Statement"
         FileName := CopyStr(RunXMLVATDeclaration(VATStatementLine, 0, 0, false), 1, 1024);
 
         // Verify - check the account amount printed in file
-        XMLReadInitialize(FileName);
+        LibraryXMLRead.Initialize(FileName);
 
         // Verify - check the account amount printed in file
         // Should be base amount as positive is 2 * the negative amount
@@ -557,7 +552,7 @@ codeunit 147590 "Test VAT Statement"
         BaseAmount := Round(2 * Amount / (1 + VATPostingSetupSale."VAT+EC %" / 100), GLSetup."Amount Rounding Precision");
         BaseAmount := BaseAmount - Round(Amount / (1 + VATPostingSetupSale."VAT+EC %" / 100), GLSetup."Amount Rounding Precision");
 
-        XMLReadVerifyNodeValue(RootNodeName,
+        LibraryXMLRead.VerifyNodeValue(RootNodeName,
           ConvertStr(DelChr(Format(BaseAmount, 0, '<Precision,2><Integer><Decimal>'), '=', '.'), ',', '.'));
     end;
 
@@ -671,10 +666,10 @@ codeunit 147590 "Test VAT Statement"
         FileName := CopyStr(RunXMLVATDeclaration(VATStatementLine, 0, 0, false), 1, 1024);
 
         // Verify - check the account amount printed in file
-        XMLReadInitialize(FileName);
+        LibraryXMLRead.Initialize(FileName);
 
         // Verify - check the account amount printed in file
-        XMLReadVerifyNodeValue(RootNodeName,
+        LibraryXMLRead.VerifyNodeValue(RootNodeName,
           ConvertStr(DelChr(Format(ECAmount, 0, '<Precision,2><Integer><Decimal>'), '=', '.'), ',', '.'));
     end;
 
@@ -788,10 +783,10 @@ codeunit 147590 "Test VAT Statement"
         FileName := CopyStr(RunXMLVATDeclaration(VATStatementLine, 0, 0, false), 1, 1024);
 
         // Verify - check the account amount printed in file
-        XMLReadInitialize(FileName);
+        LibraryXMLRead.Initialize(FileName);
 
         // Verify - check the account amount printed in file
-        XMLReadVerifyNodeValue(RootNodeName,
+        LibraryXMLRead.VerifyNodeValue(RootNodeName,
           ConvertStr(DelChr(Format(VATAmount, 0, '<Precision,2><Integer><Decimal>'), '=', '.'), ',', '.'));
     end;
 
@@ -2327,13 +2322,13 @@ codeunit 147590 "Test VAT Statement"
         // Code will be "pass" in the end in TransferenceTXTModalPageHandlerWithSetAskField handler
         // new value set will be passed over
         LibraryVariableStorage.Dequeue(AskFieldValue);
-        XMLReadInitialize(FileName);
-        asserterror XMLReadVerifyNodeValue(Node1, AskFieldValue);
+        LibraryXMLRead.Initialize(FileName);
+        asserterror LibraryXMLRead.VerifyNodeValue(Node1, AskFieldValue);
         Assert.ExpectedError(KnownFailureUnexpErr); // Bug exists as the value is not saved while changing in the page handler
         if Type = AEATTransferenceFormatXML."Line Type"::Element then
-            XMLReadVerifyNodeValueInSubtree(Node1, NodeOrAttribute2, FieldValue)
+            LibraryXMLRead.VerifyNodeValueInSubtree(Node1, NodeOrAttribute2, FieldValue)
         else
-            XMLReadVerifyAttributeValue(Node1, NodeOrAttribute2, FieldValue);
+            LibraryXMLRead.VerifyAttributeValue(Node1, NodeOrAttribute2, FieldValue);
     end;
 
     local procedure VerifyVATStatementLines(VATStatement: TestPage "VAT Statement"; StatementName: Code[10])
@@ -2677,87 +2672,6 @@ codeunit 147590 "Test VAT Statement"
         Commit();
         TelematicVATDeclaration.RunModal();
         Clear(TelematicVATDeclaration);
-    end;
-
-    local procedure XMLReadInitialize(FullFilePath: Text)
-    var
-        XMLFile: File;
-        XMLInStream: InStream;
-    begin
-        Clear(XMLReadDoc);
-        XMLFile.Open(FullFilePath);
-        XMLFile.CreateInStream(XMLInStream);
-        XmlDocument.ReadFrom(XMLInStream, XMLReadDoc);
-        XMLFile.Close();
-    end;
-
-    local procedure XMLReadVerifyNodeValue(ElementName: Text; Expected: Variant)
-    var
-        FoundNodes: XmlNodeList;
-        FoundNode: XmlNode;
-        NodeIndex: Integer;
-    begin
-        XMLReadDoc.SelectNodes('//' + ElementName, FoundNodes);
-        if FoundNodes.Count() = 0 then
-            Error(XMLReadMissingElementErr, ElementName);
-        for NodeIndex := 1 to FoundNodes.Count() do begin
-            FoundNodes.Get(NodeIndex, FoundNode);
-            if XMLReadEqual(Expected, FoundNode.AsXmlElement().InnerText()) then
-                exit;
-        end;
-        FoundNodes.Get(1, FoundNode);
-        Assert.AreEqual(Format(Expected, 0, 9), FoundNode.AsXmlElement().InnerText(),
-          StrSubstNo(XMLReadElementValueErr, ElementName));
-    end;
-
-    local procedure XMLReadVerifyNodeValueInSubtree(RootNodeName: Text; NodeName: Text; ExpectedNodeValue: Variant)
-    var
-        FoundNodes: XmlNodeList;
-        FoundNode: XmlNode;
-        NodeIndex: Integer;
-    begin
-        XMLReadDoc.SelectNodes('//' + RootNodeName + '//' + NodeName, FoundNodes);
-        for NodeIndex := 1 to FoundNodes.Count() do begin
-            FoundNodes.Get(NodeIndex, FoundNode);
-            if XMLReadEqual(ExpectedNodeValue, FoundNode.AsXmlElement().InnerText()) then
-                exit;
-        end;
-        Error(XMLReadNotFoundInSubtreeErr, NodeName, ExpectedNodeValue, RootNodeName);
-    end;
-
-    local procedure XMLReadVerifyAttributeValue(ElementName: Text; AttributeName: Text; Expected: Variant)
-    var
-        FoundNode: XmlNode;
-        FoundAttribute: XmlAttribute;
-    begin
-        if not XMLReadDoc.SelectSingleNode('//' + ElementName, FoundNode) then
-            Error(XMLReadMissingElementErr, ElementName);
-        if not FoundNode.AsXmlElement().Attributes().Get(AttributeName, FoundAttribute) then
-            Error(XMLReadAttributeValueErr, AttributeName);
-        Assert.AreEqual(Format(Expected, 0, 9), FoundAttribute.Value(),
-          StrSubstNo(XMLReadAttributeValueErr, AttributeName));
-    end;
-
-    local procedure XMLReadEqual(ExpectedValue: Variant; ActualValue: Text): Boolean
-    var
-        ExpectedDate: Date;
-        ExpectedDecimal: Decimal;
-        ActualDate: Date;
-        ActualDecimal: Decimal;
-    begin
-        if ExpectedValue.IsDate() then begin
-            ExpectedDate := ExpectedValue;
-            if not Evaluate(ActualDate, ActualValue, 9) then
-                exit(false);
-            exit(ExpectedDate = ActualDate);
-        end;
-        if ExpectedValue.IsDecimal() or ExpectedValue.IsInteger() then begin
-            ExpectedDecimal := ExpectedValue;
-            if not Evaluate(ActualDecimal, ActualValue, 9) then
-                exit(false);
-            exit(ExpectedDecimal = ActualDecimal);
-        end;
-        exit(Format(ExpectedValue, 0, 9) = ActualValue);
     end;
 
     local procedure RunXMLVATDeclaration(var VATStatementLine: Record "VAT Statement Line"; EntryType: Option; EntryPeriod: Option; AddtnlCurrency: Boolean) ServerFileName: Text
