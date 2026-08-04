@@ -104,8 +104,35 @@ foreach($app in $appsToRemove) {
 }
 
 Write-Host "Current installed apps in container $($parameters.ContainerName)"
-foreach ($app in (Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
-    Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - IsInstalled: $($app.IsInstalled) - IsPublished: $($app.IsPublished)"
+$containerApps = @(Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast)
+foreach ($app in $containerApps) {
+    Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - IsInstalled: $($app.IsInstalled) - IsPublished: $($app.IsPublished) - SyncState: $($app.SyncState)"
+}
+
+# Publishing an app runs a sync, and BC resolves every dependency against a SYNCHRONIZED
+# extension. The artifact ships some apps published but never synchronized - test libraries such
+# as "Permissions Mock" are published and not installed - so a retained app cannot be assumed to
+# be synchronized just because the artifact had it. Sync the ones that are not, which is far
+# cheaper than publishing them: no upload, extract or validation.
+if ($baseline.IsUsable -and $appsToKeep.Count -gt 0) {
+    $retainedKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($app in $appsToKeep) { [void]$retainedKeys.Add($app.Name) }
+
+    $notSynced = @($containerApps | Where-Object { $retainedKeys.Contains($_.Name) -and "$($_.SyncState)" -ne 'Synced' })
+    if ($notSynced.Count -gt 0) {
+        Write-Host "ARTIFACT BASELINE: synchronizing $($notSynced.Count) retained app(s) the artifact left unsynchronized"
+        foreach ($app in $notSynced) {
+            try {
+                Sync-BcContainerApp -containerName $parameters.ContainerName -appName $app.Name -appVersion $app.Version -Mode ForceSync -Force
+            }
+            catch {
+                Write-Host "ARTIFACT BASELINE: could not synchronize $($app.Name) - $($_.Exception.Message)"
+            }
+        }
+    }
+    else {
+        Write-Host "ARTIFACT BASELINE: all retained apps are already synchronized"
+    }
 }
 
 Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -scriptblock { $progressPreference = 'SilentlyContinue' }
