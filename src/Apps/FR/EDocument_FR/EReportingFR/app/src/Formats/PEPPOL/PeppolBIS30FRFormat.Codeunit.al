@@ -11,7 +11,10 @@ using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Reminder;
+using Microsoft.Service.History;
 using System.Utilities;
 
 codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
@@ -43,7 +46,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         PeppolBIS30.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
 
         // Post-process XML to inject French-specific elements
-        InjectFrenchElements(TempBlob, SourceDocumentHeader, EDocumentService);
+        InjectFrenchElements(TempBlob, SourceDocumentHeader, SourceDocumentLines, EDocumentService);
     end;
 
     procedure CreateBatch(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
@@ -66,7 +69,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         CreatedDocumentLines.GetTable(TempPurchaseLine);
     end;
 
-    local procedure InjectFrenchElements(var TempBlob: Codeunit "Temp Blob"; SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service")
+    local procedure InjectFrenchElements(var TempBlob: Codeunit "Temp Blob"; SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; EDocumentService: Record "E-Document Service")
     var
         CompanyInformation: Record "Company Information";
         XmlDoc: XmlDocument;
@@ -84,7 +87,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         InitNamespaceManager(NamespaceMgr, XmlDoc);
 
-        SetFrenchBillingMode(XmlDoc, NamespaceMgr);
+        SetFrenchBillingMode(XmlDoc, NamespaceMgr, SourceDocumentLines);
         RemoveZeroAllowanceTotal(XmlDoc, NamespaceMgr);
         InjectSupplierIdentification(XmlDoc, NamespaceMgr, CompanyInformation);
         InjectSupplierEndpoint(XmlDoc, NamespaceMgr, CompanyInformation, EDocumentService.Code);
@@ -100,15 +103,69 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         XmlDoc.WriteTo(OutStr);
     end;
 
-    local procedure SetFrenchBillingMode(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager)
+    local procedure SetFrenchBillingMode(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; var SourceDocumentLines: RecordRef)
     var
         ProfileIdNode: XmlNode;
         NewProfileIdNode: XmlNode;
     begin
         if not XmlDoc.SelectSingleNode('/*/cbc:ProfileID', NamespaceMgr, ProfileIdNode) then
             exit;
-        NewProfileIdNode := XmlElement.Create('ProfileID', CbcNamespaceTok, BillingModeB1Tok).AsXmlNode();
+        NewProfileIdNode := XmlElement.Create('ProfileID', CbcNamespaceTok, GetFrenchBillingMode(SourceDocumentLines)).AsXmlNode();
         ProfileIdNode.ReplaceWith(NewProfileIdNode);
+    end;
+
+    local procedure GetFrenchBillingMode(var SourceDocumentLines: RecordRef): Text
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        ServiceInvoiceLine: Record "Service Invoice Line";
+        ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        LineCount: Integer;
+        ItemLineCount: Integer;
+    begin
+        case SourceDocumentLines.Number of
+            Database::"Sales Invoice Line":
+                begin
+                    SourceDocumentLines.SetTable(SalesInvoiceLine);
+                    SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
+                    LineCount := SalesInvoiceLine.Count();
+                    SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+                    ItemLineCount := SalesInvoiceLine.Count();
+                end;
+            Database::"Sales Cr.Memo Line":
+                begin
+                    SourceDocumentLines.SetTable(SalesCrMemoLine);
+                    SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
+                    LineCount := SalesCrMemoLine.Count();
+                    SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::Item);
+                    ItemLineCount := SalesCrMemoLine.Count();
+                end;
+            Database::"Service Invoice Line":
+                begin
+                    SourceDocumentLines.SetTable(ServiceInvoiceLine);
+                    ServiceInvoiceLine.SetFilter(Type, '<>%1', ServiceInvoiceLine.Type::" ");
+                    LineCount := ServiceInvoiceLine.Count();
+                    ServiceInvoiceLine.SetRange(Type, ServiceInvoiceLine.Type::Item);
+                    ItemLineCount := ServiceInvoiceLine.Count();
+                end;
+            Database::"Service Cr.Memo Line":
+                begin
+                    SourceDocumentLines.SetTable(ServiceCrMemoLine);
+                    ServiceCrMemoLine.SetFilter(Type, '<>%1', ServiceCrMemoLine.Type::" ");
+                    LineCount := ServiceCrMemoLine.Count();
+                    ServiceCrMemoLine.SetRange(Type, ServiceCrMemoLine.Type::Item);
+                    ItemLineCount := ServiceCrMemoLine.Count();
+                end;
+            Database::"Issued Reminder Line",
+            Database::"Issued Fin. Charge Memo Line":
+                LineCount := 1;
+        end;
+
+        if (ItemLineCount > 0) and (ItemLineCount < LineCount) then
+            exit(BillingModeB3Tok);
+        if (LineCount > 0) and (ItemLineCount = 0) then
+            exit(BillingModeB2Tok);
+        exit(BillingModeB1Tok);
     end;
 
     local procedure RemoveZeroAllowanceTotal(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager)
@@ -343,10 +400,14 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             if CompanyInformation."SIRET No." <> '' then begin
                 ElecAddress := CompanyInformation."SIRET No.";
                 ElecAddressScheme := ElecAddressScheme::"0009";
-            end else begin
-                ElecAddress := CopyStr(CompanyInformation.GetVATRegistrationNumber(), 1, MaxStrLen(ElecAddress));
-                ElecAddressScheme := ElecAddressScheme::"9957";
-            end;
+            end else
+                if CompanyInformation."Registration No." <> '' then begin
+                    ElecAddress := CompanyInformation."Registration No.";
+                    ElecAddressScheme := ElecAddressScheme::"0002";
+                end else begin
+                    ElecAddress := CopyStr(CompanyInformation.GetVATRegistrationNumber(), 1, MaxStrLen(ElecAddress));
+                    ElecAddressScheme := ElecAddressScheme::"9957";
+                end;
 
         if ElecAddress = '' then
             exit;
@@ -530,5 +591,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ExtendedCTCFranceCustomizationIdTok: Label 'EXTENDED-CTC-FR', Locked = true;
         RegulatoryCommentFormatTok: Label '#%1#%2', Locked = true;
         BillingModeB1Tok: Label 'B1', Locked = true;
+        BillingModeB2Tok: Label 'B2', Locked = true;
+        BillingModeB3Tok: Label 'B3', Locked = true;
         InvoiceLineXPathTok: Label '/*/cac:InvoiceLine[cbc:ID=''%1'']', Locked = true;
 }

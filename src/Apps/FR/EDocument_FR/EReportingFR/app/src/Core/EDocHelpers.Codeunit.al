@@ -70,6 +70,8 @@ codeunit 10991 "EDoc. Helpers"
         CompanyInformation.Get();
         if CompanyInformation."SIRET No." <> '' then
             exit;
+        if CompanyInformation."Registration No." <> '' then
+            exit;
         if CompanyInformation.GetVATRegistrationNumber() <> '' then
             exit;
 
@@ -148,7 +150,7 @@ codeunit 10991 "EDoc. Helpers"
     var
         SIRENRequiredErr: Label 'Registration No. must be specified in Company Information for French e-invoicing.';
         SIRETRequiredErr: Label 'SIRET No. must be specified in Company Information for French e-invoicing.';
-        SellerElectronicAddressRequiredErr: Label 'SIRET No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.';
+        SellerElectronicAddressRequiredErr: Label 'SIRET No., Registration No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.';
         BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         SellerCountryCodeRequiredErr: Label 'Country/Region Code must be specified in Company Information for French e-invoicing.';

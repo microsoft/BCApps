@@ -325,6 +325,22 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure ExportSalesInvSetsB2ForServiceLines()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+    begin
+        // [SCENARIO] An invoice containing only service lines uses billing mode B2
+        Initialize();
+
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
+
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        Assert.AreEqual('B2', GetNodeByPath(XmlDoc, '/Invoice/cbc:ProfileID'), StrSubstNo(IncorrectValueErr, 'ProfileID'));
+    end;
+
+    [Test]
     procedure ExportSalesInvUsesServiceParticipantEndpointWithScheme0225()
     var
         ServiceParticipant: Record "Service Participant";
@@ -660,39 +676,42 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] The buyer endpoint uses the VAT identifier and scheme 0223
+        // [THEN] The buyer endpoint uses the VAT identifier and French VAT scheme 9957
         Assert.AreEqual(GetCustomerVATRegistrationNo(SalesInvoiceHeader."Sell-to Customer No."),
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('0223',
+        Assert.AreEqual('9957',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
     [Test]
-    procedure CheckRaisesErrorWhenSellerElectronicAddressIsMissing()
+    procedure ExportSalesInvUsesSupplierSIRENWhenSIRETIsMissing()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
         OriginalSIRETNo: Code[14];
-        OriginalVATRegistrationNo: Text[20];
     begin
-        // [SCENARIO] Check rejects a seller without SIRET, VAT registration number, or a service participant identifier
+        // [SCENARIO] Company Registration No. is used as the seller endpoint when SIRET is missing
         Initialize();
 
         OriginalSIRETNo := CompanyInformation."SIRET No.";
-        OriginalVATRegistrationNo := CompanyInformation."VAT Registration No.";
         CompanyInformation."SIRET No." := '';
-        CompanyInformation."VAT Registration No." := '';
         CompanyInformation.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
-        asserterror CheckInvoice(SalesInvoiceHeader);
+        CheckInvoice(SalesInvoiceHeader);
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        Assert.ExpectedError('SIRET No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.');
+        Assert.AreEqual(CompanyInformation."Registration No.",
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'),
+            StrSubstNo(IncorrectValueErr, 'Seller EndpointID'));
+        Assert.AreEqual('0002',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Seller EndpointID schemeID'));
 
         CompanyInformation.Get();
         CompanyInformation."SIRET No." := OriginalSIRETNo;
-        CompanyInformation."VAT Registration No." := OriginalVATRegistrationNo;
         CompanyInformation.Modify(true);
     end;
 
