@@ -162,9 +162,9 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         end;
 
         if (ItemLineCount > 0) and (ItemLineCount < LineCount) then
-            exit(BillingModeB3Tok);
+            exit(BillingModeM1Tok);
         if (LineCount > 0) and (ItemLineCount = 0) then
-            exit(BillingModeB2Tok);
+            exit(BillingModeS1Tok);
         exit(BillingModeB1Tok);
     end;
 
@@ -591,7 +591,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ExtendedCTCFranceCustomizationIdTok: Label 'EXTENDED-CTC-FR', Locked = true;
         RegulatoryCommentFormatTok: Label '#%1#%2', Locked = true;
         BillingModeB1Tok: Label 'B1', Locked = true;
-        BillingModeB2Tok: Label 'B2', Locked = true;
-        BillingModeB3Tok: Label 'B3', Locked = true;
+        BillingModeS1Tok: Label 'S1', Locked = true;
+        BillingModeM1Tok: Label 'M1', Locked = true;
         InvoiceLineXPathTok: Label '/*/cac:InvoiceLine[cbc:ID=''%1'']', Locked = true;
 }

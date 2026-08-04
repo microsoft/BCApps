@@ -325,19 +325,19 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesInvSetsB2ForServiceLines()
+    procedure ExportSalesInvSetsS1ForServiceLines()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
     begin
-        // [SCENARIO] An invoice containing only service lines uses billing mode B2
+        // [SCENARIO] An invoice containing only service lines uses billing mode S1
         Initialize();
 
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        Assert.AreEqual('B2', GetNodeByPath(XmlDoc, '/Invoice/cbc:ProfileID'), StrSubstNo(IncorrectValueErr, 'ProfileID'));
+        Assert.AreEqual('S1', GetNodeByPath(XmlDoc, '/Invoice/cbc:ProfileID'), StrSubstNo(IncorrectValueErr, 'ProfileID'));
     end;
 
     [Test]
