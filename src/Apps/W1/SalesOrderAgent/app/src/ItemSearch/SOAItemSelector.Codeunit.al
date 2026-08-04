@@ -39,9 +39,7 @@ codeunit 4417 "SOA Item Selector"
     internal procedure SelectBestMatchingItems(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Boolean
     var
         ErrorCallStack: Text;
-        ErrorText: Text;
         FailureCategory: Text;
-        FailureDetails: Text;
         StatusCode: Text;
     begin
         MatchingItemFilter := '';
@@ -50,15 +48,14 @@ codeunit 4417 "SOA Item Selector"
         Clear(AlternativeItemVariants);
 
         ClearLastError();
-        if not TrySelectBestMatchingItems(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants, FailureCategory, StatusCode, FailureDetails) then begin
+        if not TrySelectBestMatchingItems(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants, FailureCategory, StatusCode) then begin
             ErrorCallStack := GetLastErrorCallStack();
-            ErrorText := GetLastErrorText(true);
-            LogItemSelectorException(CandidateArray.Count(), ErrorText, ErrorCallStack);
+            LogItemSelectorException(CandidateArray.Count(), ErrorCallStack);
             exit(false);
         end;
 
         if FailureCategory <> '' then begin
-            LogItemSelectorResponseFailure(CandidateArray.Count(), FailureCategory, StatusCode, FailureDetails);
+            LogItemSelectorResponseFailure(CandidateArray.Count(), FailureCategory, StatusCode);
             exit(false);
         end;
 
@@ -67,7 +64,7 @@ codeunit 4417 "SOA Item Selector"
 
     [NonDebuggable]
     [TryFunction]
-    local procedure TrySelectBestMatchingItems(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var FailureCategory: Text; var StatusCode: Text; var FailureDetails: Text)
+    local procedure TrySelectBestMatchingItems(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var FailureCategory: Text; var StatusCode: Text)
     var
         ItemSelectorFunc: Codeunit "SOA Item Selector Func";
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -104,7 +101,6 @@ codeunit 4417 "SOA Item Selector"
         if not AOAIOperationResponse.IsSuccess() then begin
             FailureCategory := AOAIOperationFailureTok;
             StatusCode := Format(AOAIOperationResponse.GetStatusCode());
-            FailureDetails := AOAIOperationResponse.GetError();
             exit;
         end;
 
@@ -130,18 +126,17 @@ codeunit 4417 "SOA Item Selector"
             FailureCategory := MalformedFunctionResponseFailureTok;
     end;
 
-    local procedure LogItemSelectorException(CandidateCount: Integer; ErrorText: Text; ErrorCallStack: Text)
+    local procedure LogItemSelectorException(CandidateCount: Integer; ErrorCallStack: Text)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SOASetup: Codeunit "SOA Setup";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
         TelemetryDimensions.Add('CandidateCount', Format(CandidateCount));
-        TelemetryDimensions.Add('Error', ErrorText);
         FeatureTelemetry.LogError('0000UWK', SOASetup.GetFeatureName(), 'Item Selector Exception', ItemSelectorExceptionTelemetryMsg, ErrorCallStack, TelemetryDimensions);
     end;
 
-    local procedure LogItemSelectorResponseFailure(CandidateCount: Integer; FailureCategory: Text; StatusCode: Text; FailureDetails: Text)
+    local procedure LogItemSelectorResponseFailure(CandidateCount: Integer; FailureCategory: Text; StatusCode: Text)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SOASetup: Codeunit "SOA Setup";
@@ -151,8 +146,6 @@ codeunit 4417 "SOA Item Selector"
         TelemetryDimensions.Add('FailureCategory', FailureCategory);
         if StatusCode <> '' then
             TelemetryDimensions.Add('StatusCode', StatusCode);
-        if FailureDetails <> '' then
-            TelemetryDimensions.Add('Error', FailureDetails);
         FeatureTelemetry.LogError('0000UWL', SOASetup.GetFeatureName(), 'Item Selector Response Failure', ItemSelectorResponseFailureTelemetryMsg, '', TelemetryDimensions);
     end;
 
