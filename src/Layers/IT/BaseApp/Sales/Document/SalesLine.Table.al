@@ -12075,10 +12075,12 @@ table 37 "Sales Line"
     /// <param name="SalesLine">The sales line being processed.</param>
     /// <param name="FormattedType">The formatted type text.</param>
     /// <param name="IsHandled">Set to true to skip the default processing.</param>
+#pragma warning disable AS0027
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
     end;
+#pragma warning restore AS0027
 
     /// <summary>
     /// Raised before getting the customer posting group invoice rounding account.

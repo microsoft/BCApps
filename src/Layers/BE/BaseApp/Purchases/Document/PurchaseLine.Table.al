@@ -10906,10 +10906,12 @@ table 39 "Purchase Line"
     begin
     end;
 
+#pragma warning disable AS0027
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
     end;
+#pragma warning restore AS0027
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetVPGInvRoundAcc(PurchHeader: Record "Purchase Header"; Vendor: Record Vendor; var AccountNo: Code[20]; var IsHandled: Boolean)
