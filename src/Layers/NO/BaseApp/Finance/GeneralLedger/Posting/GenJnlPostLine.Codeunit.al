@@ -8347,6 +8347,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     InsertDeferralNonDeductibleVATGLEntries(
                         NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate,
                         VATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding);
+                    // Reset the rounding buffers after the initial (accrued) deferral entry so that the
+                    // accrued and reversed non-deductible VAT amounts are rounded independently and fully offset.
+                    if DeferralPostingBuffer."Partial Deferral" then begin
+                        VATAmountRounding := 0;
+                        PositiveNDVATAmountRounding := 0;
+                        NegativeNDVATAmountRounding := 0;
+                    end;
                 until DeferralPostingBuffer.Next() = 0;
                 OnPostDeferralPosBufferOnBeforeDeleteDeferralPostBuffer(GenJournalLine, DeferralPostingBuffer);
                 DeferralPostingBuffer.DeleteAll();

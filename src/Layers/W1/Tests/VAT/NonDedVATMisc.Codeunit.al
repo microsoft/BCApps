@@ -674,6 +674,50 @@ codeunit 134284 "Non Ded. VAT Misc."
     end;
 
     [Test]
+    procedure DeferralFullNonDedVATRoundingNoResidual()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        DeferralTemplate: Record "Deferral Template";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLEntry: Record "G/L Entry";
+        PostedInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Purchase] [Non-deductible VAT] [Deferral] [Rounding]
+        // [SCENARIO 394920] Full (100%) non-deductible VAT deferral leaves no rounding residual on the deferral accounts
+        Initialize();
+        // [GIVEN] VAT posting setup with VAT = 21% and Non-Deductible VAT = 100%
+        CreateVATPostingSetupWithPct(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 21, 0);
+        // [GIVEN] Deferral Template 6 periods
+        LibraryERM.CreateDeferralTemplate(
+          DeferralTemplate, DeferralTemplate."Calc. Method"::"Straight-Line",
+          DeferralTemplate."Start Date"::"Posting Date", 6);
+        // [GIVEN] Purchase Invoice with Amount = 265.4 that produces a non-deductible VAT amount of 55.73 spread over 6 periods
+        CreatePurchInvoiceWithDeferralAndDedVAT(
+          PurchaseHeader, PurchaseLine, WorkDate(), VATPostingSetup, DeferralTemplate."Deferral Code", 265.4);
+
+        // [WHEN] Post the invoice
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The accrued and reversed non-deductible VAT deferral entries fully offset (net balance = 0.00, no 0.01 residual)
+        GLEntry.SetRange("Document No.", PostedInvoiceNo);
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Invoice);
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Non-Ded. Purchase VAT Account");
+        GLEntry.CalcSums(Amount);
+        GLEntry.TestField(Amount, 0);
+
+        // [THEN] The deferral account also nets to 0.00
+        Clear(GLEntry);
+        GLEntry.SetRange("Document No.", PostedInvoiceNo);
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Invoice);
+        GLEntry.SetRange("G/L Account No.", DeferralTemplate."Deferral Account");
+        GLEntry.CalcSums(Amount);
+        GLEntry.TestField(Amount, 0);
+
+        TearDownLastUsedDateInPurchInvoiceNoSeries();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure PostedPurchInvWithDeferralAndDeductibleVATBlankNonDeductibleVATAccReverseChargeVAT()
     var
