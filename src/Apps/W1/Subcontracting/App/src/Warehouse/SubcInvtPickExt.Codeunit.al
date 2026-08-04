@@ -62,12 +62,6 @@ codeunit 99001573 "Subc. Invt. Pick Ext"
             Qty := 0;
     end;
 
-    // NOTE: Must only apply to outbound Pick/Invt. Pick lines (this codeunit's scope). Without the
-    // Activity Type check, this subscriber also fired for inbound Invt. Put-away Transfer WIP Item
-    // lines (no Activity Type filter is available on the event itself), incorrectly overwriting
-    // "Qty. to Handle" with the Transfer Line's OUTBOUND "Qty. to Ship" (already 0 once the shipment
-    // leg has posted), which zeroed out the put-away's "Qty. to Handle" instead of leaving it for the
-    // base app's normal (put-away-side) autofill handling.
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", OnBeforeAutofillQtyToHandleLine, '', false, false)]
     local procedure SetNonBaseQtyToHandleForWipItemPickLine_OnBeforeAutofillQtyToHandleLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
     var

@@ -124,6 +124,7 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         IsHandled := true;
     end;
 
+    ///Sets the transfer line number on direct-transfer WIP journal lines for empty-quantity validation.
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", OnPostItemJnlLineBeforeItemJnlPostLineRunWithCheck, '', false, false)]
     local procedure HandleWipTransferOnPostItemJnlLineBeforeItemJnlPostLineRunWithCheck(var ItemJournalLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line"; DirectTransHeader: Record "Direct Trans. Header"; DirectTransLine: Record "Direct Trans. Line"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
     begin
@@ -136,32 +137,6 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         if not TransferLine."Transfer WIP Item" then
             exit;
 
-        // Why this is only needed for WIP items:
-        // In "TransferOrder-Post Transfer".RunWithCheck, all posted transfer lines are filtered to Quantity <> 0,
-        // so for ordinary items the item journal line always carries a non-zero "Quantity (Base)" and never hits
-        // the empty-quantity check below. A "Transfer WIP Item" line is the exception: it intentionally moves the
-        // item through WIP without a real inventory quantity, so its item journal line's "Quantity (Base)" is 0
-        // by design, and needs the bypass in HandleWipTransferOnBeforeCheckEmptyQuantity to avoid erroring.
-        //
-        // Why standard doesn't set "Order Line No." for Direct Transfer:
-        // "TransferOrder-Post Transfer".CreateItemJnlLine (the Direct Transfer combined ship+receive path) never
-        // sets "Order Line No." on the item journal line it builds (only "Order Type" := Transfer and "Order No."
-        // := the Transfer Order No.), unlike the routed shipment/receipt path
-        // ("TransferOrder-Post Shipment".PostItemJnlLine, which does set "Order Line No." := TransferLine."Line No.").
-        // Direct Transfer posts shipment and receipt as a single combined journal line and correlates the
-        // resulting entries back to the transfer line via "Item Entry Relation"/"Item Shpt. Entry No." instead of
-        // "Order Line No.". The routed (in-transit) flow posts shipment and receipt as two separate steps over
-        // time, so it needs "Order Line No." to re-link the later receipt back to the originating line/reservation.
-        // Standard therefore never had a reason to populate it for Direct Transfer.
-        //
-        // Consequence for us:
-        // Without "Order Line No." set, HandleWipTransferOnBeforeCheckEmptyQuantity above can never find this line
-        // via TransferLine.Get(ItemJnlLine."Order No.", ItemJnlLine."Order Line No.") (Order Line No. stays 0, which
-        // essentially never matches a real Transfer Line's "Line No."), so its WIP bypass silently fails to apply
-        // and posting instead falls through to "Mfg. Item Jnl. Check Line".OnCheckEmptyQuantity, which errors with
-        // "you have not entered a quantity" for a WIP line's intentional Qty. (Base) = 0. Fix by populating
-        // "Order Line No." here (fired right before the check/post) so the lookup above succeeds for Direct
-        // Transfers exactly as it already does for routed (in-transit) transfers.
         ItemJournalLine."Order Line No." := TransferLine."Line No.";
     end;
 

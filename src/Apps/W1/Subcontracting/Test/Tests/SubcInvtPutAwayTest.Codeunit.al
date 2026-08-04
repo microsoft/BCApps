@@ -311,9 +311,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         WorkCenter: array[2] of Record "Work Center";
         Quantity: Decimal;
     begin
-        // [SCENARIO] Posting a Not-Last-Operation Inventory Put-away at a Bin Mandatory location
-        // must still create the Output Item Ledger Entry (via MfgPurchPost), but must NOT create
-        // any Warehouse Entry, since Qty. (Base) is intentionally 0 for these lines.
+        // [SCENARIO] Post a NotLastOperation Inventory Put-away at a Bin Mandatory location without Warehouse Entries.
         // [FEATURE] Subcontracting Inventory Put-Away - Not Last Operation posting
 
         // [GIVEN] Complete Manufacturing Setup with a two-operation subcontracting routing
@@ -384,11 +382,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         WorkCenter: array[2] of Record "Work Center";
         Quantity: Decimal;
     begin
-        // [SCENARIO] Regression guard: for a location that is Bin Mandatory but does NOT
-        // require put-away (no warehouse document involved at all), the purchase order is
-        // posted directly and must still rely on the automatic Warehouse Journal Line creation
-        // in Mfg. Item Jnl.-Post Line (Subscriber F must NOT suppress it here, since Location
-        // "Require Put-away" = false for this location).
+        // [SCENARIO] Directly post a purchase order at a Bin Mandatory location without Require Put-away.
         // [FEATURE] Subcontracting - Location Configuration (Bin Mandatory Only)
 
         // [GIVEN] Complete Manufacturing Setup
@@ -431,8 +425,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         ItemLedgerEntry.CalcSums(Quantity);
         Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'Item Ledger Entry should have the correct output quantity');
 
-        // [THEN] Warehouse Entry is created exactly once (via the automatic bin integration),
-        // proving Subscriber F correctly left this location's posting untouched.
+        // [THEN] Warehouse Entry is created exactly once
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetRange("Location Code", Location.Code);
         Assert.RecordIsNotEmpty(WarehouseEntry);
@@ -456,11 +449,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         WorkCenter: array[2] of Record "Work Center";
         Quantity: Decimal;
     begin
-        // [SCENARIO] Undo Receipt must succeed for a Last Operation subcontracting purchase line
-        // posted through Inventory Put-away, when the location is NOT Bin Mandatory - since no
-        // Warehouse Entry is ever created in that case, there is nothing that could be left
-        // un-reversed. Subscriber D (SkipUndoBlockForSubc_OnBeforeTestPostedInvtPutAwayLine)
-        // must suppress the base app block for this specific case only.
+        // [SCENARIO] Block undo of an Inventory Put-away receipt at a location that is not Bin Mandatory.
         // [FEATURE] Subcontracting Inventory Put-Away - Undo Receipt
 
         // [GIVEN] Complete Manufacturing Setup with a single-operation subcontracting routing
@@ -523,12 +512,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         WorkCenter: array[2] of Record "Work Center";
         Quantity: Decimal;
     begin
-        // [SCENARIO] Undo Receipt must remain BLOCKED for a Last Operation subcontracting
-        // purchase line posted through Inventory Put-away, when the location IS Bin Mandatory -
-        // since a Warehouse Entry (bin content) was created that Undo Receipt cannot reverse
-        // (WhseUndoQty's reversal search never matches these entries - a general, pre-existing
-        // base app limitation of the one-step Inventory Put-away flow). This is consistent with
-        // the existing UndoPurchaseReceiptFailsWhenPutAwayRegistered test for the two-step flow.
+        // [SCENARIO] Block undo of an Inventory Put-away receipt at a Bin Mandatory location.
         // [FEATURE] Subcontracting Inventory Put-Away - Undo Receipt
 
         // [GIVEN] Complete Manufacturing Setup with a single-operation subcontracting routing
@@ -663,11 +647,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         ILECountBefore: Integer;
         WhseEntryCountBefore: Integer;
     begin
-        // [SCENARIO] Posting a WIP Item Return Transfer Inventory Put-away at a Bin Mandatory
-        // location must create NEITHER an Item Ledger Entry NOR a Warehouse Entry, because
-        // Subscriber B (SkipWhseJnlForNotLastOp_OnBeforePostWhseJnlLine) suppresses the
-        // WhseJnlLine creation for "Transfer WIP Item" activity lines (analogous to
-        // NotLastOperation purchase lines), and the transfer item journal has Qty.(Base) = 0.
+        // [SCENARIO] Post a WIP return transfer Inventory Put-away without Item or Warehouse Entries.
         // [FEATURE] Subcontracting Inventory Put-Away - WIP Item Transfer posting
 
         // [GIVEN] Complete subcontracting manufacturing setup with routing that has Transfer WIP Item = true
@@ -709,9 +689,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
         LibraryWarehouse.PostTransferOrder(ForwardTransferHeader, true, true);
 
-        // [GIVEN] Return Transfer Order (Rückumlagerung) created directly with full subcontracting routing context.
-        // SubcCreateSubCReturnOrder cannot be used here because it relies on Subcontractor WIP Ledger
-        // Entries that are never inserted (CalcBaseQty = 0 for WIP transfer items, Qty.per UoM = 0).
+        // [GIVEN] Return Transfer Order created with subcontracting routing context
         SubcWarehouseLibrary.CreateReturnTransferWithSubcContext(
             PurchaseHeader, PurchaseLine,
             Vendor."Subc. Location Code", ProdLocation.Code, InTransitLocation.Code,
@@ -738,7 +716,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         Assert.AreEqual(ILECountBefore, ItemLedgerEntry.Count(),
             'No Item Ledger Entries should be created by WIP item return transfer Inventory Put-away');
 
-        // [THEN] No new Warehouse Entry at the production location (Subscriber B skips WhseJnlLine for Transfer WIP Item lines)
+        // [THEN] No new Warehouse Entry is created at the production location
         Assert.AreEqual(WhseEntryCountBefore, WarehouseEntry.Count(),
             'No Warehouse Entries should be created for WIP item return transfer Inventory Put-away (Subscriber B must suppress it)');
 
@@ -777,7 +755,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
     [PageHandler]
     procedure HandleSubcTransferOrderPage(var TransferOrderPage: TestPage "Transfer Order")
     begin
-        // Dismiss the Transfer Order page opened by SubcCreateTransfOrder.ShowDocument()
+        // Close the Transfer Order page.
         TransferOrderPage.OK().Invoke();
     end;
 }

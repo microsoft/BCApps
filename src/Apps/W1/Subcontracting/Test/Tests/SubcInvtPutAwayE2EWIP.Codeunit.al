@@ -9,6 +9,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
@@ -104,12 +105,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseEntryCountBefore: Integer;
     begin
         // [FEATURE] Subcontracting Inventory Put-away / Pick E2E WIP
-        // [SCENARIO] TC-E2E-B01 Full WIP round trip — forward pick, return put-away, verify no physical stock movement
-        // Canonical WIP round-trip: forward Inventory Pick ships the WIP item from the production location to the
-        // subcontractor without ever touching Item Ledger or Warehouse Entries (only a Subcontractor WIP Ledger
-        // Entry at the subcontractor's location), and the subsequent return Inventory Put-Away receives it back at
-        // the production location with the same absence of physical ledger movement — while fully closing/deleting
-        // the transfer order once received.
+        // [SCENARIO] TC-E2E-B01 A full WIP round trip posts transfer and WIP entries without physical stock movement.
         Initialize();
         Quantity := LibraryRandom.RandIntInRange(5, 10);
 
@@ -157,7 +153,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         TransferShipmentHeader.SetRange("Transfer Order No.", ForwardTransferHeader."No.");
         Assert.RecordIsNotEmpty(TransferShipmentHeader);
 
-        // [THEN] No Item Ledger Entry created; no Warehouse Entry created; WIP Ledger Entry created for subcontractor location^
+        // [THEN] No Item Ledger Entry or Warehouse Entry is created; a WIP Ledger Entry is created at the subcontractor location.
         Assert.AreEqual(ItemLedgerEntryCountBefore, ItemLedgerEntry.Count(), 'Forward WIP pick must not create item ledger entries.');
         Assert.AreEqual(WarehouseEntryCountBefore, WarehouseEntry.Count(), 'Forward WIP pick must not create warehouse entries.');
         WIPLedgerEntry.SetRange("Prod. Order Status", ProductionOrder.Status);
@@ -191,12 +187,112 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         // [THEN] Transfer order deleted after full receipt (both forward and return, once fully handled)
         Assert.IsFalse(ReturnTransferHeader.Get(ReturnTransferHeader."No."), 'Return transfer order must be deleted after full receipt.');
 
-        // [THEN] WIP Ledger Entry for production location is NOT created (documented constraint, Qty.(Base)=0 skip rule)
+        // [THEN] No WIP Ledger Entry is created at the production location.
         WIPLedgerEntry.Reset();
         WIPLedgerEntry.SetRange("Prod. Order Status", ProductionOrder.Status);
         WIPLedgerEntry.SetRange("Prod. Order No.", ProductionOrder."No.");
         WIPLedgerEntry.SetRange("Location Code", ProductionLocation.Code);
         Assert.RecordIsEmpty(WIPLedgerEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    procedure TrackedWipTransferPickSkipsRequiredTracking()
+    var
+        BinContent: Record "Bin Content";
+        PickBin: Record Bin;
+        Item: Record Item;
+        InTransitLocation: Record Location;
+        ProductionLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ForwardTransferHeader: Record "Transfer Header";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        TempWhseItemTrackingSetup: Record "Item Tracking Setup" temporary;
+        WorkCenter: array[2] of Record "Work Center";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] TC-E2E-B04 A WIP inventory pick posts without a required lot number.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] A lot-tracked WIP transfer item and a bin-mandatory production location requiring inventory picks.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.SetTransferWIPItemOnRoutingLine(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetupAndBin(ProductionLocation, PickBin);
+        ProductionLocation."Require Pick" := true;
+        ProductionLocation.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, ProductionLocation.Code, true);
+        LibraryWarehouse.CreateBinContent(
+            BinContent, ProductionLocation.Code, '', ProductionLocation."Default Bin Code", Item."No.", '', Item."Base Unit of Measure");
+        BinContent.Validate(Default, true);
+        BinContent.Modify(true);
+
+        ItemTrackingMgt.GetWhseItemTrkgSetup(Item."No.", TempWhseItemTrackingSetup);
+        Assert.IsTrue(TempWhseItemTrackingSetup."Lot No. Required", 'The test item must require lot tracking in warehouse activities.');
+
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Location Code" := ProductionLocation.Code;
+        Vendor.Modify(true);
+        SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer(ProductionLocation.Code, Vendor."Subc. Location Code", InTransitLocation.Code);
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, ProductionLocation.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader);
+        SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ForwardTransferHeader);
+
+        // [WHEN] A WIP inventory pick with no lot number is posted.
+        SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(ForwardTransferHeader, WarehouseActivityHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The inventory pick line must be a WIP transfer line.');
+        Assert.AreEqual('', WarehouseActivityLine."Lot No.", 'No lot number should be assigned to a WIP inventory pick line.');
+        WarehouseActivityLine.Validate("Bin Code", '');
+        WarehouseActivityLine.Modify(true);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        // [THEN] Posting succeeds even though standard tracking and bin checks would require a lot number and bin code.
+        TransferShipmentHeader.SetRange("Transfer Order No.", ForwardTransferHeader."No.");
+        Assert.RecordIsNotEmpty(TransferShipmentHeader);
+
+        // [WHEN] The tracked WIP item returns through an inventory put-away with no lot number or bin code.
+        LibraryWarehouse.PostTransferOrder(ForwardTransferHeader, false, true);
+        SubcWarehouseLibrary.CreateReturnTransferWithSubcContext(
+            PurchaseHeader, PurchaseLine,
+            Vendor."Subc. Location Code", ProductionLocation.Code, InTransitLocation.Code,
+            Quantity, ReturnTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ReturnTransferHeader);
+        LibraryWarehouse.PostTransferOrder(ReturnTransferHeader, true, false);
+        SubcWarehouseLibrary.CreateInvtPutAwayFromTransferOrder(ReturnTransferHeader, WarehouseActivityHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The inventory put-away line must be a WIP transfer line.');
+        Assert.AreEqual('', WarehouseActivityLine."Lot No.", 'No lot number should be assigned to a WIP inventory put-away line.');
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        // [THEN] The return put-away also posts without tracking validation.
+        Assert.AreNotEqual(0, SubcWarehouseLibrary.GetPostedInvtPutAwayLineCountForTransferOrder(ReturnTransferHeader."No."),
+            'The tracked WIP return must create a posted inventory put-away line.');
     end;
 
     [Test]
@@ -384,36 +480,11 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseEntryCountBefore: Integer;
     begin
         // [FEATURE] Subcontracting Inventory Put-away / Pick E2E WIP
-        // [SCENARIO] TC-E2E-B06 Direct Transfer (no Transfer Route/in-transit location) full WIP round trip —
-        // forward Inventory Pick, return Inventory Put-away. No test in this app previously combined a Direct
-        // Transfer with the single-step Warehouse Pick/Put-away flow used for WIP items.
-        //
-        // Setup: deliberately create NO Transfer Route between the production and subcontractor locations (unlike
-        // FullWIPRoundTripForwardPickReturnPutAway, which calls SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer
-        // with a real in-transit location). Per "Subc. Create Transf. Order".InsertTransferHeader, the absence of a
-        // matching route makes the report set Transfer Header."Direct Transfer" = true automatically, and
-        // "Direct Transfer Posting" defaults (via TransferHeader.GetDirectTransferPosting) to Inventory Setup's
-        // "Direct Transfer Posting Type" = "Direct Transfer" (set once for this codeunit by
-        // SubcontractingMgmtLibrary.SetupInventorySetup in Initialize).
-        //
-        // Fixed product gap: for a Direct Transfer whose "Direct Transfer Posting" = "Direct Transfer",
-        // WhseActivityPost.Codeunit.al's PostSourceDocument routes BOTH the outbound Pick and the return Put-away
-        // through the combined, item-journal-based "TransferOrder-Post Transfer" codeunit instead of the normal
-        // "TransferOrder-Post Shipment"/"TransferOrder-Post Receipt". Unlike those normal codeunits (which set
-        // "Order Line No." := TransferLine."Line No." on the item journal line), "TransferOrder-Post
-        // Transfer".CreateItemJnlLine never set "Order Line No." at all - so "Subc. Transfer WIP
-        // Posting".HandleWipTransferOnBeforeCheckEmptyQuantity could never find the originating Transfer Line via
-        // TransferLine.Get(ItemJnlLine."Order No.", ItemJnlLine."Order Line No.") for this path, and its WIP bypass
-        // silently never applied. Posting then fell through to "Mfg. Item Jnl. Check Line".OnCheckEmptyQuantity,
-        // which errors with "you have not entered a quantity" for a WIP line's intentional Qty. (Base) = 0. Fixed by
-        // adding "Subc. Transfer WIP Posting".HandleWipTransferOnPostItemJnlLineBeforeItemJnlPostLineRunWithCheck,
-        // which populates "Order Line No." from the real Transfer Line right before the check/post, so the
-        // WIP bypass now applies for Direct Transfers exactly as it already did for routed (in-transit) transfers.
+        // [SCENARIO] TC-E2E-B06 A direct WIP transfer posts through the same pick and put-away flow without an in-transit location.
         Initialize();
         Quantity := LibraryRandom.RandIntInRange(5, 10);
 
-        // [GIVEN] Routing line Transfer WIP Item = true, Location L-PROD (production); NO Transfer Route configured
-        // between L-PROD and the vendor's subcontractor location, so the forward transfer becomes a Direct Transfer.
+        // [GIVEN] A WIP routing line with no transfer route between the production and subcontractor locations.
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
@@ -425,8 +496,6 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
         Vendor."Location Code" := ProductionLocation.Code;
         Vendor.Modify(true);
-        // Deliberately no SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer call and no in-transit location
-        // here - that omission (vs. FullWIPRoundTripForwardPickReturnPutAway) is what produces a Direct Transfer.
 
         // [GIVEN] Production Order released; subcontracting purchase order + forward transfer order created
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
@@ -467,12 +536,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WIPLedgerEntry.CalcSums("Quantity (Base)");
         Assert.AreEqual(Quantity, Abs(WIPLedgerEntry."Quantity (Base)"), 'Forward WIP pick should move exactly the shipped quantity into WIP on the subcontractor side.');
 
-        // [GIVEN] Return transfer order created directly (also a Direct Transfer, no in-transit code) and released.
-        // Unlike the forward leg (built via "Subc. Create Transf. Order", which force-sets Direct Transfer = true
-        // itself when no matching route exists), LibraryWarehouse.CreateTransferHeader relies purely on
-        // TransferRoute.GetTransferRoute - which defaults to Direct Transfer = false (not true) when no Transfer
-        // Route record exists at all - so an explicit blank-in-transit route is required here for the return leg
-        // to become a Direct Transfer too; otherwise header creation fails validating a blank In-Transit Code.
+        // [GIVEN] A direct return route and transfer order.
         LibraryWarehouse.CreateAndUpdateTransferRoute(SubcToProdRoute, Vendor."Subc. Location Code", ProductionLocation.Code, '', '', '');
         SubcToProdRoute.Validate("Direct Transfer", true);
         SubcToProdRoute.Modify(true);
@@ -632,11 +696,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, ProductionLocation.Code, true);
         LibraryWarehouse.CreateBin(ProductionBin2, ProductionLocation.Code, 'PUT2', '', '');
 
-        // A Default=true Bin Content record for the item at ProductionLocation's default bin is required so that
-        // the Invt. Put-away for the WIP return leg (created further below via CreateInvtPutAwayFromTransferOrder)
-        // can resolve a bin via the Default Bin put-away policy - without it, CreateInventoryPutaway.
-        // CreatePutawayWithDefaultBinPolicy finds no default bin and exits silently, so no put-away activity is
-        // ever created for the Transfer Line.
+        // [GIVEN] Default bin content so the return put-away resolves the destination bin.
         LibraryWarehouse.CreateBinContent(
             BinContent, ProductionLocation.Code, '', ProductionLocation."Default Bin Code", Item."No.", '', Item."Base Unit of Measure");
         BinContent.Validate(Default, true);
@@ -755,9 +815,8 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         Assert.AreEqual(Quantity, WarehouseActivityLine."Qty. to Handle", 'AutoFill must populate Qty. to Handle from Quantity.');
         Assert.AreEqual(0, WarehouseActivityLine."Qty. to Handle (Base)", 'Qty. to Handle (Base) must remain zero for WIP lines.');
 
-        // [THEN] Posting succeeds without balance/TestField errors
+        // [THEN] Posting succeeds without base-quantity errors.
         LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
-        // [THEN] Check WIP Ledger Entry created for subcontractor location
     end;
 
 
@@ -830,9 +889,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         // [WHEN] Op 20 (LastOperation) Put-Away posted
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        // The output Item Ledger Entry's cost is derived from the (LastOperation) Purchase Line's Direct Unit Cost,
-        // not the Work Center's Direct Unit Cost (which only feeds in-house routing cost calculations) - without an
-        // explicit Subcontractor Price setup or a manually assigned cost here, the purchase line defaults to 0.
+        // Set a purchase cost so the output expected cost can be verified.
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 25, 2));
         PurchaseLine.Modify(true);
         SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
@@ -868,11 +925,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Output);
         Assert.RecordIsNotEmpty(ValueEntry);
         ValueEntry.CalcSums("Cost Amount (Expected)");
-        // With Invoice=false (as posted here, matching the established convention throughout this codeunit), only the
-        // expected cost is realized at receipt time. Actual cost for a manufacturing Output entry additionally
-        // requires a full component-consumption/cost-adjustment chain (confirmed via diagnostic: even after
-        // Invoice=true and LibraryCosting.AdjustCostItemEntries, Cost Amount (Actual) stayed 0 while (Expected)
-        // was correctly populated), which is out of scope for this routing/capacity-sync-focused scenario.
+        // This scenario verifies expected cost; actual cost requires component consumption and cost adjustment.
         Assert.AreNotEqual(0, ValueEntry."Cost Amount (Expected)", 'The output item ledger entry created for the Last Operation must carry a non-zero expected cost.');
     end;
 
@@ -912,11 +965,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         ProductionLocation.Modify(true);
 
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
-        // Op 10's "Transfer WIP Item" leg (see CreateThreeOpRoutingWithWIPTransfer) is on WorkCenter[1], so the
-        // forward transfer's vendor/location/route must be set up for WorkCenter[1]'s subcontractor - using
-        // WorkCenter[2] here (Op 20's LastOperation purchase vendor) leaves no matching Transfer Route for the
-        // WorkCenter[1] purchase order, causing CreateSubcontractingForwardTransferFromPurchaseOrder to fall back to
-        // a Direct Transfer (blank In-Transit Code) further below.
+        // Configure the transfer route for the vendor on the WIP operation.
         Vendor.Get(WorkCenter[1]."Subcontractor No.");
         Vendor."Location Code" := ProductionLocation.Code;
         Vendor.Modify(true);
@@ -1045,12 +1094,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         Quantity: Decimal;
     begin
         // [FEATURE] Subcontracting Inventory Put-away / Pick E2E WIP
-        // [SCENARIO] TC-E2E-E04 Undo Receipt succeeds when not Bin Mandatory (regression control)
-        // Documents a CURRENT IMPLEMENTATION GAP: at a non-bin-mandatory location, one might expect Undo Receipt to
-        // be allowed after a single-step Put-Away posting (since no bin complexity is involved), but the subscriber
-        // that would permit this case is presently commented out/disabled, so undo is still blocked today. This test
-        // locks in the actual (not the ideal) behavior so a future fix will be caught as an intentional behavior
-        // change.
+        // [SCENARIO] TC-E2E-E04 Undo Receipt remains blocked after a non-bin-mandatory inventory put-away.
         Initialize();
         Quantity := LibraryRandom.RandIntInRange(5, 10);
 
@@ -1112,16 +1156,11 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         RemainingReceiptQty: Decimal;
         Quantity: Decimal;
     begin
-        // [FEATURE] Subcontracting Inventory Put-away / Pick E2E WIP
+        // [FEATURE] Subcontracting Put-away / Pick E2E WIP
         // [SCENARIO] TC-E2E-E06 Get Source Documents / Put-Away Worksheet resync picks up newly received quantity
         // After the first partial Warehouse Receipt is received and fully put away via the worksheet, receiving the
-        // remainder of the purchase order and re-running "Get Source Documents" must fetch exactly that remaining
-        // (newly available) quantity as a single new worksheet line - not the original full order quantity, and not
-        // duplicated. NOTE: base app "Whse. Put-away Request" is only ever populated for Document Type
-        // Receipt/Internal Put-away/Production, so this only exercises the two-step Warehouse Receipt -> Put-away
-        // Worksheet flow; the single-step "Invt. Put-away" flow used elsewhere in this codeunit has no
-        // corresponding Put-away Worksheet source document at all. Location/vendor setup mirrors the known-working
-        // CreatePutAwayFromPutAwayWorksheetForLastOperation test in SubcWhsePutAwayLastOp.Codeunit.al.
+        // remainder of the purchase order and re-running "Get Source Documents" must create one worksheet line for
+        // only the newly received quantity.
         Initialize();
         Quantity := 10;
         FirstReceiptQty := 6;
@@ -1163,9 +1202,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         Assert.AreEqual(FirstReceiptQty, WhseWorksheetLine.Quantity,
             'The first worksheet line must only cover the partially received quantity.');
 
-        // [GIVEN] The put-away for the received quantity is fully created and registered (matching the pattern in
-        // CreatePutAwayFromPutAwayWorksheetForLastOperation - Register is the correct completion mechanism for the
-        // two-step "Put-away" document type; Whse.-Activity-Post/codeunit 7324 only supports "Invt. Put-away").
+        // [GIVEN] The received quantity is fully put away.
         SubcWarehouseLibrary.CreatePutAwayFromWorksheet(WhseWorksheetName, WarehouseActivityHeader);
         LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
 
@@ -1212,12 +1249,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         Quantity: Decimal;
     begin
         // [FEATURE] Subcontracting Inventory Put-away / Pick E2E WIP
-        // [SCENARIO] TC-E2E-E07 From-Production Bin Code propagation end-to-end, missing value negative test
-        // Traces the "From-Production Bin Code" location setting through the entire subcontracting order-creation
-        // chain: Prod. Order Line inherits it from the location, the Requisition Line generated by "Calculate
-        // Subcontracts" inherits it from the Prod. Order Line, the Purchase Line inherits it from the Requisition
-        // Line, and finally the Inventory Put-Away activity line inherits it from the Purchase Line — confirming the
-        // bin default flows unbroken end-to-end.
+        // [SCENARIO] TC-E2E-E07 From-Production Bin Code flows from the production order line to the inventory put-away.
         Initialize();
         Quantity := 5;
 
@@ -1384,10 +1416,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WorkCenter: array[2] of Record "Work Center";
     begin
         // [FEATURE] Subcontracting Inventory Put-away / Pick E2E WIP
-        // [SCENARIO] TC-E2E-G03 Changing Prod. Order Line Location Code after manual bin entry silently resets the bin (regression/edge case)
-        // Edge case for the bin-defaulting logic: if a user manually sets a Prod. Order Line bin and then changes the
-        // Location Code, the bin must be re-defaulted from the NEW location rather than retaining the now-invalid bin
-        // from the old location — confirming Location Code validation correctly re-triggers bin defaulting.
+        // [SCENARIO] TC-E2E-G03 Changing a production order line location re-defaults its bin.
         Initialize();
 
         // [GIVEN] Released production order at a bin-mandatory location with a second bin-mandatory location available
@@ -1464,13 +1493,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
 
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
 
-        // [WHEN] The purchase line bin is changed after the linked transfer order is created
-        // [THEN] The purchase line bin is immutable
-        // NOTE: the OnBeforeValidateEvent subscribers in SubcPurchaseLineExt.Codeunit.al only enforce this rule
-        // for UI-driven edits (CurrFieldNo <> 0); calling Validate() directly from code, as in this test, does not
-        // set CurrFieldNo, so the guard is bypassed. The underlying rule itself is exercised directly via
-        // SubcTransferManagement.CheckSubcPurchLineCanBeModified, matching the pattern already established in
-        // SubcPurchSubcontTest.Codeunit.al (CannotModifySubcPurchLineWhenTransferOrderExists).
+        // [THEN] The purchase line cannot be changed after the linked transfer order is created.
         asserterror SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption("Bin Code"));
     end;
 

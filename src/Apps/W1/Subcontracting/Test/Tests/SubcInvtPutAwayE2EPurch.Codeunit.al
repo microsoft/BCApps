@@ -100,12 +100,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         Quantity: Decimal;
     begin
         // [FEATURE] Subcontracting Inventory Put-away - Purchase Full Lifecycle
-        // [SCENARIO] Single-operation E2E — create, edit, post, verify downstream
-        // Baseline happy-path E2E for the single-step Inventory Put-Away flow: from a single-operation (LastOperation)
-        // subcontracting purchase order through activity creation, quantity autofill, posting, and full downstream
-        // verification (receipt, posted put-away records, item/capacity ledger entries, purchase line closure,
-        // warehouse request removal, and routing status). Establishes the reference behavior other edge-case tests
-        // are compared against.
+        // [SCENARIO] Post a single LastOperation purchase order through Inventory Put-away.
 
         // [GIVEN] Single-op routing (LastOperation), Location L-PA, Vendor with subcontracting setup
         Initialize();
@@ -164,12 +159,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         SubcWarehouseLibrary.VerifyItemLedgerEntry(Item."No.", Quantity, Location.Code);
         SubcWarehouseLibrary.VerifyCapacityLedgerEntry(WorkCenter[2]."No.", Quantity);
 
-        // [THEN]  Purchase Line fully received (Outstanding Quantity = 0); Warehouse Request marked fully handled
-        // NOTE: the Purchase Order is only received here (Invoice=false), so the base app never reaches
-        // Purch.-Post's "EverythingInvoiced" delete-after-posting branch and the Warehouse Request row is not
-        // physically removed. Base app's "Whse. Purch. Release" still runs and sets "Completely Handled" :=
-        // Purchase Header."Completely Received" (true here), matching the pattern already asserted in
-        // PartialReceiptThenRepeatPutAwayForRemainingQty below.
+        // [THEN]  Purchase Line is fully received and the Warehouse Request is completely handled
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         Assert.AreEqual(0, PurchaseLine."Outstanding Quantity", 'Purchase line should be fully received');
         WarehouseRequest.SetRange(Type, WarehouseRequest.Type::Inbound);
@@ -383,15 +373,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader1);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader2);
 
-        // [WHEN]  Inventory Put-Away created via "Get Source Documents"/worksheet run for both purchase orders together
-        // NOTE: LibraryWarehouse.GetSourceDocInventoryPutAway (base app Application Test Library) has a bug - it
-        // runs Codeunit::"Create Inventory Pick/Movement" (7322, for OUTBOUND Pick/Movement requests) instead of
-        // Codeunit::"Create Inventory Put-away" (7321, for INBOUND put-away requests), which fails with a generic
-        // wrapped error ("Create Inventory Pick/Movement".GetWhseRequest) for an Inbound "Invt. Put-away" header.
-        // Cannot fix the shared base app test library from the Subcontracting Test app, so use
-        // LibraryWarehouse.CreateInvtPutAwayPick (Report 7323, the correct/working codeunit path also used by
-        // SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder) directly instead, filtered by Location Code only
-        // (not Source No.) so both purchase orders are picked up by a single "Get Source Documents" run.
+        // [WHEN]  Create Inventory Put-away documents for all released purchase orders at the location
         WarehouseRequest.SetRange(Type, WarehouseRequest.Type::Inbound);
         WarehouseRequest.SetRange("Source Document", WarehouseRequest."Source Document"::"Purchase Order");
         WarehouseRequest.SetRange("Location Code", Location.Code);
@@ -681,9 +663,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
             ProductionOrder, "Production Order Status"::Released,
             ProductionOrder."Source Type"::Item, Item."No.", 1, Location.Code);
 
-        // [GIVEN] Serial number assigned to the Prod. Order Line's output tracking (required for the
-        // subcontracted operation's Output posting - separate from the Warehouse Activity Line's own
-        // "Serial No." field assigned further below for the put-away/receipt side).
+        // [GIVEN] Serial number assigned to the production order line
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.FindFirst();
@@ -696,32 +676,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
-        // [WHEN]  Inventory Put-Away created - the serial number assigned to the Prod. Order Line's own output
-        // tracking above is now picked up automatically on the Warehouse Activity Line.
-        // NOTE: Subcontracting purchase lines are linked to a production order, so the standard base-app guard
-        // ("Mfg. Purchase Document Mgt.".OnOpenItemTrackingLinesOnAfterCheck) unconditionally blocks assigning item
-        // tracking directly on the Purchase Line - the real subcontracting UI flow assigns tracking against the
-        // Prod. Order Line instead ("Subc. Purchase Line Ext".OpenItemTrackingOfProdOrderLine). Previously, a
-        // Prod. Order Line reservation did NOT propagate to the Warehouse Activity Line's own "Serial No."/"Lot No."
-        // fields, because CreateInventoryPutaway.Codeunit.al's FindReservationFromPurchaseLine only ever looked for
-        // a Reservation Entry with Source Type = Purchase Line - forcing tracking to be assigned manually on the
-        // activity line after creation. This is now fixed by a new base-app extensibility point
-        // (OnBeforeFindReservationFromPurchaseLine changed to IncludeSender=true so subscribers can receive the
-        // running "Create Inventory Put-away" instance) and a new App-layer subscriber ("Subc. Invt. Put-away Ext"
-        // Subscriber J, RedirectReservationLookupToProdOrderLine_OnBeforeFindReservationFromPurchaseLine) that
-        // redirects the reservation lookup to the linked Prod. Order Line for Subcontracting LastOperation lines -
-        // mirroring the equivalent, already-shipped extensibility point base Manufacturing uses for its own
-        // Prod. Output/Prod. Consumption put-away lines. As a result the activity line is created already tracked.
-        //
-        // Base app's item-tracking match check (ItemTrackingManagement.RegisterNewItemTrackingLines) then compares
-        // the assigned quantity against the *Purchase Line*'s own remaining quantity - but LastOperation purchase
-        // lines always carry "Qty. per Unit of Measure" = 0 (see "Subc. Invt. Put-away Ext".Codeunit.al Subscriber A;
-        // the real value is only restored on the Warehouse Activity Line), so that remaining quantity is always 0,
-        // causing a false "Cannot match item tracking" error. Fixed via a separate App-layer subscriber
-        // ("Subc. Invt. Put-away Ext" Subscriber G, OnRegisterNewItemTrackingLinesOnBeforeCannotMatchItemTrackingError)
-        // that recalculates the source document line's remaining quantity using the item's real
-        // Qty. per Unit of Measure for Subcontracting LastOperation purchase lines, instead of
-        // bypassing the check via AllowWhseOverpick.
+        // [WHEN]  Create an Inventory Put-away with the serial number from the production order line
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
@@ -750,8 +705,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         WarehouseEntry.CalcSums(Quantity);
         Assert.AreEqual(1, WarehouseEntry.Quantity, 'Warehouse entry quantity should match the single serial-tracked unit (no under/overpick)');
 
-        // [THEN]  Purchase Line fully received and Warehouse Request closed - proves Subscriber G's recalculated
-        // QtyToHandleOnSourceDocLine reconciles the full document lifecycle, not just that no error was thrown.
+        // [THEN]  Purchase Line is fully received and the Warehouse Request is completely handled
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         Assert.AreEqual(0, PurchaseLine."Outstanding Quantity", 'Purchase line should be fully received after serial-tracked posting');
         WarehouseRequest.SetRange(Type, WarehouseRequest.Type::Inbound);
@@ -813,12 +767,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
             ProductionOrder, "Production Order Status"::Released,
             ProductionOrder."Source Type"::Item, Item."No.", 20, Location.Code);
 
-        // [GIVEN] Lot numbers assigned to the Prod. Order Line's output tracking. Subcontracting purchase lines
-        // are linked to a production order, so the standard base-app guard
-        // ("Mfg. Purchase Document Mgt.".OnOpenItemTrackingLinesOnAfterCheck) unconditionally blocks assigning
-        // item tracking directly on the Purchase Line - the real subcontracting UI flow
-        // ("Subc. Purchase Line Ext".OpenItemTrackingOfProdOrderLine) instead assigns tracking against the
-        // Prod. Order Line, so the test must do the same.
+        // [GIVEN] Lot numbers assigned to the production order line
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.FindFirst();
@@ -833,12 +782,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
-        // [WHEN]  Inventory Put-Away created - the two lots assigned to the Prod. Order Line's output tracking
-        // above are now picked up automatically on the Warehouse Activity Line, which base app auto-splits into
-        // one line per lot (mirroring the Serial Tracking test's "RedirectReservationLookupToProdOrderLine"
-        // subscriber behavior - see "Subc. Invt. Put-away Ext".Codeunit.al Subscriber J). Each pre-split, already
-        // lot-tracked line is then assigned its own bin directly (no manual SplitActivityLineAcrossBins needed,
-        // since the split already exists).
+        // [WHEN]  Create an Inventory Put-away with one activity line for each lot
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
 
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
@@ -894,10 +838,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         // [THEN]  Sum of posted quantities = 20; no duplicate entries
         SubcWarehouseLibrary.VerifyItemLedgerEntry(Item."No.", 20, Location.Code);
 
-        // [THEN]  Purchase Line fully received and Warehouse Request closed - proves Subscriber G's recalculated
-        // QtyToHandleOnSourceDocLine (real Qty. per UoM instead of the broken zero) reconciles the full document
-        // lifecycle for a multi-lot split, not just that no "Cannot match item tracking" error was thrown, and that
-        // the two lots (12+8) neither under- nor over-consumed the 20-unit line.
+        // [THEN]  Purchase Line is fully received and the Warehouse Request is completely handled
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         Assert.AreEqual(0, PurchaseLine."Outstanding Quantity", 'Purchase line should be fully received after multi-lot tracked posting');
         WarehouseRequest.SetRange(Type, WarehouseRequest.Type::Inbound);
@@ -958,12 +899,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
             ProductionOrder, "Production Order Status"::Released,
             ProductionOrder."Source Type"::Item, Item."No.", 5, Location.Code);
 
-        // [GIVEN] Lot + Package numbers assigned to the Prod. Order Line's output tracking. Subcontracting purchase
-        // lines are linked to a production order, so the standard base-app guard
-        // ("Mfg. Purchase Document Mgt.".OnOpenItemTrackingLinesOnAfterCheck) unconditionally blocks assigning
-        // item tracking directly on the Purchase Line - the real subcontracting UI flow
-        // ("Subc. Purchase Line Ext".OpenItemTrackingOfProdOrderLine) instead assigns tracking against the
-        // Prod. Order Line, so the test must do the same.
+        // [GIVEN] Lot and package numbers assigned to the production order line
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.FindFirst();
@@ -980,9 +916,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
-        // [WHEN]  Put-Away created; Lot No. and Package No. entered directly on the activity line (the Prod. Order
-        // Line-based reservation above does not auto-propagate to the Warehouse Activity Line's own tracking fields,
-        // same rationale as the Serial Tracking test in this codeunit).
+        // [WHEN]  Create an Inventory Put-away and assign its lot and package numbers
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
@@ -1013,8 +947,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         WarehouseEntry.CalcSums(Quantity);
         Assert.AreEqual(5, WarehouseEntry.Quantity, 'Warehouse entry quantity should match the full posted quantity.');
 
-        // [THEN]  Purchase Line fully received and Warehouse Request closed - proves Subscriber G's recalculated
-        // QtyToHandleOnSourceDocLine reconciles the full document lifecycle for combined Lot+Package tracking too.
+        // [THEN]  Purchase Line is fully received and the Warehouse Request is completely handled
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         Assert.AreEqual(0, PurchaseLine."Outstanding Quantity", 'Purchase line should be fully received after combined lot/package tracked posting');
         WarehouseRequest.SetRange(Type, WarehouseRequest.Type::Inbound);
@@ -1545,16 +1478,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
 
         LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, FromLocation.Code, false);
-        // See note in MultiVendorCombinedGetSourceDocumentsScenario above: LibraryWarehouse.GetSourceDocInventoryPutAway
-        // runs the wrong base app codeunit (Create Inventory Pick/Movement instead of Create Inventory Put-away) for
-        // an Inbound "Invt. Put-away" header. Use LibraryWarehouse.CreateInvtPutAwayPick (Report 7323, HideDialog)
-        // filtered by Location Code instead - calling Codeunit::"Create Inventory Put-away" directly would open a
-        // MODAL "Source Documents" lookup page (HideDialog defaults to false), hanging an automated test run.
-        // NOTE: as established in MultiVendorCombinedGetSourceDocumentsScenario (see fix log), the base app creates
-        // ONE SEPARATE Warehouse Activity Header PER SOURCE DOCUMENT even when a single combined "Get Source
-        // Documents" run picks up several documents at the same location - it does NOT merge them into one header.
-        // With 3 distinct source documents here (the Subcontracting PO with its 2 lines, the standard PO, and the
-        // Transfer Order), that yields 3 headers totalling 4 lines, not 1 header with 4 lines.
+        // [WHEN]  Create Inventory Put-away documents for all released source documents at the location
         WarehouseRequest.Reset();
         WarehouseRequest.SetRange(Type, WarehouseRequest.Type::Inbound);
         WarehouseRequest.SetRange("Location Code", FromLocation.Code);
@@ -1581,16 +1505,12 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
             LibraryWarehouse.PostInventoryActivity(MixedHeader, false);
         until MixedHeader.Next() = 0;
 
-        // [THEN]  Balance validation (OnBeforeValidateQuantityIsBalanced) is skipped only for NotLastOperation/Transfer WIP Item lines
+        // [THEN]  NotLastOperation and Transfer WIP Item lines post without balance errors
         WarehouseActivityLine.SetRange("No.");
         WarehouseActivityLine.SetRange("Transfer WIP Item", true);
         Assert.IsTrue(WarehouseActivityLine.IsEmpty(), 'Transfer WIP line should be fully posted without balance errors');
 
-        // [THEN]  Standard/LastOperation lines still enforce quantity balancing as before.
-        // "Standard balancing" means the base-app rule (OnBeforeValidateQuantityIsBalanced, not suppressed for these line
-        // types) that "Qty. (Base)" must reconcile with "Quantity" through the line's unit of measure before the line can
-        // post; NotLastOperation and Transfer WIP Item lines are exempt because their "Qty. (Base)" is intentionally
-        // always zero (no physical item ledger movement), which would otherwise fail that rule.
+        // [THEN]  Standard and LastOperation lines post normally
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         Assert.RecordIsNotEmpty(PurchaseLine);

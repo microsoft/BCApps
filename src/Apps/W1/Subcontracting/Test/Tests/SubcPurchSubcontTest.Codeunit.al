@@ -283,7 +283,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         if PurchaseLine.FindSet() then
             repeat
-                SubSetupLibrary.EnsureGeneralPostingSetupIsValid(GenBusPostingGroup, GenProdPostingGroup);
+                SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
             until PurchaseLine.Next() = 0;
 
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -548,7 +548,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
         // [GIVEN] First partial purchase receipt (4 of 10)
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
-        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(GenBusPostingGroup, GenProdPostingGroup);
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
         PurchaseLine.Modify(true);
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");

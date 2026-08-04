@@ -122,6 +122,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         SetQuantityBaseOnSubcontractingServiceLine(PurchLine, PurchRcptLine);
     end;
 
+    ///Preserves receipt context for subcontracting item charges, except tracked last-operation receipts that use base item-ledger handling.
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePostItemChargePerRcpt, '', false, false)]
     local procedure StorePurchRcptLineForItemCharge(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
     var
@@ -140,14 +141,11 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
         if PurchRcptLineIsLastOperation(PurchRcptLine) and ItemIsTracked(PurchRcptLine."No.") then
-            // A tracked LastOperation receipt posts as a plain Entry Type::Purchase item journal line
-            // (see CopySubcontractingProdOrderFieldsToItemJnlLine), so "Item Rcpt. Entry No." is a genuine
-            // Item Ledger Entry No. here - let base app's default Item Ledger Entry lookup/dimension
-            // propagation run unmodified instead of overriding it below.
             exit;
         SubcSessionState.SetRecordID('PurchRcptLineForItemCharge', PurchRcptLine.RecordId);
     end;
 
+    /// <summary>Determines whether the item has an item tracking code.</summary>
     local procedure ItemIsTracked(ItemNo: Code[20]): Boolean
     var
         Item: Record Item;

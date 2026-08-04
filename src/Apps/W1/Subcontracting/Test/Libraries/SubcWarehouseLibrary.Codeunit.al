@@ -173,6 +173,12 @@ codeunit 149908 "Subc. Warehouse Library"
             "Reordering Policy"::" ", "Flushing Method"::Backward, RoutingNo, ProductionBOMNo);
     end;
 
+    /// <summary>
+    /// Creates a production item with a parallel routing that includes subcontracting operations.
+    /// </summary>
+    /// <param name="Item">The production item to create.</param>
+    /// <param name="MachineCenter">The in-house machine centers used by the routing.</param>
+    /// <param name="WorkCenter">The subcontracting work centers used by the routing.</param>
     procedure CreateParallelRoutingItemWithSubcontracting(var Item: Record Item; var MachineCenter: array[2] of Record "Machine Center"; var WorkCenter: array[2] of Record "Work Center")
     var
         Item2: Record Item;
@@ -887,10 +893,6 @@ codeunit 149908 "Subc. Warehouse Library"
         WhseRequest.FindFirst();
 
         LibraryWarehouse.CreateInvtPutAwayPick(WhseRequest, true, false, false);
-        // Reset() before filtering: WarehouseActivityHeader is a caller-supplied var that may already carry
-        // filters from a PRIOR call using the same variable (e.g. a preceding CreateInvtPutAwayFromPurchaseOrder/
-        // CreateInvtPickFromTransferOrder call in the same test) - without Reset(), stale filters (like a leftover
-        // "Source Subtype") can make the FindFirst() below fail to find an otherwise correctly created record.
         WarehouseActivityHeader.Reset();
         WarehouseActivityHeader.SetRange(Type, "Warehouse Activity Type"::"Invt. Put-away");
         WarehouseActivityHeader.SetRange("Source Document", "Warehouse Activity Source Document"::"Purchase Order");
@@ -920,8 +922,6 @@ codeunit 149908 "Subc. Warehouse Library"
         WhseRequest.FindFirst();
 
         LibraryWarehouse.CreateInvtPutAwayPick(WhseRequest, true, false, false);
-        // Reset() before filtering: see the same note in CreateInvtPutAwayFromPurchaseOrder above - this var may
-        // already carry stale filters from a prior call using the same variable.
         WarehouseActivityHeader.Reset();
         WarehouseActivityHeader.SetRange(Type, "Warehouse Activity Type"::"Invt. Put-away");
         WarehouseActivityHeader.SetRange("Source Document", "Warehouse Activity Source Document"::"Inbound Transfer");
@@ -948,11 +948,7 @@ codeunit 149908 "Subc. Warehouse Library"
         WhseRequest.SetRange("Document Status", WhseRequest."Document Status"::Released);
         WhseRequest.FindFirst();
 
-        // Scope creation to just this Warehouse Request (via LibraryWarehouse.CreateInvtPutAwayPick, same pattern as
-        // CreateInvtPutAwayFromTransferOrder/CreateInvtPutAwayFromPurchaseOrder below), instead of inserting a blank
-        // Warehouse Activity Header with only Location Code set. The latter causes "Create Inventory Pick/Movement"
-        // to sweep ALL outbound Warehouse Requests at the location (e.g. a concurrent Prod. Consumption pick), which
-        // can error out or pick up the wrong source document when more than one outbound request exists there.
+        // Create the activity for this transfer request only.
         LibraryWarehouse.CreateInvtPutAwayPick(WhseRequest, true, true, false);
 
         WarehouseActivityHeader.Reset();
@@ -1016,8 +1012,6 @@ codeunit 149908 "Subc. Warehouse Library"
         WarehouseActivityLine: Record "Warehouse Activity Line";
         Index: Integer;
     begin
-        // Uses the standard Warehouse Activity Line split logic (Table "Warehouse Activity Line".SplitLine) - the same
-        // procedure invoked by the "Split Line" action on the Put-away/Pick pages - instead of manually inserting lines.
         WarehouseActivityHeader.TestField(Type, ActivityType);
 
         WarehouseActivityLine.SetRange("Activity Type", ActivityType);
@@ -1033,11 +1027,7 @@ codeunit 149908 "Subc. Warehouse Library"
             if Quantities[Index] <> 0 then begin
                 Bins[Index].TestField(Code);
 
-                // Do not Validate(Quantity, ...) here - SplitLine() below already computes the correct
-                // Quantity/Qty. Outstanding for both the original and the new line from "Qty. to Handle".
-                // Explicitly validating Quantity would collapse Qty. Outstanding down to Qty. to Handle
-                // before the split, causing "Qty. to Handle must not be Qty. Outstanding" (and, for
-                // tracked lines linked to a production order, "You cannot define item tracking...").
+                // SplitLine derives the quantities from Qty. to Handle.
                 WarehouseActivityLine.SplitLine(WarehouseActivityLine, NewWarehouseActivityLine);
                 NewWarehouseActivityLine.Validate("Bin Code", Bins[Index].Code);
                 NewWarehouseActivityLine.Validate("Qty. to Handle", Quantities[Index]);
@@ -1359,6 +1349,16 @@ codeunit 149908 "Subc. Warehouse Library"
         Item.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates a transfer order line marked as a WIP item without subcontracting routing references.
+    /// </summary>
+    /// <param name="TransferHeader">The transfer header to create.</param>
+    /// <param name="TransferLine">The WIP transfer line to create.</param>
+    /// <param name="FromLocation">The source location code.</param>
+    /// <param name="ToLocation">The destination location code.</param>
+    /// <param name="InTransitCode">The in-transit location code.</param>
+    /// <param name="Item">The transfer item.</param>
+    /// <param name="Quantity">The transfer quantity.</param>
     procedure CreateTransferOrderWithWIPItemFlagWithoutRoutingReference(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; FromLocation: Code[10]; ToLocation: Code[10]; InTransitCode: Code[10]; Item: Record Item; Quantity: Decimal)
     var
         TransferRoute: Record "Transfer Route";

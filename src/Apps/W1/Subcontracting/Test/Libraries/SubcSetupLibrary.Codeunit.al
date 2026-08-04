@@ -16,6 +16,11 @@ codeunit 139988 "Subc. Setup Library"
         LibraryInventory: Codeunit "Library - Inventory";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
 
+    /// <summary>
+    /// Ensures that the specified general posting setup is unblocked and has a direct cost applied account.
+    /// </summary>
+    /// <param name="GenBusPostingGroup">The general business posting group.</param>
+    /// <param name="GenProdPostingGroup">The general product posting group.</param>
     procedure EnsureGeneralPostingSetupIsValid(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
