@@ -19,21 +19,28 @@ codeunit 31175 "EPO API Mgt. CZL"
         EPOServiceNotEnabledErr: Label 'The EPO service is not enabled. Enable it in the EPO Service Setup page.';
         OpenFormUriTok: Label 'epo_podani?otevriFormular=1', Locked = true;
         ShowEPOServiceSetupLbl: Label 'Show EPO Service Setup';
-
-    var
+        EPOAPICallFailedTelemetryTxt: Label 'EPO API call failed. Endpoint: %1, HTTP Status Code: %2, Error: %3', Locked = true;
+        UnexpectedResponseErr: Label 'The EPO service endpoint returned an unexpected response. The response does not contain the expected URL element.';
+        TelemetryCategoryTok: Label 'EPO API CZL', Locked = true;
 
     [TryFunction]
     procedure TryGetFormUrl(Content: XmlDocument; var FormUrl: Text)
     var
         HttpContent: Codeunit "Http Content";
         ResponseHttpContent: Codeunit "Http Content";
+        ResponseXmlDocument: XmlDocument;
         UrlXmlNode: XmlNode;
+        ResponseText: Text;
     begin
         GetOrInitEPOServiceSetup();
 
         HttpContent := HttpContent.Create(Content);
         TrySend(EPOServiceSetupCZL."Open Form Endpoint", EPOServiceSetupCZL."Limit Response Time", HttpContent, ResponseHttpContent);
-        ResponseHttpContent.AsXmlDocument().SelectSingleNode(UrlXPathTok, UrlXmlNode);
+        ResponseText := ResponseHttpContent.AsText();
+        if not XmlDocument.ReadFrom(ResponseText, ResponseXmlDocument) then
+            Error(UnexpectedResponseErr);
+        if not ResponseXmlDocument.SelectSingleNode(UrlXPathTok, UrlXmlNode) then
+            Error(UnexpectedResponseErr);
         FormUrl := UrlXmlNode.AsXmlElement().InnerText();
     end;
 
@@ -47,8 +54,10 @@ codeunit 31175 "EPO API Mgt. CZL"
         RestClient.Initialize();
         RestClient.SetTimeOut(Timeout);
         HttpResponseMessage := RestClient.Post(RequestUri, RequestHttpContent);
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
+            Session.LogMessage('', StrSubstNo(EPOAPICallFailedTelemetryTxt, RequestUri, HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetErrorMessage()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(HttpResponseMessage.GetErrorMessage());
+        end;
         ResponseHttpContent := HttpResponseMessage.GetContent();
     end;
 
@@ -90,16 +99,19 @@ codeunit 31175 "EPO API Mgt. CZL"
     [EventSubscriber(ObjectType::Table, Database::"Service Connection", 'OnRegisterServiceConnection', '', false, false)]
     local procedure HandleEPOServiceConnection(var ServiceConnection: Record "Service Connection")
     var
+        LocalEPOServiceSetupCZL: Record "EPO Service Setup CZL";
         EPOServiceSetupRecordRef: RecordRef;
     begin
-        GetOrInitEPOServiceSetup();
-        EPOServiceSetupRecordRef.GetTable(EPOServiceSetupCZL);
+        if not LocalEPOServiceSetupCZL.Get() then
+            exit;
 
-        if EPOServiceSetupCZL.Enabled then
+        EPOServiceSetupRecordRef.GetTable(LocalEPOServiceSetupCZL);
+
+        if LocalEPOServiceSetupCZL.Enabled then
             ServiceConnection.Status := ServiceConnection.Status::Enabled
         else
             ServiceConnection.Status := ServiceConnection.Status::Disabled;
         ServiceConnection.InsertServiceConnection(
-              ServiceConnection, EPOServiceSetupRecordRef.RecordId, EPOServiceSetupCZL.TableCaption(), EPOServiceSetupCZL."Open Form Endpoint", Page::"EPO Service Setup CZL");
+              ServiceConnection, EPOServiceSetupRecordRef.RecordId, LocalEPOServiceSetupCZL.TableCaption(), LocalEPOServiceSetupCZL."Open Form Endpoint", Page::"EPO Service Setup CZL");
     end;
 }

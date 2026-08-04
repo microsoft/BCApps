@@ -10,13 +10,13 @@ using System.Privacy;
 table 11724 "EPO Service Setup CZL"
 {
     Caption = 'EPO Service Setup';
-    DataClassification = SystemMetadata;
 
     fields
     {
         field(1; "Primary Key"; Code[10])
         {
             Caption = 'Primary Key';
+            DataClassification = SystemMetadata;
         }
         field(2; "Open Form Endpoint"; Text[250])
         {
@@ -34,11 +34,13 @@ table 11724 "EPO Service Setup CZL"
             Caption = 'Limit Response Time';
             InitValue = 2000;
             MinValue = 2000;
+            DataClassification = SystemMetadata;
         }
         field(15; Enabled; Boolean)
         {
 
             Caption = 'Enabled';
+            DataClassification = SystemMetadata;
 
             trigger OnValidate()
             var
