@@ -437,7 +437,8 @@
                   },
                   {
                       "id":  "AS0106",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporarily disabled to allow renumbering of Subcontracting App"
                   },
                   {
                       "id":  "AS0107",
