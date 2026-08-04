@@ -1,6 +1,5 @@
 namespace Microsoft.CRM.Outlook;
 using System.Security.AccessControl;
-using System.Security.User;
 using System.Utilities;
 
 table 7121 "Contact Sync User"
