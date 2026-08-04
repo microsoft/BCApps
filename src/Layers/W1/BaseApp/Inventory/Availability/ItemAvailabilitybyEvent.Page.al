@@ -473,12 +473,12 @@ page 5530 "Item Availability by Event"
         ForecastName: Code[10];
         LastUpdateTime: DateTime;
         SelectedDate: Date;
-        IncludePlanningSuggestions: Boolean;
         IncludeBlanketOrders: Boolean;
         Emphasize: Boolean;
         EnableShowDocumentAction: Boolean;
 
     protected var
+        IncludePlanningSuggestions: Boolean;
         TempInvtPageData: Record "Inventory Page Data" temporary;
         ItemNo: Code[20];
         LocationFilter: Text;
