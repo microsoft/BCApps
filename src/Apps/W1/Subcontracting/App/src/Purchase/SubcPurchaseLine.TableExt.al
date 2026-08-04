@@ -104,7 +104,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
             CalcFormula = sum("Warehouse Receipt Line"."Qty. Outstanding" where("Source Type" = const(39),
 #pragma warning disable AL0603
                                                                                         "Source Subtype" = field("Document Type"),
-#pragma warning restore
+#pragma warning restore AL0603
                                                                                         "Source No." = field("Document No."),
                                                                                         "Source Line No." = field("Line No.")));
             Caption = 'Whse. Outstanding Quantity';
