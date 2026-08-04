@@ -7918,7 +7918,7 @@ codeunit 10145 "E-Invoice Mgt."
             Severity := Verbosity::Error;
 
         Session.LogMessage(
-            '0000MF8',
+            '0000NQ1 ',
             StrSubstNo(StampAttemptsTelemetryMsg, DocTypeText, StampAttempts, UsedRoundingModel, Succeeded, ErrorCode),
             Severity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
     end;
