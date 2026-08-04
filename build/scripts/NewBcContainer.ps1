@@ -46,18 +46,27 @@ try {
             throw "No artifactUrl was passed to New-BcContainer"
         }
         $baseline = Resolve-ArtifactBaseline -ArtifactUrl $parameters.artifactUrl -BaseFolder (Get-BaseFolder) -BuildMode "$env:BuildMode"
-        Write-Host "ARTIFACT BASELINE: usable=$($baseline.IsUsable) commit=$($baseline.BaselineCommit) - $($baseline.Reason)"
+        Write-Host "Artifact Baseline: usable=$($baseline.IsUsable) commit=$($baseline.BaselineCommit) - $($baseline.Reason)"
 
         if ($baseline.IsUsable) {
             $split = Split-ContainerApps -InstalledApps @($installedApps) -KnownApps @($baseline.KnownApps)
             $appsToRemove = @($split.ToUnpublish)
             $appsToKeep = @($split.ToKeep)
-            Write-Host "ARTIFACT BASELINE: reusing $($appsToKeep.Count) app(s) from the artifact, refreshing $($appsToRemove.Count)"
+
+            # Be explicit about the two different populations, because they are easy to confuse:
+            # the "N of 841" above counts apps in the REPOSITORY, while these counts are about the
+            # apps the CONTAINER actually holds. They are unrelated numbers.
+            #
+            # Note also that the unpublished ones are not "the changed apps". Changed apps stay
+            # published and are replaced in place; what gets unpublished is what this repository
+            # does not produce (language packs and the like) plus the never-in-a-container list.
+            Write-Host "Artifact Baseline: the container holds $($installedApps.Count) app(s) - keeping $($appsToKeep.Count) published, unpublishing $($appsToRemove.Count) that this repository does not produce"
+            Write-Host "Artifact Baseline: every app is uninstalled either way; the saving comes from not re-publishing the $($appsToKeep.Count) kept app(s)"
         }
     }
 }
 catch {
-    Write-Host "ARTIFACT BASELINE: disabled for this build - $($_.Exception.Message)"
+    Write-Host "Artifact Baseline: disabled for this build - $($_.Exception.Message)"
     $baseline.IsUsable = $false
     $appsToRemove = $installedApps
     $appsToKeep = @()
@@ -120,18 +129,18 @@ if ($baseline.IsUsable -and $appsToKeep.Count -gt 0) {
 
     $notSynced = @($containerApps | Where-Object { $retainedKeys.Contains($_.Name) -and "$($_.SyncState)" -ne 'Synced' })
     if ($notSynced.Count -gt 0) {
-        Write-Host "ARTIFACT BASELINE: synchronizing $($notSynced.Count) retained app(s) the artifact left unsynchronized"
+        Write-Host "Artifact Baseline: synchronizing $($notSynced.Count) retained app(s) the artifact left unsynchronized"
         foreach ($app in $notSynced) {
             try {
                 Sync-BcContainerApp -containerName $parameters.ContainerName -appName $app.Name -appVersion $app.Version -Mode ForceSync -Force
             }
             catch {
-                Write-Host "ARTIFACT BASELINE: could not synchronize $($app.Name) - $($_.Exception.Message)"
+                Write-Host "Artifact Baseline: could not synchronize $($app.Name) - $($_.Exception.Message)"
             }
         }
     }
     else {
-        Write-Host "ARTIFACT BASELINE: all retained apps are already synchronized"
+        Write-Host "Artifact Baseline: all retained apps are already synchronized"
     }
 }
 

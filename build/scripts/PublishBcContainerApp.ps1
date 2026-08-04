@@ -59,10 +59,10 @@ if ($baselineState -and $baselineState.IsUsable) {
     })
     $skipped = @($parameters["appFile"]).Count - $appsToPublish.Count
     if ($skipped -gt 0) {
-        Write-Host "ARTIFACT BASELINE: skipping $skipped app(s) already published by the artifact"
+        Write-Host "Artifact Baseline: skipping $skipped of $(@($parameters["appFile"]).Count) app package(s) in this batch - the artifact already has them published and unchanged"
     }
     if ($appsToPublish.Count -eq 0) {
-        Write-Host "ARTIFACT BASELINE: nothing left to publish in this batch"
+        Write-Host "Artifact Baseline: nothing left to publish in this batch"
         return
     }
     $parameters["appFile"] = $appsToPublish

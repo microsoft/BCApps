@@ -125,7 +125,7 @@ function Get-ArtifactFolder {
         if (Test-Path $folder) {
             return $folder
         }
-        Write-Host "ARTIFACT BASELINE: '$folder' is not in the artifacts cache"
+        Write-Host "Artifact Baseline: '$folder' is not in the artifacts cache"
     }
 
     if ($AllowDownload -and (Get-Command -Name 'Download-Artifacts' -ErrorAction SilentlyContinue)) {
@@ -136,7 +136,7 @@ function Get-ArtifactFolder {
             }
         }
         catch {
-            Write-Host "ARTIFACT BASELINE: Download-Artifacts failed - $($_.Exception.Message)"
+            Write-Host "Artifact Baseline: Download-Artifacts failed - $($_.Exception.Message)"
         }
     }
 
@@ -213,10 +213,10 @@ function Get-ArtifactBaselineCommit {
 
     if ($env:BCAPPS_ARTIFACT_BASELINE_COMMIT) {
         if ($env:GITHUB_ACTIONS) {
-            Write-Host "ARTIFACT BASELINE: ignoring BCAPPS_ARTIFACT_BASELINE_COMMIT in CI"
+            Write-Host "Artifact Baseline: ignoring BCAPPS_ARTIFACT_BASELINE_COMMIT in CI"
         }
         else {
-            Write-Host "ARTIFACT BASELINE: using commit from BCAPPS_ARTIFACT_BASELINE_COMMIT"
+            Write-Host "Artifact Baseline: using commit from BCAPPS_ARTIFACT_BASELINE_COMMIT"
             return $env:BCAPPS_ARTIFACT_BASELINE_COMMIT.Trim().ToLowerInvariant()
         }
     }
@@ -232,7 +232,7 @@ function Get-ArtifactBaselineCommit {
                 return $value.ToLowerInvariant()
             }
             if ($value) {
-                Write-Host "ARTIFACT BASELINE: manifest property '$propertyName' is not a full SHA ('$value')"
+                Write-Host "Artifact Baseline: manifest property '$propertyName' is not a full SHA ('$value')"
             }
         }
     }
@@ -271,11 +271,11 @@ function Test-CommitAvailable {
             # developer's complete clone would mark it shallow and break later history commands.
             $isShallow = (git rev-parse --is-shallow-repository 2>$null)
             if ("$isShallow".Trim() -ne 'true') {
-                Write-Host "ARTIFACT BASELINE: commit $Sha is not in this clone (not fetching into a complete clone)"
+                Write-Host "Artifact Baseline: commit $Sha is not in this clone (not fetching into a complete clone)"
                 return $false
             }
 
-            Write-Host "ARTIFACT BASELINE: commit $Sha not in the shallow clone, fetching it"
+            Write-Host "Artifact Baseline: commit $Sha not in the shallow clone, fetching it"
             git fetch origin $Sha --depth=1 2>$null | Out-Null
 
             git cat-file -e "$Sha^{commit}" 2>$null
@@ -286,7 +286,7 @@ function Test-CommitAvailable {
         }
     }
     catch {
-        Write-Host "ARTIFACT BASELINE: could not check commit availability - $($_.Exception.Message)"
+        Write-Host "Artifact Baseline: could not check commit availability - $($_.Exception.Message)"
         return $false
     }
     finally {
@@ -322,7 +322,7 @@ function Get-ChangedFilesSinceCommit {
         try {
             $files = @(git diff --name-only $BaselineCommit $HeadSha 2>$null)
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "ARTIFACT BASELINE: git diff $BaselineCommit..$HeadSha failed (exit $LASTEXITCODE)"
+                Write-Host "Artifact Baseline: git diff $BaselineCommit..$HeadSha failed (exit $LASTEXITCODE)"
                 return $null
             }
             # The comma keeps an empty diff an (empty) array instead of collapsing it to $null,
@@ -334,7 +334,7 @@ function Get-ChangedFilesSinceCommit {
         }
     }
     catch {
-        Write-Host "ARTIFACT BASELINE: could not diff against $BaselineCommit - $($_.Exception.Message)"
+        Write-Host "Artifact Baseline: could not diff against $BaselineCommit - $($_.Exception.Message)"
         return $null
     }
     finally {
@@ -593,7 +593,7 @@ function Get-ChangedAppNames {
 
     return [PSCustomObject]@{
         IsUsable    = $true
-        Reason      = "$($changedKeys.Count) of $($Graph.Count) apps changed since the artifact"
+        Reason      = "$($changedKeys.Count) of $($Graph.Count) apps in the repository changed since the artifact"
         ChangedApps = @($changedKeys | Sort-Object)
         KnownApps   = $knownApps
     }
@@ -661,14 +661,14 @@ function Resolve-ArtifactBaseline {
         return $result
     }
 
-    Write-Host "ARTIFACT BASELINE: $($changedFiles.Count) file(s) changed since artifact commit $baselineCommit"
+    Write-Host "Artifact Baseline: $($changedFiles.Count) file(s) changed since artifact commit $baselineCommit"
 
     # The artifact url ends in the country the container is built for, which is also the name of
     # the view its apps were compiled from.
     if (-not $CountryCode) {
         $CountryCode = Get-ArtifactCountry -ArtifactUrl $ArtifactUrl
     }
-    Write-Host "ARTIFACT BASELINE: country '$CountryCode', layer chain '$((Get-LayerChain -CountryCode $CountryCode -BaseFolder $BaseFolder) -join ' -> ')'"
+    Write-Host "Artifact Baseline: country '$CountryCode', layer chain '$((Get-LayerChain -CountryCode $CountryCode -BaseFolder $BaseFolder) -join ' -> ')'"
 
     $changed = Get-ChangedAppNames -ChangedFiles $changedFiles -BaseFolder $BaseFolder -CountryCode $CountryCode -MaxChangedRatio $MaxChangedRatio
     $result.IsUsable = $changed.IsUsable
@@ -910,13 +910,13 @@ function Get-ArtifactBaselineState {
     $state = Get-Content -Path $path -Raw | ConvertFrom-Json
 
     if ($state.ContainerName -ne $ContainerName) {
-        Write-Host "ARTIFACT BASELINE: ignoring state for container '$($state.ContainerName)' (this is '$ContainerName')"
+        Write-Host "Artifact Baseline: ignoring state for container '$($state.ContainerName)' (this is '$ContainerName')"
         return $null
     }
 
     $runId = "$env:GITHUB_RUN_ID/$env:GITHUB_RUN_ATTEMPT"
     if ($state.RunId -ne $runId) {
-        Write-Host "ARTIFACT BASELINE: ignoring state from run '$($state.RunId)' (this is '$runId')"
+        Write-Host "Artifact Baseline: ignoring state from run '$($state.RunId)' (this is '$runId')"
         return $null
     }
 
