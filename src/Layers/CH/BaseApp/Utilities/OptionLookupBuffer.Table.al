@@ -267,12 +267,12 @@ table 1670 "Option Lookup Buffer"
         end;
     end;
 
-    procedure SetCurrentType(LineType: Option " ","G/L Account",Item,Resource,"Fixed Asset","Charge (Item)")
+    procedure SetCurrentType(LineType: Integer)
     begin
-        CurrentType := Format(LineType::Item); // Default value
-        if LineType = LineType::" " then
+        CurrentType := Format(Enum::"Sales Line Type"::Item); // Default value
+        if LineType = Enum::"Sales Line Type"::" ".AsInteger() then
             exit;
-        CurrentType := Format(LineType);
+        CurrentType := Format(Enum::"Sales Line Type".FromInteger(LineType));
     end;
 
     [IntegrationEvent(false, false)]
