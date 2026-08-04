@@ -10,6 +10,7 @@ using System.Reflection;
 /// <summary>
 /// Configures default report selections for cash desk. Allows users to specify which reports to use for printing, emailing, and other output operations.
 /// </summary>
+#pragma warning disable AS0032
 page 31222 "Report Sel. - Cash Desk CZP"
 {
     AboutTitle = 'About report selection for cash desk';
@@ -213,4 +214,5 @@ page 31222 "Report Sel. - Cash Desk CZP"
     begin
     end;
 }
+#pragma warning restore AS0032
 
