@@ -366,6 +366,7 @@ codeunit 4591 "SOA Item Search"
                         ItemNoToSystemId.Add(Item."No.", Format(Item.SystemId));
                     until Item.Next() = 0;
 
+                RawSelectedMatchingItemFilter := RemoveVariantlessMatchesWithConcreteAlternatives(RawSelectedMatchingItemFilter, RawSelectedMatchingItemVariants, RawSelectedAlternativeItemVariants);
                 foreach SelectedMatchingItemNo in RawSelectedMatchingItemFilter.Split('|') do
                     AddSelectedItem(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedMatchingItemNo, ItemNoToSystemId, RawSelectedMatchingItemVariants, RejectedItemCount, RejectedVariantCount);
 
@@ -376,6 +377,30 @@ codeunit 4591 "SOA Item Search"
                 exit(true);
             end;
         exit(false);
+    end;
+
+    internal procedure RemoveVariantlessMatchesWithConcreteAlternatives(MatchingItemFilter: Text; MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Text
+    var
+        MatchingVariantCodes: List of [Code[10]];
+        AlternativeVariantCodes: List of [Code[10]];
+        MatchingItemNo: Text;
+        FilteredMatchingItemFilter: Text;
+    begin
+        foreach MatchingItemNo in MatchingItemFilter.Split('|') do begin
+            Clear(MatchingVariantCodes);
+            if MatchingItemVariants.Get(MatchingItemNo, MatchingVariantCodes) then;
+
+            Clear(AlternativeVariantCodes);
+            if AlternativeItemVariants.Get(MatchingItemNo, AlternativeVariantCodes) then;
+
+            if (MatchingVariantCodes.Count() > 0) or (AlternativeVariantCodes.Count() = 0) then
+                if FilteredMatchingItemFilter = '' then
+                    FilteredMatchingItemFilter := MatchingItemNo
+                else
+                    FilteredMatchingItemFilter += '|' + MatchingItemNo;
+        end;
+
+        exit(FilteredMatchingItemFilter);
     end;
 
     local procedure PreferConcreteVariantAlternatives(AlternativeItemFilter: Text; AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Text

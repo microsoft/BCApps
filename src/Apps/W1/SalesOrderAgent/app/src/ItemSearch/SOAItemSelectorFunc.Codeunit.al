@@ -24,6 +24,9 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         MatchingTok: Label 'matching', Locked = true;
         AlternativeTok: Label 'alternative', Locked = true;
         NotRequestedTok: Label 'not_requested', Locked = true;
+        SafeSubstitutionTok: Label 'safe', Locked = true;
+        UnsafeSubstitutionTok: Label 'unsafe', Locked = true;
+        NotApplicableSubstitutionTok: Label 'not_applicable', Locked = true;
         MalformedFunctionResponseFailureTok: Label 'MalformedFunctionResponse', Locked = true;
         InvalidItemNumberFailureTok: Label 'InvalidItemNumber', Locked = true;
         InvalidVariantCodeFailureTok: Label 'InvalidVariantCode', Locked = true;
@@ -72,6 +75,7 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         ItemNo: Text;
         VariantCode: Text;
         VariantMatch: Text;
+        VariantSubstitutionSafety: Text;
     begin
         foreach ItemToken in SelectedItemsArray do begin
             if not ItemToken.IsObject() then
@@ -103,13 +107,30 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
             then
                 exit(SetSelectionResultFailure(RejectedVariantMatchCombinationFailureTok));
 
+            VariantSubstitutionSafety := NotApplicableSubstitutionTok;
+            if ItemObject.Get('variant_substitution_safety', ResultToken) then begin
+                if not ResultToken.IsValue() then
+                    exit(SetSelectionResultFailure(RejectedVariantMatchCombinationFailureTok));
+                VariantSubstitutionSafety := ResultToken.AsValue().AsText();
+            end;
+            if (VariantSubstitutionSafety <> SafeSubstitutionTok) and
+               (VariantSubstitutionSafety <> UnsafeSubstitutionTok) and
+               (VariantSubstitutionSafety <> NotApplicableSubstitutionTok)
+            then
+                if VariantMatch = AlternativeTok then
+                    continue
+                else
+                    exit(SetSelectionResultFailure(RejectedVariantMatchCombinationFailureTok));
+            if (VariantMatch = AlternativeTok) and (VariantSubstitutionSafety <> SafeSubstitutionTok) then
+                continue;
+
             if not ItemObject.Get('confidence', ResultToken) or not ResultToken.IsValue() then
                 exit(false);
             Confidence := ResultToken.AsValue().AsText();
             if (Confidence <> MatchingTok) and (Confidence <> AlternativeTok) then
                 exit(false);
             if (Confidence = MatchingTok) and (VariantMatch = AlternativeTok) then
-                exit(SetSelectionResultFailure(RejectedVariantMatchCombinationFailureTok));
+                Confidence := AlternativeTok;
 
             if not ItemObject.Get('reason', ResultToken) or not ResultToken.IsValue() then
                 exit(false);

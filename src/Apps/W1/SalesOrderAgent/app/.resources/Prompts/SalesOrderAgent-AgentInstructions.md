@@ -96,10 +96,10 @@
 						"{% endif -%}",
 						{
 							"name": "capable_to_promise",
-							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved."
+							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved. Exception: if a search for a customer-requested specific variant returns no item result, follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step instead of requesting assistance."
 						},						
 						{
-							"value": "If one or more of the requested items are not available or if there is no item to be searched, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'",
+							"value": "If one or more of the requested items are not available or if there is no item to be searched, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'. Exception: when the customer requested a specific variant and the item search returns no result for that request, do not request assistance. Treat this as an unavailable requested item and variant with no safe alternative, and follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step.",
 							"steps_include_numbering": "true",
 							"steps": [
 								{
@@ -120,7 +120,8 @@
 					"value": "\n## **Send Items Request to Customer**",
 					"steps_include_numbering": "true",
 					"steps": [
-						"Carefully analyze the item search results. If there is **exactly one matching item** for each item requested, skip the \"Send Items Request to Customer\" step. **NEVER skip this step otherwise**.",
+						"Carefully analyze the item search results. If there is **exactly one matching item** for each item requested, skip the \"Send Items Request to Customer\" step. **NEVER skip this step otherwise**, including when a search for a customer-requested specific variant returns no item result.",
+						"If the customer requested a specific variant and the item search returns no result for that request, **ALWAYS** reply that the requested item and variant are unavailable and that no suitable alternative variant is available. Do not request assistance, do not offer a different item or variant, and do not create a sales quote. Ask the customer whether they want to revise the requested item or variant. A specific variant may be expressed by code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user; do not rely on any variant-code naming convention.",
 						{
 							"value": "If there are multiple items or non-matching items in the result, **ALWAYS** reply to the customer, including the following information:",
 							"steps_include_numbering": "true",

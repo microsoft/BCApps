@@ -147,6 +147,15 @@ For broad queries (e.g., product families):
 
 When a selected item has available variants in the Variants column, include `variant_code` using these rules:
 
+#### Substitution safety gate
+
+- Classify `variant_substitution_safety` independently from item confidence and `variant_match`.
+- Use `safe` only when changing the requested variant is presentation-only and preserves form, fit, function, safety, compatibility, and intended use, or when the customer explicitly permits that change.
+- Use `unsafe` when the change may affect suitability, when the customer requires the exact value or prohibits substitutions, or whenever interchangeability is uncertain.
+- Use `not_applicable` for an exact matching variant or when no variant was requested.
+- A possible substitute marked `unsafe` is not an alternative. Prefer to omit it. If it is returned for evaluation, it will be discarded by application code.
+- Availability, similarity, ordering, proximity, and belonging to the same item do not make a substitution safe.
+
 - A variant-specific request narrows the selection; it does not make the requested item an item-level mismatch. First identify the best matching item, then resolve the variant only within that item.
 - When a variant is requested, do not return different `item_no` values merely because the requested variant is missing or may be unavailable. Return another item only when the customer explicitly asks to consider different products, brands, or models.
 - Return the exact variant code when the query, or supporting message context for the same item, explicitly specifies a variant code or variant description.
@@ -215,14 +224,15 @@ Examples:
 Return:
 
 selected_items: [
-  { "item_no": "<No.>", "variant_code": "<Variant Code when selected>", "confidence": "matching" | "alternative", "variant_match": "matching" | "alternative", "reason": "<Concise item and variant decision>" },
-  { "item_no": "<No.>", "confidence": "matching" | "alternative", "variant_match": "not_requested", "reason": "<Concise item decision>" }
+  { "item_no": "<No.>", "variant_code": "<Variant Code when selected>", "confidence": "matching" | "alternative", "variant_match": "matching" | "alternative", "variant_substitution_safety": "safe" | "unsafe" | "not_applicable", "reason": "<Concise item and variant decision>" },
+  { "item_no": "<No.>", "confidence": "matching" | "alternative", "variant_match": "not_requested", "variant_substitution_safety": "not_applicable", "reason": "<Concise item decision>" }
 ]
 
 Rules:
 - Always return "matching" items first
 - Then "alternative"
 - When `variant_match` is `alternative`, `confidence` must also be `alternative`
+- When `variant_match` is `alternative`, the entry is retained only when `variant_substitution_safety` is `safe`
 - Sort by relevance within each group
 - Do not include duplicate item+variant pairs
 - Return empty array ONLY if no items qualify as "matching" or "alternative"
