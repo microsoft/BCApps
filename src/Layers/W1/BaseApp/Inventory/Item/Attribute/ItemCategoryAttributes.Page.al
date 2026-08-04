@@ -354,7 +354,6 @@ page 5734 "Item Category Attributes"
         exit(ItemCategoryCode);
     end;
 
-    [Obsolete('The blank Option attribute notification has been replaced by an error, so this procedure is no longer used.', '29.0')]
     procedure GetBlankOptionAttributeNotificationID(): Guid
     begin
         exit('1ab28806-432f-46cc-844e-85b0fc36f883');
