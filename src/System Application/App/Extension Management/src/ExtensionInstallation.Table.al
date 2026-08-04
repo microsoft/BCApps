@@ -46,6 +46,7 @@ table 2503 "Extension Installation"
         field(4; PublisherType; Text[200])
         {
             Caption = 'Publisher Type';
+            DataClassification = SystemMetadata;
         }
     }
 }

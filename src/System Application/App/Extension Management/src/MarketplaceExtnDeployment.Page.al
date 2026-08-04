@@ -243,7 +243,7 @@ page 2510 "Marketplace Extn Deployment"
 
     local procedure IsThirdPartyPublisher(): Boolean
     begin
-        exit(LowerCase(PublisherType) <> 'microsoft');
+        exit(LowerCase(PublisherType) <> MicrosoftPublisherTypeLbl);
     end;
 
     trigger OnInit()
@@ -286,4 +286,5 @@ page 2510 "Marketplace Extn Deployment"
         LearnMoreComplianceURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2342556', Locked = true;
         LearnMoreInstallingLbl: Label 'Learn more about installing/uninstalling apps';
         InstallAppsURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2260926', Locked = true;
+        MicrosoftPublisherTypeLbl: Label 'microsoft', Locked = true;
 }
