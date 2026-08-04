@@ -766,7 +766,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             Session.LogMessage('0000RL4', NoDefaultDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(GetRootItems(DefaultDriveId, GraphDriveItems, GraphOptionalParameters));
+        exit(GetRootItemsCore(DefaultDriveId, SharePointGraphUriBuilder.GetDriveRootChildrenEndpoint(), GraphDriveItems, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -796,13 +796,17 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not ValidateRequiredParameter(FolderId, InvalidFolderIdErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RL8', InvalidFolderIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
         EnsureDefaultDriveId();
         if DefaultDriveId = '' then begin
             SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
             Session.LogMessage('0000RL9', NoDefaultDriveIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(GetFolderItems(DefaultDriveId, FolderId, GraphDriveItems, GraphOptionalParameters));
+        exit(GetFolderItemsCore(DefaultDriveId, SharePointGraphUriBuilder.GetDriveItemChildrenByIdEndpoint(FolderId), GraphDriveItems, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -833,11 +837,11 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EnsureSiteId();
         EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
-            exit(SharePointGraphResponse);
-        end;
-        exit(GetItemsByPath(DefaultDriveId, FolderPath, GraphDriveItems, GraphOptionalParameters));
+        if FolderPath = '' then
+            exit(GetRootItems(GraphDriveItems, GraphOptionalParameters));
+
+        FolderPath := FolderPath.TrimStart('/');
+        exit(GetItemsByPathCore(DefaultDriveId, SharePointGraphUriBuilder.GetDriveItemChildrenByPathEndpoint(FolderPath), GraphDriveItems, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -1200,13 +1204,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RLW', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(DownloadFile(DefaultDriveId, ItemId, TempBlob));
+        exit(DownloadFileCore(SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId), TempBlob));
     end;
 
     /// <summary>
@@ -1221,13 +1224,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(FilePath, InvalidFilePathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RLZ', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(DownloadFileByPath(DefaultDriveId, FilePath, TempBlob));
+
+        FilePath := FilePath.TrimStart('/');
+        exit(DownloadFileByPathCore(SharePointGraphUriBuilder.GetDriveItemContentByPathEndpoint(FilePath), TempBlob));
     end;
 
     /// <summary>
@@ -1238,17 +1242,27 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure DownloadLargeFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RM2', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(DownloadLargeFile(DefaultDriveId, ItemId, TempBlob));
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse := GetDriveItem(ItemId, TempGraphDriveItem);
+        if not SharePointGraphResponse.IsSuccessful() then begin
+            ErrorMessage := StrSubstNo(FailedToGetFileSizeErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RM3', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        exit(DownloadLargeFileCore(SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId), TempGraphDriveItem.Size, TempBlob));
     end;
 
     /// <summary>
@@ -1259,17 +1273,28 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure DownloadLargeFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(FilePath, InvalidFilePathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RM7', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(DownloadLargeFileByPath(DefaultDriveId, FilePath, TempBlob));
+        EnsureDefaultDriveId();
+
+        FilePath := FilePath.TrimStart('/');
+        SharePointGraphResponse := GetDriveItemByPath(FilePath, TempGraphDriveItem);
+        if not SharePointGraphResponse.IsSuccessful() then begin
+            ErrorMessage := StrSubstNo(FailedToGetFileSizeErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RM8', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        exit(DownloadLargeFileByPathCore(SharePointGraphUriBuilder.GetDriveItemContentByPathEndpoint(FilePath), TempGraphDriveItem.Size, TempBlob));
     end;
 
     /// <summary>
@@ -1311,13 +1336,15 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidItemPathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RMC', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(GetDriveItemByPath(DefaultDriveId, ItemPath, GraphDriveItem, GraphOptionalParameters));
+        EnsureDefaultDriveId();
+
+        ItemPath := ItemPath.TrimStart('/');
+        exit(GetDriveItemByPathCore(DefaultDriveId, SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath), GraphDriveItem, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -1333,13 +1360,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RMG', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(GetDriveItem(DefaultDriveId, ItemId, GraphDriveItem, GraphOptionalParameters));
+        EnsureDefaultDriveId();
+        exit(GetDriveItemCore(DefaultDriveId, SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), GraphDriveItem, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -1353,13 +1380,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RMK', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(DeleteItem(DefaultDriveId, ItemId));
+        EnsureDefaultDriveId();
+        exit(DeleteItemCore(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId)));
     end;
 
     /// <summary>
@@ -1373,13 +1400,15 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidFilePathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RMO', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(DeleteItemByPath(DefaultDriveId, ItemPath));
+        EnsureDefaultDriveId();
+
+        ItemPath := ItemPath.TrimStart('/');
+        exit(DeleteItemByPathCore(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath)));
     end;
 
     /// <summary>
@@ -1394,14 +1423,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            Exists := false;
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        Exists := false;
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RMS', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(ItemExists(DefaultDriveId, ItemId, Exists));
+        EnsureDefaultDriveId();
+        exit(ItemExistsCore(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), Exists));
     end;
 
     /// <summary>
@@ -1416,14 +1445,16 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            Exists := false;
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        Exists := false;
+        if not ValidateRequiredParameter(ItemPath, InvalidItemPathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RMW', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(ItemExistsByPath(DefaultDriveId, ItemPath, Exists));
+        EnsureDefaultDriveId();
+
+        ItemPath := ItemPath.TrimStart('/');
+        exit(ItemExistsByPathCore(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath), Exists));
     end;
 
     /// <summary>
@@ -1439,13 +1470,17 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RN0', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(CopyItem(DefaultDriveId, ItemId, TargetFolderId, NewName));
+        if not ValidateRequiredParameter(TargetFolderId, InvalidTargetPathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RN1', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        EnsureDefaultDriveId();
+        exit(CopyItemCore(DefaultDriveId, SharePointGraphUriBuilder.GetCopyItemEndpoint(ItemId), TargetFolderId, NewName));
     end;
 
     /// <summary>
@@ -1457,19 +1492,30 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure CopyItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
+        TempTargetFolderItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
-
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidFilePathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RN4', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(CopyItemByPath(DefaultDriveId, ItemPath, TargetFolderPath, NewName));
+        if not ValidateRequiredParameter(TargetFolderPath, InvalidTargetPathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RN5', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse := GetDriveItemByPath(TargetFolderPath, TempTargetFolderItem);
+        if not SharePointGraphResponse.IsSuccessful() then
+            exit(SharePointGraphResponse);
+        SharePointGraphResponse := GetDriveItemByPath(ItemPath, TempGraphDriveItem);
+        if not SharePointGraphResponse.IsSuccessful() then
+            exit(SharePointGraphResponse);
+        exit(CopyItemCore(DefaultDriveId, SharePointGraphUriBuilder.GetCopyItemEndpoint(TempGraphDriveItem.Id), TempTargetFolderItem.Id, NewName));
     end;
 
     /// <summary>
@@ -1485,15 +1531,17 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
-
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RN6', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(MoveItem(DefaultDriveId, ItemId, TargetFolderId, NewName));
+        if not ValidateAnyParameter(TargetFolderId, NewName, InvalidTargetPathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RN7', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        EnsureDefaultDriveId();
+        exit(MoveItemCore(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), TargetFolderId, NewName));
     end;
 
     /// <summary>
@@ -1505,19 +1553,34 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure MoveItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
+        TempTargetFolderItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        TargetFolderId: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
-        EnsureDefaultDriveId();
-
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-
-        if DefaultDriveId = '' then begin
-            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidFilePathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RNA', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        exit(MoveItemByPath(DefaultDriveId, ItemPath, TargetFolderPath, NewName));
+        if not ValidateAnyParameter(TargetFolderPath, NewName, InvalidTargetPathErr, SharePointGraphResponse) then begin
+            Session.LogMessage('0000RNB', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse := GetDriveItemByPath(ItemPath, TempGraphDriveItem);
+        if not SharePointGraphResponse.IsSuccessful() then
+            exit(SharePointGraphResponse);
+        if TargetFolderPath <> '' then begin
+            SharePointGraphResponse := GetDriveItemByPath(TargetFolderPath, TempTargetFolderItem);
+            if not SharePointGraphResponse.IsSuccessful() then
+                exit(SharePointGraphResponse);
+            TargetFolderId := TempTargetFolderItem.Id;
+        end;
+        exit(MoveItemCore(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(TempGraphDriveItem.Id), TargetFolderId, NewName));
     end;
 
     #endregion
@@ -1545,34 +1608,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure GetRootItems(DriveId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        JsonArray: JsonArray;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-
-        if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetSpecificDriveRootChildrenEndpoint(DriveId), GraphOptionalParameters, JsonArray) then begin
-            ErrorMessage := StrSubstNo(FailedToRetrieveRootItemsErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RL5', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DriveId, GraphDriveItems) then begin
-            SharePointGraphResponse.SetError(FailedToParseRootItemsErr);
-            Session.LogMessage('0000RL6', FailedToParseRootItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RL7', StrSubstNo(OperationSuccessTelemetryMsg, 'GetRootItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(GetRootItemsCore(DriveId, SharePointGraphUriBuilder.GetSpecificDriveRootChildrenEndpoint(DriveId), GraphDriveItems, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -1600,39 +1643,18 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure GetFolderItems(DriveId: Text; FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        JsonArray: JsonArray;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if FolderId = '' then begin
-            SharePointGraphResponse.SetError(InvalidFolderIdErr);
+        if not ValidateRequiredParameter(FolderId, InvalidFolderIdErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RL8', InvalidFolderIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-
-        if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetSpecificDriveItemChildrenByIdEndpoint(DriveId, FolderId), GraphOptionalParameters, JsonArray) then begin
-            ErrorMessage := StrSubstNo(FailedToRetrieveFolderItemsErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RLA', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DriveId, GraphDriveItems) then begin
-            SharePointGraphResponse.SetError(FailedToParseFolderItemsErr);
-            Session.LogMessage('0000RLB', FailedToParseFolderItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RLC', StrSubstNo(OperationSuccessTelemetryMsg, 'GetFolderItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(GetFolderItemsCore(DriveId, SharePointGraphUriBuilder.GetSpecificDriveItemChildrenByIdEndpoint(DriveId, FolderId), GraphDriveItems, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -1660,37 +1682,18 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure GetItemsByPath(DriveId: Text; FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        JsonArray: JsonArray;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
         if FolderPath = '' then
             exit(GetRootItems(DriveId, GraphDriveItems, GraphOptionalParameters));
 
         FolderPath := FolderPath.TrimStart('/');
-        if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetSpecificDriveItemChildrenByPathEndpoint(DriveId, FolderPath), GraphOptionalParameters, JsonArray) then begin
-            ErrorMessage := StrSubstNo(FailedToRetrieveItemsByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RLD', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DriveId, GraphDriveItems) then begin
-            SharePointGraphResponse.SetError(FailedToParseItemsByPathErr);
-            Session.LogMessage('0000RLE', FailedToParseItemsByPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RLF', StrSubstNo(OperationSuccessTelemetryMsg, 'GetItemsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(GetItemsByPathCore(DriveId, SharePointGraphUriBuilder.GetSpecificDriveItemChildrenByPathEndpoint(DriveId, FolderPath), GraphDriveItems, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -1718,38 +1721,17 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure GetDriveItem(DriveId: Text; ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        JsonResponse: JsonObject;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemId = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RMG', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, ItemId), JsonResponse, GraphOptionalParameters) then begin
-            ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RMH', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-        GraphDriveItem.Init();
-        GraphDriveItem.DriveId := CopyStr(DriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
-        if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
-            SharePointGraphResponse.SetError(FailedToParseDriveItemErr);
-            Session.LogMessage('0000RMI', FailedToParseDriveItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-        GraphDriveItem.Insert();
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RMJ', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDriveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(GetDriveItemCore(DriveId, SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, ItemId), GraphDriveItem, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -1777,39 +1759,18 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure GetDriveItemByPath(DriveId: Text; ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        JsonResponse: JsonObject;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemPath = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemPathErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidItemPathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RMC', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         ItemPath := ItemPath.TrimStart('/');
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetSpecificDriveItemByPathEndpoint(DriveId, ItemPath), JsonResponse, GraphOptionalParameters) then begin
-            ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RMD', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-        GraphDriveItem.Init();
-        GraphDriveItem.DriveId := CopyStr(DriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
-        if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
-            SharePointGraphResponse.SetError(FailedToParseDriveItemByPathErr);
-            Session.LogMessage('0000RME', FailedToParseDriveItemByPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-        GraphDriveItem.Insert();
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RMF', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDriveItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(GetDriveItemByPathCore(DriveId, SharePointGraphUriBuilder.GetSpecificDriveItemByPathEndpoint(DriveId, ItemPath), GraphDriveItem, GraphOptionalParameters));
     end;
 
     /// <summary>
@@ -1822,29 +1783,17 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure DownloadFile(DriveId: Text; ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemId = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RLW', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetSpecificDriveItemContentByIdEndpoint(DriveId, ItemId), TempBlob) then begin
-            ErrorMessage := StrSubstNo(FailedToDownloadFileErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RLX', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RLY', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(DownloadFileCore(SharePointGraphUriBuilder.GetSpecificDriveItemContentByIdEndpoint(DriveId, ItemId), TempBlob));
     end;
 
     /// <summary>
@@ -1857,30 +1806,18 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure DownloadFileByPath(DriveId: Text; FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if FilePath = '' then begin
-            SharePointGraphResponse.SetError(InvalidFilePathErr);
+        if not ValidateRequiredParameter(FilePath, InvalidFilePathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RLZ', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
         FilePath := FilePath.TrimStart('/');
-        if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetSpecificDriveItemContentByPathEndpoint(DriveId, FilePath), TempBlob) then begin
-            ErrorMessage := StrSubstNo(FailedToDownloadFileByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RM0', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RM1', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadFileByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(DownloadFileByPathCore(SharePointGraphUriBuilder.GetSpecificDriveItemContentByPathEndpoint(DriveId, FilePath), TempBlob));
     end;
 
     /// <summary>
@@ -1894,25 +1831,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
     var
         TempGraphDriveItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        ChunkTempBlob: Codeunit "Temp Blob";
-        ChunkInStream: InStream;
-        FileOutStream: OutStream;
-        FileSize: BigInteger;
-        ChunkSize: BigInteger;
-        RangeStart: BigInteger;
-        RangeEnd: BigInteger;
-        Endpoint: Text;
         ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemId = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RM2', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
@@ -1925,39 +1851,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             exit(SharePointGraphResponse);
         end;
 
-        FileSize := TempGraphDriveItem.Size;
-        if FileSize <= 0 then begin
-            SharePointGraphResponse.SetError(InvalidFileSizeErr);
-            Session.LogMessage('0000RM4', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        Endpoint := SharePointGraphUriBuilder.GetSpecificDriveItemContentByIdEndpoint(DriveId, ItemId);
-        ChunkSize := 100 * 1024 * 1024;
-        RangeStart := 0;
-        TempBlob.CreateOutStream(FileOutStream);
-        while RangeStart < FileSize do begin
-            Clear(ChunkTempBlob);
-            Clear(ChunkInStream);
-            RangeEnd := RangeStart + ChunkSize - 1;
-            if RangeEnd >= FileSize then
-                RangeEnd := FileSize - 1;
-
-            if not SharePointGraphRequestHelper.DownloadChunk(Endpoint, RangeStart, RangeEnd, ChunkTempBlob) then begin
-                ErrorMessage := StrSubstNo(FailedToDownloadChunkErr, RangeStart, RangeEnd, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-                SharePointGraphResponse.SetError(ErrorMessage);
-                Session.LogMessage('0000RM5', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-                exit(SharePointGraphResponse);
-            end;
-
-            ChunkTempBlob.CreateInStream(ChunkInStream);
-            CopyStream(FileOutStream, ChunkInStream);
-            RangeStart := RangeEnd + 1;
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RM6', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadLargeFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(DownloadLargeFileCore(SharePointGraphUriBuilder.GetSpecificDriveItemContentByIdEndpoint(DriveId, ItemId), TempGraphDriveItem.Size, TempBlob));
     end;
 
     /// <summary>
@@ -1971,25 +1865,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
     var
         TempGraphDriveItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        ChunkTempBlob: Codeunit "Temp Blob";
-        ChunkInStream: InStream;
-        FileOutStream: OutStream;
-        FileSize: BigInteger;
-        ChunkSize: BigInteger;
-        RangeStart: BigInteger;
-        RangeEnd: BigInteger;
-        Endpoint: Text;
         ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if FilePath = '' then begin
-            SharePointGraphResponse.SetError(InvalidFilePathErr);
+        if not ValidateRequiredParameter(FilePath, InvalidFilePathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RM7', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
@@ -2003,39 +1886,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             exit(SharePointGraphResponse);
         end;
 
-        FileSize := TempGraphDriveItem.Size;
-        if FileSize <= 0 then begin
-            SharePointGraphResponse.SetError(InvalidFileSizeErr);
-            Session.LogMessage('0000RM9', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        Endpoint := SharePointGraphUriBuilder.GetSpecificDriveItemContentByPathEndpoint(DriveId, FilePath);
-        ChunkSize := 100 * 1024 * 1024;
-        RangeStart := 0;
-        TempBlob.CreateOutStream(FileOutStream);
-        while RangeStart < FileSize do begin
-            Clear(ChunkTempBlob);
-            Clear(ChunkInStream);
-            RangeEnd := RangeStart + ChunkSize - 1;
-            if RangeEnd >= FileSize then
-                RangeEnd := FileSize - 1;
-
-            if not SharePointGraphRequestHelper.DownloadChunk(Endpoint, RangeStart, RangeEnd, ChunkTempBlob) then begin
-                ErrorMessage := StrSubstNo(FailedToDownloadChunkErr, RangeStart, RangeEnd, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-                SharePointGraphResponse.SetError(ErrorMessage);
-                Session.LogMessage('0000RMA', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-                exit(SharePointGraphResponse);
-            end;
-
-            ChunkTempBlob.CreateInStream(ChunkInStream);
-            CopyStream(FileOutStream, ChunkInStream);
-            RangeStart := RangeEnd + 1;
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RMB', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadLargeFileByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(DownloadLargeFileByPathCore(SharePointGraphUriBuilder.GetSpecificDriveItemContentByPathEndpoint(DriveId, FilePath), TempGraphDriveItem.Size, TempBlob));
     end;
 
     /// <summary>
@@ -2047,36 +1898,17 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure DeleteItem(DriveId: Text; ItemId: Text): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemId = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RMK', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-
-        if not SharePointGraphRequestHelper.Delete(SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, ItemId)) then begin
-            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
-                SharePointGraphResponse.SetSuccess();
-                Session.LogMessage('0000RML', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-                exit(SharePointGraphResponse);
-            end;
-            ErrorMessage := StrSubstNo(FailedToDeleteItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RMM', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RMN', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(DeleteItemCore(SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, ItemId)));
     end;
 
     /// <summary>
@@ -2088,37 +1920,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure DeleteItemByPath(DriveId: Text; ItemPath: Text): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemPath = '' then begin
-            SharePointGraphResponse.SetError(InvalidFilePathErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidFilePathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RMO', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         ItemPath := ItemPath.TrimStart('/');
-        if not SharePointGraphRequestHelper.Delete(SharePointGraphUriBuilder.GetSpecificDriveItemByPathEndpoint(DriveId, ItemPath)) then begin
-            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
-                SharePointGraphResponse.SetSuccess();
-                Session.LogMessage('0000RMP', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-                exit(SharePointGraphResponse);
-            end;
-            ErrorMessage := StrSubstNo(FailedToDeleteItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RMQ', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RMR', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(DeleteItemByPathCore(SharePointGraphUriBuilder.GetSpecificDriveItemByPathEndpoint(DriveId, ItemPath)));
     end;
 
     /// <summary>
@@ -2131,39 +1945,18 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure ItemExists(DriveId: Text; ItemId: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        JsonResponse: JsonObject;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
         Exists := false;
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemId = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RMS', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, ItemId), JsonResponse) then begin
-            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
-                SharePointGraphResponse.SetSuccess();
-                Session.LogMessage('0000RMT', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-                exit(SharePointGraphResponse);
-            end;
-            ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetErrorMessage());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RMU', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        Exists := true;
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RMV', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(ItemExistsCore(SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, ItemId), Exists));
     end;
 
     /// <summary>
@@ -2176,40 +1969,20 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure ItemExistsByPath(DriveId: Text; ItemPath: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        JsonResponse: JsonObject;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
         Exists := false;
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemPath = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemPathErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidItemPathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RMW', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
         ItemPath := ItemPath.TrimStart('/');
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetSpecificDriveItemByPathEndpoint(DriveId, ItemPath), JsonResponse) then begin
-            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
-                SharePointGraphResponse.SetSuccess();
-                Session.LogMessage('0000RMX', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExistsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-                exit(SharePointGraphResponse);
-            end;
-            ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetErrorMessage());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RMY', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        Exists := true;
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RMZ', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExistsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(ItemExistsByPathCore(SharePointGraphUriBuilder.GetSpecificDriveItemByPathEndpoint(DriveId, ItemPath), Exists));
     end;
 
     /// <summary>
@@ -2223,46 +1996,22 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure CopyItem(DriveId: Text; ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        RequestBody: JsonObject;
-        ParentReference: JsonObject;
-        ResponseJson: JsonObject;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemId = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RN0', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        if TargetFolderId = '' then begin
-            SharePointGraphResponse.SetError(InvalidTargetPathErr);
+        if not ValidateRequiredParameter(TargetFolderId, InvalidTargetPathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RN1', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-
-        ParentReference.Add('driveId', DriveId);
-        ParentReference.Add('id', TargetFolderId);
-        RequestBody.Add('parentReference', ParentReference);
-        if NewName <> '' then
-            RequestBody.Add('name', NewName);
-
-        if not SharePointGraphRequestHelper.Post(SharePointGraphUriBuilder.GetSpecificCopyItemEndpoint(DriveId, ItemId), RequestBody, ResponseJson) then begin
-            ErrorMessage := StrSubstNo(FailedToCopyItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RN2', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RN3', StrSubstNo(OperationSuccessTelemetryMsg, 'CopyItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(CopyItemCore(DriveId, SharePointGraphUriBuilder.GetSpecificCopyItemEndpoint(DriveId, ItemId), TargetFolderId, NewName));
     end;
 
     /// <summary>
@@ -2282,17 +2031,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemPath = '' then begin
-            SharePointGraphResponse.SetError(InvalidFilePathErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidFilePathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RN4', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        if TargetFolderPath = '' then begin
-            SharePointGraphResponse.SetError(InvalidTargetPathErr);
+        if not ValidateRequiredParameter(TargetFolderPath, InvalidTargetPathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RN5', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
@@ -2303,7 +2048,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         SharePointGraphResponse := GetDriveItemByPath(DriveId, ItemPath, TempGraphDriveItem);
         if not SharePointGraphResponse.IsSuccessful() then
             exit(SharePointGraphResponse);
-        exit(CopyItem(DriveId, TempGraphDriveItem.Id, TempTargetFolderItem.Id, NewName));
+        exit(CopyItemCore(DriveId, SharePointGraphUriBuilder.GetSpecificCopyItemEndpoint(DriveId, TempGraphDriveItem.Id), TempTargetFolderItem.Id, NewName));
     end;
 
     /// <summary>
@@ -2317,46 +2062,21 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure MoveItem(DriveId: Text; ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        RequestBody: JsonObject;
-        ParentReference: JsonObject;
-        ResponseJson: JsonObject;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemId = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemIdErr);
+        if not ValidateRequiredParameter(ItemId, InvalidItemIdErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RN6', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        if (TargetFolderId = '') and (NewName = '') then begin
-            SharePointGraphResponse.SetError(InvalidTargetPathErr);
+        if not ValidateAnyParameter(TargetFolderId, NewName, InvalidTargetPathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RN7', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-
-        if TargetFolderId <> '' then begin
-            ParentReference.Add('id', TargetFolderId);
-            RequestBody.Add('parentReference', ParentReference);
-        end;
-        if NewName <> '' then
-            RequestBody.Add('name', NewName);
-
-        if not SharePointGraphRequestHelper.Patch(SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, ItemId), RequestBody, ResponseJson) then begin
-            ErrorMessage := StrSubstNo(FailedToMoveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
-            SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000RN8', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        SharePointGraphResponse.SetSuccess();
-        Session.LogMessage('0000RN9', StrSubstNo(OperationSuccessTelemetryMsg, 'MoveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-        exit(SharePointGraphResponse);
+        exit(MoveItemCore(SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, ItemId), TargetFolderId, NewName));
     end;
 
     /// <summary>
@@ -2377,17 +2097,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EnsureInitialized();
         EnsureSiteId();
         SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-        if DriveId = '' then begin
-            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+        if not ValidateRequiredParameter(DriveId, InvalidDriveIdErr, SharePointGraphResponse) then
             exit(SharePointGraphResponse);
-        end;
-        if ItemPath = '' then begin
-            SharePointGraphResponse.SetError(InvalidFilePathErr);
+        if not ValidateRequiredParameter(ItemPath, InvalidFilePathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RNA', InvalidFilePathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        if (TargetFolderPath = '') and (NewName = '') then begin
-            SharePointGraphResponse.SetError(InvalidTargetPathErr);
+        if not ValidateAnyParameter(TargetFolderPath, NewName, InvalidTargetPathErr, SharePointGraphResponse) then begin
             Session.LogMessage('0000RNB', InvalidTargetPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
@@ -2401,7 +2117,401 @@ codeunit 9120 "SharePoint Graph Client Impl."
                 exit(SharePointGraphResponse);
             TargetFolderId := TempTargetFolderItem.Id;
         end;
-        exit(MoveItem(DriveId, TempGraphDriveItem.Id, TargetFolderId, NewName));
+        exit(MoveItemCore(SharePointGraphUriBuilder.GetSpecificDriveItemByIdEndpoint(DriveId, TempGraphDriveItem.Id), TargetFolderId, NewName));
+    end;
+
+    local procedure GetRootItemsCore(DriveId: Text; Endpoint: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonArray: JsonArray;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.GetAllPages(Endpoint, GraphOptionalParameters, JsonArray) then begin
+            ErrorMessage := StrSubstNo(FailedToRetrieveRootItemsErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RL5', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DriveId, GraphDriveItems) then begin
+            SharePointGraphResponse.SetError(FailedToParseRootItemsErr);
+            Session.LogMessage('0000RL6', FailedToParseRootItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RL7', StrSubstNo(OperationSuccessTelemetryMsg, 'GetRootItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure GetFolderItemsCore(DriveId: Text; Endpoint: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonArray: JsonArray;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.GetAllPages(Endpoint, GraphOptionalParameters, JsonArray) then begin
+            ErrorMessage := StrSubstNo(FailedToRetrieveFolderItemsErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RLA', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DriveId, GraphDriveItems) then begin
+            SharePointGraphResponse.SetError(FailedToParseFolderItemsErr);
+            Session.LogMessage('0000RLB', FailedToParseFolderItemsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RLC', StrSubstNo(OperationSuccessTelemetryMsg, 'GetFolderItems'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure GetItemsByPathCore(DriveId: Text; Endpoint: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonArray: JsonArray;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.GetAllPages(Endpoint, GraphOptionalParameters, JsonArray) then begin
+            ErrorMessage := StrSubstNo(FailedToRetrieveItemsByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RLD', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        if not SharePointGraphParser.ParseDriveItemCollection(JsonArray, DriveId, GraphDriveItems) then begin
+            SharePointGraphResponse.SetError(FailedToParseItemsByPathErr);
+            Session.LogMessage('0000RLE', FailedToParseItemsByPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RLF', StrSubstNo(OperationSuccessTelemetryMsg, 'GetItemsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure GetDriveItemCore(DriveId: Text; Endpoint: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.Get(Endpoint, JsonResponse, GraphOptionalParameters) then begin
+            ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RMH', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        GraphDriveItem.Init();
+        GraphDriveItem.DriveId := CopyStr(DriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
+        if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseDriveItemErr);
+            Session.LogMessage('0000RMI', FailedToParseDriveItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        GraphDriveItem.Insert();
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RMJ', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDriveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure GetDriveItemByPathCore(DriveId: Text; Endpoint: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.Get(Endpoint, JsonResponse, GraphOptionalParameters) then begin
+            ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RMD', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        GraphDriveItem.Init();
+        GraphDriveItem.DriveId := CopyStr(DriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
+        if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseDriveItemByPathErr);
+            Session.LogMessage('0000RME', FailedToParseDriveItemByPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        GraphDriveItem.Insert();
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RMF', StrSubstNo(OperationSuccessTelemetryMsg, 'GetDriveItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure DownloadFileCore(Endpoint: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.DownloadFile(Endpoint, TempBlob) then begin
+            ErrorMessage := StrSubstNo(FailedToDownloadFileErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RLX', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RLY', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure DownloadFileByPathCore(Endpoint: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.DownloadFile(Endpoint, TempBlob) then begin
+            ErrorMessage := StrSubstNo(FailedToDownloadFileByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RM0', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RM1', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadFileByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure DownloadLargeFileCore(Endpoint: Text; FileSize: BigInteger; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ChunkTempBlob: Codeunit "Temp Blob";
+        ChunkInStream: InStream;
+        FileOutStream: OutStream;
+        ChunkSize: BigInteger;
+        RangeStart: BigInteger;
+        RangeEnd: BigInteger;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if FileSize <= 0 then begin
+            SharePointGraphResponse.SetError(InvalidFileSizeErr);
+            Session.LogMessage('0000RM4', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        ChunkSize := 100 * 1024 * 1024;
+        TempBlob.CreateOutStream(FileOutStream);
+        while RangeStart < FileSize do begin
+            Clear(ChunkTempBlob);
+            Clear(ChunkInStream);
+            RangeEnd := RangeStart + ChunkSize - 1;
+            if RangeEnd >= FileSize then
+                RangeEnd := FileSize - 1;
+            if not SharePointGraphRequestHelper.DownloadChunk(Endpoint, RangeStart, RangeEnd, ChunkTempBlob) then begin
+                ErrorMessage := StrSubstNo(FailedToDownloadChunkErr, RangeStart, RangeEnd, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+                SharePointGraphResponse.SetError(ErrorMessage);
+                Session.LogMessage('0000RM5', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                exit(SharePointGraphResponse);
+            end;
+            ChunkTempBlob.CreateInStream(ChunkInStream);
+            CopyStream(FileOutStream, ChunkInStream);
+            RangeStart := RangeEnd + 1;
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RM6', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadLargeFile'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure DownloadLargeFileByPathCore(Endpoint: Text; FileSize: BigInteger; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ChunkTempBlob: Codeunit "Temp Blob";
+        ChunkInStream: InStream;
+        FileOutStream: OutStream;
+        ChunkSize: BigInteger;
+        RangeStart: BigInteger;
+        RangeEnd: BigInteger;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if FileSize <= 0 then begin
+            SharePointGraphResponse.SetError(InvalidFileSizeErr);
+            Session.LogMessage('0000RM9', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        ChunkSize := 100 * 1024 * 1024;
+        TempBlob.CreateOutStream(FileOutStream);
+        while RangeStart < FileSize do begin
+            Clear(ChunkTempBlob);
+            Clear(ChunkInStream);
+            RangeEnd := RangeStart + ChunkSize - 1;
+            if RangeEnd >= FileSize then
+                RangeEnd := FileSize - 1;
+            if not SharePointGraphRequestHelper.DownloadChunk(Endpoint, RangeStart, RangeEnd, ChunkTempBlob) then begin
+                ErrorMessage := StrSubstNo(FailedToDownloadChunkErr, RangeStart, RangeEnd, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+                SharePointGraphResponse.SetError(ErrorMessage);
+                Session.LogMessage('0000RMA', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                exit(SharePointGraphResponse);
+            end;
+            ChunkTempBlob.CreateInStream(ChunkInStream);
+            CopyStream(FileOutStream, ChunkInStream);
+            RangeStart := RangeEnd + 1;
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RMB', StrSubstNo(OperationSuccessTelemetryMsg, 'DownloadLargeFileByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure DeleteItemCore(Endpoint: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.Delete(Endpoint) then begin
+            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
+                SharePointGraphResponse.SetSuccess();
+                Session.LogMessage('0000RML', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                exit(SharePointGraphResponse);
+            end;
+            ErrorMessage := StrSubstNo(FailedToDeleteItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RMM', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RMN', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure DeleteItemByPathCore(Endpoint: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.Delete(Endpoint) then begin
+            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
+                SharePointGraphResponse.SetSuccess();
+                Session.LogMessage('0000RMP', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                exit(SharePointGraphResponse);
+            end;
+            ErrorMessage := StrSubstNo(FailedToDeleteItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RMQ', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RMR', StrSubstNo(OperationSuccessTelemetryMsg, 'DeleteItemByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure ItemExistsCore(Endpoint: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.Get(Endpoint, JsonResponse) then begin
+            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
+                SharePointGraphResponse.SetSuccess();
+                Session.LogMessage('0000RMT', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                exit(SharePointGraphResponse);
+            end;
+            ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetErrorMessage());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RMU', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        Exists := true;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RMV', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExists'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure ItemExistsByPathCore(Endpoint: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if not SharePointGraphRequestHelper.Get(Endpoint, JsonResponse) then begin
+            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
+                SharePointGraphResponse.SetSuccess();
+                Session.LogMessage('0000RMX', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExistsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+                exit(SharePointGraphResponse);
+            end;
+            ErrorMessage := StrSubstNo(FailedToRetrieveDriveItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetErrorMessage());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RMY', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        Exists := true;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RMZ', StrSubstNo(OperationSuccessTelemetryMsg, 'ItemExistsByPath'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure CopyItemCore(DriveId: Text; Endpoint: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        RequestBody: JsonObject;
+        ParentReference: JsonObject;
+        ResponseJson: JsonObject;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        ParentReference.Add('driveId', DriveId);
+        ParentReference.Add('id', TargetFolderId);
+        RequestBody.Add('parentReference', ParentReference);
+        if NewName <> '' then
+            RequestBody.Add('name', NewName);
+        if not SharePointGraphRequestHelper.Post(Endpoint, RequestBody, ResponseJson) then begin
+            ErrorMessage := StrSubstNo(FailedToCopyItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RN2', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RN3', StrSubstNo(OperationSuccessTelemetryMsg, 'CopyItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure MoveItemCore(Endpoint: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        RequestBody: JsonObject;
+        ParentReference: JsonObject;
+        ResponseJson: JsonObject;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+        if TargetFolderId <> '' then begin
+            ParentReference.Add('id', TargetFolderId);
+            RequestBody.Add('parentReference', ParentReference);
+        end;
+        if NewName <> '' then
+            RequestBody.Add('name', NewName);
+        if not SharePointGraphRequestHelper.Patch(Endpoint, RequestBody, ResponseJson) then begin
+            ErrorMessage := StrSubstNo(FailedToMoveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('0000RN8', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+        SharePointGraphResponse.SetSuccess();
+        Session.LogMessage('0000RN9', StrSubstNo(OperationSuccessTelemetryMsg, 'MoveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+        exit(SharePointGraphResponse);
+    end;
+
+    local procedure ValidateRequiredParameter(ParameterValue: Text; ErrorMessage: Text; var SharePointGraphResponse: Codeunit "SharePoint Graph Response"): Boolean
+    begin
+        if ParameterValue <> '' then
+            exit(true);
+        SharePointGraphResponse.SetError(ErrorMessage);
+        exit(false);
+    end;
+
+    local procedure ValidateAnyParameter(FirstParameterValue: Text; SecondParameterValue: Text; ErrorMessage: Text; var SharePointGraphResponse: Codeunit "SharePoint Graph Response"): Boolean
+    begin
+        if (FirstParameterValue <> '') or (SecondParameterValue <> '') then
+            exit(true);
+        SharePointGraphResponse.SetError(ErrorMessage);
+        exit(false);
     end;
 
     /// <summary>
