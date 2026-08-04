@@ -304,6 +304,10 @@ codeunit 10978 "CII XML Builder"
                 exit('0009');
             ElecAddressScheme::"0002":
                 exit('0002');
+            ElecAddressScheme::"0225":
+                exit('0225');
+            ElecAddressScheme::"9957":
+                exit('9957');
             else
                 exit(Format(ElecAddressScheme));
         end;

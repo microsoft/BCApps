@@ -24,12 +24,12 @@ enum 10976 "Electronic Address Scheme"
     {
         Caption = ' ';
     }
-    value(4; "0223")
+    value(4; "0225")
     {
-        Caption = 'French VAT number (0223)';
+        Caption = 'FRCTC electronic address (0225)';
     }
-    value(5; "0225")
+    value(5; "9957")
     {
-        Caption = 'French routing identifier (0225)';
+        Caption = 'French VAT number (9957)';
     }
 }

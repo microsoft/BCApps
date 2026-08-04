@@ -84,6 +84,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         InitNamespaceManager(NamespaceMgr, XmlDoc);
 
+        SetFrenchBillingMode(XmlDoc, NamespaceMgr);
+        RemoveZeroAllowanceTotal(XmlDoc, NamespaceMgr);
         InjectSupplierIdentification(XmlDoc, NamespaceMgr, CompanyInformation);
         InjectSupplierEndpoint(XmlDoc, NamespaceMgr, CompanyInformation, EDocumentService.Code);
         InjectRegulatoryComments(XmlDoc, NamespaceMgr, SourceDocumentHeader);
@@ -96,6 +98,25 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
         XmlDoc.WriteTo(OutStr);
+    end;
+
+    local procedure SetFrenchBillingMode(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager)
+    var
+        ProfileIdNode: XmlNode;
+        NewProfileIdNode: XmlNode;
+    begin
+        if not XmlDoc.SelectSingleNode('/*/cbc:ProfileID', NamespaceMgr, ProfileIdNode) then
+            exit;
+        NewProfileIdNode := XmlElement.Create('ProfileID', CbcNamespaceTok, BillingModeB1Tok).AsXmlNode();
+        ProfileIdNode.ReplaceWith(NewProfileIdNode);
+    end;
+
+    local procedure RemoveZeroAllowanceTotal(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager)
+    var
+        ZeroAllowanceTotalNode: XmlNode;
+    begin
+        if XmlDoc.SelectSingleNode('/*/cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount[number(normalize-space(.)) = 0]', NamespaceMgr, ZeroAllowanceTotalNode) then
+            ZeroAllowanceTotalNode.Remove();
     end;
 
     local procedure InjectExtendedCTCFranceElements(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef)
@@ -324,7 +345,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 ElecAddressScheme := ElecAddressScheme::"0009";
             end else begin
                 ElecAddress := CopyStr(CompanyInformation.GetVATRegistrationNumber(), 1, MaxStrLen(ElecAddress));
-                ElecAddressScheme := ElecAddressScheme::"0223";
+                ElecAddressScheme := ElecAddressScheme::"9957";
             end;
 
         if ElecAddress = '' then
@@ -385,7 +406,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ElecAddressScheme := Customer."FR Elec. Address Scheme";
         if ElecAddress = '' then begin
             ElecAddress := Customer."VAT Registration No.";
-            ElecAddressScheme := ElecAddressScheme::"0223";
+            ElecAddressScheme := ElecAddressScheme::"9957";
         end;
         exit(ElecAddress <> '');
     end;
@@ -435,10 +456,10 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 exit('0009');
             ElecAddressScheme::"0002":
                 exit('0002');
-            ElecAddressScheme::"0223":
-                exit('0223');
             ElecAddressScheme::"0225":
                 exit('0225');
+            ElecAddressScheme::"9957":
+                exit('9957');
             else
                 exit(Format(ElecAddressScheme));
         end;
@@ -508,5 +529,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         CacNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
         ExtendedCTCFranceCustomizationIdTok: Label 'EXTENDED-CTC-FR', Locked = true;
         RegulatoryCommentFormatTok: Label '#%1#%2', Locked = true;
+        BillingModeB1Tok: Label 'B1', Locked = true;
         InvoiceLineXPathTok: Label '/*/cac:InvoiceLine[cbc:ID=''%1'']', Locked = true;
 }
