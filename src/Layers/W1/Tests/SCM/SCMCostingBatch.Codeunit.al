@@ -929,7 +929,7 @@ codeunit 137402 "SCM Costing Batch"
     end;
 
     [Test]
-    [HandlerFunctions('StatisticsMessageHandler')]
+    [HandlerFunctions('AdjustCostItemEntriesHandler,StatisticsMessageHandler')]
     [Scope('OnPrem')]
     procedure CapacityCostPostedToGLForTwoItemsInOneProductionOrder()
     var
@@ -1075,7 +1075,7 @@ codeunit 137402 "SCM Costing Batch"
     end;
 
     [Test]
-    [HandlerFunctions('StatisticsMessageHandler')]
+    [HandlerFunctions('AdjustCostItemEntriesHandler,StatisticsMessageHandler')]
     [Scope('OnPrem')]
     procedure PurchasePostingDoesNotPropagateACYToSourceCurrencyOnGLEntry()
     var
