@@ -518,6 +518,13 @@ page 6121 "E-Document"
                 ObsoleteState = Pending;
                 ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
                 ObsoleteTag = '29.0';
+
+                trigger OnAction()
+                var
+                    EDocOrderMatch: Codeunit "E-Doc. Line Matching";
+                begin
+                    EDocOrderMatch.RunMatching(Rec);
+                end;
             }
 #endif
         }

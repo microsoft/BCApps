@@ -77,6 +77,15 @@ pageextension 6132 "E-Doc. Purchase Order" extends "Purchase Order"
                 ObsoleteState = Pending;
                 ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
                 ObsoleteTag = '29.0';
+
+                trigger OnAction()
+                var
+                    EDocument: Record "E-Document";
+                    EDocOrderMatch: Codeunit "E-Doc. Line Matching";
+                begin
+                    EDocument.GetBySystemId(Rec."E-Document Link");
+                    EDocOrderMatch.RunMatching(EDocument);
+                end;
             }
 #endif
         }
