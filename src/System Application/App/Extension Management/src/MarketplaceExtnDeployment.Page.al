@@ -24,7 +24,7 @@ page 2510 "Marketplace Extn Deployment"
         {
             group(DisclaimerStep)
             {
-                Visible = (Step = Step::Disclaimer) and IsThirdPartyPublisher();
+                Visible = (Step = Step::Disclaimer) and IsThirdPartyInstall;
                 ShowCaption = false;
 
                 group(DisclaimerHeader)
@@ -168,8 +168,8 @@ page 2510 "Marketplace Extn Deployment"
                 Caption = 'Back';
                 ToolTip = 'Go back to the previous step.';
                 InFooterBar = true;
-                Enabled = (Step = Step::Installation) and IsThirdPartyPublisher();
-                Visible = (Step = Step::Installation) and IsThirdPartyPublisher();
+                Enabled = (Step = Step::Installation) and IsThirdPartyInstall;
+                Visible = (Step = Step::Installation) and IsThirdPartyInstall;
 
                 trigger OnAction()
                 begin
@@ -186,7 +186,7 @@ page 2510 "Marketplace Extn Deployment"
                 Caption = 'Continue';
                 ToolTip = 'Continue to the next step.';
                 InFooterBar = true;
-                Visible = (Step = Step::Disclaimer) and IsThirdPartyPublisher();
+                Visible = (Step = Step::Disclaimer) and IsThirdPartyInstall;
 
                 trigger OnAction()
                 begin
@@ -239,11 +239,11 @@ page 2510 "Marketplace Extn Deployment"
     internal procedure SetPublisherType(NewPublisherType: Text)
     begin
         PublisherType := NewPublisherType;
-    end;
-
-    local procedure IsThirdPartyPublisher(): Boolean
-    begin
-        exit(LowerCase(PublisherType) <> MicrosoftPublisherTypeLbl);
+        IsThirdPartyInstall := LowerCase(PublisherType) <> MicrosoftPublisherTypeLbl;
+        if IsThirdPartyInstall then
+            Step := Step::Disclaimer
+        else
+            Step := Step::Installation;
     end;
 
     trigger OnInit()
@@ -253,8 +253,9 @@ page 2510 "Marketplace Extn Deployment"
         LanguageID := GlobalLanguage();
         LanguageName := LanguageManagement.GetWindowsLanguageName(LanguageID);
         Clear(InstallSelected);
+        IsThirdPartyInstall := true;
         // For Microsoft-published apps, skip the disclaimer and go straight to installation
-        if IsThirdPartyPublisher() then
+        if IsThirdPartyInstall then
             Step := Step::Disclaimer
         else
             Step := Step::Installation;
@@ -272,6 +273,7 @@ page 2510 "Marketplace Extn Deployment"
         LanguageID: Integer;
         InstallSelected: Boolean;
         InstallPreview: Boolean;
+        IsThirdPartyInstall: Boolean;
         AppID: Guid;
         PublisherType: Text;
         Step: Option Disclaimer,Installation;
