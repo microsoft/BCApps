@@ -8029,6 +8029,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATAmountRounding: Decimal;
         PositiveNDVATAmountRounding: Decimal;
         NegativeNDVATAmountRounding: Decimal;
+        DeferralNonDedVATBalance: Decimal;
     begin
         IsHandled := false;
         OnBeforePostDeferral(GenJournalLine, AccountNo, IsHandled);
@@ -8105,7 +8106,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DeferralPostingBuffer.Amount := DeferralHeader."Amount to Defer";
         InsertDeferralNonDeductibleVATGLEntries(
             NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate,
-            VATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding);
+            VATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding, DeferralNonDedVATBalance, false);
         VATAmountRounding := 0;
         PositiveNDVATAmountRounding := 0;
         NegativeNDVATAmountRounding := 0;
@@ -8146,7 +8147,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 DeferralPostingBuffer.Description := SetDeferralDescriptionFromDeferralLine(TempDeferralLine, DeferralTemplate."Deferral Account");
                 InsertDeferralNonDeductibleVATGLEntries(
                     NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate,
-                    VATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding);
+                    VATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding, DeferralNonDedVATBalance,
+                    PeriodicCount = TempDeferralLine.Count());
 
                 PeriodicCount := PeriodicCount + 1;
                 OnPostDeferralOnAfterInsertGLEntry(GenJournalLine, TempDeferralLine);
@@ -8174,6 +8176,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure PostDeferralPostBuffer(GenJournalLine: Record "Gen. Journal Line")
     var
         DeferralPostingBuffer: Record "Deferral Posting Buffer";
+        NextDeferralPostingBuffer: Record "Deferral Posting Buffer";
         GLEntry: Record "G/L Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         DeferralTemplate: Record "Deferral Template";
@@ -8181,6 +8184,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATAmountRounding: Decimal;
         PositiveNDVATAmountRounding: Decimal;
         NegativeNDVATAmountRounding: Decimal;
+        DeferralNonDedVATBalance: Decimal;
         PostDate: Date;
         IsHandled: Boolean;
         DeferralSourceCode: Code[10];
@@ -8240,9 +8244,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         InsertGLEntry(GenJournalLine, GLEntry, true);
                         OnPostDeferralPostBufferOnAfterInsertGLEntry(GenJournalLine, DeferralPostingBuffer);
                     end;
+                    NextDeferralPostingBuffer.Copy(DeferralPostingBuffer);
                     InsertDeferralNonDeductibleVATGLEntries(
                         NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate,
-                        VATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding);
+                        VATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding, DeferralNonDedVATBalance,
+                        NextDeferralPostingBuffer.Next() = 0);
                 until DeferralPostingBuffer.Next() = 0;
                 OnPostDeferralPosBufferOnBeforeDeleteDeferralPostBuffer(GenJournalLine, DeferralPostingBuffer);
                 DeferralPostingBuffer.DeleteAll();
@@ -8269,7 +8275,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", 0, '', GenJournalLine."Line No.");
     end;
 
-    local procedure InsertDeferralNonDeductibleVATGLEntries(NonDeductibleVATPct: Decimal; DeferralPostingBuffer: Record "Deferral Posting Buffer"; VATPostingSetup: Record "VAT Posting Setup"; GenJournalLine: Record "Gen. Journal Line"; DeferralTemplate: Record "Deferral Template"; var VATAmountRounding: Decimal; var PositiveNDVATAmountRounding: Decimal; var NegativeNDVATAmountRounding: Decimal)
+    local procedure InsertDeferralNonDeductibleVATGLEntries(NonDeductibleVATPct: Decimal; DeferralPostingBuffer: Record "Deferral Posting Buffer"; VATPostingSetup: Record "VAT Posting Setup"; GenJournalLine: Record "Gen. Journal Line"; DeferralTemplate: Record "Deferral Template"; var VATAmountRounding: Decimal; var PositiveNDVATAmountRounding: Decimal; var NegativeNDVATAmountRounding: Decimal; var DeferralNonDedVATBalance: Decimal; IsLastPeriodicEntry: Boolean)
     var
         GLEntry: Record "G/L Entry";
         NonDeductibleVATAmount: Decimal;
@@ -8315,6 +8321,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
             PositiveNDVATAmountRounding := DeferralVATAmountRounding
         else
             NegativeNDVATAmountRounding := DeferralVATAmountRounding;
+
+        // The full non-deductible VAT is accrued on the deferral account with the total amount to defer, and reversed with
+        // the periodic amounts. Because the amount to defer and the periodic amounts are rounded independently, the accrued
+        // and reversed non-deductible VAT amounts can differ by a rounding unit, leaving a residual on the deferral account.
+        // The last periodic reversal absorbs that residual so the deferral account nets to zero (see AB#394920).
+        if IsLastPeriodicEntry and (Sign = -1) then
+            NonDeductibleVATAmount := -DeferralNonDedVATBalance;
+        DeferralNonDedVATBalance += NonDeductibleVATAmount;
 
         InitGLEntry(
             GenJournalLine, GLEntry, DeferralGLAccountNo, NonDeductibleVATAmount, NonDeductibleVATAmount, true, true,
