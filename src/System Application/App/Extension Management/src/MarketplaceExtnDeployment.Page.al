@@ -239,7 +239,7 @@ page 2510 "Marketplace Extn Deployment"
     internal procedure SetPublisherType(NewPublisherType: Text)
     begin
         PublisherType := NewPublisherType;
-        IsThirdPartyInstall := LowerCase(PublisherType) <> MicrosoftPublisherTypeLbl;
+        IsThirdPartyInstall := LowerCase(PublisherType) <> MicrosoftPublisherTypeTok;
         if IsThirdPartyInstall then
             Step := Step::Disclaimer
         else
@@ -284,5 +284,5 @@ page 2510 "Marketplace Extn Deployment"
         LearnMoreComplianceURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2342556', Locked = true;
         LearnMoreInstallingLbl: Label 'Learn more about installing/uninstalling apps';
         InstallAppsURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2260926', Locked = true;
-        MicrosoftPublisherTypeLbl: Label 'microsoft', Locked = true;
+        MicrosoftPublisherTypeTok: Label 'microsoft', Locked = true;
 }
