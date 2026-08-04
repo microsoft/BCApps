@@ -32,12 +32,17 @@ Restart-BcContainer -containerName $parameters.ContainerName
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
 # PROTOTYPE: the artifact database already has every app of the BCApps commit it was built from
-# published, installed and synchronized. Keep the ones whose source has not changed since that
-# commit - they only get uninstalled, which leaves them in exactly the state AL-Go's publish step
-# produces today, so install order and test discovery downstream are unaffected.
+# published, synchronized AND installed. That is already the state a test container needs, so the
+# goal is to change as little of it as possible rather than tear it down and rebuild it.
+#
+# Only apps this repository does not produce (plus the never-in-a-container list) are removed.
+# Apps whose source changed are deliberately left installed and are replaced in place by
+# PublishBcContainerApp.ps1 with -upgrade: uninstalling one would force out every installed app
+# that depends on it (516 of them for Base Application), which is the whole cost we are avoiding.
+#
 # See build/scripts/ArtifactBaseline.md. Any doubt falls back to removing everything.
 $appsToRemove = $installedApps
-$appsToKeep = @()
+$appsUntouched = @()
 $baseline = [PSCustomObject]@{ IsUsable = $false; Reason = 'Not enabled'; BaselineCommit = ''; ChangedApps = @(); KnownApps = @() }
 
 try {
@@ -51,17 +56,12 @@ try {
         if ($baseline.IsUsable) {
             $split = Split-ContainerApps -InstalledApps @($installedApps) -KnownApps @($baseline.KnownApps)
             $appsToRemove = @($split.ToUnpublish)
-            $appsToKeep = @($split.ToKeep)
+            $appsUntouched = @($split.ToLeaveAlone)
 
-            # Be explicit about the two different populations, because they are easy to confuse:
-            # the "N of 841" above counts apps in the REPOSITORY, while these counts are about the
-            # apps the CONTAINER actually holds. They are unrelated numbers.
-            #
-            # Note also that the unpublished ones are not "the changed apps". Changed apps stay
-            # published and are replaced in place; what gets unpublished is what this repository
-            # does not produce (language packs and the like) plus the never-in-a-container list.
-            Write-Host "Artifact Baseline: the container holds $($installedApps.Count) app(s) - keeping $($appsToKeep.Count) published, unpublishing $($appsToRemove.Count) that this repository does not produce"
-            Write-Host "Artifact Baseline: every app is uninstalled either way; the saving comes from not re-publishing the $($appsToKeep.Count) kept app(s)"
+            # Two different populations, easy to confuse: the "N of 841" above counts apps in the
+            # REPOSITORY, these count the apps the CONTAINER holds.
+            Write-Host "Artifact Baseline: the container holds $($installedApps.Count) app(s) - leaving $($appsUntouched.Count) installed and untouched, unpublishing $($appsToRemove.Count) that this repository does not produce"
+            Write-Host "Artifact Baseline: changed apps stay installed and are replaced in place by the publish hook (-upgrade), so no dependent has to be uninstalled"
         }
     }
 }
@@ -69,39 +69,18 @@ catch {
     Write-Host "Artifact Baseline: disabled for this build - $($_.Exception.Message)"
     $baseline.IsUsable = $false
     $appsToRemove = $installedApps
-    $appsToKeep = @()
+    $appsUntouched = @()
 }
 
 Set-ArtifactBaselineState -ContainerName $parameters.ContainerName -State @{
     IsUsable     = $baseline.IsUsable
     Reason       = $baseline.Reason
     ChangedApps  = @($baseline.ChangedApps)
-    # Apps left published in the container; anything else must still be published by AL-Go.
-    RetainedApps = @($appsToKeep | ForEach-Object { Get-AppKey -Publisher $_.Publisher -Name $_.Name })
+    # Apps still published and unchanged, so AL-Go does not need to publish them again.
+    RetainedApps = @($appsUntouched | ForEach-Object { Get-AppKey -Publisher $_.Publisher -Name $_.Name })
 } | Out-Null
 
-# Uninstall every app: the retained ones must end up published-but-not-installed, which is the
-# state AL-Go's publish step leaves apps in and which ImportTestDataInBcContainer.ps1 expects.
-#
-# -doNotSaveSchema drops the extension's schema, which leaves it published but NOT synchronized.
-# That is harmless for apps about to be unpublished, but a retained app has to stay synchronized:
-# publishing any app runs a sync, and BC resolves each dependency against a SYNCHRONIZED
-# extension. Dropping the schema on System Application makes publishing Base Application fail
-# with "no synchronized extension could be found to satisfy the dependency definition".
-$retainedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-foreach ($app in $appsToKeep) { [void]$retainedNames.Add($app.Name) }
-
-foreach($app in $installedApps) {
-    Write-Host "Removing $($app.Name)"
-    if ($retainedNames.Contains($app.Name)) {
-        UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -force
-    }
-    else {
-        UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
-    }
-}
-
-# Unpublish the apps AL-Go is going to (re)publish
+# When the baseline is not usable this is every installed app, which is today's behaviour.
 foreach($app in $appsToRemove) {
     # $AppsToUnpublish is the script parameter (note the different casing): it lets a project
     # keep specific apps published. Do not rename it into $appsToRemove - PowerShell variable
@@ -113,35 +92,7 @@ foreach($app in $appsToRemove) {
 }
 
 Write-Host "Current installed apps in container $($parameters.ContainerName)"
-$containerApps = @(Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast)
-foreach ($app in $containerApps) {
+foreach ($app in (Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - IsInstalled: $($app.IsInstalled) - IsPublished: $($app.IsPublished) - SyncState: $($app.SyncState)"
 }
-
-# Publishing an app runs a sync, and BC resolves every dependency against a SYNCHRONIZED
-# extension. The artifact ships some apps published but never synchronized - test libraries such
-# as "Permissions Mock" are published and not installed - so a retained app cannot be assumed to
-# be synchronized just because the artifact had it. Sync the ones that are not, which is far
-# cheaper than publishing them: no upload, extract or validation.
-if ($baseline.IsUsable -and $appsToKeep.Count -gt 0) {
-    $retainedKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($app in $appsToKeep) { [void]$retainedKeys.Add($app.Name) }
-
-    $notSynced = @($containerApps | Where-Object { $retainedKeys.Contains($_.Name) -and "$($_.SyncState)" -ne 'Synced' })
-    if ($notSynced.Count -gt 0) {
-        Write-Host "Artifact Baseline: synchronizing $($notSynced.Count) retained app(s) the artifact left unsynchronized"
-        foreach ($app in $notSynced) {
-            try {
-                Sync-BcContainerApp -containerName $parameters.ContainerName -appName $app.Name -appVersion $app.Version -Mode ForceSync -Force
-            }
-            catch {
-                Write-Host "Artifact Baseline: could not synchronize $($app.Name) - $($_.Exception.Message)"
-            }
-        }
-    }
-    else {
-        Write-Host "Artifact Baseline: all retained apps are already synchronized"
-    }
-}
-
 Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -scriptblock { $progressPreference = 'SilentlyContinue' }

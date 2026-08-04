@@ -53,6 +53,8 @@ $parameters["appFile"] = $filteredAppFiles
 # only trusted when it was written for this container by this run.
 # See build/scripts/ArtifactBaseline.md.
 $baselineState = Get-ArtifactBaselineState -ContainerName $parameters["containerName"]
+$appsToUpgrade = @()
+
 if ($baselineState -and $baselineState.IsUsable) {
     $appsToPublish = @($parameters["appFile"] | Where-Object {
         Test-ShouldPublishAppFile -AppFile $_ -ChangedApps @($baselineState.ChangedApps) -RetainedApps @($baselineState.RetainedApps)
@@ -65,7 +67,29 @@ if ($baselineState -and $baselineState.IsUsable) {
         Write-Host "Artifact Baseline: nothing left to publish in this batch"
         return
     }
-    $parameters["appFile"] = $appsToPublish
+
+    # An app that is still INSTALLED at the artifact's version cannot simply be published and
+    # installed again - BC refuses with "the tenant already uses a different version of it with
+    # the same app ID". Uninstalling it first is not an option either, because that would drag
+    # out every installed app that depends on it (516 of them for Base Application).
+    #
+    # -upgrade is exactly the mechanism for this: it publishes the new version and runs
+    # Start-NavAppDataUpgrade, replacing the installed app in place, without touching dependents.
+    $installedKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($app in @(Get-BcContainerAppInfo -containerName $parameters["containerName"] -tenantSpecificProperties | Where-Object { $_.IsInstalled })) {
+        [void]$installedKeys.Add((Get-AppKey -Publisher $app.Publisher -Name $app.Name))
+    }
+
+    $plain = @()
+    foreach ($appFile in $appsToPublish) {
+        $identity = Get-AppFileIdentity -Path $appFile
+        if ($identity -and $installedKeys.Contains($identity.Key)) { $appsToUpgrade += $appFile } else { $plain += $appFile }
+    }
+
+    if ($appsToUpgrade.Count -gt 0) {
+        Write-Host "Artifact Baseline: upgrading $($appsToUpgrade.Count) app(s) in place - they are still installed at the artifact's version"
+    }
+    $parameters["appFile"] = $plain
 }
 
 $parameters["scope"] = "Global"
@@ -75,4 +99,17 @@ $parameters["scope"] = "Global"
 $parameters["install"] = $false
 $parameters["upgrade"] = $false
 $parameters["sync"] = $true
-Publish-BcContainerApp @parameters
+
+if (@($parameters["appFile"]).Count -gt 0) {
+    Publish-BcContainerApp @parameters
+}
+
+if ($appsToUpgrade.Count -gt 0) {
+    $upgradeParameters = @{}
+    foreach ($key in $parameters.Keys) { $upgradeParameters[$key] = $parameters[$key] }
+    $upgradeParameters["appFile"] = $appsToUpgrade
+    $upgradeParameters["install"] = $false
+    $upgradeParameters["upgrade"] = $true
+    $upgradeParameters["sync"] = $true
+    Publish-BcContainerApp @upgradeParameters
+}

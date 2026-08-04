@@ -749,68 +749,73 @@ function Get-AppsNeverInContainer {
 
 <#
 .SYNOPSIS
-    Splits the apps currently in the container into the ones to unpublish and the ones to keep.
+    Works out the smallest set of apps in the container that has to be touched at all.
 .DESCRIPTION
-    Unpublish an app only when this repository does not produce it at all, or when it must never
-    be in a test container. Everything else - including apps whose source changed - is kept
-    published and synchronized, and the caller uninstalls it.
+    The artifact database arrives with every app published, synchronized AND installed. That is
+    already the state a test container needs, so the goal is to change as little of it as
+    possible - not to tear it down and rebuild it into "the shape today's build happens to
+    produce", which is the maximal change, not the minimal one.
 
-    Changed apps are deliberately not unpublished. Business Central refuses to unpublish an
-    extension while another PUBLISHED extension depends on it, so with dependents retained the
-    unpublish set can never be dependency closed. The build instead publishes the new version in
-    place, alongside the artifact's older one; that is allowed because everything was uninstalled
-    first. Test-ShouldPublishAppFile still forces a publish for changed apps.
+    Three disjoint sets come out of this:
+
+      ToUninstall  apps this repository does not produce, plus the never-in-a-container list.
+                     These are uninstalled and unpublished, exactly as today.
+        ToLeaveAlone everything else - including apps whose source changed. They stay installed;
+                     PublishBcContainerApp.ps1 replaces the changed ones in place with -upgrade,
+                     which runs Start-NavAppDataUpgrade and does not require dependents to be
+                     uninstalled.
+
+      Nothing else is disturbed, so the publish, sync AND install cost of every unchanged app
+      disappears. Uninstalling a changed app is deliberately avoided: BC will not uninstall an app
+      while an installed app depends on it, and Base Application alone has 516 installed dependents,
+      so any uninstall-based scheme collapses back into rebuilding the whole container.
+
+      Install-AllApps in ImportTestDataInBcContainer.ps1 is already idempotent: it installs
+      published-but-not-installed apps, so it installs only genuinely new apps. It needs no changes.
 .PARAMETER InstalledApps
-    Output of Get-BcContainerAppInfo (needs Name and Publisher), sorted DependenciesLast.
+      Output of Get-BcContainerAppInfo (needs Name and Publisher), sorted DependenciesLast.
 .PARAMETER KnownApps
-    App keys this repository produces. Apps outside this set are unpublished, matching today's
-    behavior where the container only ever holds apps this build publishes.
+      App keys this repository produces. Apps outside this set are unpublished, so the container
+      only ever holds apps this build publishes, as today.
 .OUTPUTS
-    PSCustomObject with ToUnpublish and ToKeep, preserving the input order.
+      PSCustomObject with ToUnpublish and ToLeaveAlone, preserving the input order.
 #>
 function Split-ContainerApps {
-    [CmdletBinding()]
-    [OutputType([PSCustomObject])]
-    param(
-        [Parameter(Mandatory)]
-        [AllowEmptyCollection()]
-        [object[]] $InstalledApps,
-        [Parameter(Mandatory)]
-        [AllowEmptyCollection()]
-        [string[]] $KnownApps
-    )
+      [CmdletBinding()]
+      [OutputType([PSCustomObject])]
+      param(
+          [Parameter(Mandatory)]
+          [AllowEmptyCollection()]
+          [object[]] $InstalledApps,
+          [Parameter(Mandatory)]
+          [AllowEmptyCollection()]
+          [string[]] $KnownApps
+      )
 
-    $known = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($key in $KnownApps) { [void]$known.Add($key) }
+      $known = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+      foreach ($key in $KnownApps) { [void]$known.Add($key) }
 
-    $never = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($name in $script:AppsNeverInContainer) { [void]$never.Add($name) }
+      $never = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+      foreach ($name in $script:AppsNeverInContainer) { [void]$never.Add($name) }
 
-    $toUnpublish = @()
-    $toKeep = @()
+      $toUnpublish = @()
+      $toLeaveAlone = @()
 
-    foreach ($app in $InstalledApps) {
-        $key = Get-AppKey -Publisher $app.Publisher -Name $app.Name
+      foreach ($app in $InstalledApps) {
+          $key = Get-AppKey -Publisher $app.Publisher -Name $app.Name
 
-        # Changed apps are deliberately NOT unpublished. Business Central refuses to unpublish an
-        # extension while another PUBLISHED extension depends on it, and keeping dependents
-        # published is the whole point here - so the unpublish set could never be dependency
-        # closed. Instead the build publishes the new version in place, alongside the artifact's
-        # older one (29.0.2147483647.x vs the artifact's 29.0.<build>.0). That is allowed because
-        # every app was uninstalled first, which is the precondition for publishing a new version
-        # over an existing one.
-        if ($never.Contains($app.Name) -or (-not $known.Contains($key))) {
-            $toUnpublish += $app
-        }
-        else {
-            $toKeep += $app
-        }
-    }
+          if ($never.Contains($app.Name) -or (-not $known.Contains($key))) {
+              $toUnpublish += $app
+          }
+          else {
+              $toLeaveAlone += $app
+          }
+      }
 
-    return [PSCustomObject]@{
-        ToUnpublish = @($toUnpublish)
-        ToKeep      = @($toKeep)
-    }
+      return [PSCustomObject]@{
+          ToUnpublish  = @($toUnpublish)
+          ToLeaveAlone = @($toLeaveAlone)
+      }
 }
 
 <#
@@ -847,6 +852,55 @@ function Test-ShouldPublishAppFile {
     }
 
     return ($RetainedApps -notcontains $identity.Key)
+}
+
+<#
+.SYNOPSIS
+    Keeps only the newest published version of each app.
+.DESCRIPTION
+    Business Central does NOT overwrite an existing version when a newer one is published - both
+    stay published side by side, and only one of them can be installed on a tenant. Publishing a
+    changed app in place therefore leaves the container listing it twice, once at the artifact's
+    version and once at the rebuilt 29.0.2147483647.x, and installing both fails with:
+
+        Cannot install the extension <app> by Microsoft <old version> because the tenant default
+        already uses a different version of it with the same app ID
+
+    Collapse to the highest version per app id, preserving the caller's dependency ordering.
+.OUTPUTS
+    The input list with superseded versions removed.
+#>
+function Select-NewestAppVersion {
+    [CmdletBinding()]
+    [OutputType([object[]])]
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [object[]] $Apps
+    )
+
+    $newest = @{}
+    foreach ($app in $Apps) {
+        # Fall back to publisher+name when AppId is not populated, so nothing is silently dropped.
+        $key = if ($app.AppId) { "$($app.AppId)" } else { "$($app.Publisher)_$($app.Name)" }
+        $version = try { [version]"$($app.Version)" } catch { [version]'0.0.0.0' }
+        if (-not $newest.ContainsKey($key) -or $version -gt $newest[$key]) {
+            $newest[$key] = $version
+        }
+    }
+
+    $result = @()
+    foreach ($app in $Apps) {
+        $key = if ($app.AppId) { "$($app.AppId)" } else { "$($app.Publisher)_$($app.Name)" }
+        $version = try { [version]"$($app.Version)" } catch { [version]'0.0.0.0' }
+        if ($version -eq $newest[$key]) {
+            $result += $app
+        }
+        else {
+            Write-Host "Artifact Baseline: skipping $($app.Name) ($($app.Version)) - superseded by $($newest[$key])"
+        }
+    }
+    return @($result)
 }
 
 #endregion
@@ -953,6 +1007,7 @@ Export-ModuleMember -Function @(
     'Test-ShouldPublishAppFile'
     'Get-ArtifactBaselineStatePath'
     'Set-ArtifactBaselineState'
+    'Select-NewestAppVersion'
     'Get-ArtifactBaselineState'
     'Clear-ArtifactBaselineState'
 )

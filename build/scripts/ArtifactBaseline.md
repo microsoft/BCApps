@@ -38,33 +38,77 @@ BCApps PR build      ->  git diff <sha>..HEAD     -> changed files
                      ->  keep the rest published; republish in place only those
 ```
 
-1. `NewBcContainer.ps1` reads the artifact manifest, diffs the commit, and decides which apps to
-   keep.
-2. **Every app is uninstalled**, and only apps this repo does not produce, plus apps that must
-   never be in a test container, are unpublished. Everything else is left **published and
-   synchronized but not installed** - exactly the state AL-Go's publish step leaves an app in
-   today.
-3. `PublishBcContainerApp.ps1` skips the `.app` files whose app is retained and unchanged. New
-   apps and anything the container does not hold are published as usual.
-4. `ImportTestDataInBcContainer.ps1` and the test runner are untouched.
+1. `NewBcContainer.ps1` reads the artifact manifest, diffs the commit, and decides which apps
+   have to be touched at all.
+2. **Almost nothing is disturbed.** Apps this repo does not produce (plus the
+   never-in-a-container list) are uninstalled and unpublished, as today. **Everything else is
+   left exactly as the artifact delivered it: published, synchronized and installed.**
+3. `PublishBcContainerApp.ps1` skips the `.app` files whose app is unchanged. A changed app that
+   is still installed at the artifact's version is published with **`-upgrade`**, which runs
+   `Start-NavAppDataUpgrade` and replaces it in place. Genuinely new apps are published as usual.
+4. `ImportTestDataInBcContainer.ps1` and the test runner are untouched. `Install-AllApps` is
+   already idempotent - it installs published-but-not-installed apps - so it installs only the
+   genuinely new ones.
 
-Step 2 is what makes this safe. Because retained apps end up *published but not installed*:
+### Never uninstall to replace an app
 
-- **Install order stays under the pipeline's control.** The `Legacy` test type deliberately
-  installs only the base apps + DemoTool, generates demo data, and only then installs the rest.
-  If retained apps stayed installed, `Install-BaseAppsForDemoTool` would silently become a no-op
-  and the DemoTool would run against a fully installed container.
-- **Test discovery is unchanged.** Every test project sets `"runTestsInAllInstalledTestApps": true`,
-  so the set of tests that run is derived from the *installed* apps. Retaining installed apps
-  would change which tests execute.
+Business Central will not uninstall an app while an installed app depends on it, and Base
+Application has **516 installed dependents** - nearly every app in the container, most of them via
+the implicit `"application"` and `"platform"` properties rather than an explicit `dependencies`
+entry. Any scheme built on uninstalling a changed app therefore collapses straight back into
+rebuilding the whole container, and Base Application changes on 92% of active days.
 
-Only the publish/sync work is skipped - the container still ends up in today's shape.
+`-upgrade` is the mechanism BC provides for exactly this: publish the new version and upgrade the
+app in place, leaving dependents installed and untouched.
 
-### Only the owning app, never its dependents
+### Publishing does not overwrite
 
-The set of apps to refresh is **not** expanded down the dependency graph.
+BC keeps both versions published side by side and allows only one installed per tenant. A run that
+published a changed app in place and then walked every published-but-not-installed app failed
+with:
+
+```
+Installing Base Application (29.0.2147483647.78865)   <- installed fine
+Installing Base Application (29.0.53221.0)
+Cannot install the extension Base Application by Microsoft 29.0.53221.0 because the tenant
+default already uses a different version of it with the same app ID
+```
+
+The container state was correct - BC rejected the stale version, which is the guard working. The
+defect was only that the install loops asked for it. `Select-NewestAppVersion` collapses to the
+highest version per app id and is applied in both `Install-AllApps` and
+`Install-BaseAppsForDemoTool`.
+
+### Touch as little as possible
+
+An earlier revision of this document argued for uninstalling *every* app so the container would
+end up in "exactly the state AL-Go's publish step produces today". That was the wrong invariant.
+The artifact database already arrives with every app published, synchronized and installed, which
+is what a test container needs; tearing that down to rebuild it is the *maximal* change, not the
+minimal one. Preserving today's teardown preserves the waste, not correctness.
+
+The two concerns that rationale cited do not survive contact with the code:
+
+- **Install order.** `Install-BaseAppsForDemoTool` installing apps that are already installed is
+  a no-op, which is the correct outcome, not a hazard.
+- **Test discovery.** `runTestsInAllInstalledTestApps` derives the test set from the installed
+  apps. Leaving unchanged test apps installed produces the same set, not a different one.
+
+### Only the owning app is republished; dependents are only moved out of the way
+
+The set of apps to **republish** is not expanded down the dependency graph.
 `BuildOptimization`'s `Get-AffectedApps` does expand, because it answers a different question -
 *which tests must run* - where a change in a dependency can change a dependent's behaviour.
+
+The set of apps to **uninstall** is a third question again, and it *is* dependency-closed,
+because BC will not uninstall an app while an installed app depends on it. Those dependents are
+uninstalled and reinstalled; they are never republished.
+
+Watch out for implicit dependencies here. The graph is built from app.json `dependencies`, but
+most apps never list the base apps there - they declare `"application": "29.0.0.0"` and
+`"platform": "29.0.0.0"`, which are implicit dependencies on Base Application and System
+Application. Counting only explicit ones made a Base Application change look like it affected
+7 apps when it really affects 516.
 
 *Which published binaries are still valid* is not that question. An app whose own source did not
 change has identical source at both commits, is already published, installed and synchronized in

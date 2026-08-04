@@ -210,10 +210,10 @@ Describe "ArtifactBaseline" {
             $result.KnownApps | Should -Contain 'Microsoft_Base Application'
         }
 
-        It "does NOT expand to dependents, because their published binaries are still valid" {
-            # This is the whole point: dependency expansion answers "which tests must run".
-            # A dependent whose own source did not change is byte-identical to the artifact's
-            # copy and still resolves, because dependencies are pinned at <major>.<minor>.0.0.
+        It "does NOT expand to dependents - they are neither republished nor uninstalled" {
+            # Dependents keep working because dependencies are pinned at <major>.<minor>.0.0, and
+            # the changed app is replaced in place with -upgrade rather than uninstalled, so they
+            # never have to be moved out of the way at all.
             $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
             $result.ChangedApps | Should -Not -Contain 'Microsoft_E-Document Core Tests'
             $result.ChangedApps.Count | Should -Be 1
@@ -320,6 +320,66 @@ Describe "ArtifactBaseline" {
         }
     }
 
+    Context "Select-NewestAppVersion" {
+        BeforeAll {
+            function New-PublishedApp {
+                param([string] $Name, [string] $Version, [string] $AppId = '', [string] $Publisher = 'Microsoft')
+                return [PSCustomObject]@{ Name = $Name; Version = $Version; AppId = $AppId; Publisher = $Publisher }
+            }
+        }
+
+        It "drops the artifact's copy when the app was republished in place" {
+            # Exactly the shape that failed in CI: BC keeps both versions published, and installing
+            # the superseded one fails with "the tenant already uses a different version".
+            $apps = @(
+                New-PublishedApp 'System Application' '29.0.53221.0' '437dbf0e-1111-1111-1111-000000000001'
+                New-PublishedApp 'Base Application' '29.0.53221.0' '437dbf0e-84ff-417a-965d-ed2bb9650972'
+                New-PublishedApp 'Base Application' '29.0.2147483647.78865' '437dbf0e-84ff-417a-965d-ed2bb9650972'
+            )
+            $result = @(Select-NewestAppVersion -Apps $apps)
+            $result.Count | Should -Be 2
+            @($result | Where-Object { $_.Name -eq 'Base Application' }).Version | Should -Be '29.0.2147483647.78865'
+            @($result | Where-Object { $_.Name -eq 'System Application' }).Version | Should -Be '29.0.53221.0'
+        }
+
+        It "preserves the caller's dependency ordering" {
+            $apps = @(
+                New-PublishedApp 'System Application' '1.0.0.0' 'id-sys'
+                New-PublishedApp 'Base Application' '1.0.0.0' 'id-base'
+                New-PublishedApp 'Base Application' '2.0.0.0' 'id-base'
+                New-PublishedApp 'Something Else' '1.0.0.0' 'id-else'
+            )
+            @(Select-NewestAppVersion -Apps $apps | ForEach-Object { $_.Name }) | Should -Be @('System Application', 'Base Application', 'Something Else')
+        }
+
+        It "falls back to publisher and name when AppId is empty" {
+            $apps = @(
+                New-PublishedApp 'Base Application' '29.0.53221.0'
+                New-PublishedApp 'Base Application' '29.0.2147483647.78865'
+            )
+            $result = @(Select-NewestAppVersion -Apps $apps)
+            $result.Count | Should -Be 1
+            $result[0].Version | Should -Be '29.0.2147483647.78865'
+        }
+
+        It "does not merge apps that share a name but differ in publisher" {
+            $apps = @(
+                New-PublishedApp 'Tests-Local' '1.0.0.0' -Publisher 'Microsoft'
+                New-PublishedApp 'Tests-Local' '2.0.0.0' -Publisher 'Contoso'
+            )
+            @(Select-NewestAppVersion -Apps $apps).Count | Should -Be 2
+        }
+
+        It "leaves a single-version container untouched" {
+            $apps = @(New-PublishedApp 'Base Application' '29.0.53221.0' 'id-base')
+            @(Select-NewestAppVersion -Apps $apps).Count | Should -Be 1
+        }
+
+        It "handles an empty list" {
+            @(Select-NewestAppVersion -Apps @()).Count | Should -Be 0
+        }
+    }
+
     Context "Split-ContainerApps" {
         BeforeAll {
             $script:installed = @(
@@ -335,20 +395,24 @@ Describe "ArtifactBaseline" {
             )
         }
 
-        It "leaves changed apps published, because they are replaced in place" {
-            # Business Central refuses to unpublish an extension while a published extension
-            # depends on it, and dependents are retained by design. The new version is published
-            # over the artifact's copy instead.
+        It "leaves every app this repository produces installed and untouched" {
+            # Including changed apps: they are replaced in place by the publish hook with -upgrade,
+            # so nothing has to be uninstalled and no dependent is disturbed.
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
+            @($split.ToLeaveAlone | ForEach-Object { $_.Name }) | Should -Contain 'Base Application'
+            @($split.ToLeaveAlone | ForEach-Object { $_.Name }) | Should -Contain 'E-Document Core'
+            @($split.ToLeaveAlone | ForEach-Object { $_.Name }) | Should -Contain 'Tests-Local'
+        }
+
+        It "never unpublishes an app this repository produces, changed or not" {
             $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
             @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Not -Contain 'E-Document Core'
-            @($split.ToKeep | ForEach-Object { $_.Name }) | Should -Contain 'E-Document Core'
-            @($split.ToKeep | ForEach-Object { $_.Name }) | Should -Contain 'Base Application'
-            @($split.ToKeep | ForEach-Object { $_.Name }) | Should -Contain 'Tests-Local'
+            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Not -Contain 'Base Application'
         }
 
         It "always unpublishes apps that must never be in a test container" {
             $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
-            @($split.ToKeep | ForEach-Object { $_.Name }) | Should -Not -Contain 'Prevent Metadata Updates Library'
+            @($split.ToLeaveAlone | ForEach-Object { $_.Name }) | Should -Not -Contain 'Prevent Metadata Updates Library'
             @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Contain 'Prevent Metadata Updates Library'
         }
 
@@ -360,18 +424,18 @@ Describe "ArtifactBaseline" {
         It "does not confuse apps that share a name but differ in publisher" {
             $installed = @(New-ContainerApp 'Tests-Local' -Publisher 'Contoso')
             $split = Split-ContainerApps -InstalledApps $installed -KnownApps @('Microsoft_Tests-Local')
-            @($split.ToKeep).Count | Should -Be 0
+            @($split.ToLeaveAlone).Count | Should -Be 0
             @($split.ToUnpublish).Count | Should -Be 1
         }
 
-        It "unpublishes only the apps this repository does not produce, whatever changed" {
+        It "the two sets are disjoint and cover the container" {
             $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
-            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Be @('Prevent Metadata Updates Library', 'Third Party Thing')
+            (@($split.ToUnpublish).Count + @($split.ToLeaveAlone).Count) | Should -Be $script:installed.Count
         }
 
         It "handles an empty container" {
             $split = Split-ContainerApps -InstalledApps @() -KnownApps $script:known
-            @($split.ToKeep).Count | Should -Be 0
+            @($split.ToLeaveAlone).Count | Should -Be 0
             @($split.ToUnpublish).Count | Should -Be 0
         }
     }
