@@ -5,6 +5,8 @@
 
 namespace Microsoft.WithholdingTax;
 
+using Microsoft.WithholdingTax.Employee;
+
 permissionset 6784 "WHT - Admin"
 {
     Caption = 'Withholding Tax - Admin';
@@ -18,5 +20,7 @@ permissionset 6784 "WHT - Admin"
         tabledata "Withholding Tax Posting Setup" = IMD,
         tabledata "Wthldg. Tax Prod. Post. Group" = IMD,
         tabledata "Withholding Tax Posting Buffer" = IMD,
-        tabledata "Withholding Tax Revenue Types" = IMD;
+        tabledata "Withholding Tax Revenue Types" = IMD,
+        tabledata "Withholding Tax Group" = IMD,
+        tabledata "Withholding Tax Group Line" = IMD;
 }

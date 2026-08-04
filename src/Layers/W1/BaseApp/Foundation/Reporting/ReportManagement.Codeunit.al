@@ -4,10 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
+using Microsoft.Foundation.Company;
 using System.Device;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
+using System.Text;
 using System.Utilities;
 
 codeunit 44 ReportManagement
@@ -262,6 +264,70 @@ codeunit 44 ReportManagement
             exit;
 
         OnGetFilename(ReportID, Caption, ObjectPayload, FileExtension, ReportRecordRef, Filename, Success);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'GetCompanyMetadata', '', false, false)]
+    local procedure GetCompanyMetadataSubscriber(ReportId: Integer; var CompanyMetadata: JsonObject)
+    begin
+        this.GetCompanyMetadata(CompanyMetadata);
+    end;
+
+    /// <summary>
+    /// Populates the shared CompanyMetadata payload from Company Information for the report layouts'
+    /// company block. Empty-safe: with no Company Information record the fields are emitted blank
+    /// rather than erroring. Public so it can be invoked/verified directly; extension and
+    /// localization fields are added by subscribing to the platform GetCompanyMetadata event
+    /// directly (the payload is additive), so no BaseApp OnAfter event is exposed here.
+    /// </summary>
+    /// <param name="CompanyMetadata">The JSON object to merge the company payload into; existing keys with the same names are overwritten.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Company Information", 'r')]
+    procedure GetCompanyMetadata(var CompanyMetadata: JsonObject)
+    var
+        CompanyInfo: Record "Company Information";
+        CompanyMetadataBuilder: Codeunit "Company Metadata Builder";
+    begin
+        if not CompanyInfo.Get() then
+            CompanyInfo.Init();
+
+        // Display name and logo are not plain Company Information fields (a session display name and
+        // a Base64-encoded BLOB), so they are set here; the rest of the block is mapped by the builder.
+        CompanyMetadataBuilder.SetDisplayName(this.GetCompanyDisplayName());
+        CompanyMetadataBuilder.SetLogo(this.GetLogoBase64(CompanyInfo));
+        CompanyMetadataBuilder.PopulateFromCompanyInformation(CompanyInfo);
+
+        CompanyMetadataBuilder.WriteTo(CompanyMetadata);
+    end;
+
+    /// <summary>
+    /// Company display name, mirroring how the platform builds ReportRequest/CompanyDisplayName
+    /// (ReportRequestXmlRuntime): the tenant Company record's display name
+    /// (CompanyProperty.DisplayName() -> session.Company.CompanyDisplayName), falling back to the
+    /// company name when the display name is blank. NOT Company Information."Name 2".
+    /// </summary>
+    local procedure GetCompanyDisplayName(): Text
+    var
+        DisplayName: Text;
+    begin
+        DisplayName := CompanyProperty.DisplayName();
+        if DisplayName = '' then
+            DisplayName := CompanyName();
+        exit(DisplayName);
+    end;
+
+    local procedure GetLogoBase64(var CompanyInfo: Record "Company Information"): Text
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        InStr: InStream;
+    begin
+        // Use the Ok return: CalcFields on a BLOB re-reads the row and raises a runtime error when
+        // the record does not exist (the CompanyInfo.Init() path), which would break the empty-safe
+        // contract of GetCompanyMetadata.
+        if not CompanyInfo.CalcFields(Picture) then
+            exit('');
+        if not CompanyInfo.Picture.HasValue() then
+            exit('');
+        CompanyInfo.Picture.CreateInStream(InStr);
+        exit(Base64Convert.ToBase64(InStr));
     end;
 
     [IntegrationEvent(false, false)]

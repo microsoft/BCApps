@@ -14,9 +14,12 @@ codeunit 134003 "ERM Payment Tolerance Vendor"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryPmtDiscSetup: Codeunit "Library - Pmt Disc Setup";
+        LibraryUtility: Codeunit "Library - Utility";
+        Assert: Codeunit Assert;
         isInitialized: Boolean;
         PaymentToleranceError: Label 'The amount must be %1 in %2 %3 =%4.';
         RoundingMessage: Label '%1 must be %2 in %3 %4=%5.';
+        PmtDiscToleranceNotPostedErr: Label 'Payment discount tolerance was not posted - the discount scenario was not exercised.';
 
     [Test]
     [Scope('OnPrem')]
@@ -836,6 +839,45 @@ codeunit 134003 "ERM Payment Tolerance Vendor"
         VendorLedgerEntry.TestField("Remaining Amount", VendorLedgerEntry.Amount);
     end;
 
+    [Test]
+    [HandlerFunctions('ApplyVendorEntriesGenJnlPageHandler,AcceptPmtDiscTolWarningModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure MultipleInvoicePmtWithinGraceDoesNotDoublePmtDiscTolerance()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorNo: Code[20];
+        BankAccountNo: Code[20];
+        InvoiceAmount: Decimal;
+        NoOfInvoices: Integer;
+        ExpectedDiscount: Decimal;
+        NetPaymentAmount: Decimal;
+    begin
+        // [FEATURE] [Payment Discount Tolerance] [Apply] [AI Test]
+        // [SCENARIO 642073] Payment applied to multiple vendor invoices via Applies-to ID within the payment discount grace period must not double the payment discount tolerance.
+        Initialize();
+
+        // [GIVEN] Payment Discount Tolerance enabled with a grace period, posting to the Payment Discount accounts.
+        SetupPmtDiscToleranceForGracePeriod();
+
+        // [GIVEN] A vendor with payment discount terms and three posted purchase invoices.
+        NoOfInvoices := 3;
+        InvoiceAmount := 100 * LibraryRandom.RandInt(50);
+        VendorNo := CreateVendor();
+        CreateAndPostVendorInvoices(GenJournalLine, VendorNo, -InvoiceAmount, NoOfInvoices);
+
+        // [GIVEN] A payment for the full (gross) invoice total with a bank balancing account, posted within the grace period (after the discount date).
+        BankAccountNo := LibraryERM.CreateGLAccountNo();
+        CreateVendorPayment(GenJournalLine, VendorNo, BankAccountNo, InvoiceAmount * NoOfInvoices, CalcDate('<1D>', GetDueDate()));
+
+        // [WHEN] The payment is applied to the three invoices via Applies-to ID and posted, accepting the payment discount tolerance.
+        ApplyPaymentViaAppliesToIDAndPost(GenJournalLine, GenJournalLine."Document Type"::Invoice);
+
+        // [THEN] The invoices close and the cash paid equals the invoice total NET of the discount (not the gross amount) - the tolerance is applied exactly once, not doubled.
+        ExpectedDiscount := GetDiscountAmount(InvoiceAmount * NoOfInvoices);
+        NetPaymentAmount := InvoiceAmount * NoOfInvoices - ExpectedDiscount;
+        VerifyPaymentPostedNetOfDiscountTolerance(VendorNo, BankAccountNo, ExpectedDiscount, NetPaymentAmount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1295,5 +1337,136 @@ codeunit 134003 "ERM Payment Tolerance Vendor"
         DeltaAssert.AddWatch(
           DATABASE::"Vendor Ledger Entry", VendorLedgerEntry.GetPosition(), VendorLedgerEntry.FieldNo("Original Pmt. Disc. Possible"),
           VendorLedgerEntry."Original Pmt. Disc. Possible" + PmtDiscAmount);
+    end;
+
+    local procedure SetupPmtDiscToleranceForGracePeriod()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        Evaluate(GeneralLedgerSetup."Payment Discount Grace Period", '<5D>');
+        GeneralLedgerSetup.Validate("Payment Tolerance %", 1);
+        GeneralLedgerSetup.Validate("Max. Payment Tolerance Amount", 5);
+        GeneralLedgerSetup.Validate(
+          "Pmt. Disc. Tolerance Posting", GeneralLedgerSetup."Pmt. Disc. Tolerance Posting"::"Payment Discount Accounts");
+        GeneralLedgerSetup.Validate(
+          "Payment Tolerance Posting", GeneralLedgerSetup."Payment Tolerance Posting"::"Payment Discount Accounts");
+        GeneralLedgerSetup.Validate("Pmt. Disc. Tolerance Warning", true);
+        GeneralLedgerSetup.Validate("Payment Tolerance Warning", true);
+        GeneralLedgerSetup.Modify(true);
+    end;
+
+    local procedure CreateAndPostVendorInvoices(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20]; Amount: Decimal; NoOfInvoices: Integer)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        DocumentNo: Code[20];
+        Counter: Integer;
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        for Counter := 1 to NoOfInvoices do begin
+            DocumentNo := IncStr(GenJournalLine."Document No.");
+            LibraryERM.CreateGeneralJnlLine(
+              GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+              GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, VendorNo, Amount);
+            GenJournalLine.Validate("Posting Date", WorkDate());
+            if DocumentNo <> '' then
+                GenJournalLine.Validate("Document No.", DocumentNo);
+            GenJournalLine.Validate("External Document No.", LibraryUtility.GenerateGUID());
+            GenJournalLine.Modify(true);
+        end;
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure CreateVendorPayment(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20]; BalAccountNo: Code[20]; Amount: Decimal; PostingDate: Date)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, VendorNo, Amount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalAccountNo);
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure ApplyPaymentViaAppliesToIDAndPost(var GenJournalLine: Record "Gen. Journal Line"; DocumentType: Enum "Gen. Journal Document Type")
+    var
+        GLRegister: Record "G/L Register";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJnlApply: Codeunit "Gen. Jnl.-Apply";
+        VendEntrySetApplID: Codeunit "Vend. Entry-SetAppl.ID";
+        ApplyVendorEntries: Page "Apply Vendor Entries";
+    begin
+        GLRegister.FindLast();
+        VendorLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        VendorLedgerEntry.SetRange("Document Type", DocumentType);
+        VendorLedgerEntry.FindSet();
+        repeat
+            VendEntrySetApplID.SetApplId(VendorLedgerEntry, VendorLedgerEntry, GenJournalLine."Document No.");
+            ApplyVendorEntries.CalcApplnAmount();
+        until VendorLedgerEntry.Next() = 0;
+        Commit();
+        GenJnlApply.Run(GenJournalLine);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure VerifyPaymentPostedNetOfDiscountTolerance(VendorNo: Code[20]; BalAccountNo: Code[20]; ExpectedDiscount: Decimal; NetPaymentAmount: Decimal)
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        GLEntry: Record "G/L Entry";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        TotalPmtDiscTolerance: Decimal;
+        CashPaid: Decimal;
+    begin
+        GeneralLedgerSetup.Get();
+
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+        VendorLedgerEntry.FindSet();
+        repeat
+            VendorLedgerEntry.CalcFields("Remaining Amount");
+            VendorLedgerEntry.TestField("Remaining Amount", 0);
+            VendorLedgerEntry.TestField(Open, false);
+        until VendorLedgerEntry.Next() = 0;
+
+        DetailedVendorLedgEntry.SetRange("Vendor No.", VendorNo);
+        DetailedVendorLedgEntry.SetRange("Entry Type", DetailedVendorLedgEntry."Entry Type"::"Payment Discount Tolerance");
+        if DetailedVendorLedgEntry.FindSet() then
+            repeat
+                TotalPmtDiscTolerance += DetailedVendorLedgEntry."Amount (LCY)";
+            until DetailedVendorLedgEntry.Next() = 0;
+        Assert.AreNearlyEqual(
+          ExpectedDiscount, Abs(TotalPmtDiscTolerance), GeneralLedgerSetup."Amount Rounding Precision",
+          PmtDiscToleranceNotPostedErr);
+
+        GLEntry.SetRange("G/L Account No.", BalAccountNo);
+        if GLEntry.FindSet() then
+            repeat
+                CashPaid += GLEntry.Amount;
+            until GLEntry.Next() = 0;
+        Assert.AreNearlyEqual(
+          NetPaymentAmount, Abs(CashPaid), GeneralLedgerSetup."Amount Rounding Precision",
+          StrSubstNo(RoundingMessage, GLEntry.FieldCaption(Amount), NetPaymentAmount, GLEntry.TableCaption(),
+            GLEntry.FieldCaption("G/L Account No."), BalAccountNo));
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ApplyVendorEntriesGenJnlPageHandler(var ApplyVendorEntries: Page "Apply Vendor Entries"; var Response: Action)
+    begin
+        Response := ACTION::LookupOK;
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure AcceptPmtDiscTolWarningModalPageHandler(var PaymentDiscToleranceWarning: Page "Payment Disc Tolerance Warning"; var Response: Action)
+    begin
+        PaymentDiscToleranceWarning.InitializeNewPostingAction(1);
+        Response := ACTION::Yes;
     end;
 }
