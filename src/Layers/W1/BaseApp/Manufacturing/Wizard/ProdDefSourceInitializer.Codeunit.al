@@ -59,6 +59,7 @@ codeunit 99001022 "Prod. Def. Source Initializer"
                     TempData.InitializeFromSKU(SKU);
                 end;
             else begin
+                IsHandled := false;
                 OnInitializeFromSource(TempData, Source, IsHandled);
                 if not IsHandled then
                     RaiseUnknownSourceTypeError(Source);
