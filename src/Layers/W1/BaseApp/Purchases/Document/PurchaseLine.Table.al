@@ -8673,11 +8673,11 @@ table 39 "Purchase Line"
 
     local procedure CheckWMS()
     var
-        IsHandled: Boolean;
+        SkipCheckLocationOnWMS: Boolean;
     begin
-        IsHandled := false;
-        OnBeforeCheckWMS(Rec, CurrFieldNo, IsHandled);
-        if not IsHandled then
+        SkipCheckLocationOnWMS := false;
+        OnBeforeCheckWMS(Rec, CurrFieldNo, SkipCheckLocationOnWMS);
+        if not SkipCheckLocationOnWMS then
             if CurrFieldNo <> 0 then
                 CheckLocationOnWMS();
         if "Document Type" = "Document Type"::"Return Order" then
@@ -10664,7 +10664,7 @@ table 39 "Purchase Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckWMS(var PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCheckWMS(var PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var SkipCheckLocationOnWMS: Boolean)
     begin
     end;
 
