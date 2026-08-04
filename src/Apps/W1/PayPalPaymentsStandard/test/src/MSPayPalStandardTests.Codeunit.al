@@ -915,15 +915,16 @@ codeunit 139500 "MS - PayPal Standard Tests"
     end;
 
     [Test]
-    procedure TestWebhookNotificationWithSpecialCharactersInSubscriptionIDDoesNotBlockInsert();
+    procedure TestWebhookNotificationWithSpecialCharactersInSubscriptionIDDoesNotThrowFilterError();
     var
         WebhookNotification: Record "Webhook Notification";
         OutStream: OutStream;
         SubscriptionIDWithSpecialChars: Text;
     begin
         // [FEATURE][AI test 0.3]
-        // [SCENARIO 642015] Inserting a webhook notification from another service (e.g. Shopify) during Cloud Migration,
-        // whose Subscription ID contains filter special characters, must not throw a filter exception on insert.
+        // [SCENARIO 642015] Inserting a webhook notification from another service (e.g. Shopify) whose Subscription ID
+        // contains filter special characters must not throw a filter exception when the PayPal insert subscriber
+        // searches the Webhook Subscription table for a matching subscription.
         Initialize();
 
         // [GIVEN] A Subscription ID that contains characters that are special in a filter expression.
