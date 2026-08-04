@@ -1,0 +1,20 @@
+[
+    {
+        "bug": "638702",
+        "codeunitId": 139989,
+        "codeunitName": "Subc. Subcontracting Test",
+        "method": "CancelInvoiceWithSubcontractingItemChargeIsBlocked"
+    },
+    {
+        "bug": "615586",
+        "codeunitId": 149920,
+        "codeunitName": "Subc SCM Prod. Order",
+        "method": "UndoSecondReceiptInSubcontractingPurchaseOrder_WithTracking"
+    },
+    {
+        "bug": "615586",
+        "codeunitId": 149920,
+        "codeunitName": "Subc SCM Prod. Order",
+        "method": "UndoFirstReceiptInSubcontractingPurchaseOrder_WithTracking"
+    }
+]
