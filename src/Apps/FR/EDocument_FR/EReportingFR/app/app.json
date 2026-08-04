@@ -42,6 +42,7 @@
   ],
   "target": "Cloud",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

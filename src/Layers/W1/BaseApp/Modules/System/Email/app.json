@@ -43,6 +43,7 @@
   ],
   "target": "OnPrem",
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ]
 }

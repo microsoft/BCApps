@@ -25,7 +25,8 @@
     "TranslationFile",
     "GenerateCaptions",
     "NoImplicitWith",
-    "NoPromotedActionProperties"
+    "NoPromotedActionProperties",
+    "TranslationsWithNamespaces"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

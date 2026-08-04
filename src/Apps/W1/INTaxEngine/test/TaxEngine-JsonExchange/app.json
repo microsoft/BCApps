@@ -34,7 +34,8 @@
     }
   ],
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2139719",
   "resourceExposurePolicy": {

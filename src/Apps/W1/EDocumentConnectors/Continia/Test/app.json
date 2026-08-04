@@ -68,6 +68,7 @@
   "target": "OnPrem",
   "logo": "ExtensionLogo.png",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

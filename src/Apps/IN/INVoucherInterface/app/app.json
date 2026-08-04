@@ -6,7 +6,8 @@
   "brief": "Contains functionality of Voucher Interface",
   "description": "Voucher Interface provides features that cover business scenarios in India. Voucher Interface is a standard solution for companies that record cash, bank, and journal transactions.",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",

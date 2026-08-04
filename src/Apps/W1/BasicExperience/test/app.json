@@ -46,6 +46,7 @@
     "en-AU"
   ],
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

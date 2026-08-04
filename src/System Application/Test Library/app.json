@@ -28,7 +28,8 @@
   "screenshots": [],
   "features": [
     "GenerateCaptions",
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

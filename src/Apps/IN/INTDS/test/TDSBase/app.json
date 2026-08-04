@@ -10,7 +10,8 @@
   "help": "https://go.microsoft.com/fwlink/?linkid=2139181",
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "logo": "ExtensionLogo.png",
   "dependencies": [

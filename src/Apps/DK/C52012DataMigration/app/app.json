@@ -27,5 +27,8 @@
       "name": "C5 2012 Data Migration Tests",
       "publisher": "Microsoft"
     }
+  ],
+  "features": [
+    "TranslationsWithNamespaces"
   ]
 }

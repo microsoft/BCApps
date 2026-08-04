@@ -41,5 +41,8 @@
       "publisher": "Microsoft"
     }
   ],
-  "target": "OnPrem"
+  "target": "OnPrem",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

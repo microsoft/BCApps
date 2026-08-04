@@ -7,7 +7,8 @@
   "description": "GST Stock Transfer contains features for calculating GST when you transfer stock.",
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",

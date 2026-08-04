@@ -80,7 +80,8 @@
     "NoImplicitWith",
     "NoPromotedActionProperties",
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

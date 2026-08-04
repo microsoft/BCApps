@@ -52,6 +52,7 @@
   },
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2134520",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }
