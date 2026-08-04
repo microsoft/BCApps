@@ -123,6 +123,12 @@ codeunit 10991 "EDoc. Helpers"
     procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]): Boolean
     var
         ServiceParticipant: Record "Service Participant";
+    begin
+        exit(HasServiceParticipantAddress(EDocumentServiceCode, ParticipantType, ParticipantNo, ServiceParticipant));
+    end;
+
+    procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ServiceParticipant: Record "Service Participant"): Boolean
+    var
         HasIdentifier: Boolean;
         HasScheme: Boolean;
     begin

@@ -225,7 +225,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         SalesCommentLine.SetRange("Document Type", DocumentType);
         SalesCommentLine.SetRange("No.", DocumentNo);
-        SalesCommentLine.SetRange("Document Line No.", 0);
         SalesCommentLine.SetFilter("FR Regulatory Comment Type", '<>%1', SalesCommentLine."FR Regulatory Comment Type"::None);
         SalesCommentLine.SetLoadFields("FR Regulatory Comment Type", Comment);
         if SalesCommentLine.FindSet() then
@@ -396,10 +395,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ServiceParticipant: Record "Service Participant";
         FREDocHelpers: Codeunit "EDoc. Helpers";
     begin
-        if not FREDocHelpers.HasServiceParticipantAddress(EDocumentServiceCode, ParticipantType, ParticipantNo) then
+        if not FREDocHelpers.HasServiceParticipantAddress(EDocumentServiceCode, ParticipantType, ParticipantNo, ServiceParticipant) then
             exit(false);
-
-        ServiceParticipant.Get(EDocumentServiceCode, ParticipantType, ParticipantNo);
 
         ElecAddress := CopyStr(ServiceParticipant."Participant Identifier", 1, MaxStrLen(ElecAddress));
         ElecAddressScheme := ServiceParticipant."FR Identifier Scheme";

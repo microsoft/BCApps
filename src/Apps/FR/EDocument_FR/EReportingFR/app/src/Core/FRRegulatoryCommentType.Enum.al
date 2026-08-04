@@ -108,4 +108,8 @@ enum 10971 "FR Regulatory Comment Type"
     {
         Caption = 'ZZZ - Mutually defined';
     }
+    value(25; BAR)
+    {
+        Caption = 'BAR - Information for archiving';
+    }
 }
