@@ -43,6 +43,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         ExciseTaxPostedTooEarlyLbl: Label 'Item ledger entry should not be marked as excise tax posted while another tax type is still pending';
         ExciseTaxNotFullyPostedLbl: Label 'Item ledger entry should be marked as excise tax posted once all tax types are posted';
         ExciseTaxPostedIgnoreNotAllowedLbl: Label 'Item ledger entry should be marked as excise tax posted; a tax type not allowed for the entry type must not block it';
+        ExciseTaxPostedIgnoreDisabledLbl: Label 'Item ledger entry should be marked as excise tax posted; a disabled tax type must not block it';
 
     [Test]
     procedure ExciseTaxTypeCreationForWeightBasis()
@@ -657,6 +658,57 @@ codeunit 148351 "Excise Tax Calculation Tests"
         // [THEN] The ledger entry is marked as excise tax posted: the only applicable tax type is posted and the not-allowed tax type does not block it.
         FindItemLedgerEntry(ItemLedgerEntry, Item."No.");
         Assert.IsTrue(ItemLedgerEntry."Excise Tax Posted", ExciseTaxPostedIgnoreNotAllowedLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler,UIConfirmHandler')]
+    procedure ExciseTaxPostedWhenRemainingTaxTypeIsDisabled()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        DisabledTaxType: Record "Excise Tax Type";
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
+        ExciseTaxBasis: Enum "Excise Tax Basis";
+        EnabledTaxCode: Code[20];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 626127] The ledger entry is marked as excise tax posted once the enabled tax types are posted, even when the item also has a tax type that was disabled after being assigned.
+        Initialize();
+
+        // [GIVEN] One enabled tax type (purchase allowed, with a rate), and a second tax type that will be disabled after assignment.
+        Quantity := LibraryRandom.RandInt(2000);
+        EnabledTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::Weight);
+        DisabledTaxType := LibraryExciseTax.CreateExciseTaxType('', ExciseTaxBasis::"Sugar Content", true);
+        LibraryExciseTax.CreateExciseTaxEntryPermission(DisabledTaxType.Code, "Excise Entry Type"::Purchase, true);
+
+        // [GIVEN] An item configured with BOTH tax types, then the second tax type is disabled.
+        LibraryExciseTax.CreateItemWithExciseTax(Item, EnabledTaxCode);
+        LibraryExciseTax.CreateItemExciseTax(Item."No.", DisabledTaxType.Code);
+        DisabledTaxType.Validate(Enabled, false);
+        DisabledTaxType.Modify(true);
+
+        // [GIVEN] An excise journal batch that processes all tax types.
+        SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
+        SustExciseJournalBatch.Validate(Type, SustExciseJournalBatch.Type::Excises);
+        SustExciseJournalBatch."Excise Tax Type Filter" := '';
+        SustExciseJournalBatch.Modify(true);
+
+        // [GIVEN] A single posted purchase for the item (one item ledger entry).
+        CreateAndPostPurchase(Item."No.", Quantity);
+
+        // [WHEN] Excise journal lines are generated and posted.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] Only the enabled tax type produced a journal line.
+        VerifyJournalLineCountForTaxType(EnabledTaxCode, 1);
+        VerifyJournalLineCountForTaxType(DisabledTaxType.Code, 0);
+
+        RegisterExciseJournal(SustExciseJournalBatch."Journal Template Name", SustExciseJournalBatch.Name);
+
+        // [THEN] The ledger entry is marked as excise tax posted: the disabled tax type does not block it.
+        FindItemLedgerEntry(ItemLedgerEntry, Item."No.");
+        Assert.IsTrue(ItemLedgerEntry."Excise Tax Posted", ExciseTaxPostedIgnoreDisabledLbl);
     end;
 
     local procedure Initialize()

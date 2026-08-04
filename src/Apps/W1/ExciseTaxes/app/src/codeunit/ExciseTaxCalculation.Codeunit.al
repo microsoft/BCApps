@@ -375,6 +375,15 @@ codeunit 7412 "Excise Tax Calculation"
         exit(not ExciseTaxesTransactionLog.IsEmpty());
     end;
 
+    local procedure ExciseTaxTypeEnabled(TaxTypeCode: Code[20]): Boolean
+    var
+        ExciseTaxType: Record "Excise Tax Type";
+    begin
+        ExciseTaxType.SetLoadFields(Enabled);
+        if ExciseTaxType.Get(TaxTypeCode) then
+            exit(ExciseTaxType.Enabled);
+    end;
+
     local procedure AllExciseTaxesPostedForItemLedgerEntry(ItemLedgerEntry: Record "Item Ledger Entry"; CurrentTaxType: Code[20]): Boolean
     var
         ItemExciseTax: Record "Item Excise Tax";
@@ -389,9 +398,11 @@ codeunit 7412 "Excise Tax Calculation"
         ItemExciseTax.SetRange("Item No.", ItemLedgerEntry."Item No.");
         if ItemExciseTax.FindSet() then
             repeat
-                // Only tax types allowed for this entry's type ever produce a line for it, so the flag
-                // can be set once all of those are posted; tax types not allowed for it must not block it.
-                if ExciseTaxEntryPermission.IsEntryTypeAllowed(ItemExciseTax."Excise Tax Type Code", ExciseEntryType) then begin
+                // Only enabled tax types allowed for this entry's type ever produce a line for it, so the
+                // flag can be set once all of those are posted; disabled or not-allowed types must not block it.
+                if ExciseTaxTypeEnabled(ItemExciseTax."Excise Tax Type Code") and
+                   ExciseTaxEntryPermission.IsEntryTypeAllowed(ItemExciseTax."Excise Tax Type Code", ExciseEntryType)
+                then begin
                     HasApplicableTaxType := true;
                     // Treat the tax type currently being posted as posted: it triggered this check and its
                     // transaction log entry may not be committed yet, so skip the redundant lookup for it.
