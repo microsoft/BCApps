@@ -1,8 +1,6 @@
 namespace Microsoft.CRM.Outlook;
 codeunit 7100 "Contact Sync UserSubscriber"
 {
-    Access = Internal;
-
     [EventSubscriber(ObjectType::Table, Database::"Contact Sync User", 'OnBeforeInsertEvent', '', false, false)]
     local procedure OnBeforeInsertContactSyncUser(var Rec: Record "Contact Sync User"; RunTrigger: Boolean)
     begin

@@ -146,7 +146,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         DeltaUrl := GetDeltaUrl(FolderId);
         if not IsApprovedGraphRequestUri(DeltaUrl) then begin
             if DeltaUrl <> '' then
-                Session.LogMessage('0000UX8', 'Invalid Url - detected', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
+                Session.LogMessage('0000QTM', StrSubstNo(InvalidGraphDeltaUrlResetTxt, FolderId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
             DeltaUrl := '';
             UpdateDeltaUrl(FolderId, '');
         end;
@@ -481,12 +481,13 @@ codeunit 7106 "O365 Bidirectional Sync"
 
     local procedure IsApprovedGraphRequestUri(UriToValidate: Text): Boolean
     var
-        Uri: Codeunit Uri;
+        NormalizedUri: Text;
     begin
         if UriToValidate = '' then
             exit(false);
 
-        exit(Uri.ValidateIntegrationURL(UriToValidate, GraphUrlPrefixLbl) = UriToValidate);
+        NormalizedUri := LowerCase(DelChr(UriToValidate, '<>', ' '));
+        exit(StrPos(NormalizedUri, GraphUrlPrefixLbl) = 1);
     end;
 
     local procedure GetSecondaryEmailAddress(JsonObject: JsonObject): Text
