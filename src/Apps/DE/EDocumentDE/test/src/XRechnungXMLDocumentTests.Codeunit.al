@@ -1429,7 +1429,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
-    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyInvoiceDiscountMultiplierHasTwoDecimals();
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyInvoiceDiscountMultiplierHasFiveDecimals();
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
