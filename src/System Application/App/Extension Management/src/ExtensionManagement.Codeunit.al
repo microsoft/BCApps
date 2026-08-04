@@ -258,7 +258,7 @@ codeunit 2504 "Extension Management"
     /// </summary>
     /// <param name="AppId">The App Id of the extension to install.</param>
     /// <param name="PublisherType">The publisher type of the extension (e.g., 'Microsoft' or 'ThirdParty').</param>
-    internal procedure InstallMarketplaceExtensionWithPublisher(AppId: Guid; PublisherType: Text)
+    procedure InstallMarketplaceExtensionWithPublisher(AppId: Guid; PublisherType: Text)
     begin
         ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(AppId, '', PublisherType);
     end;
@@ -294,4 +294,3 @@ codeunit 2504 "Extension Management"
         ExtensionOperationImpl.GetDeploymentDetailedStatusMessageAsStream(OperationId, OutStream);
     end;
 }
-
