@@ -83,6 +83,44 @@ codeunit 134645 "Option Lookup Buffer Test"
         assert.IsFalse(TempOptionLookupBuffer.Get(Format(SalesLine.Type::Test_Custom2)), 'Custom2 should not be found');
     end;
 
+    [Test]
+    procedure FormatSalesLineTypeLongerThan20Characters()
+    var
+        SalesLine: Record "Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized sales line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A sales line type with a caption longer than 20 characters
+        SalesLine.Type := SalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(SalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The sales line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, SalesLine.FormatType(), 'The formatted sales line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatPurchaseLineTypeLongerThan20Characters()
+    var
+        PurchaseLine: Record "Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized purchase line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A purchase line type with a caption longer than 20 characters
+        PurchaseLine.Type := PurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(PurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The purchase line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, PurchaseLine.FormatType(), 'The formatted purchase line type was truncated.');
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Option Lookup Buffer", 'OnBeforeIncludeOption', '', false, false)]
     local procedure OnBeforeIncludeOption(OptionLookupBuffer: Record "Option Lookup Buffer"; LookupType: Option; Option: Integer; var Handled: Boolean; var Result: Boolean);
     begin

@@ -10173,7 +10173,7 @@ table 37 "Sales Line"
     /// Blank line type is represented by the comment label.
     /// </remarks>
     /// <returns>The text representation of the line type.</returns>
-    procedure FormatType() FormattedType: Text[20]
+    procedure FormatType() FormattedType: Text[30]
     var
         IsHandled: Boolean;
     begin

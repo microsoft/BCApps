@@ -353,7 +353,7 @@ table 174 "Standard Purchase Line"
         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
     end;
 
-    procedure FormatType(): Text[20]
+    procedure FormatType(): Text[30]
     begin
         if Type = Type::" " then
             exit(CommentLbl);

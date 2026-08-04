@@ -9477,7 +9477,7 @@ table 39 "Purchase Line"
     /// If line type is blank, comment label is returned.
     /// </remarks>
     /// <returns>Formated text of the line type.</returns>
-    procedure FormatType() FormattedType: Text[20]
+    procedure FormatType() FormattedType: Text[30]
     var
         IsHandled: Boolean;
     begin

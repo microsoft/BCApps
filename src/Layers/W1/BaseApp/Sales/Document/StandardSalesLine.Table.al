@@ -404,7 +404,7 @@ table 171 "Standard Sales Line"
     /// Formats the line type for display, returning 'Comment' for blank types.
     /// </summary>
     /// <returns>The formatted type text.</returns>
-    procedure FormatType(): Text[20]
+    procedure FormatType(): Text[30]
     begin
         if Type = Type::" " then
             exit(CommentLbl);
