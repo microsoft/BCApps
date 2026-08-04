@@ -136,6 +136,9 @@ codeunit 4350 "Custom Agent Setup"
     var
         AgentEditInstructionsPage: Page "Agent Instruction Editor";
     begin
+        if IsAgentArchived(AgentSecurityId) then
+            Error(CannotTestArchivedAgentErr);
+
         if not ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId) then
             exit;
 
@@ -152,6 +155,19 @@ codeunit 4350 "Custom Agent Setup"
             exit(true);
 
         exit(Confirm(OpenEditInstructionsPageForInactiveAgentQst, false));
+    end;
+
+    internal procedure IsAgentArchived(AgentSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        if IsNullGuid(AgentSecurityId) then
+            exit(false);
+
+        if not Agent.Get(AgentSecurityId) then
+            exit(false);
+
+        exit(Agent.Substate = Agent.Substate::Archived);
     end;
 
     local procedure IsAgentInactive(AgentSecurityId: Guid): Boolean
@@ -247,4 +263,5 @@ codeunit 4350 "Custom Agent Setup"
         DefaultAgentInstructionsLbl: Label '', Locked = true;
         DefaultAgentDescriptionLbl: Label '', Locked = true;
         OpenEditInstructionsPageForInactiveAgentQst: Label 'This agent is inactive. Changes will not take effect until the agent is activated.\\Do you want to continue?';
+        CannotTestArchivedAgentErr: Label 'The agent is archived and can no longer be tested. Its tasks and logs remain available for auditing.';
 }

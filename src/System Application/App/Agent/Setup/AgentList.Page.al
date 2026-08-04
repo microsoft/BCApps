@@ -15,6 +15,7 @@ page 4316 "Agent List"
     CardPageId = "Agent Card";
     AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
     Editable = false;
+    RefreshOnActivate = true;
     InsertAllowed = false;
     DeleteAllowed = false;
     InherentEntitlements = X;

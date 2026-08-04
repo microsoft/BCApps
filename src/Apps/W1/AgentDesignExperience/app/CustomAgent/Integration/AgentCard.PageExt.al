@@ -96,7 +96,7 @@ pageextension 4353 "Agent Card" extends "Agent Card"
                 ApplicationArea = All;
                 Caption = 'Test agent';
                 ToolTip = 'Open the test agent page to test and interact with this agent.';
-                Enabled = IsCustomAgent;
+                Enabled = IsCustomAgent and not IsAgentArchived;
                 Image = DocumentEdit;
 
                 trigger OnAction()
@@ -143,6 +143,7 @@ pageextension 4353 "Agent Card" extends "Agent Card"
         Agent: Codeunit "Agent";
     begin
         IsCustomAgent := CustomAgentSetup.Get(Rec."User Security ID");
+        IsAgentArchived := Rec.Substate = Rec.Substate::Archived;
         if IsCustomAgent then
             AgentModelName := Agent.GetModelName(Rec."User Security ID")
         else
@@ -151,6 +152,7 @@ pageextension 4353 "Agent Card" extends "Agent Card"
 
     protected var
         IsCustomAgent: Boolean;
+        IsAgentArchived: Boolean;
 
     var
         CustomAgentSetup: Record "Custom Agent Setup";

@@ -513,6 +513,10 @@ page 4363 "Agent Instruction Editor"
 
         AgentDesignerPermissions.VerifyCurrentUserCanConfigureCustomAgent(GlobalAgentUserSecurityId);
         GetAgentSafe();
+
+        // An archived agent is terminal: it cannot be tested or interacted with.
+        if GlobalAgent.Substate = GlobalAgent.Substate::Archived then
+            Error(CannotTestArchivedAgentErr);
     end;
 
     local procedure GetPageCaption(): Text
@@ -541,6 +545,7 @@ page 4363 "Agent Instruction Editor"
         IsWebClient, IsProfileEditable, TaskSelected : Boolean;
         GlobalAgentUserSecurityId: Guid;
         PageCannotBeOpenedDirectlyErr: Label 'The agent instruction editor page cannot be opened directly. Please access it through the agent list or agent card pages.';
+        CannotTestArchivedAgentErr: Label 'The agent is archived and can no longer be tested. Its tasks and logs remain available for auditing.';
         AgentInstructionsTxt: Label 'Agent - %1', Comment = '%1 is the agent display name.';
         EditTemplateQst: Label 'Template was created. Do you want to edit the template now?';
         AgentNotFoundErr: Label 'The agent with ID ''%1'' was not found.', Comment = '%1 is the agent user security ID.';

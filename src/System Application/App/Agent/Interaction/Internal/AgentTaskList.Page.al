@@ -288,7 +288,8 @@ page 4300 "Agent Task List"
     trigger OnOpenPage()
     begin
         Rec.SetRange(Archived, false);
-        ShouldShowAllAgents := false;
+        // When opened filtered to a specific agent (e.g. from the Agent Card), show that agent's tasks
+        ShouldShowAllAgents := Rec.GetFilter("Agent User Security ID") <> '';
         SetAgentSubstateFilter();
     end;
 
