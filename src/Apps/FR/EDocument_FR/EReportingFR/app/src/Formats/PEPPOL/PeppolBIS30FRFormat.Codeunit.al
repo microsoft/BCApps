@@ -120,50 +120,50 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         ServiceInvoiceLine: Record "Service Invoice Line";
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
-        LineCount: Integer;
-        ItemLineCount: Integer;
+        HasItemLines: Boolean;
+        HasNonItemLines: Boolean;
     begin
         case SourceDocumentLines.Number of
             Database::"Sales Invoice Line":
                 begin
                     SourceDocumentLines.SetTable(SalesInvoiceLine);
-                    SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
-                    LineCount := SalesInvoiceLine.Count();
                     SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
-                    ItemLineCount := SalesInvoiceLine.Count();
+                    HasItemLines := not SalesInvoiceLine.IsEmpty();
+                    SalesInvoiceLine.SetFilter(Type, '<>%1&<>%2', SalesInvoiceLine.Type::" ", SalesInvoiceLine.Type::Item);
+                    HasNonItemLines := not SalesInvoiceLine.IsEmpty();
                 end;
             Database::"Sales Cr.Memo Line":
                 begin
                     SourceDocumentLines.SetTable(SalesCrMemoLine);
-                    SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
-                    LineCount := SalesCrMemoLine.Count();
                     SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::Item);
-                    ItemLineCount := SalesCrMemoLine.Count();
+                    HasItemLines := not SalesCrMemoLine.IsEmpty();
+                    SalesCrMemoLine.SetFilter(Type, '<>%1&<>%2', SalesCrMemoLine.Type::" ", SalesCrMemoLine.Type::Item);
+                    HasNonItemLines := not SalesCrMemoLine.IsEmpty();
                 end;
             Database::"Service Invoice Line":
                 begin
                     SourceDocumentLines.SetTable(ServiceInvoiceLine);
-                    ServiceInvoiceLine.SetFilter(Type, '<>%1', ServiceInvoiceLine.Type::" ");
-                    LineCount := ServiceInvoiceLine.Count();
                     ServiceInvoiceLine.SetRange(Type, ServiceInvoiceLine.Type::Item);
-                    ItemLineCount := ServiceInvoiceLine.Count();
+                    HasItemLines := not ServiceInvoiceLine.IsEmpty();
+                    ServiceInvoiceLine.SetFilter(Type, '<>%1&<>%2', ServiceInvoiceLine.Type::" ", ServiceInvoiceLine.Type::Item);
+                    HasNonItemLines := not ServiceInvoiceLine.IsEmpty();
                 end;
             Database::"Service Cr.Memo Line":
                 begin
                     SourceDocumentLines.SetTable(ServiceCrMemoLine);
-                    ServiceCrMemoLine.SetFilter(Type, '<>%1', ServiceCrMemoLine.Type::" ");
-                    LineCount := ServiceCrMemoLine.Count();
                     ServiceCrMemoLine.SetRange(Type, ServiceCrMemoLine.Type::Item);
-                    ItemLineCount := ServiceCrMemoLine.Count();
+                    HasItemLines := not ServiceCrMemoLine.IsEmpty();
+                    ServiceCrMemoLine.SetFilter(Type, '<>%1&<>%2', ServiceCrMemoLine.Type::" ", ServiceCrMemoLine.Type::Item);
+                    HasNonItemLines := not ServiceCrMemoLine.IsEmpty();
                 end;
             Database::"Issued Reminder Line",
             Database::"Issued Fin. Charge Memo Line":
-                LineCount := 1;
+                HasNonItemLines := true;
         end;
 
-        if (ItemLineCount > 0) and (ItemLineCount < LineCount) then
+        if HasItemLines and HasNonItemLines then
             exit(BillingModeM1Tok);
-        if (LineCount > 0) and (ItemLineCount = 0) then
+        if HasNonItemLines then
             exit(BillingModeS1Tok);
         exit(BillingModeB1Tok);
     end;
@@ -180,6 +180,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        ShipmentPostingDates: Dictionary of [Code[20], Date];
         CustomizationIdNode: XmlNode;
         NewCustomizationIdNode: XmlNode;
     begin
@@ -187,7 +188,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             exit;
 
         SourceDocumentHeader.SetTable(SalesInvoiceHeader);
-        if not RequiresExtendedCTCFrance(SalesInvoiceHeader."No.") then
+        if not RequiresExtendedCTCFrance(SalesInvoiceHeader."No.", ShipmentPostingDates) then
             exit;
 
         if XmlDoc.SelectSingleNode('/*/cbc:CustomizationID', NamespaceMgr, CustomizationIdNode) then begin
@@ -196,14 +197,14 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         end;
 
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.SetLoadFields("Line No.", "Order No.", "Order Line No.", "Shipment No.", "Shipment Line No.");
+        SalesInvoiceLine.SetLoadFields("Line No.", "Order No.", "Order Line No.", "Shipment No.");
         if SalesInvoiceLine.FindSet() then
             repeat
-                InjectExtendedLineReferences(XmlDoc, NamespaceMgr, SalesInvoiceLine);
+                InjectExtendedLineReferences(XmlDoc, NamespaceMgr, SalesInvoiceLine, ShipmentPostingDates);
             until SalesInvoiceLine.Next() = 0;
     end;
 
-    local procedure RequiresExtendedCTCFrance(DocumentNo: Code[20]): Boolean
+    local procedure RequiresExtendedCTCFrance(DocumentNo: Code[20]; var ShipmentPostingDates: Dictionary of [Code[20], Date]): Boolean
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesShipmentHeader: Record "Sales Shipment Header";
@@ -219,8 +220,10 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 if SalesInvoiceLine."Shipment No." <> '' then
                     if not ShipmentNos.ContainsKey(SalesInvoiceLine."Shipment No.") then begin
                         ShipmentNos.Add(SalesInvoiceLine."Shipment No.", true);
-                        if SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.") then
+                        if SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.") then begin
+                            ShipmentPostingDates.Add(SalesInvoiceLine."Shipment No.", SalesShipmentHeader."Posting Date");
                             AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
+                        end;
                     end;
                 if SalesInvoiceLine."Order No." <> '' then
                     AddDistinctValue(OrderNos, SalesInvoiceLine."Order No.");
@@ -235,16 +238,15 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             Values.Add(Value, true);
     end;
 
-    local procedure InjectExtendedLineReferences(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SalesInvoiceLine: Record "Sales Invoice Line")
+    local procedure InjectExtendedLineReferences(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SalesInvoiceLine: Record "Sales Invoice Line"; ShipmentPostingDates: Dictionary of [Code[20], Date])
     var
-        SalesShipmentHeader: Record "Sales Shipment Header";
-        SalesShipmentLine: Record "Sales Shipment Line";
         InvoiceLineNode: XmlNode;
         ItemNode: XmlNode;
         OrderLineReferenceElement: XmlElement;
         OrderReferenceElement: XmlElement;
         DeliveryElement: XmlElement;
         LineXPath: Text;
+        ShipmentPostingDate: Date;
     begin
         LineXPath := StrSubstNo(InvoiceLineXPathTok, Format(SalesInvoiceLine."Line No.", 0, 9));
         if not XmlDoc.SelectSingleNode(LineXPath, NamespaceMgr, InvoiceLineNode) then
@@ -263,14 +265,13 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         if SalesInvoiceLine."Shipment No." = '' then
             exit;
-        if not SalesShipmentLine.Get(SalesInvoiceLine."Shipment No.", SalesInvoiceLine."Shipment Line No.") then
-            exit;
-        if not SalesShipmentHeader.Get(SalesShipmentLine."Document No.") then
+
+        if not ShipmentPostingDates.Get(SalesInvoiceLine."Shipment No.", ShipmentPostingDate) then
             exit;
 
         DeliveryElement := XmlElement.Create('Delivery', CacNamespaceTok);
-        DeliveryElement.Add(XmlElement.Create('ID', CbcNamespaceTok, SalesShipmentLine."Document No."));
-        DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', CbcNamespaceTok, Format(SalesShipmentHeader."Posting Date", 0, 9)));
+        DeliveryElement.Add(XmlElement.Create('ID', CbcNamespaceTok, SalesInvoiceLine."Shipment No."));
+        DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', CbcNamespaceTok, Format(ShipmentPostingDate, 0, 9)));
         ItemNode.AddBeforeSelf(DeliveryElement);
     end;
 

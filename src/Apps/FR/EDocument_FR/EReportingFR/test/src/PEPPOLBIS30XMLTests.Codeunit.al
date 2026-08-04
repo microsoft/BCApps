@@ -47,6 +47,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
         BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
+        ParticipantAddressIncompleteErr: Label 'must both be specified for French electronic invoicing.', Locked = true;
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         IsInitialized: Boolean;
 
@@ -510,7 +511,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        Assert.AreNotEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
+        Assert.AreEqual('urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
     end;
     #endregion
@@ -586,11 +587,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] The supplier endpoint uses the VAT identifier and scheme 0223
+        // [THEN] The supplier endpoint uses the VAT identifier and scheme 9957
         Assert.AreEqual(CompanyInformation.GetVATRegistrationNumber(),
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Seller EndpointID'));
-        Assert.AreEqual('0223',
+        Assert.AreEqual('9957',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Seller EndpointID schemeID'));
 
@@ -733,7 +734,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         asserterror CheckInvoice(SalesInvoiceHeader);
 
-        Assert.ExpectedError('Participant Identifier and French Identifier Scheme must both be specified for French electronic invoicing.');
+        Assert.ExpectedError(ParticipantAddressIncompleteErr);
     end;
 
     [Test]
@@ -792,7 +793,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         asserterror CheckInvoice(SalesInvoiceHeader);
 
-        Assert.ExpectedError('Participant Identifier and French Identifier Scheme must both be specified for French electronic invoicing.');
+        Assert.ExpectedError(ParticipantAddressIncompleteErr);
     end;
 
     [Test]
@@ -816,7 +817,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         asserterror CheckInvoice(SalesInvoiceHeader);
 
-        Assert.ExpectedError('Participant Identifier and French Identifier Scheme must both be specified for French electronic invoicing.');
+        Assert.ExpectedError(ParticipantAddressIncompleteErr);
     end;
     #endregion
 
@@ -894,6 +895,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesLine: Record "Sales Line";
         FirstShipmentNo: Code[20];
         SecondShipmentNo: Code[20];
+        OriginalWorkDate: Date;
     begin
         CreateSalesOrderWithLines(SalesHeader, CustomerNo, 1, 2);
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
@@ -901,8 +903,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesLine.FindFirst();
         SalesLine.Validate("Qty. to Ship", 1);
         SalesLine.Modify(true);
+        OriginalWorkDate := WorkDate();
+        WorkDate(CalcDate('<-1D>', OriginalWorkDate));
         FirstShipmentNo := LibrarySales.PostSalesDocument(SalesHeader, true, false);
 
+        WorkDate(OriginalWorkDate);
         SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
         SalesLine.FindFirst();
         SalesLine.Validate("Qty. to Ship", 1);
