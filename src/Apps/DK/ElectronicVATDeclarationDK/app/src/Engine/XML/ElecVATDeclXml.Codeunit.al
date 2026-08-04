@@ -17,7 +17,10 @@ codeunit 13618 "Elec. VAT Decl. Xml"
         DeeplinkXPathTok: Label '//%1:UrlIndicator', Locked = true;
         VATReturnStatusTok: Label '//%1:AdvisIdentifikator', Locked = true;
         ResponseTransactionIDXPathTok: Label '//%1:TransaktionIdentifier', Locked = true;
+        PeriodXPathTok: Label '//%1:AngivelseBetalingFristStruktur', Locked = true;
         DueDateXPathTok: Label '//%1:AngivelseFristKalenderBetalingDato', Locked = true;
+        PeriodDueDateXPathTok: Label './%1:AngivelseFristKalenderBetalingDato', Locked = true;
+        PeriodFrequencyXPathTok: Label './%1:AngivelseFrekvensNavn', Locked = true;
         Error200XPathTok: Label '//%1:FejlIdentifikator', Locked = true;
         EncodingTypeTok: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary', Locked = true;
         X509TokenTypeTok: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3', Locked = true;
@@ -130,6 +133,21 @@ codeunit 13618 "Elec. VAT Decl. Xml"
     procedure TryGetDueDateNodesFromResponseText(ResponseText: Text) DueDateNodes: XmlNodeList
     begin
         XmlDOMManagement.FindNodesWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(DueDateXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DueDateNodes);
+    end;
+
+    procedure TryGetPeriodNodesFromResponseText(ResponseText: Text) PeriodNodes: XmlNodeList
+    begin
+        XmlDOMManagement.FindNodesWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(PeriodXPathTok, PrefixTok), PrefixTok, GetSkatNamespace1(), PeriodNodes);
+    end;
+
+    procedure TryGetDueDateNodeFromPeriodNode(PeriodNode: XmlNode; var DueDateNode: XmlNode): Boolean
+    begin
+        exit(XmlDOMManagement.FindNodeWithNamespace(PeriodNode, StrSubstNo(PeriodDueDateXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DueDateNode));
+    end;
+
+    procedure TryGetFrequencyNodeFromPeriodNode(PeriodNode: XmlNode; var FrequencyNode: XmlNode): Boolean
+    begin
+        exit(XmlDOMManagement.FindNodeWithNamespace(PeriodNode, StrSubstNo(PeriodFrequencyXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), FrequencyNode));
     end;
 
     procedure TryGetErrorNodeFromResponseText(ResponseText: Text; var ErrorNode: XmlNode) NodeFound: Boolean

@@ -8,6 +8,10 @@ The `Shpfy ReturnRefund ProcessType` enum is `Extensible = true`. To add a custo
 - `CanCreateSalesDocumentFor(SourceDocumentType, SourceDocumentId, ErrorInfo)` -- validate preconditions. Return true to allow creation. On failure, populate the `ErrorInfo` record with an error message; set `Verbosity` to `Error` for hard failures or `Warning` for soft skips.
 - `CreateSalesDocument(SourceDocumentType, SourceDocumentId)` -- build and return the Sales Header for the credit memo / return order.
 
+The interface surface did not change for pending Shopify refund transactions. The built-in auto-create implementation checks `ShpfyRefundsAPI.HasPendingRefundTransactions` inside `CreateSalesDocument` and exits without creating a document while a linked refund transaction is still `Pending`. Custom implementations should apply the same guard before creating a document from a refund, because Shopify can report an unsettled refunded amount until the transaction succeeds.
+
+*Updated: 2026-07-29 -- pending refund transactions remain an implementation guard*
+
 ## IDocument Source interface
 
 The `Shpfy Source Document Type` enum is also `Extensible = true` and implements `Shpfy IDocument Source`. The interface has a single method, `SetErrorInfo`, which writes error information back to the source document record. The extended interface `Shpfy Extended IDocument Source` adds `SetErrorCallStack` for detailed diagnostics. When your `IReturnRefund Process` implementation calls `CreateSalesDocument`, errors are routed to the appropriate source document through this interface.

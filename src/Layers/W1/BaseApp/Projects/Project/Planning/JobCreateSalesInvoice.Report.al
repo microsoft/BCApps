@@ -13,6 +13,7 @@ report 1093 "Job Create Sales Invoice"
     AdditionalSearchTerms = 'Job Create Sales Invoice';
     ApplicationArea = Jobs;
     Caption = 'Project Create Sales Invoice';
+    ToolTip = 'Create an invoice for a project or for one or more project tasks for a customer when either the work to be invoiced is complete or the date for invoicing based on an invoicing schedule has been reached.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
