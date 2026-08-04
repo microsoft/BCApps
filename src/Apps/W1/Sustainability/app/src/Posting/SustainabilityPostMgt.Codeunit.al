@@ -281,12 +281,6 @@ codeunit 6212 "Sustainability Post Mgt"
         if TotalCO2e < 0 then
             IsNegativeEntry := true;
 
-        if ItemLedgerEntry."Entry Type" = ItemLedgerEntry."Entry Type"::Transfer then begin
-            TotalCO2e := Abs(CO2ePerUnit * ItemLedgerEntry.Quantity);
-            CorrectSign(TotalCO2e, IsNegativeEntry);
-            exit;
-        end;
-
         ShowAppliedEntries.FindAppliedEntries(ItemLedgerEntry, TempItemLedgerEntry);
         if TempItemLedgerEntry.IsEmpty() then
             GetILEForAssemblyOutputs(ItemLedgerEntry, TempItemLedgerEntry);
@@ -295,6 +289,15 @@ codeunit 6212 "Sustainability Post Mgt"
             repeat
                 GetCO2eAmountAndQuantity(TempItemLedgerEntry."Entry No.", AppliedAmount, AppliedQuantity);
             until TempItemLedgerEntry.Next() = 0;
+
+        if ItemLedgerEntry."Entry Type" = ItemLedgerEntry."Entry Type"::Transfer then begin
+            if AppliedQuantity <> 0 then
+                TotalCO2e := Abs((AppliedAmount / AppliedQuantity) * ItemLedgerEntry.Quantity)
+            else
+                TotalCO2e := Abs(CO2ePerUnit * ItemLedgerEntry.Quantity);
+            CorrectSign(TotalCO2e, IsNegativeEntry);
+            exit;
+        end;
 
         if AppliedAmount = 0 then
             exit;

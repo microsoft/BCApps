@@ -598,6 +598,9 @@ codeunit 4509 "Email - Outlook API Helper"
             AttachmentsArray.Get(Counter, JsonToken);
             AttachmentObject := JsonToken.AsObject();
 
+            if not AttachmentObject.Contains('contentBytes') then
+                continue;
+
             AttachmentName := CopyStr(GetTextFromJsonObject(AttachmentObject, 'name'), 1, MaxStrLen(AttachmentName));
             ContentType := CopyStr(GetTextFromJsonObject(AttachmentObject, 'contentType'), 1, MaxStrLen(ContentType));
             ContentBytesBase64 := GetTextFromJsonObject(AttachmentObject, 'contentBytes');
