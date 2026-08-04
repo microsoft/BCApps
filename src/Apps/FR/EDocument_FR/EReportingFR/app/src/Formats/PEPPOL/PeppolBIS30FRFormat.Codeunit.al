@@ -551,6 +551,13 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             ParentNode.AsXmlElement().Add(NewElement);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"E-Document Log", OnBeforeExportDataStorage, '', false, false)]
+    local procedure AddXmlExtensionOnBeforeExportDataStorage(EDocumentLog: Record "E-Document Log"; var FileName: Text)
+    begin
+        if EDocumentLog."Document Format" = EDocumentLog."Document Format"::"Peppol BIS 3.0 FR" then
+            FileName += '.xml';
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
     var
