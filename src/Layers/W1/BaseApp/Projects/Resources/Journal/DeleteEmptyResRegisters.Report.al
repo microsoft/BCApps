@@ -9,6 +9,7 @@ using System.Utilities;
 report 1199 "Delete Empty Res. Registers"
 {
     Caption = 'Delete Empty Res. Registers';
+    ToolTip = 'Find and delete empty resource registers.';
     Permissions = TableData "Resource Register" = rimd;
     ProcessingOnly = true;
 
