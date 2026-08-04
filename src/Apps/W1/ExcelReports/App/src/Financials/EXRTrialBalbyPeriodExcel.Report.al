@@ -95,6 +95,7 @@ report 4408 "EXR Trial Bal by Period Excel"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show Lines with Zero Values';
+                        InitValue = true;
                         ToolTip = 'Specifies whether to include lines where all calculated amounts are zero.';
                     }
                     // Used to set the date filter on the report header across multiple languages
