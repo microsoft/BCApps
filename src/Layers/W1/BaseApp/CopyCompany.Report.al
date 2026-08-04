@@ -60,17 +60,17 @@ report 357 "Copy Company"
                 DataItemLink = "Company Name" = field(Name);
                 DataItemTableView = sorting("Report ID", "Company Name", Type);
 
+#pragma warning disable AL0432, AS0105
                 trigger OnAfterGetRecord()
                 var
-#pragma warning disable AL0432, AS0105
                     CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
                 begin
                     CustomReportLayout := "Custom Report Layout";
                     CustomReportLayout.Code := '';
                     CustomReportLayout."Company Name" := NewCompanyName;
                     if CustomReportLayout.Insert(true) then;
                 end;
+#pragma warning restore AL0432, AS0105
             }
             dataitem("Feature Data Update Status"; "Feature Data Update Status")
             {

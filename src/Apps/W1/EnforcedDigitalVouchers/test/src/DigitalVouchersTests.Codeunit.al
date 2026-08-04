@@ -34,6 +34,7 @@ using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 139515 "Digital Vouchers Tests"
 {
     Subtype = Test;
@@ -2056,3 +2057,4 @@ codeunit 139515 "Digital Vouchers Tests"
         TestEmailEditor.Attachments.FileName.AssertEquals('');
     end;
 }
+#pragma warning restore AL0432, AS0105

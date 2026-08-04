@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 139111 "Mail Service Test"
 {
     Subtype = Test;
@@ -564,4 +565,5 @@ codeunit 139111 "Mail Service Test"
         ActiveDirectoryMockEvents.Enable();
     end;
 }
+#pragma warning restore AL0432, AS0105
 

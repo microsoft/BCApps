@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 134761 "Test Custom Reports"
 {
     EventSubscriberInstance = Manual;
@@ -2263,3 +2264,4 @@ codeunit 134761 "Test Custom Reports"
         TestMode := true
     end;
 }
+#pragma warning restore AL0432, AS0105

@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 136612 "ERM RS Process Data"
 {
     EventSubscriberInstance = Manual;
@@ -2119,4 +2120,5 @@ codeunit 136612 "ERM RS Process Data"
         end
     end;
 }
+#pragma warning restore AL0432, AS0105
 

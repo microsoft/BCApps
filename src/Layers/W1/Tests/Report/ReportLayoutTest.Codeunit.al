@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 134600 "Report Layout Test"
 {
     // SaveAsPDF is not tested for Word scenarios as it currently requires Windows client and an installed Word.
@@ -1211,3 +1212,4 @@ codeunit 134600 "Report Layout Test"
     end;
 
 }
+#pragma warning restore AL0432, AS0105

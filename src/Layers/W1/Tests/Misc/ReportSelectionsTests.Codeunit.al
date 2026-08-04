@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 134421 "Report Selections Tests"
 {
     Subtype = Test;
@@ -3672,3 +3673,4 @@ codeunit 134421 "Report Selections Tests"
         ReportLayouts.OK().Invoke();
     end;
 }
+#pragma warning restore AL0432, AS0105
