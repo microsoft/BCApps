@@ -167,7 +167,6 @@ page 1104 "Cost Registers"
                     Image = Delete;
                     RunObject = Report "Delete Cost Entries";
                     RunPageOnRec = true;
-                    ToolTip = 'Delete posted cost entries and reverses allocations, for example to simulate allocations by using different allocation ratios, to reverse cost allocations to include late entries in a combined entry as part of the same posting process, or to cancel cost entries from the cost register.';
                 }
                 action("&Delete Old Cost Entries")
                 {
@@ -175,7 +174,6 @@ page 1104 "Cost Registers"
                     Caption = '&Delete Old Cost Entries';
                     Image = Delete;
                     RunObject = Report "Delete Old Cost Entries";
-                    ToolTip = 'Delete all cost entries up to and including the date that you enter in the report.';
                 }
             }
         }
