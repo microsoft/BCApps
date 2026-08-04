@@ -18,6 +18,7 @@ using Microsoft.EServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.eServices.EDocument.Service.Participant;
 
@@ -53,6 +54,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
         table "E-Doc Sample Purch. Inv File" = X,
+        table "E-Document Message" = X,
 #if not CLEAN28
 #pragma warning disable AL0432
         table "EDoc Historical Matching Setup" = X,
@@ -100,6 +102,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. PO Copilot Matching" = X,
 #endif
         codeunit "E-Doc. Attachment Processor" = X,
+        codeunit "E-Doc. Message Mgt." = X,
         codeunit "Service Participant" = X,
         page "E-Doc. Changes Part" = X,
         page "E-Doc. Changes Preview" = X,
@@ -139,6 +142,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "Inbound E-Documents" = X,
         page "Outbound E-Doc. Factbox" = X,
         page "Outbound E-Documents" = X,
+        page "E-Document Messages FactBox" = X,
         codeunit ActionContext = X,
         codeunit "Consent Manager Default Impl." = X,
         codeunit "Download Document" = X,

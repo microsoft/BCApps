@@ -44,6 +44,11 @@ pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                         ApplicationArea = Subcontracting;
                         ToolTip = 'Specifies which Direct Unit Cost of a Prod. Order Component is to be used in the subcontracting purchase order. Standard: Standard pricing is used when procuring the component. Prod. Order Component: The calculated Direct Unit Cost of the Prod. Order Component Line is transferred to the subcontracting purchase order.';
                     }
+                    field("Subc. Default Comp. Location"; Rec."Subc. Default Comp. Location")
+                    {
+                        ApplicationArea = Subcontracting;
+                        ToolTip = 'Specifies where to get the default location for components supplied to the subcontractor.';
+                    }
                 }
             }
         }

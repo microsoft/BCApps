@@ -1382,6 +1382,9 @@ table 8052 "Customer Subscription Contract"
             else
                 "Sell-to Contact" := Cont.Name;
 
+        "Sell-to Phone No." := Cont."Phone No.";
+        "Sell-to E-Mail" := Cont."E-Mail";
+
         if ("Sell-to Customer No." = "Bill-to Customer No.") or
            ("Bill-to Customer No." = '')
         then
