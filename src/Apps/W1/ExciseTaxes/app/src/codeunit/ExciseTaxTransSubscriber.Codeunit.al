@@ -25,8 +25,18 @@ codeunit 7413 "Excise Tax Trans Subscriber"
         SustExciseTaxesTransactionLog."Excise Unit of Measure Code" := SustainabilityExciseJnlLine."Excise Unit of Measure Code";
         SustExciseTaxesTransactionLog."Excise Entry Type" := SustainabilityExciseJnlLine."Excise Entry Type";
         SustExciseTaxesTransactionLog."FA Ledger Entry No." := SustainabilityExciseJnlLine."FA Ledger Entry No.";
-        ExciseTaxCalculation.UpdateItemLedgerEntryExciseTaxInfo(SustExciseTaxesTransactionLog);
         ExciseTaxCalculation.UpdateFALedgerEntryExciseTaxInfo(SustExciseTaxesTransactionLog);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sustainability Excise Post Mgt", OnAfterInsertExciseTaxesTransactionLog, '', false, false)]
+    local procedure OnAfterInsertExciseTaxesTransactionLog(var SustExciseTaxesTransactionLog: Record "Sust. Excise Taxes Trans. Log"; SustainabilityExciseJnlLine: Record "Sust. Excise Jnl. Line")
+    var
+        ExciseTaxCalculation: Codeunit "Excise Tax Calculation";
+    begin
+        if not ExciseTaxCalculation.IsExciseTaxEntry(SustainabilityExciseJnlLine) then
+            exit;
+
+        ExciseTaxCalculation.UpdateItemLedgerEntryExciseTaxInfo(SustExciseTaxesTransactionLog);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sust. Excise Jnl.-Check", OnBeforeTestEmissionAmount, '', false, false)]

@@ -21,12 +21,14 @@ table 7415 "Item Excise Tax"
             Caption = 'Item No.';
             TableRelation = Item;
             NotBlank = true;
+            ToolTip = 'Specifies the item for which excise tax is defined.';
         }
         field(2; "Excise Tax Type Code"; Code[20])
         {
             Caption = 'Excise Tax Type Code';
             TableRelation = "Excise Tax Type".Code where(Enabled = const(true));
             NotBlank = true;
+            ToolTip = 'Specifies the excise tax type for which excise tax is defined.';
 
             trigger OnValidate()
             var
@@ -49,15 +51,18 @@ table 7415 "Item Excise Tax"
             Caption = 'Quantity for Excise Tax';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
+            ToolTip = 'Specifies the quantity of the item for which excise tax is defined.';
         }
         field(4; "Excise Unit of Measure Code"; Code[10])
         {
             Caption = 'Excise Tax Unit of Measure Code';
+            ToolTip = 'Specifies the unit of measure for the quantity of the item for which excise tax is defined.';
             TableRelation = "Unit of Measure".Code;
         }
         field(5; "Excise Tax Type Description"; Text[100])
         {
             Caption = 'Excise Tax Type Description';
+            ToolTip = 'Specifies the description of the excise tax type for which excise tax is defined.';
         }
     }
 

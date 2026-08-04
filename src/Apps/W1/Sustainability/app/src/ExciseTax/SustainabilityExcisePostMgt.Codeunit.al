@@ -35,6 +35,7 @@ codeunit 6272 "Sustainability Excise Post Mgt"
 
         UpdateDataFromLogType(SustExciseTaxesTransactionLog);
         SustExciseTaxesTransactionLog.Insert(true);
+        OnAfterInsertExciseTaxesTransactionLog(SustExciseTaxesTransactionLog, SustainabilityExciseJnlLine);
     end;
 
     procedure ResetFilters(var SustainabilityExciseJnlLine: Record "Sust. Excise Jnl. Line")
@@ -143,4 +144,9 @@ codeunit 6272 "Sustainability Excise Post Mgt"
         JnlLinesPostedLbl: Label 'The journal lines were successfully posted.';
         RegisterConfirmLbl: Label 'Do you want to register the journal lines?';
         SustainabilityLbl: Label 'Sustainability', Locked = true;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertExciseTaxesTransactionLog(var SustExciseTaxesTransactionLog: Record "Sust. Excise Taxes Trans. Log"; SustainabilityExciseJnlLine: Record "Sust. Excise Jnl. Line")
+    begin
+    end;
 }

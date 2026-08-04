@@ -23,24 +23,19 @@ page 7416 "Item Excise Taxes"
             {
                 field("Item No."; Rec."Item No.")
                 {
-                    ToolTip = 'Specifies the item number.';
                     Visible = false;
                 }
                 field("Excise Tax Type Code"; Rec."Excise Tax Type Code")
                 {
-                    ToolTip = 'Specifies the excise tax type that applies to this item.';
                 }
                 field("Excise Tax Type Description"; Rec."Excise Tax Type Description")
                 {
-                    ToolTip = 'Specifies the description of the excise tax type.';
                 }
                 field("Quantity for Excise Tax"; Rec."Quantity for Excise Tax")
                 {
-                    ToolTip = 'Specifies the amount per unit based on tax basis.';
                 }
                 field("Excise Unit of Measure Code"; Rec."Excise Unit of Measure Code")
                 {
-                    ToolTip = 'Specifies the unit of measure for tax basis.';
                 }
             }
         }
