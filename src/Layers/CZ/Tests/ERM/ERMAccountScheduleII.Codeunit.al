@@ -42,6 +42,7 @@
         TextValueDuplicateErr: Label 'Text value %1 should appear exactly once in Excel export, but found %2 occurrences', Comment = '%1 = Text value, %2 = Occurrence count';
         AuditLogWrittenTooEarlyErr: Label 'The audit log entry for financial report %1 must not be written before the report has finished processing.', Comment = '%1 = Financial report name';
         SheetNameTok: Label 'Sheet%1', Locked = true;
+        SheetNotListedErr: Label 'The sheet selection page must list sheet %1 of the workbook.', Comment = '%1 = Sheet number';
         IsInitialized: Boolean;
 
     [Test]
@@ -2882,6 +2883,9 @@
         LibraryERM.CreateAccScheduleName(AccScheduleName);
 
         // [GIVEN] A subscriber that opens a modal page while the report processes its data item, like the sheet selection does when updating an existing workbook with several sheets
+        // [GIVEN] The workbook contains the sheets "Sheet1" and "Sheet2"
+        LibraryVariableStorage.Enqueue(GetSheetName(1));
+        LibraryVariableStorage.Enqueue(GetSheetName(2));
         BindSubscription(ERMAccountScheduleII);
 
         // [WHEN] The financial report is exported to Excel
@@ -2890,8 +2894,9 @@
         RunExportAccSchedule(AccScheduleLine, AccScheduleName);
         UnbindSubscription(ERMAccountScheduleII);
 
-        // [THEN] The modal page was shown without a write transaction being open
+        // [THEN] The sheet selection page was shown exactly once, listing "Sheet1" and "Sheet2", without a write transaction being open
         // NameValueLookupModalPageHandler
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] An audit log entry is created for the action
         FinancialReportAuditLog.SetRange("Report Name", AccScheduleName.Name);
@@ -3783,6 +3788,10 @@
     [ModalPageHandler]
     procedure NameValueLookupModalPageHandler(var NameValueLookup: TestPage "Name/Value Lookup")
     begin
+        Assert.IsTrue(NameValueLookup.First(), StrSubstNo(SheetNotListedErr, 1));
+        NameValueLookup.Name.AssertEquals(LibraryVariableStorage.DequeueText());
+        Assert.IsTrue(NameValueLookup.Next(), StrSubstNo(SheetNotListedErr, 2));
+        NameValueLookup.Name.AssertEquals(LibraryVariableStorage.DequeueText());
         NameValueLookup.OK().Invoke();
     end;
 
@@ -3810,8 +3819,13 @@
     begin
         TempNameValueBuffer.Init();
         TempNameValueBuffer.ID := LineNo;
-        TempNameValueBuffer.Name := CopyStr(StrSubstNo(SheetNameTok, LineNo), 1, MaxStrLen(TempNameValueBuffer.Name));
+        TempNameValueBuffer.Name := GetSheetName(LineNo);
         TempNameValueBuffer.Value := TempNameValueBuffer.Name;
         TempNameValueBuffer.Insert();
+    end;
+
+    local procedure GetSheetName(LineNo: Integer): Text[250]
+    begin
+        exit(CopyStr(StrSubstNo(SheetNameTok, LineNo), 1, 250));
     end;
 }
