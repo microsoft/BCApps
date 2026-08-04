@@ -2195,54 +2195,15 @@ codeunit 134263 "Test Bank Payment Application"
     end;
 
     local procedure GetTwoVendorPostingGroupsWithDifferentPayablesAccounts(var FirstPostingGroupCode: Code[20]; var SecondPostingGroupCode: Code[20]; var FirstPayablesAccountNo: Code[20]; var SecondPayablesAccountNo: Code[20])
-    var
-        VendorPostingGroup: Record "Vendor Posting Group";
-        PreferredPrimaryPostingGroupCode: Code[20];
-        PreferredSecondaryPostingGroupCode: Code[20];
-        FallbackFirstPostingGroupCode: Code[20];
-        FallbackSecondPostingGroupCode: Code[20];
-        FallbackFirstPayablesAccountNo: Code[20];
-        FallbackSecondPayablesAccountNo: Code[20];
     begin
-        VendorPostingGroup.SetFilter("Payables Account", '<>%1', '');
-        if not VendorPostingGroup.FindSet() then
-            Error('No vendor posting groups with payables accounts were found.');
-
-        repeat
-            // Fallback pair: first two groups with different payables accounts.
-            if FallbackFirstPostingGroupCode = '' then begin
-                FallbackFirstPostingGroupCode := VendorPostingGroup.Code;
-                FallbackFirstPayablesAccountNo := VendorPostingGroup."Payables Account";
-            end else
-                if (FallbackSecondPostingGroupCode = '') and (VendorPostingGroup."Payables Account" <> FallbackFirstPayablesAccountNo) then begin
-                    FallbackSecondPostingGroupCode := VendorPostingGroup.Code;
-                    FallbackSecondPayablesAccountNo := VendorPostingGroup."Payables Account";
-                end;
-
-            if (VendorPostingGroup."Payables Account" = '5420') and (PreferredPrimaryPostingGroupCode = '') then
-                PreferredPrimaryPostingGroupCode := VendorPostingGroup.Code;
-
-            if (VendorPostingGroup."Payables Account" = '6130') and (PreferredSecondaryPostingGroupCode = '') then
-                PreferredSecondaryPostingGroupCode := VendorPostingGroup.Code;
-        until VendorPostingGroup.Next() = 0;
-
-        if (PreferredPrimaryPostingGroupCode <> '') and (PreferredSecondaryPostingGroupCode <> '') then begin
-            FirstPostingGroupCode := PreferredPrimaryPostingGroupCode;
-            FirstPayablesAccountNo := '5420';
-            SecondPostingGroupCode := PreferredSecondaryPostingGroupCode;
-            SecondPayablesAccountNo := '6130';
-            exit;
-        end;
-
-        if (FallbackFirstPostingGroupCode <> '') and (FallbackSecondPostingGroupCode <> '') then begin
-            FirstPostingGroupCode := FallbackFirstPostingGroupCode;
-            FirstPayablesAccountNo := FallbackFirstPayablesAccountNo;
-            SecondPostingGroupCode := FallbackSecondPostingGroupCode;
-            SecondPayablesAccountNo := FallbackSecondPayablesAccountNo;
-            exit;
-        end;
-
-        Error('At least two vendor posting groups with different payables accounts are required for this test.');
+        // Build dedicated fixtures instead of relying on ambient chart-of-accounts data (previously the demo
+        // payables accounts 5420 and 6130). Each vendor posting group gets its own newly created payables
+        // control account, guaranteeing two distinct accounts and a deterministic scenario across environments
+        // and upgrades. The posting groups themselves are created by EnsureVendorPostingGroupForTest.
+        FirstPayablesAccountNo := LibraryERM.CreateGLAccountNo();
+        SecondPayablesAccountNo := LibraryERM.CreateGLAccountNo();
+        FirstPostingGroupCode := GetUniqueCode20('VPG');
+        SecondPostingGroupCode := GetUniqueCode20('VPG');
     end;
 
     local procedure GetUniqueCode20(Prefix: Text): Code[20]
@@ -2316,7 +2277,7 @@ codeunit 134263 "Test Bank Payment Application"
           AdjustmentPostingDate);
 
         Vendor.Get(VendorNo);
-        Vendor."Vendor Posting Group" := PaymentVendorPostingGroup;
+        Vendor.Validate("Vendor Posting Group", PaymentVendorPostingGroup);
         Vendor.Modify(true);
 
         VendLedgEntry.CalcFields("Remaining Amount");
@@ -2383,7 +2344,8 @@ codeunit 134263 "Test Bank Payment Application"
         VendLedgEntry.SetRange("Vendor No.", VendorNo);
         VendLedgEntry.SetRange("Document Type", VendLedgEntry."Document Type"::Invoice);
         VendLedgEntry.SetRange("Document No.", PostedDocNo);
-        VendLedgEntry.FindFirst();
+        if not VendLedgEntry.FindFirst() then
+            Error('Posted vendor ledger entry for document %1 was not found.', PostedDocNo);
     end;
 
     local procedure ConfigurePurchasesMultiplePostingGroupsSetupForTest()
@@ -2516,6 +2478,7 @@ codeunit 134263 "Test Bank Payment Application"
 
         GenJournalLine.Validate("Posting Date", PostingDate);
         GenJournalLine.Validate("Document No.", DocumentNo);
+        GenJournalLine.Validate("External Document No.", DocumentNo);
         GenJournalLine.Validate("Currency Code", CurrencyCode);
 
         if AppliesToInvoiceDocumentNo <> '' then begin
@@ -2552,18 +2515,28 @@ codeunit 134263 "Test Bank Payment Application"
     end;
 
     local procedure VerifyVendorFcyApplicationControlAccountsBalancedForTest(VendorNo: Code[20]; PostingDateFrom: Date; PostingDateTo: Date; PrimaryPayablesAccountNo: Code[20]; SecondaryPayablesAccountNo: Code[20])
+    var
+        PrimaryNetAmount: Decimal;
+        SecondaryNetAmount: Decimal;
     begin
-        // Use entry existence rather than period net amounts so this remains stable across environments
-        // where exchange adjustment residuals can legitimately remain on one control account.
-        if not VendorGLHasEntriesForPeriodAndAccountForTest(VendorNo, PostingDateFrom, PostingDateTo, PrimaryPayablesAccountNo) then
-            Error(
-              'Expected vendor %1 to post activity to primary payables account %2 in period %3..%4, but no vendor-source G/L entries were found.',
-              VendorNo, PrimaryPayablesAccountNo, PostingDateFrom, PostingDateTo);
+        // After a fully-applied FCY invoice/payment across two different vendor posting groups, the payables
+        // control account of BOTH posting groups must net to zero for this vendor. The bug (Incorrect Payables
+        // Account Selected for Unrealized Gain/Loss) posts the gain/loss to the payment posting group's account
+        // instead of the invoice posting group's account, which leaves the invoice group's account non-zero and
+        // the payment group's account non-zero by the equal-and-opposite amount.
+        PrimaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(VendorNo, PostingDateFrom, PostingDateTo, PrimaryPayablesAccountNo);
+        Assert.AreEqual(
+          0, Round(PrimaryNetAmount, 0.01),
+          StrSubstNo(
+            'Invoice posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.',
+            PrimaryPayablesAccountNo, VendorNo, PrimaryNetAmount));
 
-        if not VendorGLHasEntriesForPeriodAndAccountForTest(VendorNo, PostingDateFrom, PostingDateTo, SecondaryPayablesAccountNo) then
-            Error(
-              'Expected vendor %1 to post activity to secondary payables account %2 in period %3..%4, but no vendor-source G/L entries were found.',
-              VendorNo, SecondaryPayablesAccountNo, PostingDateFrom, PostingDateTo);
+        SecondaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(VendorNo, PostingDateFrom, PostingDateTo, SecondaryPayablesAccountNo);
+        Assert.AreEqual(
+          0, Round(SecondaryNetAmount, 0.01),
+          StrSubstNo(
+            'Payment posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.',
+            SecondaryPayablesAccountNo, VendorNo, SecondaryNetAmount));
     end;
 
     local procedure VerifyVendorFcyApplicationExpectedDistributionForTest(
@@ -2597,7 +2570,7 @@ codeunit 134263 "Test Bank Payment Application"
               PrimaryPayablesAccountNo, PrePaymentAdjustmentDocumentNo, PrePaymentAdjustmentPrimaryAmount);
     end;
 
-    local procedure VendorGLHasEntriesForPeriodAndAccountForTest(VendorNo: Code[20]; PostingDateFrom: Date; PostingDateTo: Date; GLAccountNo: Code[20]): Boolean
+    local procedure VendorGLNetAmountForPeriodAndAccountForTest(VendorNo: Code[20]; PostingDateFrom: Date; PostingDateTo: Date; GLAccountNo: Code[20]): Decimal
     var
         GLEntry: Record "G/L Entry";
     begin
@@ -2605,7 +2578,8 @@ codeunit 134263 "Test Bank Payment Application"
         GLEntry.SetRange("Source No.", VendorNo);
         GLEntry.SetRange("G/L Account No.", GLAccountNo);
         GLEntry.SetRange("Posting Date", PostingDateFrom, PostingDateTo);
-        exit(not GLEntry.IsEmpty());
+        GLEntry.CalcSums(Amount);
+        exit(GLEntry.Amount);
     end;
 
     local procedure GetGLAmountByDocumentAndAccountForTest(DocumentNo: Code[20]; GLAccountNo: Code[20]): Decimal
