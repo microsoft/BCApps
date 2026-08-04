@@ -9,6 +9,7 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Vendor;
 using System.Reflection;
 
+#pragma warning disable AS0032
 page 9658 "Vendor Report Selections"
 {
     Caption = 'Document Layouts';
@@ -319,4 +320,5 @@ page 9658 "Vendor Report Selections"
     begin
     end;
 }
+#pragma warning restore AS0032
 

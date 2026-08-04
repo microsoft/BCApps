@@ -47,9 +47,9 @@ table 5103 "Interaction Tmpl. Language"
         {
             Caption = 'Custom Layout Code';
             ToolTip = 'Specifies the number of the report layout.';
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             TableRelation = "Custom Report Layout" where("Report ID" = const(Report::"Email Merge"));
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
 
             trigger OnValidate()
             begin

@@ -774,9 +774,9 @@ table 5062 Attachment
 
     local procedure GetCustomLayoutCodeLength(): Integer
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         DummyCustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
     begin
         exit(MaxStrLen(DummyCustomReportLayout.Code));
     end;

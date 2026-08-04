@@ -79,9 +79,9 @@ codeunit 101596 "Create Interact. Templ. Lang."
 
     local procedure InsertCustomAttachment(FileExtension: Text[250]; var AttachmentNo: Integer; var CustomReportLayoutCode: Code[20]): Boolean
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
         Attachment: Record Attachment;
     begin
         CustomReportLayout.SetRange("Report ID", REPORT::"Email Merge");

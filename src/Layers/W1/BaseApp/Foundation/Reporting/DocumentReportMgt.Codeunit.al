@@ -157,9 +157,9 @@ codeunit 9651 "Document Report Mgt."
     [Scope('OnPrem')]
     procedure ApplyUpgradeToReports(var ReportUpgradeCollection: DotNet ReportUpgradeCollection; testOnly: Boolean): Boolean
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
         ReportUpgrade: DotNet ReportUpgradeSet;
         ReportChangeLogCollection: DotNet IReportChangeLogCollection;
     begin

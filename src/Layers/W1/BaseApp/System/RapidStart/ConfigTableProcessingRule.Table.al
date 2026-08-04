@@ -146,9 +146,9 @@ table 8631 "Config. Table Processing Rule"
                 exit(Action in [Action::Invoice, Action::Receive]);
             Database::"Gen. Journal Line", Database::"Gen. Journal Batch":
                 exit(Action = Action::Post);
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             Database::"Custom Report Layout":
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
                 exit(Action = Action::Post);
             Database::"Transfer Header":
                 exit(Action in [Action::Ship, Action::Receive]);
@@ -189,9 +189,9 @@ table 8631 "Config. Table Processing Rule"
                 exit(RunActionOnGenJnlLine(RecRef));
             Database::"Gen. Journal Batch":
                 exit(RunActionOnGenJnlBatch(RecRef));
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             Database::"Custom Report Layout":
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
                 exit(RunActionOnCustomReportLayout(RecRef));
             Database::"Transfer Header":
                 exit(RunActionOnTransferHeader(RecRef));
@@ -331,9 +331,9 @@ table 8631 "Config. Table Processing Rule"
 
     local procedure RunActionOnCustomReportLayout(RecRef: RecordRef): Boolean
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
         ReportLayoutSelection: Record "Report Layout Selection";
     begin
         RecRef.SetTable(CustomReportLayout);

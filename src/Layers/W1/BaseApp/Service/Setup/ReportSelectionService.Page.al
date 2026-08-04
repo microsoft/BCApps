@@ -7,6 +7,7 @@ namespace Microsoft.Service.Setup;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
+#pragma warning disable AS0032
 page 5932 "Report Selection - Service"
 {
     AboutTitle = 'About report selection for service';
@@ -243,3 +244,4 @@ page 5932 "Report Selection - Service"
     begin
     end;
 }
+#pragma warning restore AS0032

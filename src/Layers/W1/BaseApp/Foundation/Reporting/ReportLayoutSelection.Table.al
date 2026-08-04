@@ -75,9 +75,9 @@ table 9651 "Report Layout Selection"
         {
             Caption = 'Custom Report Layout Code';
             ToolTip = 'Specifies the custom report layout.';
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             TableRelation = "Custom Report Layout" where("Report ID" = field("Report ID"));
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
 
             trigger OnValidate()
             begin
@@ -89,9 +89,9 @@ table 9651 "Report Layout Selection"
         }
         field(7; "Report Layout Description"; Text[250])
         {
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
             Caption = 'Report Layout Description';
             FieldClass = FlowField;
         }

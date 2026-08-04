@@ -65,9 +65,9 @@ table 77 "Report Selections"
         {
             Caption = 'Custom Report Layout Code';
             Editable = false;
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             TableRelation = "Custom Report Layout".Code where(Code = field("Custom Report Layout Code"), "Built-In" = const(false));
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
         }
         field(19; "Use for Email Attachment"; Boolean)
         {
@@ -101,11 +101,11 @@ table 77 "Report Selections"
         field(21; "Email Body Layout Code"; Code[20])
         {
             Caption = 'Email Body Custom Layout Code';
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             TableRelation = if ("Email Body Layout Type" = const("Custom Report Layout")) "Custom Report Layout".Code where(Code = field("Email Body Layout Code"), "Report ID" = field("Report ID"), "Built-In" = const(false))
             else
             if ("Email Body Layout Type" = const("HTML Layout")) "O365 HTML Template".Code;
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
             ToolTip = 'Specifies the ID of the custom email body layout that is used.';
 
             trigger OnValidate()
@@ -2498,9 +2498,9 @@ table 77 "Report Selections"
 
     internal procedure DoesAnyCustomLayotExist(): Boolean
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
     begin
         CustomReportLayout.SetRange("Built-In", false);
         exit(not CustomReportLayout.IsEmpty());

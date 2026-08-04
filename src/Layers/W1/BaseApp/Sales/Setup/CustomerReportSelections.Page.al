@@ -12,6 +12,7 @@ using System.Reflection;
 /// <summary>
 /// Displays and manages customer-specific document layouts for sales reports. Allows configuration of report selections, email settings, and custom layouts per customer.
 /// </summary>
+#pragma warning disable AS0032
 page 9657 "Customer Report Selections"
 {
     Caption = 'Document Layouts';
@@ -348,3 +349,4 @@ page 9657 "Customer Report Selections"
     begin
     end;
 }
+#pragma warning restore AS0032

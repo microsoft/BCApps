@@ -7,6 +7,7 @@ namespace Microsoft.Projects.Project.Setup;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
+#pragma warning disable AS0032
 page 307 "Report Selection - Job"
 {
     AboutTitle = 'About report selection for projects';
@@ -217,3 +218,4 @@ page 307 "Report Selection - Job"
     begin
     end;
 }
+#pragma warning restore AS0032

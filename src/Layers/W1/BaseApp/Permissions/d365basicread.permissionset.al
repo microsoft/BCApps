@@ -361,9 +361,9 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Currency Total Buffer" = R,
                   tabledata "Custom Address Format" = R,
                   tabledata "Custom Address Format Line" = R,
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
                   tabledata "Custom Report Layout" = R,
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
                   tabledata "Custom Report Selection" = R,
                   tabledata Customer = R,
                   tabledata "Customer Amount" = R,

@@ -90,9 +90,9 @@ page 5154 "Interact. Tmpl. Languages"
 
                     trigger OnValidate()
                     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
                         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
                     begin
                         if CustomReportLayoutDescription = '' then begin
                             Rec.Validate("Custom Layout Code", '');
@@ -255,9 +255,9 @@ page 5154 "Interact. Tmpl. Languages"
 
     trigger OnOpenPage()
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
     begin
         CustLayoutVisible := CustomReportLayout.ReadPermission;
         if CustLayoutVisible then begin

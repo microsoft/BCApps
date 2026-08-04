@@ -10,6 +10,7 @@ using System.Reflection;
 /// <summary>
 /// Configures which reports are used when printing or emailing reminders and finance charges.
 /// </summary>
+#pragma warning disable AS0032
 page 524 "Report Selection - Reminder"
 {
     AboutTitle = 'About report selection for reminders';
@@ -194,4 +195,5 @@ page 524 "Report Selection - Reminder"
     begin
     end;
 }
+#pragma warning restore AS0032
 

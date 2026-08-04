@@ -10,6 +10,7 @@ using System.Reflection;
 /// <summary>
 /// Configures default report selections for sales document types. Allows users to specify which reports to use for printing, emailing, and other output operations.
 /// </summary>
+#pragma warning disable AS0032
 page 306 "Report Selection - Sales"
 {
     AboutTitle = 'About report selection for sales';
@@ -291,4 +292,5 @@ page 306 "Report Selection - Sales"
     begin
     end;
 }
+#pragma warning restore AS0032
 

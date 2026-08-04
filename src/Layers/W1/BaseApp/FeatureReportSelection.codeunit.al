@@ -48,9 +48,9 @@ codeunit 5409 "Feature - Report Selection" implements "Feature Data Update"
 
     procedure UpdateData(FeatureDataUpdateStatus: Record "Feature Data Update Status")
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
         StartDateTime: DateTime;
     begin
         StartDateTime := CurrentDateTime;
@@ -65,9 +65,9 @@ codeunit 5409 "Feature - Report Selection" implements "Feature Data Update"
 
     local procedure CountRecords()
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
         TenantReportLayout: Record "Tenant Report Layout";
         NoOfNonUpdatedLayouts: Integer;
         NullGuid: Guid;
@@ -81,23 +81,23 @@ codeunit 5409 "Feature - Report Selection" implements "Feature Data Update"
                     NoOfNonUpdatedLayouts += 1;
             until CustomReportLayout.Next() = 0;
         if NoOfNonUpdatedLayouts > 0 then
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             InsertDocumentEntry(Database::"Custom Report Layout", CustomReportLayout.TableCaption(), NoOfNonUpdatedLayouts);
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
     end;
 
     procedure MigrateCustomReportLayouts()
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         NonFilteredCustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
     begin
         MigrateCustomReportLayouts(NonFilteredCustomReportLayout);
     end;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
     procedure MigrateCustomReportLayouts(var CustomReportLayout: Record "Custom Report Layout")
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
     var
         TenantReportLayout: Record "Tenant Report Layout";
         ReportLayoutSelection: Record "Report Layout Selection";

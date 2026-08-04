@@ -7,6 +7,7 @@ namespace Microsoft.Purchases.Setup;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
+#pragma warning disable AS0032
 page 347 "Report Selection - Purchase"
 {
     AboutTitle = 'About report selection for purchases';
@@ -301,4 +302,5 @@ page 347 "Report Selection - Purchase"
     begin
     end;
 }
+#pragma warning restore AS0032
 

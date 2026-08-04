@@ -53,18 +53,18 @@ report 357 "Copy Company"
                     if ReportLayoutSelection.Insert() then;
                 end;
             }
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             dataitem("Custom Report Layout"; "Custom Report Layout")
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
             {
                 DataItemLink = "Company Name" = field(Name);
                 DataItemTableView = sorting("Report ID", "Company Name", Type);
 
                 trigger OnAfterGetRecord()
                 var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
                     CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
                 begin
                     CustomReportLayout := "Custom Report Layout";
                     CustomReportLayout.Code := '';
