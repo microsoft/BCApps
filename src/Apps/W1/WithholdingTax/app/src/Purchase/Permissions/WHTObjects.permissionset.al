@@ -5,6 +5,7 @@
 namespace Microsoft.WithholdingTax;
 
 using Microsoft.Finance.WithholdingTax;
+using Microsoft.WithholdingTax.Employee;
 
 permissionset 6786 "WHT - Objects"
 {
@@ -39,5 +40,13 @@ permissionset 6786 "WHT - Objects"
         report "WHT Monthly Remittance Return" = X,
         report "Withholding Tax Certificate" = X,
         report "WHT Purch. - Cr. Memo" = X,
-        report "WHT Purch. - Invoice" = X;
+        report "WHT Purch. - Invoice" = X,
+        table "Withholding Tax Group" = X,
+        table "Withholding Tax Group Line" = X,
+        table "WHT Threshold Accumulator" = X,
+        page "Withholding Tax Groups" = X,
+        page "Withholding Tax Group Card" = X,
+        page "WHT Group Lines Subform" = X,
+        codeunit "WHT Employee Calculation" = X,
+        codeunit "Wthldg Tax Empl. Subscribers" = X;
 }

@@ -2,105 +2,212 @@
 
 ## Pipeline overview
 
+*Updated: 2026-07-29 -- Flow now shows reader selection, process draft routing, purchase credit memo, and sales order outcomes.*
+
 ```mermaid
 flowchart TD
-    A["Unprocessed<br/>(raw blob)"] -->|"Structure received data"| B["Readable<br/>(structured blob)"]
-    B -->|"Read into draft"| C["Ready for draft<br/>(staging tables populated)"]
-    C -->|"Prepare draft"| D["Draft ready<br/>(BC entities resolved)"]
-    D -->|"Finish draft"| E["Processed<br/>(Purchase Invoice created)"]
+    A["Unprocessed<br/>(raw blob)"] --> S["Structure received data<br/>IEDocFileFormat chooses structuring"]
+    S --> B["Readable<br/>(structured blob)"]
+    B --> R["Read into draft<br/>IStructuredFormatReader parses content"]
+    R --> C["Ready for draft<br/>(staging tables populated)"]
+    C --> P{ "Process draft impl." }
+    P -->|"Purchase Invoice"| PI["Prepare purchase invoice draft"]
+    P -->|"Purchase Credit Memo"| PC["Prepare purchase credit memo draft"]
+    P -->|"Sales Order"| SO["Prepare sales order draft"]
+    PI --> D["Draft ready<br/>(BC entities resolved)"]
+    PC --> D
+    SO --> D
+    D --> F{ "E-Document Type" }
+    F -->|"Purchase Invoice"| FI["Create or link purchase invoice"]
+    F -->|"Purchase Credit Memo"| FC["Create or link purchase credit memo"]
+    F -->|"Sales Order"| FS["Create sales order"]
+    FI --> E["Processed"]
+    FC --> E
+    FS --> E
     E -.->|"Undo finish"| D
     D -.->|"Undo prepare"| C
     C -.->|"Undo read"| B
     B -.->|"Undo structure"| A
 ```
 
-The pipeline is driven by `ImportEDocumentProcess.Codeunit.al`. Its `OnRun()` trigger checks the service's import process version. V1 services skip straight to a legacy code path. V2 services dispatch to one of four local procedures based on the configured step. After each step, the processing status is advanced (or rolled back for undo) and the E-Document status is recalculated.
+The pipeline is driven by `ImportEDocumentProcess.Codeunit.al`. Its `OnRun()` trigger checks the service's import process version. V1 services skip straight to a legacy code path. V2 services dispatch to one of four procedures based on the configured step. After each step, the processing status is advanced or rolled back and the E-Document status is recalculated.
 
 ## Stage 1 -- Structure received data
 
+*Updated: 2026-07-29 -- PDF now prefers MLLM, with ADI as fallback rather than the primary PDF path.*
+
 **Transition:** Unprocessed --> Readable
 
-The E-Document arrives with an `Unstructured Data Entry No.` pointing to a raw blob in `E-Doc. Data Storage`. The Structure step loads that blob, resolves the file format via `IEDocFileFormat` (the enum value stored on the data storage record), and asks it for a `PreferredStructureDataImplementation()`.
+The E-Document arrives with an `Unstructured Data Entry No.` pointing to a raw blob in `E-Doc. Data Storage`. The Structure step loads that blob, resolves the file format via `IEDocFileFormat`, and asks it for `PreferredStructureDataImplementation()` when the document has not already chosen one.
 
-For XML, the preferred implementation is `"Already Structured"` -- the blob is already parseable, so the unstructured and structured data entry numbers are set to the same value and nothing is converted. For PDF, the preferred implementation is `"ADI"` -- Azure Document Intelligence converts the binary into a JSON blob. The ADI handler (`EDocumentADIHandler.Codeunit.al`) base64-encodes the blob, calls `AzureDocumentIntelligence.AnalyzeInvoice()`, and stores the JSON result. If ADI fails (returns empty), it falls back to `"Blank Draft"` so the user can populate fields manually.
+For XML and JSON, the preferred implementation is `Already Structured`; the raw data entry becomes the structured data entry. For PDF, `E-Doc. PDF File Format` now returns `MLLM`. `E-Document MLLM Handler` sends the PDF to Azure OpenAI with a UBL-shaped schema and the `EDocMLLMExtraction-SystemPrompt.md` resource. That prompt explicitly tells the model to extract only visible values, keep customer and vendor roles separate, use XML decimal format, and avoid combining post-discount prices with discount percentages. If MLLM returns empty text, invalid JSON, or JSON missing required vendor fields, the handler falls back to ADI.
 
-When the data is actually converted (i.e. not "Already Structured"), the original unstructured blob is saved as a document attachment on the E-Document for reference. The structured result is stored as a new `E-Doc. Data Storage` entry via the log, and its entry number goes into `E-Document."Structured Data Entry No."`.
+`E-Document ADI Handler` still implements both structuring and reading. It registers the E-Document Analysis capability when needed, calls `AzureDocumentIntelligence.AnalyzeInvoice()`, stores JSON when it succeeds, and switches to `Blank Draft` when ADI returns an empty result. The ADI reader maps Azure field names such as `vendorName`, `invoiceId`, `productCode`, `taxRate`, and `tax` into purchase staging fields.
 
-The `IStructuredDataType` returned by the structure implementation also specifies which `IStructuredFormatReader` should be used in the next stage. If the structure step says ADI, the reader will be ADI. If it says nothing (`Unspecified`), the service's default reader is used. This chaining means a single PDF upload can auto-select the entire downstream pipeline.
+When the data is converted, the original unstructured blob is saved as a document attachment on the E-Document. The structured result is stored as a new `E-Doc. Data Storage` entry through the log, and its entry number is saved on the E-Document. A structuring implementation can also force the next reader by returning a non-`Unspecified` `GetReadIntoDraftImpl()` value; this overrides a reader that was already on the E-Document and logs telemetry.
 
 ## Stage 2 -- Read into draft
 
+*Updated: 2026-07-29 -- Added PEPPOL credit notes, orders, order responses, Data Exchange bridge, and external XRechnung/OIOUBL readers.*
+
 **Transition:** Readable --> Ready for draft
 
-The structured blob is loaded and passed to the `IStructuredFormatReader` determined in Stage 1. Two readers ship in the core:
+The structured blob is loaded and passed to the `IStructuredFormatReader` determined in Stage 1. If the E-Document still has `Read into Draft Impl. = Unspecified`, the read step uses the service's `Read into Draft Impl.` field. This field is shown as **Draft Format** on the service card for V2 services, so already-structured services must choose a reader such as PEPPOL, Data Exchange Purchase, or a country-app reader.
 
-- **PEPPOL** (`EDocumentPEPPOLHandler.Codeunit.al`): Parses UBL 2.1 XML. Extracts vendor party info, invoice totals, currency, dates, and iterates `cac:InvoiceLine` nodes to create `E-Document Purchase Line` records. Uses XPath with UBL namespace prefixes.
-- **ADI** (`EDocumentADIHandler.Codeunit.al`): Parses the ADI JSON schema. Maps ADI field names like `vendorName`, `invoiceId`, `productCode` to the staging table columns. Sets quantity to 1 when ADI returns zero or negative.
+Built-in readers in the core import folder are:
 
-Both readers insert an `E-Document Purchase Header` and one `E-Document Purchase Line` per invoice line. These staging tables use **dual nomenclature**: fields 2-100 hold the raw external data exactly as extracted (e.g. `"Vendor Company Name"`, `"Product Code"`), while fields 101-200 hold validated BC references (e.g. `"[BC] Vendor No."`, `"[BC] Purchase Type No."`). At this stage, only the external-data columns are populated.
+- **PEPPOL** (`EDocumentPEPPOLHandler.Codeunit.al`): Parses UBL Invoice, CreditNote, Order, and OrderResponse XML. Invoices route to `Purchase Invoice`, credit notes route to `Purchase Credit Memo`, and orders route to `Sales Order`. Order responses are stored as messages on the matching outbound E-Document and then stop the import carrier.
 
-The reader returns an `E-Doc. Process Draft` enum value (currently only `"Purchase Document"`) that determines which `IProcessStructuredData` implementation runs in Stage 3.
+- **ADI** (`EDocumentADIHandler.Codeunit.al`): Parses the ADI JSON schema into purchase staging. It treats zero or negative quantity as one, resolves VAT rate from `taxRate` first, and falls back to computing a percentage from a tax amount when the subtotal is available.
+
+- **MLLM** (`EDocumentMLLMHandler.Codeunit.al`): Parses the model's UBL-shaped JSON through `EDocMLLMSchemaHelper`. Decimal parsing uses XML decimal format with evaluation style 9, matching the prompt instruction that model output must use `.` as decimal separator and no thousands separators.
+
+- **Data Exchange Purchase** (`EDocDataExchPurchHandler.Codeunit.al`): Detects the configured Data Exchange Definition by matching the XML root namespace against service data exchange setup, runs the standard Data Exchange pipeline, and bridge-maps `Intermediate Data Import` into the V2 purchase staging tables.
+
+External apps extend the same enum. XRechnung and OIOUBL both add `E-Doc. Read into Draft` values with `IStructuredFormatReader` implementations that populate the same purchase staging tables and return either `Purchase Invoice` or `Purchase Credit Memo`.
+
+Both purchase and sales staging tables keep the same design: fields 2-100 store extracted source data, while fields 101-200 store validated BC references that users or providers can change before finishing.
+
+Reader errors are intentionally caught one level above the reader. `E-Doc. Import.RunConfiguredImportStep()` runs `Import E-Document Process` through `Codeunit.Run`, wraps any available validation context, and logs the error against the E-Document. This is especially important for JSON readers such as ADI and MLLM, where malformed structured data should become an import error instead of an untrappable session failure.
+
+### Data Exchange bridge
+
+*Updated: 2026-07-29 -- Documented why the bridge exists and how it maps legacy Data Exchange output into V2 staging.*
+
+The Data Exchange reader exists so older Data Exchange Definition investments can feed the V2 import pipeline. It does not ask Data Exchange to create the final purchase document. Instead, it runs `ProcessDataExchange()` to populate Data Exchange's intermediate tables, then maps those intermediate rows into `E-Document Purchase Header` and `E-Document Purchase Line`.
+
+The bridge handles work that declarative mappings cannot express cleanly:
+
+- It selects a definition by XML namespace from `E-Doc. Service Data Exch. Def.`.
+
+- It pre-inserts the purchase staging header so the Data Exchange post-mapping codeunit can write to it.
+
+- It applies BC's blank-LCY currency convention after mapping.
+
+- It promotes PEPPOL document-level charges into extra purchase staging lines through `E-Doc. PEPPOL DX Post-Mapping`.
+
+- It decodes embedded attachments from intermediate data and attaches them to the E-Document.
+
+After bridging, the temporary Data Exchange and intermediate records are deleted. The V2 pipeline continues with Prepare Draft exactly as if a native reader had populated the staging tables.
 
 ## Stage 3 -- Prepare draft
 
+*Updated: 2026-07-29 -- Split purchase and sales preparation, added VAT rate resolution, VAT difference handling, and vendor telemetry.*
+
 **Transition:** Ready for draft --> Draft ready
 
-This is where the system resolves external data into BC entities. `PreparePurchaseEDocDraft.Codeunit.al` implements `IProcessStructuredData` and orchestrates the resolution.
+Prepare Draft resolves extracted data into BC entities. `E-Doc. Process Draft` chooses the implementation.
 
-### Vendor resolution
+### Purchase preparation
 
-`GetVendor()` delegates to `IVendorProvider`. The default provider (`EDocProviders.Codeunit.al`) tries a four-step waterfall:
+`Prepare Purchase E-Doc. Draft` and `EDoc Prepare Cr. Memo Draft` both delegate to `EDoc Prepare Purch. Draft`. The shared purchase helper resolves vendor, purchase order, unit of measure, purchase line type and number, VAT product posting group, historical values, GL account suggestions, and deferral suggestions.
 
-1. **VAT ID + GLN** -- calls `EDocumentImportHelper.FindVendor()` with the extracted VAT ID and GLN
-2. **Service Participant** -- looks up the vendor's external ID in the `Service Participant` table, first scoped to the specific service, then across all services
-3. **Name + Address** -- calls `FindVendorByNameAndAddress()` as a last resort
-4. **Historical** -- if the direct provider returns nothing, `EDocPurchaseHistMapping.FindRelatedPurchaseHeaderInHistory()` searches `E-Doc. Vendor Assign. History` by GLN, then VAT ID, then company name, then address (most specific first, most recent first). If a match is found, the vendor number is copied from the linked posted purchase invoice header.
+Vendor resolution uses the `IVendorProvider` from processing customizations. The default provider tries VAT ID and GLN, then service participant by external ID scoped to the service and then unscoped, then name and address. If the provider does not assign a vendor, history is searched by GLN, VAT ID, company name, and address, newest first. The import session telemetry records whether vendor information was present, whether a vendor was assigned, and whether the source was already assigned, provider, history, or none.
 
-### Line enrichment
+Line enrichment runs only after a vendor is known. The default UOM provider tries code, international standard code, and description. The default purchase line provider tries item references by vendor, product code, UOM, and validity dates, then falls back to Text-to-Account Mapping. Each successful provider path stores activity-log reasoning.
 
-For each `E-Document Purchase Line`, the pipeline resolves:
+After direct provider matching, `ResolveVATProductPostingGroups()` can fill `[BC] VAT Prod. Posting Group` from the extracted line VAT rate when purchase setup enables `Resolve VAT Group Purch EDoc`. It uses the vendor's VAT business posting group and looks for a single normal or reverse charge VAT Posting Setup at that rate. If no unique setup exists, the draft line gets an activity-log explanation.
 
-- **Unit of Measure** via `IUnitOfMeasureProvider` -- tries Code, then International Standard Code, then Description
-- **Purchase line type and number** via `IPurchaseLineProvider` -- the default implementation tries Item Reference first (filtering by vendor, product code, UOM, and date validity), then falls back to Text-to-Account Mapping. Each successful match writes an Activity Log entry explaining the reasoning.
+Then AI-assisted matching runs in this order:
 
-### Purchase order matching
+1. Historical matching applies posted purchase invoice history to unresolved lines.
+2. GL account matching uses the prompt in `GLAccountMatching-SystemPrompt.md` and processes all plausible lines.
+3. Deferral matching suggests deferral codes for lines with a type but no deferral.
 
-`IPurchaseOrderProvider.GetPurchaseOrder()` checks if the `"Purchase Order No."` extracted from the document matches an existing PO. If found, the PO number is stored on the purchase header's `[BC] Purchase Order No.` field for use during Finish Draft.
+Each AI step commits before running. Deferral matching is deliberately non-blocking.
 
-### Copilot-assisted matching
+Finally, the helper computes a VAT amount difference from the staged total VAT and line VAT amounts. The difference is only considered usable when purchase setup enables E-Document VAT differences, purchase setup allows VAT differences generally, and the value does not exceed the General Ledger Setup maximum. The decision is logged on the header either way.
 
-After the direct resolution pass, three Copilot codeunits run sequentially on lines that still lack a `[BC] Purchase Type No.`:
+### Sales order preparation
 
-1. **Historical matching** (`E-Doc. Historical Matching`) -- searches `E-Doc. Purchase Line History` for past invoices with the same product code or similar description from the same vendor. Applies the posted line's type, number, deferral code, dimensions, and UOM to the draft.
-2. **GL account matching** (`E-Doc. GL Account Matching`) -- uses AI to suggest a G/L account for lines with no item match.
-3. **Deferral matching** (`E-Doc. Deferral Matching`) -- for lines that have a type but no deferral code, suggests a deferral template.
+`Prepare Sales E-Doc. Draft` delegates to `EDoc Prepare Sales Draft`. It resolves `[BC] Customer No.` through `ICustomerProvider` and resolves each sales line through `ISalesLineProvider`.
 
-Each step commits before invoking the next to isolate failures. Deferral matching swallows errors silently to avoid blocking the pipeline.
+The default customer provider tries buyer GLN on Customer, service participant by buyer GLN, service participant by buyer external ID, buyer VAT ID on Customer, then name and address. The default sales line provider tries seller item ID directly against Item, standard item ID through Item GTIN or bar-code item reference, then buyer item ID through customer item reference. Successful matches log activity reasoning and line telemetry.
+
+### Dates on the E-Document
+
+After Prepare Draft, `ImportEDocumentProcess` copies purchase staging `Document Date` and `Due Date` onto the E-Document when present. This is why incoming document lists and factboxes can show the document dates before a purchase document is finalized.
 
 ## Stage 4 -- Finish draft
 
+*Updated: 2026-07-29 -- Added finalization routing, credit memo and sales order paths, posting description, dimensions, VAT difference, and validation context.*
+
 **Transition:** Draft ready --> Processed
 
-`IEDocumentFinishDraft.ApplyDraftToBC()` creates the actual BC document. The default implementation (`EDocCreatePurchaseInvoice.Codeunit.al`) performs:
+Finish Draft chooses an `IEDocumentFinishDraft` implementation from `E-Document Type`.
 
-1. **Validation**: Checks that all draft lines have a type and number. Verifies PO match validity -- matched lines must be receivable and have UOM info.
-2. **Receipt suggestion**: For lines matched to PO lines, `SuggestReceiptsForMatchedOrderLines()` proposes receipt lines.
-3. **Invoice creation**: Creates a `Purchase Header` (type Invoice), sets vendor, dates, currency, and vendor invoice number. Checks for duplicate external document numbers. Inserts lines without PO matches first, then lines grouped by receipt number with comment-line separators.
-4. **PO match transfer**: `TransferPOMatchesFromEDocumentToInvoice()` moves match records from the E-Document to the purchase invoice.
-5. **Traceability**: `EDocRecordLink.InsertEDocumentHeaderLink()` and `InsertEDocumentLineLink()` create `E-Doc. Record Link` entries linking draft records to their BC counterparts via SystemId.
-6. **Post-creation**: Copies document attachments from the E-Document to the purchase header, applies invoice discount, sets `E-Document Link` GUID on the purchase header, and validates document totals.
+```mermaid
+flowchart TD
+    A["Finish draft"] --> B{ "Document Type" }
+    B -->|"None"| Z["Exit without creating a BC document"]
+    B -->|"Purchase Invoice"| PI["Validate PO matches and draft lines"]
+    B -->|"Purchase Credit Memo"| PC["Validate draft lines"]
+    B -->|"Sales Order"| SO["Validate sales draft lines"]
+    PI --> L{ "Existing Doc. RecordId set?" }
+    PC --> L
+    L -->|"Yes"| X["Link E-Document to existing purchase document"]
+    L -->|"No invoice"| CI["Create purchase invoice"]
+    L -->|"No credit memo"| CC["Create purchase credit memo"]
+    SO --> CS["Create sales order"]
+    CI --> H["Set dates, posting description, currency, lines, links, attachments"]
+    CC --> H
+    X --> H
+    CS --> SH["Set customer, external document number, lines, link, attachments"]
+    H --> V["Apply discounts and VAT difference where relevant"]
+    SH --> E["Processed"]
+    V --> E
+```
 
-Alternatively, if `EDocImportParameters."Existing Doc. RecordId"` is set, no new invoice is created -- the E-Document is linked to an existing purchase document instead.
+### Purchase invoice finalization
+
+`E-Doc. Create Purchase Invoice` first validates PO matches. Matched lines must be valid for the current receipt configuration, must not exceed invoiceable quantity, and must have required UOM information. It then either links to `Existing Doc. RecordId` or delegates invoice creation to `IEDocumentCreatePurchaseInvoice` from processing customizations.
+
+The default invoice creator:
+
+- Requires all draft lines to have both type and number.
+
+- Creates a purchase invoice for the resolved vendor.
+
+- Validates `Document Date`, `Due Date`, `Vendor Invoice No.`, currency, line quantity, direct unit cost, discounts, deferral code, dimensions, VAT product posting group, and item reference through `E-Doc. Purch. Doc. Helper`.
+
+- Checks duplicate posted purchase invoices by external document number after the document date is validated, so the duplicate check uses the draft document date context.
+
+- Applies the configured posting date default from purchase setup when it is set to Document Date.
+
+- Copies the staged `Posting Description` to the purchase invoice.
+
+- Creates non-PO lines first, then receipt-grouped matched lines with comment separators.
+
+- Transfers PO match records from the E-Document to the invoice.
+
+- Applies invoice discount and distributes any allowed VAT difference across purchase lines.
+
+- Writes header and line `E-Doc. Record Link` entries for posting history.
+
+- Copies attachments from the E-Document to the purchase header, sets `E-Document Link`, stores document totals, and validates totals through a try function.
+
+Manual dimensions are preserved because the helper combines the purchase line's default dimension set with the draft line's `[BC] Dimension Set ID`, then validates both shortcut dimension codes. Additional fields are also applied through FieldRef validation, and failures are wrapped with field context by `E-Doc. Import Error Context`.
+
+### Purchase credit memo finalization
+
+`E-Doc. Create Purch. Cr. Memo` uses the same purchase helper for lines, dimensions, attachments, default posting date, currency validation, and record links. It creates a purchase credit memo, validates duplicate external document numbers against posted vendor ledger entries, carries `Posting Description`, and resolves `Applies-to Doc. No.` directly or through `Applies-to Ext. Invoice No.` when possible.
+
+### Sales order finalization
+
+`E-Doc. Create Sales Order` creates a sales order from `E-Document Sales Header` and `E-Document Sales Line`. It requires every sales draft line to have type and number, prevents duplicate sales orders by customer and external document number, sets document date and requested delivery date when extracted, copies customer reference and note, applies currency and invoice discount, creates sales lines with dimensions and item references, then sets `E-Document Link` and moves attachments to the sales order.
 
 ### Undo finish
 
-`RevertDraftActions()` finds the purchase invoice via the `E-Document Link` GUID, transfers PO matches back to the E-Document, moves attachments back, clears the link, and clears `Document Record ID`. The purchase invoice itself is not deleted -- it must be handled separately.
+Undo Finish calls the same `IEDocumentFinishDraft` implementation used to finish. Purchase invoices transfer PO matches back before attachments are moved back and the purchase header link is cleared. Purchase credit memos and sales orders move attachments back and clear the link. The helper does not delete the BC document; it detaches it so the E-Document can be reprocessed or linked again.
 
 ## The learning loop
 
+*Updated: 2026-07-29 -- Historical matching is again part of Prepare Draft and history still graduates record links on posting.*
+
 When a purchase invoice created by this pipeline is posted, event subscribers on `Purch.-Post` fire:
 
-- `OnAfterPurchInvLineInsert` writes to `E-Doc. Purchase Line History` -- recording the vendor, product code, description, and the posted invoice line's SystemId. The link is found by traversing `E-Doc. Record Link` from the purchase line back to the draft line.
-- `OnAfterPostPurchaseDoc` writes to `E-Doc. Vendor Assign. History` -- recording the vendor identifiers from the original E-Document draft header and the posted invoice header's SystemId.
+- `OnAfterPurchInvLineInsert` writes to `E-Doc. Purchase Line History`, recording the vendor, product code, description, and the posted invoice line's SystemId. If allocation accounts replaced the original line, the code falls back through the allocation purchase line SystemId.
 
-Both event subscribers then delete the `E-Doc. Record Link` entries since the link has been "graduated" to permanent history. This means the history tables grow monotonically and future imports get progressively better at vendor and line resolution.
+- `OnAfterPostPurchaseDoc` writes to `E-Doc. Vendor Assign. History`, recording the vendor identifiers from the original draft header and the posted invoice header's SystemId.
+
+Both event subscribers delete the matching `E-Doc. Record Link` entries after history is created. Those links are temporary bridges from draft records to BC records; history is the permanent learning data used by future imports.

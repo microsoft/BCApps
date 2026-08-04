@@ -3810,7 +3810,7 @@ codeunit 90 "Purch.-Post"
                             PurchLineQty := PurchLine."Qty. to Receive"
                 end;
 
-                OnSumPurchLines2OnBeforeDivideAmount(PurchHeader, PurchLine, QtyType);
+                OnSumPurchLines2OnBeforeDivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty);
                 DivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty, TempVATAmountLine, TempVATAmountLineRemainder);
                 OnSumPurchLines2OnAfterDivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty, TempVATAmountLine, TempVATAmountLineRemainder);
                 PurchLine.Quantity := PurchLineQty;
@@ -6010,7 +6010,10 @@ codeunit 90 "Purch.-Post"
 
             if QtyToBeInvoiced <> 0 then begin
                 PurchLine."Qty. to Invoice" := QtyToBeInvoiced;
-                InvoicePostingInterface.PrepareJobLine(PurchHeader, PurchLine, PurchLineACY);
+                IsHandled := false;
+                OnPostItemJnlLineJobConsumptionOnBeforePrepareJobLine(PurchLine, QtyToBeInvoiced, PurchHeader, PurchLineACY, IsHandled);
+                if not IsHandled then
+                    InvoicePostingInterface.PrepareJobLine(PurchHeader, PurchLine, PurchLineACY);
             end;
         end;
     end;
@@ -6086,7 +6089,7 @@ codeunit 90 "Purch.-Post"
                 ItemLedgerEntry.SetRange("Document Line No.", ItemLedgerEntry."Document Line No.");
                 ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Negative Adjmt.");
                 ItemLedgerEntry.SetRange("Item No.", ItemLedgerEntry."Item No.");
-                ItemLedgerEntry.SetRange("Invoiced Quantity", 0);
+                ItemLedgerEntry.SetRange("Completely Invoiced", false);
                 if ItemLedgerEntry.FindFirst() then
                     ItemJournalLine."Item Shpt. Entry No." := ItemLedgerEntry."Entry No."
             end;
@@ -10439,6 +10442,11 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnPostItemJnlLineJobConsumptionOnBeforePrepareJobLine(var PurchaseLine: Record "Purchase Line"; QuantityToBeInvoiced: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLineACY: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineWhseLineOnAfterPostRevert(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; PurchaseLine: Record "Purchase Line")
     begin
     end;
@@ -10671,7 +10679,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSumPurchLines2OnBeforeDivideAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping)
+    local procedure OnSumPurchLines2OnBeforeDivideAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping; var PurchLineQty: Decimal)
     begin
     end;
 

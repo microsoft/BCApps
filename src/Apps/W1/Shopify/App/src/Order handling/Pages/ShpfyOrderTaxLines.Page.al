@@ -74,12 +74,19 @@ page 30168 "Shpfy Order Tax Lines"
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
+        OrderShippingCharges: Record "Shpfy Order Shipping Charges";
     begin
         OrderLine.SetRange("Line Id", Rec."Parent Id");
-        if not OrderLine.FindFirst() then
-            exit;
-        if not OrderHeader.Get(OrderLine."Shopify Order Id") then
-            exit;
+        if OrderLine.FindFirst() then begin
+            if not OrderHeader.Get(OrderLine."Shopify Order Id") then
+                exit;
+        end else
+            if OrderShippingCharges.Get(Rec."Parent Id") then begin
+                if not OrderHeader.Get(OrderShippingCharges."Shopify Order Id") then
+                    exit;
+            end else
+                if not OrderHeader.Get(Rec."Parent Id") then
+                    exit;
 
         PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
     end;

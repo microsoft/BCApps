@@ -56,6 +56,15 @@ codeunit 3675 "BOM Tree Node Dictionary"
 #pragma warning restore AS0022
 
     /// <summary>
+    /// Checks whether an instance with the given key exists in the dictionary without raising an error.
+    /// <param name="InstanceKey">The key given.</param>
+    /// </summary>
+    internal procedure ContainsKey(InstanceKey: Text): Boolean
+    begin
+        exit(InstanceDictionaryImpl.Contains(InstanceKey));
+    end;
+
+    /// <summary>
     /// Removes the instance from the dictionary that correponds to the given key.
     /// <param name="InstanceKey">The given key.</param>
     /// </summary>
