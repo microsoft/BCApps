@@ -224,7 +224,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         end;
 
         SalesCommentLine.SetRange("Document Type", DocumentType);
-        SalesCommentLine.SetRange("Document Type", DocumentType);
         SalesCommentLine.SetRange("No.", DocumentNo);
         SalesCommentLine.SetFilter("FR Regulatory Comment Type", '<>%1', SalesCommentLine."FR Regulatory Comment Type"::None);
         SalesCommentLine.SetLoadFields("FR Regulatory Comment Type", Comment);
