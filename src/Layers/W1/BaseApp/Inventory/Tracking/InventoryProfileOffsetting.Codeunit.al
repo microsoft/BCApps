@@ -1109,7 +1109,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
     begin
         IsHandled := false;
         OnBeforeDecreaseQtyForMaxQty(SupplyInvtProfile, TempSKU, ReduceQty, IsHandled);
-        If IsHandled then 
+        if IsHandled then
             exit;
         
         if ReduceQty > 0 then begin
