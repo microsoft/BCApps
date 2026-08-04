@@ -91,6 +91,18 @@ table 7121 "Contact Sync User"
             Error(CannotModifyOtherUsersSyncErr);
     end;
 
+    internal procedure EnforceRecordOwnershipOnModify(OriginalUserId: Code[50])
+    begin
+        if Session.GetExecutionContext() in [ExecutionContext::Install, ExecutionContext::Upgrade] then
+            exit;
+
+        if OriginalUserId <> CopyStr(UserId(), 1, MaxStrLen("User ID")) then
+            Error(CannotModifyOtherUsersSyncErr);
+
+        if "User ID" <> OriginalUserId then
+            Error(CannotChangeRecordOwnerErr);
+    end;
+
     internal procedure ValidateApprovedGraphDeltaUrl(DeltaUrlToValidate: Text)
     var
         Uri: Codeunit Uri;
@@ -105,6 +117,7 @@ table 7121 "Contact Sync User"
     var
         DeltaUrlTruncatedTelemetryMsg: Label 'Delta URL was truncated for user Original length: %1', Locked = true, Comment = '%1 = original Delta URL length';
         CannotModifyOtherUsersSyncErr: Label 'You can only modify Contact Sync settings for your own user.';
+        CannotChangeRecordOwnerErr: Label 'You cannot change the owner of an existing Contact Sync record.';
         InvalidDeltaUrlErr: Label 'The Delta URL must be an HTTPS Microsoft Graph URL.';
         GraphUrlPrefixLbl: Label 'https://graph.microsoft.com/v1.0/', Locked = true;
 }

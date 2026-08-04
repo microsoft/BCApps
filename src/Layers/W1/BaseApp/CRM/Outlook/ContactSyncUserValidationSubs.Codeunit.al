@@ -13,7 +13,7 @@ codeunit 7100 "Contact Sync UserSubscriber"
     [EventSubscriber(ObjectType::Table, Database::"Contact Sync User", 'OnBeforeModifyEvent', '', false, false)]
     local procedure OnBeforeModifyContactSyncUser(var Rec: Record "Contact Sync User"; var xRec: Record "Contact Sync User"; RunTrigger: Boolean)
     begin
-        Rec.EnforceRecordOwnership();
+        Rec.EnforceRecordOwnershipOnModify(xRec."User ID");
         Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url");
     end;
 }
