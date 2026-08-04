@@ -126,6 +126,25 @@ a new version is published - is already met, because the hook uninstalls every a
 stale copy would be worse than not optimizing at all, so this needs to be confirmed on a real run
 before the feature is enabled anywhere.
 
+### Retained apps must stay synchronized, not just published
+
+The uninstall loop used `-doNotSaveSchema` for every app. That drops the extension's schema and
+leaves it published but **not synchronized**, which is harmless when the app is about to be
+unpublished and fatal when it is retained: publishing any app runs a sync, and BC resolves each
+dependency against a *synchronized* extension. The second CI run failed on exactly that:
+
+```
+App: System Application (29.0.53221.0) - IsInstalled: False - IsPublished: True
+Publishing ...Base Application_29.0.2147483647.78684.app
+Synchronizing Base Application on tenant default
+Cannot synchronize the extension because no synchronized extension could be found
+to satisfy the dependency definition for System Application by Microsoft 29.0.0.0.
+```
+
+So retained apps are now uninstalled *without* `-doNotSaveSchema`; everything else keeps the
+original flags. "Published and synchronized but not installed" is the state this design has
+claimed from the start - it just was not actually being produced.
+
 ## NAV side (implemented)
 
 The NAV enlistment already knows the commit: **BCApps is a git submodule of NAV**

@@ -73,9 +73,23 @@ Set-ArtifactBaselineState -ContainerName $parameters.ContainerName -State @{
 
 # Uninstall every app: the retained ones must end up published-but-not-installed, which is the
 # state AL-Go's publish step leaves apps in and which ImportTestDataInBcContainer.ps1 expects.
+#
+# -doNotSaveSchema drops the extension's schema, which leaves it published but NOT synchronized.
+# That is harmless for apps about to be unpublished, but a retained app has to stay synchronized:
+# publishing any app runs a sync, and BC resolves each dependency against a SYNCHRONIZED
+# extension. Dropping the schema on System Application makes publishing Base Application fail
+# with "no synchronized extension could be found to satisfy the dependency definition".
+$retainedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($app in $appsToKeep) { [void]$retainedNames.Add($app.Name) }
+
 foreach($app in $installedApps) {
     Write-Host "Removing $($app.Name)"
-    UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
+    if ($retainedNames.Contains($app.Name)) {
+        UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -force
+    }
+    else {
+        UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
+    }
 }
 
 # Unpublish the apps AL-Go is going to (re)publish
