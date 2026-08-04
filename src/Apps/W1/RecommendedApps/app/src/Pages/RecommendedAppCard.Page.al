@@ -45,8 +45,8 @@ page 4751 "Recommended App Card"
             field("View on AppSource"; 'Link to AppSource')
             {
                 ApplicationArea = All;
-                ToolTip = 'View app on Microsoft Business Central AppSource';
-                Caption = 'View on AppSource';
+                ToolTip = 'View app on Microsoft AppSource';
+                Caption = 'View on Marketplace';
 
                 trigger OnDrillDown()
                 begin

@@ -223,7 +223,7 @@ page 1817 "CRM Connection Setup Wizard"
                 }
                 group(Control25)
                 {
-                    InstructionalText = 'Use the link below to go to AppSource and get the Field Service Integration app. After you install the app, go to Field Service Integration setup wizard to set up integration.';
+                    InstructionalText = 'Use the link below to go to Marketplace and get the Field Service Integration app. After you install the app, go to Field Service Integration setup wizard to set up integration.';
                     ShowCaption = false;
 
                     field(InstallFieldServiceIntegrationApp; FieldServiceIntegrationAppInstallTxt)
@@ -232,7 +232,7 @@ page 1817 "CRM Connection Setup Wizard"
                         Editable = false;
                         ShowCaption = false;
                         Caption = ' ';
-                        ToolTip = 'Get the Field Service Integration app from Microsoft AppSource.';
+                        ToolTip = 'Get the Field Service Integration app from Microsoft Marketplace.';
 
                         trigger OnDrillDown()
                         var
@@ -636,4 +636,3 @@ page 1817 "CRM Connection Setup Wizard"
         Rec.Validate("Proxy Version", CRMIntegrationManagement.GetLastProxyVersionItem());
     end;
 }
-

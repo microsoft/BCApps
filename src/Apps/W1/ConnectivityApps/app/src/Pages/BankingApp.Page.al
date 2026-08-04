@@ -17,7 +17,7 @@ page 20352 "Banking App"
     DeleteAllowed = false;
     Extensible = false;
     AboutTitle = 'Banking app details';
-    AboutText = 'This page provides details about the app. The description outlines its purpose, and you can visit AppSource to learn more. These apps may have a cost of usage. You will find that information on AppSource or on the app publisher''s web site linked to on this page.';
+    AboutText = 'This page provides details about the app. The description outlines its purpose, and you can visit Marketplace to learn more. These apps may have a cost of usage. You will find that information on Marketplace or on the app publisher''s web site linked to on this page.';
 
     layout
     {
@@ -46,9 +46,9 @@ page 20352 "Banking App"
                 field("AppSourceURL"; AppSourceURLLbl)
                 {
                     ApplicationArea = All;
-                    Caption = 'AppSource URL';
+                    Caption = 'Marketplace URL';
                     ShowCaption = false;
-                    ToolTip = 'Specifies the URL for the app on AppSource.';
+                    ToolTip = 'Specifies the URL for the app on Marketplace.';
 
                     trigger OnDrillDown()
                     begin
@@ -123,6 +123,6 @@ page 20352 "Banking App"
     end;
 
     var
-        AppSourceURLLbl: Label 'View in AppSource';
+        AppSourceURLLbl: Label 'View in Marketplace';
         ProvideSupportURLLbl: Label 'View supported banks';
 }
