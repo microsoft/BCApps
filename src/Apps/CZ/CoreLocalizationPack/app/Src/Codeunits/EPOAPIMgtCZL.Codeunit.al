@@ -55,7 +55,7 @@ codeunit 31175 "EPO API Mgt. CZL"
         RestClient.SetTimeOut(Timeout);
         HttpResponseMessage := RestClient.Post(RequestUri, RequestHttpContent);
         if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
-            Session.LogMessage('', StrSubstNo(EPOAPICallFailedTelemetryTxt, RequestUri, HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetErrorMessage()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+            Session.LogMessage('0000UX4', StrSubstNo(EPOAPICallFailedTelemetryTxt, RequestUri, HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetErrorMessage()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(HttpResponseMessage.GetErrorMessage());
         end;
         ResponseHttpContent := HttpResponseMessage.GetContent();
