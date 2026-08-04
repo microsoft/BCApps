@@ -28,11 +28,21 @@ codeunit 4417 "SOA Item Selector"
     /// <param name="AlternativeItemFilter">Output: Pipe-delimited Item No. values selected as alternative items</param>
     /// <returns>True if matching or alternative items were selected, false if no selection made</returns>
     internal procedure SelectBestMatchingItem(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text): Boolean
+    var
+        DummyMatchingItemVariants: Dictionary of [Text, Text];
+        DummyAlternativeItemVariants: Dictionary of [Text, Text];
+    begin
+        exit(SelectBestMatchingItemWithVariants(SearchQuery, CandidateArray, MatchingItemFilter, AlternativeItemFilter, DummyMatchingItemVariants, DummyAlternativeItemVariants));
+    end;
+
+    internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text]): Boolean
     begin
         MatchingItemFilter := '';
         AlternativeItemFilter := '';
+        Clear(MatchingItemVariants);
+        Clear(AlternativeItemVariants);
 
-        if not TrySelectBestMatchingItem(SearchQuery, CandidateArray, MatchingItemFilter, AlternativeItemFilter) then
+        if not TrySelectBestMatchingItem(SearchQuery, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants) then
             exit(false);
 
         exit((MatchingItemFilter <> '') or (AlternativeItemFilter <> ''));
@@ -40,7 +50,7 @@ codeunit 4417 "SOA Item Selector"
 
     [NonDebuggable]
     [TryFunction]
-    local procedure TrySelectBestMatchingItem(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text)
+    local procedure TrySelectBestMatchingItem(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text])
     var
         ItemSelectorFunc: Codeunit "SOA Item Selector Func";
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -80,7 +90,7 @@ codeunit 4417 "SOA Item Selector"
         // Extract matching and alternative items from function response
         foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do begin
             ItemSelectorFunc.Execute(AOAIFunctionResponse.GetArguments());
-            ItemSelectorFunc.GetSelectionResult(MatchingItems, AlternativeItems);
+            ItemSelectorFunc.GetSelectionResultWithVariants(MatchingItems, AlternativeItems, MatchingItemVariants, AlternativeItemVariants);
             if (MatchingItems <> '') or (AlternativeItems <> '') then
                 exit;
         end;
