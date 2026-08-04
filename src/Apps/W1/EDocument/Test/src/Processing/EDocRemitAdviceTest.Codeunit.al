@@ -17,7 +17,7 @@ using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 139543 "E-Doc. Remit. Advice Test"
+codeunit 139547 "E-Doc. Remit. Advice Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
