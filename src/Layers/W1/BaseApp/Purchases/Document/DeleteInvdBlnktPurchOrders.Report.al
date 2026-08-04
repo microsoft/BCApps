@@ -13,6 +13,7 @@ report 491 "Delete Invd Blnkt Purch Orders"
     AccessByPermission = TableData "Purchase Header" = RD;
     ApplicationArea = Suite;
     Caption = 'Delete Invoiced Blanket Purchase Orders';
+    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several purchase orders were completed by a single invoice.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
