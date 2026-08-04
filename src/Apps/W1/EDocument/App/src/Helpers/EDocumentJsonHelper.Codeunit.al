@@ -76,13 +76,13 @@ codeunit 6121 "EDocument Json Helper"
         if TryAssignToDate(JsonValue, Field) then;
     end;
 
-    internal procedure SetNumberValueInField(FieldName: Text; var FieldsJsonObject: JsonObject; var DecimalValue: Decimal)
+    internal procedure SetNumberValueInField(FieldName: Text; var FieldsJsonObject: JsonObject; var DecimalValue: Decimal): Boolean
     var
         JsonValue: JsonValue;
     begin
         if not TryGetJsonFieldValue(FieldName, FieldsJsonObject, 'value_number', JsonValue) then
-            exit;
-        if TryAssignToDecimal(JsonValue, DecimalValue) then;
+            exit(false);
+        exit(TryAssignToDecimal(JsonValue, DecimalValue));
     end;
 
     internal procedure SetCurrencyValueInField(FieldName: Text; var FieldsJsonObject: JsonObject; var Amount: Decimal; var CurrencyCode: Code[10])
