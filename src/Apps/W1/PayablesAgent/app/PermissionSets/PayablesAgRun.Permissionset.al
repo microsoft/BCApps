@@ -43,8 +43,8 @@ permissionset 3303 "Payables Ag. - Run"
         tabledata "Deferral Line" = IMD,
         tabledata "Dimension Set Entry" = im,
         tabledata "Dimension Set Tree Node" = im,
-    // Missing permissions for vendor creation
-    tabledata "VAT Registration Log" = i, // Validating VAT Registration No. on the vendor card writes an audit entry to the VAT Registration Log
+        // Missing permissions for vendor creation
+        tabledata "VAT Registration Log" = i, // Validating VAT Registration No. on the vendor card writes an audit entry to the VAT Registration Log
     // Change Log
     tabledata "Change Log Entry" = i, // Needed when the customer has Change Log or Monitor Sensitive Fields enabled for tables the agent writes to (e.g. User Environment Login on login)
     // Other
