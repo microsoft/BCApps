@@ -11140,7 +11140,7 @@ table 39 "Purchase Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    local procedure OnBeforeFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
     end;
 

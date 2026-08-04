@@ -11961,7 +11961,7 @@ table 37 "Sales Line"
     /// <param name="FormattedType">The formatted type text.</param>
     /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    local procedure OnBeforeFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
     end;
 

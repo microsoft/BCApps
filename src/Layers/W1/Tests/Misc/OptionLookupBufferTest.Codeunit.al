@@ -18,6 +18,7 @@ codeunit 134645 "Option Lookup Buffer Test"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         InvalidTypeErr: Label 'is not a valid type for this document';
+        LongFormattedTypeTxt: Label 'Formatted Type Longer Than 20';
 
     [Test]
     [Scope('OnPrem')]
@@ -119,6 +120,56 @@ codeunit 134645 "Option Lookup Buffer Test"
         // [WHEN] The purchase line type is formatted
         // [THEN] The complete localized caption is returned
         Assert.AreEqual(ExpectedTypeCaption, PurchaseLine.FormatType(), 'The formatted purchase line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatSalesLineTypeFromSubscriberLongerThan20Characters()
+    var
+        SalesLine: Record "Sales Line";
+        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
+    begin
+        // [SCENARIO] A subscriber can format a sales line type with text longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A subscriber that handles sales line type formatting with text longer than 20 characters
+        BindSubscription(OptionLookupBufferTest);
+        Assert.IsTrue(StrLen(LongFormattedTypeTxt) > 20, 'The test text must be longer than 20 characters.');
+
+        // [WHEN] The sales line type is formatted
+        // [THEN] The complete subscriber-provided text is returned
+        Assert.AreEqual(LongFormattedTypeTxt, SalesLine.FormatType(), 'The subscriber-provided sales line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatPurchaseLineTypeFromSubscriberLongerThan20Characters()
+    var
+        PurchaseLine: Record "Purchase Line";
+        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
+    begin
+        // [SCENARIO] A subscriber can format a purchase line type with text longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A subscriber that handles purchase line type formatting with text longer than 20 characters
+        BindSubscription(OptionLookupBufferTest);
+        Assert.IsTrue(StrLen(LongFormattedTypeTxt) > 20, 'The test text must be longer than 20 characters.');
+
+        // [WHEN] The purchase line type is formatted
+        // [THEN] The complete subscriber-provided text is returned
+        Assert.AreEqual(LongFormattedTypeTxt, PurchaseLine.FormatType(), 'The subscriber-provided purchase line type was truncated.');
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeFormatType', '', false, false)]
+    local procedure OnBeforeSalesLineFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
+    begin
+        FormattedType := LongFormattedTypeTxt;
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeFormatType', '', false, false)]
+    local procedure OnBeforePurchaseLineFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
+    begin
+        FormattedType := LongFormattedTypeTxt;
+        IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Option Lookup Buffer", 'OnBeforeIncludeOption', '', false, false)]
