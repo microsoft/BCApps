@@ -1395,14 +1395,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Order Summary';
                         RunObject = report "Customer - Order Summary";
-                        Tooltip = 'Run the Customer - Order Summary report.';
                     }
                     action("Customer - Order Detail")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Order Detail';
                         RunObject = report "Customer - Order Detail";
-                        Tooltip = 'Run the Customer - Order Detail report.';
                     }
                     action("Customer - Labels")
                     {
@@ -1812,7 +1810,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Trial Balance';
                         RunObject = report "Vendor - Trial Balance";
-                        Tooltip = 'Run the Vendor - Trial Balance report.';
                     }
                     action("Vendor/Item Purchases")
                     {
@@ -2463,7 +2460,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Age Composition - Value';
                         RunObject = report "Item Age Composition - Value";
-                        Tooltip = 'Run the Item Age Composition - Value report.';
                     }
                     action("Item Register - Value")
                     {

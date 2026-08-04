@@ -15,6 +15,7 @@ report 950 "Create Time Sheets"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Create Time Sheets';
+    ToolTip = 'Create new time sheets for resources.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
