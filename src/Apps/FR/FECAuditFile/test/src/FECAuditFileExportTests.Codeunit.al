@@ -2408,6 +2408,69 @@ codeunit 148017 "FEC Audit File Export Tests"
         VerifyFilePartyNoAndName(iStream, Customer."No.", Customer.Name);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PaymentDiscountLineHasVendorInfo()
+    var
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        AuditFile: Record "Audit File";
+        iStream: InStream;
+        StartingDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        DiscountAmount: Decimal;
+        PmtDiscAccountNo: Code[20];
+        LineToRead: Text;
+    begin
+        // [SCENARIO 639574] CompAuxNum and CompAuxLib are informed for purchase Payment Discount lines in the French Audit File
+        Initialize();
+        StartingDate := GetStartingDate();
+
+        // [GIVEN] Vendor whose posting group has a Payment Disc. Credit Acc.
+        LibraryPurchase.CreateVendor(Vendor);
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        if VendorPostingGroup."Payment Disc. Credit Acc." = '' then begin
+            VendorPostingGroup.Validate("Payment Disc. Credit Acc.", LibraryERM.CreateGLAccountNo());
+            VendorPostingGroup.Modify(true);
+        end;
+        PmtDiscAccountNo := VendorPostingGroup."Payment Disc. Credit Acc.";
+
+        // [GIVEN] A posted purchase invoice with a possible payment discount
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Vendor, Vendor."No.", -InvoiceAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Pmt. Discount Date", CalcDate('<1M>', StartingDate));
+        GenJournalLine.Validate("Payment Discount %", LibraryRandom.RandIntInRange(2, 5));
+        GenJournalLine.Modify(true);
+        InvoiceDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        DiscountAmount := VendorLedgerEntry."Original Pmt. Disc. Possible";
+        Assert.IsTrue(DiscountAmount < 0, 'The posted invoice should have a possible payment discount.');
+
+        // [GIVEN] A payment for (invoice amount - discount) applied to the invoice within the discount date, so the discount is granted
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Vendor, Vendor."No.", InvoiceAmount + DiscountAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", "Gen. Journal Document Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Export Audit File in FEC format for the Payment Disc. Credit Acc. only
+        RunFECExport(AuditFile, PmtDiscAccountNo, StartingDate, StartingDate, false);
+
+        // [THEN] The exported Payment Discount line has CompAuxNum = Vendor No. and CompAuxLib = Vendor Name
+        CreateReadStream(iStream, AuditFile);
+        iStream.ReadText(LineToRead); // header
+        VerifyFilePartyNoAndName(iStream, Vendor."No.", Vendor.Name);
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
