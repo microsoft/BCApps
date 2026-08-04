@@ -17,7 +17,7 @@ using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 139541 "E-Doc. Remit. Advice Test"
+codeunit 139543 "E-Doc. Remit. Advice Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -762,6 +762,8 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         CountryRegion: Record "Country/Region";
     begin
         CompanyInformation.Get();
+        if CompanyInformation.Name = '' then
+            CompanyInformation.Name := CopyStr(LibraryRandom.RandText(MaxStrLen(CompanyInformation.Name)), 1, MaxStrLen(CompanyInformation.Name));
         if CompanyInformation."VAT Registration No." = '' then
             CompanyInformation."VAT Registration No." := '123456789';
         if CompanyInformation."Country/Region Code" = '' then begin
