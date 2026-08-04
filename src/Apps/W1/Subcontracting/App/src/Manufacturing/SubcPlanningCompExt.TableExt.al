@@ -9,6 +9,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Warehouse.Structure;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20503 "Subc. Planning Comp Ext." extends "Planning Component"
 {
     AllowInCustomizations = AsReadOnly;
@@ -57,3 +58,4 @@ tableextension 20503 "Subc. Planning Comp Ext." extends "Planning Component"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

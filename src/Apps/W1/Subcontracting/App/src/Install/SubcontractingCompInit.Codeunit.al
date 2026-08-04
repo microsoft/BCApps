@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Setup;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20503 "Subcontracting Comp. Init."
 {
     var
@@ -64,7 +65,8 @@ codeunit 20503 "Subcontracting Comp. Init."
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
-        ReqWkshTemplate.Insert(true);
+        if not ReqWkshTemplate.Insert(true) then
+            ReqWkshTemplate.Modify(true);
         exit(true);
     end;
 
@@ -86,3 +88,4 @@ codeunit 20503 "Subcontracting Comp. Init."
         exit(DefaultCompTransferLeadTimeLbl);
     end;
 }
+#pragma warning restore AS0072, AS0136

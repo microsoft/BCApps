@@ -8,6 +8,7 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20516 "Subc. Req. Wksh. Make Ord."
 {
 #if not CLEAN28
@@ -122,3 +123,4 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
             until ProdOrderComponent.Next() = 0;
     end;
 }
+#pragma warning restore AS0072, AS0136

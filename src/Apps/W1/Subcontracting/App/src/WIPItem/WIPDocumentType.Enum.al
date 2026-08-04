@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+#pragma warning disable AS0072, AS0136
 enum 20509 "WIP Document Type"
 {
     Extensible = true;
@@ -20,3 +21,4 @@ enum 20509 "WIP Document Type"
         Caption = 'Adjustment (Finish Prod Order)';
     }
 }
+#pragma warning restore AS0072, AS0136

@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Item;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20518 "Subc. Item Card" extends "Item Card"
 {
     actions
@@ -25,3 +26,4 @@ pageextension 20518 "Subc. Item Card" extends "Item Card"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
+#pragma warning disable AS0072, AS0136
 page 20560 "Subc. WIP Ledger Entries"
 {
     ApplicationArea = Subcontracting;
@@ -151,3 +152,4 @@ page 20560 "Subc. WIP Ledger Entries"
         WIPAdjustmentEnabled := ProductionOrder.Get(Rec."Prod. Order Status", Rec."Prod. Order No.");
     end;
 }
+#pragma warning restore AS0072, AS0136

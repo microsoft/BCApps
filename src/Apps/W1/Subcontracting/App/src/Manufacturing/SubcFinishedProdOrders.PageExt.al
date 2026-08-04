@@ -8,6 +8,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20543 "Subc. Finished Prod. Orders" extends "Finished Production Orders"
 {
     actions
@@ -62,3 +63,4 @@ pageextension 20543 "Subc. Finished Prod. Orders" extends "Finished Production O
         }
     }
 }
+#pragma warning restore AS0072, AS0136

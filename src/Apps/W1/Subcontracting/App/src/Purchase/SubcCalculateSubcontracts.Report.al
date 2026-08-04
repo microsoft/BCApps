@@ -15,6 +15,7 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0072, AS0136
 report 20505 "Subc. Calculate Subcontracts"
 {
     ApplicationArea = Subcontracting;
@@ -369,3 +370,4 @@ report 20505 "Subc. Calculate Subcontracts"
     begin
     end;
 }
+#pragma warning restore AS0072, AS0136

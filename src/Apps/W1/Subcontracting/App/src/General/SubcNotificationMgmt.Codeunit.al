@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Environment.Configuration;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20506 "Subc. Notification Mgmt."
 {
     var
@@ -115,3 +116,4 @@ codeunit 20506 "Subc. Notification Mgmt."
         exit('{f7b10c9e-071a-4455-a048-d17b29ef764c}');
     end;
 }
+#pragma warning restore AS0072, AS0136

@@ -8,6 +8,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20507 "Subc. Vendor" extends Vendor
 {
     AllowInCustomizations = AsReadOnly;
@@ -73,3 +74,4 @@ tableextension 20507 "Subc. Vendor" extends Vendor
         ShowLocationCardLbl: Label 'Show Location Card';
         BinWarehouseEnabledOnLocationErr: Label 'Location %1 cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.', Comment = '%1 = Location Code';
 }
+#pragma warning restore AS0072, AS0136

@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.RoleCenters;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20535 "Subc. Purchasing Manager RC" extends "Purchasing Manager Role Center"
 {
     actions
@@ -22,3 +23,4 @@ pageextension 20535 "Subc. Purchasing Manager RC" extends "Purchasing Manager Ro
         }
     }
 }
+#pragma warning restore AS0072, AS0136

@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Foundation.Navigate;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20566 "Subc. Posting Preview Subscr."
 {
     var
@@ -70,3 +71,4 @@ codeunit 20566 "Subc. Posting Preview Subscr."
         SubcPostingPreviewHandler.GetTempSubcontractorWIPLedgerEntry(TempSubcontractorWIPLedgerEntry);
     end;
 }
+#pragma warning restore AS0072, AS0136

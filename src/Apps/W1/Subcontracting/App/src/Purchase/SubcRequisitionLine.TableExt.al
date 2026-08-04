@@ -11,6 +11,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Routing;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
 {
     AllowInCustomizations = AsReadOnly;
@@ -189,3 +190,4 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
             SubcPriceManagement.GetSubcPriceForReqLine(Rec, "Subc. UoM for Pricelist");
     end;
 }
+#pragma warning restore AS0072, AS0136

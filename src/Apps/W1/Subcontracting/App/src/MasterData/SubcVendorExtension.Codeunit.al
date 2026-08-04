@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Vendor;
 
+#pragma warning disable AS0072, AS0136
 codeunit 20531 "Subc. Vendor Extension"
 {
     [EventSubscriber(ObjectType::Table, Database::Vendor, OnAfterDeleteEvent, '', false, false)]
@@ -33,3 +34,4 @@ codeunit 20531 "Subc. Vendor Extension"
         SubcontractorPrice.DeletePricesForVendor(Rec."No.");
     end;
 }
+#pragma warning restore AS0072, AS0136

@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.ProductionBOM;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
 {
     AllowInCustomizations = AsReadOnly;
@@ -41,3 +42,4 @@ tableextension 20531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

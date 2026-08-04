@@ -9,6 +9,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.History;
 
+#pragma warning disable AS0072, AS0136
 tableextension 20515 "Subc. Purch. CrMemo Line" extends "Purch. Cr. Memo Line"
 {
     fields
@@ -60,3 +61,4 @@ tableextension 20515 "Subc. Purch. CrMemo Line" extends "Purch. Cr. Memo Line"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Planning;
 
+#pragma warning disable AS0072, AS0136
 pageextension 20511 "Subc. Planning Comp" extends "Planning Components"
 {
     layout
@@ -19,3 +20,4 @@ pageextension 20511 "Subc. Planning Comp" extends "Planning Components"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

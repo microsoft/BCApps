@@ -16,6 +16,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
+#pragma warning disable AS0072, AS0136
 codeunit 20535 "Subc. Purch. Post Ext"
 {
     var
@@ -282,3 +283,4 @@ codeunit 20535 "Subc. Purch. Post Ext"
     end;
 
 }
+#pragma warning restore AS0072, AS0136
