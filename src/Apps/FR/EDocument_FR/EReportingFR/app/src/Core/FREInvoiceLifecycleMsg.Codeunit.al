@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
 codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
@@ -150,19 +151,21 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
     var
         FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
         SpecifiedDocumentStatusElement: XmlElement;
+        CurrencyCode: Code[10];
     begin
         FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
         if not FREInvoiceLifecycleVAT.FindSet() then
             Error(VATBreakdownErr, FREInvoiceLifecycle."Entry No.");
 
+        CurrencyCode := ResolveCurrencyCode(FREInvoiceLifecycle."Currency Code");
         SpecifiedDocumentStatusElement := XmlElement.Create('SpecifiedDocumentStatus', RamNamespaceTok);
         repeat
-            SpecifiedDocumentStatusElement.Add(CreateVATCharacteristic(FREInvoiceLifecycleVAT));
+            SpecifiedDocumentStatusElement.Add(CreateVATCharacteristic(FREInvoiceLifecycleVAT, CurrencyCode));
         until FREInvoiceLifecycleVAT.Next() = 0;
         ReferenceDocumentElement.Add(SpecifiedDocumentStatusElement);
     end;
 
-    local procedure CreateVATCharacteristic(FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT") CharacteristicElement: XmlElement
+    local procedure CreateVATCharacteristic(FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT"; CurrencyCode: Code[10]) CharacteristicElement: XmlElement
     var
         AmountElement: XmlElement;
         ValueChangedElement: XmlElement;
@@ -173,9 +176,21 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         ValueChangedElement.Add(XmlElement.Create('IndicatorString', UdtNamespaceTok, 'false'));
         CharacteristicElement.Add(ValueChangedElement);
         AmountElement := XmlElement.Create('ValueAmount', RamNamespaceTok, Format(FREInvoiceLifecycleVAT."Reported Amount", 0, 9));
-        AmountElement.Add(XmlAttribute.Create('currencyID', FREInvoiceLifecycleVAT."Currency Code"));
+        AmountElement.Add(XmlAttribute.Create('currencyID', CurrencyCode));
         CharacteristicElement.Add(AmountElement);
         CharacteristicElement.Add(XmlElement.Create('ValuePercent', RamNamespaceTok, Format(FREInvoiceLifecycleVAT."VAT %", 0, 9)));
+    end;
+
+    local procedure ResolveCurrencyCode(CurrencyCode: Code[10]): Code[10]
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        if CurrencyCode <> '' then
+            exit(CurrencyCode);
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.TestField("LCY Code");
+        exit(GeneralLedgerSetup."LCY Code");
     end;
 
     local procedure CreateDateTimeString(Value: DateTime) DateTimeStringElement: XmlElement

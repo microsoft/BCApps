@@ -64,8 +64,8 @@ table 10970 "FR E-Invoice Lifecycle"
         {
             Caption = 'Currency Code';
             DataClassification = CustomerContent;
-            TableRelation = Currency.Code;
-            ToolTip = 'Specifies the currency of the reported amount.';
+            TableRelation = Currency;
+            ToolTip = 'Specifies the currency of the reported amount. Blank represents the local currency.';
         }
         field(8; "Event Date"; Date)
         {

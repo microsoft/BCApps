@@ -12,6 +12,52 @@ using Microsoft.Sales.Customer;
 codeunit 10991 "EDoc. Helpers"
 {
     Access = Internal;
+    Permissions = tabledata "E-Document" = m,
+                  tabledata "E-Document Service Status" = m;
+
+    [EventSubscriber(ObjectType::Table, Database::"E-Document", 'OnBeforeModifyEvent', '', false, false)]
+    local procedure SetClearanceDateOnModify(var Rec: Record "E-Document"; var xRec: Record "E-Document"; RunTrigger: Boolean)
+    var
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        EDocumentService: Record "E-Document Service";
+    begin
+        if not GetFrenchEDocumentService(Rec, EDocumentService, EDocumentServiceStatus) then
+            exit;
+
+        case EDocumentServiceStatus.Status of
+            EDocumentServiceStatus.Status::Approved,
+            EDocumentServiceStatus.Status::Cleared:
+                Rec."Clearance Date" := CurrentDateTime();
+            EDocumentServiceStatus.Status::Rejected,
+            EDocumentServiceStatus.Status::"Not Cleared":
+                Rec."Clearance Date" := 0DT;
+        end;
+    end;
+
+    local procedure IsFrenchElectronicDocumentFormat(EDocumentFormat: Enum "E-Document Format"): Boolean
+    begin
+        exit(
+            EDocumentFormat in
+            [EDocumentFormat::"E-Reporting FR", EDocumentFormat::"Peppol BIS 3.0 FR", EDocumentFormat::"Factur-X FR"]);
+    end;
+
+    procedure GetFrenchEDocumentService(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var EDocumentServiceStatus: Record "E-Document Service Status"): Boolean
+    begin
+        EDocumentService.SetLoadFields("Document Format");
+        if (EDocument.Service <> '') and EDocumentService.Get(EDocument.Service) then
+            if IsFrenchElectronicDocumentFormat(EDocumentService."Document Format") then
+                exit(EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code));
+
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        if EDocumentServiceStatus.FindSet() then
+            repeat
+                if EDocumentService.Get(EDocumentServiceStatus."E-Document Service Code") then
+                    if IsFrenchElectronicDocumentFormat(EDocumentService."Document Format") then
+                        exit(true);
+            until EDocumentServiceStatus.Next() = 0;
+
+        exit(false);
+    end;
 
     procedure FindFieldByName(RecRef: RecordRef; FieldName: Text; var FieldRefResult: FieldRef): Boolean
     var

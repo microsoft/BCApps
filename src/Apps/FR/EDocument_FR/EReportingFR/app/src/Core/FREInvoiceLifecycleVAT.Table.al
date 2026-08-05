@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-using Microsoft.Finance.Currency;
-
 table 10971 "FR E-Invoice Lifecycle VAT"
 {
     Caption = 'FR E-Invoice Lifecycle VAT';
@@ -37,18 +35,10 @@ table 10971 "FR E-Invoice Lifecycle VAT"
         }
         field(4; "Reported Amount"; Decimal)
         {
-            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Reported Amount';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the amount reported for this VAT rate.';
-        }
-        field(5; "Currency Code"; Code[10])
-        {
-            Caption = 'Currency Code';
-            DataClassification = CustomerContent;
-            TableRelation = Currency.Code;
-            ToolTip = 'Specifies the currency of the reported VAT amount.';
         }
     }
 

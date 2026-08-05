@@ -57,6 +57,12 @@ page 10970 "FR E-Invoice Lifecycles"
                     ApplicationArea = Basic, Suite;
                 }
             }
+            part(VATBreakdown; "FR E-Invoice Lifecycle VAT")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'VAT Breakdown';
+                SubPageLink = "Lifecycle Entry No." = field("Entry No.");
+            }
         }
     }
 

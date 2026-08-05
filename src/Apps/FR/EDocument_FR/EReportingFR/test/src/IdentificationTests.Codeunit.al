@@ -25,6 +25,7 @@ codeunit 148146 "Identification Tests"
     Permissions = tabledata "Company Information" = rimd,
                   tabledata "E-Document" = rimd,
                   tabledata "E-Document Service" = rimd,
+                  tabledata "E-Document Service Status" = rimd,
                   tabledata "General Ledger Setup" = rimd,
                   tabledata "Sales Invoice Header" = rimd,
                   tabledata "Cust. Ledger Entry" = rimd,
@@ -168,20 +169,20 @@ codeunit 148146 "Identification Tests"
 
         Assert.AreEqual(EDocument."Entry No", FREInvoiceLifecycle."E-Document Entry No.", 'The e-document entry must be retained.');
         Assert.AreEqual(1250, FREInvoiceLifecycle."Reported Amount", 'The reported amount must be retained.');
-        Assert.AreEqual('EUR', FREInvoiceLifecycle."Currency Code", 'The currency code must be retained.');
+        Assert.AreEqual('EUR', FREInvoiceLifecycle."Currency Code", 'A foreign currency code must be retained.');
         Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::Captured, FREInvoiceLifecycle."Processing Status", 'A new occurrence must be captured.');
         Assert.IsTrue(FREInvoiceLifecycle."Created At" <> 0DT, 'The creation timestamp must be populated.');
     end;
 
     [Test]
-    procedure CaptureCollectedOccurrenceUsesLCYForBlankCurrency()
+    procedure CaptureCollectedOccurrenceKeepsBlankCurrencyForLCY()
     var
         EDocument: Record "E-Document";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         GeneralLedgerSetup: Record "General Ledger Setup";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
-        // [SCENARIO] A local-currency payment occurrence stores the configured LCY code
+        // [SCENARIO] A local-currency payment occurrence keeps the Business Central blank currency representation
         GeneralLedgerSetup.Get();
         if GeneralLedgerSetup."LCY Code" = '' then begin
             GeneralLedgerSetup."LCY Code" := 'EUR';
@@ -193,7 +194,7 @@ codeunit 148146 "Identification Tests"
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, '', WorkDate(), 0, 0, 0, 0);
 
-        Assert.AreEqual(GeneralLedgerSetup."LCY Code", FREInvoiceLifecycle."Currency Code", 'A blank ledger currency must resolve to the LCY code.');
+        Assert.AreEqual('', FREInvoiceLifecycle."Currency Code", 'Local currency must remain blank on the lifecycle record.');
     end;
 
     [Test]
@@ -673,7 +674,6 @@ codeunit 148146 "Identification Tests"
             NegativeCollectedLifecycleVAT.Get(NegativeCollectedLifecycle."Entry No.", CollectedLifecycleVAT."Line No.");
             Assert.AreEqual(CollectedLifecycleVAT."VAT %", NegativeCollectedLifecycleVAT."VAT %", 'The reversal must retain each VAT rate.');
             Assert.AreEqual(-CollectedLifecycleVAT."Reported Amount", NegativeCollectedLifecycleVAT."Reported Amount", 'The reversal must exactly negate each VAT-rate amount.');
-            Assert.AreEqual(CollectedLifecycleVAT."Currency Code", NegativeCollectedLifecycleVAT."Currency Code", 'The reversal must retain the currency of each VAT-rate amount.');
         until CollectedLifecycleVAT.Next() = 0;
     end;
 
@@ -682,6 +682,7 @@ codeunit 148146 "Identification Tests"
     var
         EDocument: Record "E-Document";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         TempBlob: Codeunit "Temp Blob";
@@ -695,9 +696,10 @@ codeunit 148146 "Identification Tests"
     begin
         // [SCENARIO] A captured occurrence creates and links a PR 8698 E-Document Message payload
         CreateEDocument(EDocument);
+        CreatePaymentCustLedgerEntry(PaymentCustLedgerEntry, 'EUR');
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
-            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+            1250, 'EUR', WorkDate(), 0, PaymentCustLedgerEntry."Entry No.", 0, 0);
         CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
 
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
@@ -728,14 +730,16 @@ codeunit 148146 "Identification Tests"
     var
         EDocument: Record "E-Document";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         MessageEntryNo: Integer;
     begin
         // [SCENARIO] Retrying message creation does not create or link a second message
         CreateEDocument(EDocument);
+        CreatePaymentCustLedgerEntry(PaymentCustLedgerEntry, 'EUR');
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
-            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+            1250, 'EUR', WorkDate(), 0, PaymentCustLedgerEntry."Entry No.", 0, 0);
         CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
         MessageEntryNo := FREInvoiceLifecycle."E-Document Message Entry No.";
@@ -751,6 +755,7 @@ codeunit 148146 "Identification Tests"
         EDocument: Record "E-Document";
         CollectedLifecycle: Record "FR E-Invoice Lifecycle";
         NegativeCollectedLifecycle: Record "FR E-Invoice Lifecycle";
+        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         TempBlob: Codeunit "Temp Blob";
@@ -761,13 +766,14 @@ codeunit 148146 "Identification Tests"
     begin
         // [SCENARIO] A Negative Collected occurrence uses status 212 with a negative collected amount
         CreateEDocument(EDocument);
+        CreatePaymentCustLedgerEntry(PaymentCustLedgerEntry, 'EUR');
         CollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
-            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+            1250, 'EUR', WorkDate(), 0, PaymentCustLedgerEntry."Entry No.", 0, 0);
         CreateLifecycleVATBreakdown(CollectedLifecycle, 20, 1250);
         NegativeCollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::"Negative Collected", CreateGuid(),
-            -1250, 'EUR', WorkDate() + 1, 0, 0, 0, CollectedLifecycle."Entry No.");
+            -1250, 'EUR', WorkDate() + 1, 0, PaymentCustLedgerEntry."Entry No.", 0, CollectedLifecycle."Entry No.");
         CreateLifecycleVATBreakdown(NegativeCollectedLifecycle, 20, -1250);
 
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(NegativeCollectedLifecycle);
@@ -930,6 +936,7 @@ codeunit 148146 "Identification Tests"
     local procedure CreatePostedInvoiceApplication(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; EDocumentFormat: Enum "E-Document Format")
     var
         EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
         PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
@@ -954,8 +961,13 @@ codeunit 148146 "Identification Tests"
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Service := EDocumentService.Code;
         EDocument."Document Date" := WorkDate();
-        EDocument."Clearance Date" := CurrentDateTime();
         EDocument.Insert();
+
+        EDocumentServiceStatus."E-Document Entry No" := EDocument."Entry No";
+        EDocumentServiceStatus."E-Document Service Code" := EDocument.Service;
+        EDocumentServiceStatus.Status := EDocumentServiceStatus.Status::Approved;
+        EDocumentServiceStatus.Insert();
+        EDocument.Modify(true);
 
         InvoiceCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
         InvoiceCustLedgerEntry."Document Type" := InvoiceCustLedgerEntry."Document Type"::Invoice;
@@ -1051,6 +1063,15 @@ codeunit 148146 "Identification Tests"
         exit(1);
     end;
 
+    local procedure CreatePaymentCustLedgerEntry(var PaymentCustLedgerEntry: Record "Cust. Ledger Entry"; CurrencyCode: Code[10])
+    begin
+        PaymentCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
+        PaymentCustLedgerEntry."Document Type" := PaymentCustLedgerEntry."Document Type"::Payment;
+        PaymentCustLedgerEntry."Document No." := CopyStr(CreateGuid(), 1, MaxStrLen(PaymentCustLedgerEntry."Document No."));
+        PaymentCustLedgerEntry."Currency Code" := CurrencyCode;
+        PaymentCustLedgerEntry.Insert();
+    end;
+
     local procedure GetNextVATEntryNo(): Integer
     var
         VATEntry: Record "VAT Entry";
@@ -1068,7 +1089,6 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleVAT."Line No." := 10000;
         FREInvoiceLifecycleVAT."VAT %" := VATRate;
         FREInvoiceLifecycleVAT."Reported Amount" := ReportedAmount;
-        FREInvoiceLifecycleVAT."Currency Code" := FREInvoiceLifecycle."Currency Code";
         FREInvoiceLifecycleVAT.Insert();
     end;
 

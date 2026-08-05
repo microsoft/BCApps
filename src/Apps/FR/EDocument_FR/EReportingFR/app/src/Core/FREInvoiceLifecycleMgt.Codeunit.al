@@ -88,8 +88,10 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     end;
 
     internal procedure CapturePaymentOccurrence(EDocumentEntryNo: Integer; LifecycleStatus: Enum "FR E-Invoice Lifecycle Status"; SourceOccurrenceID: Guid; ReportedAmount: Decimal; CurrencyCode: Code[10]; EventDate: Date; InvoiceCustLedgerEntryNo: Integer; PaymentCustLedgerEntryNo: Integer; DetailedLedgerEntryNo: Integer; OriginalOccurrenceEntryNo: Integer) FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"
+    var
+        ResolvedCurrencyCode: Code[10];
     begin
-        CurrencyCode := ResolveCurrencyCode(CurrencyCode);
+        ResolvedCurrencyCode := ResolveCurrencyCode(CurrencyCode);
         ValidatePaymentOccurrence(EDocumentEntryNo, LifecycleStatus, SourceOccurrenceID, ReportedAmount, EventDate, OriginalOccurrenceEntryNo);
 
         if FindOccurrence(FREInvoiceLifecycle, EDocumentEntryNo, LifecycleStatus, SourceOccurrenceID) then begin
@@ -116,7 +118,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
 
         if InvoiceCustLedgerEntryNo <> 0 then
             if LifecycleStatus = LifecycleStatus::Collected then
-                CreateVATBreakdown(FREInvoiceLifecycle)
+                CreateVATBreakdown(FREInvoiceLifecycle, ResolvedCurrencyCode)
             else
                 CreateReversalVATBreakdown(FREInvoiceLifecycle, OriginalOccurrenceEntryNo);
     end;
@@ -126,11 +128,13 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         CompanyInformation: Record "Company Information";
         EDocument: Record "E-Document";
         EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        EDocHelpers: Codeunit "EDoc. Helpers";
     begin
         EDocument.Get(FREInvoiceLifecycle."E-Document Entry No.");
         EDocument.TestField("Document Date");
         EDocument.TestField("Clearance Date");
-        EDocumentService.Get(EDocument.Service);
+        EDocHelpers.GetFrenchEDocumentService(EDocument, EDocumentService, EDocumentServiceStatus);
         EDocumentService.TestField("FR Sender Platform ID");
         EDocumentService.TestField("FR Sender Platform Scheme");
         EDocumentService.TestField("FR Sender Platform Name");
@@ -148,7 +152,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         FREInvoiceLifecycle."Invoice Issuer Name" := CompanyInformation.Name;
     end;
 
-    local procedure CreateVATBreakdown(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
+    local procedure CreateVATBreakdown(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"; CurrencyCode: Code[10])
     var
         InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
@@ -165,7 +169,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
             repeat
                 VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
                 VATRate := VATPostingSetup."VAT %";
-                GrossAmount := GetVATEntryGrossAmount(VATEntry, FREInvoiceLifecycle."Currency Code");
+                GrossAmount := GetVATEntryGrossAmount(VATEntry, CurrencyCode);
                 AddVATRateAmount(AmountByVATRate, VATRates, VATRate, GrossAmount);
                 TotalGrossAmount += GrossAmount;
             until VATEntry.Next() = 0;
@@ -173,7 +177,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         if (VATRates.Count() = 0) or (TotalGrossAmount = 0) then
             Error(VATBreakdownErr, InvoiceCustLedgerEntry."Document No.");
 
-        InsertAllocatedVATAmounts(FREInvoiceLifecycle, AmountByVATRate, VATRates, TotalGrossAmount);
+        InsertAllocatedVATAmounts(FREInvoiceLifecycle, AmountByVATRate, VATRates, TotalGrossAmount, CurrencyCode);
     end;
 
     local procedure FindInvoiceVATEntries(var VATEntry: Record "VAT Entry"; InvoiceCustLedgerEntry: Record "Cust. Ledger Entry")
@@ -207,7 +211,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         VATRates.Add(VATRate);
     end;
 
-    local procedure InsertAllocatedVATAmounts(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"; AmountByVATRate: Dictionary of [Decimal, Decimal]; VATRates: List of [Decimal]; TotalGrossAmount: Decimal)
+    local procedure InsertAllocatedVATAmounts(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"; AmountByVATRate: Dictionary of [Decimal, Decimal]; VATRates: List of [Decimal]; TotalGrossAmount: Decimal; CurrencyCode: Code[10])
     var
         Currency: Record Currency;
         FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
@@ -217,7 +221,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         VATRate: Decimal;
         LineNo: Integer;
     begin
-        RoundingPrecision := GetAmountRoundingPrecision(Currency, FREInvoiceLifecycle."Currency Code");
+        RoundingPrecision := GetAmountRoundingPrecision(Currency, CurrencyCode);
         RemainingAmount := FREInvoiceLifecycle."Reported Amount";
         LineNo := 0;
         foreach VATRate in VATRates do begin
@@ -229,7 +233,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
                 RemainingAmount -= AllocatedAmount;
             end;
 
-            InsertVATBreakdown(FREInvoiceLifecycleVAT, FREInvoiceLifecycle."Entry No.", LineNo, VATRate, AllocatedAmount, FREInvoiceLifecycle."Currency Code");
+            InsertVATBreakdown(FREInvoiceLifecycleVAT, FREInvoiceLifecycle."Entry No.", LineNo, VATRate, AllocatedAmount);
         end;
     end;
 
@@ -258,18 +262,17 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         repeat
             InsertVATBreakdown(
                 ReversalLifecycleVAT, FREInvoiceLifecycle."Entry No.", OriginalLifecycleVAT."Line No.", OriginalLifecycleVAT."VAT %",
-                -OriginalLifecycleVAT."Reported Amount", OriginalLifecycleVAT."Currency Code");
+                -OriginalLifecycleVAT."Reported Amount");
         until OriginalLifecycleVAT.Next() = 0;
     end;
 
-    local procedure InsertVATBreakdown(var FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT"; LifecycleEntryNo: Integer; LineNo: Integer; VATRate: Decimal; ReportedAmount: Decimal; CurrencyCode: Code[10])
+    local procedure InsertVATBreakdown(var FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT"; LifecycleEntryNo: Integer; LineNo: Integer; VATRate: Decimal; ReportedAmount: Decimal)
     begin
         FREInvoiceLifecycleVAT.Init();
         FREInvoiceLifecycleVAT."Lifecycle Entry No." := LifecycleEntryNo;
         FREInvoiceLifecycleVAT."Line No." := LineNo;
         FREInvoiceLifecycleVAT."VAT %" := VATRate;
         FREInvoiceLifecycleVAT."Reported Amount" := ReportedAmount;
-        FREInvoiceLifecycleVAT."Currency Code" := CurrencyCode;
         FREInvoiceLifecycleVAT.Insert();
     end;
 
@@ -394,8 +397,12 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     local procedure IsFREInvoiceEDocument(EDocument: Record "E-Document"): Boolean
     var
         EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        EDocHelpers: Codeunit "EDoc. Helpers";
     begin
-        exit(EDocumentService.Get(EDocument.Service) and IsFREInvoiceFormat(EDocumentService."Document Format"));
+        exit(
+            EDocHelpers.GetFrenchEDocumentService(EDocument, EDocumentService, EDocumentServiceStatus) and
+            IsFREInvoiceFormat(EDocumentService."Document Format"));
     end;
 
     local procedure IsFREInvoiceFormat(EDocumentFormat: Enum "E-Document Format"): Boolean
