@@ -478,12 +478,12 @@ page 5530 "Item Availability by Event"
         EnableShowDocumentAction: Boolean;
 
     protected var
-        IncludePlanningSuggestions: Boolean;
         TempInvtPageData: Record "Inventory Page Data" temporary;
         ItemNo: Code[20];
         LocationFilter: Text;
         VariantFilter: Text;
         PeriodType: Option Day,Week,Month,Quarter,Year;
+        IncludePlanningSuggestions: Boolean;
 
     protected procedure InitAndCalculatePeriodEntries()
     begin
