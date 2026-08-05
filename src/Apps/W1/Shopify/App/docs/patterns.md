@@ -29,14 +29,16 @@ Queries are stored as `.graphql` resource files under `.resources/graphql/{Area}
 
 The `ShpfyGraphQLQueries.Codeunit.al` dispatcher receives a `"Shpfy GraphQL Type"` enum value and a `Dictionary of [Text, Text]` of parameters, loads the query via `NavApp.GetResourceAsText()`, substitutes parameters into the query string, and returns the final query along with the expected cost.
 
-The `"Shpfy GraphQL Type"` enum is `Extensible = false` and uses `{Area}_{QueryName}` naming for its values (e.g., `Products_GetProductById`, `Customers_NextCustomerIds`). There are 143 resource files covering all query types.
+The `"Shpfy GraphQL Type"` enum is `Extensible = false` and uses `{Area}_{QueryName}` naming for its values (e.g., `Products_GetProductById`, `Customers_NextCustomerIds`). There are 149 resource files covering all query types, including market-driven shipping method queries and exchange-line queries for orders and refunds.
+
+*Updated: 2026-07-29 -- GraphQL resource count and new query families updated*
 
 Adding a new query requires two steps:
 
 1. Create a `.graphql` file in the appropriate `.resources/graphql/{Area}/` folder
 2. Add a corresponding enum value to `"Shpfy GraphQL Type"`
 
-The `ShpfyCommunicationMgt.Codeunit.al` is the single entry point for all API calls. Its `ExecuteGraphQL()` overloads accept either a `"Shpfy GraphQL Type"` (type-safe) or a raw query string (for ad-hoc queries). Before executing, it calls `WaitForRequestAvailable()` on the rate limiter with the expected cost. This layer and the rate limiter are unchanged.
+The `ShpfyCommunicationMgt.Codeunit.al` is the single entry point for all API calls. Its `ExecuteGraphQL()` overloads accept either a `"Shpfy GraphQL Type"` (type-safe) or a raw query string (for ad-hoc queries). Before executing, it calls `WaitForRequestAvailable()` on the rate limiter with the expected cost. The communication entry point remains the central place for these calls; rate-limit behavior is described below.
 
 The old `IGraphQL` interface pattern (where each query was a codeunit implementing `GetGraphQL()` and `GetExpectedCost()`) was removed in this refactoring. 14 obsolete stub codeunits remain with `ObsoleteState = Pending; ObsoleteTag = '29.0'` for backward compatibility and will be cleaned up in the CLEAN29 cycle.
 
@@ -68,9 +70,11 @@ After each API call, `SetQueryCost()` reads the `restoreRate` and `currentlyAvai
 WaitTime := (Max(ExpectedCost - LastAvailable, 0) / RestoreRate * 1000) - (CurrentDateTime - LastRequestedOn)
 ```
 
-This formula accounts for the time elapsed since the last request (during which budget has been restoring at `RestoreRate` points per second). If `RestoreRate` is zero (no data yet), it defaults to 50 -- Shopify's standard restore rate.
+This formula accounts for the time elapsed since the last request (during which budget has been restoring at `RestoreRate` points per second). If `RestoreRate` is zero (no data yet), it defaults to 50 -- Shopify's standard restore rate. The calculated duration is now scheduled from `CurrentDateTime`, not from `LastRequestedOn`, so elapsed time is not subtracted twice and the connector does not wake up too early under sustained throttling.
 
-The `GoToSleep()` method uses AL's `Sleep()` function with a TryFunction wrapper. If the calculated sleep time causes an error (e.g., negative duration), it falls back to a 100ms sleep.
+The `GoToSleep()` method uses AL's `Sleep()` function with a TryFunction wrapper. The 100ms fallback is reserved for unexpected sleep failures; normal "no wait needed" cases return without sleeping.
+
+*Updated: 2026-07-29 -- Rate limiter now waits from the current time after elapsed-time adjustment*
 
 The API version is hardcoded as `'2026-07'` in `ShpfyCommunicationMgt.Codeunit.al`. The connector validates the API version expiry date and shows warnings/errors when it is approaching or has passed expiry, pulling the date from Azure Key Vault.
 
@@ -107,7 +111,11 @@ The flow is:
 
 The `IBulkOperation` interface requires `RevertFailedRequests()` and `RevertAllRequests()` methods because the bulk operation is async -- by the time results arrive, the original transaction is long committed. If the bulk operation fails entirely, all changes must be reverted. If it partially succeeds, only the failed entries are reverted.
 
-The `ShpfyBulkOperation.Table.al` tracks the state of each bulk operation: type, status (Created, Running, Completed, Failed), shop code, and the request/response data.
+The `ShpfyBulkOperation.Table.al` tracks the state of each bulk operation: type, status (Created, Running, Completed, Failed), shop code, and the request/response data. Price updates store the prior variant state as request data so failed lines can be reverted later. When the Shop logging mode is All, the table also stores the exact JSONL sent to Shopify, and the Bulk Operations page exposes it as a download.
+
+Bulk price update failures are treated as skipped records, not silent reversions. `RevertFailedRequests()` parses Shopify's JSONL result, identifies the successful variant IDs, reverts the rest, and logs the Shopify user error against the linked BC item variant or item where possible.
+
+*Updated: 2026-07-29 -- Bulk price sync now records sent JSONL and logs failed lines as skipped records*
 
 ## Shop-scoped multi-tenancy
 

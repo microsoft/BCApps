@@ -103,6 +103,7 @@ table 25 "Vendor Ledger Entry"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Vendor Ledg. Entry".Amount where("Vendor Ledger Entry No." = field("Entry No."),
                                                                           "Posting Date" = field("Date Filter"),
+                                                                          "Excluded from calculation" = const(false),
                                                                           "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Remaining Amount';
             ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
@@ -127,6 +128,7 @@ table 25 "Vendor Ledger Entry"
             AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor Ledger Entry No." = field("Entry No."),
                                                                                   "Posting Date" = field("Date Filter"),
+                                                                                  "Excluded from calculation" = const(false),
                                                                                   "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Remaining Amt. (LCY)';
             Editable = false;
@@ -918,8 +920,6 @@ table 25 "Vendor Ledger Entry"
     var
 #pragma warning disable AA0470
         MustHaveSameSignErr: Label 'must have the same sign as %1';
-#pragma warning restore AA0470
-#pragma warning disable AA0470
         MustNotBeLargerErr: Label 'must not be larger than %1';
 #pragma warning restore AA0470
 #pragma warning disable AA0074

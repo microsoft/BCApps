@@ -146,6 +146,12 @@ page 99000754 "Work Center Card"
                     ApplicationArea = Planning;
                     Importance = Promoted;
                 }
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Avail. Until")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                    StyleExpr = CalendarHorizonStyleTxt;
+                }
                 field("Calendar Rounding Precision"; Rec."Calendar Rounding Precision")
                 {
                     ApplicationArea = Manufacturing;
@@ -337,7 +343,6 @@ page 99000754 "Work Center Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
-                ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';
             }
         }
         area(Promoted)
@@ -385,6 +390,14 @@ page 99000754 "Work Center Card"
         UpdateEnabled();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Calendar Entries Avail. Until");
+        CalendarHorizonStyleTxt := '';
+        if (Rec."Calendar Entries Avail. Until" <> 0D) and (Rec."Calendar Entries Avail. Until" < WorkDate()) then
+            CalendarHorizonStyleTxt := 'Unfavorable';
+    end;
+
     trigger OnInit()
     begin
         FromProductionBinCodeEnable := true;
@@ -401,6 +414,7 @@ page 99000754 "Work Center Card"
         OpenShopFloorBinCodeEnable: Boolean;
         ToProductionBinCodeEnable: Boolean;
         FromProductionBinCodeEnable: Boolean;
+        CalendarHorizonStyleTxt: Text;
 
     local procedure UpdateEnabled()
     var

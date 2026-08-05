@@ -10,6 +10,7 @@ using Microsoft.CostAccounting.Setup;
 report 1134 "Copy Cost Budget"
 {
     Caption = 'Copy Cost Budget';
+    ToolTip = 'Copy cost budget amounts within a budget or from budget to budget. You can copy a budget several times and enter a factor to increase or reduce the budget amounts.';
     ProcessingOnly = true;
 
     dataset
