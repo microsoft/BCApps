@@ -9,7 +9,7 @@ codeunit 134284 "Non Ded. VAT Misc."
     end;
 
     var
-        LibraryERM: Codeunit "Library - ESetCopyLineDescrToGLEntry RM";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryJob: Codeunit "Library - Job";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryFA: Codeunit "Library - Fixed Asset";
