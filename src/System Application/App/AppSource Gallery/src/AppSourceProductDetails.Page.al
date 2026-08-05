@@ -179,7 +179,6 @@ page 2516 "AppSource Product Details"
                 trigger OnAction()
                 var
                     ExtensionInstallationPage: Page "Extension Installation";
-                    TempExtensionInstallationRecord: Record "Extension Installation";
                     PublisherType: Text;
                 begin
                     if PlansAreVisible then
@@ -187,11 +186,10 @@ page 2516 "AppSource Product Details"
                             exit;
 
                     PublisherType := AppSourceJsonUtilities.GetStringValue(ProductObject, 'publisherType');
-                    TempExtensionInstallationRecord.SetRange(ID, AppID);
-                    TempExtensionInstallationRecord.ID := AppID;
-                    TempExtensionInstallationRecord.ResponseUrl := '';
-                    TempExtensionInstallationRecord.PublisherType := PublisherType;
-                    ExtensionInstallationPage.SetRecord(TempExtensionInstallationRecord);
+                    ExtensionInstallationPage.SetAppID(AppID);
+                    ExtensionInstallationPage.SetPreviewKey('');
+                    ExtensionInstallationPage.SetPublisherType(PublisherType);
+                    ExtensionInstallationPage.SetResponseUrl('');
                     ExtensionInstallationPage.RunModal();
                 end;
             }

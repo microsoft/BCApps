@@ -28,57 +28,38 @@ page 2503 "Extension Installation"
         ExtensionMarketplace: Codeunit "Extension Marketplace";
         MarketplaceExtnDeployment: Page "Marketplace Extn Deployment";
     begin
-        GetDetailsFromFilters();
-
         MarketplaceExtnDeployment.SetAppID(Rec.ID);
         MarketplaceExtnDeployment.SetPreviewKey(Rec.PreviewKey);
         MarketplaceExtnDeployment.SetPublisherType(Rec.PublisherType);
         MarketplaceExtnDeployment.RunModal();
         if MarketplaceExtnDeployment.GetInstalledSelected() then
             if not IsNullGuid(Rec.ID) then begin
-                ExtensionMarketplace.InstallMarketplaceExtension(
+                ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(
                     Rec.ID,
                     Rec.ResponseUrl,
-                    MarketplaceExtnDeployment.GetLanguageId(),
-                    Rec.PreviewKey);
+                    Rec.PublisherType);
                 MarketplaceExtnDeployment.Close();
             end;
         CurrPage.Close();
     end;
 
-    local procedure GetDetailsFromFilters()
-    var
-        RecordRef: RecordRef;
-        i: Integer;
+    procedure SetAppID(AppID: Guid)
     begin
-        RecordRef.GetTable(Rec);
-        for i := 1 to RecordRef.FieldCount() do
-            ParseFilter(RecordRef.FieldIndex(i));
-        RecordRef.SetTable(Rec);
+        Rec.ID := AppID;
     end;
 
-    local procedure ParseFilter(FieldRef: FieldRef)
-    var
-        FilterPrefixDotNet_Regex: DotNet Regex;
-        SingleQuoteDotNet_Regex: DotNet Regex;
-        EscapedEqualityDotNet_Regex: DotNet Regex;
-        "Filter": Text;
+    procedure SetPreviewKey(PreviewKey: Text[2048])
     begin
-        Filter := FieldRef.GetFilter();
-        if (Filter = '') then
-            exit;
+        Rec.PreviewKey := PreviewKey;
+    end;
 
-        FilterPrefixDotNet_Regex := FilterPrefixDotNet_Regex.Regex('^@\*([^\\]+)\*$');
-        SingleQuoteDotNet_Regex := SingleQuoteDotNet_Regex.Regex('^''([^\\]+)''$');
-        EscapedEqualityDotNet_Regex := EscapedEqualityDotNet_Regex.Regex('~');
+    procedure SetPublisherType(PublisherType: Text)
+    begin
+        Rec.PublisherType := PublisherType;
+    end;
 
-        Filter := FilterPrefixDotNet_Regex.Replace(Filter, '$1');
-        Filter := SingleQuoteDotNet_Regex.Replace(Filter, '$1');
-        Filter := EscapedEqualityDotNet_Regex.Replace(Filter, '=');
-
-        if Filter <> '' then
-            FieldRef.Value(Filter);
+    procedure SetResponseUrl(ResponseUrl: Text)
+    begin
+        Rec.ResponseUrl := ResponseUrl;
     end;
 }
-
-
