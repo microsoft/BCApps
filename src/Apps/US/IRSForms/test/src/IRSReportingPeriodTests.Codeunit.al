@@ -13,8 +13,12 @@ codeunit 148016 "IRS Reporting Period Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
+        LibraryIRSReportingPeriod: Codeunit "Library IRS Reporting Period";
+        LibraryIRS1099FormBox: Codeunit "Library IRS 1099 Form Box";
+        LibraryRandom: Codeunit "Library - Random";
         IsInitialized: Boolean;
         StartingEndingDateOverlapErr: Label 'The starting date and ending date overlap with an existing reporting period.';
+        AmountShouldBeResetErr: Label 'Amount should be reset to 0';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -190,6 +194,54 @@ codeunit 148016 "IRS Reporting Period Tests"
         Assert.RecordIsNotEmpty(IRS1099Form);
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('CopySetupMessageHandler')]
+    procedure VendorFormBoxAdjustmentAmountIsResetWhenCopyingSetup()
+    var
+        IRS1099VendorFormBoxAdj: Record "IRS 1099 Vendor Form Box Adj.";
+        FromPeriodNo: Code[20];
+        ToPeriodNo: Code[20];
+        FormNo: Code[20];
+        FormBoxNo: Code[20];
+        VendorNo: Code[20];
+        Amount: Decimal;
+        FromStartDate: Date;
+        FromEndDate: Date;
+        ToStartDate: Date;
+        ToEndDate: Date;
+    begin
+        // [SCENARIO 623874] When copying reporting period setup with vendor form box adjustments, the Amount field is reset to 0 in the target period
+        Initialize();
+
+        // [GIVEN] Reporting period for current year with vendor form box adjustment "V" for form "MISC" box "01" with Amount = 1000
+        FromStartDate := CalcDate('<-CY>', WorkDate());
+        FromEndDate := CalcDate('<CY>', WorkDate());
+        FromPeriodNo := LibraryIRSReportingPeriod.CreateReportingPeriod(FromStartDate, FromEndDate);
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(FromStartDate, FromEndDate);
+        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(FromStartDate, FromEndDate, FormNo);
+        VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(FromStartDate, FromEndDate, FormNo, FormBoxNo);
+        Amount := LibraryRandom.RandDec(1000, 2);
+        LibraryIRS1099FormBox.AddAdjustmentAmountForVendor(FromStartDate, FromEndDate, VendorNo, FormNo, FormBoxNo, Amount);
+
+        // [GIVEN] Reporting period for next year exists
+        ToStartDate := CalcDate('<1Y>', FromStartDate);
+        ToEndDate := CalcDate('<1Y>', FromEndDate);
+        ToPeriodNo := LibraryIRSReportingPeriod.CreateReportingPeriod(ToStartDate, ToEndDate);
+
+        // [WHEN] Copy setup from current year to next year
+        LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
+
+        // [THEN] Vendor form box adjustment is copied to next year with Amount = 0
+        IRS1099VendorFormBoxAdj.SetRange("Period No.", ToPeriodNo);
+        IRS1099VendorFormBoxAdj.SetRange("Vendor No.", VendorNo);
+        IRS1099VendorFormBoxAdj.SetRange("Form No.", FormNo);
+        IRS1099VendorFormBoxAdj.SetRange("Form Box No.", FormBoxNo);
+        Assert.RecordIsNotEmpty(IRS1099VendorFormBoxAdj);
+        IRS1099VendorFormBoxAdj.FindFirst();
+        Assert.AreEqual(0, IRS1099VendorFormBoxAdj.Amount, AmountShouldBeResetErr);
+    end;
+
     trigger OnRun()
     begin
         // [FEATURE] [1099]
@@ -204,6 +256,12 @@ codeunit 148016 "IRS Reporting Period Tests"
 
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"IRS Reporting Period Tests");
+    end;
+
+    [MessageHandler]
+    procedure CopySetupMessageHandler(Message: Text[1024])
+    begin
+        // Handle the setup copied message
     end;
 
 }
