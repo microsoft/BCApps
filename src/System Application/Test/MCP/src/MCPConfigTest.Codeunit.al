@@ -491,7 +491,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestAllowBoundActions()
+    procedure TestAllowActions()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         ToolId: Guid;
@@ -499,8 +499,8 @@ codeunit 130130 "MCP Config Test"
         // [GIVEN] Configuration tool is created
         ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true, false));
 
-        // [WHEN] Allow Bound Actions is set to true
-        MCPConfig.AllowBoundActions(ToolId, true);
+        // [WHEN] Allow Actions is set to true
+        MCPConfig.AllowActions(ToolId, true);
 
         // [THEN] Allow Bound Actions is true
         MCPConfigurationTool.GetBySystemId(ToolId);
@@ -619,7 +619,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfig.AllowCreate(ToolId, true);
         MCPConfig.AllowModify(ToolId, true);
         MCPConfig.AllowDelete(ToolId, true);
-        MCPConfig.AllowBoundActions(ToolId, true);
+        MCPConfig.AllowActions(ToolId, true);
 
         // [WHEN] Disable create, update and delete tools is called
         MCPConfig.AllowCreateUpdateDeleteTools(ConfigId, false);
@@ -734,7 +734,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestQueryToolDoesNotAllowBoundActions()
+    procedure TestQueryToolDoesNotAllowActions()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         ConfigId: Guid;
@@ -745,12 +745,112 @@ codeunit 130130 "MCP Config Test"
         ToolId := CreateMCPQueryConfigTool(ConfigId);
         Commit();
 
-        // [WHEN] AllowBoundActions is called on a query tool
-        MCPConfig.AllowBoundActions(ToolId, true);
+        // [WHEN] AllowActions is called on a query tool
+        MCPConfig.AllowActions(ToolId, true);
 
         // [THEN] Allow Bound Actions remains false (not applicable for query tools)
         MCPConfigurationTool.GetBySystemId(ToolId);
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions should remain false for query tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolDoesNotAllowRead()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowRead is called on a codeunit tool
+        MCPConfig.AllowRead(ToolId, true);
+
+        // [THEN] Allow Read remains false (not applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Read", 'Allow Read should remain false for codeunit tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolDoesNotAllowCreate()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowCreate is called on a codeunit tool
+        MCPConfig.AllowCreate(ToolId, true);
+
+        // [THEN] Allow Create remains false (not applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Create", 'Allow Create should remain false for codeunit tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolDoesNotAllowModify()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowModify is called on a codeunit tool
+        MCPConfig.AllowModify(ToolId, true);
+
+        // [THEN] Allow Modify remains false (not applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Modify", 'Allow Modify should remain false for codeunit tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolDoesNotAllowDelete()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowDelete is called on a codeunit tool
+        MCPConfig.AllowDelete(ToolId, true);
+
+        // [THEN] Allow Delete remains false (not applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Delete", 'Allow Delete should remain false for codeunit tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolAllowsActions()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowActions is called on a codeunit tool
+        MCPConfig.AllowActions(ToolId, true);
+
+        // [THEN] Allow Bound Actions is true (applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsTrue(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions should be true for codeunit tools');
     end;
 
     #endregion
@@ -1521,6 +1621,22 @@ codeunit 130130 "MCP Config Test"
         MCPConfigurationTool."Object Id" := Any.IntegerInRange(1, 100);
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Query;
         MCPConfigurationTool."Allow Read" := true;
+        MCPConfigurationTool."Allow Create" := false;
+        MCPConfigurationTool."Allow Modify" := false;
+        MCPConfigurationTool."Allow Delete" := false;
+        MCPConfigurationTool."Allow Bound Actions" := false;
+        MCPConfigurationTool.Insert();
+        exit(MCPConfigurationTool.SystemId);
+    end;
+
+    local procedure CreateMCPCodeunitConfigTool(ConfigId: Guid): Guid
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        MCPConfigurationTool.ID := ConfigId;
+        MCPConfigurationTool."Object Id" := Any.IntegerInRange(1, 100);
+        MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Codeunit;
+        MCPConfigurationTool."Allow Read" := false;
         MCPConfigurationTool."Allow Create" := false;
         MCPConfigurationTool."Allow Modify" := false;
         MCPConfigurationTool."Allow Delete" := false;

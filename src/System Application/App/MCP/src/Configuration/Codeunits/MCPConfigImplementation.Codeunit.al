@@ -27,8 +27,10 @@ codeunit 8351 "MCP Config Implementation"
         ToolsCannotBeAddedToDefaultConfigErr: Label 'Tools cannot be added to the default configuration.';
         PageNotFoundErr: Label 'Page not found.';
         QueryNotFoundErr: Label 'Query not found.';
+        CodeunitNotFoundErr: Label 'Codeunit not found.';
         InvalidPageTypeErr: Label 'Only API pages are supported.';
         InvalidQueryTypeErr: Label 'Only API queries are supported.';
+        InvalidCodeunitTypeErr: Label 'Only API codeunits are supported.';
         InvalidAPIVersionErr: Label 'Only API v2.0 objects are supported.';
         APIToolNotSupportedErr: Label 'This API page is not available for MCP configuration.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
@@ -533,6 +535,29 @@ codeunit 8351 "MCP Config Implementation"
         exit(MCPConfigurationTool.SystemId);
     end;
 
+    internal procedure CreateAPICodeunitTool(ConfigId: Guid; CodeunitAPIId: Integer): Guid
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        CodeunitMetadata: Record "CodeUnit Metadata";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+
+        if IsDefaultConfiguration(MCPConfiguration) then
+            Error(ToolsCannotBeAddedToDefaultConfigErr);
+
+        CodeunitMetadata := ValidateAPICodeunitTool(CodeunitAPIId);
+
+        MCPConfigurationTool.ID := ConfigId;
+        MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Codeunit;
+        MCPConfigurationTool."Object ID" := CodeunitAPIId;
+        MCPConfigurationTool."Allow Bound Actions" := true;
+        MCPConfigurationTool."API Version" := GetHighestAPICodeunitVersion(CodeunitMetadata);
+        MCPConfigurationTool.Insert();
+        exit(MCPConfigurationTool.SystemId);
+    end;
+
     internal procedure DeleteTool(ToolId: Guid)
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
@@ -550,6 +575,9 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
+        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Codeunit then
+            exit; // Read is not applicable for codeunit tools
+
         MCPConfigurationTool."Allow Read" := Allow;
         MCPConfigurationTool.Modify();
     end;
@@ -561,8 +589,8 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
-        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Query then
-            exit; // Create is not applicable for query tools
+        if MCPConfigurationTool."Object Type" in [MCPConfigurationTool."Object Type"::Query, MCPConfigurationTool."Object Type"::Codeunit] then
+            exit; // Create is not applicable for query or codeunit tools
 
         if Allow then
             CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
@@ -578,8 +606,8 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
-        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Query then
-            exit; // Modify is not applicable for query tools
+        if MCPConfigurationTool."Object Type" in [MCPConfigurationTool."Object Type"::Query, MCPConfigurationTool."Object Type"::Codeunit] then
+            exit; // Modify is not applicable for query or codeunit tools
 
         if Allow then
             CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
@@ -595,8 +623,8 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
-        if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Query then
-            exit; // Delete is not applicable for query tools
+        if MCPConfigurationTool."Object Type" in [MCPConfigurationTool."Object Type"::Query, MCPConfigurationTool."Object Type"::Codeunit] then
+            exit; // Delete is not applicable for query or codeunit tools
 
         if Allow then
             CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
@@ -605,7 +633,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool.Modify();
     end;
 
-    internal procedure AllowBoundActions(ToolId: Guid; Allow: Boolean)
+    internal procedure AllowActions(ToolId: Guid; Allow: Boolean)
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
@@ -613,7 +641,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if MCPConfigurationTool."Object Type" = MCPConfigurationTool."Object Type"::Query then
-            exit; // Bound actions is not applicable for query tools
+            exit; // Actions are not applicable for query tools
 
         if Allow then
             CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
@@ -644,6 +672,7 @@ codeunit 8351 "MCP Config Implementation"
     var
         PageMetadata: Record "Page Metadata";
         QueryMetadata: Record "Query Metadata";
+        CodeunitMetadata: Record "CodeUnit Metadata";
     begin
         MCPAPIObjectBuffer.Reset();
         MCPAPIObjectBuffer.DeleteAll();
@@ -681,12 +710,37 @@ codeunit 8351 "MCP Config Implementation"
                 MCPAPIObjectBuffer."API Version" := CopyStr(QueryMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
                 if MCPAPIObjectBuffer.Insert() then;
             until QueryMetadata.Next() = 0;
+
+        // API codeunits
+        // TODO(AB#641822): interim — match API codeunits by namespace until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
+        CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
+        // CodeunitMetadata.SetFilter(EntityName, '<>%1', '');
+
+        if CodeunitMetadata.FindSet() then
+            repeat
+                MCPAPIObjectBuffer.Init();
+                MCPAPIObjectBuffer."Object Type" := MCPAPIObjectBuffer."Object Type"::Codeunit;
+                MCPAPIObjectBuffer."Object ID" := CodeunitMetadata.ID;
+                MCPAPIObjectBuffer.Name := CopyStr(CodeunitMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
+
+                // TODO(AB#641822): interim fixed values until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
+                MCPAPIObjectBuffer."Entity Name" := CopyStr(CodeunitMetadata.Name.Replace(' ', ''), 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
+                MCPAPIObjectBuffer."API Publisher" := 'microsoft';
+                MCPAPIObjectBuffer."API Group" := 'codeunits';
+                MCPAPIObjectBuffer."API Version" := 'beta';
+                // MCPAPIObjectBuffer."Entity Name" := CopyStr(CodeunitMetadata.EntityName, 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
+                // MCPAPIObjectBuffer."API Publisher" := CopyStr(CodeunitMetadata.APIPublisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
+                // MCPAPIObjectBuffer."API Group" := CopyStr(CodeunitMetadata.APIGroup, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
+                // MCPAPIObjectBuffer."API Version" := CopyStr(CodeunitMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
+                if MCPAPIObjectBuffer.Insert() then;
+            until CodeunitMetadata.Next() = 0;
     end;
 
     internal procedure GetAPIPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
     begin
         GetAPIPagePublishers(MCPAPIPublisherGroup);
         GetAPIQueryPublishers(MCPAPIPublisherGroup);
+        GetAPICodeunitPublishers(MCPAPIPublisherGroup);
     end;
 
     local procedure GetAPIPagePublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
@@ -730,6 +784,31 @@ codeunit 8351 "MCP Config Implementation"
             MCPAPIPublisherGroup."API Group" := QueryMetadata.APIGroup;
             MCPAPIPublisherGroup.Insert();
         until QueryMetadata.Next() = 0;
+    end;
+
+    local procedure GetAPICodeunitPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
+    var
+        CodeunitMetadata: Record "CodeUnit Metadata";
+    begin
+        // TODO(AB#641822): interim — all API codeunits are under microsoft/codeunits until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
+        CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
+        if CodeunitMetadata.IsEmpty() then
+            exit;
+        MCPAPIPublisherGroup."API Publisher" := 'microsoft';
+        MCPAPIPublisherGroup."API Group" := 'codeunits';
+        MCPAPIPublisherGroup.Insert();
+        // CodeunitMetadata.SetLoadFields(EntityName, APIPublisher, APIGroup);
+        // CodeunitMetadata.SetFilter(EntityName, '<>%1', '');
+        // CodeunitMetadata.SetFilter(APIPublisher, '<>%1', '');
+        // if not CodeunitMetadata.FindSet() then
+        //     exit;
+        // repeat
+        //     if MCPAPIPublisherGroup.Get(CodeunitMetadata.APIPublisher, CodeunitMetadata.APIGroup) then
+        //         continue;
+        //     MCPAPIPublisherGroup."API Publisher" := CodeunitMetadata.APIPublisher;
+        //     MCPAPIPublisherGroup."API Group" := CodeunitMetadata.APIGroup;
+        //     MCPAPIPublisherGroup.Insert();
+        // until CodeunitMetadata.Next() = 0;
     end;
 
     internal procedure LookupAPIPublisher(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; var APIPublisher: Text; var APIGroup: Text)
@@ -812,6 +891,22 @@ codeunit 8351 "MCP Config Implementation"
         exit(QueryMetadata);
     end;
 
+    internal procedure ValidateAPICodeunitTool(CodeunitId: Integer): Record "CodeUnit Metadata"
+    var
+        CodeunitMetadata: Record "CodeUnit Metadata";
+    begin
+        if not CodeunitMetadata.Get(CodeunitId) then
+            Error(CodeunitNotFoundErr);
+
+        // TODO(AB#641822): interim — validate by namespace until "CodeUnit Metadata" exposes EntityName. Restore the commented code below when it ships.
+        if CodeunitMetadata."AL Namespace" <> 'Microsoft.API.Codeunits' then
+            Error(InvalidCodeunitTypeErr);
+        // if CodeunitMetadata.EntityName = '' then
+        //     Error(InvalidCodeunitTypeErr);
+
+        exit(CodeunitMetadata);
+    end;
+
     internal procedure AddToolsByAPIGroup(ConfigId: Guid)
     var
         MCPToolsByAPIGroup: Page "MCP Tools By API Group";
@@ -830,6 +925,7 @@ codeunit 8351 "MCP Config Implementation"
 
         AddAPIPageTools(ConfigId, APIPublisher, APIGroup);
         AddAPIQueryTools(ConfigId, APIPublisher, APIGroup);
+        AddAPICodeunitTools(ConfigId, APIPublisher, APIGroup);
     end;
 
     local procedure AddAPIPageTools(ConfigId: Guid; APIPublisher: Text; APIGroup: Text)
@@ -871,10 +967,35 @@ codeunit 8351 "MCP Config Implementation"
         until QueryMetadata.Next() = 0;
     end;
 
+    local procedure AddAPICodeunitTools(ConfigId: Guid; APIPublisher: Text; APIGroup: Text)
+    var
+        CodeunitMetadata: Record "CodeUnit Metadata";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        // TODO(AB#641822): interim — only the microsoft/codeunits group exists; match by namespace until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
+        if (APIPublisher <> 'microsoft') or (APIGroup <> 'codeunits') then
+            exit;
+        CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
+        // CodeunitMetadata.SetFilter(EntityName, '<>%1', '');
+        // CodeunitMetadata.SetFilter(APIPublisher, APIPublisher);
+        // CodeunitMetadata.SetFilter(APIGroup, APIGroup);
+        // CodeunitMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+
+        if not CodeunitMetadata.FindSet() then
+            exit;
+
+        repeat
+            if CheckAPIToolExists(ConfigId, CodeunitMetadata.ID, MCPConfigurationTool."Object Type"::Codeunit) then
+                continue;
+            CreateAPICodeunitTool(ConfigId, CodeunitMetadata.ID);
+        until CodeunitMetadata.Next() = 0;
+    end;
+
     internal procedure AddStandardAPITools(ConfigId: Guid)
     var
         PageMetadata: Record "Page Metadata";
         QueryMetadata: Record "Query Metadata";
+        // CodeunitMetadata: Record "CodeUnit Metadata";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
@@ -898,6 +1019,18 @@ codeunit 8351 "MCP Config Implementation"
                     continue;
                 CreateAPIQueryTool(ConfigId, QueryMetadata.ID);
             until QueryMetadata.Next() = 0;
+
+        // TODO(AB#641822): standard API codeunits are intentionally NOT added here in the first version. Once "CodeUnit Metadata" exposes the API fields, decide whether "Add all standard APIs" should include them and restore the commented code below.
+        // CodeunitMetadata.SetFilter(EntityName, '<>%1', '');
+        // CodeunitMetadata.SetFilter(APIPublisher, '=%1', '');
+        // CodeunitMetadata.SetFilter(APIGroup, '=%1', '');
+        // CodeunitMetadata.SetRange(APIVersion, 'v2.0');
+        // if CodeunitMetadata.FindSet() then
+        //     repeat
+        //         if CheckAPIToolExists(ConfigId, CodeunitMetadata.ID, MCPConfigurationTool."Object Type"::Codeunit) then
+        //             continue;
+        //         CreateAPICodeunitTool(ConfigId, CodeunitMetadata.ID);
+        //     until CodeunitMetadata.Next() = 0;
     end;
 
     internal procedure CheckAPIToolExists(ConfigId: Guid; ObjectId: Integer; ObjectType: Option): Boolean
@@ -924,6 +1057,8 @@ codeunit 8351 "MCP Config Implementation"
                 ObjectType := ObjectType::Page;
             MCPConfigurationTool."Object Type"::Query:
                 ObjectType := ObjectType::Query;
+            MCPConfigurationTool."Object Type"::Codeunit:
+                ObjectType := ObjectType::Codeunit;
         end;
 
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
@@ -955,6 +1090,22 @@ codeunit 8351 "MCP Config Implementation"
         Versions := QueryMetadata.APIVersion.Split(',');
         if not Versions.Contains(APIVersion) then
             Error(VersionNotValidErr);
+    end;
+
+    internal procedure ValidateAPICodeunitVersion(ObjectId: Integer; APIVersion: Text)
+    var
+        CodeunitMetadata: Record "CodeUnit Metadata";
+        // Versions: List of [Text];
+    begin
+        if not CodeunitMetadata.Get(ObjectId) then
+            exit;
+
+        // TODO(AB#641822): interim — API codeunits are always 'beta' until "CodeUnit Metadata" exposes APIVersion. Restore the commented code below when it ships.
+        if APIVersion <> 'beta' then
+            Error(VersionNotValidErr);
+        // Versions := CodeunitMetadata.APIVersion.Split(',');
+        // if not Versions.Contains(APIVersion) then
+        //     Error(VersionNotValidErr);
     end;
 
     internal procedure LookupAPIPageVersions(PageId: Integer; var APIVersion: Text[30])
@@ -997,6 +1148,29 @@ codeunit 8351 "MCP Config Implementation"
             APIVersion := TempMCPAPIVersion."API Version";
     end;
 
+    internal procedure LookupAPICodeunitVersions(CodeunitId: Integer; var APIVersion: Text[30])
+    var
+        CodeunitMetadata: Record "CodeUnit Metadata";
+        TempMCPAPIVersion: Record "MCP API Version";
+        // Versions: List of [Text];
+        // Version: Text[30];
+    begin
+        if not CodeunitMetadata.Get(CodeunitId) then
+            exit;
+
+        // TODO(AB#641822): interim — API codeunits expose only 'beta' until "CodeUnit Metadata" exposes APIVersion. Restore the commented code below when it ships.
+        TempMCPAPIVersion."API Version" := 'beta';
+        TempMCPAPIVersion.Insert();
+        // Versions := CodeunitMetadata.APIVersion.Split(',');
+        // foreach Version in Versions do begin
+        //     TempMCPAPIVersion."API Version" := Version;
+        //     TempMCPAPIVersion.Insert();
+        // end;
+
+        if Page.RunModal(Page::"MCP API Version Lookup", TempMCPAPIVersion) = Action::LookupOK then
+            APIVersion := TempMCPAPIVersion."API Version";
+    end;
+
     internal procedure GetHighestAPIPageVersion(PageMetadata: Record "Page Metadata"): Text[30]
     begin
         if PageMetadata.APIVersion = '' then
@@ -1011,6 +1185,15 @@ codeunit 8351 "MCP Config Implementation"
             exit('');
 
         exit(GetHighestVersion(QueryMetadata.APIVersion.Split(',')));
+    end;
+
+    internal procedure GetHighestAPICodeunitVersion(CodeunitMetadata: Record "CodeUnit Metadata"): Text[30]
+    begin
+        // TODO(AB#641822): interim — API codeunits are always 'beta' until "CodeUnit Metadata" exposes APIVersion. Restore the commented code below when it ships.
+        exit('beta');
+        // if CodeunitMetadata.APIVersion = '' then
+        //     exit('');
+        // exit(GetHighestVersion(CodeunitMetadata.APIVersion.Split(',')));
     end;
 
     local procedure GetHighestVersion(Versions: List of [Text]): Text[30]
@@ -1374,6 +1557,8 @@ codeunit 8351 "MCP Config Implementation"
                 MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
             if ObjectTypeText = 'Query' then
                 MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Query;
+            if ObjectTypeText = 'Codeunit' then
+                MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Codeunit;
         end;
 
         if ToolJson.Contains('objectId') then
