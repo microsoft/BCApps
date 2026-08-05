@@ -120,26 +120,6 @@
     "method": "AssignedProjectsBlockedWhenProjectFieldsDisabledViaAPI"
   },
   {
-    "codeunitId": 148302,
-    "codeunitName": "Expense Report Posting Test",
-    "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsExpenseDate"
-  },
-  {
-    "codeunitId": 148302,
-    "codeunitName": "Expense Report Posting Test",
-    "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsPostingDate"
-  },
-  {
-    "codeunitId": 148302,
-    "codeunitName": "Expense Report Posting Test",
-    "method": "ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsPostingDateWithMultipleFCYLinesAndEmployeePaid"
-  },
-  {
-    "codeunitId": 148302,
-    "codeunitName": "Expense Report Posting Test",
-    "method": "ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsExpenseDateWithMultipleFCYLinesAndEmployeePaid"
-  },
-  {
     "codeunitId": 148305,
     "codeunitName": "Expense Test",
     "method": "DescriptionMustBeFlowFromExpenseToExpenseItemization"
