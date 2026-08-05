@@ -66,6 +66,7 @@ codeunit 5814 "Undo Return Shipment Line"
         Text004: Label 'This shipment has already been invoiced. Undo Return Shipment can be applied only to posted, but not invoiced shipments.';
 #pragma warning restore AA0074
         AlreadyReversedErr: Label 'This return shipment has already been reversed.';
+        NoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
 
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
@@ -82,11 +83,13 @@ codeunit 5814 "Undo Return Shipment Line"
         PostedWhseShptLineFound: Boolean;
     begin
         OnBeforeCode(ReturnShptLine, UndoPostingMgt);
+
         Clear(ItemJnlPostLine);
         ReturnShptLine.SetFilter(Quantity, '<>0');
         ReturnShptLine.SetRange(Correction, false);
         if ReturnShptLine.IsEmpty() then
-            Error(AlreadyReversedErr);
+            Error(NoLinesToReverseErr);
+
         ReturnShptLine.FindFirst();
         repeat
             if not HideDialog then

@@ -33,7 +33,7 @@ codeunit 137288 "SCM Inventory Costing III"
         UndoShipmentInvoicedErr: Label 'This shipment has already been invoiced. Undo %1 can be applied only to posted, but not invoiced shipments.';
         UndoShipmentMessage: Label 'Do you really want to undo the selected Shipment lines?';
         ShipmentAlreadyReversedErr: Label 'There are no lines with quantity to reverse.';
-        ReturnShipmentAlreadyReversedErr: Label 'This return shipment has already been reversed.';
+        ReturnShipmentNoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
 
     [Test]
     [HandlerFunctions('ItemTrackingLinesPageHandler,EnterQuantityToCreatePageHandler,ConfirmHandler,PostedItemTrackingLinesHandler')]
@@ -407,7 +407,7 @@ codeunit 137288 "SCM Inventory Costing III"
         asserterror UndoReturnShipment(PurchaseLine);
 
         // Verify: Verify error after undo Invoiced Return Shipment.
-        Assert.ExpectedError(ReturnShipmentAlreadyReversedErr);
+        Assert.ExpectedError(ReturnShipmentNoLinesToReverseErr);
     end;
 
     [Test]

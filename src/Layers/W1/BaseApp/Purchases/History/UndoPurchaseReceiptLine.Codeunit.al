@@ -69,7 +69,7 @@ codeunit 5813 "Undo Purchase Receipt Line"
         Text003: Label 'Checking lines...';
         Text004: Label 'This receipt has already been invoiced. Undo Receipt can be applied only to posted, but not invoiced receipts.';
 #pragma warning restore AA0074
-        NoLinesForCorrectionErr: Label 'There is no lines with quantity to process.';
+        NoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
         AlreadyReversedErr: Label 'This receipt has already been reversed.';
 
     procedure SetHideDialog(NewHideDialog: Boolean)
@@ -172,7 +172,7 @@ codeunit 5813 "Undo Purchase Receipt Line"
         PurchRcptLine.SetRange(Correction, false);
         OnCheckPurchRcptLinesAfterPurchRcptLineSetFilters(PurchRcptLine);
         if PurchRcptLine.IsEmpty() then
-            Error(NoLinesForCorrectionErr);
+            Error(NoLinesToReverseErr);
 
         PurchRcptLine.FindFirst();
         repeat
