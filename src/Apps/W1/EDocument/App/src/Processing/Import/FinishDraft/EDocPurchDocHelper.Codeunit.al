@@ -64,6 +64,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Shortcut Dimension 1 Code"), EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code");
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Shortcut Dimension 2 Code"), EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
         EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
+        PurchaseLine."Created From Draft E-Doc" := true;
         PurchaseLine.Insert();
         EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
     end;
@@ -201,6 +202,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
     procedure RevertCreatedDocument(EDocument: Record "E-Document")
     var
         PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
         DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
     begin
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
@@ -211,7 +213,14 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
 
         Clear(PurchaseHeader."E-Document Link");
+        PurchaseHeader."Created From Draft E-Doc" := false;
         PurchaseHeader.Modify();
+
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("Created From Draft E-Doc", true);
+        if not PurchaseLine.IsEmpty() then
+            PurchaseLine.ModifyAll("Created From Draft E-Doc", false);
     end;
 
     procedure ApplyDefaultPostingDateFromSetup(var PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")

@@ -178,6 +178,216 @@ codeunit 6103 "E-Document Subscribers"
 
     #endregion
 
+    #region Created purchase invoice user edits
+
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Invoice", OnAfterValidateEvent, "Buy-from Vendor No.", false, false)]
+    local procedure OnAfterValidatePurchInvBuyFromVendorNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
+    begin
+        if Rec."Buy-from Vendor No." = xRec."Buy-from Vendor No." then
+            exit;
+        LogPurchaseHeaderAfterValidate(Rec, 'Buy-from Vendor No.');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Invoice", OnAfterValidateEvent, "Pay-to Name", false, false)]
+    local procedure OnAfterValidatePurchInvPayToVendorNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
+    begin
+        // The purchase invoice page has no "Pay-to Vendor No." control; the vendor is changed through "Pay-to Name".
+        if Rec."Pay-to Vendor No." = xRec."Pay-to Vendor No." then
+            exit;
+        LogPurchaseHeaderAfterValidate(Rec, 'Pay-to Vendor No.');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Invoice", OnAfterValidateEvent, "Vendor Invoice No.", false, false)]
+    local procedure OnAfterValidatePurchInvVendorInvoiceNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
+    begin
+        if Rec."Vendor Invoice No." = xRec."Vendor Invoice No." then
+            exit;
+        LogPurchaseHeaderAfterValidate(Rec, 'Vendor Invoice No.');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Invoice", OnAfterValidateEvent, "Currency Code", false, false)]
+    local procedure OnAfterValidatePurchInvCurrencyCode(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
+    begin
+        if Rec."Currency Code" = xRec."Currency Code" then
+            exit;
+        LogPurchaseHeaderAfterValidate(Rec, 'Currency Code');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Invoice", OnAfterValidateEvent, "Posting Date", false, false)]
+    local procedure OnAfterValidatePurchInvPostingDate(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
+    begin
+        if Rec."Posting Date" = xRec."Posting Date" then
+            exit;
+        LogPurchaseHeaderAfterValidate(Rec, 'Posting Date');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Invoice", OnAfterValidateEvent, "Due Date", false, false)]
+    local procedure OnAfterValidatePurchInvDueDate(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
+    begin
+        if Rec."Due Date" = xRec."Due Date" then
+            exit;
+        LogPurchaseHeaderAfterValidate(Rec, 'Due Date');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, Type, false, false)]
+    local procedure OnAfterValidatePurchInvLineType(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec.Type = xRec.Type then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Line Type');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "No.", false, false)]
+    local procedure OnAfterValidatePurchInvLineNo(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."No." = xRec."No." then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'No.');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "Item Reference No.", false, false)]
+    local procedure OnAfterValidatePurchInvLineItemReferenceNo(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."Item Reference No." = xRec."Item Reference No." then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Item Reference No.');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "Unit of Measure Code", false, false)]
+    local procedure OnAfterValidatePurchInvLineUnitOfMeasure(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."Unit of Measure Code" = xRec."Unit of Measure Code" then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Unit Of Measure');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "Variant Code", false, false)]
+    local procedure OnAfterValidatePurchInvLineVariantCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."Variant Code" = xRec."Variant Code" then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Variant Code');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, Quantity, false, false)]
+    local procedure OnAfterValidatePurchInvLineQuantity(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec.Quantity = xRec.Quantity then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Quantity');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "Direct Unit Cost", false, false)]
+    local procedure OnAfterValidatePurchInvLineDirectUnitCost(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."Direct Unit Cost" = xRec."Direct Unit Cost" then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Direct Unit Cost');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "Line Discount Amount", false, false)]
+    local procedure OnAfterValidatePurchInvLineTotalDiscount(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."Line Discount Amount" = xRec."Line Discount Amount" then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Total Discount');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "Deferral Code", false, false)]
+    local procedure OnAfterValidatePurchInvLineDeferralCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."Deferral Code" = xRec."Deferral Code" then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Deferral Code');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "Shortcut Dimension 1 Code", false, false)]
+    local procedure OnAfterValidatePurchInvLineShortcutDim1(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."Shortcut Dimension 1 Code" = xRec."Shortcut Dimension 1 Code" then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Shortcut Dimension 1 Code');
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", OnAfterValidateEvent, "Shortcut Dimension 2 Code", false, false)]
+    local procedure OnAfterValidatePurchInvLineShortcutDim2(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
+    begin
+        if Rec."Shortcut Dimension 2 Code" = xRec."Shortcut Dimension 2 Code" then
+            exit;
+        LogPurchaseLineAfterValidate(Rec, 'Shortcut Dimension 2 Code');
+    end;
+
+    /// <summary>
+    /// Copying a document transfers all fields from the source document, which would otherwise make the copy
+    /// look like it was created from an e-document draft. We clear the traces on the copy.
+    /// </summary>
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", 'OnAfterCopyPurchaseDocument', '', false, false)]
+    local procedure OnAfterCopyPurchaseDocumentClearEDocumentTraces(FromDocumentType: Option; FromDocumentNo: Code[20]; var ToPurchaseHeader: Record "Purchase Header"; FromDocOccurenceNo: Integer; FromDocVersionNo: Integer; IncludeHeader: Boolean)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // Without the header, the target document keeps its own identity and any flags on it are still valid.
+        if not IncludeHeader then
+            exit;
+        if IsNullGuid(ToPurchaseHeader."E-Document Link") and (not ToPurchaseHeader."Created From Draft E-Doc") then
+            exit;
+
+        Clear(ToPurchaseHeader."E-Document Link");
+        ToPurchaseHeader."Created From Draft E-Doc" := false;
+        ToPurchaseHeader.Modify();
+
+        PurchaseLine.SetRange("Document Type", ToPurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", ToPurchaseHeader."No.");
+        PurchaseLine.SetRange("Created From Draft E-Doc", true);
+        if not PurchaseLine.IsEmpty() then
+            PurchaseLine.ModifyAll("Created From Draft E-Doc", false);
+    end;
+
+    local procedure LogPurchaseHeaderAfterValidate(PurchaseHeader: Record "Purchase Header"; FieldName: Text)
+    var
+        NullGuid: Guid;
+    begin
+        if not PurchaseHeader."Created From Draft E-Doc" then
+            exit;
+        LogPurchaseDocFieldValidation(PurchaseHeader."E-Document Link", NullGuid, FieldName);
+    end;
+
+    local procedure LogPurchaseLineAfterValidate(PurchaseLine: Record "Purchase Line"; FieldName: Text)
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+        EDocument: Record "E-Document";
+    begin
+        if not PurchaseLine."Created From Draft E-Doc" then
+            exit;
+
+        // The link back to the draft line is authoritative; a line without one (a copied line, or a receipt
+        // comment line) has no draft counterpart to correlate against.
+        EDocRecordLink.ReadIsolation(IsolationLevel::ReadUncommitted);
+        EDocRecordLink.SetLoadFields("E-Document Entry No.", "Source SystemId");
+        EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
+        EDocRecordLink.SetRange("Target SystemId", PurchaseLine.SystemId);
+        EDocRecordLink.SetRange("Source Table No.", Database::"E-Document Purchase Line");
+        if not EDocRecordLink.FindFirst() then
+            exit;
+
+        EDocument.SetLoadFields("Entry No");
+        EDocument.ReadIsolation(IsolationLevel::ReadUncommitted);
+        if not EDocument.Get(EDocRecordLink."E-Document Entry No.") then
+            exit;
+
+        LogPurchaseDocFieldValidation(EDocument.SystemId, EDocRecordLink."Source SystemId", FieldName);
+    end;
+
+    local procedure LogPurchaseDocFieldValidation(EDocumentSystemId: Guid; DraftLineSystemId: Guid; FieldName: Text)
+    var
+        PurchaseDocChangeTok: Label 'Purchase Document Field Validation', Locked = true;
+        PurchaseInvoiceStageTok: Label 'Purchase Invoice', Locked = true;
+    begin
+        LogFieldValidation('', PurchaseDocChangeTok, PurchaseInvoiceStageTok, EDocumentSystemId, DraftLineSystemId, FieldName);
+    end;
+
+    #endregion
+
     #region Release events
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Sales Document", 'OnBeforeReleaseSalesDoc', '', false, false)]
     local procedure OnBeforeReleaseSalesDoc(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; var IsHandled: Boolean; SkipCheckReleaseRestrictions: Boolean)
@@ -773,20 +983,31 @@ codeunit 6103 "E-Document Subscribers"
     local procedure LogAfterValidate(EDocumentEntryNo: Integer; LineSystemId: Guid; FieldName: Text)
     var
         EDocument: Record "E-Document";
-        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-        Telemetry: Codeunit Telemetry;
-        TelemetryDimensions: Dictionary of [Text, Text];
         DraftChangeTok: Label 'Draft Field Validation', Locked = true;
+        DraftStageTok: Label 'Draft', Locked = true;
     begin
         EDocument.SetLoadFields("Entry No");
         EDocument.ReadIsolation(IsolationLevel::ReadUncommitted);
         if not EDocument.Get(EDocumentEntryNo) then
             exit;
+        LogFieldValidation('0000PYF', DraftChangeTok, DraftStageTok, EDocument.SystemId, LineSystemId, FieldName);
+    end;
+
+    local procedure LogFieldValidation(EventId: Text; EventMessage: Text; Stage: Text; EDocumentSystemId: Guid; LineSystemId: Guid; FieldName: Text)
+    var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        Telemetry: Codeunit Telemetry;
+        TelemetryDimensions: Dictionary of [Text, Text];
+        StageTok: Label 'Stage', Locked = true;
+    begin
+        if IsNullGuid(EDocumentSystemId) then
+            exit;
         TelemetryDimensions.Add('Field', FieldName);
-        TelemetryDimensions.Add(EDocImpSessionTelemetry.GetEDocSystemIdTok(), EDocImpSessionTelemetry.CreateSystemIdText(EDocument.SystemId));
+        TelemetryDimensions.Add(StageTok, Stage);
+        TelemetryDimensions.Add(EDocImpSessionTelemetry.GetEDocSystemIdTok(), EDocImpSessionTelemetry.CreateSystemIdText(EDocumentSystemId));
         if not IsNullGuid(LineSystemId) then
             TelemetryDimensions.Add(EDocImpSessionTelemetry.GetEDocLineSystemIdTok(), EDocImpSessionTelemetry.CreateSystemIdText(LineSystemId));
-        Telemetry.LogMessage('0000PYF', DraftChangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+        Telemetry.LogMessage(EventId, EventMessage, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
     [IntegrationEvent(false, false)]

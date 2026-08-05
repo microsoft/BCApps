@@ -132,6 +132,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";
         if EDocumentPurchaseHeader."Posting Description" <> '' then
             PurchaseHeader."Posting Description" := EDocumentPurchaseHeader."Posting Description";
+        PurchaseHeader."Created From Draft E-Doc" := true;
         PurchaseHeader.Modify();
 
         // Validate of currency has to happen after insert.
@@ -169,6 +170,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
                 PurchaseLine."Line No." := PurchaseLineNo;
                 PurchaseLine.Type := PurchaseLine.Type::" ";
                 PurchaseLine.Description := StrSubstNo(ReceiptNoLbl, EDocLineByReceipt.ReceiptNo);
+                PurchaseLine."Created From Draft E-Doc" := true;
                 PurchaseLine.Insert();
             end;
             EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
