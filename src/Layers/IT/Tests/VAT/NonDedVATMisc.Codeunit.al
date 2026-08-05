@@ -9,7 +9,7 @@ codeunit 134284 "Non Ded. VAT Misc."
     end;
 
     var
-        LibraryERM: Codeunit "Library - ERM";
+        LibraryERM: Codeunit "Library - ESetCopyLineDescrToGLEntry RM";
         LibraryJob: Codeunit "Library - Job";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryFA: Codeunit "Library - Fixed Asset";
@@ -1560,15 +1560,6 @@ codeunit 134284 "Non Ded. VAT Misc."
         VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
         AssignDeductibleVATPct(VATPostingSetup, DeductiblePct);
         VATPostingSetup.Modify(true);
-    end;
-
-    local procedure SetCopyLineDescrToGLEntry(NewValue: Boolean)
-    var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-    begin
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Copy Line Descr. to G/L Entry", NewValue);
-        PurchasesPayablesSetup.Modify(true);
     end;
 
     local procedure Create7DimensionValues(var DimensionValue: array[7] of Record "Dimension Value")

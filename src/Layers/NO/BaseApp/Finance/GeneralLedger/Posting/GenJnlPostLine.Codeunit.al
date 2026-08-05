@@ -8209,8 +8209,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DeferralPostingBuffer."Amount (LCY)" := DeferralHeader."Amount to Defer (LCY)";
         DeferralPostingBuffer.Amount := DeferralHeader."Amount to Defer";
         InsertDeferralNonDeductibleVATGLEntries(
-           NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate,
-           PositiveVATAmountRounding, NegativeVATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding);
+            NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate,
+            PositiveVATAmountRounding, NegativeVATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding);
         PositiveVATAmountRounding := 0;
         NegativeVATAmountRounding := 0;
         PositiveNDVATAmountRounding := 0;
@@ -8735,6 +8735,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end else
             exit(GetVendorPayablesAccount(GenJournalLine, VendPostingGr));
     end;
+
     local procedure PostFAGLPostingBuffer(GenJnlLine: Record "Gen. Journal Line"; TempFAGLPostingBuffer: Record "FA G/L Posting Buffer"; var GLBalanceAmount: Decimal; var IsLastDepreciationEntry: Boolean)
     var
         GLEntry: Record "G/L Entry";

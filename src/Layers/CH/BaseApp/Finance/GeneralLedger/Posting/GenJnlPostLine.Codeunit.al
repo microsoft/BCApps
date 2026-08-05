@@ -8162,8 +8162,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DeferralPostingBuffer."Amount (LCY)" := DeferralHeader."Amount to Defer (LCY)";
         DeferralPostingBuffer.Amount := DeferralHeader."Amount to Defer";
         InsertDeferralNonDeductibleVATGLEntries(
-           NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate,
-           PositiveVATAmountRounding, NegativeVATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding);
+            NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate,
+            PositiveVATAmountRounding, NegativeVATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding);
         PositiveVATAmountRounding := 0;
         NegativeVATAmountRounding := 0;
         PositiveNDVATAmountRounding := 0;
