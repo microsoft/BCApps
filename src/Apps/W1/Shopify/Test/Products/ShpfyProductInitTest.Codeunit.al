@@ -275,38 +275,45 @@ codeunit 139603 "Shpfy Product Init Test"
         PriceListHeader.Modify();
     end;
 
-    internal procedure CreateDatedAllCustDiscPriceList(ItemNo: Code[20]; DiscUpToBoundary: Decimal; DiscFromBoundary: Decimal; BoundaryDate: Date)
+    internal procedure CreateDatedAllCustPriceList(ItemNo: Code[20]; PriceUpToBoundary: Decimal; PriceFromBoundary: Decimal; BoundaryDate: Date)
     var
         PriceListHeader: Record "Price List Header";
         PriceListLine: Record "Price List Line";
     begin
+        // Two dated "All Customers" price lines make the resolved price depend solely on the Work Date, which is what the caller varies.
+        // Price lines (Amount Type = Price) set the sales line Unit Price directly, so the result does not rely on the item card price
+        // surviving a discount-on-top-of-list-price path (that path resolves to 0 for an item that only has "All Customers" discount lines).
         LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceListHeader."Price Type"::Sale, PriceListHeader."Source Type"::"All Customers", '');
         // Allow each line to carry its own date range; otherwise the line dates must match the (empty) header dates.
         PriceListHeader.Validate("Allow Updating Defaults", true);
         PriceListHeader.Modify(true);
 
-        // Discount that applies up to and including the boundary date.
+        // Price that applies up to and including the boundary date.
         PriceListLine.Init();
         PriceListLine.Validate("Price List Code", PriceListHeader.Code);
         PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
         PriceListLine.Validate("Asset No.", ItemNo);
         PriceListLine.Validate("Price Type", PriceListLine."Price Type"::Sale);
-        PriceListLine.Validate("Amount Type", PriceListLine."Amount Type"::Discount);
+        PriceListLine.Validate("Amount Type", PriceListLine."Amount Type"::Price);
         PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"All Customers");
         PriceListLine.Validate("Ending Date", BoundaryDate);
-        PriceListLine.Validate("Line Discount %", DiscUpToBoundary);
+        PriceListLine.Validate("Unit Price", PriceUpToBoundary);
+        PriceListLine.SetNextLineNo();
+        PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Insert(true);
 
-        // Discount that applies from the day after the boundary date onwards.
+        // Price that applies from the day after the boundary date onwards.
         PriceListLine.Init();
         PriceListLine.Validate("Price List Code", PriceListHeader.Code);
         PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
         PriceListLine.Validate("Asset No.", ItemNo);
         PriceListLine.Validate("Price Type", PriceListLine."Price Type"::Sale);
-        PriceListLine.Validate("Amount Type", PriceListLine."Amount Type"::Discount);
+        PriceListLine.Validate("Amount Type", PriceListLine."Amount Type"::Price);
         PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"All Customers");
         PriceListLine.Validate("Starting Date", BoundaryDate + 1);
-        PriceListLine.Validate("Line Discount %", DiscFromBoundary);
+        PriceListLine.Validate("Unit Price", PriceFromBoundary);
+        PriceListLine.SetNextLineNo();
+        PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Insert(true);
 
         PriceListHeader.Validate(Status, PriceListHeader.Status::Active);

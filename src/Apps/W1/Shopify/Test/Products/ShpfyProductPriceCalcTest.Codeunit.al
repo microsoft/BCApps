@@ -163,6 +163,8 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         InitPrice: Decimal;
         DiscUpToBoundary: Decimal;
         DiscFromBoundary: Decimal;
+        ExpectedPriceUpToBoundary: Decimal;
+        ExpectedPriceFromBoundary: Decimal;
         UnitCost: Decimal;
         PriceBeforeBoundary: Decimal;
         PriceFromBoundary: Decimal;
@@ -171,7 +173,7 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         BoundaryDate: Date;
     begin
         // [SCENARIO] Bug 642194: changing the Work Date mid-session must recalculate prices even though the Shop record has not been modified.
-        // [SCENARIO] The price calculation codeunit is SingleInstance and caches a temp Sales Header with Document Date = WorkDate(). A stale cache must not keep applying the previous Work Date's discount.
+        // [SCENARIO] The price calculation codeunit is SingleInstance and caches a temp Sales Header with Document Date = WorkDate(). A stale cache must not keep applying the previous Work Date's price.
 
         // [INIT] Initialization startup data.
         LibraryPriceCalculation.EnableExtendedPriceCalculation();
@@ -183,11 +185,13 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
         DiscUpToBoundary := 50;
         DiscFromBoundary := 20;
+        ExpectedPriceUpToBoundary := Round(InitPrice * (1 - DiscUpToBoundary / 100));
+        ExpectedPriceFromBoundary := Round(InitPrice * (1 - DiscFromBoundary / 100));
         Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", InitUnitCost, InitPrice);
 
-        // [GIVEN] Two "All Customers" discount price list lines for the item: 50% up to the boundary date, 20% from the day after the boundary date.
+        // [GIVEN] Two dated "All Customers" price list lines for the item: a lower price up to the boundary date, a higher price from the day after the boundary date.
         BoundaryDate := DMY2Date(1, 1, 2027);
-        ProductInitTest.CreateDatedAllCustDiscPriceList(Item."No.", DiscUpToBoundary, DiscFromBoundary, BoundaryDate);
+        ProductInitTest.CreateDatedAllCustPriceList(Item."No.", ExpectedPriceUpToBoundary, ExpectedPriceFromBoundary, BoundaryDate);
 
         OriginalWorkDate := WorkDate();
 
@@ -204,10 +208,10 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         // [THEN] Restore the Work Date before asserting so a failure does not leak into other tests.
         WorkDate(OriginalWorkDate);
 
-        // [THEN] The first calculation applied the 20% discount valid from the boundary date onwards.
-        LibraryAssert.AreNearlyEqual(InitPrice * (1 - DiscFromBoundary / 100), PriceFromBoundary, 0.01, 'Price for Work Date after the boundary date');
-        // [THEN] The second calculation applied the 50% discount valid up to the boundary date (would still be 20% with a stale WorkDate cache).
-        LibraryAssert.AreNearlyEqual(InitPrice * (1 - DiscUpToBoundary / 100), PriceBeforeBoundary, 0.01, 'Price for Work Date before the boundary date');
+        // [THEN] The first calculation used the price valid from the boundary date onwards.
+        LibraryAssert.AreNearlyEqual(ExpectedPriceFromBoundary, PriceFromBoundary, 0.01, 'Price for Work Date after the boundary date');
+        // [THEN] The second calculation used the price valid up to the boundary date (would still be the from-boundary price with a stale WorkDate cache).
+        LibraryAssert.AreNearlyEqual(ExpectedPriceUpToBoundary, PriceBeforeBoundary, 0.01, 'Price for Work Date before the boundary date');
     end;
 
     [ConfirmHandler]
