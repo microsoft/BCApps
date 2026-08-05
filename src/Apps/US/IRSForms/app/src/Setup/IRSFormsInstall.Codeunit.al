@@ -18,7 +18,7 @@ codeunit 10030 "IRS Forms Install"
     var
         AssistedSetupTxt: Label 'Set up IRS 1099 forms';
         AssistedSetupDescriptionTxt: Label 'Set up 1099 forms to transmit the tax data to the IRS in the United States.';
-        AssistedSetupHelpTxt: Label 'https://learn.microsoft.com/en-us/dynamics365/business-central/localfunctionality/unitedstates/introduction-to-the-irs-forms', Locked = true;
+        AssistedSetupHelpTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2374605', Locked = true;
 
     trigger OnInstallAppPerCompany()
     var
