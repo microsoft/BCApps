@@ -244,9 +244,11 @@ codeunit 139460 "User Access in SaaS Tests"
         // [WHEN] UpdateUserAccessForSaaS runs (as it does during Retrieve Users / plan re-sync)
         PermissionManager.UpdateUserAccessForSaaS(User."User Security ID");
 
-        // [THEN] The user's customized Role Center is preserved, not reset to Business Manager
+        // [THEN] The user's customized Role Center (Profile ID / App ID / Scope trio) is preserved, not reset to Business Manager
         UserPersonalization.Get(User."User Security ID");
         Assert.AreEqual(CustomProfileID, UserPersonalization."Profile ID", 'Existing user Role Center should not be overwritten on plan re-sync.');
+        Assert.AreEqual(AllProfile."App ID", UserPersonalization."App ID", 'Existing user Role Center app should not be overwritten on plan re-sync.');
+        Assert.AreEqual(AllProfile.Scope, UserPersonalization.Scope, 'Existing user Role Center scope should not be overwritten on plan re-sync.');
     end;
 
     [Test]
