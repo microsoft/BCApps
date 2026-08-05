@@ -107,13 +107,17 @@ report 29 "Export Acc. Sched. to Excel"
     trigger OnPreReport()
     var
         Company: Record Company;
-        FinancialReportAuditing: Codeunit "Financial Report Auditing";
     begin
         Company.Get(CompanyName());
         CompanyDisplayName := Company."Display Name";
         if CompanyDisplayName = '' then
             CompanyDisplayName := Company.Name;
+    end;
 
+    trigger OnPostReport()
+    var
+        FinancialReportAuditing: Codeunit "Financial Report Auditing";
+    begin
         FinancialReportAuditing.LogReportUsage(FinancialReport.Name, Enum::"Financial Report Format"::Excel, RunForExport);
     end;
 
