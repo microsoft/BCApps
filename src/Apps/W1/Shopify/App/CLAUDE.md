@@ -19,6 +19,10 @@ All Shopify API communication goes through GraphQL. The `ShpfyCommunicationMgt.C
 
 *Updated: 2026-03-24 -- GraphQL resource file refactoring*
 
+Authentication uses Shopify **expiring offline access tokens**. On install the connector requests an expiring token (`expiring=1`) and stores it -- with its `Token Expires At` and 90-day `Refresh Token Expires At` -- on `Shpfy Registered Store New`, keyed by store URL (access and refresh tokens live in IsolatedStorage as `SecretText`). `ShpfyAuthenticationMgt.EnsureValidAccessToken`, called from `ShpfyCommunicationMgt` before every request, transparently refreshes a near-expiry token and performs the one-time (irreversible) migration of legacy non-expiring tokens via token exchange.
+
+*Updated: 2026-07-11 -- Expiring offline access token support (slice 637954)*
+
 Mapping strategies are interface-driven throughout. Customer mapping (`ICustomerMapping`) selects between by-email/phone, by-bill-to, or default-customer strategies. Company mapping (`ICompanyMapping`) can match by email/phone or tax ID. Stock calculation uses `IStockAvailable` and `IStockCalculation` interfaces. Product status on creation, removal actions for blocked items, county resolution, and customer name formatting are all interface-backed enums. The Shop record's enum fields (e.g., `"Customer Mapping Type"`, `"Stock Calculation"`, `"Status for Created Products"`) select which implementation to use at runtime. Newly created Shopify products can now start as Active, Draft, or Unlisted through the same `ICreateProductStatusValue` path.
 
 *Updated: 2026-07-29 -- Unlisted added as a built-in created-product status*
@@ -66,6 +70,7 @@ Records link to BC entities via SystemId (GUID), not Code/No. For example, `Shpf
 
 - The Shop table is the god object -- nearly every configuration setting lives there, with over 100 fields controlling sync directions, mapping strategies, account mappings, plan-based feature flags, webhook config, and more. The `"Advanced Shopify Plan"` field gates features requiring Plus/Advanced plans (currently staff members). B2B features are now unconditionally available on all plans.
 - All API calls go through GraphQL, never REST. Queries are `.graphql` resource files in `.resources/graphql/{Area}/`, loaded via `NavApp.GetResourceAsText()` and dispatched through the `ShpfyGraphQLType` enum.
+- Authentication uses expiring offline access tokens: the connector requests `expiring=1` on install, refreshes the 1-hour access token before expiry (rotating the 90-day refresh token), and migrates legacy non-expiring tokens on first use. `EnsureValidAccessToken` (from `ShpfyCommunicationMgt.GetAccessToken`) handles this on demand. If the refresh token lapses (90 days idle), the merchant must reconnect the shop from the Shop Card. Migration is one-time and irreversible per shop.
 - Products use hash-based change detection (`"Image Hash"`, `"Tags Hash"`, `"Description Html Hash"`) via a custom hash algorithm to skip unnecessary API calls when nothing has changed.
 - `"Status for Created Products"` supports Active, Draft, and Unlisted. Unlisted is handled by a dedicated `ICreateProductStatusValue` implementation, so product creation does not need a special-case branch for Shopify's visibility state.
 - `"Sync HS Code and Country"` defaults on and drives both directions of customs metadata: BC item tariff/country values are sent as Shopify variant inventory-item data, and imported Shopify values can update BC item tariff/country fields.

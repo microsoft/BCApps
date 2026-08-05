@@ -58,7 +58,6 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportXRechnungDocument: Codeunit "Export XRechnung Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
-        TooManyDecimalPlacesErr: Label 'Expected at most %1 decimal places but found %2 in %3', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -1430,23 +1429,49 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
-    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyInvoiceDiscountMultiplierHasTwoDecimals();
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyInvoiceDiscountMultiplierHasFiveDecimals();
     var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
+        SalesCalcDiscountByType: Codeunit "Sales - Calc Discount By Type";
         MultiplierFactorTok: Label '/ubl:Invoice/cac:AllowanceCharge/cbc:MultiplierFactorNumeric', Locked = true;
+        ExpectedMultiplierFactor: Text;
     begin
-        // [SCENARIO 588110] Document discount MultiplierFactorNumeric is exported with at most 2 decimal places
+        // [SCENARIO 588110] Document discount MultiplierFactorNumeric is exported with at most 5 decimal places
         Initialize();
 
-        // [GIVEN] Create and Post Sales Invoice with invoice discount
-        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithTwoLines("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, true));
+        // [GIVEN] Create sales invoice with a deterministic invoice discount that results in a multiplier with > 2 decimals
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindSet();
+        SalesLine.Validate(Quantity, 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        SalesLine.Next();
+        SalesLine.Validate(Quantity, 1);
+        SalesLine.Validate("Unit Price", 23.45);
+        SalesLine.Modify(true);
+
+        LibrarySales.SetCalcInvDiscount(true);
+        SalesHeader.CalcFields(Amount);
+        SalesCalcDiscountByType.ApplyInvDiscBasedOnAmt(10, SalesHeader);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
         // [WHEN] Export XRechnung Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] MultiplierFactorNumeric has at most 2 decimal places
-        VerifyMaxDecimalPlaces(GetNodeByPathWithError(TempXMLBuffer, MultiplierFactorTok), 2);
+        // [THEN] MultiplierFactorNumeric matches the exact five-decimal-formatted expected value (detects truncation to 2 decimals)
+        SalesInvoiceHeader.CalcFields(Amount, "Invoice Discount Amount");
+        ExpectedMultiplierFactor :=
+            ExportXRechnungDocument.FormatFiveDecimal(
+                100 * SalesInvoiceHeader."Invoice Discount Amount" / (SalesInvoiceHeader."Invoice Discount Amount" + SalesInvoiceHeader.Amount));
+        Assert.AreEqual(ExpectedMultiplierFactor, GetNodeByPathWithError(TempXMLBuffer, MultiplierFactorTok), StrSubstNo(IncorrectValueErr, MultiplierFactorTok));
     end;
     #endregion
 
@@ -2620,7 +2645,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:AllowanceChargeReason';
         Assert.AreEqual('LineDiscount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:MultiplierFactorNumeric';
-        Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesInvoiceLine."Line Discount %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportXRechnungDocument.FormatFiveDecimal(SalesInvoiceLine."Line Discount %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:Amount';
         Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesInvoiceLine."Line Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:BaseAmount';
@@ -2636,7 +2661,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:AllowanceChargeReason';
         Assert.AreEqual('Document discount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:MultiplierFactorNumeric';
-        Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(100 * SalesInvoiceHeader."Invoice Discount Amount" / (SalesInvoiceHeader."Invoice Discount Amount" + SalesInvoiceHeader.Amount)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportXRechnungDocument.FormatFiveDecimal(100 * SalesInvoiceHeader."Invoice Discount Amount" / (SalesInvoiceHeader."Invoice Discount Amount" + SalesInvoiceHeader.Amount)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:Amount';
         Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesInvoiceHeader."Invoice Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:BaseAmount';
@@ -2714,7 +2739,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:AllowanceChargeReason';
         Assert.AreEqual('LineDiscount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:MultiplierFactorNumeric';
-        Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesCrMemoLine."Line Discount %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportXRechnungDocument.FormatFiveDecimal(SalesCrMemoLine."Line Discount %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:Amount';
         Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesCrMemoLine."Line Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:BaseAmount';
@@ -2730,7 +2755,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:AllowanceChargeReason';
         Assert.AreEqual('Document discount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:MultiplierFactorNumeric';
-        Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(100 * SalesCrMemoHeader."Invoice Discount Amount" / (SalesCrMemoHeader."Invoice Discount Amount" + SalesCrMemoHeader.Amount)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportXRechnungDocument.FormatFiveDecimal(100 * SalesCrMemoHeader."Invoice Discount Amount" / (SalesCrMemoHeader."Invoice Discount Amount" + SalesCrMemoHeader.Amount)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:Amount';
         Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesCrMemoHeader."Invoice Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:BaseAmount';
@@ -2919,19 +2944,6 @@ codeunit 13918 "XRechnung XML Document Tests"
                 exit(TempXMLBufferAttribute.Value);
         end;
         Error(AttributeNotFoundErr, AttributeName, ElementXPath);
-    end;
-
-    local procedure VerifyMaxDecimalPlaces(NumberText: Text; MaxDecimals: Integer)
-    var
-        DecimalSeparatorPosition: Integer;
-        DecimalCount: Integer;
-    begin
-        DecimalSeparatorPosition := StrPos(NumberText, '.');
-        if DecimalSeparatorPosition = 0 then
-            DecimalCount := 0
-        else
-            DecimalCount := StrLen(NumberText) - DecimalSeparatorPosition;
-        Assert.IsTrue(DecimalCount <= MaxDecimals, StrSubstNo(TooManyDecimalPlacesErr, MaxDecimals, DecimalCount, NumberText));
     end;
 
     local procedure GetVATRegistrationNo(VATRegistrationNo: Text[20]; CountryRegionCode: Code[10]): Text[30];
