@@ -84,6 +84,7 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
     procedure DeletingEmployeeDeletesExpenseUserWithEmployeeOnlyPermissions()
     var
         Employee: Record Employee;
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseUser: Record "Expense User";
         ExpenseUserNo: Code[20];
     begin
@@ -91,6 +92,7 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
 
         // [SCENARIO] Deleting an Employee also deletes the linked Expense User when the caller cannot access it.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", '');
         Employee.Get(ExpenseUser."Employee No.");
         ExpenseUserNo := ExpenseUser."No.";
 
@@ -100,6 +102,9 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
 
         RestoreFullPermissions();
         Assert.IsFalse(ExpenseUser.Get(ExpenseUserNo), 'Expense User must be deleted with its Employee.');
+        Assert.IsFalse(
+            ExpenseApprovalSetup.Get(ExpenseUserNo),
+            'Expense Approval Setup must be deleted with its Expense User.');
     end;
 
     [Test]
