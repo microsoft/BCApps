@@ -254,16 +254,6 @@ codeunit 2504 "Extension Management"
     end;
 
     /// <summary>
-    /// Installs a marketplace extension with publisher type information.
-    /// </summary>
-    /// <param name="AppId">The App Id of the extension to install.</param>
-    /// <param name="PublisherType">The publisher type of the extension (e.g., 'Microsoft' or 'ThirdParty').</param>
-    internal procedure InstallMarketplaceExtensionWithPublisher(AppId: Guid; PublisherType: Text)
-    begin
-        ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(AppId, '', PublisherType);
-    end;
-
-    /// <summary>
     /// Returns the Name of the app given the App Id.
     /// </summary>
     /// <param name="AppId">The unique identifier of the app.</param>
