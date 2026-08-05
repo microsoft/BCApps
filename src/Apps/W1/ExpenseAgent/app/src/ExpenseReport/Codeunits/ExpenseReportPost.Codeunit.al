@@ -126,8 +126,6 @@ codeunit 6987 "Expense Report-Post"
         UpdateLastPostingNos(ExpenseReportHeader);
         ProcessExpenseReportLines(ExpenseReportHeader);
         InsertPstdExpReportHeaderVATSpecs(ExpenseReportHeader."No.", PostedExpenseReportHeader."No.");
-        if AmountToEmployee <> 0 then
-            PostEmployeeEntry(ExpenseReportHeader);
     end;
 
     local procedure ValidateExpenseReportForPosting(var ExpenseReportHeader: Record "Expense Report Header")
@@ -176,6 +174,7 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         if ExpenseReportLine.FindSet() then
             repeat
+                AmountToEmployee := 0;
                 ExpenseReportLine.TestField("Expense Category");
                 ExpenseReportLine.TestField("Reimbursement Type");
 
@@ -203,6 +202,8 @@ codeunit 6987 "Expense Report-Post"
 
                 InsertExpenseLedgerEntry(GlobalExpenseLedgerEntry);
 
+                if AmountToEmployee <> 0 then
+                    PostEmployeeEntry(ExpenseReportHeader, ExpenseReportLine);
             until ExpenseReportLine.Next() = 0;
 
         if not PreviewMode then
@@ -630,7 +631,7 @@ codeunit 6987 "Expense Report-Post"
         exit(JobLedgEntryNo);
     end;
 
-    local procedure PostEmployeeEntry(ExpenseReportHeader: Record "Expense Report Header")
+    local procedure PostEmployeeEntry(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line")
     var
         GenJournalLine: Record "Gen. Journal Line";
     begin
@@ -644,6 +645,7 @@ codeunit 6987 "Expense Report-Post"
         GenJournalLine.Validate("Posting Group", ExpenseReportHeader."Employee Posting Group");
         GenJournalLine.Validate("Currency Code", ExpenseReportHeader."Reimbursement Currency Code");
         GenJournalLine.Validate("Source Currency Code", ExpenseReportHeader."Reimbursement Currency Code");
+        GenJournalLine.Validate("Expense Category", ExpenseReportLine."Expense Category");
         GenJournalLine."Currency Factor" := ExpenseReportHeader."Reimbursement Currency Factor";
         GenJournalLine.Amount := -AmountToEmployee;
         GenJournalLine."Amount (LCY)" := -AmountToEmployeeLCY;

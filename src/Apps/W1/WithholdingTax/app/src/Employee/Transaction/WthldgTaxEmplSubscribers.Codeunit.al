@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
 using Microsoft.WithholdingTax;
@@ -84,7 +85,7 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
             GenJnlPostLine.InitGLEntry(
                 GenJnlLine, GLEntry,
                 WHTPostingSetup."Payable Wthldg. Tax Acc. Code",
-                TaxAmount, 0, false, true, 0);
+                -TaxAmount, 0, false, true, 0);
             GenJnlPostLine.InsertGLEntry(GenJnlLine, GLEntry, true);
         end;
 
@@ -160,6 +161,25 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         IsHandled := true;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnPostEmployeeAfterTempDtldCVLedgEntryBufInit, '', false, false)]
+    local procedure OnPostEmployeeAfterTempDtldCVLedgEntryBufInit(var GenJnlLine: Record "Gen. Journal Line"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary; TaxAmount: Decimal; TaxBaseAmount: Decimal)
+    var
+        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        WHTEmployeeCalc: Codeunit "WHT Employee Calculation";
+    begin
+        if CheckWithholdingTaxDisabled() then
+            exit;
+
+        if not WHTEmployeeCalc.IsEmployeeWHTApplicable(GenJnlLine) then
+            exit;
+
+        TempDtldCVLedgEntryBuf.Amount := TempDtldCVLedgEntryBuf.Amount + GenJnlPostLine.ExchangeAmtLCYToFCY2(TaxAmount);
+        TempDtldCVLedgEntryBuf."Amount (LCY)" := TempDtldCVLedgEntryBuf."Amount (LCY)" + TaxAmount;
+        if GenJnlLine."WHT Vendor Exchange Rate (ACY)" <> 0 then
+            TempDtldCVLedgEntryBuf."Additional-Currency Amount" := GenJnlLine."WHT Amount Including VAT (ACY)" - GenJnlLine."WHT Interest Amount"
+        else
+            TempDtldCVLedgEntryBuf."Additional-Currency Amount" := GenJnlLine.Amount;
+    end;
 
     local procedure CalcSourceCurrVATBaseAmount(var GenJnlLine: Record "Gen. Journal Line"; WithholdingAmountLCY: Decimal; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): Decimal
     var
