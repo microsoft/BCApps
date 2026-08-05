@@ -45,10 +45,12 @@ codeunit 10826 "Generate File FEC"
         SourceCodesDescription: Dictionary of [Code[10], Text[100]];
         PayablesAccounts: Dictionary of [Code[20], Code[20]];
         ReceivablesAccounts: Dictionary of [Code[20], Code[20]];
-        PmtDiscountAccounts: Dictionary of [Code[20], Boolean];
-        ProcessedCustPostingGroups: Dictionary of [Code[20], Boolean];
-        ProcessedVendPostingGroups: Dictionary of [Code[20], Boolean];
-        ProcessedGenPostingSetups: Dictionary of [Text, Boolean];
+        PmtDiscountAccounts: Dictionary of [Text, Boolean];
+        ProcessedPmtDiscountScopes: Dictionary of [Text, Boolean];
+        CachedCustomerNames: Dictionary of [Code[20], Text[100]];
+        CachedCustomerPostingGroups: Dictionary of [Code[20], Code[20]];
+        CachedVendorNames: Dictionary of [Code[20], Text[100]];
+        CachedVendorPostingGroups: Dictionary of [Code[20], Code[20]];
         BankAccounts: Dictionary of [Code[20], Text[100]];
         BankAccPostingGroups: Dictionary of [Code[20], Code[20]];
         ProgressDialog: Dialog;
@@ -683,98 +685,161 @@ codeunit 10826 "Generate File FEC"
 
     local procedure SetPartyForPaymentDiscount(GLEntry: Record "G/L Entry"; var PartyNo: Code[20]; var PartyName: Text[100])
     var
-        Customer: Record Customer;
-        Vendor: Record Vendor;
+        PartyNameValue: Text[100];
+        PartyPostingGroupCode: Code[20];
     begin
         case GLEntry."Source Type" of
             GLEntry."Source Type"::Customer:
-                begin
-                    Customer.SetLoadFields(Name, "Customer Posting Group");
-                    if Customer.Get(GLEntry."Source No.") then
-                        if IsPaymentDiscountAccount(GLEntry, Customer."Customer Posting Group") then begin
-                            PartyNo := Customer."No.";
-                            PartyName := Customer.Name;
-                        end;
-                end;
+                if GetCustomerInfo(GLEntry."Source No.", PartyNameValue, PartyPostingGroupCode) then
+                    if IsPaymentDiscountAccount(GLEntry, PartyPostingGroupCode) then begin
+                        PartyNo := GLEntry."Source No.";
+                        PartyName := PartyNameValue;
+                    end;
             GLEntry."Source Type"::Vendor:
-                begin
-                    Vendor.SetLoadFields(Name, "Vendor Posting Group");
-                    if Vendor.Get(GLEntry."Source No.") then
-                        if IsPaymentDiscountAccount(GLEntry, Vendor."Vendor Posting Group") then begin
-                            PartyNo := Vendor."No.";
-                            PartyName := Vendor.Name;
-                        end;
-                end;
+                if GetVendorInfo(GLEntry."Source No.", PartyNameValue, PartyPostingGroupCode) then
+                    if IsPaymentDiscountAccount(GLEntry, PartyPostingGroupCode) then begin
+                        PartyNo := GLEntry."Source No.";
+                        PartyName := PartyNameValue;
+                    end;
         end;
     end;
 
+    local procedure GetCustomerInfo(CustomerNo: Code[20]; var CustomerName: Text[100]; var CustomerPostingGroupCode: Code[20]): Boolean
+    var
+        Customer: Record Customer;
+    begin
+        if CachedCustomerNames.ContainsKey(CustomerNo) then begin
+            CustomerName := CachedCustomerNames.Get(CustomerNo);
+            CustomerPostingGroupCode := CachedCustomerPostingGroups.Get(CustomerNo);
+            exit(true);
+        end;
+
+        Customer.SetLoadFields(Name, "Customer Posting Group");
+        if not Customer.Get(CustomerNo) then
+            exit(false);
+
+        CustomerName := Customer.Name;
+        CustomerPostingGroupCode := Customer."Customer Posting Group";
+        CachedCustomerNames.Add(CustomerNo, CustomerName);
+        CachedCustomerPostingGroups.Add(CustomerNo, CustomerPostingGroupCode);
+        exit(true);
+    end;
+
+    local procedure GetVendorInfo(VendorNo: Code[20]; var VendorName: Text[100]; var VendorPostingGroupCode: Code[20]): Boolean
+    var
+        Vendor: Record Vendor;
+    begin
+        if CachedVendorNames.ContainsKey(VendorNo) then begin
+            VendorName := CachedVendorNames.Get(VendorNo);
+            VendorPostingGroupCode := CachedVendorPostingGroups.Get(VendorNo);
+            exit(true);
+        end;
+
+        Vendor.SetLoadFields(Name, "Vendor Posting Group");
+        if not Vendor.Get(VendorNo) then
+            exit(false);
+
+        VendorName := Vendor.Name;
+        VendorPostingGroupCode := Vendor."Vendor Posting Group";
+        CachedVendorNames.Add(VendorNo, VendorName);
+        CachedVendorPostingGroups.Add(VendorNo, VendorPostingGroupCode);
+        exit(true);
+    end;
+
     local procedure IsPaymentDiscountAccount(GLEntry: Record "G/L Entry"; PostingGroupCode: Code[20]): Boolean
+    var
+        PostingGroupScope: Text;
+        GenPostingSetupScope: Text;
     begin
         if GLEntry."G/L Account No." = '' then
             exit(false);
 
-        CachePostingGroupPmtDiscountAccounts(GLEntry."Source Type", PostingGroupCode);
-        CacheGenPostingSetupPmtDiscountAccounts(GLEntry."Gen. Bus. Posting Group", GLEntry."Gen. Prod. Posting Group");
+        // The cached result is scoped to the current source type/posting group and to the current general
+        // posting setup, so an account that is a payment discount account for one setup cannot flag an
+        // unrelated line that happens to post to the same account under a different setup.
+        PostingGroupScope := PostingGroupScopeKey(GLEntry."Source Type", PostingGroupCode);
+        GenPostingSetupScope := GenPostingSetupScopeKey(GLEntry."Gen. Bus. Posting Group", GLEntry."Gen. Prod. Posting Group");
 
-        exit(PmtDiscountAccounts.ContainsKey(GLEntry."G/L Account No."));
+        CachePostingGroupPmtDiscountAccounts(GLEntry."Source Type", PostingGroupCode, PostingGroupScope);
+        CacheGenPostingSetupPmtDiscountAccounts(GLEntry."Gen. Bus. Posting Group", GLEntry."Gen. Prod. Posting Group", GenPostingSetupScope);
+
+        exit(
+            IsScopedPmtDiscountAccount(PostingGroupScope, GLEntry."G/L Account No.") or
+            IsScopedPmtDiscountAccount(GenPostingSetupScope, GLEntry."G/L Account No."));
     end;
 
-    local procedure CachePostingGroupPmtDiscountAccounts(SourceType: Enum "Gen. Journal Source Type"; PostingGroupCode: Code[20])
+    local procedure CachePostingGroupPmtDiscountAccounts(SourceType: Enum "Gen. Journal Source Type"; PostingGroupCode: Code[20]; ScopeKey: Text)
     var
         CustomerPostingGroup: Record "Customer Posting Group";
         VendorPostingGroup: Record "Vendor Posting Group";
     begin
+        if ProcessedPmtDiscountScopes.ContainsKey(ScopeKey) then
+            exit;
+        ProcessedPmtDiscountScopes.Add(ScopeKey, true);
+
         case SourceType of
             SourceType::Customer:
                 begin
-                    if ProcessedCustPostingGroups.ContainsKey(PostingGroupCode) then
-                        exit;
-                    ProcessedCustPostingGroups.Add(PostingGroupCode, true);
                     CustomerPostingGroup.SetLoadFields("Payment Disc. Debit Acc.", "Payment Disc. Credit Acc.");
                     if CustomerPostingGroup.Get(PostingGroupCode) then begin
-                        AddPmtDiscountAccount(CustomerPostingGroup."Payment Disc. Debit Acc.");
-                        AddPmtDiscountAccount(CustomerPostingGroup."Payment Disc. Credit Acc.");
+                        AddPmtDiscountAccount(ScopeKey, CustomerPostingGroup."Payment Disc. Debit Acc.");
+                        AddPmtDiscountAccount(ScopeKey, CustomerPostingGroup."Payment Disc. Credit Acc.");
                     end;
                 end;
             SourceType::Vendor:
                 begin
-                    if ProcessedVendPostingGroups.ContainsKey(PostingGroupCode) then
-                        exit;
-                    ProcessedVendPostingGroups.Add(PostingGroupCode, true);
                     VendorPostingGroup.SetLoadFields("Payment Disc. Debit Acc.", "Payment Disc. Credit Acc.");
                     if VendorPostingGroup.Get(PostingGroupCode) then begin
-                        AddPmtDiscountAccount(VendorPostingGroup."Payment Disc. Debit Acc.");
-                        AddPmtDiscountAccount(VendorPostingGroup."Payment Disc. Credit Acc.");
+                        AddPmtDiscountAccount(ScopeKey, VendorPostingGroup."Payment Disc. Debit Acc.");
+                        AddPmtDiscountAccount(ScopeKey, VendorPostingGroup."Payment Disc. Credit Acc.");
                     end;
                 end;
         end;
     end;
 
-    local procedure CacheGenPostingSetupPmtDiscountAccounts(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    local procedure CacheGenPostingSetupPmtDiscountAccounts(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; ScopeKey: Text)
     var
         GeneralPostingSetup: Record "General Posting Setup";
-        SetupKey: Text;
     begin
-        SetupKey := GenBusPostingGroup + '|' + GenProdPostingGroup;
-        if ProcessedGenPostingSetups.ContainsKey(SetupKey) then
+        if ProcessedPmtDiscountScopes.ContainsKey(ScopeKey) then
             exit;
-        ProcessedGenPostingSetups.Add(SetupKey, true);
+        ProcessedPmtDiscountScopes.Add(ScopeKey, true);
 
         GeneralPostingSetup.SetLoadFields(
             "Sales Pmt. Disc. Debit Acc.", "Sales Pmt. Disc. Credit Acc.",
             "Purch. Pmt. Disc. Debit Acc.", "Purch. Pmt. Disc. Credit Acc.");
         if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
-            AddPmtDiscountAccount(GeneralPostingSetup."Sales Pmt. Disc. Debit Acc.");
-            AddPmtDiscountAccount(GeneralPostingSetup."Sales Pmt. Disc. Credit Acc.");
-            AddPmtDiscountAccount(GeneralPostingSetup."Purch. Pmt. Disc. Debit Acc.");
-            AddPmtDiscountAccount(GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
+            AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Sales Pmt. Disc. Debit Acc.");
+            AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Sales Pmt. Disc. Credit Acc.");
+            AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Purch. Pmt. Disc. Debit Acc.");
+            AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
         end;
     end;
 
-    local procedure AddPmtDiscountAccount(GLAccountNo: Code[20])
+    local procedure AddPmtDiscountAccount(ScopeKey: Text; GLAccountNo: Code[20])
+    var
+        ScopedAccountKey: Text;
     begin
-        if (GLAccountNo <> '') and (not PmtDiscountAccounts.ContainsKey(GLAccountNo)) then
-            PmtDiscountAccounts.Add(GLAccountNo, true);
+        if GLAccountNo = '' then
+            exit;
+        ScopedAccountKey := ScopeKey + '|' + GLAccountNo;
+        if not PmtDiscountAccounts.ContainsKey(ScopedAccountKey) then
+            PmtDiscountAccounts.Add(ScopedAccountKey, true);
+    end;
+
+    local procedure IsScopedPmtDiscountAccount(ScopeKey: Text; GLAccountNo: Code[20]): Boolean
+    begin
+        exit(PmtDiscountAccounts.ContainsKey(ScopeKey + '|' + GLAccountNo));
+    end;
+
+    local procedure PostingGroupScopeKey(SourceType: Enum "Gen. Journal Source Type"; PostingGroupCode: Code[20]): Text
+    begin
+        exit('PG|' + Format(SourceType.AsInteger()) + '|' + PostingGroupCode);
+    end;
+
+    local procedure GenPostingSetupScopeKey(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]): Text
+    begin
+        exit('GPS|' + GenBusPostingGroup + '|' + GenProdPostingGroup);
     end;
 
     local procedure ResetTransactionData()

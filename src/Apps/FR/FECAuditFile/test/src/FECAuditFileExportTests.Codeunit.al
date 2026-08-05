@@ -2471,6 +2471,82 @@ codeunit 148017 "FEC Audit File Export Tests"
         VerifyFilePartyNoAndName(iStream, Vendor."No.", Vendor.Name);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PaymentDiscountAccountIsScopedToPostingGroup()
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        OtherCustomer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        AuditFile: Record "Audit File";
+        iStream: InStream;
+        StartingDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        DiscountAmount: Decimal;
+        SharedPmtDiscAccountNo: Code[20];
+        LineToRead: Text;
+    begin
+        // [SCENARIO 639574] A G/L account that is a payment discount account for one posting group must not add
+        // [SCENARIO] customer info to an unrelated line of another posting group that posts to the same account.
+        Initialize();
+        StartingDate := GetStartingDate();
+
+        // [GIVEN] Customer "C1" of a dedicated posting group whose Payment Disc. Debit Acc. is the shared account
+        SharedPmtDiscAccountNo := LibraryERM.CreateGLAccountNo();
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
+        CustomerPostingGroup.Validate("Receivables Account", LibraryERM.CreateGLAccountNo());
+        CustomerPostingGroup.Validate("Payment Disc. Debit Acc.", SharedPmtDiscAccountNo);
+        CustomerPostingGroup.Modify(true);
+        Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] A posted invoice and a payment with discount for "C1" -> discount line posts to the shared account
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Customer, Customer."No.", InvoiceAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Pmt. Discount Date", CalcDate('<1M>', StartingDate));
+        GenJournalLine.Validate("Payment Discount %", LibraryRandom.RandIntInRange(2, 5));
+        GenJournalLine.Modify(true);
+        InvoiceDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        DiscountAmount := CustLedgerEntry."Original Pmt. Disc. Possible";
+        Assert.IsTrue(DiscountAmount > 0, 'The posted invoice should have a possible payment discount.');
+
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Customer, Customer."No.", -(InvoiceAmount - DiscountAmount));
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", "Gen. Journal Document Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Another customer "C2" of a different posting group posts an unrelated entry to the same shared account
+        LibrarySales.CreateCustomer(OtherCustomer);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::" ", "Gen. Journal Account Type"::Customer, OtherCustomer."No.", LibraryRandom.RandDecInRange(100, 200, 2));
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Bal. Account Type", "Gen. Journal Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", SharedPmtDiscAccountNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Export Audit File in FEC format for the shared account
+        RunFECExport(AuditFile, SharedPmtDiscAccountNo, StartingDate, StartingDate, false);
+
+        // [THEN] "C1" payment discount line carries C1 info, but the unrelated "C2" line has blank CompAuxNum/CompAuxLib
+        CreateReadStream(iStream, AuditFile);
+        iStream.ReadText(LineToRead); // header
+        VerifyFilePartyNoAndName(iStream, Customer."No.", Customer.Name);
+        VerifyFilePartyNoAndName(iStream, '', '');
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
