@@ -37,6 +37,7 @@ codeunit 18543 "Calculate Tax"
 
     procedure RunOnBeforeUpdateTaxAmountOnGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var xGenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
+        IsHandled := false;
         OnBeforeUpdateTaxAmountOnGenJnlLine(GenJournalLine, xGenJournalLine, IsHandled);
     end;
 
