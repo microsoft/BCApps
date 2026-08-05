@@ -25,6 +25,7 @@
     "../../../src/Tools/Test Framework/*"
   ],
   "doNotPublishApps": true,
+  "failOn": "newWarning",
   "rulesetFile": "../../../src/rulesets/internal.module.ruleset.json",
   "ConditionalSettings": [
     {
