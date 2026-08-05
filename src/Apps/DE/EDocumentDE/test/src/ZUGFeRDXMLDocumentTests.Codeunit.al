@@ -2481,7 +2481,215 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Path := HeaderTradeTaxTok + '/ram:BasisAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyChargeKeepsInvoiceLineWhenTheOnlyItemLineIsNotExported()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ItemSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A posted sales invoice whose only item line is skipped by the export keeps the item charge as an invoice line even when the service forces a document level allowance/charge, so that the exported document satisfies BR-16
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into a document level allowance/charge
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Document Allowance/Charge");
+
+        // [GIVEN] A posted sales invoice with an item charge assigned to an earlier shipment and one item line without a quantity, which the export skips
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithChargeAndZeroQuantityLine(ItemChargeNo));
+        GetItemInvoiceLine(SalesInvoiceHeader, ItemSalesInvoiceLine);
+        Assert.AreEqual(0, ItemSalesInvoiceLine.Quantity, 'The scenario requires an item line without a quantity.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The item charge is exported as the only invoice line
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must be exported as an invoice line, so that the document keeps at least one invoice line.');
+        Assert.IsTrue(NodeValueExists(TempXMLBuffer, InvoiceLineTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID', ItemChargeNo), 'The exported invoice line must be the item charge.');
+
+        // [THEN] The invoice line of the item charge carries the fallback quantity and the unit code C62
+        Path := BilledQuantityTok;
+        Assert.AreEqual('1', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(UnitCodeOneTok, GetAttributeByPathWithError(TempXMLBuffer, Path, 'unitCode'), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The charge is not exported as a document level allowance/charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok), 'The item charge must not be exported as a document level allowance/charge.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyChargeKeepsCrMemoLineWhenTheOnlyItemLineIsNotExported()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ItemSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+    begin
+        // [SCENARIO] A posted sales credit memo whose only item line is skipped by the export keeps the item charge as a credit memo line even when the service forces a document level allowance/charge, so that the exported document satisfies BR-16
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into a document level allowance/charge
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Document Allowance/Charge");
+
+        // [GIVEN] A posted sales credit memo with an item charge assigned to an earlier return receipt and one item line without a quantity, which the export skips
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithChargeAndZeroQuantityLine(ItemChargeNo));
+        GetItemCrMemoLine(SalesCrMemoHeader, ItemSalesCrMemoLine);
+        Assert.AreEqual(0, ItemSalesCrMemoLine.Quantity, 'The scenario requires an item line without a quantity.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The item charge is exported as the only credit memo line
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must be exported as a credit memo line, so that the document keeps at least one credit memo line.');
+        Assert.IsTrue(NodeValueExists(TempXMLBuffer, InvoiceLineTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID', ItemChargeNo), 'The exported credit memo line must be the item charge.');
+
+        // [THEN] The credit memo line of the item charge carries the fallback quantity and the unit code C62
+        Assert.AreEqual('1', GetNodeByPathWithError(TempXMLBuffer, BilledQuantityTok), StrSubstNo(IncorrectValueErr, BilledQuantityTok));
+        Assert.AreEqual(UnitCodeOneTok, GetAttributeByPathWithError(TempXMLBuffer, BilledQuantityTok, 'unitCode'), StrSubstNo(IncorrectValueErr, BilledQuantityTok));
+
+        // [THEN] The charge is not exported as a document level allowance/charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok), 'The item charge must not be exported as a document level allowance/charge.');
+    end;
     #endregion
+
+    local procedure CreateAndPostSalesInvoiceWithChargeAndZeroQuantityLine(var ItemChargeNo: Code[20]): Code[20]
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ZeroQuantitySalesLine: Record "Sales Line";
+        ChargeSalesLine: Record "Sales Line";
+        CustomerNo: Code[20];
+        ShipmentNo: Code[20];
+    begin
+        PrepareItemChargePosting();
+        LibraryInventory.CreateItem(Item);
+        CustomerNo := CreateCustomer();
+        ShipmentNo := CreateAndPostShipmentOnly(CustomerNo, Item);
+
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(ZeroQuantitySalesLine, SalesHeader, ZeroQuantitySalesLine.Type::Item, Item."No.", 0);
+        ZeroQuantitySalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        ZeroQuantitySalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ZeroQuantitySalesLine.Modify(true);
+
+        ItemChargeNo := CreateItemChargeForItem(Item);
+        LibrarySales.CreateSalesLine(ChargeSalesLine, SalesHeader, ChargeSalesLine.Type::"Charge (Item)", ItemChargeNo, 1);
+        ChargeSalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 50, 2));
+        ChargeSalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ChargeSalesLine.Modify(true);
+        AssignItemChargeToShipment(ChargeSalesLine, ShipmentNo);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesCrMemoWithChargeAndZeroQuantityLine(var ItemChargeNo: Code[20]): Code[20]
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ZeroQuantitySalesLine: Record "Sales Line";
+        ChargeSalesLine: Record "Sales Line";
+        CustomerNo: Code[20];
+        ReturnReceiptNo: Code[20];
+    begin
+        PrepareItemChargePosting();
+        LibraryInventory.CreateItem(Item);
+        CustomerNo := CreateCustomer();
+        ReturnReceiptNo := CreateAndPostReturnReceiptOnly(CustomerNo, Item);
+
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CustomerNo);
+        LibrarySales.CreateSalesLine(ZeroQuantitySalesLine, SalesHeader, ZeroQuantitySalesLine.Type::Item, Item."No.", 0);
+        ZeroQuantitySalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        ZeroQuantitySalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ZeroQuantitySalesLine.Modify(true);
+
+        ItemChargeNo := CreateItemChargeForItem(Item);
+        LibrarySales.CreateSalesLine(ChargeSalesLine, SalesHeader, ChargeSalesLine.Type::"Charge (Item)", ItemChargeNo, 1);
+        ChargeSalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 50, 2));
+        ChargeSalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ChargeSalesLine.Modify(true);
+        AssignItemChargeToReturnReceipt(ChargeSalesLine, ReturnReceiptNo);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostReturnReceiptOnly(CustomerNo: Code[20]; Item: Record Item): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        ItemSalesLine: Record "Sales Line";
+        ReturnReceiptHeader: Record "Return Receipt Header";
+    begin
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Return Order", CustomerNo);
+        CreateItemSalesLine(ItemSalesLine, SalesHeader, Item);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        ReturnReceiptHeader.SetRange("Return Order No.", SalesHeader."No.");
+        ReturnReceiptHeader.FindFirst();
+        exit(ReturnReceiptHeader."No.");
+    end;
+
+    local procedure AssignItemChargeToReturnReceipt(ChargeSalesLine: Record "Sales Line"; ReturnReceiptNo: Code[20])
+    var
+        ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        ItemChargeAssgntSales: Codeunit "Item Charge Assgnt. (Sales)";
+    begin
+        ItemChargeAssignmentSales.Init();
+        ItemChargeAssignmentSales.Validate("Document Type", ChargeSalesLine."Document Type");
+        ItemChargeAssignmentSales.Validate("Document No.", ChargeSalesLine."Document No.");
+        ItemChargeAssignmentSales.Validate("Document Line No.", ChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.Validate("Item Charge No.", ChargeSalesLine."No.");
+        ItemChargeAssignmentSales.Validate("Unit Cost", ChargeSalesLine."Unit Price");
+        ReturnReceiptLine.SetRange("Document No.", ReturnReceiptNo);
+        ReturnReceiptLine.FindFirst();
+        ItemChargeAssgntSales.CreateRcptChargeAssgnt(ReturnReceiptLine, ItemChargeAssignmentSales);
+
+        ItemChargeAssignmentSales.SetRange("Document Type", ChargeSalesLine."Document Type");
+        ItemChargeAssignmentSales.SetRange("Document No.", ChargeSalesLine."Document No.");
+        ItemChargeAssignmentSales.SetRange("Document Line No.", ChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.FindFirst();
+        ItemChargeAssignmentSales.Validate("Qty. to Assign", ChargeSalesLine.Quantity);
+        ItemChargeAssignmentSales.Modify(true);
+    end;
+
+    local procedure CreateAndPostShipmentOnly(CustomerNo: Code[20]; Item: Record Item): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        ItemSalesLine: Record "Sales Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+    begin
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, CustomerNo);
+        CreateItemSalesLine(ItemSalesLine, SalesHeader, Item);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentHeader.FindFirst();
+        exit(SalesShipmentHeader."No.");
+    end;
+
+    local procedure AssignItemChargeToShipment(ChargeSalesLine: Record "Sales Line"; ShipmentNo: Code[20])
+    var
+        ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        ItemChargeAssgntSales: Codeunit "Item Charge Assgnt. (Sales)";
+    begin
+        ItemChargeAssignmentSales.Init();
+        ItemChargeAssignmentSales.Validate("Document Type", ChargeSalesLine."Document Type");
+        ItemChargeAssignmentSales.Validate("Document No.", ChargeSalesLine."Document No.");
+        ItemChargeAssignmentSales.Validate("Document Line No.", ChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.Validate("Item Charge No.", ChargeSalesLine."No.");
+        ItemChargeAssignmentSales.Validate("Unit Cost", ChargeSalesLine."Unit Price");
+        SalesShipmentLine.SetRange("Document No.", ShipmentNo);
+        SalesShipmentLine.FindFirst();
+        ItemChargeAssgntSales.CreateShptChargeAssgnt(SalesShipmentLine, ItemChargeAssignmentSales);
+
+        ItemChargeAssignmentSales.SetRange("Document Type", ChargeSalesLine."Document Type");
+        ItemChargeAssignmentSales.SetRange("Document No.", ChargeSalesLine."Document No.");
+        ItemChargeAssignmentSales.SetRange("Document Line No.", ChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.FindFirst();
+        ItemChargeAssignmentSales.Validate("Qty. to Assign", ChargeSalesLine.Quantity);
+        ItemChargeAssignmentSales.Modify(true);
+    end;
 
     local procedure CreateAndPostSalesInvoiceWithItemCharge(NoOfItemLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; var ItemChargeNo: Code[20]): Code[20]
     begin

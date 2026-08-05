@@ -482,6 +482,7 @@ codeunit 13916 "Export XRechnung Document"
         ChargeSalesInvLine: Record "Sales Invoice Line";
         TargetSalesInvLine: Record "Sales Invoice Line";
         Structure: Enum "Item Charge E-Doc. Structure";
+        ExportedLineExists: Boolean;
     begin
         ClearItemChargeClassification();
 
@@ -490,8 +491,15 @@ codeunit 13916 "Export XRechnung Document"
         if not ChargeSalesInvLine.FindSet() then
             exit;
 
+        ExportedLineExists := ExportedNonChargeLineExists(SalesInvLine);
+
         repeat
             Structure := EDocItemChargeMapping.GetItemChargeStructure(EDocumentService, SalesInvoiceHeader, ChargeSalesInvLine, TargetSalesInvLine);
+            // The export skips lines that the classification cannot see, such as lines without a number, without a
+            // quantity, or removed by a subscriber. Turning the item charges into allowances/charges would then leave
+            // the document without any invoice line, which BR-16 does not allow.
+            if not ExportedLineExists then
+                Structure := Structure::"Line with Unit Code";
             // A line level allowance/charge needs an invoice line to live in. Without one it degrades to document level, so that the charge is never lost.
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesInvLine, TargetSalesInvLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
@@ -506,6 +514,7 @@ codeunit 13916 "Export XRechnung Document"
         ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
         TargetSalesCrMemoLine: Record "Sales Cr.Memo Line";
         Structure: Enum "Item Charge E-Doc. Structure";
+        ExportedLineExists: Boolean;
     begin
         ClearItemChargeClassification();
 
@@ -514,8 +523,15 @@ codeunit 13916 "Export XRechnung Document"
         if not ChargeSalesCrMemoLine.FindSet() then
             exit;
 
+        ExportedLineExists := ExportedNonChargeLineExists(SalesCrMemoLine);
+
         repeat
             Structure := EDocItemChargeMapping.GetItemChargeStructure(EDocumentService, SalesCrMemoHeader, ChargeSalesCrMemoLine, TargetSalesCrMemoLine);
+            // The export skips lines that the classification cannot see, such as lines without a number, without a
+            // quantity, or removed by a subscriber. Turning the item charges into allowances/charges would then leave
+            // the document without any credit memo line, which BR-16 does not allow.
+            if not ExportedLineExists then
+                Structure := Structure::"Line with Unit Code";
             // A line level allowance/charge needs a credit memo line to live in. Without one it degrades to document level, so that the charge is never lost.
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesCrMemoLine, TargetSalesCrMemoLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
@@ -544,6 +560,24 @@ codeunit 13916 "Export XRechnung Document"
         if not LineLevelItemChargeLineNos.Get(TargetLineNo, ChargeLineNos) then
             LineLevelItemChargeLineNos.Add(TargetLineNo, ChargeLineNos);
         ChargeLineNos.Add(ChargeLineNo);
+    end;
+
+    local procedure ExportedNonChargeLineExists(var SalesInvLine: Record "Sales Invoice Line"): Boolean
+    var
+        ExportedSalesInvLine: Record "Sales Invoice Line";
+    begin
+        ExportedSalesInvLine.CopyFilters(SalesInvLine);
+        ExportedSalesInvLine.SetFilter(Type, '<>%1', ExportedSalesInvLine.Type::"Charge (Item)");
+        exit(not ExportedSalesInvLine.IsEmpty());
+    end;
+
+    local procedure ExportedNonChargeLineExists(var SalesCrMemoLine: Record "Sales Cr.Memo Line"): Boolean
+    var
+        ExportedSalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        ExportedSalesCrMemoLine.CopyFilters(SalesCrMemoLine);
+        ExportedSalesCrMemoLine.SetFilter(Type, '<>%1', ExportedSalesCrMemoLine.Type::"Charge (Item)");
+        exit(not ExportedSalesCrMemoLine.IsEmpty());
     end;
 
     local procedure IsExportedLine(var SalesInvLine: Record "Sales Invoice Line"; LineNo: Integer): Boolean

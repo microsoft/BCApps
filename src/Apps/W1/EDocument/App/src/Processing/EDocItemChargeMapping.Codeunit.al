@@ -9,7 +9,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Sales.History;
 
-codeunit 6410 "E-Doc. Item Charge Mapping"
+codeunit 6436 "E-Doc. Item Charge Mapping"
 {
     Permissions =
         tabledata "Item Charge" = r,

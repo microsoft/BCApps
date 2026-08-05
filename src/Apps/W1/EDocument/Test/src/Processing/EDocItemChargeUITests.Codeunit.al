@@ -9,7 +9,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
 
-codeunit 139522 "E-Doc. Item Charge UI Tests"
+codeunit 139558 "E-Doc. Item Charge UI Tests"
 {
     Subtype = Test;
     TestType = Uncategorized;
