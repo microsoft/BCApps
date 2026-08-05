@@ -5072,6 +5072,74 @@ codeunit 137404 "SCM Manufacturing"
         VerifyCalendarEntryExistence("Capacity Type"::"Machine Center", MachineCenter[2]."No.", false);
     end;
 
+    [Test]
+    procedure CertifyProdBOMVersionWithMissingMandatoryVariantError()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionBOMVersion: Record "Production BOM Version";
+    begin
+        // [SCENARIO 642632] Certifying a Production BOM Version with a variant-mandatory item and blank Variant Code on a line is blocked.
+        Initialize();
+
+        // [GIVEN] Item with "Variant Mandatory if Exists" = Yes and one Item Variant.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Variant Mandatory if Exists", Item."Variant Mandatory if Exists"::Yes);
+        Item.Modify(true);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [GIVEN] Production BOM Header with a Version that has a line referencing the item and blank Variant Code.
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, Item."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMVersion(
+            ProductionBOMVersion, ProductionBOMHeader."No.", LibraryUtility.GenerateGUID(), Item."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, ProductionBOMVersion."Version Code",
+            ProductionBOMLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
+
+        // [WHEN] Certifying the Production BOM Version.
+        asserterror ModifyProductionBOMVersionStatus(ProductionBOMVersion, ProductionBOMVersion.Status::Certified);
+
+        // [THEN] Certification is blocked because Variant Code must have a value.
+        Assert.ExpectedTestFieldError(ProductionBOMLine.FieldCaption("Variant Code"), '');
+    end;
+
+    [Test]
+    procedure CertifyProdBOMVersionWithMandatoryVariant()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionBOMVersion: Record "Production BOM Version";
+    begin
+        // [SCENARIO 642632] Certifying a Production BOM Version succeeds when the variant-mandatory item line has a Variant Code.
+        Initialize();
+
+        // [GIVEN] Item with "Variant Mandatory if Exists" = Yes and one Item Variant.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Variant Mandatory if Exists", Item."Variant Mandatory if Exists"::Yes);
+        Item.Modify(true);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [GIVEN] Production BOM Header with a Version that has a line referencing the item with the Variant Code specified.
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, Item."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMVersion(
+          ProductionBOMVersion, ProductionBOMHeader."No.", LibraryUtility.GenerateGUID(), Item."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+          ProductionBOMHeader, ProductionBOMLine, ProductionBOMVersion."Version Code",
+          ProductionBOMLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
+        ProductionBOMLine.Validate("Variant Code", ItemVariant.Code);
+        ProductionBOMLine.Modify(true);
+
+        // [WHEN] Certifying the Production BOM Version.
+        ModifyProductionBOMVersionStatus(ProductionBOMVersion, ProductionBOMVersion.Status::Certified);
+
+        // [THEN] The Production BOM Version is Certified.
+        ProductionBOMVersion.TestField(Status, ProductionBOMVersion.Status::Certified);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
