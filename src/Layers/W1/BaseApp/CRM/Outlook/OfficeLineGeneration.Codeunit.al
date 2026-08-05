@@ -163,17 +163,19 @@ codeunit 1639 "Office Line Generation"
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
         OfficeMgt: Codeunit "Office Management";
         AddedCount: Integer;
+        InsertFailed: Boolean;
     begin
         if PageCloseAction in [ACTION::OK, ACTION::LookupOK] then
             if TempOfficeSuggestedLineItem.FindSet() then begin
                 DisableAggregateTableUpdate.SetDisableAllRecords(true);
                 BindSubscription(DisableAggregateTableUpdate);
                 repeat
-                    if TempOfficeSuggestedLineItem.Add then begin
-                        InsertLineItem(HeaderRecRef, TempOfficeSuggestedLineItem."Item No.", TempOfficeSuggestedLineItem.Quantity);
-                        AddedCount += 1;
-                    end;
-                until TempOfficeSuggestedLineItem.Next() = 0;
+                    if TempOfficeSuggestedLineItem.Add then
+                        if TryInsertLineItemAndCommit(HeaderRecRef, TempOfficeSuggestedLineItem."Item No.", TempOfficeSuggestedLineItem.Quantity) then
+                            AddedCount += 1
+                        else
+                            InsertFailed := true;
+                until InsertFailed or (TempOfficeSuggestedLineItem.Next() = 0);
                 if UnbindSubscription(DisableAggregateTableUpdate) then;
 
                 if AddedCount > 0 then begin
@@ -186,6 +188,16 @@ codeunit 1639 "Office Line Generation"
             PageCloseAction,
             TempOfficeSuggestedLineItem.Count,
             AddedCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
+
+        if InsertFailed then
+            Error(GetLastErrorText());
+    end;
+
+    [TryFunction]
+    local procedure TryInsertLineItemAndCommit(var HeaderRecRef: RecordRef; ItemNo: Text[50]; Quantity: Integer)
+    begin
+        InsertLineItem(HeaderRecRef, ItemNo, Quantity);
+        Commit();
     end;
 
     local procedure CalculateMatchStrength(ItemNo: Text[50]; Matches: Integer; SearchText: Text; AlreadyFound: Boolean) Strength: Decimal
