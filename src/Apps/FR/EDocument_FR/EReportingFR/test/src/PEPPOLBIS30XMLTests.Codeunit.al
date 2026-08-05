@@ -834,7 +834,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
 
-        CountryRegion.Get('FR');
+        LibraryERM.CreateCountryRegion(CountryRegion);
         CountryRegion.Validate("ISO Code", 'FR');
         CountryRegion.Modify(true);
 
