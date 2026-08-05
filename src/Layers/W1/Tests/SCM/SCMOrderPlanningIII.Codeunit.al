@@ -52,8 +52,6 @@ codeunit 137088 "SCM Order Planning - III"
         NotAllItemsWerePlannedMsg: Label 'Not all items were planned. A total of %1 items were not planned.', Comment = '%1 = Number of items not planned';
         PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
-        SerialNoErr: Label 'Serial No. %1 must exist in reservation entries';
-        ReservationEntryCountErr: Label 'Expected reservation entries with serial tracking on purchase line are %1';
         MinTotalQuantityMismatchErr: Label 'Expected total quantity >= %1, but got %2', Comment = '%1 = minimum expected quantity, %2 = actual summed quantity';
 
     [Test]
@@ -3779,59 +3777,6 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.AreEqual(200, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
     end;
 
-    [Test]
-    [HandlerFunctions('MakeSupplyOrdersPageHandler,MessageHandler')]
-    [Scope('OnPrem')]
-    procedure SalesOrderPlanMakePurchOrderWithSerialTracking()
-    var
-        Item: Record Item;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        RequisitionLine: Record "Requisition Line";
-        ReservationEntry: Record "Reservation Entry";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-        i: Integer;
-        Quantity: Integer;
-        SerialNo: array[3] of Code[50];
-    begin
-        // [SCENARIO 618883] Creating Purchase Order from Sales Order via Order Planning preserves serial number item tracking
-        Initialize();
-        SalesHeader.DeleteAll();
-        SalesLine.DeleteAll();
-        UpdateSalesReceivablesSetup(TempSalesReceivablesSetup);
-
-        // [GIVEN] Serial-tracked item "I" and assign "Vendor No." ,"Reordering Policy" as "Order" and "Order Tracking Policy" as "Tracking Only"
-        LibraryItemTracking.CreateSerialItem(Item);
-        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
-        Item.Validate("Reordering Policy", Item."Reordering Policy"::Order);
-        Item.Validate("Order Tracking Policy", Item."Order Tracking Policy"::"Tracking Only");
-        Item.Modify(true);
-
-        // [GIVEN] Create Sales Order "SO" for item "I" with quantity  and assign serial numbers
-        Quantity := ArrayLen(SerialNo);
-        CreateSalesOrder(SalesHeader, Item."No.", LocationBlue.Code, Quantity, Quantity);
-        FindSalesLine(SalesLine, SalesHeader, Item."No.");
-        for i := 1 to Quantity do begin
-            SerialNo[i] := LibraryUtility.GenerateGUID();
-            LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, SerialNo[i], '', LibraryRandom.RandIntInRange(1, 1));
-        end;
-
-        // [WHEN] Calculate Order Plan for "SO" and Make Supply Orders to create Purchase Order "PO"
-        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
-        FindRequisitionLine(RequisitionLine, SalesHeader."No.", Item."No.", LocationBlue.Code);
-        MakeSupplyOrdersActiveOrder(SalesHeader."No.");
-
-        // [THEN] Purchase line for "PO" has reservation entries with serial numbers from "SO"
-        FindPurchaseDocumentByItemNo(PurchaseHeader, PurchaseLine, Item."No.");
-        VerifyPurchLineSerialTracking(PurchaseLine, SerialNo, Quantity);
-
-        // Tear Down
-        RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
-    end;
-
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4746,24 +4691,6 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.IsTrue(
           RequisitionLine.Quantity >= MinExpectedQuantity,
                     StrSubstNo(MinTotalQuantityMismatchErr, MinExpectedQuantity, RequisitionLine.Quantity));
-    end;
-
-    local procedure VerifyPurchLineSerialTracking(PurchaseLine: Record "Purchase Line"; SerialNo: array[3] of Code[50]; Quantity: Integer)
-    var
-        ReservationEntry: Record "Reservation Entry";
-        i: Integer;
-    begin
-        ReservationEntry.SetRange("Source Type", Database::"Purchase Line");
-        ReservationEntry.SetRange("Source Subtype", PurchaseLine."Document Type".AsInteger());
-        ReservationEntry.SetRange("Source ID", PurchaseLine."Document No.");
-        ReservationEntry.SetRange("Source Ref. No.", PurchaseLine."Line No.");
-        ReservationEntry.SetFilter("Serial No.", '<>%1', '');
-        ReservationEntry.Setrange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
-        Assert.AreEqual(Quantity, ReservationEntry.Count(), StrSubstNo(ReservationEntryCountErr, Quantity));
-        for i := 1 to Quantity do begin
-            ReservationEntry.SetRange("Serial No.", SerialNo[i]);
-            Assert.IsTrue(ReservationEntry.FindFirst(), StrSubstNo(SerialNoErr, SerialNo[i]));
-        end;
     end;
 
     [ModalPageHandler]

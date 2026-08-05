@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 table 6845 "Spend Request To G/L Link"
 {
     Caption = 'Spend Request To G/L Link';
+    ReplicateData = false;
     DataClassification = CustomerContent;
     LookupPageId = "Spend Request To G/L Link";
     DrillDownPageId = "Spend Request To G/L Link";
