@@ -253,23 +253,26 @@ codeunit 4591 "SOA Item Search"
                 CountBeforeAvailabilityCheck := ItemFilter.Split('|').Count();
                 ApplyAvailabilityFilter := CheckAvailability and (SOASetup."Search Only Available Items" and not SOASetup."Incl. Capable to Promise");
 
-                // Run item selection for all candidate payloads so variant resolution is consistent.
-                if CandidateArray.Count() > 0 then begin
-                    SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
-                    if SelectBestItem(ItemFilter, SearchQuery, GetTaskMessageContent(TaskMessageReader), CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants, RejectedItemCount, RejectedVariantCount) then begin
-                        TelemetryCustomDimension.Add('ItemSelectorEmptySelection', Format((SelectedMatchingItemFilter = '') and (SelectedAlternativeItemFilter = '')));
-                        TelemetryCustomDimension.Add('ItemSelectorRejectedItemCount', Format(RejectedItemCount));
-                        TelemetryCustomDimension.Add('ItemSelectorRejectedVariantCount', Format(RejectedVariantCount));
-                        ItemSelectorUsed := true;
-                        TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
-                        TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(CountFilterItems(SelectedMatchingItemFilter)));
-                        TelemetryCustomDimension.Add('ItemSelectorAlternativeCount', Format(CountFilterItems(SelectedAlternativeItemFilter)));
-                        TelemetryCustomDimension.Add('ItemSelectorNoMatchCount', Format(CountBeforeAvailabilityCheck - CountFilterItems(SelectedMatchingItemFilter) - CountFilterItems(SelectedAlternativeItemFilter)));
+                if CandidateArray.Count() > 0 then
+                    if ShouldUseItemSelector(SearchType, ItemFilter, CandidateArray.Count()) then begin
+                        SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
+                        if SelectBestItem(ItemFilter, SearchQuery, GetTaskMessageContent(TaskMessageReader), CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants, RejectedItemCount, RejectedVariantCount) then begin
+                            TelemetryCustomDimension.Add('ItemSelectorEmptySelection', Format((SelectedMatchingItemFilter = '') and (SelectedAlternativeItemFilter = '')));
+                            TelemetryCustomDimension.Add('ItemSelectorRejectedItemCount', Format(RejectedItemCount));
+                            TelemetryCustomDimension.Add('ItemSelectorRejectedVariantCount', Format(RejectedVariantCount));
+                            ItemSelectorUsed := true;
+                            TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
+                            TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(CountFilterItems(SelectedMatchingItemFilter)));
+                            TelemetryCustomDimension.Add('ItemSelectorAlternativeCount', Format(CountFilterItems(SelectedAlternativeItemFilter)));
+                            TelemetryCustomDimension.Add('ItemSelectorNoMatchCount', Format(CountBeforeAvailabilityCheck - CountFilterItems(SelectedMatchingItemFilter) - CountFilterItems(SelectedAlternativeItemFilter)));
+                        end else begin
+                            ItemSelectorUsed := false;
+                            TelemetryCustomDimension.Add('ItemSelectorUsed', 'false');
+                        end;
                     end else begin
                         ItemSelectorUsed := false;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'false');
                     end;
-                end;
 
                 // When selector returns both sets, prefer available matching items.
                 // If none are available, retry availability filtering for alternatives.
@@ -319,6 +322,23 @@ codeunit 4591 "SOA Item Search"
 
         IsHandled := true;
         OnAfterFindRecordItem(ItemFilter, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode);
+    end;
+
+    local procedure ShouldUseItemSelector(SearchType: Text; ItemFilter: Text; CandidateCount: Integer): Boolean
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+    begin
+        if (SearchType <> 'item_get') or (CandidateCount <> 1) then
+            exit(true);
+
+        Item.SetLoadFields("No.");
+        Item.SetFilter(SystemId, ItemFilter);
+        if not Item.FindFirst() then
+            exit(true);
+
+        ItemVariant.SetRange("Item No.", Item."No.");
+        exit(not ItemVariant.IsEmpty());
     end;
 
     local procedure GetTaskMessageContent(TaskMessageReader: Codeunit "SOA Task Message Reader"): Text
