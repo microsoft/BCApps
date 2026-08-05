@@ -270,7 +270,7 @@ report 99001501 "Subc. Create Transf. Order"
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
     begin
         Commit(); // Used for following call of Transfer Pages
-        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder("Purchase Line", true, false);
+        SubcPurchFactboxMgmt.ShowTransferOrdersFromPurchaseOrder("Purchase Header", false);
     end;
 
     local procedure GetTransferFromLocationForComponent(ProdOrderComponent: Record "Prod. Order Component"): Code[10]
@@ -549,17 +549,20 @@ report 99001501 "Subc. Create Transf. Order"
         GetTransferToLocationCodeForPurchaseHeader(PurchaseHeader, VendorFromPurchOrder, TransferToLocationCode);
 
         if TransferToLocationCode = '' then
-            exit(false);
+            VendorFromPurchOrder.TestField("Subc. Location Code");
 
         PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocationCode);
-        OpenWIPLineQtyBase := GetOpenWIPTransferLineQtyBase(PurchaseLine);
+        OpenWIPLineQtyBase := GetOpenWIPTransferLineQtyBase(PurchaseLine, ProdOrderLine);
 
         exit((PostedWIPQtyBase + OpenWIPLineQtyBase) < ExpectedQtyBase);
     end;
 
-    local procedure GetOpenWIPTransferLineQtyBase(PurchaseLine: Record "Purchase Line"): Decimal
+    local procedure GetOpenWIPTransferLineQtyBase(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"): Decimal
     var
         TransferLineToCheck: Record "Transfer Line";
+        Item: Record Item;
+        UOMManagement: Codeunit "Unit of Measure Management";
+        QtyPerUom: Decimal;
     begin
         TransferLineToCheck.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
         TransferLineToCheck.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
@@ -568,8 +571,21 @@ report 99001501 "Subc. Create Transf. Order"
         TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
         TransferLineToCheck.SetRange("Derived From Line No.", 0);
         TransferLineToCheck.SetRange("Transfer WIP Item", true);
-        TransferLineToCheck.CalcSums("Quantity (Base)");
-        exit(TransferLineToCheck."Quantity (Base)");
+        TransferLineToCheck.SetRange("Subc. Return Order", false);
+        TransferLineToCheck.CalcSums(Quantity);
+        if TransferLineToCheck.Quantity = 0 then
+            exit(0);
+
+        // "Quantity (Base)" cannot be used here: "Qty. per Unit of Measure" is forced to 0
+        // for WIP transfer lines (see "Subc. Transfer Line".OnValidate("Transfer WIP Item")),
+        // which makes "Quantity (Base)" always evaluate to 0 for these lines. Convert the
+        // open (unposted) Quantity to the item's base UOM ourselves, using the same
+        // Purchase Line unit of measure that was used to convert it in the first place
+        // (see InsertWIPTransferLine / CalcPurchLineQtyBase).
+        Item.SetLoadFields("Base Unit of Measure");
+        Item.Get(ProdOrderLine."Item No.");
+        QtyPerUom := UOMManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
+        exit(UOMManagement.CalcBaseQty(TransferLineToCheck.Quantity, QtyPerUom));
     end;
 
     local procedure CalcPurchLineQtyBase(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"): Decimal

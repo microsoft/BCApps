@@ -412,6 +412,31 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     end;
 
     /// <summary>
+    /// Opens the subcontracting transfer order(s) linked to the given purchase order.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase order to show the related subcontracting transfer orders for.</param>
+    /// <param name="IsReturn">When true, filters to return transfer orders; when false, filters to outbound transfer orders.</param>
+    procedure ShowTransferOrdersFromPurchaseOrder(PurchaseHeader: Record "Purchase Header"; IsReturn: Boolean)
+    var
+        TransferHeader: Record "Transfer Header";
+        PageManagement: Codeunit "Page Management";
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.SetRange("Subc. Return Order", IsReturn);
+        if TransferHeader.Count() = 1 then begin
+            TransferHeader.FindFirst();
+            PageManagement.PageRun(TransferHeader);
+        end else
+            PageManagement.PageRunList(TransferHeader);
+    end;
+
+    /// <summary>
     /// Returns the number of subcontractor prices matching the given purchase line.
     /// </summary>
     /// <param name="PurchaseLine">The purchase line to match subcontractor prices against.</param>
