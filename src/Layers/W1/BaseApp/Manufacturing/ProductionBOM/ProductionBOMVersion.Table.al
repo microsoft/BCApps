@@ -86,7 +86,7 @@ table 99000779 "Production BOM Version"
                     exit;
 
                 if (Status <> xRec.Status) and (Status = Status::Certified) then begin
-                    ProdBOMLineRec.SetLoadFields(Type, "No.", "Variant Code");
+                    ProdBOMLineRec.SetLoadFields("Production BOM No.", "Version Code", "Line No.", Type, "No.", "Variant Code");
                     ProdBOMLineRec.SetRange("Production BOM No.", "Production BOM No.");
                     ProdBOMLineRec.SetRange("Version Code", "Version Code");
                     if ProdBOMLineRec.FindSet() then
