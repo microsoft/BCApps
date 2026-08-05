@@ -92,7 +92,36 @@ foreach($app in $appsToRemove) {
 }
 
 Write-Host "Current installed apps in container $($parameters.ContainerName)"
-foreach ($app in (Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
+$containerApps = @(Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast)
+foreach ($app in $containerApps) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - IsInstalled: $($app.IsInstalled) - IsPublished: $($app.IsPublished) - SyncState: $($app.SyncState)"
+}
+
+# Publishing an app runs a sync, and BC resolves each dependency against a SYNCHRONIZED
+# extension - being published is not enough. The artifact ships a handful of apps published but
+# never installed (test libraries such as "Permissions Mock"), and those are not synchronized, so
+# publishing anything that depends on them fails with "no synchronized extension could be found
+# to satisfy the dependency definition".
+#
+# The predicate is "retained but not installed" rather than a SyncState comparison: an installed
+# app is necessarily synchronized, so IsInstalled is a sound invariant, while SyncState is an
+# undocumented enum. Measured in the container: all 96 installed apps report SyncState 4 and all
+# 14 published-but-not-installed ones report 3.
+if ($baseline.IsUsable -and $appsUntouched.Count -gt 0) {
+    $retainedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($app in $appsUntouched) { [void]$retainedNames.Add($app.Name) }
+
+    $needSync = @($containerApps | Where-Object { $retainedNames.Contains($_.Name) -and -not $_.IsInstalled })
+    if ($needSync.Count -gt 0) {
+        Write-Host "Artifact Baseline: synchronizing $($needSync.Count) retained app(s) the artifact left published but not installed"
+        foreach ($app in $needSync) {
+            try {
+                Sync-BcContainerApp -containerName $parameters.ContainerName -appName $app.Name -appVersion $app.Version -Mode ForceSync -Force
+            }
+            catch {
+                Write-Host "Artifact Baseline: could not synchronize $($app.Name) - $($_.Exception.Message)"
+            }
+        }
+    }
 }
 Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -scriptblock { $progressPreference = 'SilentlyContinue' }
