@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.HumanResources.Employee;
+using Microsoft.HumanResources.Setup;
 
 codeunit 148338 "Expense Event Subs. Perm. Test"
 {
@@ -18,6 +19,8 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        IsInitialized: Boolean;
         EmployeeOnlyPermissionSetTok: Label 'Exp. Emp. Only Test', Locked = true;
         HREditPermissionSetTok: Label 'Exp. HR Edit Test', Locked = true;
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
@@ -53,6 +56,8 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         LastName: Text[30];
         JobTitle: Text[30];
     begin
+        Initialize();
+
         // [SCENARIO] Employee details synchronize when the caller cannot access Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         Employee.Get(ExpenseUser."Employee No.");
@@ -82,6 +87,8 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         ExpenseUser: Record "Expense User";
         ExpenseUserNo: Code[20];
     begin
+        Initialize();
+
         // [SCENARIO] Deleting an Employee also deletes the linked Expense User when the caller cannot access it.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         Employee.Get(ExpenseUser."Employee No.");
@@ -100,15 +107,13 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
     var
         Employee: Record Employee;
         Expense: Record Expense;
-        ExpenseCategory: Record "Expense Category";
-        ExpenseSubcategory: Record "Expense Subcategory";
         ExpenseUser: Record "Expense User";
     begin
+        Initialize();
+
         // [SCENARIO] Expense history still prevents Employee deletion for a caller without Expense User access.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
-        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
-        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubcategory.Code, '', true, '', LibraryRandom.RandInt(100));
+        CreateExpenseForDeletionGuard(Expense, ExpenseUser."No.");
         Employee.Get(ExpenseUser."Employee No.");
 
         SetCallerPermissions(EmployeeOnlyPermissionSetTok, ExpenseUser);
@@ -126,10 +131,11 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseUser: Record "Expense User";
     begin
+        Initialize();
+
         // [SCENARIO] Active expense reports still prevent Employee deletion without Expense User access.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        CreateExpenseReportForDeletionGuard(ExpenseReportHeader, ExpenseUser."No.");
         Employee.Get(ExpenseUser."Employee No.");
 
         SetCallerPermissions(EmployeeOnlyPermissionSetTok, ExpenseUser);
@@ -147,9 +153,11 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         ExpenseUser: Record "Expense User";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
     begin
+        Initialize();
+
         // [SCENARIO] Posted expense reports still prevent Employee deletion without Expense User access.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.CreatePostedExpenseReport(PostedExpenseReportHeader, ExpenseUser."No.");
+        CreatePostedExpenseReportForDeletionGuard(PostedExpenseReportHeader, ExpenseUser."No.");
         Employee.Get(ExpenseUser."Employee No.");
 
         SetCallerPermissions(EmployeeOnlyPermissionSetTok, ExpenseUser);
@@ -166,6 +174,8 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         ExpenseUser: Record "Expense User";
         NewEmail: Text[80];
     begin
+        Initialize();
+
         // [SCENARIO] Company E-Mail synchronizes when the caller cannot access Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         Employee.Get(ExpenseUser."Employee No.");
@@ -183,6 +193,65 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         RestoreFullPermissions();
         ExpenseUser.Get(ExpenseUser."No.");
         Assert.AreEqual(NewEmail, ExpenseUser."E-mail", 'Employee Company E-Mail must synchronize to Expense User.');
+    end;
+
+    local procedure CreateExpenseForDeletionGuard(var Expense: Record Expense; ExpenseUserNo: Code[20])
+    begin
+        Expense.Init();
+        Expense."No." := CopyStr(LowerCase(DelChr(Format(CreateGuid()), '=', '{}-')), 1, MaxStrLen(Expense."No."));
+        Expense."Expense User No." := ExpenseUserNo;
+        Expense.Insert(false);
+    end;
+
+    local procedure CreateExpenseReportForDeletionGuard(var ExpenseReportHeader: Record "Expense Report Header"; ExpenseUserNo: Code[20])
+    begin
+        ExpenseReportHeader.Init();
+        ExpenseReportHeader."No." :=
+            CopyStr(LowerCase(DelChr(Format(CreateGuid()), '=', '{}-')), 1, MaxStrLen(ExpenseReportHeader."No."));
+        ExpenseReportHeader."Expense User No." := ExpenseUserNo;
+        ExpenseReportHeader.Insert(false);
+    end;
+
+    local procedure CreatePostedExpenseReportForDeletionGuard(var PostedExpenseReportHeader: Record "Posted Expense Report Header"; ExpenseUserNo: Code[20])
+    begin
+        PostedExpenseReportHeader.Init();
+        PostedExpenseReportHeader."No." :=
+            CopyStr(LowerCase(DelChr(Format(CreateGuid()), '=', '{}-')), 1, MaxStrLen(PostedExpenseReportHeader."No."));
+        PostedExpenseReportHeader."Expense User No." := ExpenseUserNo;
+        PostedExpenseReportHeader.Insert(false);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Event Subs. Perm. Test");
+        LibraryExpense.CleanTransactionalData();
+        LibraryExpense.CleanUpBeforeTesting();
+        if IsInitialized then
+            exit;
+
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Event Subs. Perm. Test");
+        EnsureSetupRecordsExist();
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+        IsInitialized := true;
+        Commit();
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Event Subs. Perm. Test");
+    end;
+
+    local procedure EnsureSetupRecordsExist()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        HumanResourcesSetup: Record "Human Resources Setup";
+    begin
+        if not ExpenseAgentSetup.Get() then begin
+            ExpenseAgentSetup.Init();
+            ExpenseAgentSetup.Insert();
+        end;
+
+        if not HumanResourcesSetup.Get() then begin
+            HumanResourcesSetup.Init();
+            HumanResourcesSetup.Insert();
+        end;
     end;
 
     local procedure SetCallerPermissions(PermissionSetId: Code[20]; ExpenseUser: Record "Expense User")

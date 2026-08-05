@@ -4,16 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.ExpenseAgent;
 
-using Microsoft.HumanResources.Employee;
 using System.Security.AccessControl;
 
 permissionset 148300 "Exp. Emp. Only Test"
 {
     Access = Internal;
     Assignable = false;
-    IncludedPermissionSets = "D365 BASIC ISV";
+    IncludedPermissionSets = "D365 BASIC ISV",
+                             "Employee - Edit";
 
     Permissions = codeunit Assert = X,
-                  codeunit "Library - Lower Permissions" = X,
-                  tabledata Employee = RIMD;
+                  codeunit "Library - Lower Permissions" = X;
 }
