@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Finance.Currency;
@@ -22,6 +23,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Test;
@@ -268,6 +270,33 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document uses Bank Account IBAN and SWIFT Code
         VerifyPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans', BankAccountIBAN, BankAccountSWIFT);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyDirectDebitPaymentMeans();
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CompanyBankAccountCode: Code[20];
+    begin
+        // [SCENARIO] Export posted sales invoice with SEPA direct debit payment means uses the company account as payee, the customer's mandate account as payer, and the mandate reference and creditor identifier
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithDirectDebit(SEPADirectDebitMandate, CustomerBankAccount, CompanyBankAccountCode));
+        BankAccount.Get(CompanyBankAccountCode);
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Payment means contains the mandate reference (BT-89), company account as payee, and customer account as payer (BT-91)
+        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans', SEPADirectDebitMandate.ID, BankAccount.IBAN, CustomerBankAccount.IBAN);
+
+        // [THEN] Supplier party contains the bank assigned creditor identifier (BT-90)
+        VerifyDirectDebitCreditorNo(TempXMLBuffer, '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party', BankAccount."Creditor No.");
     end;
 
     [Test]
@@ -1069,6 +1098,39 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := CrMemoTaxCategoryTok + '/cbc:TaxExemptionReason';
         Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatVerifyCompanyIBANInPaymentMeans();
+    var
+        Customer: Record Customer;
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CustomerIBAN: Text[50];
+        Path: Text;
+    begin
+        // [SCENARIO] Export posted sales cr. memo uses the company IBAN (not the customer's) in PayeeFinancialAccount
+        Initialize();
+
+        // [GIVEN] Create customer with a bank account that has a specific IBAN
+        CustomerIBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        Customer.Get(CreateCustomer());
+        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
+        CustomerBankAccount.IBAN := CustomerIBAN;
+        CustomerBankAccount.Modify(true);
+        Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Create and Post sales cr. memo for that customer
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentForCustomer("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, Customer."No."));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Payment means contains the company IBAN, not the customer's
+        Path := '/ns0:CreditNote/cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:ID';
+        Assert.AreEqual(CompanyInformation.IBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
     #endregion
 
     #region ServiceCreditMemo
@@ -1760,6 +1822,72 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateDirectDebitPaymentMethod(): Code[10]
+    var
+        PaymentMethod: Record "Payment Method";
+    begin
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod.Validate("PEPPOL Payment Means Code", '59');
+        PaymentMethod.Modify(true);
+        exit(PaymentMethod.Code);
+    end;
+
+    local procedure CreateCustomerWithDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; PaymentMethodCode: Code[10]): Code[20]
+    var
+        Customer: Record Customer;
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Direct Debit Mandate Nos."));
+        Customer.Get(CreateCustomer());
+        Customer.Validate("Payment Method Code", PaymentMethodCode);
+        Customer.Modify(true);
+        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
+        CustomerBankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        CustomerBankAccount.Modify(true);
+        LibrarySales.CreateCustomerMandate(SEPADirectDebitMandate, Customer."No.", CustomerBankAccount.Code, WorkDate(), CalcDate('<1Y>', WorkDate()));
+        Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure CreateCreditorBankAccount(): Code[20]
+    var
+        BankAccount: Record "Bank Account";
+    begin
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        BankAccount.Validate("Creditor No.", LibraryUtility.GenerateRandomCode(BankAccount.FieldNo("Creditor No."), Database::"Bank Account"));
+        BankAccount.Modify(true);
+        exit(BankAccount."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceWithDirectDebit(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; var CompanyBankAccountCode: Code[20]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        PaymentMethodCode := CreateDirectDebitPaymentMethod();
+        CustomerNo := CreateCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+        CompanyBankAccountCode := CreateCreditorBankAccount();
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Company Bank Account Code", CompanyBankAccountCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesDocumentForCustomer(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; CustomerNo: Code[20]): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
+        CreateSalesLine(SalesHeader, LineType, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreatePurchDocument(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type")
     var
         PurchaseLine: Record "Purchase Line";
@@ -2339,6 +2467,29 @@ codeunit 13918 "XRechnung XML Document Tests"
         end;
     end;
 
+    local procedure VerifyDirectDebitPaymentMeans(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text; ExpectedMandateID: Code[35]; ExpectedPayeeIBAN: Text; ExpectedPayerIBAN: Text)
+    var
+        Path: Text;
+    begin
+        Path := DocumentTok + '/cbc:PaymentMeansCode';
+        Assert.AreEqual('59', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cbc:PaymentID';
+        Assert.AreEqual(ExpectedMandateID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:PayeeFinancialAccount/cbc:ID';
+        Assert.AreEqual(ExpectedPayeeIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:PayerFinancialAccount/cbc:ID';
+        Assert.AreEqual(ExpectedPayerIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure VerifyDirectDebitCreditorNo(var TempXMLBuffer: Record "XML Buffer" temporary; PartyTok: Text; ExpectedCreditorNo: Code[35])
+    var
+        Path: Text;
+    begin
+        Path := PartyTok + '/cac:PartyLegalEntity/cbc:CompanyID';
+        Assert.AreEqual(ExpectedCreditorNo, GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('SEPA', GetLastAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path + '/@schemeID'));
+    end;
+
     local procedure VerifyPaymentTerms(PaymentTermsCode: Code[10]; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
     var
         PaymentTerms: Record "Payment Terms";
@@ -2910,6 +3061,25 @@ codeunit 13918 "XRechnung XML Document Tests"
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
         TempXMLBuffer.SetRange(Path, ElementXPath);
         if TempXMLBuffer.FindFirst() then begin
+            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+            TempXMLBufferAttribute.Reset();
+            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+            TempXMLBufferAttribute.SetRange(Name, AttributeName);
+            if TempXMLBufferAttribute.FindFirst() then
+                exit(TempXMLBufferAttribute.Value);
+        end;
+        Error(AttributeNotFoundErr, AttributeName, ElementXPath);
+    end;
+
+    local procedure GetLastAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, ElementXPath);
+        if TempXMLBuffer.FindLast() then begin
             TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
             TempXMLBufferAttribute.Reset();
             TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
