@@ -55,6 +55,7 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "EA Outbox Email" = R,
         tabledata "EA KPI" = R,
         tabledata "EA KPI Entry" = R,
+        tabledata Traveler = R,
         tabledata "Expense VAT Specification" = R,
         tabledata "Expense Report Line VAT Spec." = R,
         tabledata "Posted Exp. Rep. Line VAT Spec" = R;

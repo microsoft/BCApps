@@ -9,6 +9,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
@@ -433,10 +434,20 @@ table 6907 "Expense Report Line"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                GetExpenseReportHeader();
 
                 if not Rec.Refundable then begin
                     Rec.TestField("VAT Liable", false);
                     Rec.TestField("Non-Refundable Amount", 0);
+                    Rec.Validate("Spend Request No.", '');
+                    Rec."Spend Request Close" := false;
+                end;
+
+                if Rec.Refundable and (Rec."Expense User No." <> '') then begin
+                    Rec.SetSkipSpendRequestClose(true);
+                    Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
+                    Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
+                    Rec.SetSkipSpendRequestClose(false);
                 end;
 
                 UpdateAmounts();
@@ -1026,6 +1037,41 @@ table 6907 "Expense Report Line"
                 TestStatusOpen();
             end;
         }
+        field(100; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request number that is associated with this expense report line.The spend request must be approved and released before it can be selected.';
+            TableRelation = "Spend Request" where(Type = const(Expense));
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                SourceCodeSetup: Record "Source Code Setup";
+                DimensionSetIDArr: array[10] of Integer;
+            begin
+                if Rec."Spend Request No." <> '' then begin
+                    SourceCodeSetup.Get();
+
+                    Rec.TestField(Refundable, true);
+                    CheckTraveler();
+                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose);
+                    SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", SourceCodeSetup.Expense, Rec."Refundable Amount (LCY)");
+
+                    if SpendRequest."Dimension Set ID" <> 0 then begin
+                        DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                        DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                        Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                    end;
+                end else
+                    Rec."Spend Request Close" := false;
+            end;
+        }
+        field(101; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            DataClassification = CustomerContent;
+        }
     }
     keys
     {
@@ -1079,6 +1125,7 @@ table 6907 "Expense Report Line"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
         SkipRuleApplication: Boolean;
         HideValidationDialog: Boolean;
+        SkipSpendRequestClose: Boolean;
         EmptyGuid: Guid;
         InvalidEndingDateErr: Label 'Ending Date and Time cannot be earlier than Starting Date and Time.';
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense report %2, Line No. %3 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No., %3 = Line No.';
@@ -1093,6 +1140,9 @@ table 6907 "Expense Report Line"
         CannotExceedErr: Label '%1 must not exceed %2 = %3.', Comment = '%1 = Field Name, %2 = Limit Field Name, %3 = Limit Value';
         ExpenseReportNotFoundErr: Label 'Expense Report %1 does not exist.', Comment = '%1 = Expense Report No.';
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        SpendRequestMustBeApprovedErr: Label 'Spend Request %1 must be approved before you can use it on an expense report.', Comment = '%1 = Spend Request No.';
+        SpendRequestMustBeReleasedErr: Label 'Spend Request %1 must be released before you can use it on an expense report.', Comment = '%1 = Spend Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
 
 
@@ -1457,6 +1507,11 @@ table 6907 "Expense Report Line"
         if Rec."Expense Date" = 0D then
             Rec."Expense Date" := ExpReportHeader."Expense Report Date";
 
+        if Rec.Refundable then begin
+            "Spend Request No." := ExpReportHeader."Spend Request No.";
+            "Spend Request Close" := ExpReportHeader."Spend Request Close";
+        end;
+
         "Dimension Set ID" := ExpReportHeader."Dimension Set ID";
     end;
 
@@ -1475,6 +1530,18 @@ table 6907 "Expense Report Line"
 
         UpdateAmountLCY();
         UpdateAmountByReimbursementType();
+
+        if ("Spend Request No." <> '') and Rec.Refundable then
+            CheckSpendRequestAmount();
+    end;
+
+    local procedure CheckSpendRequestAmount()
+    var
+        SpendRequest: Record "Spend Request";
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        SourceCodeSetup.Get();
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", SourceCodeSetup.Expense, Rec."Refundable Amount (LCY)");
     end;
 
     local procedure UpdateVATAmount()
@@ -1840,6 +1907,8 @@ table 6907 "Expense Report Line"
     begin
         Rec.Description := '';
         Rec."Expense Detail Required" := Rec."Expense Detail Required"::" ";
+        Rec."Spend Request No." := '';
+        Rec."Spend Request Close" := false;
 
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
@@ -2030,5 +2099,42 @@ table 6907 "Expense Report Line"
             exit;
 
         Rec."Modified By Exp. User Id" := ExpenseUser.SystemId;
+    end;
+
+    internal procedure CheckSpendRequestStatus(SpendRequestNo: Code[20])
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        SpendRequest.Get(SpendRequestNo);
+
+        SpendRequest.TestField(Type, SpendRequest.Type::Expense);
+        if ExpenseAgentSetup."Enable Agent" then begin
+            if SpendRequest.Status <> SpendRequest.Status::Approved then
+                Error(SpendRequestMustBeApprovedErr, SpendRequestNo);
+        end else
+            if SpendRequest.Status <> SpendRequest.Status::Released then
+                Error(SpendRequestMustBeReleasedErr, SpendRequestNo);
+    end;
+
+    local procedure CheckTraveler()
+    var
+        Traveler: Record Traveler;
+    begin
+        Rec.TestField("Expense User No.");
+
+        Traveler.SetRange("Spend Request No.", Rec."Spend Request No.");
+        Traveler.SetRange("Expense User No.", Rec."Expense User No.");
+        if Traveler.IsEmpty() then
+            Error(ExpenseUserNotTravelerErr, Rec."Expense User No.", Rec."Spend Request No.");
+    end;
+
+    /// <summary>
+    /// Sets whether the confirmation to close the related spend request should be skipped during validation.
+    /// </summary>
+    /// <param name="NewSkipSpendRequestClose">True to skip the close confirmation; otherwise false.</param>
+    internal procedure SetSkipSpendRequestClose(NewSkipSpendRequestClose: Boolean)
+    begin
+        SkipSpendRequestClose := NewSkipSpendRequestClose;
     end;
 }

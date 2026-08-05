@@ -6,6 +6,8 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
@@ -255,6 +257,49 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLine.Insert(true);
     end;
 
+    internal procedure CreateSpendRequest(var SpendRequest: Record "Spend Request")
+    begin
+        SpendRequest.Init();
+        SpendRequest.Type := SpendRequest.Type::Expense;
+        SpendRequest.Insert(true);
+    end;
+
+    internal procedure CreateSpendRequestDetail(SpendRequestNo: Code[20]; ExpectedAmount: Decimal)
+    var
+        SpendRequestDetail: Record "Spend Request Detail";
+        RecordRef: RecordRef;
+    begin
+        SpendRequestDetail.Init();
+        SpendRequestDetail.Validate("Spend Request No.", SpendRequestNo);
+
+        RecordRef.GetTable(SpendRequestDetail);
+        SpendRequestDetail.Validate("Line No.", LibraryUtility.GetNewLineNo(RecordRef, SpendRequestDetail.FieldNo("Line No.")));
+        SpendRequestDetail.Insert(true);
+        SpendRequestDetail.Validate("Expected Amount", ExpectedAmount);
+        SpendRequestDetail.Modify(true);
+    end;
+
+    internal procedure CreateTraveler(SpendRequestNo: Code[20]; ExpenseUserNo: Code[20])
+    var
+        Traveler: Record Traveler;
+        RecordRef: RecordRef;
+    begin
+        Traveler.Init();
+        Traveler.Validate("Spend Request No.", SpendRequestNo);
+
+        RecordRef.GetTable(Traveler);
+        Traveler.Validate("Line No.", LibraryUtility.GetNewLineNo(RecordRef, Traveler.FieldNo("Line No.")));
+        Traveler.Insert(true);
+        Traveler.Validate("Expense User No.", ExpenseUserNo);
+        Traveler.Modify(true);
+    end;
+
+    internal procedure SetSpendRequestStatus(var SpendRequest: Record "Spend Request"; NewStatus: Enum "Spend Request Status")
+    begin
+        SpendRequest.Status := NewStatus;
+        SpendRequest.Modify();
+    end;
+
     procedure InitializeExpenseSourceCode()
     var
         SourceCode: Record "Source Code";
@@ -273,6 +318,7 @@ codeunit 148300 "Library - Expense"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         HumanResourcesSetup: Record "Human Resources Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         ExpenseAgentSetup.Get();
         // Always assign fresh no. series so tests never inherit a partially-consumed series from a previous run.
@@ -287,6 +333,10 @@ codeunit 148300 "Library - Expense"
         HumanResourcesSetup.Get();
         HumanResourcesSetup.Validate("Employee Nos.", LibraryUtility.GetGlobalNoSeriesCode());
         HumanResourcesSetup.Modify(true);
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Spend Request No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        GeneralLedgerSetup.Modify(true);
     end;
 
     procedure UpdateEnableApprovalWorkflowInAgentSetup(EnableApprovalWorkflow: Boolean)

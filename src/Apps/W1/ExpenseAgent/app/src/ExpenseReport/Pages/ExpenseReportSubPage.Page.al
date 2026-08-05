@@ -5,6 +5,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.SpendRequest;
 
 page 6999 "Expense Report SubPage"
 {
@@ -181,6 +182,11 @@ page 6999 "Expense Report SubPage"
                     CaptionClass = GetReimbursementAmountCaption();
                     Editable = false;
                     ToolTip = 'Specifies the portion of the expense that will be refundable. Calculated from amount, VAT, and reductions.';
+                    Visible = false;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
                 field("Starting Date and Time"; Rec."Starting Date and Time")
@@ -572,6 +578,16 @@ page 6999 "Expense Report SubPage"
                     RunObject = Page "Expense Report Line VAT Spec.";
                     RunPageLink = "Document No." = field("Document No."), "Document Line No." = field("Line No.");
                     Visible = AllowVATReclaim;
+                }
+                action("Spend Request")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Image = ProjectExpense;
+                    Caption = 'Spend Request';
+                    ToolTip = 'View the details of the spend request associated with this expense report line.';
+                    RunObject = Page "Spend Request Card";
+                    RunPageLink = "No." = field("Spend Request No.");
+                    Visible = Rec."Spend Request No." <> '';
                 }
             }
         }

@@ -8,6 +8,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.BatchProcessing;
@@ -68,6 +69,7 @@ table 6906 "Expense Report Header"
 
                     Rec.Validate("Approver Expense User No.", '');
                     Rec.Validate("Approver Expense User ID", '');
+                    Rec.Validate("Spend Request No.", '');
                 end;
 
                 Rec.CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
@@ -501,6 +503,42 @@ table 6906 "Expense Report Header"
             CalcFormula = sum("Expense Report Line VAT Spec."."Reclaim VAT Amount (LCY)" where("Document No." = field("No."), "Reclaim Status" = const(Approved)));
             ToolTip = 'Specifies the total VAT amount approved for reclaim across all VAT specification lines of this expense report, in local currency.';
         }
+        field(100; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request number that is associated with this expense report.';
+            TableRelation = "Spend Request" where(Type = const(Expense));
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                SourceCodeSetup: Record "Source Code Setup";
+                DimensionSetIDArr: array[10] of Integer;
+            begin
+                if Rec."Spend Request No." <> '' then begin
+                    SourceCodeSetup.Get();
+
+                    CheckTraveler();
+                    SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", SourceCodeSetup.Expense);
+
+                    if SpendRequest."Dimension Set ID" <> 0 then begin
+                        DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                        DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                        Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                    end;
+                end else
+                    Rec."Spend Request Close" := false;
+
+                if xRec."Spend Request No." <> Rec."Spend Request No." then
+                    UpdateReportLines(Rec.FieldName("Spend Request No."));
+            end;
+        }
+        field(101; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
@@ -578,6 +616,7 @@ table 6906 "Expense Report Header"
         CanModifyLinesQst: Label 'You have modified %1 which will also update the lines.\\Do you want to continue?', Comment = '%1 = Field Caption';
         CannotChangeExpenseUserErr: Label 'You cannot change %1 in Expense Report No. %2 as there are associated lines to it.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 - Expense User No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -645,6 +684,8 @@ table 6906 "Expense Report Header"
                         UpdateVATBusPostingGroupOnReportLine(ExpenseReportLine);
                     Rec.FieldName("Posting Date"):
                         UpdatePostingDateOnReportLine(ExpenseReportLine);
+                    Rec.FieldName("Spend Request No."):
+                        UpdateSpendRequestOnReportLine(ExpenseReportLine);
                 end;
             until ExpenseReportLine.Next() = 0;
     end;
@@ -669,6 +710,17 @@ table 6906 "Expense Report Header"
     begin
         ExpenseReportLine.UpdateAmounts();
         ExpenseReportLine.Modify();
+    end;
+
+    local procedure UpdateSpendRequestOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
+    begin
+        if (Rec."Spend Request No." <> ExpenseReportLine."Spend Request No.") and ExpenseReportLine.Refundable then begin
+            ExpenseReportLine.SetSkipSpendRequestClose(true);
+            ExpenseReportLine.Validate("Spend Request No.", Rec."Spend Request No.");
+            ExpenseReportLine."Spend Request Close" := Rec."Spend Request Close";
+            ExpenseReportLine.SetSkipSpendRequestClose(false);
+            ExpenseReportLine.Modify();
+        end;
     end;
 
     procedure ExpenseLinesExist(): Boolean
@@ -1143,6 +1195,18 @@ table 6906 "Expense Report Header"
     internal procedure SetCalledFromExpenseAgent(NewCalledFromExpenseAgent: Boolean)
     begin
         CalledFromExpenseAgent := NewCalledFromExpenseAgent;
+    end;
+
+    local procedure CheckTraveler()
+    var
+        Traveler: Record Traveler;
+    begin
+        Rec.TestField("Expense User No.");
+
+        Traveler.SetRange("Spend Request No.", Rec."Spend Request No.");
+        Traveler.SetRange("Expense User No.", Rec."Expense User No.");
+        if Traveler.IsEmpty() then
+            Error(ExpenseUserNotTravelerErr, Rec."Expense User No.", Rec."Spend Request No.");
     end;
 
     [IntegrationEvent(true, false)]

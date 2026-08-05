@@ -147,6 +147,14 @@ page 6957 "Posted Expense Reports API"
                 {
                     Caption = 'Responsibility Center';
                 }
+                field(spendRequestNo; Rec."Spend Request No.")
+                {
+                    Caption = 'Spend Request No.';
+                }
+                field(spendRequestClose; Rec."Spend Request Close")
+                {
+                    Caption = 'Spend Request Close';
+                }
                 part(postedExpenseReportLines; "Posted Exp. Report Lines API")
                 {
                     Caption = 'Posted Expense Report Lines';
