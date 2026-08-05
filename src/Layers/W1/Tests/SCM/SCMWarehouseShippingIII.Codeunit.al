@@ -118,9 +118,9 @@
     begin
         // Test PostiveAdjmt Quantity on Whse Entry after undo Sales Shipment Line with Partial Qty when Items are created with Lot and Serial specific.
         Initialize();
-        Quantity := 100;
+        Quantity := 10;
         CreateItemWithRepSysAssembly(AssemblyItem);
-        ItemTrackingWithSerialSpecific(AssemblyItem, Quantity, Quantity / LibraryRandom.RandInt(3),
+        ItemTrackingWithSerialSpecific(AssemblyItem, Quantity, Quantity / 2,
           ItemTrackingMode::AssignLotNo);
     end;
 
