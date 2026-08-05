@@ -42,10 +42,10 @@ page 4751 "Recommended App Card"
                 Caption = 'Description';
                 MultiLine = true;
             }
-            field("View on AppSource"; 'Link to AppSource')
+            field("View on AppSource"; 'Link to Marketplace')
             {
                 ApplicationArea = All;
-                ToolTip = 'View app on Microsoft AppSource';
+                ToolTip = 'View app on Microsoft Marketplace';
                 Caption = 'View on Marketplace';
 
                 trigger OnDrillDown()

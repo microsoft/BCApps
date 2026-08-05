@@ -6,6 +6,7 @@ codeunit 139527 "Recommended Apps Tests"
 
     var
         Assert: Codeunit Assert;
+        MarketplaceURLNotFoundErr: Label 'Marketplace URL';
 
     [Test]
     procedure TestInsertAppWhenURLAppInfoAreWrong()
@@ -210,7 +211,7 @@ codeunit 139527 "Recommended Apps Tests"
         asserterror RecommendedApps.GetAppURL(CreateGuid());
 
         // [THEN] Am error is thrown
-        Assert.ExpectedError('Cannot get the Marketplace URL.');
+        Assert.ExpectedError(MarketplaceURLNotFoundErr);
     end;
 
     local procedure InsertSingleApp(): Guid

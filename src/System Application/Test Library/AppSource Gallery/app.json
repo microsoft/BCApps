@@ -13,7 +13,7 @@
   "dependencies": [
     {
       "id": "79952567-63d7-4586-8b47-ba13a11a8a18",
-      "name": "AppSource Product Gallery",
+      "name": "Marketplace Product Gallery",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
     },
