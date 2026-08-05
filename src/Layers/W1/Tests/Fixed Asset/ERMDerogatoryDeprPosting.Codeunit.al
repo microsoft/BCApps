@@ -555,6 +555,122 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
+    [Test]
+    procedure AcquisitionSalvageCompanionIsLinked()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        SourceSalvageFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartSalvageFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617320] An automatic salvage companion is explicitly linked to its source companion
+
+        // [GIVEN] A fixed asset with a normal and a tax (derogatory) depreciation book
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        UpdateIntegrationInBook(NormalDeprBookCode, false);
+        CreateFAJournalLine(
+          FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+          LibraryRandom.RandDec(10000, 2));
+        FAJournalLine.Validate("Salvage Value", -LibraryRandom.RandDec(100, 2));
+        FAJournalLine.Modify(true);
+
+        // [WHEN] The acquisition and its automatic salvage value are posted
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        // [THEN] The tax-book salvage entry links to the normal-book salvage entry
+        SourceSalvageFALedgerEntry.SetRange("FA No.", FANo);
+        SourceSalvageFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
+        SourceSalvageFALedgerEntry.SetRange("FA Posting Type", SourceSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
+        SourceSalvageFALedgerEntry.FindFirst();
+        SourceSalvageFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        CounterpartSalvageFALedgerEntry.SetRange("FA No.", FANo);
+        CounterpartSalvageFALedgerEntry.SetRange("Depreciation Book Code", TaxDeprBookCode);
+        CounterpartSalvageFALedgerEntry.SetRange("FA Posting Type", CounterpartSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
+        CounterpartSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.", SourceSalvageFALedgerEntry."Entry No.");
+        Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count, NumberFAEntryErr);
+    end;
+
+    [Test]
+    procedure GeneralJournalSalvageCompanionIsLinked()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        SourceSalvageFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartSalvageFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617322] A general-journal salvage companion is explicitly linked to its source companion
+
+        // [GIVEN] An acquisition with salvage for a fixed asset with normal and tax books
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        CreateGenJournalLine(
+          GenJournalLine, WorkDate(), GenJournalLine."FA Posting Type"::"Acquisition Cost",
+          FANo, NormalDeprBookCode, LibraryRandom.RandDec(10000, 2));
+        GenJournalLine.Validate("Salvage Value", -LibraryRandom.RandDec(100, 2));
+        GenJournalLine.Modify(true);
+
+        // [WHEN] The general-journal acquisition is posted
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The tax-book salvage entry links to the normal-book salvage entry
+        SourceSalvageFALedgerEntry.SetRange("FA No.", FANo);
+        SourceSalvageFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
+        SourceSalvageFALedgerEntry.SetRange("FA Posting Type", SourceSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
+        SourceSalvageFALedgerEntry.FindFirst();
+        CounterpartSalvageFALedgerEntry.SetRange("FA No.", FANo);
+        CounterpartSalvageFALedgerEntry.SetRange("Depreciation Book Code", TaxDeprBookCode);
+        CounterpartSalvageFALedgerEntry.SetRange("FA Posting Type", CounterpartSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
+        CounterpartSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.", SourceSalvageFALedgerEntry."Entry No.");
+        Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count, NumberFAEntryErr);
+    end;
+
+    [Test]
+    procedure AutomaticOnlyDepreciationCompanionsAreLinked()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+        AutomaticSourceCount: Integer;
+    begin
+        // [SCENARIO 617321] Automatic-only depreciation still produces linked tax-book companions
+
+        // [GIVEN] An acquired fixed asset with a normal and a tax (derogatory) depreciation book
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        UpdateIntegrationInBook(NormalDeprBookCode, false);
+        CreateFAJournalLine(
+          FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+          LibraryRandom.RandDec(10000, 2));
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        CreateFAJournalLine(
+          FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::Depreciation, 0);
+        FAJournalLine.Validate("FA Posting Date", CalcDate('<1Y>', WorkDate()));
+        FAJournalLine.Validate("Depr. until FA Posting Date", true);
+        FAJournalLine.Modify(true);
+
+        // [WHEN] A zero-amount depreciation line creates only automatic entries
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        // [THEN] Every automatic normal-book entry created on that date has one linked tax-book companion
+        SourceFALedgerEntry.SetRange("FA No.", FANo);
+        SourceFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
+        SourceFALedgerEntry.SetRange("FA Posting Date", FAJournalLine."FA Posting Date");
+        SourceFALedgerEntry.SetRange("Automatic Entry", true);
+        SourceFALedgerEntry.FindSet();
+        repeat
+            AutomaticSourceCount += 1;
+            CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.", SourceFALedgerEntry."Entry No.");
+            CounterpartFALedgerEntry.SetRange("Depreciation Book Code", TaxDeprBookCode);
+            Assert.AreEqual(1, CounterpartFALedgerEntry.Count, NumberFAEntryErr);
+        until SourceFALedgerEntry.Next() = 0;
+        Assert.AreNotEqual(0, AutomaticSourceCount, NumberFAEntryErr);
+    end;
+
     local procedure CreateFAWithNormalAndTaxFADeprBooks(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10]): Code[20]
     var
         FixedAsset: Record "Fixed Asset";

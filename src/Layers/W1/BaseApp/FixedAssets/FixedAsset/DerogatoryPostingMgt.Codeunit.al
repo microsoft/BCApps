@@ -83,6 +83,8 @@ codeunit 5869 "Derogatory Posting Mgt."
         DerogatoryFAJournalLine."External Document No." := SourceGenJournalLine."External Document No.";
         DerogatoryFAJournalLine.Description := SourceGenJournalLine.Description;
         DerogatoryFAJournalLine.Validate(Amount, SourceGenJournalLine."VAT Base Amount");
+        DerogatoryFAJournalLine.Validate(
+            "Salvage Value", SourceGenJournalLine.ConvertAmtFCYToLCYForSourceCurrency(SourceGenJournalLine."Salvage Value"));
         DerogatoryFAJournalLine.Quantity := SourceGenJournalLine.Quantity;
         DerogatoryFAJournalLine.Validate(Correction, SourceGenJournalLine.Correction);
         DerogatoryFAJournalLine."No. of Depreciation Days" := SourceGenJournalLine."No. of Depreciation Days";
