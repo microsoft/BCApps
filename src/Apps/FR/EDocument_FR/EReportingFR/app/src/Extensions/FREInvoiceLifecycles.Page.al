@@ -69,7 +69,6 @@ page 10970 "FR E-Invoice Lifecycles"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Retry Message Creation';
                 Enabled = Rec."Processing Status" = Rec."Processing Status"::Failed;
-                Image = Reopen;
                 ToolTip = 'Schedules another attempt to create the lifecycle message.';
 
                 trigger OnAction()

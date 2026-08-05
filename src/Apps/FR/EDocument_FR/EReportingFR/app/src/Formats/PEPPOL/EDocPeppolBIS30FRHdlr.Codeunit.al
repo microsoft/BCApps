@@ -41,7 +41,7 @@ codeunit 10980 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
     /// <param name="EDocument">The E-Document record that contains the document metadata and information.</param>
     /// <param name="TempBlob">A temporary blob containing the XML document stream to be processed.</param>
     /// <returns>The draft preparation implementation that should process the created draft.</returns>
-    internal procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
+    procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PeppolXml: XmlDocument;
@@ -91,7 +91,7 @@ codeunit 10980 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
     /// </summary>
     /// <param name="EDocument">The E-Document record that contains the document to be displayed.</param>
     /// <param name="TempBlob">A temporary blob containing the document data. Not used by this implementation.</param>
-    internal procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
+    procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     var
         EDocPurchaseHeader: Record "E-Document Purchase Header";
         EDocPurchaseLine: Record "E-Document Purchase Line";
