@@ -21,7 +21,6 @@ codeunit 10553 "Feature - Reverse Charge VAT" implements "Feature Data Update"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Feature Data Update Status" = rm;
     ObsoleteReason = 'Feature Reverse Charge VAT will be enabled by default in version 30.0.';
     ObsoleteState = Pending;
     ObsoleteTag = '27.0';
@@ -51,13 +50,9 @@ codeunit 10553 "Feature - Reverse Charge VAT" implements "Feature Data Update"
     end;
 
     procedure AfterUpdate(FeatureDataUpdateStatus: Record "Feature Data Update Status")
-    var
-        UpdateFeatureDataUpdateStatus: Record "Feature Data Update Status";
     begin
-        UpdateFeatureDataUpdateStatus.SetRange("Feature Key", FeatureDataUpdateStatus."Feature Key");
-        UpdateFeatureDataUpdateStatus.SetFilter("Company Name", '<>%1', FeatureDataUpdateStatus."Company Name");
-        UpdateFeatureDataUpdateStatus.ModifyAll("Feature Status", FeatureDataUpdateStatus."Feature Status");
-
+        // The data update runs per company, and the framework has already set the status of the company that
+        // was updated. The status of the other companies must stay Pending until their own data is migrated.
         SetUpgradeTag(true);
     end;
 
