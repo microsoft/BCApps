@@ -215,4 +215,9 @@ enum 46886 "BC14 Setup Migrator" implements "BC14 Migrator"
         Caption = 'Item Attribute Value';
         Implementation = "BC14 Migrator" = "BC14 Item Attr. Value Migrator";
     }
+    value(40; "Inventory Posting Setup")
+    {
+        Caption = 'Inventory Posting Setup';
+        Implementation = "BC14 Migrator" = "BC14 Inv. Post. Setup Migrator";
+    }
 }

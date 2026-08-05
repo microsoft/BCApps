@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Budget;
 report 1135 "Copy G/L Budget to Cost Acctg."
 {
     Caption = 'Copy G/L Budget to Cost Acctg.';
+    ToolTip = 'Copy general ledger budget figures to the cost accounting budget. You can also enter budgets for the cost centers and cost objects in the general ledger.';
     ProcessingOnly = true;
 
     dataset

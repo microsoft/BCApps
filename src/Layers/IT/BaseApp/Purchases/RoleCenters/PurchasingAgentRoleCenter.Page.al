@@ -123,7 +123,6 @@ page 9007 "Purchasing Agent Role Center"
                 Caption = 'Vendor/&Item Purchases';
                 Image = "Report";
                 RunObject = Report "Vendor/Item Purchases";
-                ToolTip = 'View a list of item entries for each vendor in a selected period.';
             }
             separator(Action28)
             {

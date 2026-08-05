@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Purchases.Vendor;
 using System.Environment.Configuration;
 
 codeunit 99001506 "Subc. Notification Mgmt."
@@ -18,6 +19,61 @@ codeunit 99001506 "Subc. Notification Mgmt."
         ProdOrdNotificationNameLbl: Label 'Show Created Production Orders';
         SubcOrdNotificationDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
         SubcOrdNotificationNameLbl: Label 'Show Created Subcontracting Orders';
+        MissingSubcontractingLocationMsg: Label 'Vendor %1 has no subcontracting location. This location is used to track components and work-in-process (WIP) items at the subcontractor. Choose a Subcontracting Location Code on the vendor before using this work center for subcontracting.', Comment = '%1 = Vendor No.';
+        OpenVendorCardLbl: Label 'Open Vendor Card';
+        VendorNoTok: Label 'VendorNo', Locked = true;
+
+    internal procedure ShowMissingSubcontractingLocationNotification(VendorNo: Code[20])
+    var
+        Vendor: Record Vendor;
+        MissingSubcontractingLocationNotification: Notification;
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        MissingSubcontractingLocationNotification.Id := GetMissingSubcontractingLocationNotificationId();
+        if MissingSubcontractingLocationNotification.Recall() then;
+
+        if VendorNo = '' then
+            exit;
+
+        Vendor.SetLoadFields("Subc. Location Code");
+        if not Vendor.Get(VendorNo) then
+            exit;
+        if Vendor."Subc. Location Code" <> '' then
+            exit;
+
+        MissingSubcontractingLocationNotification.Message := StrSubstNo(MissingSubcontractingLocationMsg, VendorNo);
+        MissingSubcontractingLocationNotification.Scope := NotificationScope::LocalScope;
+        MissingSubcontractingLocationNotification.SetData(VendorNoTok, VendorNo);
+        MissingSubcontractingLocationNotification.AddAction(OpenVendorCardLbl, Codeunit::"Subc. Notification Mgmt.", 'OpenVendorCard');
+        MissingSubcontractingLocationNotification.Send();
+    end;
+
+    internal procedure OpenVendorCard(MissingSubcontractingLocationNotification: Notification)
+    var
+        Vendor: Record Vendor;
+        VendorNo: Code[20];
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if not Evaluate(VendorNo, MissingSubcontractingLocationNotification.GetData(VendorNoTok)) then
+            exit;
+        if Vendor.Get(VendorNo) then
+            Page.Run(Page::"Vendor Card", Vendor);
+    end;
+
+    local procedure GetMissingSubcontractingLocationNotificationId(): Guid
+    begin
+        exit('{8A4B9A58-21EC-49DD-A3A5-C7E81F745B6D}');
+    end;
 
     procedure ShowCreatedProductionOrderConfirmationMessageCode(): Code[50]
     begin
