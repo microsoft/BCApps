@@ -156,6 +156,9 @@ tableextension 8054 "Sales Line" extends "Sales Line"
     }
     var
         BillingLineExist, IsBillingLineCached : Boolean;
+        CachedBillingLineDocumentType: Enum "Sales Document Type";
+        CachedBillingLineDocumentNo: Code[20];
+        CachedBillingLineNo: Integer;
     trigger OnDelete()
     begin
         DeleteSalesServiceCommitment();
@@ -335,9 +338,18 @@ tableextension 8054 "Sales Line" extends "Sales Line"
     var
         BillingLine: Record "Billing Line";
     begin
-        if not IsBillingLineCached then begin
+        // Refresh the cached result whenever the record points at a different line, so external callers
+        // that reuse the same record variable across lines never receive a stale value from a previous line.
+        if (not IsBillingLineCached) or
+            (CachedBillingLineDocumentType <> Rec."Document Type") or
+            (CachedBillingLineDocumentNo <> Rec."Document No.") or
+            (CachedBillingLineNo <> Rec."Line No.")
+        then begin
             BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromSalesDocumentType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
             BillingLineExist := not BillingLine.IsEmpty();
+            CachedBillingLineDocumentType := Rec."Document Type";
+            CachedBillingLineDocumentNo := Rec."Document No.";
+            CachedBillingLineNo := Rec."Line No.";
             IsBillingLineCached := true;
         end;
 
