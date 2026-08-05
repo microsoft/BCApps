@@ -22,9 +22,10 @@ codeunit 10840 "Upgrade Payment Management FR"
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if CurrentModuleInfo.AppVersion().Major() >= 31 then
-            UpgradePayment();
+        if CurrentModuleInfo.AppVersion().Major() < 31 then
+            exit;
 
+        UpgradePayment();
         UpgradePaymentStepObjectIDs();
     end;
 
