@@ -38,6 +38,7 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
         ReqWkshTemplateRecordRef: RecordRef;
         TypeFieldRef: FieldRef;
         PageIDFieldRef: FieldRef;
+        CurrentPageID: Integer;
     begin
         ReqWkshTemplateRecordRef.Open(Database::"Req. Wksh. Template");
         TypeFieldRef := ReqWkshTemplateRecordRef.Field(ReqWkshTemplate.FieldNo("Type"));
@@ -46,7 +47,9 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
         if ReqWkshTemplateRecordRef.FindSet(true) then
             repeat
                 TypeFieldRef.Value := ReqWkshTemplate.Type::Subcontracting.AsInteger();
-                PageIDFieldRef.Value := Page::"Subc. Subcontracting Worksheet";
+                CurrentPageID := PageIDFieldRef.Value();
+                if CurrentPageID = LegacySubcontractingPageIDValue() then
+                    PageIDFieldRef.Value := Page::"Subc. Subcontracting Worksheet";
                 ReqWkshTemplateRecordRef.Modify();
             until ReqWkshTemplateRecordRef.Next() = 0;
         ReqWkshTemplateRecordRef.Close();
@@ -56,6 +59,12 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
     begin
         // Raw value the Subcontracting enum extension value used before the object renumbering (Bug 644283).
         exit(99001500);
+    end;
+
+    local procedure LegacySubcontractingPageIDValue(): Integer
+    begin
+        // Raw page id the Subcontracting Worksheet page used before the object renumbering (Bug 644283).
+        exit(99001504);
     end;
 }
 #pragma warning restore AS0072, AS0136
