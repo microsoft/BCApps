@@ -86,6 +86,25 @@ codeunit 7771 "Azure OpenAI"
         exit(AzureOpenAIImpl.IsInitialized(CopilotCapability, ModelType, CallerModuleInfo));
     end;
 
+    /// <summary>
+    /// Resolves fast prompt settings using an ECS configuration key.
+    /// </summary>
+    /// <param name="EcsConfigKey">The ECS configuration key to resolve.</param>
+    /// <param name="IsFastPrompt">True when a blob-backed fast prompt was resolved.</param>
+    /// <param name="Template">The resolved prompt template text.</param>
+    /// <param name="Model">The resolved model identifier.</param>
+    /// <param name="ErrorCode">The machine-readable error code on failure.</param>
+    /// <param name="ErrorText">The human-readable error text on failure.</param>
+    /// <returns>True when a fast prompt template was resolved successfully.</returns>
+    [NonDebuggable]
+    procedure TryGetFastPrompt(EcsConfigKey: Text; var IsFastPrompt: Boolean; var Template: Text; var Model: Text; var ErrorCode: Text; var ErrorText: Text): Boolean
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AzureOpenAIImpl.TryGetFastPrompt(EcsConfigKey, CallerModuleInfo, IsFastPrompt, Template, Model, ErrorCode, ErrorText));
+    end;
+
 #if not CLEAN26
     /// <summary>
     /// Sets the managed Azure OpenAI API authorization to use for a specific model type.

@@ -84,6 +84,57 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
     [NonDebuggable]
+    procedure TryGetFastPrompt(EcsConfigKey: Text; CallerModuleInfo: ModuleInfo; var IsFastPrompt: Boolean; var Template: Text; var Model: Text; var ErrorCode: Text; var ErrorText: Text): Boolean
+    var
+        AOAIAuthorization: Codeunit "AOAI Authorization";
+        ALCopilotAuthorization: DotNet ALCopilotAuthorization;
+        ALCopilotCapability: DotNet ALCopilotCapability;
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        ALCopilotFastPromptResponse: DotNet ALCopilotFastPromptResponse;
+        EmptySecretText: SecretText;
+    begin
+        Clear(IsFastPrompt);
+        Clear(Template);
+        Clear(Model);
+        Clear(ErrorCode);
+        Clear(ErrorText);
+
+        CopilotCapabilityImpl.CheckCapabilitySet();
+        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
+
+        AOAIAuthorization := ChatCompletionsAOAIAuthorization;
+
+        CheckAuthorizationEnabled(AOAIAuthorization, CallerModuleInfo);
+
+        case AOAIAuthorization.GetResourceUtilization() of
+            Enum::"AOAI Resource Utilization"::"Microsoft Managed":
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
+            Enum::"AOAI Resource Utilization"::"First Party":
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
+            else
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
+        end;
+
+        ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.GetCapabilityName());
+        ALCopilotFastPromptResponse := ALCopilotFunctions.GetFastPrompt(EcsConfigKey, ALCopilotAuthorization, ALCopilotCapability, CallerModuleInfo.Publisher());
+
+        if IsNull(ALCopilotFastPromptResponse) then begin
+            ErrorText := GetLastErrorText();
+            if ErrorText = '' then
+                ErrorText := 'Unable to retrieve fast prompt response.';
+            exit(false);
+        end;
+
+        IsFastPrompt := ALCopilotFastPromptResponse.IsFastPrompt();
+        Template := ALCopilotFastPromptResponse.Template();
+        Model := ALCopilotFastPromptResponse.Model();
+        ErrorCode := ALCopilotFastPromptResponse.ErrorCode();
+        ErrorText := ALCopilotFastPromptResponse.ErrorText();
+
+        exit(IsFastPrompt and ((Template <> '') or (Model <> '')));
+    end;
+
+    [NonDebuggable]
     procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Deployment: Text)
     begin
         case ModelType of
