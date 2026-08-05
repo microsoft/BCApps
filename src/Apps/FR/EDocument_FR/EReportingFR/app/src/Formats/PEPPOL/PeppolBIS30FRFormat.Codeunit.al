@@ -597,7 +597,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         CbcNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
         CacNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
         ExtendedCTCFranceCustomizationIdTok: Label 'EXTENDED-CTC-FR', Locked = true;
-        RegulatoryCommentFormatTok: Label '#%1#%2', Locked = true;
+        RegulatoryCommentFormatTok: Label '#%1#%2', Comment = '%1 = Regulatory comment type, %2 = Comment text', Locked = true;
         BillingModeB1Tok: Label 'B1', Locked = true;
         BillingModeS1Tok: Label 'S1', Locked = true;
         BillingModeM1Tok: Label 'M1', Locked = true;

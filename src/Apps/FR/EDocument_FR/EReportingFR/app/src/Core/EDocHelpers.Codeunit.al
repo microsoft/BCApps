@@ -106,6 +106,7 @@ codeunit 10991 "EDoc. Helpers"
         if CustomerNo = '' then
             exit;
 
+        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.");
         if not Customer.Get(CustomerNo) then
             exit;
 
@@ -131,6 +132,7 @@ codeunit 10991 "EDoc. Helpers"
 
     procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ServiceParticipant: Record "Service Participant"): Boolean
     var
+        ParticipantAddressErrorInfo: ErrorInfo;
         HasIdentifier: Boolean;
         HasScheme: Boolean;
     begin
@@ -141,8 +143,13 @@ codeunit 10991 "EDoc. Helpers"
 
         HasIdentifier := ServiceParticipant."Participant Identifier" <> '';
         HasScheme := ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" ";
-        if HasIdentifier <> HasScheme then
-            Error(ServiceParticipantAddressIncompleteErr, ServiceParticipant.FieldCaption("Participant Identifier"), ServiceParticipant.FieldCaption("FR Identifier Scheme"));
+        if HasIdentifier <> HasScheme then begin
+            ParticipantAddressErrorInfo.Message(
+                StrSubstNo(ServiceParticipantAddressIncompleteErr, ServiceParticipant.FieldCaption("Participant Identifier"), ServiceParticipant.FieldCaption("FR Identifier Scheme")));
+            ParticipantAddressErrorInfo.RecordId(ServiceParticipant.RecordId());
+            ParticipantAddressErrorInfo.PageNo(Page::"Service Participants");
+            Error(ParticipantAddressErrorInfo);
+        end;
 
         exit(HasIdentifier);
     end;

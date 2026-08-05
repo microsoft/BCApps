@@ -570,15 +570,18 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
+        OriginalRegistrationNo: Text[20];
         OriginalSIRETNo: Code[14];
     begin
-        // [SCENARIO] Company VAT registration number is used as the seller endpoint when SIRET is blank
+        // [SCENARIO] Company VAT registration number is used as the seller endpoint when SIRET and SIREN are blank
         Initialize();
 
-        // [GIVEN] Company with blank SIRET No. and a VAT registration number
+        // [GIVEN] Company with blank SIRET No. and Registration No., and a VAT registration number
         OriginalSIRETNo := CompanyInformation."SIRET No.";
+        OriginalRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation.Get();
         CompanyInformation."SIRET No." := '';
+        CompanyInformation."Registration No." := '';
         CompanyInformation.Modify(true);
 
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
@@ -598,6 +601,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // Cleanup
         CompanyInformation.Get();
         CompanyInformation."SIRET No." := OriginalSIRETNo;
+        CompanyInformation."Registration No." := CopyStr(OriginalRegistrationNo, 1, MaxStrLen(CompanyInformation."Registration No."));
         CompanyInformation.Modify(true);
     end;
 
