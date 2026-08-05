@@ -46,7 +46,6 @@ codeunit 59 "Auto Format Impl."
     procedure ReadRounding(): Decimal
     var
         AmountRoundingPrecision: Decimal;
-        NewWarningValidation: Integer;
     begin
         AutoFormat.OnReadRounding(AmountRoundingPrecision);
         exit(AmountRoundingPrecision);
