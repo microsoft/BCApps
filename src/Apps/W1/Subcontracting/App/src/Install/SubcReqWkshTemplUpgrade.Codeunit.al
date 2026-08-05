@@ -37,13 +37,16 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
         ReqWkshTemplate: Record "Req. Wksh. Template";
         ReqWkshTemplateRecordRef: RecordRef;
         TypeFieldRef: FieldRef;
+        PageIDFieldRef: FieldRef;
     begin
         ReqWkshTemplateRecordRef.Open(Database::"Req. Wksh. Template");
         TypeFieldRef := ReqWkshTemplateRecordRef.Field(ReqWkshTemplate.FieldNo("Type"));
+        PageIDFieldRef := ReqWkshTemplateRecordRef.Field(ReqWkshTemplate.FieldNo("Page ID"));
         TypeFieldRef.SetRange(LegacySubcontractingTypeValue());
         if ReqWkshTemplateRecordRef.FindSet(true) then
             repeat
                 TypeFieldRef.Value := ReqWkshTemplate.Type::Subcontracting.AsInteger();
+                PageIDFieldRef.Value := Page::"Subc. Subcontracting Worksheet";
                 ReqWkshTemplateRecordRef.Modify();
             until ReqWkshTemplateRecordRef.Next() = 0;
         ReqWkshTemplateRecordRef.Close();
