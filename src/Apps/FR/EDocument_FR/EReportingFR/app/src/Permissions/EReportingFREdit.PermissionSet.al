@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-permissionset 10972 "E-Reporting FR - Edit"
+permissionset 10972 "E-Reporting FR Edit"
 {
     Access = Public;
     Assignable = true;
     Caption = 'E-Reporting FR - Edit';
 
-    IncludedPermissionSets = "E-Reporting FR - Read";
+    IncludedPermissionSets = "E-Reporting FR Read";
 
     Permissions = tabledata "FR E-Invoice Lifecycle" = IM,
                   tabledata "FR E-Invoice Lifecycle VAT" = I;

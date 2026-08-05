@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
 
-enumextension 10971 "FR E-Document Message Type" extends "E-Document Message Type"
+enumextension 10973 "FR E-Document Message Type" extends "E-Document Message Type"
 {
     value(10970; "FR Invoice Lifecycle")
     {

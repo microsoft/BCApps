@@ -8,5 +8,5 @@ using Microsoft.eServices.EDocument;
 
 permissionsetextension 10976 "E-Reporting FR - Read Ext" extends "E-Doc. Core - Read"
 {
-    IncludedPermissionSets = "E-Reporting FR - Read";
+    IncludedPermissionSets = "E-Reporting FR Read";
 }

@@ -17,7 +17,7 @@ using System.Utilities;
 /// outbound side injects, so those are mapped back on import.
 /// Spec reference: https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
 /// </summary>
-codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReader
+codeunit 10980 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReader
 {
     Access = Internal;
     InherentEntitlements = X;

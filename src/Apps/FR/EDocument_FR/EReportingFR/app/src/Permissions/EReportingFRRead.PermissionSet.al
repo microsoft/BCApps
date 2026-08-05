@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-permissionset 10971 "E-Reporting FR - Read"
+permissionset 10971 "E-Reporting FR Read"
 {
     Access = Public;
     Assignable = true;
