@@ -413,7 +413,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
     [ModalPageHandler]
     procedure HandleWizardToggleCreateBOMVersionError(var Wizard: TestPage "Production Definition Wizard")
     var
-        VersionNosRequiredErr: Label 'Version Nos. must have a value.';
+        VersionNosRequiredErr: Label 'Version Nos. must have a value';
     begin
         // Navigate to Step 2 (BOM)
         Wizard.ActionNext.Invoke();
@@ -446,7 +446,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
     [ModalPageHandler]
     procedure HandleWizardToggleCreateRoutingVersionError(var Wizard: TestPage "Production Definition Wizard")
     var
-        VersionNosRequiredErr: Label 'Version Nos. must have a value.';
+        VersionNosRequiredErr: Label 'Version Nos. must have a value';
     begin
         // Navigate to Step 2 (BOM)
         Wizard.ActionNext.Invoke();
