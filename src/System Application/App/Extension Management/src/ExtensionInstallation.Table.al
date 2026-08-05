@@ -7,10 +7,6 @@ namespace System.Apps;
 /// <summary>
 /// The table containing information about an extension install.
 /// </summary>
-/// <remarks>
-/// The casing of the fields is expected to match the casing in the URL filter used when calling the installation page 2503:
-/// 'ID' IS '[AppID]' AND 'PreviewKey' IS '[PreviewKey]'
-/// </remarks>
 table 2503 "Extension Installation"
 {
     Access = Internal;

@@ -5,8 +5,6 @@
 
 namespace System.Apps;
 
-using System;
-
 /// <summary>
 /// Installs the selected extension.
 /// </summary>
@@ -55,11 +53,11 @@ page 2503 "Extension Installation"
 
     procedure SetPublisherType(PublisherType: Text)
     begin
-        Rec.PublisherType := PublisherType;
+        Rec.PublisherType := CopyStr(PublisherType, 1, MaxStrLen(Rec.PublisherType));
     end;
 
     procedure SetResponseUrl(ResponseUrl: Text)
     begin
-        Rec.ResponseUrl := ResponseUrl;
+        Rec.ResponseUrl := CopyStr(ResponseUrl, 1, MaxStrLen(Rec.ResponseUrl));
     end;
 }

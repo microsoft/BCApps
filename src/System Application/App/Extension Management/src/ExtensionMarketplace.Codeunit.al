@@ -226,7 +226,6 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text; PublisherType: Text);
     var
-        TempExtensionInstallationRecord: Record "Extension Installation";
         ExtensionInstallationPage: Page "Extension Installation";
         AppId: Guid;
     begin
@@ -236,11 +235,10 @@ codeunit 2501 "Extension Marketplace"
             Error(ExtensionNotFoundErr);
         end;
 
-        TempExtensionInstallationRecord.SetRange(ID, AppId);
-        TempExtensionInstallationRecord.ID := AppId;
-        TempExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(TempExtensionInstallationRecord.ResponseUrl));
-        TempExtensionInstallationRecord.PublisherType := CopyStr(PublisherType, 1, MaxStrLen(TempExtensionInstallationRecord.PublisherType));
-        ExtensionInstallationPage.SetRecord(TempExtensionInstallationRecord);
+        ExtensionInstallationPage.SetAppID(AppId);
+        ExtensionInstallationPage.SetPreviewKey('');
+        ExtensionInstallationPage.SetResponseUrl(TelemetryURL);
+        ExtensionInstallationPage.SetPublisherType(PublisherType);
         ExtensionInstallationPage.RunModal();
     end;
 
@@ -254,7 +252,6 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text; PublisherType: Text)
     var
-        TempExtensionInstallationRecord: Record "Extension Installation";
         ExtensionInstallationPage: Page "Extension Installation";
     begin
         if IsNullGuid(AppId) then begin
@@ -262,11 +259,10 @@ codeunit 2501 "Extension Marketplace"
             Error(ExtensionNotFoundErr);
         end;
 
-        TempExtensionInstallationRecord.SetRange(ID, AppId);
-        TempExtensionInstallationRecord.ID := AppId;
-        TempExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(TempExtensionInstallationRecord.ResponseUrl));
-        TempExtensionInstallationRecord.PublisherType := CopyStr(PublisherType, 1, MaxStrLen(TempExtensionInstallationRecord.PublisherType));
-        ExtensionInstallationPage.SetRecord(TempExtensionInstallationRecord);
+        ExtensionInstallationPage.SetAppID(AppId);
+        ExtensionInstallationPage.SetPreviewKey('');
+        ExtensionInstallationPage.SetResponseUrl(TelemetryURL);
+        ExtensionInstallationPage.SetPublisherType(PublisherType);
         ExtensionInstallationPage.RunModal();
     end;
 
