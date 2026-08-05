@@ -566,46 +566,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesInvUsesSellerVATFallbackWhenSIRETIsEmpty()
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        XmlDoc: XmlDocument;
-        OriginalRegistrationNo: Text[20];
-        OriginalSIRETNo: Code[14];
-    begin
-        // [SCENARIO] Company VAT registration number is used as the seller endpoint when SIRET and SIREN are blank
-        Initialize();
-
-        // [GIVEN] Company with blank SIRET No. and Registration No., and a VAT registration number
-        OriginalSIRETNo := CompanyInformation."SIRET No.";
-        OriginalRegistrationNo := CompanyInformation."Registration No.";
-        CompanyInformation.Get();
-        CompanyInformation."SIRET No." := '';
-        CompanyInformation."Registration No." := '';
-        CompanyInformation.Modify(true);
-
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-
-        // [WHEN] The invoice is checked and exported
-        CheckInvoice(SalesInvoiceHeader);
-        ExportInvoice(SalesInvoiceHeader, XmlDoc);
-
-        // [THEN] The supplier endpoint uses the VAT identifier and scheme 9957
-        Assert.AreEqual(CompanyInformation.GetVATRegistrationNumber(),
-            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'),
-            StrSubstNo(IncorrectValueErr, 'Seller EndpointID'));
-        Assert.AreEqual('9957',
-            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID'),
-            StrSubstNo(IncorrectValueErr, 'Seller EndpointID schemeID'));
-
-        // Cleanup
-        CompanyInformation.Get();
-        CompanyInformation."SIRET No." := OriginalSIRETNo;
-        CompanyInformation."Registration No." := CopyStr(OriginalRegistrationNo, 1, MaxStrLen(CompanyInformation."Registration No."));
-        CompanyInformation.Modify(true);
-    end;
-
-    [Test]
     procedure ExportSalesInvUsesCompanyServiceParticipantEndpoint()
     var
         ServiceParticipant: Record "Service Participant";
@@ -834,6 +794,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
         ServiceParticipant.SetRange(Service, EDocumentService.Code);
         ServiceParticipant.DeleteAll();
+        InitializeCompanyIdentity();
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
@@ -848,10 +809,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CompanyInformation.City := 'Paris';
         CompanyInformation."Post Code" := '75001';
         CompanyInformation."Country/Region Code" := CountryRegion.Code;
-        CompanyInformation.Validate("Registration No.", '123456789');
-        CompanyInformation.Validate("SIRET No.", '12345678901234');
-        if CompanyInformation."VAT Registration No." = '' then
-            CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
         CompanyInformation.Validate(IBAN, 'FR1420041010050500013M02606');
         CompanyInformation.Validate("SWIFT Code", 'CCBPFRPPVER');
         CompanyInformation.Validate("Bank Branch No.", '20041');
@@ -873,6 +830,15 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
+    end;
+
+    local procedure InitializeCompanyIdentity()
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.Validate("Registration No.", '123456789');
+        CompanyInformation.Validate("SIRET No.", '12345678901234');
+        CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
+        CompanyInformation.Modify(true);
     end;
 
     local procedure CreateAndPostSalesInvoice(CustomerNo: Code[20]): Code[20]

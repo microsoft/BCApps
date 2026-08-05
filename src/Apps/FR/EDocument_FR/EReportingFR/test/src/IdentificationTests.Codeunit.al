@@ -13,6 +13,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
@@ -30,8 +31,8 @@ codeunit 148146 "Identification Tests"
                   tabledata "Sales Invoice Header" = rimd,
                   tabledata "Cust. Ledger Entry" = rimd,
                   tabledata "Detailed Cust. Ledg. Entry" = rimd,
-                  tabledata "FR E-Invoice Lifecycle" = rimd,
-                  tabledata "FR E-Invoice Lifecycle VAT" = rimd,
+                  tabledata "FR E-Invoice Lifecycle" = rimD,
+                  tabledata "FR E-Invoice Lifecycle VAT" = rimD,
                   tabledata "VAT Entry" = rimd,
                   tabledata "VAT Posting Setup" = rimd;
 
@@ -295,15 +296,16 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        Commit();
 
         FREInvoiceLifecycle."Reported Amount" := 1200;
-        asserterror FREInvoiceLifecycle.Modify();
+        asserterror FREInvoiceLifecycle.Modify(true);
 
         Assert.ExpectedError('The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.');
 
         FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
         FREInvoiceLifecycle."Sender Platform ID" := 'CHANGED';
-        asserterror FREInvoiceLifecycle.Modify();
+        asserterror FREInvoiceLifecycle.Modify(true);
 
         Assert.ExpectedError('The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.');
     end;
@@ -324,7 +326,8 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.FindFirst();
         Assert.AreEqual(FREInvoiceLifecycle."Lifecycle Status"::Collected, FREInvoiceLifecycle."Lifecycle Status", 'A payment application must create a Collected occurrence.');
-        Assert.AreEqual(1250, FREInvoiceLifecycle."Reported Amount", 'The collected amount must be positive.');
+        Assert.AreEqual(-DetailedCustLedgEntry.Amount, FREInvoiceLifecycle."Reported Amount", 'The reported amount must equal the negated detailed ledger entry amount.');
+        Assert.IsTrue(FREInvoiceLifecycle."Reported Amount" > 0, 'The collected amount must be positive.');
         Assert.AreEqual(DetailedCustLedgEntry."Entry No.", FREInvoiceLifecycle."Detailed Ledger Entry No.", 'The source detail entry must be retained.');
         Assert.AreEqual(DetailedCustLedgEntry.SystemId, FREInvoiceLifecycle."Source Occurrence ID", 'The detail entry system ID must identify the occurrence.');
         Assert.AreEqual(EDocument."Document Date", FREInvoiceLifecycle."Invoice Issue Date", 'The invoice issue date must be frozen at capture.');
@@ -339,7 +342,7 @@ codeunit 148146 "Identification Tests"
         EDocument: Record "E-Document";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
-        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
@@ -354,7 +357,7 @@ codeunit 148146 "Identification Tests"
 
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
 
-        EDocMessageMgt.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
+        EDocumentMessageAPI.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
         TempBlob.CreateInStream(InStream);
         XmlDocument.ReadFrom(InStream, XmlDoc);
         AssertXmlValue(XmlDoc, '//*[local-name()="GuidelineSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', 'urn.cpro.gouv.fr:1p0:CDV:einvoicingF2');
@@ -545,6 +548,7 @@ codeunit 148146 "Identification Tests"
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
         CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
+        Commit();
 
         asserterror FREInvoiceLifecycle.Delete();
         Assert.ExpectedError('A French electronic invoice lifecycle occurrence cannot be deleted.');
@@ -683,13 +687,11 @@ codeunit 148146 "Identification Tests"
         EDocument: Record "E-Document";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
-        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         XmlDoc: XmlDocument;
-        AmountElement: XmlElement;
-        AmountNode: XmlNode;
         ProfileNode: XmlNode;
         StatusNode: XmlNode;
         VATPercentNode: XmlNode;
@@ -706,7 +708,7 @@ codeunit 148146 "Identification Tests"
 
         Assert.IsTrue(FREInvoiceLifecycle."E-Document Message Entry No." <> 0, 'The lifecycle occurrence must link to the created E-Document Message.');
         Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Created", FREInvoiceLifecycle."Processing Status", 'The occurrence must record successful message creation.');
-        EDocMessageMgt.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
+        EDocumentMessageAPI.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
         TempBlob.CreateInStream(InStream);
         XmlDocument.ReadFrom(InStream, XmlDoc);
         Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ProcessConditionCode"]', StatusNode), 'The payload must contain the lifecycle status.');
@@ -718,9 +720,7 @@ codeunit 148146 "Identification Tests"
         AssertXmlValue(XmlDoc, '//*[local-name()="BusinessProcessSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', 'REGULATED');
         Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="SenderTradeParty"]', ProfileNode), 'The general lifecycle profile must not contain PPF sender information.');
         Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="RecipientTradeParty"]', ProfileNode), 'The general lifecycle profile must not contain the PPF recipient.');
-        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValueAmount"]', AmountNode), 'The payload must contain the collected amount.');
-        AmountElement := AmountNode.AsXmlElement();
-        Assert.AreEqual('EUR', AmountElement.GetAttribute('currencyID').Value(), 'The collected amount must identify its currency.');
+        AssertXmlAttribute(XmlDoc, '//*[local-name()="ValueAmount"]', 'currencyID', 'EUR');
         Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValuePercent"]', VATPercentNode), 'The payload must contain the VAT percentage.');
         Assert.AreEqual('20', VATPercentNode.AsXmlElement().InnerText(), 'The payload must retain the frozen VAT percentage.');
     end;
@@ -756,7 +756,7 @@ codeunit 148146 "Identification Tests"
         CollectedLifecycle: Record "FR E-Invoice Lifecycle";
         NegativeCollectedLifecycle: Record "FR E-Invoice Lifecycle";
         PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
-        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
@@ -778,13 +778,15 @@ codeunit 148146 "Identification Tests"
 
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(NegativeCollectedLifecycle);
 
-        EDocMessageMgt.GetMessageBlob(NegativeCollectedLifecycle."E-Document Message Entry No.", TempBlob);
+        EDocumentMessageAPI.GetMessageBlob(NegativeCollectedLifecycle."E-Document Message Entry No.", TempBlob);
         TempBlob.CreateInStream(InStream);
         XmlDocument.ReadFrom(InStream, XmlDoc);
         Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ProcessConditionCode"]', StatusNode), 'The payload must contain the lifecycle status.');
         Assert.AreEqual('212', StatusNode.AsXmlElement().InnerText(), 'An unapplication must retain the Encaissée status code.');
         Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValueAmount"]', AmountNode), 'The payload must contain the collected amount.');
-        Assert.AreEqual('-1250', AmountNode.AsXmlElement().InnerText(), 'An unapplication must report a negative collected amount.');
+        Assert.AreEqual(
+            Format(NegativeCollectedLifecycle."Reported Amount", 0, '<Precision,2:2><Standard Format,9>'),
+            AmountNode.AsXmlElement().InnerText(), 'An unapplication must report a negative collected amount.');
     end;
 
     [Test]
@@ -812,6 +814,7 @@ codeunit 148146 "Identification Tests"
     [Test]
     procedure PostedPaymentApplicationCreatesCollectedLifecycle()
     var
+        Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         EDocument: Record "E-Document";
@@ -829,6 +832,16 @@ codeunit 148146 "Identification Tests"
 
         // [GIVEN] A posted sales invoice "SI" with an outgoing Factur-X FR E-Document
         LibrarySales.CreateSalesInvoice(SalesHeader);
+        Customer.Get(SalesHeader."Sell-to Customer No.");
+        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
+        Customer.Modify(true);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Validate("Bill-to Address", '123 Rue de Paris');
+        SalesHeader.Validate("Bill-to City", 'Paris');
+        SalesHeader.Validate("Bill-to Post Code", '75001');
+        SalesHeader.Validate("Ship-to City", SalesHeader."Bill-to City");
+        SalesHeader.Validate("Ship-to Post Code", SalesHeader."Bill-to Post Code");
+        SalesHeader.Modify(true);
         PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
         SalesInvoiceHeader.Get(PostedDocNo);
         CreateFRFacturXEDocument(EDocument, SalesInvoiceHeader);
@@ -923,6 +936,8 @@ codeunit 148146 "Identification Tests"
     end;
 
     local procedure CreateAdditionalEDocument(var AdditionalEDocument: Record "E-Document"; EDocument: Record "E-Document")
+    var
+        EDocumentServiceStatus: Record "E-Document Service Status";
     begin
         AdditionalEDocument.Init();
         AdditionalEDocument."Document Record ID" := EDocument."Document Record ID";
@@ -930,7 +945,14 @@ codeunit 148146 "Identification Tests"
         AdditionalEDocument."Document Type" := EDocument."Document Type";
         AdditionalEDocument.Direction := EDocument.Direction;
         AdditionalEDocument.Service := EDocument.Service;
+        AdditionalEDocument."Document Date" := EDocument."Document Date";
+        AdditionalEDocument."Clearance Date" := EDocument."Clearance Date";
         AdditionalEDocument.Insert();
+
+        EDocumentServiceStatus."E-Document Entry No" := AdditionalEDocument."Entry No";
+        EDocumentServiceStatus."E-Document Service Code" := AdditionalEDocument.Service;
+        EDocumentServiceStatus.Status := EDocumentServiceStatus.Status::Approved;
+        EDocumentServiceStatus.Insert();
     end;
 
     local procedure CreatePostedInvoiceApplication(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; EDocumentFormat: Enum "E-Document Format")

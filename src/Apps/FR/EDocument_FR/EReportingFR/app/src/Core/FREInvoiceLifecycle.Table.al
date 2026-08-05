@@ -197,26 +197,29 @@ table 10970 "FR E-Invoice Lifecycle"
     end;
 
     local procedure TestImmutableFields()
+    var
+        PersistedFREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
     begin
-        if (Rec."E-Document Entry No." <> xRec."E-Document Entry No.") or
-           (Rec."Lifecycle Status" <> xRec."Lifecycle Status") or
-           (Rec."Source Occurrence ID" <> xRec."Source Occurrence ID") or
-           (Rec."Original Occurrence Entry No." <> xRec."Original Occurrence Entry No.") or
-           (Rec."Reported Amount" <> xRec."Reported Amount") or
-           (Rec."Currency Code" <> xRec."Currency Code") or
-           (Rec."Event Date" <> xRec."Event Date") or
-           (Rec."Invoice Cust. Ledger Entry No." <> xRec."Invoice Cust. Ledger Entry No.") or
-           (Rec."Payment Cust. Ledger Entry No." <> xRec."Payment Cust. Ledger Entry No.") or
-           (Rec."Detailed Ledger Entry No." <> xRec."Detailed Ledger Entry No.") or
-              (Rec."Created At" <> xRec."Created At") or
-              (Rec."Invoice Issue Date" <> xRec."Invoice Issue Date") or
-              (Rec."Invoice Receipt At" <> xRec."Invoice Receipt At") or
-              (Rec."Sender Platform ID" <> xRec."Sender Platform ID") or
-              (Rec."Sender Platform Scheme" <> xRec."Sender Platform Scheme") or
-              (Rec."Sender Platform Name" <> xRec."Sender Platform Name") or
-              (Rec."Invoice Issuer ID" <> xRec."Invoice Issuer ID") or
-              (Rec."Invoice Issuer Scheme" <> xRec."Invoice Issuer Scheme") or
-              (Rec."Invoice Issuer Name" <> xRec."Invoice Issuer Name")
+        PersistedFREInvoiceLifecycle.Get(Rec."Entry No.");
+        if (Rec."E-Document Entry No." <> PersistedFREInvoiceLifecycle."E-Document Entry No.") or
+           (Rec."Lifecycle Status" <> PersistedFREInvoiceLifecycle."Lifecycle Status") or
+           (Rec."Source Occurrence ID" <> PersistedFREInvoiceLifecycle."Source Occurrence ID") or
+           (Rec."Original Occurrence Entry No." <> PersistedFREInvoiceLifecycle."Original Occurrence Entry No.") or
+           (Rec."Reported Amount" <> PersistedFREInvoiceLifecycle."Reported Amount") or
+           (Rec."Currency Code" <> PersistedFREInvoiceLifecycle."Currency Code") or
+           (Rec."Event Date" <> PersistedFREInvoiceLifecycle."Event Date") or
+           (Rec."Invoice Cust. Ledger Entry No." <> PersistedFREInvoiceLifecycle."Invoice Cust. Ledger Entry No.") or
+           (Rec."Payment Cust. Ledger Entry No." <> PersistedFREInvoiceLifecycle."Payment Cust. Ledger Entry No.") or
+           (Rec."Detailed Ledger Entry No." <> PersistedFREInvoiceLifecycle."Detailed Ledger Entry No.") or
+           (Rec."Created At" <> PersistedFREInvoiceLifecycle."Created At") or
+           (Rec."Invoice Issue Date" <> PersistedFREInvoiceLifecycle."Invoice Issue Date") or
+           (Rec."Invoice Receipt At" <> PersistedFREInvoiceLifecycle."Invoice Receipt At") or
+           (Rec."Sender Platform ID" <> PersistedFREInvoiceLifecycle."Sender Platform ID") or
+           (Rec."Sender Platform Scheme" <> PersistedFREInvoiceLifecycle."Sender Platform Scheme") or
+           (Rec."Sender Platform Name" <> PersistedFREInvoiceLifecycle."Sender Platform Name") or
+           (Rec."Invoice Issuer ID" <> PersistedFREInvoiceLifecycle."Invoice Issuer ID") or
+           (Rec."Invoice Issuer Scheme" <> PersistedFREInvoiceLifecycle."Invoice Issuer Scheme") or
+           (Rec."Invoice Issuer Name" <> PersistedFREInvoiceLifecycle."Invoice Issuer Name")
         then
             Error(ImmutableOccurrenceErr);
     end;

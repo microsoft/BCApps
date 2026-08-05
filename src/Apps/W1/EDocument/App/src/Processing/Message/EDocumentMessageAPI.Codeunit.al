@@ -25,4 +25,14 @@ codeunit 6436 "E-Document Message API"
     begin
         exit(EDocMessageMgt.CreateMessage(EDocument, MessageType, Direction, TempBlob));
     end;
+
+    /// <summary>
+    /// Loads the payload for the specified E-Document message.
+    /// </summary>
+    procedure GetMessageBlob(MessageEntryNo: Integer; var TempBlob: Codeunit "Temp Blob")
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        EDocMessageMgt.GetMessageBlob(MessageEntryNo, TempBlob);
+    end;
 }

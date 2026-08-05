@@ -1091,6 +1091,8 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
         Customer.Modify(true);
         LibrarySales.CreateSalesHeader(SalesHeader, DocType, CustomerNo);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
@@ -1103,8 +1105,10 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer: Record Customer;
     begin
         LibrarySales.CreateCustomer(Customer);
-        if Customer."Country/Region Code" = '' then
-            Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
+        Customer.City := 'Paris';
+        Customer."Post Code" := '75001';
+        Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
         Customer.Validate("FR Electronic Address", FRElecAddress);
         Customer.Modify(true);
@@ -1249,13 +1253,14 @@ codeunit 148148 "Factur-X CII XML Tests"
     var
         UnitOfMeasure: Record "Unit of Measure";
     begin
-        UnitOfMeasure.SetRange(Code, 'EA');
-        if not UnitOfMeasure.FindFirst() then begin
+        if not UnitOfMeasure.Get('EA') then begin
             UnitOfMeasure.Init();
             UnitOfMeasure.Code := 'EA';
             UnitOfMeasure.Description := 'Each';
             UnitOfMeasure.Insert(true);
         end;
+        UnitOfMeasure.Validate("International Standard Code", 'EA');
+        UnitOfMeasure.Modify(true);
         exit(UnitOfMeasure.Code);
     end;
 
