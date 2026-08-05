@@ -39,8 +39,24 @@ codeunit 5133 "Contoso GL Account"
 
     procedure GetAccountNo(AccountName: Text[100]): Code[20]
     begin
-        TempContosoGLAccount.Get(AccountName);
-        exit(TempContosoGLAccount."Account No.");
+        if TempContosoGLAccount.Get(AccountName) then
+            exit(TempContosoGLAccount."Account No.");
+
+        if LoadAccountFromGLAccount(AccountName) then
+            exit(TempContosoGLAccount."Account No.");
+    end;
+
+    local procedure LoadAccountFromGLAccount(AccountName: Text[100]): Boolean
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.SetLoadFields(Name);
+        GLAccount.SetRange(Name, AccountName);
+        if not GLAccount.FindFirst() then
+            exit(false);
+
+        AddAccountForLocalization(GLAccount.Name, GLAccount."No.");
+        exit(true);
     end;
 
     procedure InsertGLAccount(AccountNo: Code[20]; Name: Text[100]; IncomeOrBalance: Enum "G/L Account Income/Balance"; AccountCategory: Enum "G/L Account Category"; AccountType: Enum "G/L Account Type"; GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; TaxGroup: Code[20])
