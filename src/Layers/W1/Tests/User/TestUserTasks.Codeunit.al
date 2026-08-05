@@ -188,6 +188,7 @@ codeunit 134769 "Test User Tasks"
         FieldRec.SetFilter(Type, '%1|%2', FieldRec.Type::Code, FieldRec.Type::Text);
         if FieldRec.FindSet() then
             repeat
+                //skipping tables that are not supported for this test
                 if not SkipTable(FieldRec.TableNo) then begin
                     TableInformation.SetFilter("Company Name", '%1|%2', '', Company.Name);
                     TableInformation.SetRange("Table No.", FieldRec.TableNo);
