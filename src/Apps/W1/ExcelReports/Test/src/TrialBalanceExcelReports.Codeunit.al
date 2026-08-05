@@ -244,7 +244,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
-    [HandlerFunctions('EXRTrialBalanceByPeriodExcelHandler')]
+    [HandlerFunctions('EXRTrialBalanceByPeriodHideZeroValuesHandler')]
     procedure TrialBalanceByPeriodDoesntExportZeroValueDimensionCombinations()
     var
         Variant: Variant;
@@ -263,7 +263,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
-    [HandlerFunctions('EXRTrialBalanceByPeriodShowZeroValuesHandler')]
+    [HandlerFunctions('EXRTrialBalanceByPeriodIncludeZeroValuesHandler')]
     procedure TrialBalanceByPeriodExportsZeroValueDimensionCombinationsWhenRequested()
     var
         Variant: Variant;
@@ -1236,18 +1236,18 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [RequestPageHandler]
-    procedure EXRTrialBalanceByPeriodExcelHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    procedure EXRTrialBalanceByPeriodHideZeroValuesHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
     begin
         EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
-        EXRTrialBalanceByPeriodExcel.ShowLinesWithZeroValuesField.SetValue(false);
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(true);
         EXRTrialBalanceByPeriodExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
-    procedure EXRTrialBalanceByPeriodShowZeroValuesHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    procedure EXRTrialBalanceByPeriodIncludeZeroValuesHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
     begin
         EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
-        EXRTrialBalanceByPeriodExcel.ShowLinesWithZeroValuesField.SetValue(true);
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(false);
         EXRTrialBalanceByPeriodExcel.OK().Invoke();
     end;
 
