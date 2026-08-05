@@ -96,14 +96,13 @@
 						"{% endif -%}",
 						{
 							"name": "item_availability_off",
-							"value": "Item availability checking is disabled. Ignore requested quantity availability, availability level, earliest shipment date, and inventory notifications. Do not reject an item or request assistance because it is unavailable. Continue processing any matching item."
+							"value": "Item availability checking is disabled. Ignore requested quantity availability, availability level, earliest shipment date, and inventory notifications. Never treat an item as unavailable and never request assistance because of availability, stock, or quantity. This overrides any later instruction to request assistance for items that are not available. Still request assistance when there is no item to be searched or when the item search returns no result."
 						},
 						{
 							"name": "capable_to_promise",
 							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved. Exception: if a search for a customer-requested specific variant returns no item result, follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step instead of requesting assistance."
 						},						
 						{
-							"name": "item_availability",
 							"value": "If one or more of the requested items are not available or if there is no item to be searched, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'. Exception: when the customer requested a specific variant and the item search returns no result for that request, do not request assistance. Treat this as an unavailable requested item and variant with no safe alternative, and follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step.",
 							"steps_include_numbering": "true",
 							"steps": [
@@ -131,11 +130,7 @@
 							"value": "If there are multiple items or non-matching items in the result, **ALWAYS** reply to the customer, including the following information:",
 							"steps_include_numbering": "true",
 							"steps": [
-								"Provide a table of all matching options for each item, including their descriptions, price (incl. discount) and unit of measure.",
-								{
-									"name": "item_availability",
-									"value": "Include the availability level for every option in the table."
-								},
+								"Provide a table of all available options for each item, including their descriptions, availability level, price (incl. discount) and unit of measure.",
 								"Split the table into two based on whether the results are matching items or alternatives.",
 								"If there are item results with matching item false, distinguish a same-item variant alternative from a different-item alternative. When the result is the requested product with a different Variant Code, explain that the requested variant is unavailable and offer the result as an alternative variant; do not say that the product itself was not found. Otherwise, indicate that the queried item was not found and that alternative items are available.",
 								{
