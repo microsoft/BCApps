@@ -16,6 +16,7 @@ report 2502 "Day Book Vendor Ledger Entry"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Day Book Vendor Ledger Entry';
+    ToolTip = 'Run the Day Book Vendor Ledger Entry report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
