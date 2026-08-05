@@ -48,6 +48,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
+        FastPromptUnsupportedAuthorizationErr: Label 'Fast prompt is only supported with First Party resource utilization.';
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -84,7 +85,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
     [NonDebuggable]
-    procedure TryGetFastPrompt(EcsConfigKey: Text; CallerModuleInfo: ModuleInfo; var IsFastPrompt: Boolean; var Template: Text; var Model: Text; var ErrorCode: Text; var ErrorText: Text): Boolean
+    procedure TryGetFastPrompt(EcsConfigKey: Text; CallerModuleInfo: ModuleInfo; var IsFastPrompt: Boolean; var Template: Text; var ErrorCode: Text; var ErrorText: Text): Boolean
     var
         AOAIAuthorization: Codeunit "AOAI Authorization";
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
@@ -95,7 +96,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     begin
         Clear(IsFastPrompt);
         Clear(Template);
-        Clear(Model);
         Clear(ErrorCode);
         Clear(ErrorText);
 
@@ -107,18 +107,17 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         CheckAuthorizationEnabled(AOAIAuthorization, CallerModuleInfo);
 
         case AOAIAuthorization.GetResourceUtilization() of
-            Enum::"AOAI Resource Utilization"::"Microsoft Managed":
-                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
             Enum::"AOAI Resource Utilization"::"First Party":
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
             else
-                ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
+                Error(FastPromptUnsupportedAuthorizationErr);
         end;
 
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.GetCapabilityName());
         ALCopilotFastPromptResponse := ALCopilotFunctions.GetFastPrompt(EcsConfigKey, ALCopilotAuthorization, ALCopilotCapability, CallerModuleInfo.Publisher());
 
         if IsNull(ALCopilotFastPromptResponse) then begin
+            ErrorCode := GetLastErrorCode();
             ErrorText := GetLastErrorText();
             if ErrorText = '' then
                 ErrorText := 'Unable to retrieve fast prompt response.';
@@ -127,11 +126,10 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
         IsFastPrompt := ALCopilotFastPromptResponse.IsFastPrompt();
         Template := ALCopilotFastPromptResponse.Template();
-        Model := ALCopilotFastPromptResponse.Model();
         ErrorCode := ALCopilotFastPromptResponse.ErrorCode();
         ErrorText := ALCopilotFastPromptResponse.ErrorText();
 
-        exit(IsFastPrompt and ((Template <> '') or (Model <> '')));
+        exit(IsFastPrompt and (Template <> ''));
     end;
 
     [NonDebuggable]
