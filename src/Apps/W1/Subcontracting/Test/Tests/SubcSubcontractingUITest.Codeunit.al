@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
@@ -481,133 +480,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
-    procedure WorkCenterCardNotifiesWhenSubcontractorHasNoLocation()
-    var
-        Vendor: Record Vendor;
-        WorkCenter: Record "Work Center";
-        WorkCenterCard: TestPage "Work Center Card";
-    begin
-        // [SCENARIO 642229] A notification identifies a subcontractor vendor that has no subcontracting location.
-        Initialize();
-
-        // [GIVEN] A Work Center and a vendor without a Subcontracting Location Code
-        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
-        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
-
-        // [WHEN] The vendor is selected as the subcontractor on the Work Center Card
-        WorkCenterCard.OpenEdit();
-        WorkCenterCard.GoToRecord(WorkCenter);
-        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
-
-        // [THEN] Any previous notification is recalled before one notification is sent for that vendor
-        VerifySubcontractorLocationNotification(Vendor."No.");
-        WorkCenterCard.Close();
-        LibraryVariableStorage.AssertEmpty();
-    end;
-
-    [Test]
-    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
-    procedure WorkCenterCardDoesNotStackSubcontractorLocationNotifications()
-    var
-        Vendor: Record Vendor;
-        WorkCenter: Record "Work Center";
-        WorkCenterCard: TestPage "Work Center Card";
-    begin
-        // [SCENARIO 642229] Revalidating an unconfigured subcontractor replaces the existing notification.
-        Initialize();
-
-        // [GIVEN] A Work Center Card showing a notification for a vendor without a subcontracting location
-        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
-        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
-        WorkCenterCard.OpenEdit();
-        WorkCenterCard.GoToRecord(WorkCenter);
-        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
-        VerifySubcontractorLocationNotification(Vendor."No.");
-
-        // [WHEN] The same vendor is validated again
-        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
-
-        // [THEN] The previous notification is recalled before its replacement is sent with the same notification ID
-        VerifySubcontractorLocationNotification(Vendor."No.");
-        WorkCenterCard.Close();
-        LibraryVariableStorage.AssertEmpty();
-    end;
-
-    [Test]
-    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
-    procedure WorkCenterCardRecallsSubcontractorLocationNotificationWhenNoLongerNeeded()
-    var
-        Location: Record Location;
-        ConfiguredVendor: Record Vendor;
-        UnconfiguredVendor: Record Vendor;
-        WorkCenter: Record "Work Center";
-        WorkCenterCard: TestPage "Work Center Card";
-    begin
-        // [SCENARIO 642229] A previous notification is removed when the subcontractor is configured or cleared.
-        Initialize();
-
-        // [GIVEN] An unconfigured vendor, a configured vendor, and a Work Center Card showing the notification
-        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
-        UnconfiguredVendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
-        ConfiguredVendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        ConfiguredVendor.Validate("Subc. Location Code", Location.Code);
-        ConfiguredVendor.Modify(true);
-        WorkCenterCard.OpenEdit();
-        WorkCenterCard.GoToRecord(WorkCenter);
-        WorkCenterCard."Subcontractor No.".SetValue(UnconfiguredVendor."No.");
-        VerifySubcontractorLocationNotification(UnconfiguredVendor."No.");
-
-        // [WHEN] The configured vendor is selected
-        WorkCenterCard."Subcontractor No.".SetValue(ConfiguredVendor."No.");
-
-        // [THEN] The previous notification is recalled and no notification is sent for the configured vendor
-        VerifySubcontractorLocationNotification('');
-
-        // [WHEN] The unconfigured vendor is selected again
-        WorkCenterCard."Subcontractor No.".SetValue(UnconfiguredVendor."No.");
-
-        // [THEN] The previous notification is recalled before a new notification is sent
-        VerifySubcontractorLocationNotification(UnconfiguredVendor."No.");
-
-        // [WHEN] The subcontractor is cleared
-        WorkCenterCard."Subcontractor No.".SetValue('');
-
-        // [THEN] The notification is recalled without sending another one
-        VerifySubcontractorLocationNotification('');
-        WorkCenterCard.Close();
-        LibraryVariableStorage.AssertEmpty();
-    end;
-
-    [Test]
-    [HandlerFunctions('SubcontractorLocationNotificationActionHandler,SubcontractorLocationRecallHandler,VendorCardHandler')]
-    procedure WorkCenterCardSubcontractorLocationNotificationActionOpensVendorCard()
-    var
-        Vendor: Record Vendor;
-        WorkCenter: Record "Work Center";
-        WorkCenterCard: TestPage "Work Center Card";
-    begin
-        // [SCENARIO 642229] The notification action opens the selected subcontractor vendor.
-        Initialize();
-
-        // [GIVEN] A Work Center and a vendor without a Subcontracting Location Code
-        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
-        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
-
-        // [WHEN] The vendor is selected as the subcontractor and the notification action is invoked
-        WorkCenterCard.OpenEdit();
-        WorkCenterCard.GoToRecord(WorkCenter);
-        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
-
-        // [THEN] The notification is sent for the vendor and the Vendor Card opens for that vendor
-        VerifySubcontractorLocationNotification(Vendor."No.");
-        Assert.AreEqual(Vendor."No.", LibraryVariableStorage.DequeueText(), VendorCardNoErr);
-        WorkCenterCard.Close();
-        LibraryVariableStorage.AssertEmpty();
-    end;
-
-    [Test]
     procedure WorkCenterListSubcontractingActionsDisabledWhenNotSubcontracting()
     var
         WorkCenter: Record "Work Center";
@@ -812,73 +684,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         exit(1);
     end;
 
-    local procedure VerifySubcontractorLocationNotification(VendorNo: Code[20])
-    begin
-        Assert.AreEqual(RecallNotificationTok, LibraryVariableStorage.DequeueText(), NotificationOrderErr);
-        Assert.AreEqual(Format(GetMissingSubcontractingLocationNotificationId()), LibraryVariableStorage.DequeueText(), NotificationIdErr);
-        if VendorNo <> '' then begin
-            Assert.AreEqual(SendNotificationTok, LibraryVariableStorage.DequeueText(), NotificationOrderErr);
-            Assert.AreEqual(Format(GetMissingSubcontractingLocationNotificationId()), LibraryVariableStorage.DequeueText(), NotificationIdErr);
-            Assert.AreEqual(StrSubstNo(MissingSubcontractingLocationMsg, VendorNo), LibraryVariableStorage.DequeueText(), NotificationMessageErr);
-            Assert.AreEqual(VendorNo, LibraryVariableStorage.DequeueText(), NotificationVendorErr);
-        end;
-    end;
-
-    local procedure GetMissingSubcontractingLocationNotificationId(): Guid
-    begin
-        exit('{8A4B9A58-21EC-49DD-A3A5-C7E81F745B6D}');
-    end;
-
-    [SendNotificationHandler]
-    procedure SubcontractorLocationNotificationHandler(var SubcontractorLocationNotification: Notification): Boolean
-    begin
-        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
-            exit(false);
-
-        CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
-        exit(true);
-    end;
-
-    [SendNotificationHandler]
-    procedure SubcontractorLocationNotificationActionHandler(var SubcontractorLocationNotification: Notification): Boolean
-    var
-        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
-    begin
-        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
-            exit(false);
-
-        CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
-        // Simulate choosing the Open Vendor Card notification action.
-        SubcNotificationMgmt.OpenVendorCard(SubcontractorLocationNotification);
-        exit(true);
-    end;
-
-    local procedure CaptureSubcontractorLocationNotification(SubcontractorLocationNotification: Notification)
-    begin
-        LibraryVariableStorage.Enqueue(SendNotificationTok);
-        LibraryVariableStorage.Enqueue(Format(SubcontractorLocationNotification.Id));
-        LibraryVariableStorage.Enqueue(SubcontractorLocationNotification.Message);
-        LibraryVariableStorage.Enqueue(SubcontractorLocationNotification.GetData(VendorNoTok));
-    end;
-
-    [RecallNotificationHandler]
-    procedure SubcontractorLocationRecallHandler(var SubcontractorLocationNotification: Notification): Boolean
-    begin
-        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
-            exit(false);
-
-        LibraryVariableStorage.Enqueue(RecallNotificationTok);
-        LibraryVariableStorage.Enqueue(Format(SubcontractorLocationNotification.Id));
-        exit(true);
-    end;
-
-    [PageHandler]
-    procedure VendorCardHandler(var VendorCard: TestPage "Vendor Card")
-    begin
-        LibraryVariableStorage.Enqueue(VendorCard."No.".Value());
-        VendorCard.Close();
-    end;
-
     [PageHandler]
     procedure HandlePostedPurchaseReceiptPage(var PostedPurchaseReceipt: TestPage "Posted Purchase Receipt")
     begin
@@ -1036,7 +841,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
@@ -1051,13 +855,4 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ILEPurchActionsEnabledErr: Label 'Purchase Order action should not be enabled for a non-subcontracting Item Ledger Entry.';
         ILEPurchActionsNotEnabledErr: Label 'Purchase Order action should be enabled for a subcontracting Item Ledger Entry.';
         SetupNotCompletedQst: Label 'The Subcontracting setup is not complete. Are you sure you want to exit?';
-        MissingSubcontractingLocationMsg: Label 'Vendor %1 has no subcontracting location. This location is used to track components and work-in-process (WIP) items at the subcontractor. Choose a Subcontracting Location Code on the vendor before using this work center for subcontracting.', Comment = '%1 = Vendor No.';
-        NotificationIdErr: Label 'The subcontractor location notification ID is unexpected.';
-        NotificationMessageErr: Label 'The subcontractor location notification message is unexpected.';
-        NotificationOrderErr: Label 'The subcontractor location notification interactions occurred in an unexpected order.';
-        NotificationVendorErr: Label 'The vendor in the subcontractor location notification is unexpected.';
-        RecallNotificationTok: Label 'Recall', Locked = true;
-        SendNotificationTok: Label 'Send', Locked = true;
-        VendorCardNoErr: Label 'The Vendor Card opened for an unexpected vendor.';
-        VendorNoTok: Label 'VendorNo', Locked = true;
-    }
+}
