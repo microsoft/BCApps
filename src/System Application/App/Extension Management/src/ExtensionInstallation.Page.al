@@ -50,22 +50,22 @@ page 2503 "Extension Installation"
         CurrPage.Close();
     end;
 
-    procedure SetAppID(AppID: Guid)
+    internal procedure SetAppID(AppID: Guid)
     begin
         Rec.ID := AppID;
     end;
 
-    procedure SetPreviewKey(PreviewKey: Text[2048])
+    internal procedure SetPreviewKey(PreviewKey: Text[2048])
     begin
         Rec.PreviewKey := PreviewKey;
     end;
 
-    procedure SetPublisherType(PublisherType: Text)
+    internal procedure SetPublisherType(PublisherType: Text)
     begin
         Rec.PublisherType := CopyStr(PublisherType, 1, MaxStrLen(Rec.PublisherType));
     end;
 
-    procedure SetResponseUrl(ResponseUrl: Text)
+    internal procedure SetResponseUrl(ResponseUrl: Text)
     begin
         Rec.ResponseUrl := CopyStr(ResponseUrl, 1, MaxStrLen(Rec.ResponseUrl));
     end;
