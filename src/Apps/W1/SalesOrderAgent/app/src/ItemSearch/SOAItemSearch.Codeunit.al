@@ -272,6 +272,13 @@ codeunit 4591 "SOA Item Search"
                     end else begin
                         ItemSelectorUsed := false;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'false');
+                        TelemetryCustomDimension.Add('ItemSelectorEmptySelection', Format(false));
+                        TelemetryCustomDimension.Add('ItemSelectorRejectedItemCount', Format(0));
+                        TelemetryCustomDimension.Add('ItemSelectorRejectedVariantCount', Format(0));
+                        TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(1));
+                        TelemetryCustomDimension.Add('ItemSelectorAlternativeCount', Format(0));
+                        TelemetryCustomDimension.Add('ItemSelectorNoMatchCount', Format(0));
+                        TelemetryCustomDimension.Add('ItemSelectorSkipReason', 'ExactItemWithoutVariants');
                     end;
 
                 // When selector returns both sets, prefer available matching items.
