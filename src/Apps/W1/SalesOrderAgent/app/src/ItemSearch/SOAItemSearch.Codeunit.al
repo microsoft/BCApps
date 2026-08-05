@@ -335,13 +335,13 @@ codeunit 4591 "SOA Item Search"
     var
         Item: Record Item;
         ItemVariant: Record "Item Variant";
+        ItemSystemId: Guid;
     begin
         if (SearchType <> 'item_get') or (CandidateCount <> 1) then
             exit(true);
 
         Item.SetLoadFields("No.");
-        Item.SetFilter(SystemId, ItemFilter);
-        if not Item.FindFirst() then
+        if (not Evaluate(ItemSystemId, ItemFilter)) or (not Item.GetBySystemId(ItemSystemId)) then
             exit(true);
 
         ItemVariant.SetRange("Item No.", Item."No.");
