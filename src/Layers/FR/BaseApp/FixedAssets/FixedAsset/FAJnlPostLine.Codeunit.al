@@ -49,6 +49,10 @@ codeunit 5632 "FA Jnl.-Post Line"
         InsertedMaintenanceLedgEntry: Record "Maintenance Ledger Entry";
         CurrentPostingRole: Enum "Derogatory Posting Role";
         CurrentDerogatorySourceEntryNo: Integer;
+        SourceUntilDateCustom1EntryNo: Integer;
+        SourceUntilDateDepreciationEntryNo: Integer;
+        SourceAcqCostCustom1EntryNo: Integer;
+        SourceAcqCostDepreciationEntryNo: Integer;
         FANo: Code[20];
         BudgetNo: Code[20];
         DeprBookCode: Code[10];
@@ -73,6 +77,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     procedure FAJnlPostLine(FAJnlLine: Record "FA Journal Line"; CheckLine: Boolean)
     begin
         Clear(LastSourceFALedgEntry);
+        ClearSourceAutomaticEntryNos();
         FAJnlPostLineWithContext(FAJnlLine, CheckLine, CurrentPostingRole::Source, 0);
     end;
 
@@ -140,6 +145,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         Clear(LastSourceFALedgEntry);
         Clear(InsertedFALedgEntry);
         Clear(InsertedMaintenanceLedgEntry);
+        ClearSourceAutomaticEntryNos();
         FAInsertLedgEntry.SetGLRegisterNo(GLRegisterNo);
         if GenJnlLine."Account No." = '' then
             exit;
@@ -450,6 +456,7 @@ codeunit 5632 "FA Jnl.-Post Line"
 
     local procedure PostDeprUntilDate(FALedgEntry: Record "FA Ledger Entry"; Type: Option UntilDate,AcqCost)
     var
+        InsertedAutomaticFALedgerEntry: Record "FA Ledger Entry";
         DepreciationAmount: Decimal;
         Custom1Amount: Decimal;
         NumberOfDays: Integer;
@@ -479,7 +486,11 @@ codeunit 5632 "FA Jnl.-Post Line"
             FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Custom 1";
             FALedgEntry.Amount := Custom1Amount;
             FALedgEntry."No. of Depreciation Days" := Custom1NumberOfDays;
-            FAInsertLedgEntry.InsertFA(FALedgEntry);
+            if CurrentPostingRole = CurrentPostingRole::"Generated Mirror" then
+                FALedgEntry."Derogatory Source Entry No." := GetSourceAutomaticEntryNo(Type, FALedgEntry."FA Posting Type");
+            FAInsertLedgEntry.InsertFA(FALedgEntry, InsertedAutomaticFALedgerEntry);
+            if CurrentPostingRole = CurrentPostingRole::Source then
+                SetSourceAutomaticEntryNo(Type, FALedgEntry."FA Posting Type", InsertedAutomaticFALedgerEntry."Entry No.");
             if FALedgEntry."G/L Entry No." > 0 then
                 FAInsertLedgEntry.InsertBalAcc(FALedgEntry);
         end;
@@ -487,10 +498,62 @@ codeunit 5632 "FA Jnl.-Post Line"
             FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::Depreciation;
             FALedgEntry.Amount := DepreciationAmount;
             FALedgEntry."No. of Depreciation Days" := NumberOfDays;
-            FAInsertLedgEntry.InsertFA(FALedgEntry);
+            if CurrentPostingRole = CurrentPostingRole::"Generated Mirror" then
+                FALedgEntry."Derogatory Source Entry No." := GetSourceAutomaticEntryNo(Type, FALedgEntry."FA Posting Type");
+            FAInsertLedgEntry.InsertFA(FALedgEntry, InsertedAutomaticFALedgerEntry);
+            if CurrentPostingRole = CurrentPostingRole::Source then
+                SetSourceAutomaticEntryNo(Type, FALedgEntry."FA Posting Type", InsertedAutomaticFALedgerEntry."Entry No.");
             if FALedgEntry."G/L Entry No." > 0 then
                 FAInsertLedgEntry.InsertBalAcc(FALedgEntry);
         end;
+    end;
+
+    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; FAPostingType: Enum "FA Ledger Entry FA Posting Type"): Integer
+    begin
+        case Type of
+            Type::UntilDate:
+                case FAPostingType of
+                    FAPostingType::"Custom 1":
+                        exit(SourceUntilDateCustom1EntryNo);
+                    FAPostingType::Depreciation:
+                        exit(SourceUntilDateDepreciationEntryNo);
+                end;
+            Type::AcqCost:
+                case FAPostingType of
+                    FAPostingType::"Custom 1":
+                        exit(SourceAcqCostCustom1EntryNo);
+                    FAPostingType::Depreciation:
+                        exit(SourceAcqCostDepreciationEntryNo);
+                end;
+        end;
+    end;
+
+    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; FAPostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: Integer)
+    begin
+        case Type of
+            Type::UntilDate:
+                case FAPostingType of
+                    FAPostingType::"Custom 1":
+                        SourceUntilDateCustom1EntryNo := EntryNo;
+                    FAPostingType::Depreciation:
+                        SourceUntilDateDepreciationEntryNo := EntryNo;
+                end;
+            Type::AcqCost:
+                case FAPostingType of
+                    FAPostingType::"Custom 1":
+                        SourceAcqCostCustom1EntryNo := EntryNo;
+                    FAPostingType::Depreciation:
+                        SourceAcqCostDepreciationEntryNo := EntryNo;
+                end;
+        end;
+    end;
+
+    local procedure ClearSourceAutomaticEntryNos()
+    begin
+        Clear(SourceUntilDateCustom1EntryNo);
+        Clear(SourceUntilDateDepreciationEntryNo);
+        Clear(SourceAcqCostCustom1EntryNo);
+        Clear(SourceAcqCostDepreciationEntryNo);
     end;
 
     local procedure PostSalvageValue(FALedgEntry: Record "FA Ledger Entry")
