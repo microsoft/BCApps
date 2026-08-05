@@ -218,11 +218,11 @@ codeunit 9002 "Permission Manager"
         if not Company.Get(CompanyName()) then
             exit;
 
-        if Company."Evaluation Company" then begin
-            if Company.Name.ToLower().StartsWith('cronus') then
-                AllProfile.SetRange("Profile ID", 'Business Manager Evaluation');
-        end else
-            AllProfile.SetRange("Profile ID", 'Business Manager');
+        if Company."Evaluation Company" and Company.Name.ToLower().StartsWith('cronus') then
+            AllProfile.SetRange("Profile ID", 'Business Manager Evaluation')
+        else
+            if not Company."Evaluation Company" then
+                AllProfile.SetRange("Profile ID", 'Business Manager');
     end;
 
     local procedure GetCharRepresentationOfPermission(PermissionOption: Integer): Text[1]
