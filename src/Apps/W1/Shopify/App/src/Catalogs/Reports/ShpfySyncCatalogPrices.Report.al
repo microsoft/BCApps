@@ -28,6 +28,12 @@ report 30116 "Shpfy Sync Catalog Prices"
 
                 trigger OnPreDataItem()
                 begin
+                    Catalog.AddLoadFields(
+                        "Id", "Company SystemId", "Name", "Shop Code", "Sync Prices", "Catalog Type",
+                        "Customer Price Group", "Customer Discount Group", "Gen. Bus. Posting Group",
+                        "VAT Bus. Posting Group", "Tax Area Code", "Tax Liable", "VAT Country/Region Code",
+                        "Customer Posting Group", "Prices Including VAT", "Allow Line Disc.", "Customer No.",
+                        "Currency Code", SystemModifiedAt);
                     Catalog.SetRange("Sync Prices", true);
                     if CompanyId <> '' then
                         Catalog.SetRange("Company SystemId", CompanyId);
