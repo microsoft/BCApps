@@ -5,9 +5,11 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.IO;
+using Microsoft.EServices.EDocument.Processing;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.Processing.Import;
 #endif
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using System.Upgrade;
 
@@ -26,6 +28,7 @@ codeunit 6168 "E-Document Upgrade"
 #endif
         UpgradeDataExchV2Defs();
         UpgradeEnableVATOptionsForPurchEDoc();
+        UpgradeCreatedFromDraftEDocFlag();
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -66,6 +69,7 @@ codeunit 6168 "E-Document Upgrade"
         PerCompanyUpgradeTags.Add(GetUpgradeProcessDraftEnumTag());
         PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
+        PerCompanyUpgradeTags.Add(GetCreatedFromDraftEDocFlagTag());
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
@@ -119,6 +123,46 @@ codeunit 6168 "E-Document Upgrade"
     internal procedure GetEnableVATOptionsForPurchEDocTag(): Code[250]
     begin
         exit('MS-EDoc-EnableVATOptionsForPurchEDoc-20260520');
+    end;
+
+    local procedure UpgradeCreatedFromDraftEDocFlag()
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetCreatedFromDraftEDocFlagTag()) then
+            exit;
+
+        // The record links are created only when a purchase document is created from a draft e-document,
+        // so they identify exactly the documents that the new flag marks.
+        EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Header");
+        if EDocRecordLink.FindSet() then
+            repeat
+                if PurchaseHeader.GetBySystemId(EDocRecordLink."Target SystemId") then
+                    if not PurchaseHeader."Created From Draft E-Doc" then begin
+                        PurchaseHeader."Created From Draft E-Doc" := true;
+                        PurchaseHeader.Modify();
+                    end;
+            until EDocRecordLink.Next() = 0;
+
+        EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
+        if EDocRecordLink.FindSet() then
+            repeat
+                if PurchaseLine.GetBySystemId(EDocRecordLink."Target SystemId") then
+                    if not PurchaseLine."Created From Draft E-Doc" then begin
+                        PurchaseLine."Created From Draft E-Doc" := true;
+                        PurchaseLine.Modify();
+                    end;
+            until EDocRecordLink.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(GetCreatedFromDraftEDocFlagTag());
+    end;
+
+    internal procedure GetCreatedFromDraftEDocFlagTag(): Code[250]
+    begin
+        exit('MS-EDoc-CreatedFromDraftEDocFlag-20260803');
     end;
 
 }
