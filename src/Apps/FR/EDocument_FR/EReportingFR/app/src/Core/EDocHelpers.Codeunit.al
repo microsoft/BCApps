@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 
@@ -58,6 +60,24 @@ codeunit 10991 "EDoc. Helpers"
             Error(SIRETRequiredErr);
     end;
 
+    procedure CheckSellerElectronicAddress(EDocumentServiceCode: Code[20])
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Company, '') then
+            exit;
+
+        CompanyInformation.Get();
+        if CompanyInformation."SIRET No." <> '' then
+            exit;
+        if CompanyInformation."Registration No." <> '' then
+            exit;
+        if CompanyInformation.GetVATRegistrationNumber() <> '' then
+            exit;
+
+        Error(SellerElectronicAddressRequiredErr);
+    end;
+
     procedure CheckSellerCountryCode()
     var
         CompanyInformation: Record "Company Information";
@@ -68,6 +88,11 @@ codeunit 10991 "EDoc. Helpers"
     end;
 
     procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef)
+    begin
+        CheckBuyerElectronicAddress(SourceDocumentHeader, '');
+    end;
+
+    procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20])
     var
         Customer: Record Customer;
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
@@ -81,16 +106,60 @@ codeunit 10991 "EDoc. Helpers"
         if CustomerNo = '' then
             exit;
 
+        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.");
         if not Customer.Get(CustomerNo) then
             exit;
 
-        if Customer."FR Electronic Address" = '' then
-            Error(BuyerElectronicAddressRequiredErr, Customer."No.");
+        if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, Customer."No.") then
+            exit;
+        if Customer."FR Electronic Address" <> '' then begin
+            if Customer."FR Elec. Address Scheme" = Customer."FR Elec. Address Scheme"::" " then
+                Error(BuyerElectronicAddressSchemeRequiredErr, Customer."No.");
+            exit;
+        end;
+        if Customer."VAT Registration No." <> '' then
+            exit;
+
+        Error(BuyerElectronicAddressRequiredErr, Customer."No.");
+    end;
+
+    procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]): Boolean
+    var
+        ServiceParticipant: Record "Service Participant";
+    begin
+        exit(HasServiceParticipantAddress(EDocumentServiceCode, ParticipantType, ParticipantNo, ServiceParticipant));
+    end;
+
+    procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ServiceParticipant: Record "Service Participant"): Boolean
+    var
+        ParticipantAddressErrorInfo: ErrorInfo;
+        HasIdentifier: Boolean;
+        HasScheme: Boolean;
+    begin
+        if EDocumentServiceCode = '' then
+            exit(false);
+        if not ServiceParticipant.Get(EDocumentServiceCode, ParticipantType, ParticipantNo) then
+            exit(false);
+
+        HasIdentifier := ServiceParticipant."Participant Identifier" <> '';
+        HasScheme := ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" ";
+        if HasIdentifier <> HasScheme then begin
+            ParticipantAddressErrorInfo.Message(
+                StrSubstNo(ServiceParticipantAddressIncompleteErr, ServiceParticipant.FieldCaption("Participant Identifier"), ServiceParticipant.FieldCaption("FR Identifier Scheme")));
+            ParticipantAddressErrorInfo.RecordId(ServiceParticipant.RecordId());
+            ParticipantAddressErrorInfo.PageNo(Page::"Service Participants");
+            Error(ParticipantAddressErrorInfo);
+        end;
+
+        exit(HasIdentifier);
     end;
 
     var
         SIRENRequiredErr: Label 'Registration No. must be specified in Company Information for French e-invoicing.';
         SIRETRequiredErr: Label 'SIRET No. must be specified in Company Information for French e-invoicing.';
-        BuyerElectronicAddressRequiredErr: Label 'Electronic Address must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
+        SellerElectronicAddressRequiredErr: Label 'SIRET No., Registration No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.';
+        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
+        BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         SellerCountryCodeRequiredErr: Label 'Country/Region Code must be specified in Company Information for French e-invoicing.';
+        ServiceParticipantAddressIncompleteErr: Label '%1 and %2 must both be specified for French electronic invoicing.', Comment = '%1 = Participant Identifier field caption, %2 = French Identifier Scheme field caption';
 }

@@ -40,7 +40,6 @@ codeunit 148148 "Factur-X CII XML Tests"
         CIIXMLBuilder: Codeunit "CII XML Builder";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
-        CustomerVATNoSequence: Integer;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -1106,21 +1105,10 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibrarySales.CreateCustomer(Customer);
         if Customer."Country/Region Code" = '' then
             Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", GetNextCustomerVATRegistrationNo());
+        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
         Customer.Validate("FR Electronic Address", FRElecAddress);
         Customer.Modify(true);
         exit(Customer."No.");
-    end;
-
-    local procedure GetNextCustomerVATRegistrationNo(): Text[20]
-    var
-        VATNoBody: Text[11];
-        SequenceText: Text;
-    begin
-        CustomerVATNoSequence += 1;
-        SequenceText := Format(CustomerVATNoSequence);
-        VATNoBody := CopyStr(PadStr('', 11 - StrLen(SequenceText), '0') + SequenceText, 1, 11);
-        exit('FR' + VATNoBody);
     end;
 
     local procedure CreateSalesInvoiceCIIXML(var TempBlob: Codeunit "Temp Blob")
