@@ -172,7 +172,13 @@ pageextension 18251 "FA GL General" extends "Fixed Asset G/L Journal"
     local procedure CallTaxEngine()
     var
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
+        CalculateTax.RunOnBeforeUpdateTaxAmountOnGenJnlLine(Rec, xRec, IsHandled);
+        if IsHandled then
+            exit;
+
+        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }
