@@ -1044,12 +1044,17 @@ table 179 "Reversal Entry"
             FromValueEntryNo := 0;
             ToValueEntryNo := 0;
             if VATAllocOnCost then begin
-                GlobalGLItemLedgerRelation.SetCurrentKey(GlobalGLItemLedgerRelation."G/L Register No.");
+                GlobalGLItemLedgerRelation.Reset();
+                GlobalGLItemLedgerRelation.SetCurrentKey("G/L Entry No.", "Value Entry No.");
+                GlobalGLItemLedgerRelation.SetRange("G/L Entry No.", GlobalGLRegister."From Entry No.", GlobalGLRegister."To Entry No.");
                 GlobalGLItemLedgerRelation.SetRange("G/L Register No.", GlobalGLRegister."No.");
-                if GlobalGLItemLedgerRelation.FindFirst() then
-                    FromValueEntryNo := GlobalGLItemLedgerRelation."Value Entry No.";
-                if GlobalGLItemLedgerRelation.FindLast() then
-                    ToValueEntryNo := GlobalGLItemLedgerRelation."Value Entry No.";
+                if GlobalGLItemLedgerRelation.FindSet() then
+                    repeat
+                        if (FromValueEntryNo = 0) or (GlobalGLItemLedgerRelation."Value Entry No." < FromValueEntryNo) then
+                            FromValueEntryNo := GlobalGLItemLedgerRelation."Value Entry No.";
+                        if GlobalGLItemLedgerRelation."Value Entry No." > ToValueEntryNo then
+                            ToValueEntryNo := GlobalGLItemLedgerRelation."Value Entry No.";
+                    until GlobalGLItemLedgerRelation.Next() = 0;
             end;
             GlobalValueEntry.SetRange("Entry No.", FromValueEntryNo, ToValueEntryNo);
             GlobalTaxDiffLedgerEntry.SetCurrentKey("Transaction No.");

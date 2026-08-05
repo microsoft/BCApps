@@ -44,13 +44,23 @@ table 5823 "G/L - Item Ledger Relation"
         key(Key2; "Value Entry No.")
         {
         }
+#if not CLEANSCHEMA32
         key(Key3; "G/L Register No.")
         {
+            Enabled = false;
+            ObsoleteReason = 'The key is disabled to reduce index maintenance overhead. Use Key1 and filter by G/L Entry No. instead.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#endif
     }
 
     fieldgroups
     {
     }
 }
-
