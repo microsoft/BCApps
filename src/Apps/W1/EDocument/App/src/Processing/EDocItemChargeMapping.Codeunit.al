@@ -18,6 +18,8 @@ codeunit 6436 "E-Doc. Item Charge Mapping"
         tabledata "Value Entry" = r;
 
     var
+        CachedDocumentLineNos: Dictionary of [Integer, Integer];
+        CachedLineNoDocumentNo: Code[20];
         UnitCodeOneTok: Label 'C62', Locked = true;
 
     /// <summary>
@@ -282,6 +284,7 @@ codeunit 6436 "E-Doc. Item Charge Mapping"
     begin
         Clear(AssignedLineNos);
 
+        ChargeValueEntry.SetLoadFields("Item Ledger Entry No.");
         ChargeValueEntry.SetRange("Document No.", DocumentNo);
         ChargeValueEntry.SetRange("Document Line No.", ChargeLineNo);
         ChargeValueEntry.SetRange("Item Charge No.", ItemChargeNo);
@@ -300,16 +303,25 @@ codeunit 6436 "E-Doc. Item Charge Mapping"
     var
         SaleValueEntry: Record "Value Entry";
     begin
+        // Every item charge of a document resolves against the same map, so it is built once per document
+        // instead of once per charge line. The document number is the cache key, so a new document rebuilds it.
+        if (CachedLineNoDocumentNo = DocumentNo) and (DocumentNo <> '') then begin
+            DocumentLineNos := CachedDocumentLineNos;
+            exit;
+        end;
+
         SaleValueEntry.SetLoadFields("Item Ledger Entry No.", "Document Line No.");
         SaleValueEntry.SetRange("Document No.", DocumentNo);
         SaleValueEntry.SetRange("Item Charge No.", '');
-        if not SaleValueEntry.FindSet() then
-            exit;
+        if SaleValueEntry.FindSet() then
+            repeat
+                if not DocumentLineNos.ContainsKey(SaleValueEntry."Item Ledger Entry No.") then
+                    DocumentLineNos.Add(SaleValueEntry."Item Ledger Entry No.", SaleValueEntry."Document Line No.");
+            until SaleValueEntry.Next() = 0;
 
-        repeat
-            if not DocumentLineNos.ContainsKey(SaleValueEntry."Item Ledger Entry No.") then
-                DocumentLineNos.Add(SaleValueEntry."Item Ledger Entry No.", SaleValueEntry."Document Line No.");
-        until SaleValueEntry.Next() = 0;
+        // A document without any matching value entry is cached as well, so that it is not looked up again.
+        CachedLineNoDocumentNo := DocumentNo;
+        CachedDocumentLineNos := DocumentLineNos;
     end;
 
     local procedure HasSameVAT(ChargeVATCalculationType: Enum "Tax Calculation Type"; ChargeVATPercent: Decimal; AssignedVATCalculationType: Enum "Tax Calculation Type"; AssignedVATPercent: Decimal): Boolean
