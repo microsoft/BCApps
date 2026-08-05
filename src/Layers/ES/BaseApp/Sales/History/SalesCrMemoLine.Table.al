@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1209,6 +1209,8 @@ table 115 "Sales Cr.Memo Line"
         if ItemLedgerEntry."Entry No." = 0 then begin
             SalesCreditMemoHeader.Get("Document No.");
             if SalesCreditMemoHeader."Applies-to Doc. Type" <> SalesCrMemoHeader."Applies-to Doc. Type"::Invoice then
+                exit;
+            if SalesCreditMemoHeader."Applies-to Doc. No." = '' then
                 exit;
 
             SalesInvoiceLine.Reset();
