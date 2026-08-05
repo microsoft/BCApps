@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -342,6 +342,11 @@ page 139 "Posted Purch. Invoice Subform"
                 {
                     ApplicationArea = BasicUS;
                     ToolTip = 'Specifies if the purchase invoice line record is a 1099 liable tax that must be reported to the Internal Revenue Service (IRS).';
+                    Visible = false;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
             }

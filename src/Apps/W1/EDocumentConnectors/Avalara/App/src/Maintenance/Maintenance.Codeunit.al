@@ -41,7 +41,7 @@ codeunit 6373 Maintenance
             ProcessedCount += 1;
         until EDocument.Next() = 0;
 
-        Session.LogMessage('',
+        Session.LogMessage('0000UWA',
             StrSubstNo(ProcessingCompletedMsg, ProcessedCount, SuccessCount),
             Verbosity::Normal,
             DataClassification::SystemMetadata,
@@ -86,7 +86,7 @@ codeunit 6373 Maintenance
                 SuccessCount += 1;
 
         if SuccessCount > 0 then begin
-            Session.LogMessage('',
+            Session.LogMessage('0000UWB',
                 StrSubstNo(SuccessfullyDownloadedDocumentMsg, DocumentId, EDocument."Entry No"),
                 Verbosity::Normal,
                 DataClassification::SystemMetadata,
@@ -111,7 +111,7 @@ codeunit 6373 Maintenance
 
         EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
 
-        Session.LogMessage('',
+        Session.LogMessage('0000UWC',
             StrSubstNo(DocumentDownloadFailedLogMsg, EDocument."Entry No", DocumentId),
             Verbosity::Warning,
             DataClassification::SystemMetadata,

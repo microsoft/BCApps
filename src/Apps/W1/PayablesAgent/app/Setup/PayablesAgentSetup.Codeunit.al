@@ -698,7 +698,7 @@ codeunit 3307 "Payables Agent Setup"
     var
         AlwaysLbl: Label 'Always';
         NeverLbl: Label 'Never';
-        OnlyIfUntrustedLbl: Label 'Only if untrusted';
+        OnlyIfUntrustedLbl: Label 'Manage per sender';
     begin
         case Policy of
             Policy::Always:

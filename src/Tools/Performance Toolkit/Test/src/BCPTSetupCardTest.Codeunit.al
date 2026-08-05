@@ -12,7 +12,7 @@ codeunit 144741 "BCPT Setup Card Test"
 {
     SingleInstance = true;
     Subtype = Test;
-    TestPermissions = NonRestrictive;
+    TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 
     var

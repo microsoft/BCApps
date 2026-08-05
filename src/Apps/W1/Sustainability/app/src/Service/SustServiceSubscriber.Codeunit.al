@@ -7,6 +7,8 @@ namespace Microsoft.Sustainability.Service;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Resources.Journal;
 using Microsoft.Projects.Resources.Resource;
@@ -14,6 +16,7 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Posting;
 using Microsoft.Sustainability.Account;
+using Microsoft.Sustainability.Posting;
 using Microsoft.Sustainability.Setup;
 
 codeunit 6285 "Sust. Service Subscriber"
@@ -126,6 +129,17 @@ codeunit 6285 "Sust. Service Subscriber"
             UpdateSustainabilityItemJournalLine(ItemJournalLine, ServiceShipmentLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnPostItemJnlLineAppliedToListOnAfterSetInvoicedQty', '', false, false)]
+    local procedure OnPostItemJnlLineAppliedToListOnAfterSetInvoicedQty(var ItemJournalLine: Record "Item Journal Line"; TempApplyToItemLedgEntry: Record "Item Ledger Entry" temporary)
+    var
+        ServiceShptLine: Record "Service Shipment Line";
+    begin
+        if (ItemJournalLine."Quantity (Base)" <> 0) or (ItemJournalLine."Invoiced Qty. (Base)" <> 0) then
+            if ItemJournalLine."Document Type" = ItemJournalLine."Document Type"::"Service Shipment" then
+                if ServiceShptLine.Get(ItemJournalLine."Document No.", TempApplyToItemLedgEntry."Document Line No.") then
+                    UpdateSustainabilityItemJournalLine(ItemJournalLine, ServiceShptLine, TempApplyToItemLedgEntry);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Service Consumption Line", 'OnPostResourceJnlLineOnBeforeResJnlPostLine', '', false, false)]
     local procedure OnPostResourceJnlLineOnBeforeResJnlPostLine(var ResJournalLine: Record "Res. Journal Line"; ServiceShipmentLine: Record "Service Shipment Line")
     begin
@@ -165,6 +179,14 @@ codeunit 6285 "Sust. Service Subscriber"
 
     local procedure UpdateSustainabilityItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; ServiceShipmentLine: Record "Service Shipment Line")
     var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        UpdateSustainabilityItemJournalLine(ItemJournalLine, ServiceShipmentLine, ItemLedgerEntry);
+    end;
+
+    local procedure UpdateSustainabilityItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; ServiceShipmentLine: Record "Service Shipment Line"; TempApplyToItemLedgEntry: Record "Item Ledger Entry" temporary)
+    var
+        SustainabilityPostMgt: Codeunit "Sustainability Post Mgt";
         GHGCredit: Boolean;
         Sign: Integer;
         CO2eToPost: Decimal;
@@ -190,6 +212,9 @@ codeunit 6285 "Sust. Service Subscriber"
         ItemJournalLine."Sust. Account Subcategory" := ServiceShipmentLine."Sust. Account Subcategory";
         ItemJournalLine."CO2e per Unit" := ServiceShipmentLine."CO2e per Unit";
         ItemJournalLine."Total CO2e" := CO2eToPost;
+
+        if TempApplyToItemLedgEntry."Entry No." <> 0 then
+            SustainabilityPostMgt.GetTotalCO2eAmount(TempApplyToItemLedgEntry, "Capacity Type Journal"::" ", ItemJournalLine."Total CO2e", ItemJournalLine."CO2e per Unit");
     end;
 
     local procedure UpdateSustainabilityResourceJournalLine(var ResJournalLine: Record "Res. Journal Line"; ServiceShipmentLine: Record "Service Shipment Line")

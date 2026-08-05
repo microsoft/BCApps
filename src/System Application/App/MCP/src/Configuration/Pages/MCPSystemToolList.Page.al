@@ -12,6 +12,7 @@ page 8365 "MCP System Tool List"
     PageType = ListPart;
     SourceTable = "MCP System Tool";
     SourceTableTemporary = true;
+    SourceTableView = sorting("Server Feature", "Tool Name");
     Editable = false;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -33,21 +34,21 @@ page 8365 "MCP System Tool List"
         }
     }
 
-    trigger OnOpenPage()
-    begin
-        LoadSystemTools();
-    end;
-
+    internal procedure Reload(ConfigSystemId: Guid)
     var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
-        IsLoaded: Boolean;
-
-    local procedure LoadSystemTools()
+        ServerFeature: Interface "MCP Server Features";
+        ServerFeatureEnum: Enum "MCP Server Feature";
+        FeatureImplementations: List of [Integer];
+        FeatureImplementation: Integer;
     begin
-        if IsLoaded then
-            exit;
-
-        IsLoaded := true;
-        MCPConfigImplementation.LoadSystemTools(Rec);
+        Rec.Reset();
+        Rec.DeleteAll();
+        FeatureImplementations := ServerFeatureEnum.Ordinals();
+        foreach FeatureImplementation in FeatureImplementations do begin
+            ServerFeature := "MCP Server Feature".FromInteger(FeatureImplementation);
+            if ServerFeature.IsActive(ConfigSystemId) then
+                ServerFeature.LoadSystemTools(Rec);
+        end;
+        if Rec.FindFirst() then;
     end;
 }

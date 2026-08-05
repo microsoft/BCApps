@@ -4384,8 +4384,7 @@ table 37 "Sales Line"
     trigger OnInsert()
     begin
         TestStatusOpen();
-        if not HasSalesHeader then
-            Error(CannotInsertSalesLineWithoutHeaderErr);
+        VerifySalesHeaderExists();
 
         if Quantity <> 0 then begin
             OnBeforeVerifyReservedQty(Rec, xRec, 0);
@@ -4480,7 +4479,7 @@ table 37 "Sales Line"
         HasBeenShown: Boolean;
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
-        HasSalesHeader: Boolean;
+        SuppressSalesHeaderExistsVerification: Boolean;
         SkipDefaultItemQuantity: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -5168,12 +5167,13 @@ table 37 "Sales Line"
     /// </summary>
     /// <remarks>
     /// The global SalesHeader is used whenever data from the sales header is used in other procedures on the object.
+    /// SuppressSalesHeaderExistsVerification is implicitly set to true; call SetSuppressSalesHeaderExistsVerification afterwards to override this behavior.
     /// </remarks>
     /// <param name="NewSalesHeader">The sales header to set.</param>
     procedure SetSalesHeader(NewSalesHeader: Record "Sales Header")
     begin
         SalesHeader := NewSalesHeader;
-        HasSalesHeader := true;
+        SetSuppressSalesHeaderExistsVerification(true);
         OnBeforeSetSalesHeader(SalesHeader);
 
         if SalesHeader."Currency Code" = '' then
@@ -5185,6 +5185,15 @@ table 37 "Sales Line"
         end;
 
         OnAfterSetSalesHeader(Rec, SalesHeader, Currency);
+    end;
+
+    /// <summary>
+    /// Sets the value of the SuppressSalesHeaderExistsVerification variable.
+    /// </summary>
+    /// <param name="NewSuppressSalesHeaderExistsVerification">Set to true to suppress the sales header existence verification on insert.</param>
+    procedure SetSuppressSalesHeaderExistsVerification(NewSuppressSalesHeaderExistsVerification: Boolean)
+    begin
+        SuppressSalesHeaderExistsVerification := NewSuppressSalesHeaderExistsVerification;
     end;
 
     /// <summary>
@@ -5208,14 +5217,13 @@ table 37 "Sales Line"
     var
         IsHandled: Boolean;
     begin
-        OnBeforeGetSalesHeader(Rec, SalesHeader, IsHandled, Currency, HasSalesHeader);
+        OnBeforeGetSalesHeader(Rec, SalesHeader, IsHandled, Currency, SuppressSalesHeaderExistsVerification);
         if IsHandled then
             exit;
 
         TestField("Document No.");
         if ("Document Type" <> SalesHeader."Document Type") or ("Document No." <> SalesHeader."No.") then
             if SalesHeader.Get("Document Type", "Document No.") then begin
-                HasSalesHeader := true;
                 if SalesHeader."Currency Code" = '' then
                     Currency.InitRoundingPrecision()
                 else begin
@@ -5223,10 +5231,8 @@ table 37 "Sales Line"
                     Currency.Get(SalesHeader."Currency Code");
                     Currency.TestField("Amount Rounding Precision");
                 end
-            end else begin
+            end else
                 Clear(SalesHeader);
-                HasSalesHeader := false;
-            end;
 
         OnAfterGetSalesHeader(Rec, SalesHeader, Currency);
         OutSalesHeader := SalesHeader;
@@ -10250,6 +10256,7 @@ table 37 "Sales Line"
     procedure ClearSalesHeader()
     begin
         Clear(SalesHeader);
+        SetSuppressSalesHeaderExistsVerification(false);
     end;
 
     local procedure GetBlockedItemNotificationID(): Guid
@@ -10535,6 +10542,22 @@ table 37 "Sales Line"
             TestField("Return Qty. Rcd. Not Invd.", 0);
     end;
 
+    local procedure VerifySalesHeaderExists()
+    var
+        SalesHeaderToVerify: Record "Sales Header";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if SuppressSalesHeaderExistsVerification then
+            exit;
+
+        SalesHeaderToVerify.SetRange("Document Type", "Document Type");
+        SalesHeaderToVerify.SetRange("No.", "Document No.");
+        if SalesHeaderToVerify.IsEmpty() then
+            Error(CannotInsertSalesLineWithoutHeaderErr);
+    end;
+
     local procedure CheckInventoryPickConflict()
     var
         IsHandled: Boolean;
@@ -10700,7 +10723,7 @@ table 37 "Sales Line"
     /// <returns>The quantity in the base unit of measure.</returns>
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
-        IsHandled: Boolean;        
+        IsHandled: Boolean;
     begin
         OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName);
 
@@ -10903,10 +10926,15 @@ table 37 "Sales Line"
                 until SelectedSalesLine.Next() = 0;
     end;
 
+    procedure RestoreLookupSelection()
+    begin
+        RestoreLookupSelectionWithResult();
+    end;
+
     /// <summary>
     /// Restores the selected record from the lookup state manager to the sales line.
     /// </summary>
-    procedure RestoreLookupSelection()
+    procedure RestoreLookupSelectionWithResult() SelectionRestored: Boolean
     var
         GLAccount: Record "G/L Account";
         Item: Record Item;
@@ -10917,6 +10945,8 @@ table 37 "Sales Line"
         RecVariant: Variant;
     begin
         if LookupStateManager.IsRecordSaved() then begin
+            SelectionRestored := true;
+            CurrFieldNo := FieldNo("No.");
             case Rec.Type of
                 Rec.Type::Item:
                     begin
@@ -12143,7 +12173,7 @@ table 37 "Sales Line"
     /// <param name="SalesHeader">The sales header to get.</param>
     /// <param name="IsHanded">Set to true to skip the default processing.</param>
     /// <param name="Currency">The currency record.</param>
-    /// <param name="HasSalesHeader">Set to true to indicate whether the sales header has been retrieved.</param>
+    /// <param name="HasSalesHeader">Set to true to indicate whether the sales header has been retrieved, which sets global variable SuppressSalesHeaderExistsVerification to skip the verification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesHeader(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHanded: Boolean; var Currency: Record Currency; var HasSalesHeader: Boolean)
     begin
