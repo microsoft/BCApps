@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.History;
 
-pageextension 99001546 "Subc. Pstd. Whse Shipm Sub" extends "Posted Whse. Shipment Subform"
+#pragma warning disable AS0072, AS0136
+pageextension 20546 "Subc. Pstd. Whse Shipm Sub" extends "Posted Whse. Shipment Subform"
 {
     layout
     {
@@ -20,3 +21,4 @@ pageextension 99001546 "Subc. Pstd. Whse Shipm Sub" extends "Posted Whse. Shipme
         }
     }
 }
+#pragma warning restore AS0072, AS0136

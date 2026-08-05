@@ -13,7 +13,8 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-report 99001501 "Subc. Create Transf. Order"
+#pragma warning disable AS0072, AS0136
+report 20501 "Subc. Create Transf. Order"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Transfer Order';
@@ -598,3 +599,4 @@ report 99001501 "Subc. Create Transf. Order"
         exit(SubcontractorWIPLedgerEntry."Quantity (Base)");
     end;
 }
+#pragma warning restore AS0072, AS0136

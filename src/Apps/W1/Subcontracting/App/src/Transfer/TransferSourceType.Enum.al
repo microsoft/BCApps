@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001501 "Transfer Source Type"
+#pragma warning disable AS0072, AS0136
+enum 20501 "Transfer Source Type"
 {
     Extensible = true;
     value(0; Empty)
@@ -16,3 +17,4 @@ enum 99001501 "Transfer Source Type"
         Caption = 'Subcontracting';
     }
 }
+#pragma warning restore AS0072, AS0136

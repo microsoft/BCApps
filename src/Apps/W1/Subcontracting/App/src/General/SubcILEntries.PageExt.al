@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Ledger;
 
-pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
+#pragma warning disable AS0072, AS0136
+pageextension 20501 "Subc. ILEntries" extends "Item Ledger Entries"
 {
     layout
     {
@@ -120,3 +121,4 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
         SubcPurchFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }
+#pragma warning restore AS0072, AS0136

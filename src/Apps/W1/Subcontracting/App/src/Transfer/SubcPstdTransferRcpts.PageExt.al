@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-pageextension 99001553 "Subc. Pstd. Transfer Rcpts." extends "Posted Transfer Receipts"
+#pragma warning disable AS0072, AS0136
+pageextension 20553 "Subc. Pstd. Transfer Rcpts." extends "Posted Transfer Receipts"
 {
     views
     {
@@ -20,3 +21,4 @@ pageextension 99001553 "Subc. Pstd. Transfer Rcpts." extends "Posted Transfer Re
         }
     }
 }
+#pragma warning restore AS0072, AS0136

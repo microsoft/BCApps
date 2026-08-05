@@ -7,7 +7,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
-pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Orders"
+#pragma warning disable AS0072, AS0136
+pageextension 20505 "Subc. Rel. Prod. Orders" extends "Released Production Orders"
 {
     actions
     {
@@ -61,3 +62,4 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
         }
     }
 }
+#pragma warning restore AS0072, AS0136

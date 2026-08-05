@@ -7,11 +7,12 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.Document;
 
-tableextension 99001527 "Subc. Warehouse Shipment Line" extends "Warehouse Shipment Line"
+#pragma warning disable AS0072, AS0136
+tableextension 20527 "Subc. Warehouse Shipment Line" extends "Warehouse Shipment Line"
 {
     fields
     {
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;
@@ -20,3 +21,4 @@ tableextension 99001527 "Subc. Warehouse Shipment Line" extends "Warehouse Shipm
         }
     }
 }
+#pragma warning restore AS0072, AS0136

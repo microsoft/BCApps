@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.WorkCenter;
 
-pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
+#pragma warning disable AS0072, AS0136
+pageextension 20507 "Subc. Work Center List" extends "Work Center List"
 {
     actions
     {
@@ -74,3 +75,4 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
 #endif
         IsSubcontractingWorkCenter: Boolean;
 }
+#pragma warning restore AS0072, AS0136

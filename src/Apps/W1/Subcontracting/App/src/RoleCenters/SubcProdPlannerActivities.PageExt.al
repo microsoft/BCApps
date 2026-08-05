@@ -8,7 +8,8 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.Purchases.Document;
 
-pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Planner Activities"
+#pragma warning disable AS0072, AS0136
+pageextension 20537 "Subc. Prod. Planner Activities" extends "Production Planner Activities"
 {
     layout
     {
@@ -66,3 +67,4 @@ pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Plan
         }
     }
 }
+#pragma warning restore AS0072, AS0136

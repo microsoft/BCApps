@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.History;
 
-pageextension 99001545 "Subc. Pstd. Whse Rcpt Sub" extends "Posted Whse. Receipt Subform"
+#pragma warning disable AS0072, AS0136
+pageextension 20545 "Subc. Pstd. Whse Rcpt Sub" extends "Posted Whse. Receipt Subform"
 {
     layout
     {
@@ -20,3 +21,4 @@ pageextension 99001545 "Subc. Pstd. Whse Rcpt Sub" extends "Posted Whse. Receipt
         }
     }
 }
+#pragma warning restore AS0072, AS0136

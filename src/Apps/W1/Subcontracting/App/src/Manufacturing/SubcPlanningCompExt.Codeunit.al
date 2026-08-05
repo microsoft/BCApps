@@ -10,7 +10,8 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Purchases.Vendor;
 
-codeunit 99001522 "Subc. Planning Comp. Ext."
+#pragma warning disable AS0072, AS0136
+codeunit 20522 "Subc. Planning Comp. Ext."
 {
 #if not CLEAN28
     var
@@ -118,3 +119,4 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     end;
 
 }
+#pragma warning restore AS0072, AS0136

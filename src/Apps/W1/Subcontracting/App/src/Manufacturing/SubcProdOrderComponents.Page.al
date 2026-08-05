@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-page 99001503 "Subc. Prod. Order Components"
+#pragma warning disable AS0072, AS0136
+page 20503 "Subc. Prod. Order Components"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Prod. Order Comp. Line List';
@@ -181,3 +182,4 @@ page 99001503 "Subc. Prod. Order Components"
     var
         SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
 }
+#pragma warning restore AS0072, AS0136

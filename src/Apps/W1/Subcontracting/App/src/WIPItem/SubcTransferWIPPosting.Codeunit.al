@@ -17,7 +17,8 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Document;
 
-codeunit 99001541 "Subc. Transfer WIP Posting"
+#pragma warning disable AS0072, AS0136
+codeunit 20541 "Subc. Transfer WIP Posting"
 {
 
     Permissions = TableData "Subcontractor WIP Ledger Entry" = RIMD;
@@ -521,3 +522,4 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     begin
     end;
 }
+#pragma warning restore AS0072, AS0136

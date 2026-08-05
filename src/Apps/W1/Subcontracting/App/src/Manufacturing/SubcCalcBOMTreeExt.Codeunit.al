@@ -8,7 +8,8 @@ using Microsoft.Inventory.BOM.Tree;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Routing;
 
-codeunit 99001521 "Subc. Calc BOM Tree Ext."
+#pragma warning disable AS0072, AS0136
+codeunit 20521 "Subc. Calc BOM Tree Ext."
 {
 #if not CLEAN27
 #pragma warning disable AL0432
@@ -35,3 +36,4 @@ codeunit 99001521 "Subc. Calc BOM Tree Ext."
         SubcSessionState.SetRecordID('OnBeforeCalcRoutingLineCosts', ParentItem.RecordId());
     end;
 }
+#pragma warning restore AS0072, AS0136

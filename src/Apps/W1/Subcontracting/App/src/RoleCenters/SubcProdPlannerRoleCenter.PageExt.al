@@ -9,7 +9,8 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.Purchases.Document;
 
-pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Planner Role Center"
+#pragma warning disable AS0072, AS0136
+pageextension 20538 "Subc. Prod. Planner RoleCenter" extends "Production Planner Role Center"
 {
     actions
     {
@@ -60,3 +61,4 @@ pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Plan
         }
     }
 }
+#pragma warning restore AS0072, AS0136

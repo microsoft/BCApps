@@ -3,7 +3,8 @@
     "rules":  [
                   {
                       "id":  "AS0001",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporarily disabled to allow renumbering of Subcontracting App"
                   },
                   {
                       "id":  "AS0002",
@@ -72,7 +73,8 @@
                   },
                   {
                       "id":  "AS0018",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporarily disabled to allow renumbering of Subcontracting App"
                   },
                   {
                       "id":  "AS0019",
@@ -116,7 +118,8 @@
                   },
                   {
                       "id":  "AS0029",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporarily disabled to allow renumbering of Subcontracting App"
                   },
                   {
                       "id":  "AS0030",
@@ -359,7 +362,8 @@
                   },
                   {
                       "id":  "AS0088",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporarily disabled to allow renumbering of Subcontracting App"
                   },
                   {
                       "id":  "AS0089",
@@ -433,7 +437,8 @@
                   },
                   {
                       "id":  "AS0106",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporarily disabled to allow renumbering of Subcontracting App"
                   },
                   {
                       "id":  "AS0107",

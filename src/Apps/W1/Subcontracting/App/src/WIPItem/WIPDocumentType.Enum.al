@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001509 "WIP Document Type"
+#pragma warning disable AS0072, AS0136
+enum 20509 "WIP Document Type"
 {
     Extensible = true;
     value(0; "Transfer Order")
@@ -20,3 +21,4 @@ enum 99001509 "WIP Document Type"
         Caption = 'Adjustment (Finish Prod Order)';
     }
 }
+#pragma warning restore AS0072, AS0136

@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-codeunit 99001548 "Subc. DirectTransferLine Ext."
+#pragma warning disable AS0072, AS0136
+codeunit 20548 "Subc. DirectTransferLine Ext."
 {
     [EventSubscriber(ObjectType::Table, Database::"Direct Trans. Line", OnAfterCopyFromTransferLine, '', false, false)]
     local procedure OnAfterCopyFromTransferLine_T5745(var DirectTransLine: Record "Direct Trans. Line"; TransferLine: Record "Transfer Line")
@@ -34,3 +35,4 @@ codeunit 99001548 "Subc. DirectTransferLine Ext."
         DirectTransLine."Operation No." := TransferLine."Subc. Operation No.";
     end;
 }
+#pragma warning restore AS0072, AS0136

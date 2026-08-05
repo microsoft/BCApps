@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
 
-pageextension 99001509 "Subc. Routing Version Lines" extends "Routing Version Lines"
+#pragma warning disable AS0072, AS0136
+pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines"
 {
     layout
     {
@@ -127,3 +128,4 @@ pageextension 99001509 "Subc. Routing Version Lines" extends "Routing Version Li
         Page.Run(Page::"Subcontractor Prices", SubcontractorPrice);
     end;
 }
+#pragma warning restore AS0072, AS0136

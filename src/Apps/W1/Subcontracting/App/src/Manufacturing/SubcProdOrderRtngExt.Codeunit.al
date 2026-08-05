@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,7 +10,8 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
-codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
+#pragma warning disable AS0072, AS0136
+codeunit 20520 "Subc. Prod. Order Rtng. Ext."
 {
     var
 #if not CLEAN28
@@ -315,3 +316,4 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
         exit(false);
     end;
 }
+#pragma warning restore AS0072, AS0136

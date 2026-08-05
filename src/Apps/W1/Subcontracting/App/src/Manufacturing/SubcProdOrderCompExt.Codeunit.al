@@ -13,7 +13,8 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
-codeunit 99001524 "Subc. Prod. Order Comp. Ext."
+#pragma warning disable AS0072, AS0136
+codeunit 20524 "Subc. Prod. Order Comp. Ext."
 {
     var
 #if not CLEAN28
@@ -547,3 +548,4 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         exit(NetStockAtSubcLocation > 0);
     end;
 }
+#pragma warning restore AS0072, AS0136

@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 99001502 "Subcontract. - Read"
+#pragma warning disable AS0072, AS0136
+permissionset 20502 "Subcontract. - Read"
 {
     Caption = 'Subcontracting - Read';
     Access = Public;
@@ -16,3 +17,4 @@ permissionset 99001502 "Subcontract. - Read"
         tabledata "Subcontractor Price" = R,
         tabledata "Subcontractor WIP Ledger Entry" = R;
 }
+#pragma warning restore AS0072, AS0136

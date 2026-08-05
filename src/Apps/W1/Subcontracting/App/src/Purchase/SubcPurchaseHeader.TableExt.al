@@ -7,12 +7,13 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 
-tableextension 99001509 "Subc. Purchase Header" extends "Purchase Header"
+#pragma warning disable AS0072, AS0136
+tableextension 20509 "Subc. Purchase Header" extends "Purchase Header"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001520; "Subc. Location Code"; Code[10])
+        field(20520; "Subc. Location Code"; Code[10])
         {
             Caption = 'Subcontracting Location Code';
             DataClassification = CustomerContent;
@@ -30,7 +31,7 @@ tableextension 99001509 "Subc. Purchase Header" extends "Purchase Header"
                     Error(BinMandatorySubcontrLocationErr, "Subc. Location Code");
             end;
         }
-        field(99001521; "Subc. Order"; Boolean)
+        field(20521; "Subc. Order"; Boolean)
         {
             CalcFormula = exist("Purchase Line" where("Document Type" = const(Order),
                                                        "Document No." = field("No."),
@@ -42,3 +43,4 @@ tableextension 99001509 "Subc. Purchase Header" extends "Purchase Header"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

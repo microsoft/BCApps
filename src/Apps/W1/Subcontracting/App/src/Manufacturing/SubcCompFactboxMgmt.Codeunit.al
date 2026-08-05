@@ -8,7 +8,8 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-codeunit 99001562 "Subc. Comp. Factbox Mgmt."
+#pragma warning disable AS0072, AS0136
+codeunit 20562 "Subc. Comp. Factbox Mgmt."
 {
 #if not CLEAN28
     var
@@ -225,3 +226,4 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ProdOrderRoutingLine.FindFirst();
     end;
 }
+#pragma warning restore AS0072, AS0136
