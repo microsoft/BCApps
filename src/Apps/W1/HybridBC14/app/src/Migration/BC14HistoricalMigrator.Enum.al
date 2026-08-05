@@ -25,4 +25,19 @@ enum 46889 "BC14 Historical Migrator" implements "BC14 Migrator"
         Caption = 'Old G/L Entry';
         Implementation = "BC14 Migrator" = "BC14 Old G/L Entry Migr.";
     }
+    value(2; "Old Customer Ledger Entry")
+    {
+        Caption = 'Old Customer Ledger Entry';
+        Implementation = "BC14 Migrator" = "BC14 Old Cust. Ledger Migr.";
+    }
+    value(3; "Old Vendor Ledger Entry")
+    {
+        Caption = 'Old Vendor Ledger Entry';
+        Implementation = "BC14 Migrator" = "BC14 Old Vend. Ledger Migr.";
+    }
+    value(4; "Old Item Ledger Entry")
+    {
+        Caption = 'Old Item Ledger Entry';
+        Implementation = "BC14 Migrator" = "BC14 Old Item Ledger Migr.";
+    }
 }
