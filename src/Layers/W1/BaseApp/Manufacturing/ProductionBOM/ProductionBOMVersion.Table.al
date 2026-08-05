@@ -244,7 +244,7 @@ table 99000779 "Production BOM Version"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckVariantIfMandatory(var ProductionBOMVersion: Record "Production BOM Version"; var xProductionBOMVersion: Record "Production BOM Version"; var ProductionBOMLine: Record "Production BOM Line"; var IsHandled: Boolean)
+    local procedure OnBeforeCheckVariantIfMandatory(var ProductionBOMVersion: Record "Production BOM Version"; xProductionBOMVersion: Record "Production BOM Version"; var ProductionBOMLine: Record "Production BOM Line"; var IsHandled: Boolean)
     begin
     end;
 }
