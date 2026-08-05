@@ -99,77 +99,66 @@ page 31147 "EET Entry Preview Card CZL"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount of cash document VAT-exempt.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("VAT Base (Basic)"; Rec."VAT Base (Basic)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT base amount for base VAT rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("VAT Amount (Basic)"; Rec."VAT Amount (Basic)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT amount for base VAT rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("VAT Base (Reduced)"; Rec."VAT Base (Reduced)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT base amount for reduced VAT rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("VAT Amount (Reduced)"; Rec."VAT Amount (Reduced)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT amount for reduced VAT rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("VAT Base (Reduced 2)"; Rec."VAT Base (Reduced 2)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT base amount for reduced 2 VAT rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("VAT Amount (Reduced 2)"; Rec."VAT Amount (Reduced 2)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT amount for reduced 2 VAT rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("Amount - Art.89"; Rec."Amount - Art.89")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount under paragraph 89th.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("Amount (Basic) - Art.90"; Rec."Amount (Basic) - Art.90")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount under paragraph 90th for base rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("Amount (Reduced) - Art.90"; Rec."Amount (Reduced) - Art.90")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount under paragraph 90th for reduced rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("Amount (Reduced 2) - Art.90"; Rec."Amount (Reduced 2) - Art.90")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount under paragraph 90th for reduced 2 rate.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("Amt. For Subseq. Draw/Settle"; Rec."Amt. For Subseq. Draw/Settle")
@@ -214,20 +203,24 @@ page 31147 "EET Entry Preview Card CZL"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Taxpayer''s Signature Code';
                     ToolTip = 'Specifies the content of the field for the Signing code of the taxpayer.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("Taxpayer's Security Code"; Rec."Taxpayer's Security Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the content of the field for the Security code of the taxpayer.';
-                    // TODO: obsolete
                     Visible = false;
                 }
                 field("Fiscal Identification Code"; Rec."Fiscal Identification Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the content of the field for the Confirmation code of the receipt.';
+                    Visible = false;
+                }
+                field("Acknowledgement Code"; Rec."Acknowledgement Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the content of the field for the Acknowledgement Code (POK) of the receipt.';
                 }
             }
         }

@@ -129,7 +129,7 @@ codeunit 31116 "EET Service Management CZL"
         CompanyInformation.Get();
         AddAttribute(DataXmlNode, 'eic_popl', CompanyInformation."VAT Registration No.");
         AddAttribute(DataXmlNode, 'eic_poverujiciho', EETEntryCZL."Appointing VAT Reg. No.");
-        // TODO: Add 'povereni_vice_popl' when "Multiple Principals" field is added to EET Entry table
+        AddAttribute(DataXmlNode, 'povereni_vice_popl', FormatBoolean(EETEntryCZL."Multiple Taxpayers Auth."));
         AddAttribute(DataXmlNode, 'id_jednotky', EETEntryCZL.GetBusinessPremisesId());
         AddAttribute(DataXmlNode, 'id_pokl', EETEntryCZL."Cash Register Code");
         AddAttribute(DataXmlNode, 'porad_cis', EETEntryCZL."Receipt Serial No.");

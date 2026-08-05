@@ -51,7 +51,6 @@ table 31125 "EET Service Setup CZL"
         {
             Caption = 'Sales Regime';
             DataClassification = CustomerContent;
-            // TODO: obsolete
         }
         field(11; "Limit Response Time"; Integer)
         {

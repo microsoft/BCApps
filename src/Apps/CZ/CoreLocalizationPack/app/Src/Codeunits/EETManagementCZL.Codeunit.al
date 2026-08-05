@@ -65,7 +65,7 @@ codeunit 31118 "EET Management CZL"
         EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::Sent);
 
         if EETServiceManagementCZL.Send(EETEntryCZL) then begin
-            EETEntryCZL."Fiscal Identification Code" := EETServiceManagementCZL.GetPOKControlCode();
+            EETEntryCZL."Acknowledgement Code" := EETServiceManagementCZL.GetPOKControlCode();
 
             if EETServiceManagementCZL.HasWarnings() then begin
                 EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
