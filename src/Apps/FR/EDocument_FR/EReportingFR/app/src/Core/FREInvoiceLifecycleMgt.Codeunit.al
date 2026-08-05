@@ -276,7 +276,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     internal procedure CreateLifecycleMessage(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
     var
         EDocument: Record "E-Document";
-        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceLifecycleMsg: Codeunit "FR E-Invoice Lifecycle Msg.";
         TempBlob: Codeunit "Temp Blob";
     begin
@@ -285,7 +285,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
 
         EDocument.Get(FREInvoiceLifecycle."E-Document Entry No.");
         FREInvoiceLifecycleMsg.BuildLifecycleMessage(EDocument, FREInvoiceLifecycle, TempBlob);
-        FREInvoiceLifecycle."E-Document Message Entry No." := EDocMessageMgt.CreateMessage(
+        FREInvoiceLifecycle."E-Document Message Entry No." := EDocumentMessageAPI.CreateMessage(
             EDocument, "E-Document Message Type"::"FR Invoice Lifecycle", EDocument.Direction::Outgoing, TempBlob);
         FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::"Message Created";
         Clear(FREInvoiceLifecycle."Last Error");
