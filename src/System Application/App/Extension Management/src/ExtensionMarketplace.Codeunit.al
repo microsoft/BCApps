@@ -268,43 +268,25 @@ codeunit 2501 "Extension Marketplace"
 
     procedure InstallAppsourceExtensionWithRefreshSession(MarketplaceApplicationID: Text; TelemetryURL: Text);
     var
-        ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
-        MySessionSettings: SessionSettings;
         AppId: Guid;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
         if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin // successful installation returns false
             AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
-            if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
-                SaveExtensionPendingSetup(AppId);
-                MySessionSettings.Init();
-                MySessionSettings.RequestSessionUpdate(false);
-            end else begin
-                ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
-                ExtensionPendingSetup.DeleteAll();
-            end;
+            HandleInstallFailureWithRefreshSession(AppId);
         end;
     end;
 
     procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text; PublisherType: Text);
     var
-        ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
-        MySessionSettings: SessionSettings;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
         if not InstallAppsourceExtension(AppId, TelemetryURL, PublisherType) then // successful installation returns false
-            if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
-                SaveExtensionPendingSetup(AppId);
-                MySessionSettings.Init();
-                MySessionSettings.RequestSessionUpdate(false);
-            end else begin
-                ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
-                ExtensionPendingSetup.DeleteAll();
-            end;
+            HandleInstallFailureWithRefreshSession(AppId);
     end;
 
     procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text);
@@ -456,6 +438,22 @@ codeunit 2501 "Extension Marketplace"
         GuidedExperience: Codeunit "Guided Experience";
     begin
         exit(GuidedExperience.SetupForExtensionExists(AppId));
+    end;
+
+    internal procedure HandleInstallFailureWithRefreshSession(AppId: Guid)
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        MySessionSettings: SessionSettings;
+    begin
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
+            SaveExtensionPendingSetup(AppId);
+            MySessionSettings.Init();
+            MySessionSettings.RequestSessionUpdate(false);
+        end else begin
+            ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+            ExtensionPendingSetup.DeleteAll();
+        end;
     end;
 
     local procedure IsFirstPartyExtension(PublishedApplication: Record "Published Application"): Boolean
