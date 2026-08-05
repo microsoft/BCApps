@@ -31,14 +31,11 @@ Restart-BcContainer -containerName $parameters.ContainerName
 
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
-# PROTOTYPE: the artifact database already has every app of the BCApps commit it was built from
-# published, synchronized AND installed. That is already the state a test container needs, so the
-# goal is to change as little of it as possible rather than tear it down and rebuild it.
-#
-# Only apps this repository does not produce (plus the never-in-a-container list) are removed.
-# Apps whose source changed are deliberately left installed and are replaced in place by
-# PublishBcContainerApp.ps1 with -upgrade: uninstalling one would force out every installed app
-# that depends on it (516 of them for Base Application), which is the whole cost we are avoiding.
+# PROTOTYPE: the artifact database already has every app published, synchronized and installed,
+# which is what a test container needs - so change as little of it as possible. Only apps this
+# repository does not produce are removed. Changed apps stay installed and are replaced in place
+# by PublishBcContainerApp.ps1 with -upgrade, because uninstalling one would force out every
+# installed app that depends on it.
 #
 # See build/scripts/ArtifactBaseline.md. Any doubt falls back to removing everything.
 $appsToRemove = $installedApps
@@ -97,16 +94,12 @@ foreach ($app in $containerApps) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - IsInstalled: $($app.IsInstalled) - IsPublished: $($app.IsPublished) - SyncState: $($app.SyncState)"
 }
 
-# Publishing an app runs a sync, and BC resolves each dependency against a SYNCHRONIZED
-# extension - being published is not enough. The artifact ships a handful of apps published but
-# never installed (test libraries such as "Permissions Mock"), and those are not synchronized, so
-# publishing anything that depends on them fails with "no synchronized extension could be found
-# to satisfy the dependency definition".
+# Publishing runs a sync, and BC resolves dependencies against SYNCHRONIZED extensions - being
+# published is not enough. The artifact ships some apps published but never installed (test
+# libraries such as "Permissions Mock") and those are not synchronized.
 #
-# The predicate is "retained but not installed" rather than a SyncState comparison: an installed
-# app is necessarily synchronized, so IsInstalled is a sound invariant, while SyncState is an
-# undocumented enum. Measured in the container: all 96 installed apps report SyncState 4 and all
-# 14 published-but-not-installed ones report 3.
+# Keyed on IsInstalled rather than SyncState: an installed app is necessarily synchronized, while
+# SyncState is an undocumented enum.
 if ($baseline.IsUsable -and $appsUntouched.Count -gt 0) {
     $retainedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($app in $appsUntouched) { [void]$retainedNames.Add($app.Name) }

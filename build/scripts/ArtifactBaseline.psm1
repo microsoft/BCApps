@@ -61,17 +61,10 @@ $script:AppsNeverInContainer = @(
     'Prevent Metadata Updates Library'
 )
 
-# Changed files that cannot invalidate an app that is already published in the artifact.
-#
-# A retained app is never compiled by this build - its binary is fixed inside the artifact - so
-# no repository-side setting can retroactively change it. Rulesets, analyzer baselines and
-# disabled-test lists are diagnostic or test-selection inputs: they can fail a build, they cannot
-# make a published .app wrong.
-#
-# The artifact and platform pins are listed deliberately. Bumping them (UpdateBCArtifactVersion,
-# roughly weekly) downloads a NEWER artifact carrying a NEWER bcAppsCommit, which makes the diff
-# smaller. Treating them as a full-refresh trigger would mean the commit that improves this
-# optimization is the one that switches it off.
+# Changed files that cannot invalidate an app already published in the artifact. A retained app
+# is never compiled by this build, so rulesets and analyzer baselines cannot affect it. The
+# artifact and platform pins are here deliberately: bumping them fetches a newer artifact with a
+# newer bcAppsCommit, which shrinks the diff rather than invalidating it.
 $script:PatternsThatCannotInvalidateApps = @(
     'build/*'               # build tooling, package pins, per-project AL-Go settings
     '.github/*'             # workflows and the repository-wide AL-Go settings

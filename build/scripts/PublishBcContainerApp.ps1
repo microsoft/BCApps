@@ -68,13 +68,9 @@ if ($baselineState -and $baselineState.IsUsable) {
         return
     }
 
-    # An app that is still INSTALLED at the artifact's version cannot simply be published and
-    # installed again - BC refuses with "the tenant already uses a different version of it with
-    # the same app ID". Uninstalling it first is not an option either, because that would drag
-    # out every installed app that depends on it (516 of them for Base Application).
-    #
-    # -upgrade is exactly the mechanism for this: it publishes the new version and runs
-    # Start-NavAppDataUpgrade, replacing the installed app in place, without touching dependents.
+    # An app still installed at the artifact's version cannot just be published and installed
+    # again, and uninstalling it first would drag out everything that depends on it. -upgrade
+    # publishes the new version and runs Start-NavAppDataUpgrade, replacing it in place.
     $installedKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($app in @(Get-BcContainerAppInfo -containerName $parameters["containerName"] -tenantSpecificProperties | Where-Object { $_.IsInstalled })) {
         [void]$installedKeys.Add((Get-AppKey -Publisher $app.Publisher -Name $app.Name))

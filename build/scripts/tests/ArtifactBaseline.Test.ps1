@@ -378,6 +378,17 @@ Describe "ArtifactBaseline" {
         It "handles an empty list" {
             @(Select-NewestAppVersion -Apps @()).Count | Should -Be 0
         }
+
+        It "drops a superseded version even when the newest one is already installed" {
+            # Deduplicating before filtering is what makes this work; the other order leaves the
+            # superseded copy as the only candidate.
+            $apps = @(
+                [PSCustomObject]@{ Name = 'Base Application'; Version = '29.0.53300.0'; AppId = 'id-base'; Publisher = 'Microsoft'; IsPublished = $true; IsInstalled = $false }
+                [PSCustomObject]@{ Name = 'Base Application'; Version = '29.0.2147483647.78958'; AppId = 'id-base'; Publisher = 'Microsoft'; IsPublished = $true; IsInstalled = $true }
+            )
+            $toInstall = @(Select-NewestAppVersion -Apps @($apps | Where-Object { $_.IsPublished }) | Where-Object { -not $_.IsInstalled })
+            $toInstall.Count | Should -Be 0
+        }
     }
 
     Context "Split-ContainerApps" {

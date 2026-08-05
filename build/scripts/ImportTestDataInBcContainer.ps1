@@ -768,7 +768,10 @@ function Install-AllApps() {
         throw "No apps found in container '$ContainerName'. The build/publish step produced no apps to install. This usually means dependency resolution downloaded no apps - e.g. a branch name containing glob metacharacters (such as ']') can break artifact matching in AL-Go's DownloadProjectDependencies."
     }
 
-    $uninstalledApps = @(Select-NewestAppVersion -Apps @($publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled }))
+    # Deduplicate before filtering: an app upgraded in place has its newest version already
+    # installed, and filtering first would leave only the superseded copy as a candidate.
+    $uninstalledApps = @(Select-NewestAppVersion -Apps @($publishedApps | Where-Object { $_.IsPublished }) |
+        Where-Object { -not $_.IsInstalled })
 
     if ($uninstalledApps.Count -eq 0) {
         Write-Host "All apps already installed"
@@ -822,7 +825,8 @@ function Install-BaseAppsForDemoTool() {
 
     # Install only those apps (in dependency order)
     $publishedApps = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
-    $appsToInstall = @(Select-NewestAppVersion -Apps @($publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled -and ($baseAppNames -contains $_.Name) }))
+    $appsToInstall = @(Select-NewestAppVersion -Apps @($publishedApps | Where-Object { $_.IsPublished -and ($baseAppNames -contains $_.Name) }) |
+        Where-Object { -not $_.IsInstalled })
 
     Write-Host "Installing $($appsToInstall.Count) base apps"
     foreach ($app in $appsToInstall) {
