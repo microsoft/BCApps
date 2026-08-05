@@ -15,6 +15,7 @@ using Microsoft.Projects.Project.Ledger;
 using Microsoft.Utilities;
 using System.Agents;
 using System.Environment.Configuration;
+using System.Security.AccessControl;
 using System.Utilities;
 
 codeunit 6908 "Expense Event Subscriber"
@@ -22,6 +23,7 @@ codeunit 6908 "Expense Event Subscriber"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata User = r;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterInitialization, '', false, false)]
     local procedure ValidateExpenseAgentLoginNotAllowed()
@@ -86,24 +88,31 @@ codeunit 6908 "Expense Event Subscriber"
         JobLedgerEntry."Expense Report Line No." := JobJournalLine."Expense Report Line No.";
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'RM', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::Employee, OnAfterValidateEvent, "First Name", false, false)]
     local procedure OnAfterValidateFirstNameEvent(var Rec: Record Employee)
     begin
         UpdateEmployeeDetailInExpenseUser(Rec, Rec.FieldNo("First Name"));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'RM', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::Employee, OnAfterValidateEvent, "Middle Name", false, false)]
     local procedure OnAfterValidateMiddleNameEvent(var Rec: Record Employee)
     begin
         UpdateEmployeeDetailInExpenseUser(Rec, Rec.FieldNo("Middle Name"));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'RM', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::Employee, OnAfterValidateEvent, "Last Name", false, false)]
     local procedure OnAfterValidateLastNameEvent(var Rec: Record Employee)
     begin
         UpdateEmployeeDetailInExpenseUser(Rec, Rec.FieldNo("Last Name"));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Expense, 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Report Header", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Expense Report Header", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::Employee, OnBeforeDeleteEvent, '', false, false)]
     local procedure OnBeforeDeleteEmployeeEvent(var Rec: Record Employee; RunTrigger: Boolean)
     var
@@ -117,6 +126,12 @@ codeunit 6908 "Expense Event Subscriber"
             CheckEmployeeCanBeDeleted(ExpenseUser."No.", Rec."No.");
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'RD', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Expense, 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Report Header", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Expense Report Header", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Agent Setup", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Approval Setup", 'RD', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::Employee, OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEmployeeEvent(var Rec: Record Employee; RunTrigger: Boolean)
     var
@@ -130,6 +145,10 @@ codeunit 6908 "Expense Event Subscriber"
             ExpenseUser.Delete(true);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'RM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::Expense, 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Report Header", 'R', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Expense Report Header", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::Employee, OnAfterValidateEvent, "Company E-Mail", false, false)]
     local procedure OnAfterValidateCompanyEmailEvent(var Rec: Record Employee)
     begin
@@ -138,6 +157,7 @@ codeunit 6908 "Expense Event Subscriber"
         UpdateEmployeeDetailInExpenseUser(Rec, Rec.FieldNo("Company E-Mail"));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'RM', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::Employee, OnAfterValidateEvent, "Job Title", false, false)]
     local procedure OnAfterValidateJobTitleEvent(var Rec: Record Employee)
     begin
