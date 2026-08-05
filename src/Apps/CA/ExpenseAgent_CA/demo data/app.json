@@ -1,0 +1,58 @@
+{
+  "id": "c6922fb3-8129-41d6-b1e9-049d4f6a665c",
+  "name": "Expense Agent Demo Data (CA)",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "brief": "Demo data for Expense Agent",
+  "description": "The app provides demo data for Expense Agent.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "66efe10c-8033-403b-a86d-77c0887178ba",
+      "name": "Expense Agent (Preview)",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "5a0b41e9-7a42-4123-d521-2265186cfb31",
+      "name": "Contoso Coffee Demo Dataset",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "5b0b41a1-7b42-3113-a521-2265186cfb33",
+      "name": "Contoso Coffee Demo Dataset (CA)",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "0a352a2b-f2f3-4029-8f81-1267982af1ff",
+      "name": "Expense Agent Demo Data",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 27100,
+      "to": 27110
+    }
+  ],
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": false,
+    "includeSourceInSymbolFile": false
+  },
+  "features": [
+    "TranslationFile"
+  ]
+}

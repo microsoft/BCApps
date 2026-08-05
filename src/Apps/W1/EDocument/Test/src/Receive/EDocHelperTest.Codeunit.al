@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
@@ -95,6 +96,39 @@ codeunit 139799 "E-Doc. Helper Test"
 
         // Cleanup
         ServiceParticipant.Delete();
+        EDocument.Delete();
+    end;
+
+    [Test]
+    procedure OpenDraftPageForOutgoingEDocumentOpensEDocumentCard()
+    var
+        EDocument: Record "E-Document";
+        EDocService: Record "E-Document Service";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocumentPage: TestPage "E-Document";
+    begin
+        // [SCENARIO] Drilling into an outgoing E-Document should open the E-Document card, regardless of the
+        // configured Import Process, since outgoing documents have no draft staging data.
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        // [GIVEN] An E-Document Service using the "Version 2.0" import process
+        EDocService.Get(LibraryEDoc.CreateService(Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock", Enum::"E-Document Import Process"::"Version 2.0"));
+
+        // [GIVEN] An outgoing E-Document linked to that service
+        EDocument.Init();
+        EDocument.Direction := EDocument.Direction::Outgoing;
+        EDocument.Service := EDocService.Code;
+        EDocument.Insert(true);
+
+        // [WHEN] Opening the draft page for the outgoing E-Document
+        EDocumentPage.Trap();
+        EDocumentHelper.OpenDraftPage(EDocument);
+
+        // [THEN] The E-Document card is opened, not the E-Document Purchase Draft page
+        Assert.AreEqual(Format(EDocument.Direction::Outgoing), EDocumentPage.Direction.Value(), 'Expected the E-Document card to open for the outgoing E-Document.');
+
+        // Cleanup
+        EDocumentPage.Close();
         EDocument.Delete();
     end;
 

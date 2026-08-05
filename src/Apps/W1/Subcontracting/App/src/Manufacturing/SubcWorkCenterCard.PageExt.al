@@ -15,6 +15,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
             trigger OnAfterValidate()
             begin
                 CurrPage.Update(false);
+                SubcNotificationMgmt.ShowMissingSubcontractingLocationNotification(Rec."Subcontractor No.");
             end;
         }
     }
@@ -83,4 +84,5 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
         SubcontractingEnabled: Boolean;
 #endif
         IsSubcontractingWorkCenter: Boolean;
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
 }
