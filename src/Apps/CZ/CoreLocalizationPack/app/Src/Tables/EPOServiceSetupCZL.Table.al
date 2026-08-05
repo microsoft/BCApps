@@ -80,6 +80,14 @@ table 11724 "EPO Service Setup CZL"
         Validate("Open Form Endpoint", EPOAPIMgt.GetDefaultOpenFormUrl());
     end;
 
+    procedure GetOrInit()
+    begin
+        if Get() then
+            exit;
+        Init();
+        Insert(true);
+    end;
+
     local procedure CheckUrl(Url: Text[250])
     var
         HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";

@@ -20,6 +20,7 @@ codeunit 31175 "EPO API Mgt. CZL"
         OpenFormUriTok: Label 'epo_podani?otevriFormular=1', Locked = true;
         ShowEPOServiceSetupLbl: Label 'Show EPO Service Setup';
         EPOAPICallFailedTelemetryTxt: Label 'EPO API call failed. Endpoint: %1, HTTP Status Code: %2, Error: %3', Locked = true;
+        EPOAPICallFailedErr: Label 'Communication with the EPO service failed. Please try again later or contact your administrator.';
         UnexpectedResponseErr: Label 'The EPO service endpoint returned an unexpected response. The response does not contain the expected URL element.';
         TelemetryCategoryTok: Label 'EPO API CZL', Locked = true;
 
@@ -32,7 +33,7 @@ codeunit 31175 "EPO API Mgt. CZL"
         UrlXmlNode: XmlNode;
         ResponseText: Text;
     begin
-        GetOrInitEPOServiceSetup();
+        EPOServiceSetupCZL.GetOrInit();
 
         HttpContent := HttpContent.Create(Content);
         TrySend(EPOServiceSetupCZL."Open Form Endpoint", EPOServiceSetupCZL."Limit Response Time", HttpContent, ResponseHttpContent);
@@ -56,7 +57,7 @@ codeunit 31175 "EPO API Mgt. CZL"
         HttpResponseMessage := RestClient.Post(RequestUri, RequestHttpContent);
         if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
             Session.LogMessage('0000UX4', StrSubstNo(EPOAPICallFailedTelemetryTxt, RequestUri, HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetErrorMessage()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
-            Error(HttpResponseMessage.GetErrorMessage());
+            Error(EPOAPICallFailedErr);
         end;
         ResponseHttpContent := HttpResponseMessage.GetContent();
     end;
@@ -73,17 +74,9 @@ codeunit 31175 "EPO API Mgt. CZL"
 
     local procedure CheckEPOServiceEnabled()
     begin
-        GetOrInitEPOServiceSetup();
+        EPOServiceSetupCZL.GetOrInit();
         if not EPOServiceSetupCZL.Enabled then
             Error(CreateEPOServiceNotEnabledErrorInfo());
-    end;
-
-    local procedure GetOrInitEPOServiceSetup()
-    begin
-        if not EPOServiceSetupCZL.Get() then begin
-            EPOServiceSetupCZL.Init();
-            EPOServiceSetupCZL.Insert();
-        end;
     end;
 
     local procedure CreateEPOServiceNotEnabledErrorInfo(): ErrorInfo

@@ -26,7 +26,7 @@ page 11705 "EPO Service Setup CZL"
             group(General)
             {
                 Caption = 'General';
-                field("Service URL"; Rec."Open Form Endpoint")
+                field("Open Form Endpoint"; Rec."Open Form Endpoint")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
@@ -37,7 +37,7 @@ page 11705 "EPO Service Setup CZL"
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
                     Importance = Additional;
-                    ToolTip = 'Specifies the response time limit, after which goes into offline mode.';
+                    ToolTip = 'Specifies the response time limit (in milliseconds), after which goes into offline mode.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
@@ -104,11 +104,7 @@ page 11705 "EPO Service Setup CZL"
 
     trigger OnOpenPage()
     begin
-        Rec.Reset();
-        if not Rec.Get() then begin
-            Rec.Init();
-            Rec.Insert(true);
-        end;
+        Rec.GetOrInit();
         UpdateBasedOnEnable();
     end;
 
