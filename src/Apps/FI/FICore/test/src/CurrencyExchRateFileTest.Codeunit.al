@@ -13,6 +13,7 @@ codeunit 148151 "Currency Exch. Rate File Test"
         Currency: Record Currency;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         FileMgt: Codeunit "File Management";
@@ -148,16 +149,15 @@ codeunit 148151 "Currency Exch. Rate File Test"
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Currency Exch. Rate File Test");
 
         if not Currency.Get(EuroCodeTok) then begin
-            Currency.Init();
-            Currency.Code := EuroCodeTok;
-            Currency."EMU Currency" := true;
-            Currency.Insert();
+            LibraryERM.CreateCurrency(Currency);
+            Currency.Rename(EuroCodeTok);
+            Currency.Validate("EMU Currency", true);
+            Currency.Modify(true);
         end;
 
         if not Currency.Get(USDCodeTok) then begin
-            Currency.Init();
-            Currency.Code := USDCodeTok;
-            Currency.Insert();
+            LibraryERM.CreateCurrency(Currency);
+            Currency.Rename(USDCodeTok);
         end;
 
         CurrencyExchangeRate.SetFilter("Currency Code", '%1|%2', EuroCodeTok, USDCodeTok);
