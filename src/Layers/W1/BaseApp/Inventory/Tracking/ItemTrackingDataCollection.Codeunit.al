@@ -11,6 +11,7 @@ using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Ledger;
 
 codeunit 6501 "Item Tracking Data Collection"
@@ -455,6 +456,8 @@ codeunit 6501 "Item Tracking Data Collection"
                     end;
                 until TempTrackingSpecification.Next() = 0;
 
+        TransferUnregisteredPicksToTempRec(TempTrackingSpecification2);
+
         OnRetrieveLookupDataOnAfterTransferToTempRec(TempGlobalEntrySummary, TempTrackingSpecification, ItemLedgEntry, LastSummaryEntryNo);
 
         TempGlobalEntrySummary.Reset();
@@ -537,6 +540,67 @@ codeunit 6501 "Item Tracking Data Collection"
                     end;
                 end;
             until TempReservEntry.Next() = 0;
+    end;
+
+    local procedure TransferUnregisteredPicksToTempRec(var TrackingSpecification: Record "Tracking Specification" temporary)
+    var
+        WhseActivLine: Record "Warehouse Activity Line";
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeTransferUnregisteredPicksToTempRec(TrackingSpecification, TempGlobalReservEntry, IsHandled);
+        if IsHandled then
+            exit;
+
+        if TrackingSpecification."Item No." = '' then
+            exit;
+
+        WhseActivLine.SetRange("Item No.", TrackingSpecification."Item No.");
+        WhseActivLine.SetRange("Variant Code", TrackingSpecification."Variant Code");
+        WhseActivLine.SetRange("Location Code", TrackingSpecification."Location Code");
+        WhseActivLine.SetRange("Activity Type", WhseActivLine."Activity Type"::Pick);
+        WhseActivLine.SetFilter("Action Type", '%1|%2', WhseActivLine."Action Type"::Take, WhseActivLine."Action Type"::" ");
+        WhseActivLine.SetRange("Breakbulk No.", 0);
+        WhseActivLine.SetFilter("Qty. Outstanding (Base)", '>%1', 0);
+        OnTransferUnregisteredPicksToTempRecOnAfterSetFilters(WhseActivLine, TrackingSpecification);
+
+        if WhseActivLine.FindSet() then
+            repeat
+                if (WhseActivLine."Lot No." <> '') or (WhseActivLine."Serial No." <> '') or (WhseActivLine."Package No." <> '') then
+                    if not PickBelongsToCurrentSource(WhseActivLine, TrackingSpecification) then begin
+                        LastReservEntryNo -= 1;
+                        TempGlobalReservEntry.Init();
+                        TempGlobalReservEntry."Entry No." := LastReservEntryNo;
+                        TempGlobalReservEntry."Reservation Status" := TempGlobalReservEntry."Reservation Status"::Prospect;
+                        TempGlobalReservEntry.Positive := false;
+                        TempGlobalReservEntry."Item No." := WhseActivLine."Item No.";
+                        TempGlobalReservEntry."Variant Code" := WhseActivLine."Variant Code";
+                        TempGlobalReservEntry."Location Code" := WhseActivLine."Location Code";
+                        TempGlobalReservEntry."Quantity (Base)" := -WhseActivLine."Qty. Outstanding (Base)";
+                        TempGlobalReservEntry."Qty. to Handle (Base)" := -WhseActivLine."Qty. Outstanding (Base)";
+                        TempGlobalReservEntry."Source Type" := Database::"Warehouse Activity Line";
+                        TempGlobalReservEntry."Source Subtype" := WhseActivLine."Activity Type".AsInteger();
+                        TempGlobalReservEntry."Source ID" := WhseActivLine."No.";
+                        TempGlobalReservEntry."Source Ref. No." := WhseActivLine."Line No.";
+                        TempGlobalReservEntry."Serial No." := WhseActivLine."Serial No.";
+                        TempGlobalReservEntry."Lot No." := WhseActivLine."Lot No.";
+                        TempGlobalReservEntry."Package No." := WhseActivLine."Package No.";
+                        TempGlobalReservEntry."Shipment Date" := DMY2Date(31, 12, 9999);
+                        if TempGlobalReservEntry.Insert() then
+                            CreateEntrySummary(TrackingSpecification, TempGlobalReservEntry);
+                    end;
+            until WhseActivLine.Next() = 0;
+
+        OnAfterTransferUnregisteredPicksToTempRec(TrackingSpecification, TempGlobalReservEntry);
+    end;
+
+    local procedure PickBelongsToCurrentSource(WhseActivLine: Record "Warehouse Activity Line"; TrackingSpecification: Record "Tracking Specification"): Boolean
+    begin
+        exit(
+           (WhseActivLine."Source Type" = TrackingSpecification."Source Type") and
+           (WhseActivLine."Source Subtype" = TrackingSpecification."Source Subtype") and
+           (WhseActivLine."Source No." = TrackingSpecification."Source ID") and
+           (WhseActivLine."Source Line No." = TrackingSpecification."Source Ref. No."));
     end;
 
     local procedure CreateEntrySummary(TrackingSpecification: Record "Tracking Specification" temporary; TempReservEntry: Record "Reservation Entry" temporary)
@@ -1534,6 +1598,21 @@ codeunit 6501 "Item Tracking Data Collection"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferReservEntryToTempRec(var GlobalReservEntry: Record "Reservation Entry"; ReservEntry: Record "Reservation Entry"; TrackingSpecification: Record "Tracking Specification"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTransferUnregisteredPicksToTempRec(var TrackingSpecification: Record "Tracking Specification" temporary; var TempGlobalReservEntry: Record "Reservation Entry" temporary; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransferUnregisteredPicksToTempRecOnAfterSetFilters(var WhseActivLine: Record "Warehouse Activity Line"; TrackingSpecification: Record "Tracking Specification")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterTransferUnregisteredPicksToTempRec(var TrackingSpecification: Record "Tracking Specification" temporary; var TempGlobalReservEntry: Record "Reservation Entry" temporary)
     begin
     end;
 
