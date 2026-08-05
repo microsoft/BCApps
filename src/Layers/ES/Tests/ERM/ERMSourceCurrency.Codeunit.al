@@ -1958,9 +1958,10 @@ codeunit 134897 "ERM Source Currency"
         // [GIVEN] Employee "E".
         LibraryHumanResource.CreateEmployee(Employee);
 
-        // [GIVEN] Posted employee Payment via Gen. Journal on "D" with a random positive amount in "C".
+        // [GIVEN] Posted employee Payment via Gen. Journal on "D" with a fixed positive amount 650 in "C".
         // Note: Employee gen. journal lines only allow Document Type Payment (or blank) and the amount must be positive.
-        PaymentAmount := LibraryRandom.RandIntInRange(500, 1000);
+        // 650 is deliberately not divisible by 7, so back-converting through LCY would round to a slightly different FCY amount and expose the bug.
+        PaymentAmount := 650;
         CreatePostGenJnlLineWithCurrency(
             GenJournalLine, GenJournalLine."Document Type"::Payment,
             GenJournalLine."Account Type"::Employee, Employee."No.",
@@ -1974,7 +1975,7 @@ codeunit 134897 "ERM Source Currency"
         Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", SourceCurrencyCodeErr);
 
         // [THEN] Source Currency Amount on payables G/L entry equals the full FCY amount, not a value reconverted through LCY and rounded.
-        Assert.AreEqual(PaymentAmount, Abs(GLEntry."Source Currency Amount"), PayablesSCYAmountErr);
+        Assert.AreEqual(PaymentAmount, GLEntry."Source Currency Amount", PayablesSCYAmountErr);
     end;
 
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
