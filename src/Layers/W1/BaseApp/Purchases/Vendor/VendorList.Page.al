@@ -1083,7 +1083,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor Register';
                     Image = "Report";
                     RunObject = Report "Vendor Register";
-                    ToolTip = 'View vendor ledger entries that have been posted in connection with a general ledger register. The entries are divided into, and sorted according to, G/L registers. By using a filter, you can select exactly the entries in the registers that you need to see. The report can be used to document the contents of the various registers for internal or external audits.';
                 }
                 action("Vendor Item Catalog")
                 {
@@ -1091,7 +1090,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor Item Catalog';
                     Image = "Report";
                     RunObject = Report "Vendor Item Catalog";
-                    ToolTip = 'View a list of the items that your vendors supply.';
                 }
                 action("Vendor - Labels")
                 {
@@ -1099,7 +1097,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Labels';
                     Image = "Report";
                     RunObject = Report "Vendor - Labels";
-                    ToolTip = 'View mailing labels with the vendors'' names and addresses.';
                 }
 #if not CLEAN28
                 action("Vendor - Top 10 List")
@@ -1125,7 +1122,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Order Summary';
                     Image = "Report";
                     RunObject = Report "Vendor - Order Summary";
-                    ToolTip = 'View the order detail (the quantity not yet received) for each vendor in three periods of 30 days each, starting from a selected date. There are also columns with orders before and after the three periods and a column with the total order detail for each vendor. The report can be used to analyze a company''s expected purchase volume.';
                 }
                 action("Vendor - Order Detail")
                 {
@@ -1133,7 +1129,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Order Detail';
                     Image = "Report";
                     RunObject = Report "Vendor - Order Detail";
-                    ToolTip = 'View a list of items that have been ordered, but not yet received, from each vendor. The order amounts are totaled for each vendor and for the entire list. The report can be used, for example, to obtain an overview of purchases over the short term or to analyze possible receipt problems.';
                 }
             }
             group(Purchase)
@@ -1146,7 +1141,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Purchase List';
                     Image = "Report";
                     RunObject = Report "Vendor - Purchase List";
-                    ToolTip = 'View a list of vendor purchases for a selected period.';
                 }
                 action("Vendor/Item Purchases")
                 {
@@ -1154,7 +1148,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor/Item Purchases';
                     Image = "Report";
                     RunObject = Report "Vendor/Item Purchases";
-                    ToolTip = 'View a list of item entries for each vendor in a selected period.';
                 }
                 action("Purchase Statistics")
                 {
@@ -1162,7 +1155,6 @@ page 27 "Vendor List"
                     Caption = 'Purchase Statistics';
                     Image = "Report";
                     RunObject = Report "Purchase Statistics";
-                    ToolTip = 'View a list of amounts for purchases, invoice discount and payment discount in $ for each vendor.';
                 }
             }
             group("Financial Management")
@@ -1210,7 +1202,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Balance to Date';
                     Image = "Report";
                     RunObject = Report "Vendor - Balance to Date";
-                    ToolTip = 'View, print, or save a detail balance to date for selected vendors.';
                 }
                 action("Vendor - Trial Balance")
                 {
@@ -1218,7 +1209,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Trial Balance';
                     Image = "Report";
                     RunObject = Report "Vendor - Trial Balance";
-                    ToolTip = 'View the beginning and ending balance for vendors with entries within a specified period. The report can be used to verify that the balance for a vendor posting group is equal to the balance on the corresponding general ledger account on a certain date.';
                 }
                 action("Vendor - Detail Trial Balance")
                 {
@@ -1226,7 +1216,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Detail Trial Balance';
                     Image = "Report";
                     RunObject = Report "Vendor - Detail Trial Balance";
-                    ToolTip = 'View a detail trial balance for selected vendors.';
                 }
             }
         }

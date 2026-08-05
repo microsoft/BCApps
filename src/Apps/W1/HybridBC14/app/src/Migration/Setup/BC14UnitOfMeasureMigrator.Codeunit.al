@@ -71,14 +71,19 @@ codeunit 46903 "BC14 Unit of Measure Migrator" implements "BC14 Migrator"
         if IsMigrated then
             exit;
 
-        if UnitOfMeasure.Get(BC14UnitOfMeasure.Code) then begin
-            TransferFields(BC14UnitOfMeasure, UnitOfMeasure);
-            UnitOfMeasure.Modify();
-        end else begin
+        // Insert with just the primary key first, then run the field transfers via Validate. A
+        // field OnValidate contributed by the target environment (a table extension or event
+        // subscriber, e.g. a localization) can look up the parent Unit of Measure by Get(); on the
+        // first migration of a new code that Get fails if the record has not yet been inserted,
+        // raising "The Unit of Measure does not exist". Inserting first guarantees the lookup
+        // succeeds. This mirrors the Salesperson/Purchaser migrator.
+        if not UnitOfMeasure.Get(BC14UnitOfMeasure.Code) then begin
             UnitOfMeasure.Init();
-            TransferFields(BC14UnitOfMeasure, UnitOfMeasure);
+            UnitOfMeasure.Code := BC14UnitOfMeasure.Code;
             UnitOfMeasure.Insert();
         end;
+        TransferFields(BC14UnitOfMeasure, UnitOfMeasure);
+        UnitOfMeasure.Modify();
 
         OnAfterMigrateUnitOfMeasure(BC14UnitOfMeasure, UnitOfMeasure);
     end;

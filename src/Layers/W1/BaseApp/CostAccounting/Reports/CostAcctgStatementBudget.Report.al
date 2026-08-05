@@ -12,6 +12,7 @@ report 1133 "Cost Acctg. Statement/Budget"
     RDLCLayout = './CostAccounting/Reports/CostAcctgStatementBudget.rdlc';
     ApplicationArea = CostAccounting;
     Caption = 'Cost Acctg. Statement/Budget';
+    ToolTip = 'View a comparison of the balance to the budget figures and calculates the variance and the percent variance in the current accounting period, the accumulated accounting period, and the fiscal year.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

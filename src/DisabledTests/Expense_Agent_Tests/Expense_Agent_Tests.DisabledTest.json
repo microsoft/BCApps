@@ -1,0 +1,212 @@
+[
+  {
+    "codeunitId": 148315,
+    "codeunitName": "Expense Users API Test",
+    "method": "UnlinkedExpenseUserIsHiddenFromAPI"
+  },
+  {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "CapabilitiesProjectsEnabledViaAPI"
+  },
+  {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "CapabilitiesProjectsDisabledViaAPI"
+  },
+  {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI"
+  },
+  {
+    "codeunitId": 148333,
+    "codeunitName": "Expense Agent Setup API Test",
+    "method": "EmailAddressFieldIsExposedThroughAPI"
+  },
+  {
+    "codeunitId": 148349,
+    "codeunitName": "Expense PerDiem Locations Test",
+    "method": "PerDiemLocationsReturnsLinkedLocationViaAPI"
+  },
+  {
+    "codeunitId": 148349,
+    "codeunitName": "Expense PerDiem Locations Test",
+    "method": "PerDiemLocationsExcludesNonPerDiemCategoryViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AssignedByPersonResponsibleReturnsWholeProjectViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AssignedByProjectManagerReturnsWholeProjectViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AssignedByProjectLevelResourceReturnsWholeProjectViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AssignedByTaskLevelResourceReturnsOnlyThatTaskViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AssignedByPlanningLineReturnsOnlyThatTaskViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "WholeProjectSignalSupersedesTaskLevelViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "OverlappingSignalsForSameResourceAreDeduplicatedViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "CompletedProjectExcludedEvenWhenAssignedViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "EmptyResourceUserMatchesNothingViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "BlankUserIdDoesNotMatchBlankProjectManagerViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "ProjectManagerMatchWithBlankResourceReturnsProjectViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "TasklessProjectExcludedViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "WholeProjectAndTaskLevelAcrossProjectsNoLeakageViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AllProjectsVisibilityReturnsAllProjectsViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AllProjectsVisibilityIncludesActiveStatusesAndPostingTasksViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AssignedProjectsRequiresScopeFilterViaAPI"
+  },
+  {
+    "codeunitId": 148331,
+    "codeunitName": "Expense Projects API Test",
+    "method": "AssignedProjectsBlockedWhenProjectFieldsDisabledViaAPI"
+  },
+  {
+    "codeunitId": 148302,
+    "codeunitName": "Expense Report Posting Test",
+    "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsExpenseDate"
+  },
+  {
+    "codeunitId": 148302,
+    "codeunitName": "Expense Report Posting Test",
+    "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsPostingDate"
+  },
+  {
+    "codeunitId": 148302,
+    "codeunitName": "Expense Report Posting Test",
+    "method": "ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsPostingDateWithMultipleFCYLinesAndEmployeePaid"
+  },
+  {
+    "codeunitId": 148302,
+    "codeunitName": "Expense Report Posting Test",
+    "method": "ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsExpenseDateWithMultipleFCYLinesAndEmployeePaid"
+  },
+  {
+    "codeunitId": 148305,
+    "codeunitName": "Expense Test",
+    "method": "DescriptionMustBeFlowFromExpenseToExpenseItemization"
+  },
+  {
+    "codeunitId": 148337,
+    "codeunitName": "Expense Vendor Matching Test",
+    "method": "FindOrCreateExpenseVendor_VATMatchesBCVendor_CreatesMatchedExpenseVendor"
+  },
+  {
+    "codeunitId": 148337,
+    "codeunitName": "Expense Vendor Matching Test",
+    "method": "Approve_UnmatchedVendor_CreatesBCVendorAndSetsApproved"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelMarksPostedExpenseReportAsCanceled"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelReversesExpenseLedgerEntries"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelReversesGLEntriesAndSumsToZero"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelReleasesRelatedExpense"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CannotCancelAlreadyCanceledReport"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelMultiLineReportGeneratesNewTransactionNoForReversedLines"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "HotelMultiSubcatDiffVAT"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "VATEntriesPerHotelSubcat"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "GLEntriesCorrectVATAmounts"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "HotelRefundableSubcat"
+  },
+  {
+    "codeunitId": 148330,
+    "codeunitName": "Expense Posting VAT Test",
+    "method": "VATSpecApprovedAndRejectedLines"
+  }
+]
