@@ -276,7 +276,10 @@ table 37 "Sales Line"
 
                 OnValidateNoOnBeforeInitRec(Rec, xRec, CurrFieldNo);
                 TempSalesLine := Rec;
-                Init();
+                IsHandled := false;
+                OnValidateNoOnBeforeInit(Rec, xRec, CurrFieldNo, IsHandled);
+                if not IsHandled then
+                    Init();
                 SystemId := TempSalesLine.SystemId;
                 if xRec."Line Amount" <> 0 then
                     "Recalculate Invoice Disc." := xRec."Allow Invoice Disc.";
@@ -4358,8 +4361,7 @@ table 37 "Sales Line"
     trigger OnInsert()
     begin
         TestStatusOpen();
-        if not HasSalesHeader then
-            Error(CannotInsertSalesLineWithoutHeaderErr);
+        VerifySalesHeaderExists();
 
         if Quantity <> 0 then begin
             OnBeforeVerifyReservedQty(Rec, xRec, 0);
@@ -4475,7 +4477,7 @@ table 37 "Sales Line"
         HasBeenShown: Boolean;
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
-        HasSalesHeader: Boolean;
+        SuppressSalesHeaderExistsVerification: Boolean;
         SkipDefaultItemQuantity: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -4886,6 +4888,7 @@ table 37 "Sales Line"
         "Tax Group Code" := GLAcc."Tax Group Code";
         "Allow Invoice Disc." := false;
         "Allow Item Charge Assignment" := false;
+        OnCopyFromGLAccountOnAfterAssignValues(Rec, GLAcc, SalesHeader, TempSalesLine, CurrFieldNo);
         InitDeferralCode();
         SetDefaultGLAccountQuantity();
         OnAfterAssignGLAccountValues(Rec, GLAcc, SalesHeader, TempSalesLine);
@@ -5164,12 +5167,13 @@ table 37 "Sales Line"
     /// </summary>
     /// <remarks>
     /// The global SalesHeader is used whenever data from the sales header is used in other procedures on the object.
+    /// SuppressSalesHeaderExistsVerification is implicitly set to true; call SetSuppressSalesHeaderExistsVerification afterwards to override this behavior.
     /// </remarks>
     /// <param name="NewSalesHeader">The sales header to set.</param>
     procedure SetSalesHeader(NewSalesHeader: Record "Sales Header")
     begin
         SalesHeader := NewSalesHeader;
-        HasSalesHeader := true;
+        SetSuppressSalesHeaderExistsVerification(true);
         OnBeforeSetSalesHeader(SalesHeader);
 
         if SalesHeader."Currency Code" = '' then
@@ -5181,6 +5185,15 @@ table 37 "Sales Line"
         end;
 
         OnAfterSetSalesHeader(Rec, SalesHeader, Currency);
+    end;
+
+    /// <summary>
+    /// Sets the value of the SuppressSalesHeaderExistsVerification variable.
+    /// </summary>
+    /// <param name="NewSuppressSalesHeaderExistsVerification">Set to true to suppress the sales header existence verification on insert.</param>
+    procedure SetSuppressSalesHeaderExistsVerification(NewSuppressSalesHeaderExistsVerification: Boolean)
+    begin
+        SuppressSalesHeaderExistsVerification := NewSuppressSalesHeaderExistsVerification;
     end;
 
     /// <summary>
@@ -5204,14 +5217,13 @@ table 37 "Sales Line"
     var
         IsHandled: Boolean;
     begin
-        OnBeforeGetSalesHeader(Rec, SalesHeader, IsHandled, Currency, HasSalesHeader);
+        OnBeforeGetSalesHeader(Rec, SalesHeader, IsHandled, Currency, SuppressSalesHeaderExistsVerification);
         if IsHandled then
             exit;
 
         TestField("Document No.");
         if ("Document Type" <> SalesHeader."Document Type") or ("Document No." <> SalesHeader."No.") then
             if SalesHeader.Get("Document Type", "Document No.") then begin
-                HasSalesHeader := true;
                 if SalesHeader."Currency Code" = '' then
                     Currency.InitRoundingPrecision()
                 else begin
@@ -5219,10 +5231,8 @@ table 37 "Sales Line"
                     Currency.Get(SalesHeader."Currency Code");
                     Currency.TestField("Amount Rounding Precision");
                 end
-            end else begin
+            end else
                 Clear(SalesHeader);
-                HasSalesHeader := false;
-            end;
 
         OnAfterGetSalesHeader(Rec, SalesHeader, Currency);
         OutSalesHeader := SalesHeader;
@@ -5431,6 +5441,11 @@ table 37 "Sales Line"
         IsHandled: Boolean;
         PriceCalculation: Interface "Price Calculation";
     begin
+        IsHandled := false;
+        OnBeforeUpdateUnitPriceByField(Rec, xRec, CalledByFieldNo, CurrFieldNo, IsHandled);
+        if IsHandled then
+            exit;
+
         if not IsPriceCalcCalledByField(CalledByFieldNo) then
             exit;
 
@@ -10282,6 +10297,7 @@ table 37 "Sales Line"
     procedure ClearSalesHeader()
     begin
         Clear(SalesHeader);
+        SetSuppressSalesHeaderExistsVerification(false);
     end;
 
     local procedure GetBlockedItemNotificationID(): Guid
@@ -10567,6 +10583,22 @@ table 37 "Sales Line"
             TestField("Return Qty. Rcd. Not Invd.", 0);
     end;
 
+    local procedure VerifySalesHeaderExists()
+    var
+        SalesHeaderToVerify: Record "Sales Header";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if SuppressSalesHeaderExistsVerification then
+            exit;
+
+        SalesHeaderToVerify.SetRange("Document Type", "Document Type");
+        SalesHeaderToVerify.SetRange("No.", "Document No.");
+        if SalesHeaderToVerify.IsEmpty() then
+            Error(CannotInsertSalesLineWithoutHeaderErr);
+    end;
+
     local procedure CheckInventoryPickConflict()
     var
         IsHandled: Boolean;
@@ -10730,9 +10762,17 @@ table 37 "Sales Line"
     /// <param name="FromFieldName">Caption of the field containing the quantity to convert.</param>
     /// <param name="ToFieldName">Caption of the field containing the converted quantity.</param>
     /// <returns>The quantity in the base unit of measure.</returns>
-    procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text): Decimal
+    procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
+    var
+        IsHandled: Boolean;
     begin
         OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName);
+
+        IsHandled := false;
+        OnCalcBaseQtyOnBeforeUOMMgtCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         exit(UOMMgt.CalcBaseQty(
             "No.", "Variant Code", "Unit of Measure Code", Qty, "Qty. per Unit of Measure", "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FromFieldName, ToFieldName));
     end;
@@ -10927,10 +10967,15 @@ table 37 "Sales Line"
                 until SelectedSalesLine.Next() = 0;
     end;
 
+    procedure RestoreLookupSelection()
+    begin
+        RestoreLookupSelectionWithResult();
+    end;
+
     /// <summary>
     /// Restores the selected record from the lookup state manager to the sales line.
     /// </summary>
-    procedure RestoreLookupSelection()
+    procedure RestoreLookupSelectionWithResult() SelectionRestored: Boolean
     var
         GLAccount: Record "G/L Account";
         Item: Record Item;
@@ -10941,6 +10986,8 @@ table 37 "Sales Line"
         RecVariant: Variant;
     begin
         if LookupStateManager.IsRecordSaved() then begin
+            SelectionRestored := true;
+            CurrFieldNo := FieldNo("No.");
             case Rec.Type of
                 Rec.Type::Item:
                     begin
@@ -11387,6 +11434,11 @@ table 37 "Sales Line"
     /// <param name="TempSalesLine">A temporary sales line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignGLAccountValues(var SalesLine: Record "Sales Line"; GLAccount: Record "G/L Account"; SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyFromGLAccountOnAfterAssignValues(var SalesLine: Record "Sales Line"; GLAccount: Record "G/L Account"; SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; CurrentFieldNo: Integer)
     begin
     end;
 
@@ -11889,6 +11941,11 @@ table 37 "Sales Line"
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcBaseQtyOnBeforeUOMMgtCalcBaseQty(var SalesLine: Record "Sales Line"; Qty: Decimal; FromFieldName: Text; ToFieldName: Text; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
     /// <summary>
     /// Raised before calculating the invoice discount to invoice.
     /// </summary>
@@ -12157,7 +12214,7 @@ table 37 "Sales Line"
     /// <param name="SalesHeader">The sales header to get.</param>
     /// <param name="IsHanded">Set to true to skip the default processing.</param>
     /// <param name="Currency">The currency record.</param>
-    /// <param name="HasSalesHeader">Set to true to indicate whether the sales header has been retrieved.</param>
+    /// <param name="HasSalesHeader">Set to true to indicate whether the sales header has been retrieved, which sets global variable SuppressSalesHeaderExistsVerification to skip the verification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesHeader(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHanded: Boolean; var Currency: Record Currency; var HasSalesHeader: Boolean)
     begin
@@ -12553,6 +12610,11 @@ table 37 "Sales Line"
     /// <param name="Handled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateUnitPrice(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CalledByFieldNo: Integer; CurrFieldNo: Integer; var Handled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateUnitPriceByField(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CalledByFieldNo: Integer; CurrFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
@@ -13445,6 +13507,11 @@ table 37 "Sales Line"
     /// <param name="CallingFieldNo">The calling field number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateNoOnBeforeInitRec(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateNoOnBeforeInit(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line"; CallingFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 

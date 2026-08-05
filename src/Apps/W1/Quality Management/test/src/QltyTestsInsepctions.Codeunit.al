@@ -11,6 +11,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
@@ -682,12 +683,281 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         LibraryAssert.AreEqual(Page::"Qlty. Inspection List", PageManagement.GetConditionalListPageID(RecordRef), 'Should be inspections list page.');
     end;
 
+    [Test]
+    procedure FinishAcceptableWithSampleSize_PassQtyEqualsSampleSize()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO] Finishing an inspection with an Acceptable result populates Pass Quantity from Sample Size.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An inspection with Source Quantity (Base) = 10 and Sample Size = 4
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::Acceptable);
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 4;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+
+        // [WHEN] The inspection is set to Finished
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+
+        // [THEN] Pass Quantity equals Sample Size and Fail Quantity is zero
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(4, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should equal Sample Size.');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should be zero.');
+    end;
+
+    [Test]
+    procedure FinishNotAcceptableWithSampleSize_FailQtyEqualsSampleSize()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO] Finishing an inspection with a Not acceptable result populates Fail Quantity from Sample Size.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An inspection with Source Quantity (Base) = 10, Sample Size = 4 and a Not acceptable result
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::"Not acceptable");
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 4;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+
+        // [WHEN] The inspection is set to Finished
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+
+        // [THEN] Fail Quantity equals Sample Size and Pass Quantity is zero
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(4, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should equal Sample Size.');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should be zero.');
+    end;
+
+    [Test]
+    procedure FinishAcceptableNoSampleSize_PassQtyEqualsSourceQty()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO] When Sample Size is zero, finishing falls back to Source Quantity (Base) for Pass Quantity.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An inspection with Source Quantity (Base) = 10, Sample Size = 0 and an Acceptable result
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::Acceptable);
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 0;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+
+        // [WHEN] The inspection is set to Finished
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+
+        // [THEN] Pass Quantity equals Source Quantity (Base)
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should equal Source Quantity (Base).');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should be zero.');
+    end;
+
+    [Test]
+    procedure FinishNotAcceptableNoSampleSize_FailQtyEqualsSourceQty()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO] When Sample Size is zero, finishing falls back to Source Quantity (Base) for Fail Quantity.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An inspection with Source Quantity (Base) = 10, Sample Size = 0 and a Not acceptable result
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::"Not acceptable");
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 0;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+
+        // [WHEN] The inspection is set to Finished
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+
+        // [THEN] Fail Quantity equals Source Quantity (Base)
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should equal Source Quantity (Base).');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should be zero.');
+    end;
+
+    [Test]
+    procedure FinishUncategorizedResult_FailQtyPopulated()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO] An Uncategorized result is treated as Not acceptable for auto-calculation purposes.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An inspection with Sample Size = 5 and an Uncategorized result
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::Uncategorized);
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 5;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+
+        // [WHEN] The inspection is set to Finished
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+
+        // [THEN] Fail Quantity is populated, Pass Quantity stays zero
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should equal Sample Size for Uncategorized result.');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should be zero.');
+    end;
+
+    [Test]
+    procedure FinishWithEmptyResultCode_NoChange()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        // [SCENARIO] When the inspection has no Result Code, Pass and Fail Quantities are left unchanged.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An inspection with Sample Size = 5 and no Result Code
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 5;
+        QltyInspectionHeader."Result Code" := '';
+        QltyInspectionHeader.Modify(false);
+
+        // [WHEN] The inspection is set to Finished
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+
+        // [THEN] Pass and Fail Quantities remain zero
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should remain zero.');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should remain zero.');
+    end;
+
+    [Test]
+    procedure FinishOverwritesExistingManualValues()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO] Pre-existing Pass/Fail values are overwritten by the auto-calculation when finishing.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An inspection with manually set Pass = 2, Fail = 1 and an Acceptable result
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::Acceptable);
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 5;
+        QltyInspectionHeader."Pass Quantity" := 2;
+        QltyInspectionHeader."Fail Quantity" := 1;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+
+        // [WHEN] The inspection is set to Finished
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+
+        // [THEN] Pass Quantity equals Sample Size and Fail Quantity is cleared
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should be overwritten by Sample Size.');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should be cleared.');
+    end;
+
+    [Test]
+    procedure ReopenClearsPassQuantity()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO] Reopening a finished inspection clears the previously calculated Pass Quantity.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A finished inspection with Pass Quantity populated by an Acceptable result
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::Acceptable);
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 4;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(4, QltyInspectionHeader."Pass Quantity", 'Pre-condition: Pass Quantity should be set.');
+
+        // [WHEN] The inspection is reopened
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Open);
+
+        // [THEN] Both Pass and Fail Quantities are zero
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should be cleared on reopen.');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should remain zero on reopen.');
+    end;
+
+    [Test]
+    procedure ReopenClearsFailQuantity()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO] Reopening a finished inspection clears the previously calculated Fail Quantity.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A finished inspection with Fail Quantity populated by a Not acceptable result
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::"Not acceptable");
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Sample Size" := 4;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(4, QltyInspectionHeader."Fail Quantity", 'Pre-condition: Fail Quantity should be set.');
+
+        // [WHEN] The inspection is reopened
+        QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Open);
+
+        // [THEN] Both Pass and Fail Quantities are zero
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Fail Quantity", 'Fail Quantity should be cleared on reopen.');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should remain zero on reopen.');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
+    end;
+
+    local procedure CreateInspectionResultWithCategory(var QltyInspectionResult: Record "Qlty. Inspection Result"; ResultCategory: Enum "Qlty. Result Category")
+    var
+        ResultCode: Text;
+    begin
+        Clear(QltyInspectionResult);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyInspectionResult.Code), ResultCode);
+        QltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(QltyInspectionResult.Code));
+        QltyInspectionResult."Result Category" := ResultCategory;
+        QltyInspectionResult.Insert();
     end;
 
     [ConfirmHandler]

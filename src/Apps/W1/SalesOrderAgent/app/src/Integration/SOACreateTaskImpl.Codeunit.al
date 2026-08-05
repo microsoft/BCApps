@@ -25,6 +25,15 @@ codeunit 4415 "SOA Create Task Impl"
         GlobalAgentUserSecurityID := NewAgentUserSecurityID;
     end;
 
+    internal procedure OpenCreateTaskPage(AgentUserSecurityID: Guid)
+    var
+        SOACreateTask: Page "SOA Create Task";
+    begin
+        SOACreateTask.SetAgentUserSecurityID(AgentUserSecurityID);
+        SOACreateTask.LookupMode(true);
+        SOACreateTask.RunModal();
+    end;
+
     internal procedure GetCurrentUserSalespersonCode(): Code[20]
     var
         UserSetup: Record "User Setup";
@@ -244,25 +253,44 @@ codeunit 4415 "SOA Create Task Impl"
         ExpectedInventory: Decimal;
         DummyQtyAvailable: Decimal;
         AvailableInventory: Decimal;
+        CacheKey: Text;
+        VariantFilter: Text;
     begin
         if SourceItem.Type <> SourceItem.Type::Inventory then
             exit(0);
 
-        if CachedAvailBalance.Get(SourceItem."No.", ProjAvailableBalance) then
+        VariantFilter := SourceItem.GetFilter("Variant Filter");
+        CacheKey := GetAvailabilityCacheKey(SourceItem."No.", VariantFilter, LocationCode);
+        if CachedAvailBalance.Get(CacheKey, ProjAvailableBalance) then
             exit(ProjAvailableBalance);
 
         Item.Copy(SourceItem);
         Item.SetRange("Date Filter", 0D, CalcDate('<CW+1W>', WorkDate()));
         Item.SetFilter("Location Filter", LocationCode);
         Item.SetRange("Drop Shipment Filter", false);
-        Item.SetRange("Variant Filter", '');
+        if VariantFilter = '' then
+            Item.SetRange("Variant Filter", '')
+        else
+            Item.SetFilter("Variant Filter", VariantFilter);
 
         ItemAvailFormsMgt.CalcAvailQuantities(Item, true,
             GrossRequirement, PlannedOrderRcpt, ScheduledRcpt,
             PlannedOrderReleases, ProjAvailableBalance, ExpectedInventory,
             DummyQtyAvailable, AvailableInventory);
-        CachedAvailBalance.Set(SourceItem."No.", ProjAvailableBalance);
+        CachedAvailBalance.Set(CacheKey, ProjAvailableBalance);
         exit(ProjAvailableBalance);
+    end;
+
+    local procedure GetAvailabilityCacheKey(ItemNo: Code[20]; VariantFilter: Text; LocationCode: Code[10]): Text
+    var
+        CacheKeyJson: JsonObject;
+        CacheKey: Text;
+    begin
+        CacheKeyJson.Add('itemNo', ItemNo);
+        CacheKeyJson.Add('variantFilter', VariantFilter);
+        CacheKeyJson.Add('locationCode', LocationCode);
+        CacheKeyJson.WriteTo(CacheKey);
+        exit(CacheKey);
     end;
 
     local procedure QuantityFromAvailableBalance(AvailableQty: Decimal): Integer
@@ -412,7 +440,7 @@ codeunit 4415 "SOA Create Task Impl"
 
     var
         GlobalAgentUserSecurityID: Guid;
-        CachedAvailBalance: Dictionary of [Code[20], Decimal];
+        CachedAvailBalance: Dictionary of [Text, Decimal];
         SelectedLocationCode: Code[10];
         SelectedLanguageCode: Code[10];
         SelectedContactNo: Code[20];

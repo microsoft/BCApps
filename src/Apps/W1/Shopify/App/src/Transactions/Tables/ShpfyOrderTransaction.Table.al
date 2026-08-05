@@ -66,7 +66,7 @@ table 30133 "Shpfy Order Transaction"
         }
         field(8; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = SystemMetadata;
             Editable = false;
         }
@@ -296,6 +296,9 @@ table 30133 "Shpfy Order Transaction"
         {
         }
         key(Key5; "Shopify Order Id", Status)
+        {
+        }
+        key(Key6; "Refund Id", Type, Status)
         {
         }
     }

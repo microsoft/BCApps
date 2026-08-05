@@ -73,7 +73,6 @@ pageextension 18769 "Cash Receipt Voucher" extends "Cash Receipt Voucher"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

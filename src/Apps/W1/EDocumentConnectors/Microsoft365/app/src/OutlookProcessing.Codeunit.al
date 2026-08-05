@@ -79,8 +79,7 @@ codeunit 6385 "Outlook Processing"
         // Dedup is still bounded by the category-exclude filter set in RetrieveEmailsWithRecovery.
         if (LatestReceivedDateTime >= OutlookSetup."Last Sync At") and (OutlookSetup."Email Folder Id" = '') then begin
             OutlookSetup.Get();
-            // +10 ms so the next run's 'receivedDateTime ge' filter strictly excludes the email we just processed. See bug 637266 for the proper fix.
-            OutlookSetup."Last Sync At" := LatestReceivedDateTime + 10;
+            OutlookSetup."Last Sync At" := LatestReceivedDateTime;
             OutlookSetup.Modify();
         end;
     end;
@@ -94,13 +93,17 @@ codeunit 6385 "Outlook Processing"
         FolderConfigured := OutlookSetup."Email Folder Id" <> '';
 
         TempFilters."Load Attachments" := true;
+        TempFilters."Load Headers" := true;
         TempFilters."Max No. of Emails" := GetMaxNoOfEmails();
         // In folder mode, dedup is enforced server-side by the category-exclude filter only.
         // Applying "Earliest Email" would drop emails moved into the folder after that floor.
         if not FolderConfigured then
-            TempFilters."Earliest Email" := OutlookSetup."Last Sync At";
+            // An extra second is added at retrieval: Graph compares (either with `ge` or `gt`) with subsecond precision, but returns receivedDateTime truncated to whole seconds. 
+            // A single refetch in the email module, even if the email is later not processed, creates a Tenant Media record for the email. The second bump avoids this.
+            TempFilters."Earliest Email" := OutlookSetup."Last Sync At" + 1000;
+
         // When the user has not configured a folder, default to Inbox so that Sent Items,
-        // Junk, and other non-Inbox folders are excluded from monitoring. 
+        // Junk, and other non-Inbox folders are excluded from monitoring.
         if FolderConfigured then
             TempFilters."Folder Id" := OutlookSetup."Email Folder Id"
         else

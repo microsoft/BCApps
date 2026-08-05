@@ -125,50 +125,7 @@ report 292 "Copy Sales Document"
         trigger OnOpenPage()
         begin
             if FromDocNo <> '' then begin
-                case FromDocType of
-                    FromDocType::Quote:
-                        if FromSalesHeader.Get(FromSalesHeader."Document Type"::Quote, FromDocNo) then
-                            ;
-                    FromDocType::"Blanket Order":
-                        if FromSalesHeader.Get(FromSalesHeader."Document Type"::"Blanket Order", FromDocNo) then
-                            ;
-                    FromDocType::Order:
-                        if FromSalesHeader.Get(FromSalesHeader."Document Type"::Order, FromDocNo) then
-                            ;
-                    FromDocType::Invoice:
-                        if FromSalesHeader.Get(FromSalesHeader."Document Type"::Invoice, FromDocNo) then
-                            ;
-                    FromDocType::"Return Order":
-                        if FromSalesHeader.Get(FromSalesHeader."Document Type"::"Return Order", FromDocNo) then
-                            ;
-                    FromDocType::"Credit Memo":
-                        if FromSalesHeader.Get(FromSalesHeader."Document Type"::"Credit Memo", FromDocNo) then
-                            ;
-                    FromDocType::"Posted Shipment":
-                        if FromSalesShptHeader.Get(FromDocNo) then
-                            FromSalesHeader.TransferFields(FromSalesShptHeader);
-                    FromDocType::"Posted Invoice":
-                        if FromSalesInvHeader.Get(FromDocNo) then
-                            FromSalesHeader.TransferFields(FromSalesInvHeader);
-                    FromDocType::"Posted Return Receipt":
-                        if FromReturnRcptHeader.Get(FromDocNo) then
-                            FromSalesHeader.TransferFields(FromReturnRcptHeader);
-                    FromDocType::"Posted Credit Memo":
-                        if FromSalesCrMemoHeader.Get(FromDocNo) then
-                            FromSalesHeader.TransferFields(FromSalesCrMemoHeader);
-                    FromDocType::"Arch. Order":
-                        if FromSalesHeaderArchive.Get(FromSalesHeaderArchive."Document Type"::Order, FromDocNo, FromDocNoOccurrence, FromDocVersionNo) then
-                            FromSalesHeader.TransferFields(FromSalesHeaderArchive);
-                    FromDocType::"Arch. Quote":
-                        if FromSalesHeaderArchive.Get(FromSalesHeaderArchive."Document Type"::Quote, FromDocNo, FromDocNoOccurrence, FromDocVersionNo) then
-                            FromSalesHeader.TransferFields(FromSalesHeaderArchive);
-                    FromDocType::"Arch. Blanket Order":
-                        if FromSalesHeaderArchive.Get(FromSalesHeaderArchive."Document Type"::"Blanket Order", FromDocNo, FromDocNoOccurrence, FromDocVersionNo) then
-                            FromSalesHeader.TransferFields(FromSalesHeaderArchive);
-                    FromDocType::"Arch. Return Order":
-                        if FromSalesHeaderArchive.Get(FromSalesHeaderArchive."Document Type"::"Return Order", FromDocNo, FromDocNoOccurrence, FromDocVersionNo) then
-                            FromSalesHeader.TransferFields(FromSalesHeaderArchive);
-                end;
+                GetSourceDocumentBasedOnFromDocType();
                 if FromSalesHeader."No." = '' then
                     FromDocNo := '';
             end;
@@ -243,6 +200,65 @@ report 292 "Copy Sales Document"
     begin
         NewSalesHeader.TestField("No.");
         SalesHeader := NewSalesHeader;
+    end;
+
+    local procedure GetSourceDocumentBasedOnFromDocType()
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeGetSourceDocumentBasedOnFromDocType(
+            FromDocNo, FromDocType,
+            FromSalesHeader, FromSalesShptHeader, FromSalesInvHeader, FromReturnRcptHeader,
+            FromSalesCrMemoHeader, FromSalesHeaderArchive,
+            FromDocNoOccurrence, FromDocVersionNo, IsHandled);
+        if IsHandled then
+            exit;
+
+        case FromDocType of
+            FromDocType::Quote:
+                if FromSalesHeader.Get(FromSalesHeader."Document Type"::Quote, FromDocNo) then
+                    ;
+            FromDocType::"Blanket Order":
+                if FromSalesHeader.Get(FromSalesHeader."Document Type"::"Blanket Order", FromDocNo) then
+                    ;
+            FromDocType::Order:
+                if FromSalesHeader.Get(FromSalesHeader."Document Type"::Order, FromDocNo) then
+                    ;
+            FromDocType::Invoice:
+                if FromSalesHeader.Get(FromSalesHeader."Document Type"::Invoice, FromDocNo) then
+                    ;
+            FromDocType::"Return Order":
+                if FromSalesHeader.Get(FromSalesHeader."Document Type"::"Return Order", FromDocNo) then
+                    ;
+            FromDocType::"Credit Memo":
+                if FromSalesHeader.Get(FromSalesHeader."Document Type"::"Credit Memo", FromDocNo) then
+                    ;
+            FromDocType::"Posted Shipment":
+                if FromSalesShptHeader.Get(FromDocNo) then
+                    FromSalesHeader.TransferFields(FromSalesShptHeader);
+            FromDocType::"Posted Invoice":
+                if FromSalesInvHeader.Get(FromDocNo) then
+                    FromSalesHeader.TransferFields(FromSalesInvHeader);
+            FromDocType::"Posted Return Receipt":
+                if FromReturnRcptHeader.Get(FromDocNo) then
+                    FromSalesHeader.TransferFields(FromReturnRcptHeader);
+            FromDocType::"Posted Credit Memo":
+                if FromSalesCrMemoHeader.Get(FromDocNo) then
+                    FromSalesHeader.TransferFields(FromSalesCrMemoHeader);
+            FromDocType::"Arch. Order":
+                if FromSalesHeaderArchive.Get(FromSalesHeaderArchive."Document Type"::Order, FromDocNo, FromDocNoOccurrence, FromDocVersionNo) then
+                    FromSalesHeader.TransferFields(FromSalesHeaderArchive);
+            FromDocType::"Arch. Quote":
+                if FromSalesHeaderArchive.Get(FromSalesHeaderArchive."Document Type"::Quote, FromDocNo, FromDocNoOccurrence, FromDocVersionNo) then
+                    FromSalesHeader.TransferFields(FromSalesHeaderArchive);
+            FromDocType::"Arch. Blanket Order":
+                if FromSalesHeaderArchive.Get(FromSalesHeaderArchive."Document Type"::"Blanket Order", FromDocNo, FromDocNoOccurrence, FromDocVersionNo) then
+                    FromSalesHeader.TransferFields(FromSalesHeaderArchive);
+            FromDocType::"Arch. Return Order":
+                if FromSalesHeaderArchive.Get(FromSalesHeaderArchive."Document Type"::"Return Order", FromDocNo, FromDocNoOccurrence, FromDocVersionNo) then
+                    FromSalesHeader.TransferFields(FromSalesHeaderArchive);
+        end;
     end;
 
     local procedure ValidateDocNo()
@@ -532,6 +548,11 @@ report 292 "Copy Sales Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterOpenPage()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetSourceDocumentBasedOnFromDocType(var FromDocNo: Code[20]; FromDocType: Enum "Sales Document Type From"; var FromSalesHeader: Record "Sales Header"; var FromSalesShptHeader: Record "Sales Shipment Header"; var FromSalesInvoiceHeader: Record "Sales Invoice Header"; var FromReturnReceiptHeader: Record "Return Receipt Header"; var FromSalesCrMemoHeader: Record "Sales Cr.Memo Header"; var FromSalesHeaderArchive: Record "Sales Header Archive"; var FromDocNoOccurrence: Integer; var FromDocVersionNo: Integer; var IsHandled: Boolean)
     begin
     end;
 

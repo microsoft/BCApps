@@ -112,6 +112,12 @@ page 99000755 "Work Center List"
                 {
                     ApplicationArea = Planning;
                 }
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Avail. Until")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                    StyleExpr = CalendarHorizonStyleTxt;
+                }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Manufacturing;
@@ -415,6 +421,17 @@ page 99000755 "Work Center List"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Calendar Entries Avail. Until");
+        CalendarHorizonStyleTxt := '';
+        if (Rec."Calendar Entries Avail. Until" <> 0D) and (Rec."Calendar Entries Avail. Until" < WorkDate()) then
+            CalendarHorizonStyleTxt := 'Unfavorable';
+    end;
+
+    var
+        CalendarHorizonStyleTxt: Text;
 
     procedure GetCurrSelectionFilter(): Text
     var

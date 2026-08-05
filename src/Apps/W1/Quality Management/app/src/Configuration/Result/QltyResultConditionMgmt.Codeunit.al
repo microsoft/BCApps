@@ -15,6 +15,13 @@ using System.Utilities;
 /// </summary>
 codeunit 20409 "Qlty. Result Condition Mgmt."
 {
+    Permissions =
+        tabledata "Qlty. Inspection Template Line" = r,
+        tabledata "Qlty. Inspection Result" = r,
+        tabledata "Qlty. Test" = r,
+        tabledata "Qlty. I. Result Condit. Conf." = rim,
+        tabledata "Qlty. Inspection Header" = r;
+
     var
         ConfirmManagement: Codeunit "Confirm Management";
         ChangedTestConditionsUpdateTemplatesQst: Label 'You have changed default conditions on the test %2, there are %1 template lines with earlier conditions for this result. Do you want to update the templates?', Comment = '%1=the amount of template lines that have other conditions, %2=the test name';

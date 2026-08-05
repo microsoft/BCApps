@@ -45,7 +45,6 @@ page 5711 "Copy Location"
                     ApplicationArea = Location;
                     Caption = 'Target Location Name';
                     ToolTip = 'Specifies the name of the new location that you want to copy the data to.';
-                    Importance = Additional;
                 }
                 field(CopyAllInformation; ShouldCopyAllInformation)
                 {
