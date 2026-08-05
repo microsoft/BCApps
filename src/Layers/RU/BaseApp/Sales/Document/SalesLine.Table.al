@@ -8645,9 +8645,10 @@ table 37 "Sales Line"
 
         if ("Qty. to Invoice" <> 0) and ("Prepmt. Amt. Inv." <> 0) then begin
             GetSalesHeader();
-            if ("Prepayment %" = 100) and not IsFinalInvoice() then
+            if ("Prepayment %" = 100) and not IsFinalInvoice() then begin
+                "Prepmt Amt to Deduct" := 0;
                 "Prepmt Amt to Deduct" := GetLineAmountToHandle("Qty. to Invoice") - "Inv. Disc. Amount to Invoice"
-            else
+            end else
                 "Prepmt Amt to Deduct" :=
                   Round(
                     ("Prepmt. Amt. Inv." - "Prepmt Amt Deducted") *
