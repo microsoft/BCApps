@@ -2186,9 +2186,9 @@ codeunit 134263 "Test Bank Payment Application"
   AdjustmentPostingDate,
   PaymentPostingDate,
   100,
-  10,
-  9,
-  9);
+  75,
+  80,
+  90);
 
         GLEntry.SetRange("Document No.", PaymentDocumentNo);
         Assert.IsTrue(not GLEntry.IsEmpty(), 'Expected posted G/L entries for payment document were not found.');
@@ -2235,8 +2235,9 @@ codeunit 134263 "Test Bank Payment Application"
     var
         Vendor: Record Vendor;
         VendLedgEntry: Record "Vendor Ledger Entry";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
         EffectiveInvoiceDocumentNo: Code[20];
-        PaymentAmountFCY: Decimal;
+        PaymentAmountLCY: Decimal;
     begin
         if InvoiceAmountFCY <= 0 then
             Error('Invoice amount must be greater than zero.');
@@ -2258,11 +2259,13 @@ codeunit 134263 "Test Bank Payment Application"
         if Vendor."Currency Code" <> CurrencyCode then
             Vendor.Validate("Currency Code", CurrencyCode);
         Vendor.Validate("Vendor Posting Group", InvoiceVendorPostingGroup);
+        Vendor.Validate("Allow Multiple Posting Groups", true);
+        Vendor.Validate("Application Method", Vendor."Application Method"::Manual);
         Vendor.Modify(true);
 
-        UpsertCurrencyExchangeRateForTest(CurrencyCode, InvoicePostingDate, 1, InvoiceRelationalRateAmount);
-        UpsertCurrencyExchangeRateForTest(CurrencyCode, AdjustmentPostingDate, 1, AdjustmentRelationalRateAmount);
-        UpsertCurrencyExchangeRateForTest(CurrencyCode, PaymentPostingDate, 1, PaymentRelationalRateAmount);
+        UpsertCurrencyExchangeRateForTest(CurrencyCode, InvoicePostingDate, 100, InvoiceRelationalRateAmount);
+        UpsertCurrencyExchangeRateForTest(CurrencyCode, AdjustmentPostingDate, 100, AdjustmentRelationalRateAmount);
+        UpsertCurrencyExchangeRateForTest(CurrencyCode, PaymentPostingDate, 100, PaymentRelationalRateAmount);
 
         PostPurchInvoiceForVendorForTest(VendorNo, CurrencyCode, InvoicePostingDate, InvoiceAmountFCY, VendLedgEntry);
         EffectiveInvoiceDocumentNo := VendLedgEntry."Document No.";
@@ -2273,36 +2276,44 @@ codeunit 134263 "Test Bank Payment Application"
           JournalTemplateName,
           JournalBatchName,
           AdjustmentDocumentNo,
-          InvoicePostingDate,
+          AdjustmentPostingDate,
           AdjustmentPostingDate);
 
-        Vendor.Get(VendorNo);
-        Vendor.Validate("Vendor Posting Group", PaymentVendorPostingGroup);
-        Vendor.Modify(true);
-
+        // Repro Bug 643355: the vendor's default posting group stays on the invoice group; the payment carries the
+        // alternative posting group explicitly on the journal line (multi-posting-groups), exactly like the repro
+        // where the payment line's Posting Group = FOREIGNADV while the vendor default remains the invoice group.
         VendLedgEntry.CalcFields("Remaining Amount");
-        PaymentAmountFCY := Abs(VendLedgEntry."Remaining Amount");
+        PaymentAmountLCY :=
+            Abs(Round(
+                CurrencyExchangeRate.ExchangeAmtFCYToLCY(
+                    PaymentPostingDate, CurrencyCode, VendLedgEntry."Remaining Amount",
+                    CurrencyExchangeRate.ExchangeRate(PaymentPostingDate, CurrencyCode))));
 
+        // Repro Bug 643355: the payment is posted in local currency (blank Currency Code), not the invoice's
+        // foreign currency. It is posted standalone (Open) here - the application is a SEPARATE step below,
+        // exactly like the repro (post the payment first, then Apply Entries / Post Application).
         PostVendorGenJournalLineForTest(
           VendorNo,
-          CurrencyCode,
+          '',
           JournalTemplateName,
           JournalBatchName,
           PaymentDocumentNo,
           PaymentPostingDate,
           Enum::"Gen. Journal Document Type"::Payment,
-                    PaymentAmountFCY,
+                    PaymentAmountLCY,
+          PaymentVendorPostingGroup,
           BalancingGLAccountNo,
-                    EffectiveInvoiceDocumentNo);
+                    '');
 
-        RunVendorExchangeRateAdjustmentForTest(
-            VendorNo,
-            CurrencyCode,
-            JournalTemplateName,
-            JournalBatchName,
-            PostPaymentAdjustmentDocumentNo,
-            InvoicePostingDate,
-            PaymentPostingDate);
+        // Repro Bug 643355 (Apply step): open Vendor Ledger Entries, select the payment, click Apply Entries,
+        // Set Applies-to ID on the invoice, then Post Application. This applies the blank-currency (LCY) payment to
+        // the FCY invoice through VendEntry-Apply Posted Entries, which is where the cross-posting-group unrealized
+        // gain/loss compensation in PostDtldCVLedgEntry fires - the exact path S1 corrects.
+        LibraryERM.ApplyVendorLedgerEntries(
+          Enum::"Gen. Journal Document Type"::Payment,
+          Enum::"Gen. Journal Document Type"::Invoice,
+          PaymentDocumentNo,
+          EffectiveInvoiceDocumentNo);
 
         VerifyVendorFcyApplicationExpectedDistributionForTest(
           VendorNo,
@@ -2323,19 +2334,35 @@ codeunit 134263 "Test Bank Payment Application"
         Vend: Record Vendor;
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-        Item: Record Item;
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
         PostedDocNo: Code[20];
     begin
         if not Vend.Get(VendorNo) then
             Error('Vendor %1 does not exist.', VendorNo);
+
+        // Repro Bug 643355 posts the invoice on a direct G/L account line with a No-Tax VAT product group.
+        // Create an expense account fully set up for purchase, align the vendor's Gen./VAT Bus. posting groups
+        // to it (so the line's posting setups exist), and force 0% VAT so the FCY amounts stay clean
+        // (invoice payable = the line amount, with no VAT component).
+        GLAccount.Get(LibraryERM.CreateGLAccountWithPurchSetup());
+        GLAccount.Validate("Direct Posting", true);
+        GLAccount.Modify(true);
+
+        Vend.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Vend.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
+        Vend.Modify(true);
+
+        VATPostingSetup.Get(GLAccount."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
+        VATPostingSetup.Validate("VAT %", 0);
+        VATPostingSetup.Modify(true);
 
         LibraryPurch.CreatePurchHeader(PurchHeader, PurchHeader."Document Type"::Invoice, Vend."No.");
         PurchHeader.Validate("Posting Date", PostingDate);
         PurchHeader.Validate("Currency Code", CurrencyCode);
         PurchHeader.Modify(true);
 
-        LibraryInventory.CreateItem(Item);
-        LibraryPurch.CreatePurchaseLine(PurchLine, PurchHeader, PurchLine.Type::Item, Item."No.", 1);
+        LibraryPurch.CreatePurchaseLine(PurchLine, PurchHeader, PurchLine.Type::"G/L Account", GLAccount."No.", 1);
         PurchLine.Validate("Direct Unit Cost", InvoiceAmountFCY);
         PurchLine.Modify(true);
 
@@ -2446,7 +2473,7 @@ codeunit 134263 "Test Bank Payment Application"
         end;
     end;
 
-    local procedure PostVendorGenJournalLineForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; DocumentNo: Code[20]; PostingDate: Date; DocumentType: Enum "Gen. Journal Document Type"; AmountFCY: Decimal; BalancingGLAccountNo: Code[20]; AppliesToInvoiceDocumentNo: Code[20])
+    local procedure PostVendorGenJournalLineForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; DocumentNo: Code[20]; PostingDate: Date; DocumentType: Enum "Gen. Journal Document Type"; AmountFCY: Decimal; PaymentPostingGroup: Code[20]; BalancingGLAccountNo: Code[20]; AppliesToInvoiceDocumentNo: Code[20])
     begin
         PostVendorGenJournalLineCoreForTest(
             VendorNo,
@@ -2457,11 +2484,12 @@ codeunit 134263 "Test Bank Payment Application"
             PostingDate,
             DocumentType,
             AmountFCY,
+            PaymentPostingGroup,
             BalancingGLAccountNo,
             AppliesToInvoiceDocumentNo);
     end;
 
-    local procedure PostVendorGenJournalLineCoreForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; DocumentNo: Code[20]; PostingDate: Date; DocumentType: Enum "Gen. Journal Document Type"; AmountFCY: Decimal; BalancingGLAccountNo: Code[20]; AppliesToInvoiceDocumentNo: Code[20])
+    local procedure PostVendorGenJournalLineCoreForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; DocumentNo: Code[20]; PostingDate: Date; DocumentType: Enum "Gen. Journal Document Type"; AmountFCY: Decimal; PaymentPostingGroup: Code[20]; BalancingGLAccountNo: Code[20]; AppliesToInvoiceDocumentNo: Code[20])
     var
         GenJournalLine: Record "Gen. Journal Line";
     begin
@@ -2480,6 +2508,12 @@ codeunit 134263 "Test Bank Payment Application"
         GenJournalLine.Validate("Document No.", DocumentNo);
         GenJournalLine.Validate("External Document No.", DocumentNo);
         GenJournalLine.Validate("Currency Code", CurrencyCode);
+
+        // Repro Bug 643355: override the posting group on the payment line (multi-posting-groups), leaving the
+        // vendor default untouched. This is what pairs a payment posted under the alternative group with an
+        // invoice under the primary group and exercises the cross-posting-group unrealized gain/loss path.
+        if PaymentPostingGroup <> '' then
+            GenJournalLine.Validate("Posting Group", PaymentPostingGroup);
 
         if AppliesToInvoiceDocumentNo <> '' then begin
             GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
@@ -2524,14 +2558,14 @@ codeunit 134263 "Test Bank Payment Application"
         // Account Selected for Unrealized Gain/Loss) posts the gain/loss to the payment posting group's account
         // instead of the invoice posting group's account, which leaves the invoice group's account non-zero and
         // the payment group's account non-zero by the equal-and-opposite amount.
-        PrimaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(VendorNo, PostingDateFrom, PostingDateTo, PrimaryPayablesAccountNo);
+        PrimaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom, PostingDateTo, PrimaryPayablesAccountNo);
         Assert.AreEqual(
           0, Round(PrimaryNetAmount, 0.01),
           StrSubstNo(
             'Invoice posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.',
             PrimaryPayablesAccountNo, VendorNo, PrimaryNetAmount));
 
-        SecondaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(VendorNo, PostingDateFrom, PostingDateTo, SecondaryPayablesAccountNo);
+        SecondaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom, PostingDateTo, SecondaryPayablesAccountNo);
         Assert.AreEqual(
           0, Round(SecondaryNetAmount, 0.01),
           StrSubstNo(
@@ -2570,12 +2604,14 @@ codeunit 134263 "Test Bank Payment Application"
               PrimaryPayablesAccountNo, PrePaymentAdjustmentDocumentNo, PrePaymentAdjustmentPrimaryAmount);
     end;
 
-    local procedure VendorGLNetAmountForPeriodAndAccountForTest(VendorNo: Code[20]; PostingDateFrom: Date; PostingDateTo: Date; GLAccountNo: Code[20]): Decimal
+    local procedure VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom: Date; PostingDateTo: Date; GLAccountNo: Code[20]): Decimal
     var
         GLEntry: Record "G/L Entry";
     begin
-        GLEntry.SetRange("Source Type", GLEntry."Source Type"::Vendor);
-        GLEntry.SetRange("Source No.", VendorNo);
+        // Sum ALL G/L entries on the (dedicated, freshly created) payables control account - do NOT filter by
+        // Source Type = Vendor. The unrealized exchange-rate adjustment posts to the payables account with a blank
+        // Source Type, so a Source Type = Vendor filter would silently exclude the adjustment and misreport the
+        // control-account balance (making the buggy +5/-5 imbalance look like +10/-5).
         GLEntry.SetRange("G/L Account No.", GLAccountNo);
         GLEntry.SetRange("Posting Date", PostingDateFrom, PostingDateTo);
         GLEntry.CalcSums(Amount);
