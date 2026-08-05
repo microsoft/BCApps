@@ -398,7 +398,7 @@ report 292 "Copy Sales Document"
         ValidateDocNo();
     end;
 
-    protected procedure LookupSalesDoc()
+    procedure LookupSalesDoc()
     begin
         OnBeforeLookupSalesDoc(FromSalesHeader, SalesHeader, FromDocType);
 
