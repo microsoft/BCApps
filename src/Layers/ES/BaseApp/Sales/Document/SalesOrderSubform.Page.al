@@ -244,20 +244,18 @@ page 46 "Sales Order Subform"
                     ToolTip = 'Specifies a description of what you’re selling. Based on your choices in the Type and No. fields, the field may show suggested text that you can change it for this document. To add a comment, set the Type field to Comment and write the comment itself here.';
 
                     trigger OnValidate()
-                    var
-                        LookupSelectionRestored: Boolean;
                     begin
                         UpdateEditableOnRow();
 
-                        LookupSelectionRestored := Rec.RestoreLookupSelectionWithResult();
-                        if (Rec."No." <> xRec."No.") or LookupSelectionRestored then
-                            NoOnAfterValidateInternal(LookupSelectionRestored);
+                        Rec.RestoreLookupSelection();
+                        if Rec."No." <> xRec."No." then
+                            NoOnAfterValidate();
                         if Rec."No." <> xRec."No." then begin
                             ResetxRecAmountValues();
                             CalculateTotals();
                             DeltaUpdateTotals();
                         end;
-                        if (Rec."No." = xRec."No.") and not LookupSelectionRestored then
+                        if Rec."No." = xRec."No." then
                             exit;
 
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
@@ -2052,16 +2050,7 @@ page 46 "Sales Order Subform"
     /// </summary>
     procedure NoOnAfterValidate()
     begin
-        NoOnAfterValidateInternal(false);
-    end;
-
-    local procedure NoOnAfterValidateInternal(AutoReserveFromLookup: Boolean)
-    var
-        NoHasChanged: Boolean;
-    begin
         OnBeforeNoOnAfterValidate(Rec, xRec);
-
-        NoHasChanged := (Rec."No." <> xRec."No.") or AutoReserveFromLookup;
 
         InsertExtendedText(false);
         if (Rec.Type = Rec.Type::"Charge (Item)") and (Rec."No." <> xRec."No.") and
@@ -2077,7 +2066,7 @@ page 46 "Sales Order Subform"
 
         if Rec.Reserve = Rec.Reserve::Always then begin
             CurrPage.SaveRecord();
-            if (Rec."Outstanding Qty. (Base)" <> 0) and NoHasChanged then begin
+            if (Rec."Outstanding Qty. (Base)" <> 0) and (Rec."No." <> xRec."No.") then begin
                 Rec.AutoReserve();
                 CurrPage.Update(false);
             end;
