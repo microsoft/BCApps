@@ -15,7 +15,7 @@ pageextension 10977 "E-Reporting E-Doc. Service" extends "E-Document Service"
             group(FrenchLifecycle)
             {
                 Caption = 'French Invoice Lifecycle';
-                Visible = IsFrenchInvoiceFormat;
+                Visible = (Rec."Document Format" = Rec."Document Format"::"Peppol BIS 3.0 FR") or (Rec."Document Format" = Rec."Document Format"::"Factur-X FR");
 
                 field("FR Sender Platform ID"; Rec."FR Sender Platform ID")
                 {
@@ -32,12 +32,4 @@ pageextension 10977 "E-Reporting E-Doc. Service" extends "E-Document Service"
             }
         }
     }
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        IsFrenchInvoiceFormat := Rec."Document Format" in [Rec."Document Format"::"Peppol BIS 3.0 FR", Rec."Document Format"::"Factur-X FR"];
-    end;
-
-    var
-        IsFrenchInvoiceFormat: Boolean;
 }
