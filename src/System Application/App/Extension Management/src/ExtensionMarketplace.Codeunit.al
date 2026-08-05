@@ -219,14 +219,29 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     begin
-        if not InstallAppsourceExtension(MarketplaceApplicationId, TelemetryURL, '') then
-            Error(GetLastErrorText());
+        InstallAppsourceExtensionPage(MarketplaceApplicationId, TelemetryURL, '');
     end;
 
     [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text; PublisherType: Text);
+    begin
+        InstallAppsourceExtensionPage(MarketplaceApplicationId, TelemetryURL, PublisherType);
+    end;
+
+    [TryFunction]
+    procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
+    begin
+        InstallAppsourceExtensionPage(AppId, TelemetryURL, '');
+    end;
+
+    [TryFunction]
+    procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text; PublisherType: Text)
+    begin
+        InstallAppsourceExtensionPage(AppId, TelemetryURL, PublisherType);
+    end;
+
+    local procedure InstallAppsourceExtensionPage(MarketplaceApplicationId: Text; TelemetryURL: Text; PublisherType: Text)
     var
-        ExtensionInstallationPage: Page "Extension Installation";
         AppId: Guid;
     begin
         AppId := MapMarketplaceIdToAppId(MarketplaceApplicationId);
@@ -235,23 +250,12 @@ codeunit 2501 "Extension Marketplace"
             Error(ExtensionNotFoundErr);
         end;
 
-        ExtensionInstallationPage.SetAppID(AppId);
-        ExtensionInstallationPage.SetPreviewKey('');
-        ExtensionInstallationPage.SetResponseUrl(TelemetryURL);
-        ExtensionInstallationPage.SetPublisherType(PublisherType);
-        ExtensionInstallationPage.RunModal();
+        InstallAppsourceExtensionPage(AppId, TelemetryURL, PublisherType);
     end;
 
-    [TryFunction]
-    procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
-    begin
-        if not InstallAppsourceExtension(AppId, TelemetryURL, '') then
-            Error(GetLastErrorText());
-    end;
-
-    [TryFunction]
-    procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text; PublisherType: Text)
+    local procedure InstallAppsourceExtensionPage(AppId: Guid; TelemetryURL: Text; PublisherType: Text)
     var
+        TempExtensionInstallationRecord: Record "Extension Installation";
         ExtensionInstallationPage: Page "Extension Installation";
     begin
         if IsNullGuid(AppId) then begin
@@ -259,10 +263,11 @@ codeunit 2501 "Extension Marketplace"
             Error(ExtensionNotFoundErr);
         end;
 
-        ExtensionInstallationPage.SetAppID(AppId);
-        ExtensionInstallationPage.SetPreviewKey('');
-        ExtensionInstallationPage.SetResponseUrl(TelemetryURL);
-        ExtensionInstallationPage.SetPublisherType(PublisherType);
+        TempExtensionInstallationRecord.SetRange(ID, AppId);
+        TempExtensionInstallationRecord.ID := AppId;
+        TempExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(TempExtensionInstallationRecord.ResponseUrl));
+        TempExtensionInstallationRecord.PublisherType := CopyStr(PublisherType, 1, MaxStrLen(TempExtensionInstallationRecord.PublisherType));
+        ExtensionInstallationPage.SetRecord(TempExtensionInstallationRecord);
         ExtensionInstallationPage.RunModal();
     end;
 
@@ -440,7 +445,7 @@ codeunit 2501 "Extension Marketplace"
         exit(GuidedExperience.SetupForExtensionExists(AppId));
     end;
 
-    internal procedure HandleInstallFailureWithRefreshSession(AppId: Guid)
+    local procedure HandleInstallFailureWithRefreshSession(AppId: Guid)
     var
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";

@@ -178,7 +178,7 @@ page 2516 "AppSource Product Details"
 
                 trigger OnAction()
                 var
-                    ExtensionInstallationPage: Page "Extension Installation";
+                    ExtensionManagement: Codeunit "Extension Management";
                     PublisherType: Text;
                 begin
                     if PlansAreVisible then
@@ -186,11 +186,10 @@ page 2516 "AppSource Product Details"
                             exit;
 
                     PublisherType := AppSourceJsonUtilities.GetStringValue(ProductObject, 'publisherType');
-                    ExtensionInstallationPage.SetAppID(AppID);
-                    ExtensionInstallationPage.SetPreviewKey('');
-                    ExtensionInstallationPage.SetPublisherType(PublisherType);
-                    ExtensionInstallationPage.SetResponseUrl('');
-                    ExtensionInstallationPage.RunModal();
+                    if PublisherType = '' then
+                        ExtensionManagement.InstallMarketplaceExtension(AppID)
+                    else
+                        ExtensionManagement.InstallMarketplaceExtensionWithPublisher(AppID, PublisherType);
                 end;
             }
 

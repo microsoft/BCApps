@@ -80,11 +80,6 @@
   ],
   "internalsVisibleTo": [
     {
-      "id": "79952567-63d7-4586-8b47-ba13a11a8a18",
-      "name": "AppSource Product Gallery",
-      "publisher": "Microsoft"
-    },
-    {
       "id": "6d7c736f-bfe8-4e01-9449-07295be9c6e4",
       "name": "Extension Management Test Library",
       "publisher": "Microsoft"

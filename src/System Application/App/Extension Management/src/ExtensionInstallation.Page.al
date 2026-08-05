@@ -25,12 +25,10 @@ page 2503 "Extension Installation"
 
     trigger OnOpenPage()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionMarketplace: Codeunit "Extension Marketplace";
         MarketplaceExtnDeployment: Page "Marketplace Extn Deployment";
     begin
         GetDetailsFromFilters();
-        ExtensionInstallationImpl.CheckPermissions();
 
         MarketplaceExtnDeployment.SetAppID(Rec.ID);
         MarketplaceExtnDeployment.SetPreviewKey(Rec.PreviewKey);
@@ -38,44 +36,14 @@ page 2503 "Extension Installation"
         MarketplaceExtnDeployment.RunModal();
         if MarketplaceExtnDeployment.GetInstalledSelected() then
             if not IsNullGuid(Rec.ID) then begin
-                if not TryInstallMarketplaceExtension(
+                ExtensionMarketplace.InstallMarketplaceExtension(
                     Rec.ID,
                     Rec.ResponseUrl,
                     MarketplaceExtnDeployment.GetLanguageId(),
-                    Rec.PreviewKey)
-                then
-                    ExtensionMarketplace.HandleInstallFailureWithRefreshSession(Rec.ID);
+                    Rec.PreviewKey);
                 MarketplaceExtnDeployment.Close();
             end;
         CurrPage.Close();
-    end;
-
-    internal procedure SetAppID(AppID: Guid)
-    begin
-        Rec.ID := AppID;
-    end;
-
-    internal procedure SetPreviewKey(PreviewKey: Text[2048])
-    begin
-        Rec.PreviewKey := PreviewKey;
-    end;
-
-    internal procedure SetPublisherType(PublisherType: Text)
-    begin
-        Rec.PublisherType := CopyStr(PublisherType, 1, MaxStrLen(Rec.PublisherType));
-    end;
-
-    internal procedure SetResponseUrl(ResponseUrl: Text)
-    begin
-        Rec.ResponseUrl := CopyStr(ResponseUrl, 1, MaxStrLen(Rec.ResponseUrl));
-    end;
-
-    [TryFunction]
-    local procedure TryInstallMarketplaceExtension(AppId: Guid; ResponseUrl: Text; LanguageId: Integer; PreviewKey: Text)
-    var
-        ExtensionMarketplace: Codeunit "Extension Marketplace";
-    begin
-        ExtensionMarketplace.InstallMarketplaceExtension(AppId, ResponseUrl, LanguageId, PreviewKey);
     end;
 
     local procedure GetDetailsFromFilters()
