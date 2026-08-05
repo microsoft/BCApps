@@ -7405,6 +7405,36 @@
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
     },
+    "Expense Withholding Tax": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ExpenseWithholdingTax\\app",
+      "hasTranslations": true,
+      "supportedCountries": [
+        "AT",
+        "BE",
+        "CA",
+        "CH",
+        "CZ",
+        "DE",
+        "DK",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "IS",
+        "MX",
+        "NL",
+        "NO",
+        "RU",
+        "SE",
+        "US",
+        "W1"
+      ],
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
+    },
     "Payment Management FR": {
       "projectPath": "$env:INETROOT\\App\\Apps\\FR\\PaymentManagementFR\\app",
       "dvdFolder": "Applications\\PaymentManagementFR\\Source",
