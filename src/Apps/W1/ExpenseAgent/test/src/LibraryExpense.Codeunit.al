@@ -214,6 +214,16 @@ codeunit 148300 "Library - Expense"
         ExpenseReportHeader.Insert(true);
     end;
 
+    internal procedure CreatePostedExpenseReport(var PostedExpenseReportHeader: Record "Posted Expense Report Header"; ExpenseUserNo: Code[20])
+    begin
+        PostedExpenseReportHeader.Init();
+        PostedExpenseReportHeader.Validate(
+            "No.",
+            LibraryUtility.GenerateRandomCode(PostedExpenseReportHeader.FieldNo("No."), Database::"Posted Expense Report Header"));
+        PostedExpenseReportHeader.Validate("Expense User No.", ExpenseUserNo);
+        PostedExpenseReportHeader.Insert(true);
+    end;
+
     internal procedure CreateExpenseReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; PaymentMethodCode: Code[10]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
     var
         RecordRef: RecordRef;

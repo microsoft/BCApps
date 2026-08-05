@@ -18,7 +18,6 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryUtility: Codeunit "Library - Utility";
         EmployeeOnlyPermissionSetTok: Label 'Exp. Emp. Only Test', Locked = true;
         HREditPermissionSetTok: Label 'Exp. HR Edit Test', Locked = true;
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
@@ -150,11 +149,7 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
     begin
         // [SCENARIO] Posted expense reports still prevent Employee deletion without Expense User access.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        PostedExpenseReportHeader.Init();
-        PostedExpenseReportHeader."No." :=
-            LibraryUtility.GenerateRandomCode(PostedExpenseReportHeader.FieldNo("No."), Database::"Posted Expense Report Header");
-        PostedExpenseReportHeader."Expense User No." := ExpenseUser."No.";
-        PostedExpenseReportHeader.Insert();
+        LibraryExpense.CreatePostedExpenseReport(PostedExpenseReportHeader, ExpenseUser."No.");
         Employee.Get(ExpenseUser."Employee No.");
 
         SetCallerPermissions(EmployeeOnlyPermissionSetTok, ExpenseUser);
