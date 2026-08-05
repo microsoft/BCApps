@@ -2682,7 +2682,7 @@ codeunit 137049 "SCM Reservation"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         LookupStateManager: Codeunit "Lookup State Manager";
-        SCMReservationSubscriber: Codeunit "SCM Sales Order Management";
+        SCMReservationSubscriber: Codeunit "SCM Reservation Subscriber";
         SalesOrder: TestPage "Sales Order";
     begin
         // [FEATURE] [Reservation] [Sales Order]
