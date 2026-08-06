@@ -243,6 +243,66 @@ codeunit 134619 "Composite Layout Tests"
         TenantReportLayoutCfgPage.Close();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PartDescriptionShowsOnThemeHeaderFooterList()
+    var
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        PartName: Text;
+    begin
+        // [SCENARIO 645022] Report themes and header-footer setup shows the part's description in the list.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A tenant part created with a description (CreatePart stores Description = name).
+        PartName := 'HFWithDesc';
+        CreatePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter);
+
+        // [WHEN] Opening the page on that part.
+        ReportThemePage.OpenView();
+        ReportThemePage.Filter.SetFilter(Name, PartName);
+        Assert.IsTrue(ReportThemePage.First(), 'The created part should be shown on the page.');
+
+        // [THEN] The Description column shows the part's description.
+        Assert.AreEqual(PartName, ReportThemePage.Description.Value(), 'The Description column should show the part description.');
+
+        ReportThemePage.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('PartInfoMessageHandler')]
+    [Scope('OnPrem')]
+    procedure ShowInfoReportsPartDetailsAndUsage()
+    var
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        Composite: Text;
+    begin
+        // [SCENARIO 645022] Show info reports the part details and how many report configurations use it.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A tenant theme part assigned in exactly one report configuration.
+        Composite := CreatePart('ThemeInfo', Enum::"Report Layout Subtype"::Theme);
+        InsertCfg(TestReportID, 'Body', '', '', Composite);
+
+        // [WHEN] Invoking Show info on that part.
+        ReportThemePage.OpenView();
+        ReportThemePage.Filter.SetFilter(Name, 'ThemeInfo');
+        Assert.IsTrue(ReportThemePage.First(), 'The created part should be shown on the page.');
+        ReportThemePage.ShowInfo.Invoke();
+
+        // [THEN] The captured message names the part, its type, and the used-in count (asserted in the handler).
+        ReportThemePage.Close();
+    end;
+
+    [MessageHandler]
+    procedure PartInfoMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(Message.Contains('ThemeInfo'), 'Show info should include the part name.');
+        Assert.IsTrue(Message.Contains('Theme'), 'Show info should include the type.');
+        Assert.IsTrue(Message.Contains('Used in 1 report configuration'), 'Show info should report the used-in count.');
+    end;
+
     local procedure Initialize()
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";

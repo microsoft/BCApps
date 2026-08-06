@@ -460,6 +460,24 @@ codeunit 9660 "Report Layouts Impl."
         Log('0000N0F', 'Report layout deleted by user', CustomDimensions);
     end;
 
+    internal procedure UpdateReportLayoutDescription(ReportID: Integer; LayoutName: Text[250]; NewDescription: Text[250])
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        CustomDimensions: Dictionary of [Text, Text];
+        EmptyGuid: Guid;
+    begin
+        if not TenantReportLayout.Get(ReportID, LayoutName, EmptyGuid) then
+            exit;
+
+        TenantReportLayout.Description := NewDescription;
+        TenantReportLayout.Modify(true);
+
+        InitReportLayoutDimensions(TenantReportLayout, CustomDimensions);
+        AddReportLayoutDimensionsDescription(NewDescription, CustomDimensions);
+        AddReportLayoutDimensionsAction('EditDescription', CustomDimensions);
+        Log('0000N0H', 'Report layout description edited by user', CustomDimensions);
+    end;
+
     internal procedure ReplaceLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; var ReturnReportID: Integer; var ReturnLayoutName: Text)
     var
         TenantReportLayout: Record "Tenant Report Layout";
@@ -909,7 +927,10 @@ codeunit 9660 "Report Layouts Impl."
 
     local procedure AddReportLayoutDimensionsDescription(Description: Text; var CustomDimensions: Dictionary of [Text, Text])
     begin
-        CustomDimensions.Add('LayoutDescription', Description);
+        // The layout description is user-entered free text and must not be emitted to telemetry.
+        // Log only whether a description was provided and its length, not the content.
+        CustomDimensions.Add('LayoutDescriptionProvided', Format(Description <> ''));
+        CustomDimensions.Add('LayoutDescriptionLength', Format(StrLen(Description)));
     end;
 
     local procedure AddReportLayoutDimensionsAction(Action: Text; var CustomDimensions: Dictionary of [Text, Text])
