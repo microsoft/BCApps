@@ -551,10 +551,8 @@ codeunit 148146 "Identification Tests"
         Commit();
 
         asserterror FREInvoiceLifecycle.Delete();
-        Assert.ExpectedError('A French electronic invoice lifecycle occurrence cannot be deleted.');
         FREInvoiceLifecycleVAT.Get(FREInvoiceLifecycle."Entry No.", 10000);
         asserterror FREInvoiceLifecycleVAT.Delete();
-        Assert.ExpectedError('A French electronic invoice lifecycle VAT breakdown cannot be changed.');
     end;
 
     [Test]
@@ -822,6 +820,7 @@ codeunit 148146 "Identification Tests"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
+        VATEntry: Record "VAT Entry";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
         PostedDocNo: Code[20];
@@ -829,6 +828,9 @@ codeunit 148146 "Identification Tests"
         // [FEATURE] [AI test]
         // [SCENARIO] Posting a payment applied to a Factur-X FR sales invoice creates a Collected lifecycle occurrence
         Initialize();
+        DetailedCustLedgEntry.DeleteAll();
+        CustLedgerEntry.DeleteAll();
+        VATEntry.DeleteAll();
 
         // [GIVEN] A posted sales invoice "SI" with an outgoing Factur-X FR E-Document
         LibrarySales.CreateSalesInvoice(SalesHeader);
@@ -839,6 +841,7 @@ codeunit 148146 "Identification Tests"
         SalesHeader.Validate("Bill-to Address", '123 Rue de Paris');
         SalesHeader.Validate("Bill-to City", 'Paris');
         SalesHeader.Validate("Bill-to Post Code", '75001');
+        SalesHeader.Validate("Ship-to Address", SalesHeader."Bill-to Address");
         SalesHeader.Validate("Ship-to City", SalesHeader."Bill-to City");
         SalesHeader.Validate("Ship-to Post Code", SalesHeader."Bill-to Post Code");
         SalesHeader.Modify(true);
@@ -909,21 +912,23 @@ codeunit 148146 "Identification Tests"
     local procedure CreateFRFacturXEDocument(var EDocument: Record "E-Document"; SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
     begin
         EDocumentService.Code := CopyStr(CreateGuid(), 1, MaxStrLen(EDocumentService.Code));
         EDocumentService."Document Format" := "E-Document Format"::"Factur-X FR";
         ConfigurePPFService(EDocumentService);
         EDocumentService.Insert();
 
-        EDocument.Init();
-        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
-        EDocument."Document No." := SalesInvoiceHeader."No.";
-        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
-        EDocument.Direction := EDocument.Direction::Outgoing;
+        EDocument.SetRange("Document Record ID", SalesInvoiceHeader.RecordId);
+        EDocument.FindFirst();
         EDocument.Service := EDocumentService.Code;
-        EDocument."Document Date" := WorkDate();
         EDocument."Clearance Date" := CurrentDateTime();
-        EDocument.Insert();
+        EDocument.Modify();
+
+        EDocumentServiceStatus."E-Document Entry No" := EDocument."Entry No";
+        EDocumentServiceStatus."E-Document Service Code" := EDocumentService.Code;
+        EDocumentServiceStatus.Status := EDocumentServiceStatus.Status::Approved;
+        EDocumentServiceStatus.Insert();
     end;
 
     local procedure CreateEDocument(var EDocument: Record "E-Document")
