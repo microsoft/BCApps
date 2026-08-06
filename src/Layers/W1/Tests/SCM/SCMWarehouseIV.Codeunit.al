@@ -1604,28 +1604,35 @@ codeunit 137407 "SCM Warehouse IV"
         BinMandatoryLocation: Record Location;
         NonBinMandatoryLocation: Record Location;
         BinMandatoryPostedInvtPutAwayHeader: Record "Posted Invt. Put-away Header";
+        MissingLocationPostedInvtPutAwayHeader: Record "Posted Invt. Put-away Header";
         NonBinMandatoryPostedInvtPutAwayHeader: Record "Posted Invt. Put-away Header";
         RetentionPolicySetup: Record "Retention Policy Setup";
         ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+        MissingLocationCode: Code[10];
     begin
         // [FEATURE] [Inventory Put-Away] [Retention Policy] [Bin Mandatory]
         // [SCENARIO 592028] Retention policy skips posted inventory put-aways for bin mandatory locations.
         Initialize();
 
-        // [GIVEN] Expired posted inventory put-aways for locations with and without mandatory bins.
+        // [GIVEN] Expired posted inventory put-aways for locations with and without mandatory bins, and for a missing location.
         LibraryWarehouse.CreateLocationWMS(BinMandatoryLocation, true, true, false, false, false);
         LibraryWarehouse.CreateLocationWMS(NonBinMandatoryLocation, false, true, false, false, false);
+        MissingLocationCode := LibraryUtility.GenerateRandomCode(BinMandatoryLocation.FieldNo(Code), Database::Location);
         MockExpiredPostedInvtPutAway(BinMandatoryPostedInvtPutAwayHeader, BinMandatoryLocation.Code);
+        MockExpiredPostedInvtPutAway(MissingLocationPostedInvtPutAwayHeader, MissingLocationCode);
         MockExpiredPostedInvtPutAway(NonBinMandatoryPostedInvtPutAwayHeader, NonBinMandatoryLocation.Code);
         EnableRetentionPolicy(RetentionPolicySetup, Database::"Posted Invt. Put-away Header");
 
         // [WHEN] Apply the posted inventory put-away retention policy.
         ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
 
-        // [THEN] The bin mandatory record remains and the other expired record is deleted.
+        // [THEN] Records for the bin mandatory and missing locations remain, and the other expired record is deleted.
         Assert.IsTrue(
             BinMandatoryPostedInvtPutAwayHeader.Get(BinMandatoryPostedInvtPutAwayHeader."No."),
             'Posted inventory put-away for a bin mandatory location must not be deleted.');
+        Assert.IsTrue(
+            MissingLocationPostedInvtPutAwayHeader.Get(MissingLocationPostedInvtPutAwayHeader."No."),
+            'Posted inventory put-away for a missing location must not be deleted.');
         Assert.IsFalse(
             NonBinMandatoryPostedInvtPutAwayHeader.Get(NonBinMandatoryPostedInvtPutAwayHeader."No."),
             'Expired posted inventory put-away for a non-bin mandatory location must be deleted.');
@@ -1638,28 +1645,35 @@ codeunit 137407 "SCM Warehouse IV"
         BinMandatoryLocation: Record Location;
         NonBinMandatoryLocation: Record Location;
         BinMandatoryPostedInvtPickHeader: Record "Posted Invt. Pick Header";
+        MissingLocationPostedInvtPickHeader: Record "Posted Invt. Pick Header";
         NonBinMandatoryPostedInvtPickHeader: Record "Posted Invt. Pick Header";
         RetentionPolicySetup: Record "Retention Policy Setup";
         ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+        MissingLocationCode: Code[10];
     begin
         // [FEATURE] [Inventory Pick] [Retention Policy] [Bin Mandatory]
         // [SCENARIO 592028] Retention policy skips posted inventory picks for bin mandatory locations.
         Initialize();
 
-        // [GIVEN] Expired posted inventory picks for locations with and without mandatory bins.
+        // [GIVEN] Expired posted inventory picks for locations with and without mandatory bins, and for a missing location.
         LibraryWarehouse.CreateLocationWMS(BinMandatoryLocation, true, false, true, false, false);
         LibraryWarehouse.CreateLocationWMS(NonBinMandatoryLocation, false, false, true, false, false);
+        MissingLocationCode := LibraryUtility.GenerateRandomCode(BinMandatoryLocation.FieldNo(Code), Database::Location);
         MockExpiredPostedInvtPick(BinMandatoryPostedInvtPickHeader, BinMandatoryLocation.Code);
+        MockExpiredPostedInvtPick(MissingLocationPostedInvtPickHeader, MissingLocationCode);
         MockExpiredPostedInvtPick(NonBinMandatoryPostedInvtPickHeader, NonBinMandatoryLocation.Code);
         EnableRetentionPolicy(RetentionPolicySetup, Database::"Posted Invt. Pick Header");
 
         // [WHEN] Apply the posted inventory pick retention policy.
         ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
 
-        // [THEN] The bin mandatory record remains and the other expired record is deleted.
+        // [THEN] Records for the bin mandatory and missing locations remain, and the other expired record is deleted.
         Assert.IsTrue(
             BinMandatoryPostedInvtPickHeader.Get(BinMandatoryPostedInvtPickHeader."No."),
             'Posted inventory pick for a bin mandatory location must not be deleted.');
+        Assert.IsTrue(
+            MissingLocationPostedInvtPickHeader.Get(MissingLocationPostedInvtPickHeader."No."),
+            'Posted inventory pick for a missing location must not be deleted.');
         Assert.IsFalse(
             NonBinMandatoryPostedInvtPickHeader.Get(NonBinMandatoryPostedInvtPickHeader."No."),
             'Expired posted inventory pick for a non-bin mandatory location must be deleted.');
