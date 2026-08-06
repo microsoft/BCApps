@@ -1200,6 +1200,147 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         Assert.AreEqual(1, FALedgerEntry.Count(), NumberFAEntryErr);
     end;
 
+    [Test]
+    procedure DirectFACounterpartReversalPreservesRoleAfterSetupChange()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        ReversingFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617341] Direct FA counterpart reversal keeps its persisted role after the book becomes a source
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        ConfigureBookAsDerogatorySource(FANo, TaxDeprBookCode);
+
+        ReverseFAEntry(CounterpartFALedgerEntry, ReversingFALedgerEntry);
+
+        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
+        CounterpartFALedgerEntry.TestField("Reversed by Entry No.", ReversingFALedgerEntry."Entry No.");
+        ReversingFALedgerEntry.TestField(
+            "Derogatory Source Entry No.", CounterpartFALedgerEntry."Derogatory Source Entry No.");
+    end;
+
+    [Test]
+    procedure DirectMaintenanceCounterpartReversalPreservesRoleAfterSetupChange()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617342] Direct maintenance counterpart reversal keeps its persisted role after the book becomes a source
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        ConfigureBookAsDerogatorySource(FANo, TaxDeprBookCode);
+
+        ReverseMaintenanceEntry(CounterpartMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
+
+        CounterpartMaintenanceLedgerEntry.Get(CounterpartMaintenanceLedgerEntry."Entry No.");
+        CounterpartMaintenanceLedgerEntry.TestField(
+            "Reversed by Entry No.", ReversingMaintenanceLedgerEntry."Entry No.");
+        ReversingMaintenanceLedgerEntry.TestField(
+            "Derogatory Source Entry No.", CounterpartMaintenanceLedgerEntry."Derogatory Source Entry No.");
+    end;
+
+    [Test]
+    procedure AcquisitionReversesOnlyItsAdjacentAutomaticSalvage()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FAJournalLine: Record "FA Journal Line";
+        FirstAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        FirstSalvageFALedgerEntry: Record "FA Ledger Entry";
+        SecondAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        SecondSalvageFALedgerEntry: Record "FA Ledger Entry";
+        ReversingAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+        SharedDocumentNo: Code[20];
+    begin
+        // [SCENARIO 617343] Shared posting metadata does not make an acquisition reverse another salvage companion
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        UpdateIntegrationInBook(NormalDeprBookCode, false);
+        DepreciationBook.Get(NormalDeprBookCode);
+        DepreciationBook."Allow Identical Document No." := true;
+        DepreciationBook.Modify();
+
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+            LibraryRandom.RandDec(10000, 2));
+        FAJournalLine.Validate("Salvage Value", -LibraryRandom.RandDec(100, 2));
+        FAJournalLine.Modify(true);
+        SharedDocumentNo := FAJournalLine."Document No.";
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        FindFALedgerEntry(
+            FirstAcquisitionFALedgerEntry, FANo, NormalDeprBookCode,
+            FirstAcquisitionFALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        FirstSalvageFALedgerEntry.Get(FirstAcquisitionFALedgerEntry."Entry No." + 1);
+
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+            LibraryRandom.RandDec(10000, 2));
+        FAJournalLine.Validate("Document No.", SharedDocumentNo);
+        FAJournalLine.Validate("Salvage Value", -LibraryRandom.RandDec(100, 2));
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        FindFALedgerEntry(
+            SecondAcquisitionFALedgerEntry, FANo, NormalDeprBookCode,
+            SecondAcquisitionFALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        SecondSalvageFALedgerEntry.Get(SecondAcquisitionFALedgerEntry."Entry No." + 1);
+
+        ReverseFAEntry(FirstAcquisitionFALedgerEntry, ReversingAcquisitionFALedgerEntry);
+
+        FirstSalvageFALedgerEntry.Get(FirstSalvageFALedgerEntry."Entry No.");
+        FirstSalvageFALedgerEntry.TestField(Reversed, true);
+        SecondAcquisitionFALedgerEntry.Get(SecondAcquisitionFALedgerEntry."Entry No.");
+        SecondAcquisitionFALedgerEntry.TestField(Reversed, false);
+        SecondSalvageFALedgerEntry.Get(SecondSalvageFALedgerEntry."Entry No.");
+        SecondSalvageFALedgerEntry.TestField(Reversed, false);
+    end;
+
+    [Test]
+    procedure AcquisitionReversalOfReversalRestoresAutomaticSalvage()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        SourceAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        FirstAcquisitionReversal: Record "FA Ledger Entry";
+        SecondAcquisitionReversal: Record "FA Ledger Entry";
+        SourceSalvageFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617344] Reversal of an acquisition reversal restores its automatic salvage companion
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        UpdateIntegrationInBook(NormalDeprBookCode, false);
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+            LibraryRandom.RandDec(10000, 2));
+        FAJournalLine.Validate("Salvage Value", -LibraryRandom.RandDec(100, 2));
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        FindFALedgerEntry(
+            SourceAcquisitionFALedgerEntry, FANo, NormalDeprBookCode,
+            SourceAcquisitionFALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        SourceSalvageFALedgerEntry.Get(SourceAcquisitionFALedgerEntry."Entry No." + 1);
+        ReverseFAEntry(SourceAcquisitionFALedgerEntry, FirstAcquisitionReversal);
+
+        ReverseFAEntry(FirstAcquisitionReversal, SecondAcquisitionReversal);
+
+        SourceAcquisitionFALedgerEntry.Get(SourceAcquisitionFALedgerEntry."Entry No.");
+        SourceAcquisitionFALedgerEntry.TestField(Reversed, false);
+        SourceSalvageFALedgerEntry.Get(SourceSalvageFALedgerEntry."Entry No.");
+        SourceSalvageFALedgerEntry.TestField(Reversed, false);
+    end;
+
     local procedure PostLinkedFAAcquisition(var SourceFALedgerEntry: Record "FA Ledger Entry"; var CounterpartFALedgerEntry: Record "FA Ledger Entry"; FANo: Code[20]; NormalDeprBookCode: Code[10]; TaxDeprBookCode: Code[10])
     var
         FAJournalLine: Record "FA Journal Line";
@@ -1319,6 +1460,19 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             FANo, NewTaxDeprBookCode, NormalFADepreciationBook."FA Posting Group",
             NormalFADepreciationBook."Depreciation Starting Date", NormalFADepreciationBook."Depreciation Ending Date");
         exit(NewTaxDeprBookCode);
+    end;
+
+    local procedure ConfigureBookAsDerogatorySource(FANo: Code[20]; SourceDeprBookCode: Code[10])
+    var
+        SourceFADepreciationBook: Record "FA Depreciation Book";
+        NewTaxDeprBookCode: Code[10];
+    begin
+        ClearDerogatoryRelationship(SourceDeprBookCode);
+        NewTaxDeprBookCode := CreateDeprBookModifyDerogCalc(SourceDeprBookCode);
+        SourceFADepreciationBook.Get(FANo, SourceDeprBookCode);
+        CreateFADeprBookWithDates(
+            FANo, NewTaxDeprBookCode, SourceFADepreciationBook."FA Posting Group",
+            SourceFADepreciationBook."Depreciation Starting Date", SourceFADepreciationBook."Depreciation Ending Date");
     end;
 
     local procedure InsertDuplicateFALinkInAnotherBook(CounterpartFALedgerEntry: Record "FA Ledger Entry")
