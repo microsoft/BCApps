@@ -175,13 +175,16 @@ codeunit 30211 "Shpfy Shop Mgt."
     internal procedure SendNorthAmericaLocalizationNotification()
     var
         MyNotifications: Record "My Notifications";
-        ExtensionManagement: Codeunit "Extension Management";
         NorthAmericaLocalizationNotification: Notification;
+        IsInstalled: Boolean;
     begin
         if not IsNorthAmericaApplicationFamily() then
             exit;
 
-        if ExtensionManagement.IsInstalledByAppId(GetNorthAmericaLocalizationAppId()) then
+        if not TryIsNorthAmericaLocalizationInstalled(IsInstalled) then
+            exit;
+
+        if IsInstalled then
             exit;
 
         if not MyNotifications.IsEnabled(GetNorthAmericaLocalizationNotificationId()) then
@@ -193,6 +196,14 @@ codeunit 30211 "Shpfy Shop Mgt."
         NorthAmericaLocalizationNotification.AddAction(InstallActionLbl, Codeunit::"Shpfy Shop Mgt.", 'InstallNorthAmericaLocalization');
         NorthAmericaLocalizationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableNorthAmericaLocalizationNotification');
         NorthAmericaLocalizationNotification.Send();
+    end;
+
+    [TryFunction]
+    local procedure TryIsNorthAmericaLocalizationInstalled(var IsInstalled: Boolean)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        IsInstalled := ExtensionManagement.IsInstalledByAppId(GetNorthAmericaLocalizationAppId());
     end;
 
     procedure InstallNorthAmericaLocalization(Notification: Notification)
