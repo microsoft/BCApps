@@ -14,6 +14,7 @@ report 313 "Vendor/Item Purchases"
     AdditionalSearchTerms = 'vendor priority';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor/Item Purchases';
+    ToolTip = 'View a list of item entries for each vendor in a selected period.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
