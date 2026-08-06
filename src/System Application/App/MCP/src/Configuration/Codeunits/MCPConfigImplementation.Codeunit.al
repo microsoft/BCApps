@@ -714,7 +714,7 @@ codeunit 8351 "MCP Config Implementation"
         // API codeunits
         // TODO(AB#641822): interim — match API codeunits by namespace until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
         CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
-        // CodeunitMetadata.SetFilter(EntityName, '<>%1', '');
+        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
 
         if CodeunitMetadata.FindSet() then
             repeat
@@ -798,7 +798,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPAPIPublisherGroup."API Group" := 'codeunits';
         MCPAPIPublisherGroup.Insert();
         // CodeunitMetadata.SetLoadFields(EntityName, APIPublisher, APIGroup);
-        // CodeunitMetadata.SetFilter(EntityName, '<>%1', '');
+        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
         // CodeunitMetadata.SetFilter(APIPublisher, '<>%1', '');
         // if not CodeunitMetadata.FindSet() then
         //     exit;
@@ -898,10 +898,10 @@ codeunit 8351 "MCP Config Implementation"
         if not CodeunitMetadata.Get(CodeunitId) then
             Error(CodeunitNotFoundErr);
 
-        // TODO(AB#641822): interim — validate by namespace until "CodeUnit Metadata" exposes EntityName. Restore the commented code below when it ships.
+        // TODO(AB#641822): interim — validate by namespace until "CodeUnit Metadata" exposes the API subtype. Restore the commented code below when it ships.
         if CodeunitMetadata."AL Namespace" <> 'Microsoft.API.Codeunits' then
             Error(InvalidCodeunitTypeErr);
-        // if CodeunitMetadata.EntityName = '' then
+        // if CodeunitMetadata.SubType <> CodeunitMetadata.SubType::API then
         //     Error(InvalidCodeunitTypeErr);
 
         exit(CodeunitMetadata);
@@ -976,10 +976,9 @@ codeunit 8351 "MCP Config Implementation"
         if (APIPublisher <> 'microsoft') or (APIGroup <> 'codeunits') then
             exit;
         CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
-        // CodeunitMetadata.SetFilter(EntityName, '<>%1', '');
+        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
         // CodeunitMetadata.SetFilter(APIPublisher, APIPublisher);
         // CodeunitMetadata.SetFilter(APIGroup, APIGroup);
-        // CodeunitMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
 
         if not CodeunitMetadata.FindSet() then
             exit;
@@ -1021,7 +1020,7 @@ codeunit 8351 "MCP Config Implementation"
             until QueryMetadata.Next() = 0;
 
         // TODO(AB#641822): standard API codeunits are intentionally NOT added here in the first version. Once "CodeUnit Metadata" exposes the API fields, decide whether "Add all standard APIs" should include them and restore the commented code below.
-        // CodeunitMetadata.SetFilter(EntityName, '<>%1', '');
+        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
         // CodeunitMetadata.SetFilter(APIPublisher, '=%1', '');
         // CodeunitMetadata.SetFilter(APIGroup, '=%1', '');
         // CodeunitMetadata.SetRange(APIVersion, 'v2.0');
