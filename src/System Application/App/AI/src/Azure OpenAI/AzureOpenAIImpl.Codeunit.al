@@ -49,6 +49,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
         FastPromptUnsupportedAuthorizationErr: Label 'Fast prompt is only supported with First Party resource utilization.';
+        TelemetryGetFastPromptLbl: Label 'Fast prompt resolved.', Locked = true;
+        FastPromptFailedErr: Label 'Fast prompt failed to be resolved.';
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -91,6 +93,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotFastPromptResponse: DotNet ALCopilotFastPromptResponse;
+        CustomDimensions: Dictionary of [Text, Text];
         EmptySecretText: SecretText;
         ErrorCode: Text;
         ErrorText: Text;
@@ -99,6 +102,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
 
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
+        CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         case ChatCompletionsAOAIAuthorization.GetResourceUtilization() of
             Enum::"AOAI Resource Utilization"::"First Party":
@@ -116,10 +120,14 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
             if ErrorText = '' then
                 ErrorText := 'Unable to retrieve fast prompt response.';
             FastPromptResponse.Set(false, EmptySecretText, ErrorCode, ErrorText);
+            CustomDimensions.Add('ErrorCode', ErrorCode);
+            FeatureTelemetry.LogError('', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit(false);
         end;
 
         FastPromptResponse.Set(ALCopilotFastPromptResponse.IsFastPrompt(), ALCopilotFastPromptResponse.Template(), ALCopilotFastPromptResponse.ErrorCode(), ALCopilotFastPromptResponse.ErrorText());
+        CustomDimensions.Add('IsFastPrompt', Format(ALCopilotFastPromptResponse.IsFastPrompt()));
+        FeatureTelemetry.LogUsage('0000MTD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         exit(ALCopilotFastPromptResponse.IsFastPrompt() and (ALCopilotFastPromptResponse.Template() <> ''));
     end;
 
