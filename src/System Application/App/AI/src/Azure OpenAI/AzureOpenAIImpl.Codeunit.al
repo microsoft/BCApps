@@ -121,7 +121,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 ErrorText := 'Unable to retrieve fast prompt response.';
             FastPromptResponse.Set(false, EmptySecretText, ErrorCode, ErrorText);
             CustomDimensions.Add('ErrorCode', ErrorCode);
-            FeatureTelemetry.LogError('', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000UZD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit(false);
         end;
 
