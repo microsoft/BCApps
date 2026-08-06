@@ -823,8 +823,8 @@
         AddSalesOrderLine(SalesOrderLine, SalesOrderHeader, 2, 42.963, 100, 0);
         UpdateQtysInLine(SalesOrderLine, 1, 1);
 
-        // [GIVEN] The value posted for the invoiced quantity is Round(1 * 42.963) = 42.96
-        ExpectedPrepmtAmtToDeduct := 42.96;
+        // [GIVEN] The value posted for the invoiced quantity is the prorated Round(1 * Round(2 * 42.963) / 2) = 42.97
+        ExpectedPrepmtAmtToDeduct := 42.97;
 
         // [GIVEN] Prepayment invoice is posted
         PostSalesPrepmtInvoice(SalesOrderHeader);
@@ -837,7 +837,7 @@
         SalesOrderLine.Validate("Qty. to Invoice", 1);
         SalesOrderLine.Modify(true);
 
-        // [THEN] "Prepmt Amt to Deduct" stays 42.96 and does not flip to 42.97
+        // [THEN] "Prepmt Amt to Deduct" stays 42.97 and does not flip to 42.96
         Assert.AreEqual(
           ExpectedPrepmtAmtToDeduct, SalesOrderLine."Prepmt Amt to Deduct",
           PrepmtAmtToDeductMisalignedErr);
@@ -851,7 +851,7 @@
         GetShipmentLine(SalesInvoiceHeader, SalesOrderHeader."Last Shipping No.");
         LibrarySales.PostSalesDocument(SalesInvoiceHeader, false, true);
 
-        // [THEN] The full posted prepayment (42.96 + 42.97 = 85.93) is deducted with no rounding lost
+        // [THEN] The full posted prepayment (42.97 + 42.96 = 85.93) is deducted with no rounding lost
         SalesOrderLine.Find();
         SalesOrderLine.TestField("Prepmt Amt Deducted", SalesOrderLine."Prepmt. Amt. Inv.");
     end;

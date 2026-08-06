@@ -822,8 +822,8 @@
         AddPurchOrderLine(PurchOrderLine, PurchOrderHeader, 2, 42.963, 100, 0);
         UpdateQtysInLine(PurchOrderLine, 1, 1);
 
-        // [GIVEN] The value posted for the invoiced quantity is Round(1 * 42.963) = 42.96
-        ExpectedPrepmtAmtToDeduct := 42.96;
+        // [GIVEN] The value posted for the invoiced quantity is the prorated Round(1 * Round(2 * 42.963) / 2) = 42.97
+        ExpectedPrepmtAmtToDeduct := 42.97;
 
         // [GIVEN] Prepayment invoice is posted
         PostPurchPrepmtInvoice(PurchOrderHeader);
@@ -836,7 +836,7 @@
         PurchOrderLine.Validate("Qty. to Invoice", 1);
         PurchOrderLine.Modify(true);
 
-        // [THEN] "Prepmt Amt to Deduct" stays 42.96 and does not flip to 42.97
+        // [THEN] "Prepmt Amt to Deduct" stays 42.97 and does not flip to 42.96
         Assert.AreEqual(
           ExpectedPrepmtAmtToDeduct, PurchOrderLine."Prepmt Amt to Deduct",
           PrepmtAmtToDeductMisalignedErr);
@@ -850,7 +850,7 @@
         GetReceiptLine(PurchInvoiceHeader, PurchOrderHeader."Last Receiving No.");
         LibraryPurchase.PostPurchaseDocument(PurchInvoiceHeader, false, true);
 
-        // [THEN] The full posted prepayment (42.96 + 42.97 = 85.93) is deducted with no rounding lost
+        // [THEN] The full posted prepayment (42.97 + 42.96 = 85.93) is deducted with no rounding lost
         PurchOrderLine.Find();
         PurchOrderLine.TestField("Prepmt Amt Deducted", PurchOrderLine."Prepmt. Amt. Inv.");
     end;
