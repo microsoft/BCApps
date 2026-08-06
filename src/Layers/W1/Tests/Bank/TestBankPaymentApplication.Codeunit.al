@@ -24,6 +24,17 @@ codeunit 134263 "Test Bank Payment Application"
         Initialized: Boolean;
         ExcessiveAmtErr: Label 'You must apply the excessive amount of %1 %2 manually.', Comment = '%1 a decimal number, %2 currency code';
         WrongStmEndBalanceErr: Label '%1 must be equal to Total Balance.', Comment = '%1 is a field caption';
+        InvoiceAmountMustBePositiveErr: Label 'Invoice amount must be greater than zero.';
+        VendorDoesNotExistErr: Label 'Vendor %1 does not exist.', Comment = '%1 vendor no.';
+        PostedVendLedgEntryNotFoundErr: Label 'Posted vendor ledger entry for document %1 was not found.', Comment = '%1 document no.';
+        ExchRateAdjmtFailedErr: Label 'Exchange rate adjustment failed for document %1: %2', Comment = '%1 document no., %2 error text';
+        DocumentNoMustNotBeBlankErr: Label 'Document No. must not be blank.';
+        DocNoExistsInGLErr: Label 'Document No. %1 already exists in G/L entries. Use a unique document number.', Comment = '%1 document no.';
+        DocNoExistsInVendLedgErr: Label 'Document No. %1 already exists in vendor ledger entries. Use a unique document number.', Comment = '%1 document no.';
+        DocNoExistsAsJnlLineErr: Label 'Document No. %1 already exists as an unposted journal line in %2/%3.', Comment = '%1 document no., %2 journal template, %3 journal batch';
+        VendorHasOpenEntriesErr: Label 'Expected vendor %1 to have no open ledger entries after payment application, but open entries were found.', Comment = '%1 vendor no.';
+        InvoiceNotOnPrimaryAccountErr: Label 'Expected invoice %1 to post to primary payables account %2, but no amount was found on that account.', Comment = '%1 document no., %2 account no.';
+        MissingPrepaymentAdjustmentErr: Label 'Expected a non-zero pre-payment exchange adjustment on primary payables account %1 for document %2, but amount is %3.', Comment = '%1 account no., %2 document no., %3 amount';
 
     [Test]
     [Scope('OnPrem')]
@@ -2204,15 +2215,19 @@ codeunit 134263 "Test Bank Payment Application"
     end;
 
     local procedure GetTwoVendorPostingGroupsWithDifferentPayablesAccounts(var FirstPostingGroupCode: Code[20]; var SecondPostingGroupCode: Code[20]; var FirstPayablesAccountNo: Code[20]; var SecondPayablesAccountNo: Code[20])
+    var
+        FirstVendorPostingGroup: Record "Vendor Posting Group";
+        SecondVendorPostingGroup: Record "Vendor Posting Group";
     begin
-        // Build dedicated fixtures instead of relying on ambient chart-of-accounts data (previously the demo
-        // payables accounts 5420 and 6130). Each vendor posting group gets its own newly created payables
-        // control account, guaranteeing two distinct accounts and a deterministic scenario across environments
-        // and upgrades. The posting groups themselves are created by EnsureVendorPostingGroupForTest.
-        FirstPayablesAccountNo := LibraryERM.CreateGLAccountNo();
-        SecondPayablesAccountNo := LibraryERM.CreateGLAccountNo();
-        FirstPostingGroupCode := GetUniqueCode20('VPG');
-        SecondPostingGroupCode := GetUniqueCode20('VPG');
+        // Build dedicated fixtures via the test libraries instead of relying on ambient chart-of-accounts data
+        // (previously the demo payables accounts 5420 and 6130). Each vendor posting group is created with its own
+        // newly generated payables control account, guaranteeing two distinct accounts and a deterministic scenario.
+        LibraryPurch.CreateVendorPostingGroup(FirstVendorPostingGroup);
+        LibraryPurch.CreateVendorPostingGroup(SecondVendorPostingGroup);
+        FirstPostingGroupCode := FirstVendorPostingGroup.Code;
+        SecondPostingGroupCode := SecondVendorPostingGroup.Code;
+        FirstPayablesAccountNo := FirstVendorPostingGroup."Payables Account";
+        SecondPayablesAccountNo := SecondVendorPostingGroup."Payables Account";
     end;
 
     local procedure GetUniqueCode20(Prefix: Text): Code[20]
@@ -2249,7 +2264,7 @@ codeunit 134263 "Test Bank Payment Application"
         PaymentAmountLCY: Decimal;
     begin
         if InvoiceAmountFCY <= 0 then
-            Error('Invoice amount must be greater than zero.');
+            Error(InvoiceAmountMustBePositiveErr);
 
         AssertDocumentNoIsAvailableForTest(InvoiceDocumentNo, JournalTemplateName, JournalBatchName);
         AssertDocumentNoIsAvailableForTest(AdjustmentDocumentNo, JournalTemplateName, JournalBatchName);
@@ -2257,13 +2272,14 @@ codeunit 134263 "Test Bank Payment Application"
         AssertDocumentNoIsAvailableForTest(PaymentDocumentNo, JournalTemplateName, JournalBatchName);
 
         ConfigurePurchasesMultiplePostingGroupsSetupForTest();
-        EnsureVendorPostingGroupForTest(InvoiceVendorPostingGroup, PrimaryPayablesAccountNo);
-        EnsureVendorPostingGroupForTest(PaymentVendorPostingGroup, SecondaryPayablesAccountNo);
-        EnsureAlternativeVendorPostingGroupForTest(InvoiceVendorPostingGroup, PaymentVendorPostingGroup);
-        EnsureAlternativeVendorPostingGroupForTest(PaymentVendorPostingGroup, InvoiceVendorPostingGroup);
+        // The two vendor posting groups (and their payables accounts) are created by
+        // GetTwoVendorPostingGroupsWithDifferentPayablesAccounts; here we only link them as alternatives so the
+        // invoice's group and the payment's group are mutually substitutable for the multi-posting-group scenario.
+        LibraryPurch.CreateAltVendorPostingGroup(InvoiceVendorPostingGroup, PaymentVendorPostingGroup);
+        LibraryPurch.CreateAltVendorPostingGroup(PaymentVendorPostingGroup, InvoiceVendorPostingGroup);
 
         if not Vendor.Get(VendorNo) then
-            Error('Vendor %1 does not exist.', VendorNo);
+            Error(VendorDoesNotExistErr, VendorNo);
 
         if Vendor."Currency Code" <> CurrencyCode then
             Vendor.Validate("Currency Code", CurrencyCode);
@@ -2348,7 +2364,7 @@ codeunit 134263 "Test Bank Payment Application"
         PostedDocNo: Code[20];
     begin
         if not Vend.Get(VendorNo) then
-            Error('Vendor %1 does not exist.', VendorNo);
+            Error(VendorDoesNotExistErr, VendorNo);
 
         // Repro Bug 643355 posts the invoice on a direct G/L account line with a No-Tax VAT product group.
         // Create an expense account fully set up for purchase, align the vendor's Gen./VAT Bus. posting groups
@@ -2381,7 +2397,7 @@ codeunit 134263 "Test Bank Payment Application"
         VendLedgEntry.SetRange("Document Type", VendLedgEntry."Document Type"::Invoice);
         VendLedgEntry.SetRange("Document No.", PostedDocNo);
         if not VendLedgEntry.FindFirst() then
-            Error('Posted vendor ledger entry for document %1 was not found.', PostedDocNo);
+            Error(PostedVendLedgEntryNotFoundErr, PostedDocNo);
     end;
 
     local procedure ConfigurePurchasesMultiplePostingGroupsSetupForTest()
@@ -2394,35 +2410,6 @@ codeunit 134263 "Test Bank Payment Application"
         if PurchasesPayablesSetup."Check Multiple Posting Groups" <> PurchasesPayablesSetup."Check Multiple Posting Groups"::"Alternative Groups" then
             PurchasesPayablesSetup.Validate("Check Multiple Posting Groups", PurchasesPayablesSetup."Check Multiple Posting Groups"::"Alternative Groups");
         PurchasesPayablesSetup.Modify(true);
-    end;
-
-    local procedure EnsureVendorPostingGroupForTest(VendorPostingGroupCode: Code[20]; PayablesAccountNo: Code[20])
-    var
-        VendorPostingGroup: Record "Vendor Posting Group";
-    begin
-        if not VendorPostingGroup.Get(VendorPostingGroupCode) then begin
-            VendorPostingGroup.Init();
-            VendorPostingGroup.Validate(Code, VendorPostingGroupCode);
-            VendorPostingGroup.Insert(true);
-        end;
-
-        if VendorPostingGroup."Payables Account" <> PayablesAccountNo then begin
-            VendorPostingGroup.Validate("Payables Account", PayablesAccountNo);
-            VendorPostingGroup.Modify(true);
-        end;
-    end;
-
-    local procedure EnsureAlternativeVendorPostingGroupForTest(VendorPostingGroupCode: Code[20]; AltVendorPostingGroupCode: Code[20])
-    var
-        AltVendorPostingGroup: Record "Alt. Vendor Posting Group";
-    begin
-        if AltVendorPostingGroup.Get(VendorPostingGroupCode, AltVendorPostingGroupCode) then
-            exit;
-
-        AltVendorPostingGroup.Init();
-        AltVendorPostingGroup.Validate("Vendor Posting Group", VendorPostingGroupCode);
-        AltVendorPostingGroup.Validate("Alt. Vendor Posting Group", AltVendorPostingGroupCode);
-        AltVendorPostingGroup.Insert(true);
     end;
 
     local procedure UpsertCurrencyExchangeRateForTest(CurrencyCode: Code[10]; StartingDate: Date; ExchangeRateAmount: Decimal; RelationalRateAmount: Decimal)
@@ -2478,7 +2465,7 @@ codeunit 134263 "Test Bank Payment Application"
             LastErr := GetLastErrorText();
             if LastErr = '' then
                 LastErr := 'Unknown error while running exchange rate adjustment.';
-            Error('Exchange rate adjustment failed for document %1: %2', AdjustmentDocumentNo, LastErr);
+            Error(ExchRateAdjmtFailedErr, AdjustmentDocumentNo, LastErr);
         end;
     end;
 
@@ -2540,21 +2527,21 @@ codeunit 134263 "Test Bank Payment Application"
         GenJournalLine: Record "Gen. Journal Line";
     begin
         if DocumentNo = '' then
-            Error('Document No. must not be blank.');
+            Error(DocumentNoMustNotBeBlankErr);
 
         GLEntry.SetRange("Document No.", DocumentNo);
         if not GLEntry.IsEmpty() then
-            Error('Document No. %1 already exists in G/L entries. Use a unique document number.', DocumentNo);
+            Error(DocNoExistsInGLErr, DocumentNo);
 
         VendorLedgerEntry.SetRange("Document No.", DocumentNo);
         if not VendorLedgerEntry.IsEmpty() then
-            Error('Document No. %1 already exists in vendor ledger entries. Use a unique document number.', DocumentNo);
+            Error(DocNoExistsInVendLedgErr, DocumentNo);
 
         GenJournalLine.SetRange("Journal Template Name", JournalTemplateName);
         GenJournalLine.SetRange("Journal Batch Name", JournalBatchName);
         GenJournalLine.SetRange("Document No.", DocumentNo);
         if not GenJournalLine.IsEmpty() then
-            Error('Document No. %1 already exists as an unposted journal line in %2/%3.', DocumentNo, JournalTemplateName, JournalBatchName);
+            Error(DocNoExistsAsJnlLineErr, DocumentNo, JournalTemplateName, JournalBatchName);
     end;
 
     local procedure VerifyVendorFcyApplicationControlAccountsBalancedForTest(VendorNo: Code[20]; PostingDateFrom: Date; PostingDateTo: Date; PrimaryPayablesAccountNo: Code[20]; SecondaryPayablesAccountNo: Code[20])
@@ -2596,21 +2583,17 @@ codeunit 134263 "Test Bank Payment Application"
         VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
         VendorLedgerEntry.SetRange(Open, true);
         if not VendorLedgerEntry.IsEmpty() then
-            Error('Expected vendor %1 to have no open ledger entries after payment application, but open entries were found.', VendorNo);
+            Error(VendorHasOpenEntriesErr, VendorNo);
 
         // 2) The invoice must actually post to the primary payables account (guards against the wrong-account bug).
         InvoicePrimaryAmount := GetGLAmountByDocumentAndAccountForTest(InvoiceDocumentNo, PrimaryPayablesAccountNo);
         if Round(InvoicePrimaryAmount, 0.01) = 0 then
-            Error(
-              'Expected invoice %1 to post to primary payables account %2, but no amount was found on that account.',
-              InvoiceDocumentNo, PrimaryPayablesAccountNo);
+            Error(InvoiceNotOnPrimaryAccountErr, InvoiceDocumentNo, PrimaryPayablesAccountNo);
 
         // 3) The pre-payment exchange adjustment must have produced an unrealized adjustment on the primary payables account.
         PrePaymentAdjustmentPrimaryAmount := GetGLAmountByDocumentAndAccountForTest(PrePaymentAdjustmentDocumentNo, PrimaryPayablesAccountNo);
         if Round(PrePaymentAdjustmentPrimaryAmount, 0.01) = 0 then
-            Error(
-              'Expected a non-zero pre-payment exchange adjustment on primary payables account %1 for document %2, but amount is %3.',
-              PrimaryPayablesAccountNo, PrePaymentAdjustmentDocumentNo, PrePaymentAdjustmentPrimaryAmount);
+            Error(MissingPrepaymentAdjustmentErr, PrimaryPayablesAccountNo, PrePaymentAdjustmentDocumentNo, PrePaymentAdjustmentPrimaryAmount);
     end;
 
     local procedure VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom: Date; PostingDateTo: Date; GLAccountNo: Code[20]): Decimal
