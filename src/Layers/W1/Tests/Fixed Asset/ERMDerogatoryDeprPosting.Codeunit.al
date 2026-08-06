@@ -1148,6 +1148,58 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             CounterpartSalvageReversal, ReversingSalvageFALedgerEntry."Entry No.", TaxDeprBookCode);
     end;
 
+    [Test]
+    procedure TaxBookAcquisitionReversesSameBookAutomaticSalvageOnce()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        FALedgerEntry: Record "FA Ledger Entry";
+        SourceAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        ReversingAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        SourceSalvageFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartSalvageFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+        FALedgerEntryCount: Integer;
+    begin
+        // [SCENARIO 617340] Direct tax-book acquisition reversal reverses its automatic salvage companion once
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        UpdateIntegrationInBook(NormalDeprBookCode, false);
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+            LibraryRandom.RandDec(10000, 2));
+        FAJournalLine.Validate("Salvage Value", -LibraryRandom.RandDec(100, 2));
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        FindFALedgerEntry(
+            SourceAcquisitionFALedgerEntry, FANo, NormalDeprBookCode,
+            SourceAcquisitionFALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        FindLinkedFAEntry(
+            CounterpartAcquisitionFALedgerEntry, SourceAcquisitionFALedgerEntry."Entry No.", TaxDeprBookCode);
+        FindFALedgerEntry(
+            SourceSalvageFALedgerEntry, FANo, NormalDeprBookCode,
+            SourceSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
+        FindLinkedFAEntry(
+            CounterpartSalvageFALedgerEntry, SourceSalvageFALedgerEntry."Entry No.", TaxDeprBookCode);
+        FALedgerEntryCount := FALedgerEntry.Count();
+
+        ReverseFAEntry(CounterpartAcquisitionFALedgerEntry, ReversingAcquisitionFALedgerEntry);
+
+        CounterpartAcquisitionFALedgerEntry.Get(CounterpartAcquisitionFALedgerEntry."Entry No.");
+        CounterpartSalvageFALedgerEntry.Get(CounterpartSalvageFALedgerEntry."Entry No.");
+        CounterpartAcquisitionFALedgerEntry.TestField(
+            "Reversed by Entry No.", ReversingAcquisitionFALedgerEntry."Entry No.");
+        CounterpartSalvageFALedgerEntry.TestField(Reversed, true);
+        SourceAcquisitionFALedgerEntry.Get(SourceAcquisitionFALedgerEntry."Entry No.");
+        SourceSalvageFALedgerEntry.Get(SourceSalvageFALedgerEntry."Entry No.");
+        SourceAcquisitionFALedgerEntry.TestField(Reversed, false);
+        SourceSalvageFALedgerEntry.TestField(Reversed, false);
+        Assert.AreEqual(FALedgerEntryCount + 2, FALedgerEntry.Count(), NumberFAEntryErr);
+        FALedgerEntry.SetRange("Reversed Entry No.", CounterpartSalvageFALedgerEntry."Entry No.");
+        Assert.AreEqual(1, FALedgerEntry.Count(), NumberFAEntryErr);
+    end;
+
     local procedure PostLinkedFAAcquisition(var SourceFALedgerEntry: Record "FA Ledger Entry"; var CounterpartFALedgerEntry: Record "FA Ledger Entry"; FANo: Code[20]; NormalDeprBookCode: Code[10]; TaxDeprBookCode: Code[10])
     var
         FAJournalLine: Record "FA Journal Line";
