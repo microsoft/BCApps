@@ -1984,9 +1984,9 @@ codeunit 99000854 "Inventory Profile Offsetting"
               SupplyInvtProfile."Quantity (Base)" -
               TempQty +
               SupplyInvtProfile."Remaining Quantity (Base)";
-            
-            OnDecreaseQtyOnBeforeSupplyInvtProfileModify(SupplyInvtProfile, ReduceQty, TempSKU);    
+              
             SupplyInvtProfile.Modify();
+            OnDecreaseQtyOnAfterSupplyInvtProfileModify(SupplyInvtProfile, ReduceQty, TempSKU);  
         end;   
 
         exit(SupplyInvtProfile."Untracked Quantity" = 0);
@@ -6112,7 +6112,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnDecreaseQtyOnBeforeSupplyInvtProfileModify(var SupplyInvtProfile: Record "Inventory Profile"; ReduceQty: Decimal; var TempSKU: Record "Stockkeeping Unit" temporary)
+    local procedure OnDecreaseQtyOnAfterSupplyInvtProfileModify(SupplyInvtProfile: Record "Inventory Profile"; ReduceQty: Decimal; var TempSKU: Record "Stockkeeping Unit" temporary)
     begin
     end;
 }
