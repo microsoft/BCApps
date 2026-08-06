@@ -33,7 +33,7 @@ page 812 "API Overview"
                 field("Object Type"; Rec."Object Type")
                 {
                     Caption = 'Type';
-                    ToolTip = 'Specifies whether the API is implemented as an API page (supports read and write operations) or as an API query (read-only set of data).';
+                    ToolTip = 'Specifies whether the API is implemented as an API page (read and write operations), an API query (read-only set of data), or an API codeunit (operations exposed as unbound actions).';
                 }
                 field("Object ID"; Rec."Object ID")
                 {
@@ -83,6 +83,11 @@ page 812 "API Overview"
             Caption = 'API Queries';
             Filters = where("Object Type" = const(Query));
         }
+        view("API Codeunits")
+        {
+            Caption = 'API Codeunits';
+            Filters = where("Object Type" = const(Codeunit));
+        }
         view(APIv2)
         {
             Caption = 'API v2.0';
@@ -110,6 +115,7 @@ page 812 "API Overview"
         TempAPILine: Record "API Overview Buffer" temporary;
         PageMetadata: Record "Page Metadata";
         QueryMetadata: Record "Query Metadata";
+        CodeunitMetadata: Record "CodeUnit Metadata";
         LineNo: Integer;
         EntryNo: Integer;
     begin
@@ -148,6 +154,31 @@ page 812 "API Overview"
                 TempAPILine.Insert();
             until QueryMetadata.Next() = 0;
 
+        // API codeunits
+        // TODO(AB#641822): interim - "CodeUnit Metadata" does not yet expose the API fields, so match
+        // API codeunits by namespace and use fixed microsoft/codeunits/beta. Restore the commented
+        // field-based code when it ships.
+        CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
+        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
+        if CodeunitMetadata.FindSet() then
+            repeat
+                LineNo += 1;
+                TempAPILine.Init();
+                TempAPILine."Entry No." := LineNo;
+                TempAPILine."Object Type" := TempAPILine."Object Type"::Codeunit;
+                TempAPILine."Object ID" := CodeunitMetadata.ID;
+                TempAPILine.Description := CodeunitMetadata.Name;
+                TempAPILine."Entity Name" := CopyStr(CodeunitMetadata.Name.Replace(' ', ''), 1, MaxStrLen(TempAPILine."Entity Name"));
+                TempAPILine."API Publisher" := 'microsoft';
+                TempAPILine."API Group" := 'codeunits';
+                TempAPILine."API Version" := 'beta';
+                // TempAPILine."Entity Name" := CodeunitMetadata.EntityName;
+                // TempAPILine."API Publisher" := CodeunitMetadata.APIPublisher;
+                // TempAPILine."API Group" := CodeunitMetadata.APIGroup;
+                // TempAPILine."API Version" := CodeunitMetadata.APIVersion;
+                TempAPILine.Insert();
+            until CodeunitMetadata.Next() = 0;
+
         TempAPILine.SetCurrentKey("API Publisher", "API Group", Description);
         if TempAPILine.FindSet() then
             repeat
@@ -167,6 +198,10 @@ page 812 "API Overview"
                 exit(GetUrl(ClientType::Api, CompanyName(), ObjectType::Page, APIBuffer."Object ID"));
             APIBuffer."Object Type"::Query:
                 exit(GetUrl(ClientType::Api, CompanyName(), ObjectType::Query, APIBuffer."Object ID"));
+            APIBuffer."Object Type"::Codeunit:
+                // API codeunits expose one endpoint per procedure (unbound action), so there is no single
+                // URL at the codeunit level; the URL column is left blank for codeunit rows.
+                exit('');
         end;
     end;
 }
