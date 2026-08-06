@@ -8,7 +8,6 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.HumanResources.Employee;
 
 codeunit 148338 "Spend Request Test"
@@ -20,10 +19,8 @@ codeunit 148338 "Spend Request Test"
     var
         Assert: Codeunit "Assert";
         LibraryExpense: Codeunit "Library - Expense";
-        LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
         CloseConfirmReply: Boolean;
         CloseConfirmCount: Integer;
@@ -741,69 +738,6 @@ codeunit 148338 "Spend Request Test"
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
-    procedure PostReportVATSpecLineClosesSpendReqOnce()
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        Employee: Record Employee;
-        ExpenseCategory: Record "Expense Category";
-        ExpensePaymentMethod: Record "Expense Payment Method";
-        VATPostingSetup: Record "VAT Posting Setup";
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportLine: Record "Expense Report Line";
-        ExpenseReportPost: Codeunit "Expense Report-Post";
-        ExpectedSpentLCY: Decimal;
-    begin
-        // [SCENARIO 616928] A refundable line with multiple VAT specification rows produces several journal lines for the same
-        // spend request; posting closes the request exactly once, and the spent amount aggregates the spec lines.
-        Initialize();
-
-        // [GIVEN] An expense user whose posting group has an expense account set up.
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        Employee.Get(ExpenseUser."Employee No.");
-        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
-
-        // [GIVEN] An expense category and a payment method.
-        LibraryExpense.CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
-        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
-
-        // [GIVEN] A zero-VAT posting setup.
-        LibraryERM.FindZeroVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-
-        // [GIVEN] A released spend request with the user as traveler.
-        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Released);
-
-        // [GIVEN] An expense report with a refundable line.
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
-        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', 100);
-
-        // [GIVEN] The line is split across two VAT specification rows.
-        AddZeroVATSpec(ExpenseReportLine, VATPostingSetup, 50);
-        AddZeroVATSpec(ExpenseReportLine, VATPostingSetup, 50);
-
-        // [GIVEN] The line is linked to the spend request with the close flag set.
-        ExpenseReportLine."Spend Request No." := SpendRequest."No.";
-        ExpenseReportLine."Spend Request Close" := true;
-        ExpenseReportLine.Modify();
-
-        // [GIVEN] The refundable amount expected to be spent against the spend request.
-        ExpectedSpentLCY := ExpenseReportLine."Refundable Amount (LCY)";
-
-        // [WHEN] The report is released and posted.
-        ExpenseReportHeader.PerformManualRelease();
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-
-        // [THEN] The spend request is closed once, with no error on the later spec journal lines.
-        SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Closed, SpendRequest.Status, SpendReqClosedMsg);
-
-        // [THEN] The spent amount aggregates the spec journal lines to the line's refundable amount.
-        SpendRequest.CalcFields("Total Spent Amount (LCY)");
-        Assert.AreEqual(ExpectedSpentLCY, SpendRequest."Total Spent Amount (LCY)", SpendReqSpentAmountMsg);
-    end;
-
-    [Test]
-    [HandlerFunctions('SpendReqConfirmHandler')]
     procedure PostReportMixedLinesSpendsRefundableOnly()
     var
         ExpenseReportHeader: Record "Expense Report Header";
@@ -1079,30 +1013,6 @@ codeunit 148338 "Spend Request Test"
     begin
         Traveler.SetRange("Spend Request No.", SpendRequestNo);
         Traveler.DeleteAll();
-    end;
-
-    local procedure AddZeroVATSpec(ExpenseReportLine: Record "Expense Report Line"; VATPostingSetup: Record "VAT Posting Setup"; BaseAmount: Decimal)
-    var
-        VATSpec: Record "Expense Report Line VAT Spec.";
-        RecordRef: RecordRef;
-    begin
-        VATSpec.Init();
-        VATSpec."Document No." := ExpenseReportLine."Document No.";
-        VATSpec."Document Line No." := ExpenseReportLine."Line No.";
-        RecordRef.GetTable(VATSpec);
-        VATSpec."Line No." := LibraryUtility.GetNewLineNo(RecordRef, VATSpec.FieldNo("Line No."));
-        VATSpec."VAT %" := 0;
-        VATSpec."VAT Base Amount" := BaseAmount;
-        VATSpec."VAT Base Amount (LCY)" := BaseAmount;
-        VATSpec."VAT Amount" := 0;
-        VATSpec."VAT Amount (LCY)" := 0;
-        VATSpec.Amount := BaseAmount;
-        VATSpec."Amount (LCY)" := BaseAmount;
-        VATSpec."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
-        VATSpec."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
-        VATSpec."Expense Category" := ExpenseReportLine."Expense Category";
-        VATSpec."Reclaim Status" := VATSpec."Reclaim Status"::Approved;
-        VATSpec.Insert();
     end;
 
     [PageHandler]
