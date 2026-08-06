@@ -26,7 +26,7 @@ codeunit 137010 "SCM Revaluation"
         ErrorCostMustBeEqual: Label 'Cost must be Equal';
         ErrorGeneratedMustBeSame: Label 'Error Generated Must Be Same';
         UndoReceiptErrorMessage: Label 'You cannot undo line %1, because a revaluation has already been posted.';
-        ReturnReceiptAlreadyReversedErr: Label 'This return receipt has already been reversed.';
+        ReturnReceiptNoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
         DimensionValueErr: Label 'Dimension value should be match';
 
     [Test]
@@ -803,7 +803,7 @@ codeunit 137010 "SCM Revaluation"
         ReturnReceiptLine.FindFirst();
         asserterror UndoSalesReturnReceipt(SalesReturnOrderNo, ItemNo);
         Assert.AreEqual(
-          ReturnReceiptAlreadyReversedErr, GetLastErrorText,
+          ReturnReceiptNoLinesToReverseErr, GetLastErrorText,
           ErrorGeneratedMustBeSame);
     end;
 
@@ -819,7 +819,7 @@ codeunit 137010 "SCM Revaluation"
             WorkDate(), ItemJournalLine."Document No.", true, "Inventory Value Calc. Per"::Item,
             true, false, false, "Inventory Value Calc. Base"::" ", false); // ByLocation = true
         Commit();
-        
+
         CalculateInventoryValue.UseRequestPage(false);
         CalculateInventoryValue.SetItemJnlLine(ItemJournalLine);
         Item.SetRange("No.", Item."No.");
