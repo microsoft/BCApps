@@ -22,10 +22,9 @@ codeunit 10840 "Upgrade Payment Management FR"
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if CurrentModuleInfo.AppVersion().Major() < 31 then
-            exit;
+        if CurrentModuleInfo.AppVersion().Major() >= 31 then
+            UpgradePayment();
 
-        UpgradePayment();
         UpgradePaymentStepObjectIDs();
     end;
 
@@ -50,6 +49,12 @@ codeunit 10840 "Upgrade Payment Management FR"
         // migration, so their payment steps would otherwise keep pointing at the base application objects.
         // The remapping is idempotent, so it does not matter whether the data was migrated just now or earlier.
         if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetPaymentStepObjectIDsUpgradeTag()) then
+            exit;
+
+        // Only a company whose payment data was migrated can have payment steps that point at the base
+        // application objects. Marking the remapping as done for a company that has not migrated yet would
+        // skip the remapping of the data that the upgrade to version 31 migrates later.
+        if not UpgradeTag.HasUpgradeTag(UpgTagPayment.GetPaymentUpgradeTag()) then
             exit;
 
         PaymentDataMigrationFR.RemapPaymentStepObjectIDs();
