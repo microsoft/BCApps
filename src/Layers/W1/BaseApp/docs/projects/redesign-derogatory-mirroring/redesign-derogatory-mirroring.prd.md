@@ -22,7 +22,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 | Draft the Plan | Completed | Architecture, decisions, traceability, files, tests, release gates, and atomic implementation items are populated below. |
 | Review and Refine | Completed | An independent SddPlanner compliance review identified reversal, corrective-upgrade, localization, CLEAN29, compatibility, event, and file-specificity gaps; all blocking and high-severity findings were resolved in this version. |
 | PRD Review | DONE | EPIC-001 requirements, traceability, files, tests, dependencies, constraints, and pre-existing worktree changes were reviewed. |
-| Implementation | DONE | W1 generated-mirror containment, automatic-only continuation, and FA/general-journal salvage identity linkage were completed with focused tests. |
+| Implementation | DONE | EPIC-001 posting/linkage invariants and EPIC-002 link-authoritative FA/maintenance reversal were completed with focused tests. |
 | Review | DONE | Independent code review findings were resolved; W1 BaseApp and Fixed Asset test projects compile successfully. |
 
 ## 1. Goals and Non-Goals
@@ -303,12 +303,14 @@ The schema remains one-way: source entries retain a zero link; counterpart entri
 | ITEM-006 | Preserve single-parameter `InsertFA`/`InsertMaintenance` procedures as delegates, return actual identities from overloads, and validate source existence/identity/book/duplicate state with the dedicated link keys before inserting counterparts. | DONE | `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/FAInsertLedgerEntry.Codeunit.al`, `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/DerogatoryPostingMgt.Codeunit.al` |
 | ITEM-007 | Keep acquisition amount/line preparation in the manager and retain only execution in the general-journal and FA-journal adapters; keep both `REVIEW(redesign-derogatory-mirroring)` markers and prevent double posting with G/L integration on or off. | DONE | `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/DerogatoryPostingMgt.Codeunit.al`, `src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/FAJnlPostBatch.Codeunit.al` |
 
-- EPIC-002: Make reversal link-authoritative
+- EPIC-002: Make reversal link-authoritative — DONE
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-008 | For FA reversal, query counterparts by persisted source link before current setup. Reverse one result and error on multiple. With zero, use heuristic matching only when the marker is true; otherwise evaluate current `Derogatory Posting Mgt.` eligibility, raising missing only when eligible and performing only the normal reversal when ineligible. Link each tax reversal to the new normal reversal. | Not Started | `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/FAInsertLedgerEntry.Codeunit.al`, `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/DerogatoryPostingMgt.Codeunit.al` |
-| ITEM-009 | Apply the same link-first algorithm to maintenance, preserve reversal/reversal-of-reversal marks, include automatic salvage companions, and raise explicit missing/multiple errors for non-legacy entries that require a counterpart. | Not Started | `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/FAInsertLedgerEntry.Codeunit.al`, `src/Layers/W1/BaseApp/FixedAssets/Maintenance/MaintenanceLedgerEntry.Table.al` |
+| ITEM-008 | For FA reversal, query counterparts by persisted source link before current setup. Reverse one result and error on multiple. With zero, use heuristic matching only when the marker is true; otherwise evaluate current `Derogatory Posting Mgt.` eligibility, raising missing only when eligible and performing only the normal reversal when ineligible. Link each tax reversal to the new normal reversal. | DONE | `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/FAInsertLedgerEntry.Codeunit.al`, `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/DerogatoryPostingMgt.Codeunit.al` |
+| ITEM-009 | Apply the same link-first algorithm to maintenance, preserve reversal/reversal-of-reversal marks, include automatic salvage companions, and raise explicit missing/multiple errors for non-legacy entries that require a counterpart. | DONE | `src/Layers/W1/BaseApp/FixedAssets/FixedAsset/FAInsertLedgerEntry.Codeunit.al`, `src/Layers/W1/BaseApp/FixedAssets/Maintenance/MaintenanceLedgerEntry.Table.al` |
+
+Implementation notes (2026-08-06): FA and maintenance reversal now perform a dedicated-key lookup by persisted source entry before consulting mutable setup, reject global duplicate links, retain setup-independent marker-gated legacy fallback, and link reversal chains. Acquisition reversal also reverses automatic salvage companions before the primary entry so FA consistency and persisted counterpart links remain valid. W1 BaseApp and Fixed Asset tests compile; all 15 named EPIC-002 tests pass in the local W1 runtime.
 
 - EPIC-003: Correct French runtime routing and compatibility
 
@@ -366,4 +368,5 @@ The schema remains one-way: source entries retain a zero link; counterpart entri
 
 ## 15. Change Log
 
+- 2026-08-06: Completed EPIC-002 link-authoritative FA/maintenance reversal and focused reversal coverage.
 - 2026-08-05: Version 1.0 created from `redesign-derogatory-mirroring.req.md`, AL semantic research, current implementation evidence, and Octane PRD standards.
