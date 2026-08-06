@@ -5004,8 +5004,11 @@ codeunit 137407 "SCM Warehouse IV"
     end;
 
     local procedure EnableRetentionPolicy(var RetentionPolicySetup: Record "Retention Policy Setup"; TableId: Integer)
+    var
+        RetentionPolicy: Codeunit "Retention Policy Setup";
     begin
         RetentionPolicySetup.Get(TableId);
+        RetentionPolicySetup.Validate("Retention Period", RetentionPolicy.FindOrCreateRetentionPeriod(Enum::"Retention Period Enum"::"1 Year"));
         RetentionPolicySetup.Validate(Enabled, true);
         RetentionPolicySetup.Modify(true);
     end;

@@ -130,6 +130,7 @@ codeunit 3995 "Base Application Logs Delete"
             RecRef.MarkedOnly(true);
         end;
 
+        Location.SetLoadFields("Bin Mandatory");
         if RecRef.FindSet() then
             repeat
                 LocationCode := LocationCodeFieldRef.Value;
