@@ -3374,7 +3374,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine.SetRange("Document No.", ReceivedPurchaseOrderNo);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.FindFirst();
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         PurchaseHeader.Get(PurchaseLine."Document Type", ReceivedPurchaseOrderNo);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 

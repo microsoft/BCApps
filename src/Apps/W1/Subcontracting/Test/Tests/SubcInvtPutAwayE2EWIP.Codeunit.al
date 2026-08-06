@@ -812,6 +812,8 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseActivityLine.FindFirst();
 
         // [THEN] Quantity field is filled from Qty. Outstanding (not Quantity Base, which remains 0)
+        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The inventory pick line must inherit Transfer WIP Item from the transfer line.');
+        Assert.AreEqual(0, WarehouseActivityLine."Qty. per Unit of Measure", 'WIP activity lines must have zero Qty. per Unit of Measure.');
         Assert.AreEqual(Quantity, WarehouseActivityLine."Qty. to Handle", 'AutoFill must populate Qty. to Handle from Quantity.');
         Assert.AreEqual(0, WarehouseActivityLine."Qty. to Handle (Base)", 'Qty. to Handle (Base) must remain zero for WIP lines.');
 

@@ -79,13 +79,13 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     procedure SubcontractingSetupWizardShowsCompanyDefaultsAndConfigurationLinks()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
-        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
-        ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
-        CreateProdOrderInfoLine: Boolean;
-        SubcDefaultCompLocation: Enum "Components at Location";
         SubcCompTransferLeadTime: DateFormula;
+        CreateProdOrderInfoLine: Boolean;
         SubcontractingBatchName: Code[10];
         SubcontractingTemplateName: Code[10];
+        SubcDefaultCompLocation: Enum "Components at Location";
+        ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
     begin
         // [SCENARIO 642233] The setup wizard displays the installed company defaults and the next configuration links.
         Initialize();
@@ -157,9 +157,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
         GuidedExperience: Codeunit "Guided Experience";
-        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         CreateProdOrderInfoLine: Boolean;
         OriginalCreateProdOrderInfoLine: Boolean;
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
     begin
         // [SCENARIO 642233] Finishing the setup guide saves changes and marks the assisted setup as completed.
         Initialize();
@@ -838,21 +838,21 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         ControlNotExistMsg: Label 'Control %1 does not exist.', Comment = '%1 = field caption';
-        SubcontractingActionsVisibleErr: Label 'Subcontractor Prices action should not be visible for a non-subcontracting Work Center.';
-        SubcontractingActionsEnabledErr: Label 'Subcontractor Prices action should not be enabled for a non-subcontracting Work Center.';
-        SubcontractingActionsNotVisibleErr: Label 'Subcontractor Prices action should be visible for a subcontracting Work Center.';
-        SubcontractingActionsNotEnabledErr: Label 'Subcontractor Prices action should be enabled for a subcontracting Work Center.';
         ILEProdActionsEnabledErr: Label 'Production actions should not be enabled for a non-subcontracting Item Ledger Entry.';
         ILEProdActionsNotEnabledErr: Label 'Production actions should be enabled for a subcontracting Item Ledger Entry.';
         ILEPurchActionsEnabledErr: Label 'Purchase Order action should not be enabled for a non-subcontracting Item Ledger Entry.';
         ILEPurchActionsNotEnabledErr: Label 'Purchase Order action should be enabled for a subcontracting Item Ledger Entry.';
         SetupNotCompletedQst: Label 'The Subcontracting setup is not complete. Are you sure you want to exit?';
+        SubcontractingActionsEnabledErr: Label 'Subcontractor Prices action should not be enabled for a non-subcontracting Work Center.';
+        SubcontractingActionsNotEnabledErr: Label 'Subcontractor Prices action should be enabled for a subcontracting Work Center.';
+        SubcontractingActionsNotVisibleErr: Label 'Subcontractor Prices action should be visible for a subcontracting Work Center.';
+        SubcontractingActionsVisibleErr: Label 'Subcontractor Prices action should not be visible for a non-subcontracting Work Center.';
 }
