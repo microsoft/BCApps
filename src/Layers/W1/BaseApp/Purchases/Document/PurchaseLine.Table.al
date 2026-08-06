@@ -9353,11 +9353,13 @@ table 39 "Purchase Line"
     /// If line type is blank, comment label is returned.
     /// </remarks>
     /// <returns>Formated text of the line type.</returns>
+    #if not CLEAN29
     [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
     procedure FormatType(): Text[20]
     begin
         exit(CopyStr(FormatTypeAsText(), 1, 20));
     end;
+    #endif
 
     /// <summary>
     /// Gets the text representation of the line type for the purchase line.
@@ -10793,11 +10795,13 @@ table 39 "Purchase Line"
     begin
     end;
 
+    #if not CLEAN29
     [Obsolete('Use OnBeforeFormatTypeAsText instead.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
     begin
     end;
+    #endif
 
     /// <summary>
     /// Raised before the purchase line type is formatted as text.

@@ -353,11 +353,13 @@ table 174 "Standard Purchase Line"
         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
     end;
 
+    #if not CLEAN29
     [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
     procedure FormatType(): Text[20]
     begin
         exit(CopyStr(FormatTypeAsText(), 1, 20));
     end;
+    #endif
 
     procedure FormatTypeAsText(): Text[30]
     begin

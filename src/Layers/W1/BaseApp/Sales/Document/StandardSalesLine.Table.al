@@ -404,11 +404,13 @@ table 171 "Standard Sales Line"
     /// Formats the line type for display, returning 'Comment' for blank types.
     /// </summary>
     /// <returns>The formatted type text.</returns>
+    #if not CLEAN29
     [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
     procedure FormatType(): Text[20]
     begin
         exit(CopyStr(FormatTypeAsText(), 1, 20));
     end;
+    #endif
 
     procedure FormatTypeAsText(): Text[30]
     begin

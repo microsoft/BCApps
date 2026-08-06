@@ -10687,11 +10687,13 @@ table 37 "Sales Line"
     /// Blank line type is represented by the comment label.
     /// </remarks>
     /// <returns>The text representation of the line type.</returns>
+    #if not CLEAN29
     [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
     procedure FormatType(): Text[20]
     begin
         exit(CopyStr(FormatTypeAsText(), 1, 20));
     end;
+    #endif
 
     procedure FormatTypeAsText() FormattedType: Text[30]
     var
@@ -12509,11 +12511,13 @@ table 37 "Sales Line"
     /// <param name="SalesLine">The sales line being processed.</param>
     /// <param name="FormattedType">The formatted type text.</param>
     /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    #if not CLEAN29
     [Obsolete('Use OnBeforeFormatTypeAsText instead.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
     begin
     end;
+    #endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatTypeAsText(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
