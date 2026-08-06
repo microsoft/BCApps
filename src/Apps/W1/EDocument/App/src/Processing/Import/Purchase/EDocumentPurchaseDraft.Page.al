@@ -214,7 +214,7 @@ page 6181 "E-Document Purchase Draft"
                     begin
                         UpdateTotal();
                         EDocumentPurchaseHeader.Modify();
-                        GlobalEDocumentNotification.EvaluateSubTotalMismatchOnHeaderEdit(EDocumentPurchaseHeader);
+                        GlobalEDocumentNotification.RefreshAndShowSubTotalMismatchAfterHeaderEdit(EDocumentPurchaseHeader);
                         CurrPage.Update();
                     end;
                 }
@@ -267,7 +267,7 @@ page 6181 "E-Document Purchase Draft"
                     trigger OnValidate()
                     begin
                         EDocumentPurchaseHeader.Modify();
-                        GlobalEDocumentNotification.EvaluateSubTotalMismatchOnHeaderEdit(EDocumentPurchaseHeader);
+                        GlobalEDocumentNotification.RefreshAndShowSubTotalMismatchAfterHeaderEdit(EDocumentPurchaseHeader);
                         CurrPage.Update();
                     end;
                 }
@@ -529,10 +529,7 @@ page 6181 "E-Document Purchase Draft"
         HasErrors := false;
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
-        // Refresh the persisted mismatch state before the notifications below are sent, so the
-        // sub-total notification is sent once, together with the other pending ones.
-        GlobalEDocumentNotification.EvaluateSubTotalMismatch(EDocumentPurchaseHeader);
-        GlobalEDocumentNotification.SendPurchaseDocumentDraftNotifications(Rec."Entry No");
+        GlobalEDocumentNotification.RefreshAndShowPendingDraftNotifications(Rec."Entry No");
         if PurchasesPayablesSetup.Get() then
             ApplyVATDiffEnabled := PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc";
 

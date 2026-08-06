@@ -590,7 +590,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [WHEN] Evaluating the mismatch for "L2" as deleted, before the row is removed from the database
         ExpectSubTotalMismatchNotification(EDocument."Entry No");
-        EDocumentNotification.EvaluateSubTotalMismatchOnLineEdit(EDocumentPurchaseLine, true);
+        EDocumentNotification.RefreshAndShowSubTotalMismatchAfterLineDeletion(EDocumentPurchaseLine);
 
         // [THEN] The remaining line subtotal of 500 no longer matches the header and the notification is shown
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Deleting a line must exclude it from the lines subtotal and create a notification.');
@@ -626,7 +626,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         VerifySubTotalMismatchNotificationShown();
 
         // [WHEN] Evaluating the mismatch for "L2" as deleted
-        EDocumentNotification.EvaluateSubTotalMismatchOnLineEdit(EDocumentPurchaseLine, true);
+        EDocumentNotification.RefreshAndShowSubTotalMismatchAfterLineDeletion(EDocumentPurchaseLine);
 
         // [THEN] The remaining line subtotal of 1000 matches the header and the notification is removed
         Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Deleting the diverging line must remove the notification.');
@@ -696,6 +696,64 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
 
         // [THEN] The notification is not sent a second time
         VerifyNotificationSentCount(1);
+    end;
+
+    [Test]
+    procedure RefreshSubTotalMismatchPersistsWithoutShowingNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentNotification: Codeunit "E-Document Notification";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Refreshing the Sub Total mismatch state persists the notification without showing it
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" with header Sub Total 1000 and a single line of 500
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
+
+        // [WHEN] Refreshing the Sub Total mismatch state, with no notification handler registered
+        EDocumentNotification.RefreshSubTotalMismatch(EDocumentPurchaseHeader);
+
+        // [THEN] The notification is persisted, and nothing was shown - a shown notification would fail this test as unhandled
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Refreshing must persist the Sub Total Mismatch notification.');
+    end;
+
+    [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure OnlyHeaderEditRefreshReArmsDismissedNotification()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentNotification: Codeunit "E-Document Notification";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A plain refresh keeps a dismissal, while a refresh after a header edit re-arms it
+        Initialize();
+
+        // [GIVEN] An inbound e-document "E" whose header Sub Total 1000 does not match its single line of 500
+        CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
+        CreatePurchaseLine(EDocumentPurchaseLine, EDocument, 1, 500);
+
+        // [GIVEN] The user dismissed the Sub Total Mismatch notification for "E"
+        SetSubTotalMismatchDismissed(EDocument."Entry No", true);
+
+        // [WHEN] Refreshing the state without an amount edit
+        EDocumentNotification.RefreshSubTotalMismatch(EDocumentPurchaseHeader);
+
+        // [THEN] The notification stays dismissed
+        Assert.IsTrue(GetSubTotalMismatchDismissed(EDocument."Entry No"), 'A plain refresh must not re-arm a dismissed notification.');
+
+        // [WHEN] Refreshing after a header amount edit
+        ExpectSubTotalMismatchNotification(EDocument."Entry No");
+        EDocumentNotification.RefreshAndShowSubTotalMismatchAfterHeaderEdit(EDocumentPurchaseHeader);
+
+        // [THEN] The notification is re-armed and shown again
+        Assert.IsFalse(GetSubTotalMismatchDismissed(EDocument."Entry No"), 'A refresh after a header edit must re-arm a dismissed notification.');
+        VerifySubTotalMismatchNotificationShown();
     end;
 
     local procedure Initialize()

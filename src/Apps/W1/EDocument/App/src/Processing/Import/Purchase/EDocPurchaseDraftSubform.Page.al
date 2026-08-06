@@ -385,7 +385,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        EDocumentNotification.EvaluateSubTotalMismatchOnLineEdit(Rec, true);
+        EDocumentNotification.RefreshAndShowSubTotalMismatchAfterLineDeletion(Rec);
         exit(true);
     end;
 
@@ -430,7 +430,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 Error(DiscountExceedsSubtotalErr);
         if not UserModifiedAmount then
             exit;
-        EDocumentNotification.EvaluateSubTotalMismatchOnLineEdit(Rec, false);
+        EDocumentNotification.RefreshAndShowSubTotalMismatchAfterLineEdit(Rec);
     end;
 
     local procedure SetHasAdditionalColumns()
