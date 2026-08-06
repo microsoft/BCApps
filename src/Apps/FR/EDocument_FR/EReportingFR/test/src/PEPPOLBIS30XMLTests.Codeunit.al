@@ -952,7 +952,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Order Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Shipment Nos."));
-        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        CreateDirectPostingGLAccountWithSalesSetup(GLAccount);
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
@@ -1000,7 +1000,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
-        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        CreateDirectPostingGLAccountWithSalesSetup(GLAccount);
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
@@ -1144,7 +1144,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Credit Memo Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Credit Memo Nos."));
-        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        CreateDirectPostingGLAccountWithSalesSetup(GLAccount);
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
@@ -1195,6 +1195,13 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             GeneralLedgerSetup."LCY Code" := 'EUR';
             GeneralLedgerSetup.Modify(true);
         end;
+    end;
+
+    local procedure CreateDirectPostingGLAccountWithSalesSetup(var GLAccount: Record "G/L Account")
+    begin
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        GLAccount.Validate("Direct Posting", true);
+        GLAccount.Modify(true);
     end;
 
 }
