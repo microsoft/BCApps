@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Test;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Setup;
 
@@ -22,6 +23,7 @@ codeunit 137039 "SCM Manuf Low Level Code"
         ManufacturingSetup: Record "Manufacturing Setup";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         isInitialized: Boolean;
 
@@ -190,6 +192,46 @@ codeunit 137039 "SCM Manuf Low Level Code"
         RestoreManufacturingSetup(TempManufacturingSetup);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure LowLevelCodeWithSKULevelProductionBOM()
+    var
+        CompItem: Record Item;
+        SemiItem: Record Item;
+        FinishedItem: Record Item;
+        TempManufacturingSetup: Record "Manufacturing Setup" temporary;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        LocationCode: Code[10];
+    begin
+        // [SCENARIO 635868] Multi-level BOMs assigned on Stockkeeping Units must get correct Low-Level Codes in a single pass.
+        // [GIVEN] Dynamic Low-Level Code enabled.
+        Initialize();
+        UpdateManufacturingSetup(TempManufacturingSetup, true);
+        LocationCode := CreateLocation();
+
+        // [GIVEN] Three items: Component, Semi-finished and Finished, none carrying an Item-card Production BOM.
+        LibraryInventory.CreateItem(CompItem);
+        LibraryInventory.CreateItem(SemiItem);
+        LibraryInventory.CreateItem(FinishedItem);
+
+        // [GIVEN] Semi-finished item has a certified BOM (with the Component) assigned on its SKU.
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, CompItem."No.", '', SemiItem."Base Unit of Measure", false);
+        CreateSKUWithProdBOM(SemiItem."No.", LocationCode, ProductionBOMHeader."No.");
+
+        // [GIVEN] Finished item has a certified BOM (with the Semi-finished item) assigned on its SKU.
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, SemiItem."No.", '', FinishedItem."Base Unit of Measure", false);
+        CreateSKUWithProdBOM(FinishedItem."No.", LocationCode, ProductionBOMHeader."No.");
+
+        // [THEN] Low-Level Codes reflect the full multi-level SKU BOM structure without a second calculation.
+        VerifyLowLevelCode(FinishedItem."No.", '', 0);
+        VerifyLowLevelCode(SemiItem."No.", '', 1);
+        VerifyLowLevelCode(CompItem."No.", '', 2);
+
+        // Tear Down: Dynamic Low-Level Code set to Default in Manufacturing setup.
+        RestoreManufacturingSetup(TempManufacturingSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -257,6 +299,22 @@ codeunit 137039 "SCM Manuf Low Level Code"
         Item.Get(ItemNo);
         Item.Validate("Production BOM No.", ProductionBOMNo);
         Item.Modify(true);
+    end;
+
+    local procedure CreateLocation(): Code[10]
+    var
+        Location: Record Location;
+    begin
+        exit(LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location));
+    end;
+
+    local procedure CreateSKUWithProdBOM(ItemNo: Code[20]; LocationCode: Code[10]; ProductionBOMNo: Code[20])
+    var
+        StockkeepingUnit: Record "Stockkeeping Unit";
+    begin
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, LocationCode, ItemNo, '');
+        StockkeepingUnit.Validate("Production BOM No.", ProductionBOMNo);
+        StockkeepingUnit.Modify(true);
     end;
 
     local procedure UpdateProductionBom(var ProductionBOMHeader: Record "Production BOM Header"; ItemNo: Code[20])
