@@ -640,6 +640,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         NormalDeprBookCode: Code[10];
         TaxDeprBookCode: Code[10];
         AutomaticSourceCount: Integer;
+        FAPostingDate: Date;
     begin
         // [SCENARIO 617321] Automatic-only depreciation still produces linked tax-book companions
 
@@ -655,6 +656,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         FAJournalLine.Validate("FA Posting Date", CalcDate('<1Y>', WorkDate()));
         FAJournalLine.Validate("Depr. until FA Posting Date", true);
         FAJournalLine.Modify(true);
+        FAPostingDate := FAJournalLine."FA Posting Date";
 
         // [WHEN] A zero-amount depreciation line creates only automatic entries
         LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
@@ -662,7 +664,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         // [THEN] Every automatic normal-book entry created on that date has one linked tax-book companion
         SourceFALedgerEntry.SetRange("FA No.", FANo);
         SourceFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
-        SourceFALedgerEntry.SetRange("FA Posting Date", FAJournalLine."FA Posting Date");
+        SourceFALedgerEntry.SetRange("FA Posting Date", FAPostingDate);
         SourceFALedgerEntry.SetRange("Automatic Entry", true);
         SourceFALedgerEntry.FindSet();
         repeat
