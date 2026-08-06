@@ -1178,8 +1178,16 @@ table 6907 "Expense Report Line"
 
     procedure GetPolicyStatus(): Enum "Expense Policy Status"
     begin
-        if Rec."Policies Evaluated At" = 0DT then
+        if Rec."Policies Evaluated At" = 0DT then begin
+            // A line that has never been evaluated but has no policy targeting its category is
+            // already compliant - there is nothing to run against it, so report it Cleared rather
+            // than "Not Evaluated". This avoids a Pending badge on lines that will never produce a
+            // flag. Only the never-evaluated branch is short-circuited; a stale line keeps its
+            // existing status until it is re-evaluated.
+            if not HasApplicablePolicies() then
+                exit("Expense Policy Status"::Cleared);
             exit("Expense Policy Status"::"Not Evaluated");
+        end;
 
         if Rec."Evaluated Policy Version" < Rec."Policy Eval Version" then
             exit("Expense Policy Status"::Stale);
@@ -1189,6 +1197,19 @@ table 6907 "Expense Report Line"
             exit("Expense Policy Status"::Flagged);
 
         exit("Expense Policy Status"::Cleared);
+    end;
+
+    local procedure HasApplicablePolicies(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        // Mirrors the applicability rule used by the policies-to-evaluate endpoint: an enabled
+        // report-line policy whose category matches the line or is blank (blank applies to every
+        // category).
+        ExpensePolicy.SetRange("Subject Type", ExpensePolicy."Subject Type"::"Expense Report Line");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', Rec."Expense Category", '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 
     procedure MarkPoliciesEvaluated()

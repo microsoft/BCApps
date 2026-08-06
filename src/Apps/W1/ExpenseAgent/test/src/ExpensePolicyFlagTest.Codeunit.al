@@ -26,12 +26,15 @@ codeunit 148338 "Expense Policy Flag Test"
     procedure NewReportLineStartsNotEvaluated()
     var
         ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
     begin
-        // [SCENARIO] A freshly inserted report line starts at Policy Eval Version 0, unevaluated, status Not Evaluated.
+        // [SCENARIO] A freshly inserted report line with an applicable policy starts at Policy Eval Version 0, unevaluated, status Not Evaluated.
         Initialize();
 
-        // [WHEN] A report line is created.
+        // [WHEN] A report line is created and a policy targets its category.
         CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Applies to the line category');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [THEN] Policy Eval Version is 0, no evaluation timestamp, and the status is Not Evaluated.
         Assert.AreEqual(0, ExpenseReportLine."Policy Eval Version", 'Policy Eval Version should be 0 on insert.');
@@ -121,10 +124,13 @@ codeunit 148338 "Expense Policy Flag Test"
     procedure InvalidateBeforeEvaluationIsNoOp()
     var
         ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
     begin
         // [SCENARIO] InvalidatePolicyEvaluation on a never-evaluated line is a no-op (guard against staling a held handle).
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Applies to the line category');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [WHEN] The evaluation is invalidated before any evaluation ever happened.
         ExpenseReportLine.InvalidatePolicyEvaluation();
@@ -637,6 +643,101 @@ codeunit 148338 "Expense Policy Flag Test"
 
         // [THEN] The updated policy is listed again as needing evaluation.
         Assert.IsTrue(TempPolicyToEval.Get(ExpenseReportLine.SystemId, ExpensePolicy.SystemId), 'A policy bumped to a new version must be listed for re-evaluation.');
+    end;
+
+    // --- Status of never-evaluated lines -----------------------------------------------------
+
+    [Test]
+    procedure UnevaluatedLineWithNoApplicablePoliciesIsCleared()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] A never-evaluated line whose category has no policy is Cleared, not "Not Evaluated".
+        Initialize();
+
+        // [GIVEN] A fresh report line and no policies at all.
+        CreateTestReportLine(ExpenseReportLine);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+
+        // [THEN] The line reports Cleared because nothing needs to be evaluated against it.
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with no applicable policy must be Cleared.');
+    end;
+
+    [Test]
+    procedure UnevaluatedLineWithApplicablePolicyIsNotEvaluated()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        MatchingPolicy: Record "Expense Policy";
+    begin
+        // [SCENARIO] A never-evaluated line whose category has an applicable policy is "Not Evaluated".
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+
+        // [GIVEN] An enabled policy that targets the line's category.
+        CreateTestPolicy(MatchingPolicy, ExpenseReportLine."Expense Category", 'Matches the line category');
+
+        // [THEN] The line is "Not Evaluated" because a policy still needs to run against it.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with an applicable policy must be Not Evaluated.');
+    end;
+
+    [Test]
+    procedure UnevaluatedLineWithBlankCategoryPolicyIsNotEvaluated()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        BlankCategoryPolicy: Record "Expense Policy";
+    begin
+        // [SCENARIO] A blank-category policy applies to every line, so a never-evaluated line is "Not Evaluated".
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+
+        // [GIVEN] An enabled policy with a blank category (applies to all categories).
+        CreateTestPolicy(BlankCategoryPolicy, '', 'Applies to every category');
+
+        // [THEN] The line is "Not Evaluated" because the blank-category policy applies to it.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with a blank-category policy must be Not Evaluated.');
+    end;
+
+    [Test]
+    procedure UnevaluatedLineWithOnlyOtherCategoryPolicyIsCleared()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        OtherCategoryPolicy: Record "Expense Policy";
+        OtherCategory: Record "Expense Category";
+    begin
+        // [SCENARIO] A policy for a different category does not apply, so a never-evaluated line is Cleared.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+
+        // [GIVEN] An enabled policy that targets a different category only.
+        LibraryExpense.CreateExpenseCategory(OtherCategory, OtherCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ", '');
+        CreateTestPolicy(OtherCategoryPolicy, OtherCategory.Code, 'Belongs to another category');
+
+        // [THEN] The line is Cleared because no policy targets its category.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with only a different-category policy must be Cleared.');
+    end;
+
+    [Test]
+    procedure UnevaluatedLineWithDisabledPolicyIsCleared()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        DisabledPolicy: Record "Expense Policy";
+    begin
+        // [SCENARIO] A disabled policy is not applicable, so a never-evaluated line is Cleared.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+
+        // [GIVEN] A policy for the line's category that is disabled.
+        CreateTestPolicy(DisabledPolicy, ExpenseReportLine."Expense Category", 'Disabled policy');
+        DisabledPolicy.Get(DisabledPolicy."Subject Type", DisabledPolicy."Line No.");
+        DisabledPolicy.Enabled := false;
+        DisabledPolicy.Modify(true);
+
+        // [THEN] The line is Cleared because the only matching policy is disabled.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line whose only matching policy is disabled must be Cleared.');
     end;
 
     // --- Fixtures ----------------------------------------------------------------------------
