@@ -113,7 +113,10 @@ codeunit 3995 "Base Application Logs Delete"
         LocationCodeFieldRef: FieldRef;
         RecordId: RecordId;
         RecordsToExclude: List of [RecordId];
+        LocationBinMandatory: Dictionary of [Code[10], Boolean];
+        LocationExists: Dictionary of [Code[10], Boolean];
         LocationCode: Code[10];
+        LocationExistsForCode: Boolean;
     begin
         case RecRef.Number of
             Database::"Posted Invt. Pick Header":
@@ -136,14 +139,22 @@ codeunit 3995 "Base Application Logs Delete"
         if RecRef.FindSet() then
             repeat
                 LocationCode := LocationCodeFieldRef.Value;
-                if LocationCode <> '' then
-                    if Location.Get(LocationCode) then begin
-                        if Location."Bin Mandatory" then
-                            RecordsToExclude.Add(RecRef.RecordId);
-                    end else begin
+                if LocationCode <> '' then begin
+                    if not LocationExists.ContainsKey(LocationCode) then begin
+                        LocationExistsForCode := Location.Get(LocationCode);
+                        LocationExists.Add(LocationCode, LocationExistsForCode);
+                        if LocationExistsForCode then
+                            LocationBinMandatory.Add(LocationCode, Location."Bin Mandatory");
+                    end else
+                        LocationExistsForCode := LocationExists.Get(LocationCode);
+
+                    if not LocationExistsForCode then begin
                         RecordsToExclude.Add(RecRef.RecordId);
-                        RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(LocationNotFoundErr, LocationCode, RecRef.RecordId));
-                    end;
+                        RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(LocationNotFoundErr, LocationCode, RecRef.RecordId), false);
+                    end else
+                        if LocationBinMandatory.Get(LocationCode) then
+                            RecordsToExclude.Add(RecRef.RecordId);
+                end;
             until RecRef.Next() = 0;
 
         foreach RecordId in RecordsToExclude do begin
