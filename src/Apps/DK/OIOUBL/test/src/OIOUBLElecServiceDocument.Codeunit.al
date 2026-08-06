@@ -2102,9 +2102,10 @@ codeunit 148055 "OIOUBL-Elec. Service Document"
     var
         Customer: Record Customer;
     begin
-        Customer.SETFILTER(GLN, '<>%1', '');
-        Customer.FINDFIRST();
-        exit(Customer.GLN);
+        Customer.SetFilter(GLN, '<>%1', '');
+        if Customer.FindFirst() then
+            exit(Customer.GLN);
+        exit('3974567891234');
     end;
 
     local procedure SetDefaultDocumentSendingProfile(DiskType: Option; DiskFormatCode: Code[20]);
