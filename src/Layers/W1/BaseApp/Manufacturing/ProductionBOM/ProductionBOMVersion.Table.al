@@ -75,7 +75,6 @@ table 99000779 "Production BOM Version"
             var
                 PlanningAssignment: Record "Planning Assignment";
                 ProdBOMHeader: Record "Production BOM Header";
-                ProdBOMLineRec: Record "Production BOM Line";
                 ProdBOMCheck: Codeunit "Production BOM-Check";
                 IsHandled: Boolean;
                 SkipCommit: Boolean;
@@ -86,13 +85,7 @@ table 99000779 "Production BOM Version"
                     exit;
 
                 if (Status <> xRec.Status) and (Status = Status::Certified) then begin
-                    ProdBOMLineRec.SetLoadFields("Production BOM No.", "Version Code", "Line No.", Type, "No.", "Variant Code");
-                    ProdBOMLineRec.SetRange("Production BOM No.", "Production BOM No.");
-                    ProdBOMLineRec.SetRange("Version Code", "Version Code");
-                    if ProdBOMLineRec.FindSet() then
-                        repeat
-                            CheckVariantIfMandatory(ProdBOMLineRec);
-                        until ProdBOMLineRec.Next() = 0;
+                    CheckVariantMandatoryOnLines();
                     ProdBOMCheck.ProdBOMLineCheck("Production BOM No.", "Version Code");
                     TestField("Unit of Measure Code");
                     ProdBOMHeader.Get("Production BOM No.");
@@ -175,6 +168,19 @@ table 99000779 "Production BOM Version"
         Text001: Label 'You cannot rename the %1 when %2 is %3.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+
+    local procedure CheckVariantMandatoryOnLines()
+    var
+        ProdBOMLineRec: Record "Production BOM Line";
+    begin
+        ProdBOMLineRec.SetLoadFields("Production BOM No.", "Version Code", "Line No.", Type, "No.", "Variant Code");
+        ProdBOMLineRec.SetRange("Production BOM No.", "Production BOM No.");
+        ProdBOMLineRec.SetRange("Version Code", "Version Code");
+        if ProdBOMLineRec.FindSet() then
+            repeat
+                CheckVariantIfMandatory(ProdBOMLineRec);
+            until ProdBOMLineRec.Next() = 0;
+    end;
 
     local procedure CheckVariantIfMandatory(var ProductionBOMLine: Record "Production BOM Line")
     var
