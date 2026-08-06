@@ -1354,7 +1354,7 @@ table 115 "Sales Cr.Memo Line"
         SalesLine: Record "Sales Line";
     begin
         if Type = Type::" " then
-            exit(SalesLine.FormatType());
+            exit(SalesLine.FormatTypeAsText());
 
         exit(Format(Type));
     end;

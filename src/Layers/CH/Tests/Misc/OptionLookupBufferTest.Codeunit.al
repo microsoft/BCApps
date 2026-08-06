@@ -38,7 +38,7 @@
         Assert.RecordCount(TempOptionLookupBuffer, 11);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(SalesLine.FormatType());
+        TempOptionLookupBuffer.Get(SalesLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(SalesLine.Type::"G/L Account"));
@@ -68,7 +68,7 @@
         Assert.RecordCount(TempOptionLookupBuffer, 12);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(SalesLine.FormatType());
+        TempOptionLookupBuffer.Get(SalesLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(SalesLine.Type::"G/L Account"));
@@ -100,7 +100,7 @@
 
         // [WHEN] The sales line type is formatted
         // [THEN] The complete localized caption is returned
-        Assert.AreEqual(ExpectedTypeCaption, SalesLine.FormatType(), 'The formatted sales line type was truncated.');
+        Assert.AreEqual(ExpectedTypeCaption, SalesLine.FormatTypeAsText(), 'The formatted sales line type was truncated.');
     end;
 
     [Test]
@@ -119,7 +119,7 @@
 
         // [WHEN] The purchase line type is formatted
         // [THEN] The complete localized caption is returned
-        Assert.AreEqual(ExpectedTypeCaption, PurchaseLine.FormatType(), 'The formatted purchase line type was truncated.');
+        Assert.AreEqual(ExpectedTypeCaption, PurchaseLine.FormatTypeAsText(), 'The formatted purchase line type was truncated.');
     end;
 
     [Test]
@@ -137,7 +137,7 @@
 
         // [WHEN] The sales line type is formatted
         // [THEN] The complete subscriber-provided text is returned
-        Assert.AreEqual(LongFormattedTypeTxt, SalesLine.FormatType(), 'The subscriber-provided sales line type was truncated.');
+        Assert.AreEqual(LongFormattedTypeTxt, SalesLine.FormatTypeAsText(), 'The subscriber-provided sales line type was truncated.');
     end;
 
     [Test]
@@ -155,18 +155,18 @@
 
         // [WHEN] The purchase line type is formatted
         // [THEN] The complete subscriber-provided text is returned
-        Assert.AreEqual(LongFormattedTypeTxt, PurchaseLine.FormatType(), 'The subscriber-provided purchase line type was truncated.');
+        Assert.AreEqual(LongFormattedTypeTxt, PurchaseLine.FormatTypeAsText(), 'The subscriber-provided purchase line type was truncated.');
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeFormatType', '', false, false)]
-    local procedure OnBeforeSalesLineFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeFormatTypeAsText', '', false, false)]
+    local procedure OnBeforeSalesLineFormatTypeAsText(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
         FormattedType := LongFormattedTypeTxt;
         IsHandled := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeFormatType', '', false, false)]
-    local procedure OnBeforePurchaseLineFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeFormatTypeAsText', '', false, false)]
+    local procedure OnBeforePurchaseLineFormatTypeAsText(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
         FormattedType := LongFormattedTypeTxt;
         IsHandled := true;
@@ -202,7 +202,7 @@
         Assert.RecordCount(TempOptionLookupBuffer, 7);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(PurchaseLine.FormatType());
+        TempOptionLookupBuffer.Get(PurchaseLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(PurchaseLine.Type::"G/L Account"));
@@ -367,9 +367,9 @@
         SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.Type::Resource));
 
         // [WHEN] Setting the Subtype on the Sales Line to co
-        SalesInvoice.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatType(), 1, 2));
+        SalesInvoice.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to Comment
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -388,12 +388,12 @@
         // [WHEN] Setting the Subtype on the Sales Line to ' '
         SalesInvoice.SalesLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
 
         // [WHEN] Setting the Subtype on the Sales Line to ''
         SalesInvoice.SalesLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -645,9 +645,9 @@
         PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.Type::Item));
 
         // [WHEN] Setting the Subtype on the purchase line to 'co'
-        PurchaseOrder.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatType(), 1, 2));
+        PurchaseOrder.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to "Comment"
-        PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.FormatType()));
+        PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.FormatTypeAsText()));
     end;
 
     [ModalPageHandler]
