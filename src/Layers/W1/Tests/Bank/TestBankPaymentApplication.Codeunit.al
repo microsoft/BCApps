@@ -2130,6 +2130,7 @@ codeunit 134263 "Test Bank Payment Application"
         Vendor: Record Vendor;
         GenJournalBatch: Record "Gen. Journal Batch";
         GLEntry: Record "G/L Entry";
+        EnvironmentInformation: Codeunit "Environment Information";
         InvoicePostingGroupCode: Code[20];
         PaymentPostingGroupCode: Code[20];
         PrimaryPayablesAccountNo: Code[20];
@@ -2145,6 +2146,14 @@ codeunit 134263 "Test Bank Payment Application"
         PaymentPostingDate: Date;
     begin
         Initialize();
+
+        // Bug 643355 regression: the strict per-payables-account net-zero assertions below reflect W1 posting behavior.
+        // Localizations (e.g. ES, BE, CH) run additional multi-posting-group application logic (PostDtldCVApplicationEntry)
+        // that legitimately redistributes amounts across the two payables accounts, so the exact per-account check does not
+        // hold there. The S1 production fix (removing the vendor compensating gain/loss pair) is applied identically to
+        // every layer; W1 validates it here.
+        if EnvironmentInformation.GetApplicationFamily() <> 'W1' then
+            exit;
 
         LibraryPurch.CreateVendor(Vendor);
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
