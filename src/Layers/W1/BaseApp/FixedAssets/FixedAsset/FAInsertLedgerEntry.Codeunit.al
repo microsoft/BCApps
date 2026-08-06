@@ -729,9 +729,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         AutomaticSalvageEntryNo: Integer;
         NewAutomaticSalvageEntryNo: Integer;
     begin
-        if (OriginalFALedgerEntry."FA Posting Type" <> OriginalFALedgerEntry."FA Posting Type"::"Acquisition Cost") or
-           (OriginalFALedgerEntry."Derogatory Source Entry No." <> 0)
-        then
+        if OriginalFALedgerEntry."FA Posting Type" <> OriginalFALedgerEntry."FA Posting Type"::"Acquisition Cost" then
             exit;
 
         AutomaticSalvageFALedgerEntry.SetCurrentKey(
@@ -749,7 +747,10 @@ codeunit 5600 "FA Insert Ledger Entry"
         AutomaticSalvageFALedgerEntry.SetRange("Posting Date", OriginalFALedgerEntry."Posting Date");
         AutomaticSalvageFALedgerEntry.SetRange("FA Posting Date", OriginalFALedgerEntry."FA Posting Date");
         AutomaticSalvageFALedgerEntry.SetRange("Reversed by Entry No.", 0);
-        AutomaticSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.", 0);
+        if OriginalFALedgerEntry."Derogatory Source Entry No." = 0 then
+            AutomaticSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.", 0)
+        else
+            AutomaticSalvageFALedgerEntry.SetFilter("Derogatory Source Entry No.", '<>%1', 0);
         if AutomaticSalvageFALedgerEntry.FindSet() then
             repeat
                 AutomaticSalvageEntryNos.Add(AutomaticSalvageFALedgerEntry."Entry No.");
