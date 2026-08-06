@@ -1959,8 +1959,6 @@ codeunit 134897 "ERM Source Currency"
         LibraryHumanResource.CreateEmployee(Employee);
 
         // [GIVEN] Posted employee Payment via Gen. Journal on "D" with a fixed positive amount 650 in "C".
-        // Note: Employee gen. journal lines only allow Document Type Payment (or blank) and the amount must be positive.
-        // 650 is deliberately not divisible by 7, so back-converting through LCY would round to a slightly different FCY amount and expose the bug.
         PaymentAmount := 650;
         CreatePostGenJnlLineWithCurrency(
             GenJournalLine, GenJournalLine."Document Type"::Payment,
@@ -1969,6 +1967,7 @@ codeunit 134897 "ERM Source Currency"
 
         // [THEN] The payables G/L entry has Source Currency Code equal to "C".
         EmployeePostingGroup.Get(Employee."Employee Posting Group");
+        GLEntry.SetLoadFields("Document No.", "G/L Account No.", "Source Currency Code", "Source Currency Amount");
         GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
         GLEntry.SetRange("G/L Account No.", EmployeePostingGroup."Payables Account");
         GLEntry.FindFirst();
