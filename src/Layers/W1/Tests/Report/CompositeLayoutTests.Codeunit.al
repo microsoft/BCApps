@@ -16,6 +16,7 @@ codeunit 134619 "Composite Layout Tests"
     var
         Assert: Codeunit Assert;
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         NoneTok: Label 'None', Locked = true;
         ThisLayoutSourceTok: Label 'This layout', Locked = true;
         ReportDefaultSourceTok: Label 'Report default', Locked = true;
@@ -276,6 +277,7 @@ codeunit 134619 "Composite Layout Tests"
     var
         ReportThemePage: TestPage "Report Theme and Header/Footer";
         Composite: Text;
+        ActualMessage: Text;
     begin
         // [SCENARIO 645022] Show info reports the part details and how many report configurations use it.
         Initialize();
@@ -290,17 +292,20 @@ codeunit 134619 "Composite Layout Tests"
         ReportThemePage.Filter.SetFilter(Name, 'ThemeInfo');
         Assert.IsTrue(ReportThemePage.First(), 'The created part should be shown on the page.');
         ReportThemePage.ShowInfo.Invoke();
-
-        // [THEN] The captured message names the part, its type, and the used-in count (asserted in the handler).
         ReportThemePage.Close();
+
+        // [THEN] Exactly one info message fired, naming the part, its type, and the used-in count.
+        ActualMessage := LibraryVariableStorage.DequeueText();
+        Assert.ExpectedMessage('ThemeInfo', ActualMessage);
+        Assert.ExpectedMessage('Theme', ActualMessage);
+        Assert.ExpectedMessage('Used in 1 report configuration', ActualMessage);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [MessageHandler]
     procedure PartInfoMessageHandler(Message: Text[1024])
     begin
-        Assert.IsTrue(Message.Contains('ThemeInfo'), 'Show info should include the part name.');
-        Assert.IsTrue(Message.Contains('Theme'), 'Show info should include the type.');
-        Assert.IsTrue(Message.Contains('Used in 1 report configuration'), 'Show info should report the used-in count.');
+        LibraryVariableStorage.Enqueue(Message);
     end;
 
     local procedure Initialize()

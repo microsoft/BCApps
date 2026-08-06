@@ -463,7 +463,6 @@ codeunit 9660 "Report Layouts Impl."
     internal procedure UpdateReportLayoutDescription(ReportID: Integer; LayoutName: Text[250]; NewDescription: Text[250])
     var
         TenantReportLayout: Record "Tenant Report Layout";
-        CustomDimensions: Dictionary of [Text, Text];
         EmptyGuid: Guid;
     begin
         if not TenantReportLayout.Get(ReportID, LayoutName, EmptyGuid) then
@@ -471,11 +470,6 @@ codeunit 9660 "Report Layouts Impl."
 
         TenantReportLayout.Description := NewDescription;
         TenantReportLayout.Modify(true);
-
-        InitReportLayoutDimensions(TenantReportLayout, CustomDimensions);
-        AddReportLayoutDimensionsDescription(NewDescription, CustomDimensions);
-        AddReportLayoutDimensionsAction('EditDescription', CustomDimensions);
-        Log('0000N0H', 'Report layout description edited by user', CustomDimensions);
     end;
 
     internal procedure ReplaceLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; var ReturnReportID: Integer; var ReturnLayoutName: Text)
@@ -927,10 +921,7 @@ codeunit 9660 "Report Layouts Impl."
 
     local procedure AddReportLayoutDimensionsDescription(Description: Text; var CustomDimensions: Dictionary of [Text, Text])
     begin
-        // The layout description is user-entered free text and must not be emitted to telemetry.
-        // Log only whether a description was provided and its length, not the content.
-        CustomDimensions.Add('LayoutDescriptionProvided', Format(Description <> ''));
-        CustomDimensions.Add('LayoutDescriptionLength', Format(StrLen(Description)));
+        CustomDimensions.Add('LayoutDescription', Description);
     end;
 
     local procedure AddReportLayoutDimensionsAction(Action: Text; var CustomDimensions: Dictionary of [Text, Text])
