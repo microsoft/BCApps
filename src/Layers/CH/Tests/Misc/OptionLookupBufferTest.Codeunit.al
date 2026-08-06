@@ -123,6 +123,44 @@
     end;
 
     [Test]
+    procedure FormatStandardSalesLineTypeLongerThan20Characters()
+    var
+        StandardSalesLine: Record "Standard Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized standard sales line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A standard sales line type with a caption longer than 20 characters
+        StandardSalesLine.Type := StandardSalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(StandardSalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard sales line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, StandardSalesLine.FormatTypeAsText(), 'The formatted standard sales line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatStandardPurchaseLineTypeLongerThan20Characters()
+    var
+        StandardPurchaseLine: Record "Standard Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized standard purchase line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A standard purchase line type with a caption longer than 20 characters
+        StandardPurchaseLine.Type := StandardPurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(StandardPurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard purchase line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, StandardPurchaseLine.FormatTypeAsText(), 'The formatted standard purchase line type was truncated.');
+    end;
+
+    [Test]
     procedure FormatSalesLineTypeFromSubscriberLongerThan20Characters()
     var
         SalesLine: Record "Sales Line";
