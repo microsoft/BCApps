@@ -11,8 +11,8 @@ page 37109 "Sales Forecasting"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Forecasting';
-    AboutTitle = 'About Sales Forecasting';
+    Caption = 'Sales Forecasting (Power BI)';
+    AboutTitle = 'About Sales Forecasting (Power BI)';
     AboutText = 'The Sales Forecasting report predicts future sales trends based on historical data. It uses advanced forecasting techniques to project sales values, helping users anticipate demand.';
 
     layout
