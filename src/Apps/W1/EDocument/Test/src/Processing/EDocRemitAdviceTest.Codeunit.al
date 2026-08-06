@@ -631,12 +631,23 @@ codeunit 139547 "E-Doc. Remit. Advice Test"
 
     local procedure CreatePaymentJournalBatch()
     var
+        GenJournalTemplate: Record "Gen. Journal Template";
         TemplateName: Code[10];
     begin
         TemplateName := LibraryJournals.SelectGenJournalTemplate(Enum::"Gen. Journal Template Type"::Payments, Page::"Payment Journal");
         LibraryJournals.SelectGenJournalBatch(GenJournalBatch, TemplateName);
         ClearRemitAdviceEDocFlag(GenJournalBatch);
         LibraryERM.ClearGenJournalLines(GenJournalBatch);
+
+        // Some localizations' demo data ships multiple Gen. Journal Templates of the same type/page
+        // whose batches share a name, which makes selecting/opening a batch by name ambiguous and
+        // pops the General Journal Template List page instead of resolving silently - remove every
+        // other template that could compete with ours for that same page, leaving unrelated
+        // templates (Sales, Purchases, General, etc.) untouched.
+        GenJournalTemplate.SetRange(Type, Enum::"Gen. Journal Template Type"::Payments);
+        GenJournalTemplate.SetRange("Page ID", Page::"Payment Journal");
+        GenJournalTemplate.SetFilter(Name, '<>%1', TemplateName);
+        GenJournalTemplate.DeleteAll();
     end;
 
     local procedure ClearRemitAdviceEDocFlag(GenJnlBatch: Record "Gen. Journal Batch")
