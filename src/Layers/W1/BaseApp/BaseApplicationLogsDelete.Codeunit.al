@@ -90,11 +90,11 @@ codeunit 3995 "Base Application Logs Delete"
         then
             exit;
 
-        ExcludeBinMandatoryLocationRecords(RecRef);
-
         // if no filters have been set, something is wrong.
         if (RecRef.GetFilters() = '') or (not RecRef.MarkedOnly()) then
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(NoFiltersErr, RecRef.Number, RecRef.Name));
+
+        ExcludeBinMandatoryLocationRecords(RecRef);
 
         // delete all remaining records
         RecRef.DeleteAll(true);
