@@ -200,6 +200,7 @@ codeunit 8063 "Sales Documents"
     local procedure MoveBillingLineToBillingLineArchive(var BillingLine: Record "Billing Line"; var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
         BillingLineArchive: Record "Billing Line Archive";
+        UsageDataBilling: Record "Usage Data Billing";
         PostedDocumentNo: Code[20];
     begin
         case SalesHeader."Document Type" of
@@ -215,6 +216,8 @@ codeunit 8063 "Sales Documents"
                 BillingLineArchive."Document No." := PostedDocumentNo;
                 BillingLineArchive."Entry No." := 0;
                 BillingLineArchive.Insert(false);
+                UsageDataBilling.SetRange("Billing Line Entry No.", BillingLine."Entry No.");
+                UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLineArchive."Entry No.", false);
                 OnAfterInsertBillingLineArchiveOnMoveBillingLineToBillingLineArchive(BillingLineArchive, BillingLine);
             until BillingLine.Next() = 0;
     end;
