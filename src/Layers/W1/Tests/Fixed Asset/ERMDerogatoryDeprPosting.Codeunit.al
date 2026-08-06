@@ -786,6 +786,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
         ReverseFAEntry(CounterpartFALedgerEntry, CounterpartReversalFALedgerEntry);
         FALedgerEntryCount := FALedgerEntry.Count();
+        Commit();
 
         asserterror ReverseFAEntry(SourceFALedgerEntry, SourceReversalFALedgerEntry);
 
@@ -822,6 +823,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         ReverseMaintenanceEntry(
             CounterpartMaintenanceLedgerEntry, CounterpartReversalMaintenanceLedgerEntry);
         MaintenanceLedgerEntryCount := MaintenanceLedgerEntry.Count();
+        Commit();
 
         asserterror ReverseMaintenanceEntry(
             SourceMaintenanceLedgerEntry, SourceReversalMaintenanceLedgerEntry);
@@ -1269,6 +1271,9 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
         UpdateIntegrationInBook(NormalDeprBookCode, false);
         DepreciationBook.Get(NormalDeprBookCode);
+        DepreciationBook."Allow Identical Document No." := true;
+        DepreciationBook.Modify();
+        DepreciationBook.Get(TaxDeprBookCode);
         DepreciationBook."Allow Identical Document No." := true;
         DepreciationBook.Modify();
 
