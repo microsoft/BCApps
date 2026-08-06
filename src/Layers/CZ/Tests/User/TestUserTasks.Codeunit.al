@@ -239,6 +239,8 @@ codeunit 134769 "Test User Tasks"
             exit(true);
         if TableNo = DATABASE::"Contact Sync User" then
             exit(true);
+        if TableNo = DATABASE::"Cash Desk User CZP" then
+            exit(true);   
         exit(false);
     end;
 
