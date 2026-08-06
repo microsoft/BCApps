@@ -768,6 +768,80 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    procedure AlreadyReversedFACounterpartErrorsAndRollsBackSourceReversal()
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartReversalFALedgerEntry: Record "FA Ledger Entry";
+        SourceReversalFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+        FALedgerEntryCount: Integer;
+    begin
+        // [SCENARIO 617338] FA source reversal is rolled back when its linked counterpart is already reversed
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        ReverseFAEntry(CounterpartFALedgerEntry, CounterpartReversalFALedgerEntry);
+        FALedgerEntryCount := FALedgerEntry.Count();
+
+        asserterror ReverseFAEntry(SourceFALedgerEntry, SourceReversalFALedgerEntry);
+
+        Assert.ExpectedTestFieldError(CounterpartFALedgerEntry.FieldCaption("Reversed by Entry No."), Format(0));
+        Assert.AreEqual(FALedgerEntryCount, FALedgerEntry.Count(), NumberFAEntryErr);
+        SourceFALedgerEntry.Get(SourceFALedgerEntry."Entry No.");
+        SourceFALedgerEntry.TestField(Reversed, false);
+        SourceFALedgerEntry.TestField("Reversed by Entry No.", 0);
+        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
+        CounterpartFALedgerEntry.TestField(Reversed, true);
+        CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversalFALedgerEntry."Entry No.");
+        FALedgerEntry.SetRange("Reversed Entry No.", SourceFALedgerEntry."Entry No.");
+        Assert.AreEqual(0, FALedgerEntry.Count(), NumberFAEntryErr);
+    end;
+
+    [Test]
+    procedure AlreadyReversedMaintenanceCounterpartErrorsAndRollsBackSourceReversal()
+    var
+        MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartReversalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        SourceReversalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+        MaintenanceLedgerEntryCount: Integer;
+    begin
+        // [SCENARIO 617339] Maintenance source reversal is rolled back when its linked counterpart is already reversed
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        ReverseMaintenanceEntry(
+            CounterpartMaintenanceLedgerEntry, CounterpartReversalMaintenanceLedgerEntry);
+        MaintenanceLedgerEntryCount := MaintenanceLedgerEntry.Count();
+
+        asserterror ReverseMaintenanceEntry(
+            SourceMaintenanceLedgerEntry, SourceReversalMaintenanceLedgerEntry);
+
+        Assert.ExpectedTestFieldError(
+            CounterpartMaintenanceLedgerEntry.FieldCaption("Reversed by Entry No."), Format(0));
+        Assert.AreEqual(
+            MaintenanceLedgerEntryCount, MaintenanceLedgerEntry.Count(), NumberMaintenanceEntryErr);
+        SourceMaintenanceLedgerEntry.Get(SourceMaintenanceLedgerEntry."Entry No.");
+        SourceMaintenanceLedgerEntry.TestField(Reversed, false);
+        SourceMaintenanceLedgerEntry.TestField("Reversed by Entry No.", 0);
+        CounterpartMaintenanceLedgerEntry.Get(CounterpartMaintenanceLedgerEntry."Entry No.");
+        CounterpartMaintenanceLedgerEntry.TestField(Reversed, true);
+        CounterpartMaintenanceLedgerEntry.TestField(
+            "Reversed by Entry No.", CounterpartReversalMaintenanceLedgerEntry."Entry No.");
+        MaintenanceLedgerEntry.SetRange("Reversed Entry No.", SourceMaintenanceLedgerEntry."Entry No.");
+        Assert.AreEqual(0, MaintenanceLedgerEntry.Count(), NumberMaintenanceEntryErr);
+    end;
+
+    [Test]
     procedure MultipleFACounterpartsAcrossBooksError()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
