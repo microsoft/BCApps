@@ -405,14 +405,13 @@ codeunit 5633 "FA Jnl.-Post Batch"
             FAJnlPostLine.FAJnlPostLine(FAJnlLine, false);
 #if not CLEAN29
             if not AcceleratedDeprFeature.IsEnabled() then
-                if MakeDerogFAJnlLine(DerogFAJnlLine, FAJnlLine) then
-                    if MakeDerogatoryFAJnlLine(DerogFAJnlLine, FAJnlLine) then begin
-                        if FAJnlLine."FA Error Entry No." <> 0 then
-                            DerogFAJnlLine."FA Error Entry No." := FAJnlPostLine.GetNextMatchingFALedgEntry(FAJnlLine, FAJnlLine."FA Error Entry No.", DerogFAJnlLine."Depreciation Book Code");
-                        FAJnlPostLine.FAJnlPostLine(DerogFAJnlLine, false);
-                        OnPostLinesOnAfterFAJnlPostLine(FAJnlLine);
-                        CreateAndPostDerogatoryEntry(FAJnlLine)
-                    end;
+                if MakeDerogFAJnlLine(DerogFAJnlLine, FAJnlLine) then begin
+                    if FAJnlLine."FA Error Entry No." <> 0 then
+                        DerogFAJnlLine."FA Error Entry No." := FAJnlPostLine.GetNextMatchingFALedgEntry(FAJnlLine, FAJnlLine."FA Error Entry No.", DerogFAJnlLine."Depreciation Book Code");
+                    FAJnlPostLine.FAJnlPostLine(DerogFAJnlLine, false);
+                    OnPostLinesOnAfterFAJnlPostLine(FAJnlLine);
+                    CreateAndPostDerogatoryEntry(FAJnlLine)
+                end;
             // REVIEW(redesign-derogatory-mirroring): when the feature is enabled, mirroring and the acquisition-cost
             // adjustment are produced by the centralized "FA Jnl.-Post Line"/"Derogatory Posting Mgt." workflow above.
             if AcceleratedDeprFeature.IsEnabled() then begin
@@ -537,4 +536,3 @@ codeunit 5633 "FA Jnl.-Post Batch"
     begin
     end;
 }
-

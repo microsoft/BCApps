@@ -748,11 +748,23 @@ codeunit 5600 "FA Insert Ledger Entry"
     [Scope('OnPrem')]
     procedure InsertFARevEntryForDerog(FAEntryType: Option " ","Fixed Asset",Maintenance; ReversingFALedgerEntry: Record "FA Ledger Entry")
     var
+        NewDerogatoryEntryNo: Integer;
+    begin
+        InsertFARevEntryForDerogWithResult(FAEntryType, NewDerogatoryEntryNo, ReversingFALedgerEntry);
+    end;
+
+    [Scope('OnPrem')]
+    procedure InsertFARevEntryForDerog(FAEntryType: Option " ","Fixed Asset",Maintenance; var NewFAEntryNo: Integer; FALedgEntry: Record "FA Ledger Entry")
+    begin
+        InsertFARevEntryForDerogWithResult(FAEntryType, NewFAEntryNo, FALedgEntry);
+    end;
+
+    local procedure InsertFARevEntryForDerogWithResult(FAEntryType: Option " ","Fixed Asset",Maintenance; var NewDerogatoryEntryNo: Integer; ReversingFALedgerEntry: Record "FA Ledger Entry")
+    var
         FADepreciationBook: Record "FA Depreciation Book";
         FALedgEntryForDerog: Record "FA Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
-        NewDerogatoryEntryNo: Integer;
     begin
 #if not CLEAN29
         if not AcceleratedDeprFeature.IsEnabled() then begin
@@ -807,11 +819,23 @@ codeunit 5600 "FA Insert Ledger Entry"
     [Scope('OnPrem')]
     procedure InsertMaintRevEntryForDerog(FAEntryType: Option; ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
     var
+        NewDerogatoryEntryNo: Integer;
+    begin
+        InsertMaintRevEntryForDerogWithResult(FAEntryType, NewDerogatoryEntryNo, ReversingMaintenanceLedgerEntry);
+    end;
+
+    [Scope('OnPrem')]
+    procedure InsertMaintRevEntryForDerog(FAEntryType: Option; var NewFAEntryNo: Integer; MaintenanceLedgEntry: Record "Maintenance Ledger Entry")
+    begin
+        InsertMaintRevEntryForDerogWithResult(FAEntryType, NewFAEntryNo, MaintenanceLedgEntry);
+    end;
+
+    local procedure InsertMaintRevEntryForDerogWithResult(FAEntryType: Option; var NewDerogatoryEntryNo: Integer; ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    var
         FADepreciationBook: Record "FA Depreciation Book";
         MaintLedgEntryForDerog: Record "Maintenance Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
-        NewDerogatoryEntryNo: Integer;
     begin
 #if not CLEAN29
         if not AcceleratedDeprFeature.IsEnabled() then begin

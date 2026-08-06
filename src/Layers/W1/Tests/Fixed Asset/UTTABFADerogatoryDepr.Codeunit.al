@@ -97,6 +97,56 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure FAJnlPostBatchCompatibilityDelegateBuildsCounterpart()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        TaxFADepreciationBook: Record "FA Depreciation Book";
+        SourceFAJournalLine: Record "FA Journal Line";
+        CounterpartFAJournalLine: Record "FA Journal Line";
+        FAJnlPostBatch: Codeunit "FA Jnl.-Post Batch";
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+        CreateDepreciationBook(TaxDepreciationBook);
+        UpdateDerogatoryCalculationDepreciationBook(TaxDepreciationBook, NormalDepreciationBook.Code);
+        CreateFADepreciationBook(TaxFADepreciationBook, TaxDepreciationBook.Code);
+        SourceFAJournalLine."FA No." := TaxFADepreciationBook."FA No.";
+        SourceFAJournalLine."Depreciation Book Code" := NormalDepreciationBook.Code;
+
+        Assert.IsTrue(
+            FAJnlPostBatch.MakeDerogatoryFAJnlLine(CounterpartFAJournalLine, SourceFAJournalLine),
+            'The compatibility delegate must construct an eligible counterpart.');
+
+        CounterpartFAJournalLine.TestField("Depreciation Book Code", TaxDepreciationBook.Code);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure FAJnlPostBatchCompatibilityDelegatePreservesSourceWhenIneligible()
+    var
+        SourceFAJournalLine: Record "FA Journal Line";
+        NewFAJournalLine: Record "FA Journal Line";
+        FAJnlPostBatch: Codeunit "FA Jnl.-Post Batch";
+    begin
+        SourceFAJournalLine."Journal Template Name" := LibraryUTUtility.GetNewCode();
+        SourceFAJournalLine."Journal Batch Name" := LibraryUTUtility.GetNewCode();
+        SourceFAJournalLine."Line No." := LibraryRandom.RandInt(10000);
+        SourceFAJournalLine."FA No." := LibraryUTUtility.GetNewCode();
+        SourceFAJournalLine."Depreciation Book Code" := LibraryUTUtility.GetNewCode();
+        SourceFAJournalLine."Document No." := LibraryUTUtility.GetNewCode();
+        SourceFAJournalLine.Description := LibraryUTUtility.GetNewCode();
+        SourceFAJournalLine.Amount := LibraryRandom.RandDec(1000, 2);
+        NewFAJournalLine."Journal Template Name" := LibraryUTUtility.GetNewCode();
+
+        Assert.IsFalse(
+            FAJnlPostBatch.MakeDerogatoryFAJnlLine(NewFAJournalLine, SourceFAJournalLine),
+            'An FA journal line without a derogatory-book relationship must be ineligible.');
+
+        AssertFAJournalLinesEqual(SourceFAJournalLine, NewFAJournalLine);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure OnValidateDerogatoryCalcDerogatoryDeprBookExistsError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -427,5 +477,24 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
     begin
         DepreciationBook."Derogatory Calc." := DerogatoryCalculation;
         DepreciationBook.Modify();
+    end;
+
+    local procedure AssertFAJournalLinesEqual(ExpectedFAJournalLine: Record "FA Journal Line"; ActualFAJournalLine: Record "FA Journal Line")
+    var
+        ExpectedRecordRef: RecordRef;
+        ActualRecordRef: RecordRef;
+        ExpectedFieldRef: FieldRef;
+        ActualFieldRef: FieldRef;
+        FieldIndex: Integer;
+    begin
+        ExpectedRecordRef.GetTable(ExpectedFAJournalLine);
+        ActualRecordRef.GetTable(ActualFAJournalLine);
+        for FieldIndex := 1 to ExpectedRecordRef.FieldCount() do begin
+            ExpectedFieldRef := ExpectedRecordRef.FieldIndex(FieldIndex);
+            ActualFieldRef := ActualRecordRef.Field(ExpectedFieldRef.Number());
+            Assert.AreEqual(
+                Format(ExpectedFieldRef.Value()), Format(ActualFieldRef.Value()),
+                StrSubstNo('The compatibility delegate must copy field %1 before returning false.', ExpectedFieldRef.Number()));
+        end;
     end;
 }
