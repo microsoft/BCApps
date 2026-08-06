@@ -16,8 +16,9 @@ codeunit 130131 "MCP Config Test Library"
     procedure LookupAPIObjects(): Boolean
     var
         TempMCPAPIObjectBuffer: Record "MCP API Object Buffer";
+        ObjectType: Option;
     begin
-        exit(MCPConfigImplementation.LookupAPIObjects(TempMCPAPIObjectBuffer));
+        exit(MCPConfigImplementation.LookupAPIObjects(TempMCPAPIObjectBuffer, ObjectType, false));
     end;
 
     procedure AddToolsByAPIGroup(ConfigId: Guid)

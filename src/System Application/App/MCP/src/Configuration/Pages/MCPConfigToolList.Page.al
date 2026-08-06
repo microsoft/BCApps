@@ -36,8 +36,7 @@ page 8352 "MCP Config Tool List"
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
-                        // Routes through the same unified (pages, queries and codeunits) lookup as the Select APIs action.
-                        AddAPIObjects();
+                        AddAPIObjects(true);
                     end;
 
                     trigger OnValidate()
@@ -154,7 +153,7 @@ page 8352 "MCP Config Tool List"
 
                 trigger OnAction()
                 begin
-                    AddAPIObjects();
+                    AddAPIObjects(false);
                 end;
             }
             action(AddAPIsByAPIGroup)
@@ -243,11 +242,11 @@ page 8352 "MCP Config Tool List"
             AllowCreateUpdateDeleteTools := MCPConfiguration.AllowProdChanges;
     end;
 
-    local procedure AddAPIObjects()
+    local procedure AddAPIObjects(TypeFilter: Boolean)
     var
         TempSelectedObjects: Record "MCP API Object Buffer";
     begin
-        if not MCPConfigImplementation.LookupAPIObjects(TempSelectedObjects) then
+        if not MCPConfigImplementation.LookupAPIObjects(TempSelectedObjects, Rec."Object Type", TypeFilter) then
             exit;
 
         if TempSelectedObjects.FindSet() then

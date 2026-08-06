@@ -650,7 +650,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool.Modify();
     end;
 
-    internal procedure LookupAPIObjects(var SelectedObjects: Record "MCP API Object Buffer"): Boolean
+    internal procedure LookupAPIObjects(var SelectedObjects: Record "MCP API Object Buffer"; ObjectType: Option; TypeFilter: Boolean): Boolean
     var
         TempMCPAPIObjectBuffer: Record "MCP API Object Buffer";
         MCPAPIObjectLookup: Page "MCP API Object Lookup";
@@ -660,6 +660,9 @@ codeunit 8351 "MCP Config Implementation"
             exit(false);
 
         MCPAPIObjectLookup.SetObjects(TempMCPAPIObjectBuffer);
+        if TypeFilter then
+            TempMCPAPIObjectBuffer.SetRange("Object Type", ObjectType);
+        MCPAPIObjectLookup.SetTableView(TempMCPAPIObjectBuffer);
         MCPAPIObjectLookup.LookupMode := true;
         if MCPAPIObjectLookup.RunModal() <> Action::LookupOK then
             exit(false);
@@ -673,6 +676,7 @@ codeunit 8351 "MCP Config Implementation"
         PageMetadata: Record "Page Metadata";
         QueryMetadata: Record "Query Metadata";
         CodeunitMetadata: Record "CodeUnit Metadata";
+        Regex: Codeunit Regex;
     begin
         MCPAPIObjectBuffer.Reset();
         MCPAPIObjectBuffer.DeleteAll();
@@ -724,7 +728,7 @@ codeunit 8351 "MCP Config Implementation"
                 MCPAPIObjectBuffer.Name := CopyStr(CodeunitMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
 
                 // TODO(AB#641822): interim fixed values until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
-                MCPAPIObjectBuffer."Entity Name" := CopyStr(CodeunitMetadata.Name.Replace(' ', ''), 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
+                MCPAPIObjectBuffer."Entity Name" := CopyStr(Regex.Replace(CodeunitMetadata.Name, '[^A-Za-z0-9]', ''), 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
                 MCPAPIObjectBuffer."API Publisher" := 'microsoft';
                 MCPAPIObjectBuffer."API Group" := 'codeunits';
                 MCPAPIObjectBuffer."API Version" := 'beta';
@@ -1094,7 +1098,7 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure ValidateAPICodeunitVersion(ObjectId: Integer; APIVersion: Text)
     var
         CodeunitMetadata: Record "CodeUnit Metadata";
-        // Versions: List of [Text];
+    // Versions: List of [Text];
     begin
         if not CodeunitMetadata.Get(ObjectId) then
             exit;
@@ -1151,8 +1155,8 @@ codeunit 8351 "MCP Config Implementation"
     var
         CodeunitMetadata: Record "CodeUnit Metadata";
         TempMCPAPIVersion: Record "MCP API Version";
-        // Versions: List of [Text];
-        // Version: Text[30];
+    // Versions: List of [Text];
+    // Version: Text[30];
     begin
         if not CodeunitMetadata.Get(CodeunitId) then
             exit;
