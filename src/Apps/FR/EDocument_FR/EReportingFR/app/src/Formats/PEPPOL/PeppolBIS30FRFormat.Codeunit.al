@@ -29,7 +29,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         FREDocHelpers: Codeunit "EDoc. Helpers";
         PeppolBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
     begin
-        FREDocHelpers.CheckSIRENNotEmpty();
         FREDocHelpers.CheckSellerElectronicAddress(EDocumentService.Code);
         FREDocHelpers.CheckSellerCountryCode();
         FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentService.Code);

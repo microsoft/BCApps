@@ -536,16 +536,16 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure CheckRaisesErrorWhenSIRENIsEmpty()
+    procedure CheckPassesWhenSIRENIsEmptyAndSIRETIsPresent()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         OriginalRegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Check raises error when company Registration No. (SIREN) is blank
+        // [SCENARIO] Check accepts a company SIRET when Registration No. (SIREN) is blank
         Initialize();
 
-        // [GIVEN] Company with blank Registration No.
+        // [GIVEN] Company with blank Registration No. and a SIRET No.
         OriginalRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation.Get();
         CompanyInformation."Registration No." := '';
@@ -554,10 +554,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
         // [WHEN] Check is called
-        asserterror CheckInvoice(SalesInvoiceHeader);
-
-        // [THEN] Error about Registration No. is raised
-        Assert.ExpectedError('Registration No. must be specified in Company Information for French e-invoicing.');
+        CheckInvoice(SalesInvoiceHeader);
 
         // Cleanup
         CompanyInformation.Get();
@@ -834,6 +831,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
         ServiceParticipant.SetRange(Service, EDocumentService.Code);
         ServiceParticipant.DeleteAll();
+        InitializeCompanyIdentity();
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
@@ -848,10 +846,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CompanyInformation.City := 'Paris';
         CompanyInformation."Post Code" := '75001';
         CompanyInformation."Country/Region Code" := CountryRegion.Code;
-        CompanyInformation.Validate("Registration No.", '123456789');
-        CompanyInformation.Validate("SIRET No.", '12345678901234');
-        if CompanyInformation."VAT Registration No." = '' then
-            CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
         CompanyInformation.Validate(IBAN, 'FR1420041010050500013M02606');
         CompanyInformation.Validate("SWIFT Code", 'CCBPFRPPVER');
         CompanyInformation.Validate("Bank Branch No.", '20041');
@@ -873,6 +867,15 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
+    end;
+
+    local procedure InitializeCompanyIdentity()
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.Validate("Registration No.", '123456789');
+        CompanyInformation.Validate("SIRET No.", '12345678901234');
+        CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
+        CompanyInformation.Modify(true);
     end;
 
     local procedure CreateAndPostSalesInvoice(CustomerNo: Code[20]): Code[20]
