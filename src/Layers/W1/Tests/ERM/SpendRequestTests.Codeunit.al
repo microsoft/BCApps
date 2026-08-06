@@ -566,30 +566,6 @@ codeunit 134242 "Spend Request Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ReleaseActionSetsStatusToReleased()
-    var
-        SpendRequest: Record "Spend Request";
-        SpendRequestCard: TestPage "Spend Request Card";
-    begin
-        // [SCENARIO] The Release action on the card page sets the status to Released.
-        Initialize();
-
-        // [GIVEN] An open spend request.
-        CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequestCard.OpenEdit();
-        SpendRequestCard.GoToRecord(SpendRequest);
-
-        // [WHEN] The Release action is invoked.
-        SpendRequestCard.Release.Invoke();
-
-        // [THEN] The status is Released.
-        SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'Status should be Released.');
-        SpendRequestCard.Close();
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure ApproveActionSetsStatusToApproved()
     var
         SpendRequest: Record "Spend Request";

@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
@@ -46,6 +47,7 @@ codeunit 148338 "Spend Request Test"
         SpendReqSpentReversedMsg: Label 'The spend request Total Spent Amount (LCY) should be reversed to zero after the posted expense report is canceled.';
         SpendReqClearedMsg: Label 'The Spend Request No. should be cleared when the line becomes non-refundable.';
         SpendReqCloseClearedMsg: Label 'The Spend Request Close flag should be cleared when the line becomes non-refundable.';
+        SpendReqLinkPreviewMsg: Label 'The Spend Request To G/L Link entries should be shown in the expense report posting preview.';
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
@@ -872,6 +874,31 @@ codeunit 148338 "Spend Request Test"
         Assert.AreEqual(0, SpendRequest."Total Spent Amount (LCY)", SpendReqSpentReversedMsg);
     end;
 
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler,SpendReqGLPostingPreviewHandler')]
+    procedure SpendReqLinkShownInExpenseReportPostingPreview()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
+    begin
+        // [SCENARIO 616928] Preview posting an expense report linked to a spend request lists its Spend Request To G/L Link entries.
+        Initialize();
+        CloseConfirmReply := true;
+
+        // [GIVEN] An expense report with a refundable line linked to a released spend request.
+        CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
+
+        // [GIVEN] The report is released and the transaction is committed so it can be previewed.
+        ExpenseReportHeader.PerformManualRelease();
+        Commit();
+
+        // [WHEN] The expense report is preview posted.
+        asserterror ExpenseReportHeader.Preview(ExpenseReportHeader);
+
+        // [THEN] The preview lists the Spend Request To G/L Link entries (asserted in the page handler).
+        Assert.ExpectedError('');
+    end;
+
     local procedure Initialize()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -1036,8 +1063,12 @@ codeunit 148338 "Spend Request Test"
         NonRefundableCategory: Record "Expense Category";
         ExpensePaymentMethod: Record "Expense Payment Method";
         ExpenseReportLine: Record "Expense Report Line";
+        ExpensePostingGroup: Record "Expense Posting Group";
     begin
+        LibraryExpense.CreateExpensePostingGroup(ExpensePostingGroup);
         LibraryExpense.CreateExpenseCategoryWithSubCategory(NonRefundableCategory, NonRefundableCategory."Reimbursement Type"::"Company Paid", NonRefundableCategory."Expense Detail Required"::" ", false);
+        NonRefundableCategory.Validate("Posting Group", ExpensePostingGroup.Code);
+        NonRefundableCategory.Modify(true);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Company Paid");
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUserNo, NonRefundableCategory.Code, ExpensePaymentMethod.Code, false, '', LibraryRandom.RandIntInRange(100, 1000));
     end;
@@ -1072,6 +1103,14 @@ codeunit 148338 "Spend Request Test"
         VATSpec."Expense Category" := ExpenseReportLine."Expense Category";
         VATSpec."Reclaim Status" := VATSpec."Reclaim Status"::Approved;
         VATSpec.Insert();
+    end;
+
+    [PageHandler]
+    procedure SpendReqGLPostingPreviewHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
+    begin
+        GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Spend Request To G/L Link"));
+        Assert.IsTrue(GLPostingPreview.First(), SpendReqLinkPreviewMsg);
+        GLPostingPreview.OK().Invoke();
     end;
 
     [ConfirmHandler]
