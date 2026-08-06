@@ -25,6 +25,15 @@ codeunit 4415 "SOA Create Task Impl"
         GlobalAgentUserSecurityID := NewAgentUserSecurityID;
     end;
 
+    internal procedure OpenCreateTaskPage(AgentUserSecurityID: Guid)
+    var
+        SOACreateTask: Page "SOA Create Task";
+    begin
+        SOACreateTask.SetAgentUserSecurityID(AgentUserSecurityID);
+        SOACreateTask.LookupMode(true);
+        SOACreateTask.RunModal();
+    end;
+
     internal procedure GetCurrentUserSalespersonCode(): Code[20]
     var
         UserSetup: Record "User Setup";
