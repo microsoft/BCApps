@@ -87,7 +87,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     [NonDebuggable]
     procedure TryGetFastPrompt(EcsConfigKey: Text; CallerModuleInfo: ModuleInfo; var IsFastPrompt: Boolean; var Template: Text; var ErrorCode: Text; var ErrorText: Text): Boolean
     var
-        AOAIAuthorization: Codeunit "AOAI Authorization";
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
         ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
@@ -102,13 +101,11 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
 
-        AOAIAuthorization := ChatCompletionsAOAIAuthorization;
+        CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
 
-        CheckAuthorizationEnabled(AOAIAuthorization, CallerModuleInfo);
-
-        case AOAIAuthorization.GetResourceUtilization() of
+        case ChatCompletionsAOAIAuthorization.GetResourceUtilization() of
             Enum::"AOAI Resource Utilization"::"First Party":
-                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, ChatCompletionsAOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
             else
                 Error(FastPromptUnsupportedAuthorizationErr);
         end;
