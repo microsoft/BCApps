@@ -13,6 +13,8 @@ codeunit 144705 "ERM Shipment Request M-11"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryRUReports: Codeunit "Library RU Reports";
         LibraryRandom: Codeunit "Library - Random";
         isInitialized: Boolean;
@@ -247,6 +249,10 @@ codeunit 144705 "ERM Shipment Request M-11"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         if isInitialized then
             exit;
 

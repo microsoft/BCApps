@@ -12,6 +12,8 @@ codeunit 144707 "ERM Advance Statement"
     var
         LibraryRUReports: Codeunit "Library RU Reports";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -165,6 +167,10 @@ codeunit 144707 "ERM Advance Statement"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         LibrarySetupStorage.Restore();
         if IsInitialized then
             exit;

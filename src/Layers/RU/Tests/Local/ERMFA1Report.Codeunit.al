@@ -16,6 +16,8 @@ codeunit 144711 "ERM FA-1 Report"
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryRUReports: Codeunit "Library RU Reports";
         isInitialized: Boolean;
         ZeroMonthsTxt: Label '0 months';
@@ -451,6 +453,10 @@ codeunit 144711 "ERM FA-1 Report"
 
     local procedure Initialize()
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
 
         if isInitialized then

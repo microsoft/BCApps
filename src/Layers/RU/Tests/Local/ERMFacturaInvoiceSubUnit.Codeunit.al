@@ -16,6 +16,8 @@ codeunit 144513 "ERM FacturaInvoiceSubUnit"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryRUReports: Codeunit "Library RU Reports";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
@@ -162,6 +164,10 @@ codeunit 144513 "ERM FacturaInvoiceSubUnit"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
 
         if IsInitialized then

@@ -11,6 +11,8 @@ codeunit 144712 "ERM TORG-29 Report"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         TORG29Helper: Codeunit "TORG-29 Helper";
         isInitialized: Boolean;
         ReceiptsDetailing: Option Document,Item,Operation;
@@ -232,6 +234,10 @@ codeunit 144712 "ERM TORG-29 Report"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
         Clear(TORG29Helper);
         LibraryPriceCalculation.DisableExtendedPriceCalculation();

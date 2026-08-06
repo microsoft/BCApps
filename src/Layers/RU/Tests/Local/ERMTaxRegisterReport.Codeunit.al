@@ -11,6 +11,8 @@ codeunit 144721 "ERM Tax Register Report"
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         StdRepMgt: Codeunit "Local Report Management";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
@@ -37,6 +39,10 @@ codeunit 144721 "ERM Tax Register Report"
 
     local procedure Initialize()
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
 
         if isInitialized then

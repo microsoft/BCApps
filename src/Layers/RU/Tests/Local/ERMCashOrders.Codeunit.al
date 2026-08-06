@@ -15,6 +15,8 @@ codeunit 144723 "ERM Cash Orders"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryERM: Codeunit "Library - ERM";
         DecimalFormatTok: Label '<Sign><Integer><Decimals,3>', Locked = true;
         StdTextTok: Label 'Amount %1, including VAT %2', Locked = true;
@@ -770,6 +772,10 @@ codeunit 144723 "ERM Cash Orders"
 
     local procedure Initialize()
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();

@@ -20,6 +20,8 @@ codeunit 144015 "ERM RU Void Check"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryJournals: Codeunit "Library - Journals";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
@@ -508,6 +510,10 @@ codeunit 144015 "ERM RU Void Check"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         LibrarySetupStorage.Restore();
         if isInitialized then
             exit;

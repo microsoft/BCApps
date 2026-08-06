@@ -17,6 +17,8 @@ codeunit 144718 "ERM Corr. Factura Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryRandom: Codeunit "Library - Random";
         LibraryRUReports: Codeunit "Library RU Reports";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -263,6 +265,10 @@ codeunit 144718 "ERM Corr. Factura Test"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         LibraryVariableStorage.Clear();
         Clear(LibraryVariableStorage);
         LibraryERMCountryData.UpdatePrepaymentAccounts();

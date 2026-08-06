@@ -12,6 +12,8 @@ codeunit 144716 "ERM FA Inventory Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         ValueNotExistErr: Label 'Value %1 does not exist on worksheet %2';
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
 
@@ -87,6 +89,10 @@ codeunit 144716 "ERM FA Inventory Test"
 
     local procedure Initialize()
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         LibraryVariableStorage.Clear();
     end;
 

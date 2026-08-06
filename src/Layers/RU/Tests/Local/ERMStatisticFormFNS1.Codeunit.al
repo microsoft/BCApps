@@ -13,6 +13,8 @@ codeunit 147150 "ERM Statistic Form FNS-1"
         TempItemJournalBuffer: Record "Item Journal Buffer" temporary;
         StatisticFormFNS1: Report "Statistic Form FNS-1";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryHumanResource: Codeunit "Library - Human Resource";
@@ -44,6 +46,10 @@ codeunit 147150 "ERM Statistic Form FNS-1"
     var
         HumanResourcesSetup: Record "Human Resources Setup";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         if IsInitialized then
             exit;
 

@@ -13,6 +13,8 @@ codeunit 144709 "ERM Item And Phys. Inventory"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         isInitialized: Boolean;
         ValueNotExistErr: Label 'Value %1 does not exist on worksheet %2';
         ValueNotExistInColErr: Label 'Value %1 does not exist in column %2', Comment = '%1:Function GetItemJnlLineNewAmount, %2:ColumnID in Excel Buffer';
@@ -232,6 +234,10 @@ codeunit 144709 "ERM Item And Phys. Inventory"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         if isInitialized then
             exit;
 

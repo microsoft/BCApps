@@ -11,6 +11,8 @@ codeunit 144710 "ERM INV-18 Report"
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         AmountType: Option " ",QtyPlus,AmountPlus,QtyMinus,AmountMinus;
         isInitialized: Boolean;
 
@@ -32,6 +34,10 @@ codeunit 144710 "ERM INV-18 Report"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
 
         if isInitialized then

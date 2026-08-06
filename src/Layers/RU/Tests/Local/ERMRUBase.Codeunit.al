@@ -20,6 +20,8 @@ codeunit 144001 "ERM RU - Base"
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -1416,6 +1418,10 @@ codeunit 144001 "ERM RU - Base"
     var
         DummySalesHeader: Record "Sales Header";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         LibrarySetupStorage.Restore();
 
         if IsInitialized then

@@ -17,6 +17,8 @@ codeunit 147140 "ERM Sales VAT Ledger Export"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryRUReports: Codeunit "Library RU Reports";
         VATLedgerMgt: Codeunit "VAT Ledger Management";
@@ -560,6 +562,10 @@ codeunit 147140 "ERM Sales VAT Ledger Export"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         LibrarySetupStorage.Restore();
         if IsInitialized then
             exit;

@@ -13,6 +13,8 @@ codeunit 144714 "ERM FA Reports Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRUReports: Codeunit "Library RU Reports";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -315,6 +317,10 @@ codeunit 144714 "ERM FA Reports Test"
 
     local procedure Initialize()
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         LibraryVariableStorage.Clear();
 
         if isInitialized then
