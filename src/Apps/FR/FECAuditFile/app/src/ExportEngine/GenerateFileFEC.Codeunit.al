@@ -758,10 +758,10 @@ codeunit 10826 "Generate File FEC"
         // posting setup, so an account that is a payment discount account for one setup cannot flag an
         // unrelated line that happens to post to the same account under a different setup.
         PostingGroupScope := PostingGroupScopeKey(GLEntry."Source Type", PostingGroupCode);
-        GenPostingSetupScope := GenPostingSetupScopeKey(GLEntry."Gen. Bus. Posting Group", GLEntry."Gen. Prod. Posting Group");
+        GenPostingSetupScope := GenPostingSetupScopeKey(GLEntry."Source Type", GLEntry."Gen. Bus. Posting Group", GLEntry."Gen. Prod. Posting Group");
 
         CachePostingGroupPmtDiscountAccounts(GLEntry."Source Type", PostingGroupCode, PostingGroupScope);
-        CacheGenPostingSetupPmtDiscountAccounts(GLEntry."Gen. Bus. Posting Group", GLEntry."Gen. Prod. Posting Group", GenPostingSetupScope);
+        CacheGenPostingSetupPmtDiscountAccounts(GLEntry."Source Type", GLEntry."Gen. Bus. Posting Group", GLEntry."Gen. Prod. Posting Group", GenPostingSetupScope);
 
         exit(
             IsScopedPmtDiscountAccount(PostingGroupScope, GLEntry."G/L Account No.") or
@@ -797,7 +797,7 @@ codeunit 10826 "Generate File FEC"
         end;
     end;
 
-    local procedure CacheGenPostingSetupPmtDiscountAccounts(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; ScopeKey: Text)
+    local procedure CacheGenPostingSetupPmtDiscountAccounts(SourceType: Enum "Gen. Journal Source Type"; GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; ScopeKey: Text)
     var
         GeneralPostingSetup: Record "General Posting Setup";
     begin
@@ -808,11 +808,20 @@ codeunit 10826 "Generate File FEC"
         GeneralPostingSetup.SetLoadFields(
             "Sales Pmt. Disc. Debit Acc.", "Sales Pmt. Disc. Credit Acc.",
             "Purch. Pmt. Disc. Debit Acc.", "Purch. Pmt. Disc. Credit Acc.");
-        if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
-            AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Sales Pmt. Disc. Debit Acc.");
-            AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Sales Pmt. Disc. Credit Acc.");
-            AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Purch. Pmt. Disc. Debit Acc.");
-            AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
+        if not GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then
+            exit;
+
+        case SourceType of
+            SourceType::Customer:
+                begin
+                    AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Sales Pmt. Disc. Debit Acc.");
+                    AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Sales Pmt. Disc. Credit Acc.");
+                end;
+            SourceType::Vendor:
+                begin
+                    AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Purch. Pmt. Disc. Debit Acc.");
+                    AddPmtDiscountAccount(ScopeKey, GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
+                end;
         end;
     end;
 
@@ -837,9 +846,9 @@ codeunit 10826 "Generate File FEC"
         exit('PG|' + Format(SourceType.AsInteger()) + '|' + PostingGroupCode);
     end;
 
-    local procedure GenPostingSetupScopeKey(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]): Text
+    local procedure GenPostingSetupScopeKey(SourceType: Enum "Gen. Journal Source Type"; GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]): Text
     begin
-        exit('GPS|' + GenBusPostingGroup + '|' + GenProdPostingGroup);
+        exit('GPS|' + Format(SourceType.AsInteger()) + '|' + GenBusPostingGroup + '|' + GenProdPostingGroup);
     end;
 
     local procedure ResetTransactionData()

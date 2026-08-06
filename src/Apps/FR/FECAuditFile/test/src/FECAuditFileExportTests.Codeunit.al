@@ -2547,6 +2547,73 @@ codeunit 148017 "FEC Audit File Export Tests"
         VerifyFilePartyNoAndName(iStream, '', '');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PurchPmtDiscAccountDoesNotQualifyForCustomerLine()
+    var
+        Customer: Record Customer;
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        AuditFile: Record "Audit File";
+        VATCalculationType: Enum "Tax Calculation Type";
+        iStream: InStream;
+        StartingDate: Date;
+        IncomeAccountNo: Code[20];
+        LineToRead: Text;
+    begin
+        // [SCENARIO 639574] For a Customer entry only a Sales payment discount account qualifies; a Purchase payment
+        // [SCENARIO] discount account of the same general posting setup must not add customer info to the line.
+        Initialize();
+        StartingDate := GetStartingDate();
+
+        // [GIVEN] Dedicated posting groups and a VAT posting setup
+        LibraryERM.CreateGenBusPostingGroup(GenBusinessPostingGroup);
+        LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATCalculationType::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
+
+        // [GIVEN] An income G/L account that a customer sales line posts to
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Gen. Posting Type", GLAccount."Gen. Posting Type"::Sale);
+        GLAccount.Validate("Gen. Prod. Posting Group", GenProductPostingGroup.Code);
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+        IncomeAccountNo := GLAccount."No.";
+
+        // [GIVEN] The general posting setup uses that account as its Purch. Pmt. Disc. account (not the Sales one)
+        LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusinessPostingGroup.Code, GenProductPostingGroup.Code);
+        GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Pmt. Disc. Debit Acc.", IncomeAccountNo);
+        GeneralPostingSetup.Validate("Purch. Pmt. Disc. Credit Acc.", IncomeAccountNo);
+        GeneralPostingSetup.Modify(true);
+
+        // [GIVEN] A customer of that posting group posts a sales invoice line to the income (Purch. Pmt. Disc.) account
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Gen. Bus. Posting Group", GenBusinessPostingGroup.Code);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Posting Date", StartingDate);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", IncomeAccountNo, 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] Export Audit File in FEC format for the income (Purch. Pmt. Disc.) account
+        RunFECExport(AuditFile, IncomeAccountNo, StartingDate, StartingDate, false);
+
+        // [THEN] The customer sales line has blank CompAuxNum/CompAuxLib - a purchase discount account does not qualify for a customer
+        CreateReadStream(iStream, AuditFile);
+        iStream.ReadText(LineToRead); // header
+        VerifyFilePartyNoAndName(iStream, '', '');
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
