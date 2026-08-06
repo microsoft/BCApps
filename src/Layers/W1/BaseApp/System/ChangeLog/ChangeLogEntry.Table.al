@@ -169,14 +169,13 @@ table 405 "Change Log Entry"
 #if not CLEANSCHEMA32
         key(Key4; "Notification Message Id")
         {
-            Enabled = false;
-            ObsoleteReason = 'The key is disabled because Notification Message Id is not used for record retrieval.';
+            ObsoleteReason = 'The key is obsolete because Notification Message Id is not used for record retrieval.';
+            ObsoleteTag = '29.0';
 #if not CLEAN29
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
 #else
+            Enabled = false;
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
 #endif
         }
 #endif
