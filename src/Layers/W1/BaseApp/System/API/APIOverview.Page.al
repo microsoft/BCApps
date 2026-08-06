@@ -1,6 +1,7 @@
 namespace Microsoft.API;
 
 using System.Reflection;
+using System.Utilities;
 
 page 812 "API Overview"
 {
@@ -116,6 +117,7 @@ page 812 "API Overview"
         PageMetadata: Record "Page Metadata";
         QueryMetadata: Record "Query Metadata";
         CodeunitMetadata: Record "CodeUnit Metadata";
+        Regex: Codeunit Regex;
         LineNo: Integer;
         EntryNo: Integer;
     begin
@@ -168,7 +170,7 @@ page 812 "API Overview"
                 TempAPILine."Object Type" := TempAPILine."Object Type"::Codeunit;
                 TempAPILine."Object ID" := CodeunitMetadata.ID;
                 TempAPILine.Description := CodeunitMetadata.Name;
-                TempAPILine."Entity Name" := CopyStr(CodeunitMetadata.Name.Replace(' ', ''), 1, MaxStrLen(TempAPILine."Entity Name"));
+                TempAPILine."Entity Name" := CopyStr(Regex.Replace(CodeunitMetadata.Name, '[^A-Za-z0-9]', ''), 1, MaxStrLen(TempAPILine."Entity Name"));
                 TempAPILine."API Publisher" := 'microsoft';
                 TempAPILine."API Group" := 'codeunits';
                 TempAPILine."API Version" := 'beta';
