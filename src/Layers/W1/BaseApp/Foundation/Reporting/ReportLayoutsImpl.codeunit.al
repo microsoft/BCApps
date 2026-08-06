@@ -45,7 +45,6 @@ codeunit 9660 "Report Layouts Impl."
         CannotUpdateLayoutTxt: Label 'The Layout could not be updated for export. The exported file will contain the original layout.';
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = Layout Name';
         MixedScopeErr: Label 'The selected layouts have different scopes. Some apply to all companies and some only to the current company. Select layouts of a single scope and try again.';
-        GlobalScopeConfirmQst: Label 'One or more of the selected layouts apply to all companies. Changing the status will affect all companies, not only the current one. Do you want to continue?';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
     begin
@@ -68,9 +67,9 @@ codeunit 9660 "Report Layouts Impl."
     begin
         if not ReportLayoutList."User Defined" then begin
             // Extension-installed layout: override the status rather than copying the layout.
-            // A layout whose status is already overridden globally is updated globally; otherwise the
-            // status override is company-specific (see CP0529-338 Q1). Mixed-scope selections and the
-            // global confirmation are handled by SetLayoutStatusBatch before this point.
+            // The override is written for all companies unless this company already has a status
+            // override of its own (see CP0529-338 Q1). Mixed-scope selections are rejected by
+            // SetLayoutStatusBatch before this point.
             UpsertLayoutOverride(ReportLayoutList, LayoutStatusIsGlobalScope(ReportLayoutList), false, '', true, NewStatus, false, false);
             exit(true);
         end;
@@ -95,25 +94,25 @@ codeunit 9660 "Report Layouts Impl."
 
     /// <summary>
     /// Determines whether a status change to an extension-installed layout applies globally.
-    /// "Tenant Report Layout Override" is field-granular, so scope must be resolved from the field that
-    /// is about to change: only a row that actually sets "Override Layout Status" tells us where the
-    /// effective status comes from. A current-company status override wins (company scope); otherwise a
-    /// global status override means global scope. A layout whose status is not overridden anywhere
-    /// defaults to company scope, so a description-only or obsolete-only row on either side never drags
-    /// the status change into the wrong scope.
+    /// Status changes are tenant-wide by default: a layout installed by an extension is the same layout
+    /// in every company, so its lifecycle state normally is too.
+    /// "Tenant Report Layout Override" is field-granular, so an existing exception has to be recognised
+    /// from the field that is about to change, not from the mere existence of a row: only a row that sets
+    /// "Override Layout Status" for the current company keeps the change company-scoped. A
+    /// description-only or obsolete-only row therefore never drags the status change out of global scope.
     /// </summary>
     local procedure LayoutStatusIsGlobalScope(ReportLayoutList: Record "Report Layout List"): Boolean
     var
         TenantReportLayoutOverride: Record "Tenant Report Layout Override";
     begin
+        // A company-specific status override, where one already exists, keeps the change in that company.
+        // Such a row can no longer be created from the UI, but it may come from an earlier version or from
+        // a vendor's install codeunit, and it is what a future company-scoped option would build on.
         if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", SelectedCompany) then
             if TenantReportLayoutOverride."Override Layout Status" then
                 exit(false);
 
-        if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", '') then
-            exit(TenantReportLayoutOverride."Override Layout Status");
-
-        exit(false);
+        exit(true);
     end;
 
     /// <summary>
@@ -123,7 +122,7 @@ codeunit 9660 "Report Layouts Impl."
     /// one-way: it can only ever be set to true and never clears a layout that is obsolete in metadata.
     /// </summary>
     /// <param name="ReportLayoutList">The (extension-installed) layout row from the virtual table</param>
-    /// <param name="MakeGlobal">True writes a global override (empty Company Name); false writes one scoped to the selected company</param>
+    /// <param name="MakeGlobal">True writes a global override (empty Company Name) — the default for an in-place edit; false writes one scoped to the selected company</param>
     local procedure UpsertLayoutOverride(ReportLayoutList: Record "Report Layout List"; MakeGlobal: Boolean; ApplyDescription: Boolean; NewDescription: Text[250]; ApplyStatus: Boolean; NewStatus: Enum "Report Layout Status"; ApplyObsolete: Boolean; NewIsObsolete: Boolean)
     var
         TenantReportLayoutOverride: Record "Tenant Report Layout Override";
@@ -198,10 +197,9 @@ codeunit 9660 "Report Layouts Impl."
         if HasGlobalScope and HasCompanyScope then
             Error(MixedScopeErr);
 
-        // A global-scope change affects every company, so make the user confirm it explicitly.
-        if HasGlobalScope then
-            if not Confirm(GlobalScopeConfirmQst, false) then
-                exit(0);
+        // No confirmation for the all-companies case: a status change is metadata about the layout's
+        // lifecycle, not a change to the layout itself, and it is tenant-wide by default. Prompting on
+        // the normal path would train users to dismiss the dialog without reading it.
 
         // Second pass: apply the status change.
         ReportLayoutList.FindSet();
@@ -742,11 +740,13 @@ codeunit 9660 "Report Layouts Impl."
             // than copying the layout. Only the properties the user actually changed are written, so
             // pressing OK without editing anything writes nothing at all; IsObsolete is one-way.
             if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
-                // Such an edit always overrides for the CURRENT company: the tenant-wide (global)
-                // decision is a governance act and is deliberately not offered in the everyday edit
-                // dialog. A copy is an ordinary tenant layout, so its company scope keeps coming from
-                // "Available in All Companies" and is handled further below.
-                AvailableInAllCompanies := false;
+                // Such an edit overrides for ALL companies. An extension layout is the same layout
+                // everywhere, so its description and lifecycle state normally are too, and the override
+                // records metadata about the layout rather than changing the layout itself. This is why
+                // "Available in All Companies" is shown as a read-only Yes for an in-place edit: it
+                // states the scope the override will be written at. A copy is an ordinary tenant layout,
+                // so it takes its own company scope from that field, handled further below.
+                AvailableInAllCompanies := true;
 
                 NewEditedLayoutName := SelectedReportLayoutList.Name;
                 ApplyDescription := NewDescription <> SelectedReportLayoutList."Description";

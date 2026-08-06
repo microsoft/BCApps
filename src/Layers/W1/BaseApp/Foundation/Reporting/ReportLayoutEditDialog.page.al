@@ -77,12 +77,10 @@ page 9661 "Report Layout Edit Dialog"
                 begin
                     // In override mode (extension layout) checking "Save Changes to a Copy" re-enables
                     // the Layout Name so the forked copy can be given a distinct name, and unlocks the
-                    // layout-availability field — the copy is a normal tenant layout, so its company
-                    // scope is chosen there (not by the override-scope control).
-                    // The two scope toggles are mutually exclusive: a copy writes a tenant layout and
-                    // NO override, so the override-scope control must not stay live (it would do
-                    // nothing); conversely an in-place override does not create a layout, so the
-                    // availability field stays read-only there.
+                    // availability field, because a copy is a normal tenant layout that needs its own
+                    // company scope chosen.
+                    // Unticked, the field stays read-only Yes: an in-place edit writes an all-companies
+                    // override and offers no alternative, so there is nothing to choose.
                     if OverrideMode then begin
                         LayoutNameEditable := CreateCopy;
                         AvailableInAllCompaniesEditable := CreateCopy;
@@ -104,8 +102,10 @@ page 9661 "Report Layout Edit Dialog"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Available in All Companies';
                 ToolTip = 'Specifies whether the layout should be available in all companies or just the current company.';
-                // States the layout's availability, not the override scope. For an extension layout it
-                // is a read-only fact until the user opts into a copy, whose company scope it then sets.
+                // For an in-place edit of an extension layout this states the scope the override is
+                // written at — all companies — and is read-only, because that is the only scope the
+                // everyday path offers. Opting into a copy makes it editable, where it sets the
+                // company scope of the new tenant layout instead.
                 Editable = AvailableInAllCompaniesEditable;
             }
             field(IsObsolete; IsObsolete)
@@ -180,17 +180,17 @@ page 9661 "Report Layout Edit Dialog"
             // Tenant Report Layout Override record. The name/identity is fixed, and IsObsolete is
             // one-way (a layout already obsolete in metadata cannot be un-obsoleted). Copy remains
             // available as an opt-in escape hatch to fork the layout content into a user layout.
-            // No override-scope choice is offered: an in-place edit always writes a CURRENT-COMPANY
-            // override, because a tenant-wide (global) override is a governance act and is
-            // deliberately kept out of the everyday edit dialog.
+            // No override-scope choice is offered: an in-place edit always writes an ALL-COMPANIES
+            // override, because an extension layout is the same layout in every company and the
+            // override records metadata about it rather than changing the layout itself.
             OverrideMode := true;
             CreateCopy := false;
             CreateCopyEditable := true;
             LayoutNameEditable := false;
             IsObsoleteEditable := not ReportLayoutList.IsObsolete;
 
-            // Availability describes the copy, not the override: keep the shipped default (a copy of an
-            // extension layout is created for all companies) and unlock it only once Copy is ticked.
+            // Read-only Yes: for an in-place edit this is the override scope, and it is not negotiable
+            // here. Ticking Copy unlocks it, where it then sets the company scope of the new copy.
             AvailableInAllCompanies := true;
             AvailableInAllCompaniesEditable := false;
         end else begin
