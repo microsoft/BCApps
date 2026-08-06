@@ -39,8 +39,11 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         BookValueAmountErr: Label 'The book-value amount is not correct';
         NoGLEntryErr: Label 'Number of G/L entries did not match the expected';
         NumberFAEntryErr: Label 'Number of FA entries did not match the expected';
+        NumberMaintenanceEntryErr: Label 'Number of maintenance entries did not match the expected';
         DerogatoryAcqErr: Label 'The derogatory book did not receive the acquisition cost from the purchase invoice.';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
+        MissingDerogatoryCounterpartTok: Label 'The derogatory counterpart for source entry';
+        MultipleDerogatoryCounterpartsTok: Label 'More than one derogatory counterpart references source entry';
 
     [Test]
     procedure DerogatoryWithModifiedFAPostingDate()
@@ -669,6 +672,563 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             Assert.AreEqual(1, CounterpartFALedgerEntry.Count, NumberFAEntryErr);
         until SourceFALedgerEntry.Next() = 0;
         Assert.AreNotEqual(0, AutomaticSourceCount, NumberFAEntryErr);
+    end;
+
+    [Test]
+    procedure FAReversalUsesPersistedLinkAfterRelationshipChanges()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        ReversingFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+        NewTaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617323] A changed relationship does not redirect reversal of linked FA history
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        NewTaxDeprBookCode := ChangeDerogatoryRelationship(FANo, NormalDeprBookCode, TaxDeprBookCode);
+
+        ReverseFAEntry(SourceFALedgerEntry, ReversingFALedgerEntry);
+
+        VerifyLinkedFAReversal(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, ReversingFALedgerEntry, TaxDeprBookCode);
+        CounterpartFALedgerEntry.SetRange("Depreciation Book Code", NewTaxDeprBookCode);
+        CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.", ReversingFALedgerEntry."Entry No.");
+        Assert.AreEqual(0, CounterpartFALedgerEntry.Count, NumberFAEntryErr);
+    end;
+
+    [Test]
+    procedure MaintenanceReversalUsesPersistedLinkAfterRelationshipRemoval()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617324] Removed setup does not suppress reversal of linked maintenance history
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        ClearDerogatoryRelationship(TaxDeprBookCode);
+
+        ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
+
+        VerifyLinkedMaintenanceReversal(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            ReversingMaintenanceLedgerEntry, TaxDeprBookCode);
+    end;
+
+    [Test]
+    procedure MissingRequiredFACounterpartErrors()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        ReversingFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617325] An eligible FA source cannot be reversed without its linked counterpart
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        CounterpartFALedgerEntry.Delete();
+
+        asserterror ReverseFAEntry(SourceFALedgerEntry, ReversingFALedgerEntry);
+
+        Assert.ExpectedError(MissingDerogatoryCounterpartTok);
+    end;
+
+    [Test]
+    procedure MissingRequiredMaintenanceCounterpartErrors()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617326] An eligible maintenance source cannot be reversed without its linked counterpart
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        CounterpartMaintenanceLedgerEntry.Delete();
+
+        asserterror ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
+
+        Assert.ExpectedError(MissingDerogatoryCounterpartTok);
+    end;
+
+    [Test]
+    procedure MultipleFACounterpartsAcrossBooksError()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        ReversingFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617327] FA reversal rejects multiple global persisted links
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        InsertDuplicateFALinkInAnotherBook(CounterpartFALedgerEntry);
+
+        asserterror ReverseFAEntry(SourceFALedgerEntry, ReversingFALedgerEntry);
+
+        Assert.ExpectedError(MultipleDerogatoryCounterpartsTok);
+    end;
+
+    [Test]
+    procedure MultipleMaintenanceCounterpartsAcrossBooksError()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617328] Maintenance reversal rejects multiple global persisted links
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        InsertDuplicateMaintenanceLinkInAnotherBook(CounterpartMaintenanceLedgerEntry);
+
+        asserterror ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
+
+        Assert.ExpectedError(MultipleDerogatoryCounterpartsTok);
+    end;
+
+    [Test]
+    procedure UnlinkedCurrentlyIneligibleFAReversesNormally()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        ReversingFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617329] A currently ineligible unlinked FA source receives only its normal reversal
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        CounterpartFALedgerEntry.Delete();
+        ClearDerogatoryRelationship(TaxDeprBookCode);
+
+        ReverseFAEntry(SourceFALedgerEntry, ReversingFALedgerEntry);
+
+        SourceFALedgerEntry.Get(SourceFALedgerEntry."Entry No.");
+        SourceFALedgerEntry.TestField(Reversed, true);
+        ReversingFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.", ReversingFALedgerEntry."Entry No.");
+        Assert.AreEqual(0, CounterpartFALedgerEntry.Count, NumberFAEntryErr);
+    end;
+
+    [Test]
+    procedure UnlinkedCurrentlyIneligibleMaintenanceReversesNormally()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617330] A currently ineligible unlinked maintenance source receives only its normal reversal
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        CounterpartMaintenanceLedgerEntry.Delete();
+        ClearDerogatoryRelationship(TaxDeprBookCode);
+
+        ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
+
+        SourceMaintenanceLedgerEntry.Get(SourceMaintenanceLedgerEntry."Entry No.");
+        SourceMaintenanceLedgerEntry.TestField(Reversed, true);
+        ReversingMaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        CounterpartMaintenanceLedgerEntry.SetRange(
+            "Derogatory Source Entry No.", ReversingMaintenanceLedgerEntry."Entry No.");
+        Assert.AreEqual(0, CounterpartMaintenanceLedgerEntry.Count, NumberMaintenanceEntryErr);
+    end;
+
+    [Test]
+    procedure MarkedLegacyFAUsesHeuristicFallback()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        ReversingFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617331] Only a marked legacy FA source can use heuristic reversal
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        MarkFAEntriesAsAmbiguousLegacy(SourceFALedgerEntry, CounterpartFALedgerEntry);
+
+        ReverseFAEntry(SourceFALedgerEntry, ReversingFALedgerEntry);
+
+        VerifyLinkedFAReversal(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, ReversingFALedgerEntry, TaxDeprBookCode);
+    end;
+
+    [Test]
+    procedure MarkedLegacyMaintenanceUsesHeuristicFallback()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617332] Only a marked legacy maintenance source can use heuristic reversal
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        MarkMaintenanceEntriesAsAmbiguousLegacy(SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry);
+
+        ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
+
+        VerifyLinkedMaintenanceReversal(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            ReversingMaintenanceLedgerEntry, TaxDeprBookCode);
+    end;
+
+    [Test]
+    procedure MarkedLegacyFAUsesHeuristicAfterRelationshipRemoval()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        ReversingFALedgerEntry: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617336] Removed setup does not suppress marked legacy FA fallback
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        MarkFAEntriesAsAmbiguousLegacy(SourceFALedgerEntry, CounterpartFALedgerEntry);
+        ClearDerogatoryRelationship(TaxDeprBookCode);
+
+        ReverseFAEntry(SourceFALedgerEntry, ReversingFALedgerEntry);
+
+        VerifyLinkedFAReversal(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, ReversingFALedgerEntry, TaxDeprBookCode);
+    end;
+
+    [Test]
+    procedure MarkedLegacyMaintenanceUsesHeuristicAfterRelationshipChange()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617337] Changed setup does not redirect marked legacy maintenance fallback
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        MarkMaintenanceEntriesAsAmbiguousLegacy(SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry);
+        ChangeDerogatoryRelationship(FANo, NormalDeprBookCode, TaxDeprBookCode);
+
+        ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, ReversingMaintenanceLedgerEntry);
+
+        VerifyLinkedMaintenanceReversal(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            ReversingMaintenanceLedgerEntry, TaxDeprBookCode);
+    end;
+
+    [Test]
+    procedure FAReversalOfReversalPreservesMarksAndLinks()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        FirstReversingFALedgerEntry: Record "FA Ledger Entry";
+        FirstCounterpartReversal: Record "FA Ledger Entry";
+        SecondReversingFALedgerEntry: Record "FA Ledger Entry";
+        SecondCounterpartReversal: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617333] Reversal of an FA reversal keeps both reversal chains aligned
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry, FANo, NormalDeprBookCode, TaxDeprBookCode);
+        ReverseFAEntry(SourceFALedgerEntry, FirstReversingFALedgerEntry);
+        FindLinkedFAEntry(
+            FirstCounterpartReversal, FirstReversingFALedgerEntry."Entry No.", TaxDeprBookCode);
+
+        ReverseFAEntry(FirstReversingFALedgerEntry, SecondReversingFALedgerEntry);
+
+        FindLinkedFAEntry(
+            SecondCounterpartReversal, SecondReversingFALedgerEntry."Entry No.", TaxDeprBookCode);
+        SourceFALedgerEntry.Get(SourceFALedgerEntry."Entry No.");
+        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
+        FirstReversingFALedgerEntry.Get(FirstReversingFALedgerEntry."Entry No.");
+        FirstCounterpartReversal.Get(FirstCounterpartReversal."Entry No.");
+        SourceFALedgerEntry.TestField(Reversed, false);
+        CounterpartFALedgerEntry.TestField(Reversed, false);
+        FirstReversingFALedgerEntry.TestField("Reversed by Entry No.", SecondReversingFALedgerEntry."Entry No.");
+        FirstCounterpartReversal.TestField("Reversed by Entry No.", SecondCounterpartReversal."Entry No.");
+    end;
+
+    [Test]
+    procedure MaintenanceReversalOfReversalPreservesMarksAndLinks()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FirstReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FirstCounterpartReversal: Record "Maintenance Ledger Entry";
+        SecondReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        SecondCounterpartReversal: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617334] Reversal of a maintenance reversal keeps both reversal chains aligned
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+        ReverseMaintenanceEntry(SourceMaintenanceLedgerEntry, FirstReversingMaintenanceLedgerEntry);
+        FindLinkedMaintenanceEntry(
+            FirstCounterpartReversal, FirstReversingMaintenanceLedgerEntry."Entry No.", TaxDeprBookCode);
+
+        ReverseMaintenanceEntry(FirstReversingMaintenanceLedgerEntry, SecondReversingMaintenanceLedgerEntry);
+
+        FindLinkedMaintenanceEntry(
+            SecondCounterpartReversal, SecondReversingMaintenanceLedgerEntry."Entry No.", TaxDeprBookCode);
+        SourceMaintenanceLedgerEntry.Get(SourceMaintenanceLedgerEntry."Entry No.");
+        CounterpartMaintenanceLedgerEntry.Get(CounterpartMaintenanceLedgerEntry."Entry No.");
+        FirstReversingMaintenanceLedgerEntry.Get(FirstReversingMaintenanceLedgerEntry."Entry No.");
+        FirstCounterpartReversal.Get(FirstCounterpartReversal."Entry No.");
+        SourceMaintenanceLedgerEntry.TestField(Reversed, false);
+        CounterpartMaintenanceLedgerEntry.TestField(Reversed, false);
+        FirstReversingMaintenanceLedgerEntry.TestField(
+            "Reversed by Entry No.", SecondReversingMaintenanceLedgerEntry."Entry No.");
+        FirstCounterpartReversal.TestField("Reversed by Entry No.", SecondCounterpartReversal."Entry No.");
+    end;
+
+    [Test]
+    procedure AutomaticSalvageCompanionsReverseThroughLinks()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        SourceAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        ReversingAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        SourceSalvageFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartSalvageFALedgerEntry: Record "FA Ledger Entry";
+        ReversingSalvageFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartSalvageReversal: Record "FA Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617335] Automatic source and tax-book salvage companions reverse through their link
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        UpdateIntegrationInBook(NormalDeprBookCode, false);
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+            LibraryRandom.RandDec(10000, 2));
+        FAJournalLine.Validate("Salvage Value", -LibraryRandom.RandDec(100, 2));
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        FindFALedgerEntry(
+            SourceAcquisitionFALedgerEntry, FANo, NormalDeprBookCode,
+            SourceAcquisitionFALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        FindFALedgerEntry(
+            SourceSalvageFALedgerEntry, FANo, NormalDeprBookCode,
+            SourceSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
+        FindLinkedFAEntry(
+            CounterpartSalvageFALedgerEntry, SourceSalvageFALedgerEntry."Entry No.", TaxDeprBookCode);
+        ReverseFAEntry(SourceAcquisitionFALedgerEntry, ReversingAcquisitionFALedgerEntry);
+
+        SourceSalvageFALedgerEntry.Get(SourceSalvageFALedgerEntry."Entry No.");
+        CounterpartSalvageFALedgerEntry.Get(CounterpartSalvageFALedgerEntry."Entry No.");
+        SourceSalvageFALedgerEntry.TestField(Reversed, true);
+        CounterpartSalvageFALedgerEntry.TestField(Reversed, true);
+        ReversingSalvageFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
+        ReversingSalvageFALedgerEntry.SetRange("Reversed Entry No.", SourceSalvageFALedgerEntry."Entry No.");
+        ReversingSalvageFALedgerEntry.FindFirst();
+        FindLinkedFAEntry(
+            CounterpartSalvageReversal, ReversingSalvageFALedgerEntry."Entry No.", TaxDeprBookCode);
+    end;
+
+    local procedure PostLinkedFAAcquisition(var SourceFALedgerEntry: Record "FA Ledger Entry"; var CounterpartFALedgerEntry: Record "FA Ledger Entry"; FANo: Code[20]; NormalDeprBookCode: Code[10]; TaxDeprBookCode: Code[10])
+    var
+        FAJournalLine: Record "FA Journal Line";
+    begin
+        UpdateIntegrationInBook(NormalDeprBookCode, false);
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+            LibraryRandom.RandDec(10000, 2));
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        FindFALedgerEntry(
+            SourceFALedgerEntry, FANo, NormalDeprBookCode,
+            SourceFALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        FindLinkedFAEntry(CounterpartFALedgerEntry, SourceFALedgerEntry."Entry No.", TaxDeprBookCode);
+    end;
+
+    local procedure PostLinkedMaintenance(var SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; FANo: Code[20]; NormalDeprBookCode: Code[10]; TaxDeprBookCode: Code[10])
+    var
+        FAJournalLine: Record "FA Journal Line";
+        Maintenance: Record Maintenance;
+    begin
+        UpdateIntegrationInBook(NormalDeprBookCode, false);
+        LibraryFixedAsset.CreateMaintenance(Maintenance);
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDeprBookCode, FAJournalLine."FA Posting Type"::Maintenance,
+            LibraryRandom.RandDec(1000, 2));
+        FAJournalLine.Validate("Maintenance Code", Maintenance.Code);
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        SourceMaintenanceLedgerEntry.SetRange("FA No.", FANo);
+        SourceMaintenanceLedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
+        SourceMaintenanceLedgerEntry.FindLast();
+        FindLinkedMaintenanceEntry(
+            CounterpartMaintenanceLedgerEntry, SourceMaintenanceLedgerEntry."Entry No.", TaxDeprBookCode);
+    end;
+
+    local procedure ReverseFAEntry(FALedgerEntry: Record "FA Ledger Entry"; var ReversingFALedgerEntry: Record "FA Ledger Entry")
+    var
+        FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
+        NewEntryNo: Integer;
+    begin
+        FAInsertLedgerEntry.InsertReverseEntry(0, 1, FALedgerEntry."Entry No.", NewEntryNo, 0);
+        ReversingFALedgerEntry.Get(NewEntryNo);
+    end;
+
+    local procedure ReverseMaintenanceEntry(MaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    var
+        FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
+        NewEntryNo: Integer;
+    begin
+        FAInsertLedgerEntry.InsertReverseEntry(0, 2, MaintenanceLedgerEntry."Entry No.", NewEntryNo, 0);
+        ReversingMaintenanceLedgerEntry.Get(NewEntryNo);
+    end;
+
+    local procedure VerifyLinkedFAReversal(SourceFALedgerEntry: Record "FA Ledger Entry"; CounterpartFALedgerEntry: Record "FA Ledger Entry"; ReversingFALedgerEntry: Record "FA Ledger Entry"; TaxDeprBookCode: Code[10])
+    var
+        CounterpartReversal: Record "FA Ledger Entry";
+    begin
+        SourceFALedgerEntry.Get(SourceFALedgerEntry."Entry No.");
+        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
+        SourceFALedgerEntry.TestField("Reversed by Entry No.", ReversingFALedgerEntry."Entry No.");
+        FindLinkedFAEntry(CounterpartReversal, ReversingFALedgerEntry."Entry No.", TaxDeprBookCode);
+        CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
+    end;
+
+    local procedure VerifyLinkedMaintenanceReversal(SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; TaxDeprBookCode: Code[10])
+    var
+        CounterpartReversal: Record "Maintenance Ledger Entry";
+    begin
+        SourceMaintenanceLedgerEntry.Get(SourceMaintenanceLedgerEntry."Entry No.");
+        CounterpartMaintenanceLedgerEntry.Get(CounterpartMaintenanceLedgerEntry."Entry No.");
+        SourceMaintenanceLedgerEntry.TestField("Reversed by Entry No.", ReversingMaintenanceLedgerEntry."Entry No.");
+        FindLinkedMaintenanceEntry(
+            CounterpartReversal, ReversingMaintenanceLedgerEntry."Entry No.", TaxDeprBookCode);
+        CounterpartMaintenanceLedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
+    end;
+
+    local procedure FindFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry"; FANo: Code[20]; DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Ledger Entry FA Posting Type")
+    begin
+        FALedgerEntry.SetRange("FA No.", FANo);
+        FALedgerEntry.SetRange("Depreciation Book Code", DepreciationBookCode);
+        FALedgerEntry.SetRange("FA Posting Type", FAPostingType);
+        FALedgerEntry.FindLast();
+    end;
+
+    local procedure FindLinkedFAEntry(var FALedgerEntry: Record "FA Ledger Entry"; SourceEntryNo: Integer; DepreciationBookCode: Code[10])
+    begin
+        FALedgerEntry.SetRange("Derogatory Source Entry No.", SourceEntryNo);
+        FALedgerEntry.SetRange("Depreciation Book Code", DepreciationBookCode);
+        FALedgerEntry.FindFirst();
+    end;
+
+    local procedure FindLinkedMaintenanceEntry(var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; SourceEntryNo: Integer; DepreciationBookCode: Code[10])
+    begin
+        MaintenanceLedgerEntry.SetRange("Derogatory Source Entry No.", SourceEntryNo);
+        MaintenanceLedgerEntry.SetRange("Depreciation Book Code", DepreciationBookCode);
+        MaintenanceLedgerEntry.FindFirst();
+    end;
+
+    local procedure ClearDerogatoryRelationship(TaxDeprBookCode: Code[10])
+    var
+        TaxDepreciationBook: Record "Depreciation Book";
+    begin
+        TaxDepreciationBook.Get(TaxDeprBookCode);
+        TaxDepreciationBook.Validate("Derogatory Calc.", '');
+        TaxDepreciationBook.Modify(true);
+    end;
+
+    local procedure ChangeDerogatoryRelationship(FANo: Code[20]; NormalDeprBookCode: Code[10]; TaxDeprBookCode: Code[10]): Code[10]
+    var
+        NormalFADepreciationBook: Record "FA Depreciation Book";
+        NewTaxDeprBookCode: Code[10];
+    begin
+        ClearDerogatoryRelationship(TaxDeprBookCode);
+        NewTaxDeprBookCode := CreateDeprBookModifyDerogCalc(NormalDeprBookCode);
+        NormalFADepreciationBook.Get(FANo, NormalDeprBookCode);
+        CreateFADeprBookWithDates(
+            FANo, NewTaxDeprBookCode, NormalFADepreciationBook."FA Posting Group",
+            NormalFADepreciationBook."Depreciation Starting Date", NormalFADepreciationBook."Depreciation Ending Date");
+        exit(NewTaxDeprBookCode);
+    end;
+
+    local procedure InsertDuplicateFALinkInAnotherBook(CounterpartFALedgerEntry: Record "FA Ledger Entry")
+    var
+        LastFALedgerEntry: Record "FA Ledger Entry";
+    begin
+        LastFALedgerEntry.FindLast();
+        CounterpartFALedgerEntry."Entry No." := LastFALedgerEntry."Entry No." + 1;
+        CounterpartFALedgerEntry."Depreciation Book Code" := CreateDeprBookModifyDerogCalc('');
+        CounterpartFALedgerEntry.Insert();
+    end;
+
+    local procedure InsertDuplicateMaintenanceLinkInAnotherBook(CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    var
+        LastMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+    begin
+        LastMaintenanceLedgerEntry.FindLast();
+        CounterpartMaintenanceLedgerEntry."Entry No." := LastMaintenanceLedgerEntry."Entry No." + 1;
+        CounterpartMaintenanceLedgerEntry."Depreciation Book Code" := CreateDeprBookModifyDerogCalc('');
+        CounterpartMaintenanceLedgerEntry.Insert();
+    end;
+
+    local procedure MarkFAEntriesAsAmbiguousLegacy(var SourceFALedgerEntry: Record "FA Ledger Entry"; var CounterpartFALedgerEntry: Record "FA Ledger Entry")
+    begin
+        SourceFALedgerEntry."Legacy Derogatory Ambiguous" := true;
+        SourceFALedgerEntry.Modify();
+        CounterpartFALedgerEntry."Derogatory Source Entry No." := 0;
+        CounterpartFALedgerEntry.Modify();
+    end;
+
+    local procedure MarkMaintenanceEntriesAsAmbiguousLegacy(var SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    begin
+        SourceMaintenanceLedgerEntry."Legacy Derogatory Ambiguous" := true;
+        SourceMaintenanceLedgerEntry.Modify();
+        CounterpartMaintenanceLedgerEntry."Derogatory Source Entry No." := 0;
+        CounterpartMaintenanceLedgerEntry.Modify();
     end;
 
     local procedure CreateFAWithNormalAndTaxFADeprBooks(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10]): Code[20]
