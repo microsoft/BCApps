@@ -30,6 +30,8 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(IsPerDiemLocationsEnabled());
             Capability::ConsolidatedProjects:
                 exit(IsConsolidatedProjectsEnabled());
+            Capability::AiAssistedPolicyEvaluation:
+                exit(IsAiAssistedPolicyEvaluationEnabled());
         end;
         exit(false);
     end;
@@ -51,6 +53,15 @@ codeunit 6906 "Expense Capabilities Provider"
     local procedure IsConsolidatedProjectsEnabled(): Boolean
     begin
         exit(IsProjectsEnabled());
+    end;
+
+    local procedure IsAiAssistedPolicyEvaluationEnabled(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if not ExpenseAgentSetup.Get() then
+            exit(false);
+        exit(ExpenseAgentSetup."Evaluate Policies");
     end;
 
     /// <summary>

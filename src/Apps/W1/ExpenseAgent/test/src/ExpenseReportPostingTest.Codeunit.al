@@ -3460,6 +3460,143 @@ codeunit 148302 "Expense Report Posting Test"
     end;
 
     [Test]
+    procedure SubmitDoesNotInvalidatePolicyEvaluation()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        CurrentUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
+        EvaluatedVersion: Integer;
+    begin
+        // [SCENARIO] Releasing and marking a report Pending Approval must NOT invalidate policy
+        //            evaluations - the submit path only reads lines, it never modifies them.
+        Initialize();
+
+        // [GIVEN] Approval workflow disabled so submit needs no interactive approval.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] An expense user and a refundable category with an expense report line.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCategory.Validate(Refundable, true);
+        ExpenseCategory.Modify();
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        // [GIVEN] A policy for the category and a violation flag captured on the line, then the line is marked evaluated.
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
+        ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag.Description := 'Receipt includes alcohol.';
+        ExpensePolicyFlag.Insert(true);
+
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        EvaluatedVersion := ExpenseReportLine."Evaluated Policy Version";
+        Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the evaluated line must be Flagged.');
+
+        // [GIVEN] An approver chain so the report can be submitted.
+        CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
+
+        // [WHEN] The report is released and marked Pending Approval (submitted).
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+
+        // [THEN] The report is Pending Approval.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'The report must be Pending Approval after submit.');
+
+        // [THEN] The line's policy evaluation is untouched: both versions unchanged, status still Flagged (not Stale).
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(EvaluatedVersion, ExpenseReportLine."Policy Eval Version", 'Submit must not bump Policy Eval Version.');
+        Assert.AreEqual(EvaluatedVersion, ExpenseReportLine."Evaluated Policy Version", 'Submit must not move Evaluated Policy Version.');
+        Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Submit must leave the policy status unchanged (not Stale).');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure PolicyFlagsCopiedToPostedExpenseReport()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedExpPolicyFlag: Record "Posted Exp. Policy Flag";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        // [SCENARIO] Policy flags on a report line are copied to the Posted Expense Policy Flag table on posting,
+        //            and the open flags are removed with the line.
+        Initialize();
+
+        // [GIVEN] An expense user and a refundable category with an expense report line.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCategory.Validate(Refundable, true);
+        ExpenseCategory.Modify();
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        // [GIVEN] A policy for the category and a violation flag captured on the line, then the line is marked evaluated.
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
+        ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag.Description := 'Receipt includes alcohol.';
+        ExpensePolicyFlag.Insert(true);
+
+        ExpenseReportLine.MarkPoliciesEvaluated();
+
+        // [GIVEN] The report is released.
+        ExpenseReportHeader.PerformManualRelease();
+
+        // [WHEN] The report is posted.
+        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] The posted line carries the copied policy flag.
+        FindPostedExpenseReportLine(PostedExpenseReportLine, ExpenseUser);
+        PostedExpPolicyFlag.SetRange("Subject System Id", PostedExpenseReportLine.SystemId);
+        Assert.RecordCount(PostedExpPolicyFlag, 1);
+
+        // [THEN] The original open flag no longer exists.
+        ExpensePolicyFlag.Reset();
+        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        Assert.RecordIsEmpty(ExpensePolicyFlag);
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure MultipleCommentsCopiedFromExpenseReportToPostedExpenseReport()
     var

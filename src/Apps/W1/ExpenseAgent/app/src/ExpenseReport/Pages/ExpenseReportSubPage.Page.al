@@ -44,6 +44,13 @@ page 6999 "Expense Report SubPage"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if there are any rule violations for the expense line.';
                 }
+                field(PolicyStatus; PolicyStatus)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Policy Status';
+                    Editable = false;
+                    ToolTip = 'Specifies the policy evaluation status for the expense: Not Evaluated when the agent has not assessed it yet, Flagged when one or more policy flags exist, or Cleared when it was evaluated and no flags were raised.';
+                }
                 field("Expense Location"; Rec."Expense Location")
                 {
                     ApplicationArea = Basic, Suite;
@@ -611,6 +618,7 @@ page 6999 "Expense Report SubPage"
         AllowVATReclaim: Boolean;
         ReimbursementAmountLbl: Label '%1 (%2)', Comment = '%1 = Field Caption, %2 = Field Value';
         LCYLbl: Label 'LCY';
+        PolicyStatus: Enum "Expense Policy Status";
 
     local procedure UpdateControls()
     begin
@@ -627,6 +635,7 @@ page 6999 "Expense Report SubPage"
 
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        PolicyStatus := Rec.GetPolicyStatus();
     end;
 
     local procedure ValidateHeaderAmountField()

@@ -325,6 +325,21 @@ page 6929 "Expense Report Lines API"
                     Caption = 'Project Task Description';
                     Editable = false;
                 }
+                field(policiesEvaluatedAt; Rec."Policies Evaluated At")
+                {
+                    Caption = 'Policies Evaluated At';
+                    Editable = false;
+                }
+                field(policyStatus; PolicyStatusDisplay)
+                {
+                    Caption = 'Policy Status';
+                    Editable = false;
+                }
+                field(hasPolicyViolation; Rec."Has Policy Violation")
+                {
+                    Caption = 'Has Policy Violation';
+                    Editable = false;
+                }
 
                 part(expense; "Expenses API")
                 {
@@ -368,6 +383,20 @@ page 6929 "Expense Report Lines API"
                     SubPageLink = "Expense Report No." = field("Document No."),
                                   "Report Line No." = field("Line No.");
                 }
+                part(expensePolicyFlags; "Expense Policy Flags API")
+                {
+                    Caption = 'Expense Policy Flags';
+                    EntityName = 'expensePolicyFlag';
+                    EntitySetName = 'expensePolicyFlags';
+                    SubPageLink = "Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Policy Eval Version");
+                }
+                part(policiesToEvaluate; "Exp. Policies To Eval API")
+                {
+                    Caption = 'Policies To Evaluate';
+                    EntityName = 'policyToEvaluate';
+                    EntitySetName = 'policiesToEvaluate';
+                    SubPageLink = "Subject System Id" = field(SystemId);
+                }
             }
         }
     }
@@ -382,6 +411,7 @@ page 6929 "Expense Report Lines API"
         TotalMileage: Decimal;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
+        PolicyStatusDisplay: Enum "Expense Policy Status";
         TargetExpenseReportNotFoundErr: Label 'Expense report with Id %1 not found.', Comment = '%1 = Expense Report Header SystemId';
 
     trigger OnInit()
@@ -395,7 +425,7 @@ page 6929 "Expense Report Lines API"
     trigger OnOpenPage()
     begin
         // Avoid JIT load consistency errors by ensuring fields read in OnAfterGetRecord are included in the initial record buffer.
-        Rec.AddLoadFields("Expense Currency Code", "Expense User No.", Mileage, "Round Trip");
+        Rec.AddLoadFields("Expense Currency Code", "Expense User No.", Mileage, "Round Trip", "Policy Eval Version", "Evaluated Policy Version");
     end;
 
     trigger OnAfterGetRecord()
@@ -408,6 +438,7 @@ page 6929 "Expense Report Lines API"
         XCurrencyCodeDisplay := CurrencyCodeDisplay;
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
+        PolicyStatusDisplay := Rec.GetPolicyStatus();
 
         JobDescription := '';
         JobTaskDescription := '';
@@ -487,6 +518,17 @@ page 6929 "Expense Report Lines API"
     begin
         Rec.ApplyRule();
         Rec.Modify();
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Report Lines API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure MarkPoliciesEvaluated(var ActionContext: WebServiceActionContext)
+    begin
+        Rec.MarkPoliciesEvaluated();
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Report Lines API");

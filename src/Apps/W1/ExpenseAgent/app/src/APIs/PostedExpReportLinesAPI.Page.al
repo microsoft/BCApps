@@ -295,6 +295,12 @@ page 6913 "Posted Exp. Report Lines API"
                     EntitySetName = 'postedExpenseReportLineAttachments';
                     SubPageLink = "Document Id" = field(SystemId);
                 }
+                part(expensePolicyFlags; "Posted Exp. Policy Flags API")
+                {
+                    EntityName = 'postedExpensePolicyFlag';
+                    EntitySetName = 'postedExpensePolicyFlags';
+                    SubPageLink = "Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line");
+                }
             }
         }
     }
