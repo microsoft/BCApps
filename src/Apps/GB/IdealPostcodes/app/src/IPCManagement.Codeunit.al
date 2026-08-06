@@ -163,6 +163,7 @@ codeunit 9400 "IPC Management"
     local procedure AddAddressToBuffer(AddressJson: JsonObject; var TempIPCAddressLookup: Record "IPC Address Lookup" temporary; EntryNo: Integer; RemoveOrganisationName: Boolean)
     var
         Line1, Line2, Line3 : Text;
+        DisplayText: Text;
     begin
         Line1 := GetJsonValue(AddressJson, 'line_1');
         Line2 := GetJsonValue(AddressJson, 'line_2');
@@ -188,12 +189,13 @@ codeunit 9400 "IPC Management"
         TempIPCAddressLookup.County := CopyStr(GetJsonValue(AddressJson, 'county'), 1, MaxStrLen(TempIPCAddressLookup.County));
         TempIPCAddressLookup."Country/Region Code" := CopyStr(GetJsonValue(AddressJson, 'country_iso_2'), 1, MaxStrLen(TempIPCAddressLookup."Country/Region Code"));
 
-        // Create display text
-        TempIPCAddressLookup."Display Text" := TempIPCAddressLookup.Address;
-        if TempIPCAddressLookup.City <> '' then
-            TempIPCAddressLookup."Display Text" += ', ' + TempIPCAddressLookup.City;
-        if TempIPCAddressLookup."Post Code" <> '' then
-            TempIPCAddressLookup."Display Text" += ' ' + TempIPCAddressLookup."Post Code";
+        // Create display text from address lines 1-3
+        DisplayText := Line1;
+        if Line2 <> '' then
+            DisplayText += ', ' + Line2;
+        if Line3 <> '' then
+            DisplayText += ', ' + Line3;
+        TempIPCAddressLookup."Display Text" := CopyStr(DisplayText, 1, MaxStrLen(TempIPCAddressLookup."Display Text"));
 
         TempIPCAddressLookup.Insert();
     end;
