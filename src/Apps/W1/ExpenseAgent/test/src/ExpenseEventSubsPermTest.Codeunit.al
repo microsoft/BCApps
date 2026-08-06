@@ -55,6 +55,7 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         MiddleName: Text[30];
         LastName: Text[30];
         JobTitle: Text[30];
+        ExpectedFullName: Text[100];
     begin
         Initialize();
 
@@ -71,12 +72,14 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         Employee.Validate("First Name", FirstName);
         Employee.Validate("Middle Name", MiddleName);
         Employee.Validate("Last Name", LastName);
+        // Some localizations map the compatibility name fields during OnModify, after these subscribers run.
+        ExpectedFullName := Employee.FullName();
         Employee.Validate("Job Title", JobTitle);
         Employee.Modify(true);
 
         RestoreFullPermissions();
         ExpenseUser.Get(ExpenseUser."No.");
-        Assert.AreEqual(Employee.FullName(), ExpenseUser.Name, 'Employee name must synchronize to Expense User.');
+        Assert.AreEqual(ExpectedFullName, ExpenseUser.Name, 'Employee name must synchronize to Expense User.');
         Assert.AreEqual(JobTitle, ExpenseUser."Job Title", 'Employee job title must synchronize to Expense User.');
     end;
 
