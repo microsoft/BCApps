@@ -43,6 +43,8 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         OnRunOnBeforeCreateCopyDocument(Rec);
         CreateCopyDocument(Rec, PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", false);
 
+        CheckPurchaseOrderLinesCanAbsorbCancellation(Rec."No.");
+
         SuppressCommit := not NoSeries.IsNoSeriesInDateOrder(PurchaseHeader."Posting No. Series");
 
         OnBeforeUpdateCheckTotal(Rec, PurchaseHeader, CancellingOnly, SuppressCommit);
@@ -864,8 +866,6 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         if IsHandled then
             exit;
 
-        CheckCancelledQuantityWithinOrderLine(PurchaseLine, CancelledQuantity, CancelledQtyBase);
-
         PurchaseLine."Quantity Invoiced" -= CancelledQuantity;
         PurchaseLine."Qty. Invoiced (Base)" -= CancelledQtyBase;
         PurchaseLine."Quantity Received" -= CancelledQuantity;
@@ -1125,6 +1125,22 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         IncomingDocumentAttachment.SetRange("Incoming Document Entry No.", IncomingDocument."Entry No.");
         IncomingDocumentAttachment.ModifyAll("Document No.", '');
         IncomingDocumentAttachment.ModifyAll("Posting Date", 0D);
+    end;
+
+    local procedure CheckPurchaseOrderLinesCanAbsorbCancellation(PurchInvHeaderNo: Code[20])
+    var
+        PurchaseLine: Record "Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+    begin
+        PurchaseLine.SetLoadFields("Quantity Invoiced", "Qty. Invoiced (Base)", "Quantity Received", "Qty. Received (Base)");
+        PurchInvLine.SetLoadFields("Order No.", "Order Line No.", Quantity, "Quantity (Base)");
+        PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
+        PurchInvLine.SetRange("Prepayment Line", false);
+        if PurchInvLine.FindSet() then
+            repeat
+                if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchInvLine."Order No.", PurchInvLine."Order Line No.") then
+                    CheckCancelledQuantityWithinOrderLine(PurchaseLine, PurchInvLine.Quantity, PurchInvLine."Quantity (Base)");
+            until PurchInvLine.Next() = 0;
     end;
 
     local procedure CheckCancelledQuantityWithinOrderLine(PurchaseLine: Record "Purchase Line"; CancelledQuantity: Decimal; CancelledQtyBase: Decimal)

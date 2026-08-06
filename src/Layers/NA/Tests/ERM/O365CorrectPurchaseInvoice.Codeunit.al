@@ -1769,6 +1769,64 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         PurchaseLine.TestField(Quantity, OriginalQty + 1);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure CorrectiveCreditMemoQtyIncreaseBlockedForOrderBasedServiceItem()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseHeaderCorrection: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        OrderQty: Decimal;
+        PartialQty: Decimal;
+        OriginalQty: Decimal;
+    begin
+        // [FEATURE] [Corrective Credit Memo] [Purchase Order]
+        // [SCENARIO 645182] A corrective credit memo created from an order-based invoice cannot be increased, so the purchase order Received/Invoiced quantities cannot be driven negative.
+        Initialize();
+
+        // [GIVEN] A purchase order for a Service item, partially received and invoiced
+        PartialQty := LibraryRandom.RandIntInRange(2, 5);
+        OrderQty := PartialQty + LibraryRandom.RandIntInRange(1, 5);
+        CreateItemWithCost(Item, Item.Type::Service, LibraryRandom.RandDecInRange(10, 100, 2));
+        LibrarySmallBusiness.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", OrderQty);
+        PurchaseLineOrder.Validate("Qty. to Receive", PartialQty);
+        PurchaseLineOrder.Validate("Qty. to Invoice", PartialQty);
+        PurchaseLineOrder.Modify(true);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, true));
+
+        // [GIVEN] The order line shows the partially received and invoiced quantity
+        PurchaseLineOrder.Find();
+        PurchaseLineOrder.TestField("Quantity Received", PartialQty);
+        PurchaseLineOrder.TestField("Quantity Invoiced", PartialQty);
+
+        // [GIVEN] A corrective credit memo created from the posted order-based invoice
+        LibraryVariableStorage.Enqueue(true); // Confirm to create the corrective credit memo from the order-based invoice
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeaderCorrection);
+        GetCorrectiveCreditMemoItemLine(PurchaseLine, PurchaseHeaderCorrection."No.");
+        OriginalQty := PurchaseLine.Quantity;
+
+        // [WHEN] Increasing the quantity of the credit memo line beyond the copied quantity
+        asserterror PurchaseLine.Validate(Quantity, OriginalQty + 1);
+
+        // [THEN] A blocking error is raised before the credit memo can be posted
+        Assert.ExpectedError(StrSubstNo(CorrectiveCreditMemoQtyIncreaseErr, OriginalQty));
+
+        // [THEN] The purchase order line quantities are unchanged and cannot go negative
+        PurchaseLineOrder.Find();
+        PurchaseLineOrder.TestField("Quantity Received", PartialQty);
+        PurchaseLineOrder.TestField("Quantity Invoiced", PartialQty);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";

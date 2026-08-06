@@ -1105,6 +1105,8 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
     begin
+        PurchaseLine.SetLoadFields("Quantity Invoiced", "Qty. Invoiced (Base)", "Quantity Received", "Qty. Received (Base)");
+        PurchInvLine.SetLoadFields("Order No.", "Order Line No.", Quantity, "Quantity (Base)");
         PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
         PurchInvLine.SetRange("Prepayment Line", false);
         if PurchInvLine.FindSet() then
