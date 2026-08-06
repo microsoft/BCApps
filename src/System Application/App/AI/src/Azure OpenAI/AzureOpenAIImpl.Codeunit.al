@@ -85,19 +85,16 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
     [NonDebuggable]
-    procedure TryGetFastPrompt(EcsConfigKey: Text; CallerModuleInfo: ModuleInfo; var IsFastPrompt: Boolean; var Template: Text; var ErrorCode: Text; var ErrorText: Text): Boolean
+    procedure GetFastPrompt(EcsConfigKey: Text; CallerModuleInfo: ModuleInfo; var FastPromptResponse: Codeunit "AOAI Fast Prompt Response"): Boolean
     var
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
         ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotFastPromptResponse: DotNet ALCopilotFastPromptResponse;
         EmptySecretText: SecretText;
+        ErrorCode: Text;
+        ErrorText: Text;
     begin
-        Clear(IsFastPrompt);
-        Clear(Template);
-        Clear(ErrorCode);
-        Clear(ErrorText);
-
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
 
@@ -118,15 +115,12 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
             ErrorText := GetLastErrorText();
             if ErrorText = '' then
                 ErrorText := 'Unable to retrieve fast prompt response.';
+            FastPromptResponse.Set(false, EmptySecretText, ErrorCode, ErrorText);
             exit(false);
         end;
 
-        IsFastPrompt := ALCopilotFastPromptResponse.IsFastPrompt();
-        Template := ALCopilotFastPromptResponse.Template();
-        ErrorCode := ALCopilotFastPromptResponse.ErrorCode();
-        ErrorText := ALCopilotFastPromptResponse.ErrorText();
-
-        exit(IsFastPrompt and (Template <> ''));
+        FastPromptResponse.Set(ALCopilotFastPromptResponse.IsFastPrompt(), ALCopilotFastPromptResponse.Template(), ALCopilotFastPromptResponse.ErrorCode(), ALCopilotFastPromptResponse.ErrorText());
+        exit(ALCopilotFastPromptResponse.IsFastPrompt() and (ALCopilotFastPromptResponse.Template() <> ''));
     end;
 
     [NonDebuggable]

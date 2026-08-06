@@ -90,18 +90,15 @@ codeunit 7771 "Azure OpenAI"
     /// Resolves fast prompt settings using an ECS configuration key.
     /// </summary>
     /// <param name="EcsConfigKey">The ECS configuration key to resolve.</param>
-    /// <param name="IsFastPrompt">True when a blob-backed fast prompt was resolved.</param>
-    /// <param name="Template">The resolved prompt template text.</param>
-    /// <param name="ErrorCode">The machine-readable error code on failure.</param>
-    /// <param name="ErrorText">The human-readable error text on failure.</param>
+    /// <param name="Response">Contains the resolved template and any error information.</param>
     /// <returns>True when a fast prompt template was resolved successfully.</returns>
     [NonDebuggable]
-    procedure TryGetFastPrompt(EcsConfigKey: Text; var IsFastPrompt: Boolean; var Template: Text; var ErrorCode: Text; var ErrorText: Text): Boolean
+    procedure GetFastPrompt(EcsConfigKey: Text; var Response: Codeunit "AOAI Fast Prompt Response"): Boolean
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(AzureOpenAIImpl.TryGetFastPrompt(EcsConfigKey, CallerModuleInfo, IsFastPrompt, Template, ErrorCode, ErrorText));
+        exit(AzureOpenAIImpl.GetFastPrompt(EcsConfigKey, CallerModuleInfo, Response));
     end;
 
 #if not CLEAN26
