@@ -60,6 +60,7 @@ codeunit 144108 "ERM Service Invoice ES"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         LibraryCarteraReceivables: Codeunit "Library - Cartera Receivables";
+        ManualApplicationErr: Label 'Please change the Applies-to Doc. No. or remove the applied document from the Bill Group before posting.';
         RecordMustExistMsg: Label 'Record must exist';
         isInitialized: Boolean;
 
@@ -513,6 +514,42 @@ codeunit 144108 "ERM Service Invoice ES"
 
         // [THEN] Verify the Service Credit Memo is posted successfully instead of being blocked by the settlement check.
         VerifyServiceCreditMemoPosted(Customer."No.");
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoAppliedToBillInBillGroupFailsForManualCustomer()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+        BillInBillGroupNo: Code[20];
+        CarteraDoc: Record "Cartera Doc.";
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        Item: Record Item;
+        ServiceLine: Record "Service Line";
+    begin
+        // [SCENARIO 644547] A Service Credit Memo applied to a Bill in an open Bill Group cannot be posted for a Manual customer.
+        Initialize();
+        CompanyInformation.Get();
+
+        // [GIVEN] Create a Cartera customer using Manual Application Method and a Create Bills payment method.
+        CreateCarteraCustomerWithManualApplication(Customer, CompanyInformation."Country/Region Code");
+
+        // [GIVEN] Create a posted Service Invoice and place its Bill in an open Bill Group.
+        BillInBillGroupNo := CreateAndPostServiceInvoiceGetBillNo(Customer."No.");
+        CreateBillGroupWithBill(BankAccount, BillGroup, CarteraDoc, Customer."No.", BillInBillGroupNo);
+
+        // [GIVEN] Create a Service Credit Memo applied to the Bill in the Bill Group.
+        CreateServiceDocument(
+          ServiceLine, ServiceLine."Document Type"::"Credit Memo", ServiceLine.Type::Item, Customer."No.", LibraryInventory.CreateItem(Item));
+        UpdateServiceHeaderCorrectedInvoiceNo(ServiceLine."Document No.", FindServiceInvoiceHeader(Customer."No."));
+        UpdateServiceHeaderAppliesToDoc(ServiceLine."Document No.", BillInBillGroupNo);
+
+        // [WHEN] The Service Credit Memo is posted.
+        asserterror PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
+
+        // [THEN] Posting is blocked because the applied Bill belongs to an open Bill Group.
+        Assert.ExpectedError(ManualApplicationErr);
     end;
 
     [Test]
