@@ -136,6 +136,7 @@ codeunit 8361 "Financial Report Export Job"
         RecRef: RecordRef;
         InStr: InStream;
         OutStr: OutStream;
+        EmailSubject: Text;
         EmailBody: Text;
     begin
         TempBlob.CreateOutStream(OutStr);
@@ -144,7 +145,11 @@ codeunit 8361 "Financial Report Export Job"
         FinancialReportExportEmail.SaveAs('', ReportFormat::Html, OutStr, RecRef);
         TempBlob.CreateInStream(InStr);
         InStr.ReadText(EmailBody);
-        EmailMessage.Create(UserEmails, StrSubstNo(EmailSubjectLbl, ReportDescription), EmailBody, true);
+        if FinancialReportSchedule."Email Subject" <> '' then
+            EmailSubject := FinancialReportSchedule."Email Subject"
+        else
+            EmailSubject := StrSubstNo(EmailSubjectLbl, ReportDescription);
+        EmailMessage.Create(UserEmails, EmailSubject, EmailBody, true);
     end;
 
     internal procedure ExportExcel(

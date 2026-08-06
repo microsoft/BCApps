@@ -421,6 +421,12 @@ page 489 "Column Layout"
         GetDescriptions();
     end;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec."Column Type" := xRec."Column Type";
+        Rec."Amount Type" := xRec."Amount Type";
+    end;
+
     var
         AccSchedManagement: Codeunit AccSchedManagement;
         CurrentColumnName: Code[10];
