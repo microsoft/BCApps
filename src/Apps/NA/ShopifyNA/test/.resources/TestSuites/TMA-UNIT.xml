@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Root>
+    <AITSuite Code="TMA-UNIT"
+              Description="Shopify Tax Matching Agent - Tests"
+              Dataset="TMA-Setup.yaml"
+              Capability="Shpfy Tax Matching"
+              Frequency="Daily"
+              TestRunnerId="130451"
+              TestType="Copilot">
+        <Line CodeunitID="134717"
+              Description="Jurisdiction Matching (J1-J8, F1-F2)"
+              Dataset="TMA-TS-JurisdictionMatch.yaml" />
+        <Line CodeunitID="134717"
+              Description="Jurisdiction Creation (JC1-JC5)"
+              Dataset="TMA-TS-JurisdictionCreate.yaml" />
+        <Line CodeunitID="134717"
+              Description="Tax Detail (TD1-TD8)"
+              Dataset="TMA-TS-TaxDetail.yaml" />
+        <Line CodeunitID="134717"
+              Description="Shipping Tax (S1-S6)"
+              Dataset="TMA-TS-ShippingTax.yaml" />
+        <Line CodeunitID="134718"
+              Description="Tax Area (TA1-TA11)"
+              Dataset="TMA-TS-TaxArea.yaml" />
+        <Line CodeunitID="134719"
+              Description="Guards (G1, G4-G7)"
+              Dataset="TMA-TS-Guard.yaml" />
+    </AITSuite>
+</Root>
