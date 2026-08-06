@@ -22,8 +22,8 @@ codeunit 6436 "E-Doc. Draft Notif. State"
     var
         VendorMatchedByNameNotAddressMsg: Label 'Vendor matched by name but not by address.';
         SubTotalMismatchMsg: Label 'The document total does not match the sum of the lines. Review the amounts before finalizing the draft.';
-        SubTotalMismatchNoToleranceTxt: Label 'E-Document purchase draft header Sub Total differs from the sum of the lines.', Locked = true;
-        SubTotalMismatchNotificationShownTxt: Label 'E-Document purchase draft Sub Total mismatch notification shown.', Locked = true;
+        SubTotalMismatchNoToleranceTxt: Label 'E-Document purchase draft header Sub Total differs from the sum of the lines.';
+        SubTotalMismatchNotificationShownTxt: Label 'E-Document purchase draft Sub Total mismatch notification shown.';
 
     /// <summary>
     /// Re-evaluates the Sub Total mismatch from the persisted lines and updates the persisted
