@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
-
 using Microsoft.DemoData.HumanResources;
 
 codeunit 8292 "DK Upd. Emp. Posting Grp"
