@@ -71,8 +71,7 @@ codeunit 99000793 "Calculate Low-Level Code"
                             if ActLevel > TotalLevels then
                                 TotalLevels := ActLevel;
                         until Item2.Next() = 0;
-                    OnCalcLevelsForProdBOM(Item2, No, Level, LevelDepth, TotalLevels);
-                    // items that reference this Production BOM through a Stockkeeping Unit
+                    
                     SKU.SetCurrentKey("Production BOM No.");
                     SKU.SetRange("Production BOM No.", No);
                     if SKU.FindSet() then
@@ -81,6 +80,7 @@ codeunit 99000793 "Calculate Low-Level Code"
                             if ActLevel > TotalLevels then
                                 TotalLevels := ActLevel;
                         until SKU.Next() = 0;
+                    OnCalcLevelsForProdBOM(Item2, No, Level, LevelDepth, TotalLevels);
                 end;
             Type::Assembly:
                 begin
@@ -164,7 +164,7 @@ codeunit 99000793 "Calculate Low-Level Code"
             until ProdBOMLine.Next() = 0;
     end;
 
-    procedure RecalcSKULowerLevels(ItemNo: Code[20]; LowLevelCode: Integer; IgnoreMissingItemsOrBOMs: Boolean)
+    local procedure RecalcSKULowerLevels(ItemNo: Code[20]; LowLevelCode: Integer; IgnoreMissingItemsOrBOMs: Boolean)
     var
         SKU: Record "Stockkeeping Unit";
         CompBOM: Record "Production BOM Header";
