@@ -11,12 +11,12 @@
     Stability mode re-runs an existing test suite under several preset combinations (different
     random seeds, WorkDate shifted into the future, one-by-one isolation and reverse execution
     order) to surface flaky, order-dependent and data-dependent tests. The presets are configured
-    per base suite in the "Stability Run Configuration" table and the outcome of every test method
-    is stored in the "Stability Run Result" table.
+    as reusable "Test Configuration" records (each is a list of providers) and the outcome of every
+    test method is stored in the "Test Configuration Run Result" table.
 
     This script drives the Command Line Test Tool page (130455) through BcContainerHelper's client
-    context: it sets the base suite, invokes the "Run Stability Tests" action and reads the
-    resulting JSON from the StabilityResultsJSONText control. The JSON mirrors the shape of the
+    context: it sets the base suite, invokes the "Run stability tests" action and reads the
+    resulting JSON from the TestConfigResultsJSON control. The JSON mirrors the shape of the
     unstable-tests.json artifact so it can be uploaded from CI.
 
     NOTE: Wiring this into a GitHub workflow is intentionally out of scope for this change and will
@@ -52,9 +52,9 @@ Import-Module BcContainerHelper -DisableNameChecking
 
 # Page and control identifiers of the Command Line Test Tool + stability extension.
 $CommandLineTestToolPageId = 130455
-$SuiteControl = 'StabilitySuiteName'
-$StabilityResultControl = 'StabilityResultsJSONText'
-$RunStabilityActionName = 'RunStabilityTests'
+$SuiteControl = 'TestConfigSuiteName'
+$StabilityResultControl = 'TestConfigResultsJSON'
+$RunStabilityActionName = 'RunTestConfigurations'
 
 Write-Host "Opening client context to container '$ContainerName'..."
 $clientContext = $null

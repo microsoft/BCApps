@@ -6,17 +6,17 @@
 namespace System.TestTools.TestRunner;
 
 /// <summary>
-/// Captures the outcome of every test method executed during a stability run, for each preset
-/// combination. Both passing and failing results are stored so per-combination pass rates and the
+/// Captures the outcome of every test method executed during a configuration run, for each
+/// configuration. Both passing and failing results are stored so per-configuration pass rates and the
 /// failure details (error message and call stack) are available for troubleshooting.
 /// </summary>
-table 130467 "Stability Run Result"
+table 130480 "Test Configuration Run Result"
 {
     DataClassification = CustomerContent;
     ReplicateData = false;
-    Caption = 'Stability Run Result';
-    LookupPageId = "Stability Run Results";
-    DrillDownPageId = "Stability Run Results";
+    Caption = 'Test Configuration Run Result';
+    LookupPageId = "Test Config. Run Results";
+    DrillDownPageId = "Test Config. Run Results";
 
     fields
     {
@@ -29,7 +29,7 @@ table 130467 "Stability Run Result"
         {
             Caption = 'Base Suite';
         }
-        field(3; "Configuration"; Text[250])
+        field(3; "Configuration"; Code[20])
         {
             Caption = 'Configuration';
         }
@@ -58,9 +58,9 @@ table 130467 "Stability Run Result"
         {
             Caption = 'Seed';
         }
-        field(10; "Seed Overridden"; Boolean)
+        field(10; "Seed Set"; Boolean)
         {
-            Caption = 'Seed Overridden';
+            Caption = 'Seed Set';
         }
         field(11; "WorkDate Offset"; Text[30])
         {

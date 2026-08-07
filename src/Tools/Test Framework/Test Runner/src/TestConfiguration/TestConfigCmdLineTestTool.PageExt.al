@@ -7,27 +7,27 @@ namespace System.TestTools.TestRunner;
 
 /// <summary>
 /// Adds a console-callable stability run to the Command Line Test Tool so a stability run can be
-/// driven from PowerShell / CI. Automation sets the suite, invokes the RunStabilityTests action and
-/// reads the StabilityResultsJSONText control.
+/// driven from PowerShell / CI. Automation sets TestConfigSuiteName, invokes the RunTestConfigurations
+/// action and reads the TestConfigResultsJSON control.
 /// </summary>
-pageextension 130478 "Stability Cmd Line Test Tool" extends "Command Line Test Tool"
+pageextension 130487 "Test Config. Cmd Line Tool" extends "Command Line Test Tool"
 {
     layout
     {
         addlast(content)
         {
-            group(StabilityGroup)
+            group(TestConfigurationGroup)
             {
                 Caption = 'Stability';
 
-                field(StabilitySuiteName; StabilitySuiteName)
+                field(TestConfigSuiteName; TestConfigSuiteName)
                 {
                     ApplicationArea = All;
                     Caption = 'Stability Suite Name';
                     ToolTip = 'Specifies the base suite that the stability run executes. When empty the currently selected suite is used.';
                 }
 
-                field(StabilityResultsJSONText; StabilityResultsJSONText)
+                field(TestConfigResultsJSON; TestConfigResultsJSON)
                 {
                     ApplicationArea = All;
                     Caption = 'Stability Results JSON';
@@ -43,19 +43,19 @@ pageextension 130478 "Stability Cmd Line Test Tool" extends "Command Line Test T
     {
         addlast(processing)
         {
-            action(RunStabilityTests)
+            action(RunTestConfigurations)
             {
                 ApplicationArea = All;
-                Caption = 'Run Stability Tests';
-                ToolTip = 'Runs every configured stability preset combination for the current suite and returns the results as JSON.';
+                Caption = 'Run stability tests';
+                ToolTip = 'Runs every enabled test configuration for the current suite and returns the results as JSON.';
                 Image = TestReport;
 
                 trigger OnAction()
                 var
-                    StabilityTestMgt: Codeunit "Stability Test Mgt";
+                    TestConfigurationMgt: Codeunit "Test Configuration Mgt";
                 begin
-                    Clear(StabilityResultsJSONText);
-                    StabilityResultsJSONText := StabilityTestMgt.RunStabilityTests(GetCurrentSuite());
+                    Clear(TestConfigResultsJSON);
+                    TestConfigResultsJSON := TestConfigurationMgt.RunTestConfigurations(GetCurrentSuite());
                     CurrPage.Update(false);
                 end;
             }
@@ -63,14 +63,14 @@ pageextension 130478 "Stability Cmd Line Test Tool" extends "Command Line Test T
     }
 
     var
-        StabilityResultsJSONText: Text;
-        StabilitySuiteName: Code[10];
+        TestConfigResultsJSON: Text;
+        TestConfigSuiteName: Code[10];
         NoSuiteSelectedErr: Label 'Select a test suite that contains tests before running stability tests.';
 
     local procedure GetCurrentSuite(): Code[10]
     begin
-        if StabilitySuiteName <> '' then
-            exit(StabilitySuiteName);
+        if TestConfigSuiteName <> '' then
+            exit(TestConfigSuiteName);
         if Rec."Test Suite" = '' then
             Error(NoSuiteSelectedErr);
         exit(Rec."Test Suite");

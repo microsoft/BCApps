@@ -93,12 +93,8 @@ codeunit 130440 "Library - Random"
     end;
 
     procedure SetSeed(Val: Integer): Integer
-    var
-        AnySeedOverride: Codeunit "Any Seed Override";
     begin
         // Set the random seed to reproduce pseudo random sequence
-        if AnySeedOverride.IsActive() then
-            Val := AnySeedOverride.GetSeed();
         Seed := Val;
         SeedSet := true;
         Randomize(Seed);
@@ -106,14 +102,9 @@ codeunit 130440 "Library - Random"
     end;
 
     local procedure GetNextValue(MaxValue: Integer): Integer
-    var
-        AnySeedOverride: Codeunit "Any Seed Override";
     begin
         if (not SeedSet) then
-            SetSeed(1)
-        else
-            if AnySeedOverride.IsActive() and (Seed <> AnySeedOverride.GetSeed()) then
-                SetSeed(AnySeedOverride.GetSeed());
+            SetSeed(1);
 
         exit(Random(MaxValue));
     end;
