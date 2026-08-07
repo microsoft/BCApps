@@ -2555,6 +2555,7 @@ codeunit 148017 "FEC Audit File Export Tests"
         GenBusinessPostingGroup: Record "Gen. Business Posting Group";
         GenProductPostingGroup: Record "Gen. Product Posting Group";
         GeneralPostingSetup: Record "General Posting Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         VATPostingSetup: Record "VAT Posting Setup";
         GLAccount: Record "G/L Account";
         SalesHeader: Record "Sales Header";
@@ -2585,6 +2586,9 @@ codeunit 148017 "FEC Audit File Export Tests"
         IncomeAccountNo := GLAccount."No.";
 
         // [GIVEN] The general posting setup uses that account as its Purch. Pmt. Disc. account (not the Sales one)
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Adjust for Payment Disc.", true);
+        GeneralLedgerSetup.Modify(true);
         LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusinessPostingGroup.Code, GenProductPostingGroup.Code);
         GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
         GeneralPostingSetup.Validate("Purch. Pmt. Disc. Debit Acc.", IncomeAccountNo);
