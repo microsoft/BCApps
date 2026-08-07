@@ -6,6 +6,9 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
 using System.Environment.Configuration;
 using System.Upgrade;
