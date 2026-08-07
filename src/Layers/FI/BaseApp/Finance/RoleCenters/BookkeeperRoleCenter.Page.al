@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -418,6 +418,7 @@ page 9004 "Bookkeeper Role Center"
                                     Recurring = const(false));
                 ToolTip = 'Register payments to vendors. A payment journal is a type of general journal that is used to post outgoing payment transactions to G/L, bank, customer, vendor, employee, and fixed assets accounts. The Suggest Vendor Payments functions automatically fills the journal with payments that are due. When payments are posted, you can export the payments to a bank file for upload to your bank if your system is set up for electronic banking. You can also issue computer checks from the payment journal.';
             }
+#if not CLEAN29
             action("Bank payments to send")
             {
                 ApplicationArea = Basic, Suite;
@@ -425,7 +426,11 @@ page 9004 "Bookkeeper Role Center"
                 Image = VendorPayment;
                 RunObject = Page "Bank Payments to send";
                 ToolTip = 'View the payments that will be registered to the vendors.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
+                ObsoleteReason = 'Moved to Banking and Payments FI app.';
             }
+#endif
             action(GeneralJournals)
             {
                 ApplicationArea = Basic, Suite;

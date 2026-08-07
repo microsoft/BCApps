@@ -5,11 +5,17 @@
 
 namespace Microsoft.Bank.DirectDebit;
 
+#if not CLEAN29
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Journal;
+#endif
 
+#if not CLEAN29
 codeunit 13403 "Export SEPA Payment File"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     TableNo = "Gen. Journal Line";
 
     trigger OnRun()
@@ -27,4 +33,5 @@ codeunit 13403 "Export SEPA Payment File"
         RefPmtExp: Record "Ref. Payment - Exported";
         ExportRefPmtErr: Label 'Your export format is not set up to export bank Payments with this function. Use the function in the Bank Payment to Send window instead.';
 }
+#endif
 

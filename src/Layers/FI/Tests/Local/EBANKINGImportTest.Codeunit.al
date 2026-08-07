@@ -1,9 +1,13 @@
+#if not CLEAN29
 codeunit 144022 "E-BANKING Import Test"
 {
     // [FEATURE] [E-BANKING]
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -519,4 +523,5 @@ codeunit 144022 "E-BANKING Import Test"
         GenJournalLine.TestField("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
     end;
 }
+#endif
 

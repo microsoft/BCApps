@@ -1,4 +1,4 @@
-﻿codeunit 138000 "O365 Simplify UI Sales Invoice"
+codeunit 138000 "O365 Simplify UI Sales Invoice"
 {
     Subtype = Test;
     TestPermissions = NonRestrictive;
@@ -4580,12 +4580,8 @@
     end;
 
     local procedure PostPurchaseInvoice(var PurchaseInvoice: TestPage "Purchase Invoice")
-    var
-        PurchaseHeader: Record "Purchase Header";
     begin
         PurchaseInvoice."Vendor Invoice No.".SetValue(LibraryRandom.RandInt(1000));
-        PurchaseInvoice."Message Type".SetValue(PurchaseHeader."Message Type"::Message);
-        PurchaseInvoice."Invoice Message".SetValue(LibraryUtility.GenerateGUID());
         LibraryVariableStorage.Enqueue(true); // Enqueue for ConfirmHandler
         LibrarySales.DisableConfirmOnPostingDoc();
 

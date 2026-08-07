@@ -1,4 +1,4 @@
-﻿codeunit 134331 "ERM Purchase Payables"
+codeunit 134331 "ERM Purchase Payables"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -47,7 +47,9 @@
         FieldEnabledErr: Label 'Field %1 must be enabled.', Comment = '%1 - field name';
         IsNotFoundErr: Label 'is not found on the page';
         DateFormulaReverseErr: Label 'Date formula has been reversed incorrectly.';
+#if not CLEAN29
         InvoiceMessageErr: Label 'Invoice Message must have a value in Purchase Header: Document Type=%1, No.=%2. It cannot be zero or empty.';
+#endif
         NotificationBatchPurchHeaderMsg: Label 'An error or warning occured during operation Batch processing of Purchase Header records.';
         VendorInvNoErr: Label 'You need to enter the document number of the document from the vendor in the Vendor Invoice No. field';
         CannotRenameItemUsedInPurchaseLinesErr: Label 'You cannot rename %1 in a %2, because it is used in purchase document lines.', Comment = '%1 = Item No. caption, %2 = Table caption.';
@@ -2138,6 +2140,7 @@
         PurchaseLine.TestField("Direct Unit Cost", 0);
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure PostingNoAfterErrorOnPostInvoiceWithBlankInvMessage()
@@ -2233,6 +2236,7 @@
         // [THEN] Purchase Credit Memo successfully posted
         PurchCrMemoHdr.Get(PostedCreditMemoNo);
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -3526,17 +3530,21 @@
         PurchaseHeader.Modify(true);
     end;
 
+#if not CLEAN29
     local procedure CreatePurchaseDocumentWithEmptyInvoiceMessage(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type")
     var
         PurchaseLine: Record "Purchase Line";
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, LibraryPurchase.CreateVendorNo());
+#pragma warning disable AL0432
         PurchaseHeader.Validate("Invoice Message", '');
+#pragma warning restore AL0432
         PurchaseHeader.Modify(true);
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
         Commit();
     end;
+#endif
 
     local procedure CreatePurchaseLineModified(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")
     begin

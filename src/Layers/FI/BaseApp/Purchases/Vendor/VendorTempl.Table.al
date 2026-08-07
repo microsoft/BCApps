@@ -467,10 +467,22 @@ table 1383 "Vendor Templ."
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(32000000; "Business Identity Code"; Text[20])
         {
             Caption = 'Business Identity Code';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys

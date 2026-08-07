@@ -5,6 +5,7 @@
 
 namespace Microsoft.Bank.Reports;
 
+#if not CLEAN29
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
@@ -12,9 +13,14 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using System.IO;
+#endif
 
+#if not CLEAN29
 report 32000004 "Export Ref. Payment -  LUM"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Export Ref. Payment -  LUM';
     ProcessingOnly = true;
     UseRequestPage = false;
@@ -336,4 +342,5 @@ report 32000004 "Export Ref. Payment -  LUM"
         HideFileDialog := NewHideFileDialog;
     end;
 }
+#endif
 

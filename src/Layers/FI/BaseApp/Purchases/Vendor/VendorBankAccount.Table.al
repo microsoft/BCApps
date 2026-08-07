@@ -4,7 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+#if not CLEAN29
 using Microsoft.Bank.BankAccount;
+#endif
+#if not CLEAN29
+using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
@@ -141,12 +146,17 @@ table 288 "Vendor Bank Account"
 
             trigger OnValidate()
             begin
-                if ("Country/Region Code" = '') or ("Country/Region Code" = 'FI') then begin
-                    if StrLen("Bank Account No.") > 15 then
-                        Error(Text1090000, FieldCaption("Bank Account No."));
-                    if "Bank Account No." <> '' then
-                        BankNosCheck.CheckBankAccount("Bank Account No.", Code);
-                end;
+#if not CLEAN29
+                if not FIBankingPaymentFeature.IsEnabled() then
+                    if ("Country/Region Code" = '') or ("Country/Region Code" = 'FI') then begin
+                        if StrLen("Bank Account No.") > 15 then
+                            Error(Text1090000, FieldCaption("Bank Account No."));
+#pragma warning disable AL0432
+                        if "Bank Account No." <> '' then
+                            BankNosCheck.CheckBankAccount("Bank Account No.", Code);
+#pragma warning restore AL0432
+                    end;
+#endif
 
                 OnValidateBankAccount(Rec, 'Bank Account No.');
             end;
@@ -257,14 +267,34 @@ table 288 "Vendor Bank Account"
             ToolTip = 'Specifies the format standard to be used in bank transfers if you use the Bank Clearing Code field to identify you as the sender.';
             TableRelation = "Bank Clearing Standard";
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(13400; "SEPA Payment"; Boolean)
         {
             Caption = 'SEPA Payment';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000001; "Clearing Code"; Text[35])
         {
             Caption = 'Clearing Code';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
@@ -320,8 +350,15 @@ table 288 "Vendor Bank Account"
     var
         PostCode: Record "Post Code";
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+#if not CLEAN29
+#pragma warning disable AL0432
         BankNosCheck: Codeunit "Bank Nos Check";
+#pragma warning restore AL0432
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
+#if not CLEAN29
         Text1090000: Label 'Domestic %1 must not exceed 15 characters.';
+#endif
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';
         BankAccDeleteErr: Label 'You cannot delete this bank account because it is associated with one or more open ledger entries.';
 

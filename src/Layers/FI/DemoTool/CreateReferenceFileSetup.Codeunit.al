@@ -1,5 +1,9 @@
+#if not CLEAN29
 codeunit 160900 "Create Reference File Setup"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -18,4 +22,4 @@ codeunit 160900 "Create Reference File Setup"
         "Reference File Setup".Insert();
     end;
 }
-
+#endif

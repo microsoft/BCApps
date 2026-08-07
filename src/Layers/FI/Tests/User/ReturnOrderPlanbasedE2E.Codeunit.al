@@ -471,8 +471,6 @@ codeunit 135408 "Return Order Plan-based E2E"
         PurchaseInvoice.OpenNew();
         PurchaseInvoice."Buy-from Vendor No.".SetValue(VendorNo);
         PurchaseInvoice."Vendor Invoice No.".SetValue(LibraryUtility.GenerateRandomText(MaxStrLen(PurchaseHeader."Vendor Invoice No.")));
-        PurchaseInvoice."Message Type".SetValue(PurchaseHeader."Message Type"::Message);
-        PurchaseInvoice."Invoice Message".SetValue(LibraryUtility.GenerateGUID());
         PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(Format(PurchaseLine.Type::Item));
         PurchaseInvoice.PurchLines."No.".SetValue(CreateItem());
         PurchaseInvoice.PurchLines.Quantity.SetValue(LibraryRandom.RandDec(100, 1));

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Bank.Payment;
 
+#if not CLEAN29
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -13,9 +14,14 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Receivables;
+#endif
 
+#if not CLEAN29
 codeunit 32000000 "Ref. Payment Management"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Permissions = TableData "Gen. Journal Line" = rimd;
 
     trigger OnRun()
@@ -445,4 +451,5 @@ codeunit 32000000 "Ref. Payment Management"
     begin
     end;
 }
+#endif
 

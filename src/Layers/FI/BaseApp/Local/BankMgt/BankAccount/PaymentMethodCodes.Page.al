@@ -5,10 +5,16 @@
 
 namespace Microsoft.Bank.BankAccount;
 
+#if not CLEAN29
 using Microsoft.Bank.Payment;
+#endif
 
+#if not CLEAN29
 page 32000005 "Payment Method Codes"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     ApplicationArea = Basic, Suite;
     Caption = 'Payment Method Codes';
     PageType = List;
@@ -45,4 +51,5 @@ page 32000005 "Payment Method Codes"
     {
     }
 }
+#endif
 

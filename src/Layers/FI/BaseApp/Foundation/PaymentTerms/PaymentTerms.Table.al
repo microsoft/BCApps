@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -66,10 +66,22 @@ table 3 "Payment Terms"
             ObsoleteTag = '26.0';
         }
 #endif
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(32000001; "Disreg. Pmt. Disc. at Full Pmt"; Boolean)
         {
             Caption = 'Disreg. Pmt. Disc. at Full Pmt';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys

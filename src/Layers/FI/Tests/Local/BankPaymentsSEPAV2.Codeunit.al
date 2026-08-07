@@ -1,9 +1,13 @@
+#if not CLEAN29
 codeunit 144004 "Bank Payments - SEPA V2"
 {
     // // [FEATURE] [Bank Payments]
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -1231,3 +1235,4 @@ codeunit 144004 "Bank Payments - SEPA V2"
         SuggestVendorPayments.OK().Invoke();
     end;
 }
+#endif

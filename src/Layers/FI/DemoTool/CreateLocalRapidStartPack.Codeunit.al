@@ -29,7 +29,9 @@ codeunit 101931 "Create Local RapidStart Pack"
         BankAccount: Record "Bank Account";
         CustomerBankAccount: Record "Customer Bank Account";
         VendorBankAccount: Record "Vendor Bank Account";
+#if not CLEAN29
         PurchaseHeader: Record "Purchase Header";
+#endif
     begin
         case TableID of
             DATABASE::"Bank Account":
@@ -44,11 +46,15 @@ codeunit 101931 "Create Local RapidStart Pack"
                     CreateConfigPackageHelper.ValidateField(VendorBankAccount.FieldNo("Bank Account No."), false);
                     CreateConfigPackageHelper.ValidateField(VendorBankAccount.FieldNo("Country/Region Code"), false);
                 end;
+#if not CLEAN29
             DATABASE::"Purchase Header":
                 begin
+#pragma warning disable AL0432
                     CreateConfigPackageHelper.IncludeField(PurchaseHeader.FieldNo("Message Type"), true);
                     CreateConfigPackageHelper.IncludeField(PurchaseHeader.FieldNo("Invoice Message"), true);
+#pragma warning restore AL0432
                 end;
+#endif
         end;
     end;
 }

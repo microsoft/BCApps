@@ -8,6 +8,9 @@ using Microsoft.Assembly.Setup;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.Ledger;
+#if not CLEAN29
+using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Setup;
 using Microsoft.CashFlow.Setup;
@@ -137,8 +140,11 @@ codeunit 2 "Company-Initialize"
         SEPACTNameTxt: Label 'SEPA Credit Transfer', MaxLength = 100;
         SEPADDCodeTxt: Label 'SEPADD', Comment = 'No need to translate - but can be translated at will.', MaxLength = 20;
         SEPADDNameTxt: Label 'SEPA Direct Debit', MaxLength = 100;
+#if not CLEAN29
         LegacyBankExportCodeTxt: Label 'SEPACT V02', Comment = 'No need to translate - but can be translated at will.';
         LegacyBankExportNameTxt: Label 'SEPA Credit Transfer pain.001.001.02 ';
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
         SEPACTCode09Txt: Label 'SEPACTPAIN00100109', Locked = true;
         SEPACTName09Txt: Label 'SEPA Credit Transfer pain.001.001.09', MaxLength = 100;
         SEPADDCode08Txt: Label 'SEPADDPAIN00800108', Locked = true;
@@ -586,8 +592,11 @@ codeunit 2 "Company-Initialize"
               CODEUNIT::"SEPA CT-Export File", XMLPORT::"SEPA CT pain.001.001.03", CODEUNIT::"SEPA CT-Check Line");
             InsertBankExportImportSetup(SEPADDCodeTxt, SEPADDNameTxt, BankExportImportSetup.Direction::Export,
               CODEUNIT::"SEPA DD-Export File", XMLPORT::"SEPA DD pain.008.001.02", CODEUNIT::"SEPA DD-Check Line");
-            InsertBankExportImportSetup(LegacyBankExportCodeTxt, LegacyBankExportNameTxt, BankExportImportSetup.Direction::Export,
-              CODEUNIT::"Export SEPA Payment File", 0, 0);
+#if not CLEAN29
+            if not FIBankingPaymentFeature.IsEnabled() then
+                InsertBankExportImportSetup(LegacyBankExportCodeTxt, LegacyBankExportNameTxt, BankExportImportSetup.Direction::Export,
+                  CODEUNIT::"Export SEPA Payment File", 0, 0);
+#endif
             InsertBankExportImportSetup(SEPACTCode09Txt, SEPACTName09Txt, BankExportImportSetup.Direction::Export,
               CODEUNIT::"SEPA CT-Export File", XMLPORT::"SEPA CT pain.001.001.09", CODEUNIT::"SEPA CT-Check Line");
             InsertBankExportImportSetup(SEPADDCode08Txt, SEPADDName08Txt, BankExportImportSetup.Direction::Export,

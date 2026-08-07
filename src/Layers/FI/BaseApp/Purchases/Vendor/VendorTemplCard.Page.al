@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -109,11 +109,16 @@ page 1386 "Vendor Templ. Card"
                         ApplicationArea = Basic, Suite;
                     }
                 }
+#if not CLEAN29
                 field("Business Identity Code"; Rec."Business Identity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the vendor business identity code.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;

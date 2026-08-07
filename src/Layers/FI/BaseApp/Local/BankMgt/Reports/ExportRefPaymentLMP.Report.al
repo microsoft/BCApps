@@ -5,6 +5,7 @@
 
 namespace Microsoft.Bank.Reports;
 
+#if not CLEAN29
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
@@ -16,9 +17,14 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using System.IO;
+#endif
 
+#if not CLEAN29
 report 32000006 "Export Ref. Payment -  LMP"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Export Ref. Payment -  LMP';
     ProcessingOnly = true;
     UseRequestPage = false;
@@ -443,4 +449,5 @@ report 32000006 "Export Ref. Payment -  LMP"
         HideFileDialog := NewHideFileDialog;
     end;
 }
+#endif
 

@@ -4,8 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
+#if not CLEAN29
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
+#endif
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.HumanResources.Absence;
@@ -25,6 +27,9 @@ codeunit 1752 "Data Class. Eval. Data Country"
     procedure ClassifyCountrySpecificTables()
     var
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
+#if not CLEAN29
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
     begin
         ClassifyEmployee();
         ClassifyPayableEmployeeLedgerEntry();
@@ -35,11 +40,17 @@ codeunit 1752 "Data Class. Eval. Data Country"
         ClassifyVATReportHeader();
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Vendor Payment Buffer");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Depr. Diff. Posting Buffer");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Reference File Setup");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Ref. Payment - Imported");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Ref. Payment - Exported");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Foreign Payment Types");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Ref. Payment - Exported Buffer");
+#if not CLEAN29
+        if not FIBankingPaymentFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+            DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Reference File Setup");
+            DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Ref. Payment - Imported");
+            DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Ref. Payment - Exported");
+            DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Foreign Payment Types");
+            DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Ref. Payment - Exported Buffer");
+#pragma warning restore AL0432
+        end;
+#endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Alt. Employee Posting Group");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Employee Posting Group");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cause of Absence");

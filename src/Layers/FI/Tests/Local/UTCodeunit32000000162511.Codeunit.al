@@ -1,7 +1,11 @@
+#if not CLEAN29
 codeunit 144008 "UT Codeunit32000000 162511"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -495,3 +499,4 @@ codeunit 144008 "UT Codeunit32000000 162511"
         asserterror Assert.AreEqual('', RefPmtExported."Description 2", 'Wrong Description');
     end;
 }
+#endif

@@ -1,7 +1,11 @@
+#if not CLEAN29
 codeunit 144002 "Bank Payments"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -587,4 +591,5 @@ codeunit 144002 "Bank Payments"
             StrSubstNo(InvoiceMessageErr, DocNo, VendorNo));
     end;
 }
+#endif
 

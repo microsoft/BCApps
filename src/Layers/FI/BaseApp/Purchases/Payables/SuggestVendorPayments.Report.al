@@ -5,7 +5,9 @@
 namespace Microsoft.Purchases.Payables;
 
 using Microsoft.Bank.BankAccount;
+#if not CLEAN29
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -616,7 +618,12 @@ report 393 "Suggest Vendor Payments"
 
     local procedure GetVendLedgEntries(Positive: Boolean; Future: Boolean)
     var
+#if not CLEAN29
+#pragma warning disable AL0432
         RefPaymentLines: Record "Ref. Payment - Exported";
+#pragma warning restore AL0432
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
         IsHandled: Boolean;
     begin
         VendLedgEntry.Reset();
@@ -644,7 +651,9 @@ report 393 "Suggest Vendor Payments"
                 IsHandled := false;
                 OnGetVendLedgEntriesOnBeforeLoop(VendLedgEntry, PostingDate, LastDueDateToPayReq, Future, IsHandled);
                 if not IsHandled then
-                    if SendToBank then begin // + NSFI BANK
+#if not CLEAN29
+                    if (not FIBankingPaymentFeature.IsEnabled()) and SendToBank then begin // + NSFI BANK
+#pragma warning disable AL0432
                         RefPaymentLines.Reset();
                         if GenJnlLine2."Bal. Account Type" = GenJnlLine2."Bal. Account Type"::"Bank Account" then
                             RefPaymentLines.SetFilter("Payment Account", GenJnlLine2."Bal. Account No.");
@@ -663,7 +672,10 @@ report 393 "Suggest Vendor Payments"
                                 CODEUNIT.Run(CODEUNIT::"Vend. Entry-Edit", VendLedgEntry);
                             end;
                         end;
-                    end else begin // - NSFI BANK
+#pragma warning restore AL0432
+                    end else // - NSFI BANK
+#endif
+                    begin
                         SaveAmount();
                         if VendLedgEntry."Accepted Pmt. Disc. Tolerance" or (VendLedgEntry."Accepted Payment Tolerance" <> 0) then begin
                             VendLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
@@ -678,7 +690,12 @@ report 393 "Suggest Vendor Payments"
 
     local procedure SaveAmount()
     var
+#if not CLEAN29
+#pragma warning disable AL0432
         RefPaymentLines: Record "Ref. Payment - Exported";
+#pragma warning restore AL0432
+        FIBankingPaymentFeatureSA: Codeunit "FI Banking Payment Feature";
+#endif
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
     begin
         GenJnlLine.Init();
@@ -706,7 +723,9 @@ report 393 "Suggest Vendor Payments"
             GenJnlLine.Amount := -VendLedgEntry."Remaining Amount";
         GenJnlLine.Validate(Amount);
 
-        if SendToBank then begin// + NSFI BANK
+#if not CLEAN29
+        if (not FIBankingPaymentFeatureSA.IsEnabled()) and SendToBank then begin // + NSFI BANK
+#pragma warning disable AL0432
             RefPaymentLines.Reset();
             if GenJnlLine2."Bal. Account Type" = GenJnlLine2."Bal. Account Type"::"Bank Account" then
                 RefPaymentLines.SetFilter("Payment Account", GenJnlLine2."Bal. Account No.");
@@ -718,7 +737,9 @@ report 393 "Suggest Vendor Payments"
             repeat
                 GenJnlLine.Amount := RefPaymentLines.Amount;
             until RefPaymentLines.Next() = 0;
+#pragma warning restore AL0432
         end; // - NSFI BANK
+#endif
 
         if UsePriority then
             TempPayableVendorLedgerEntry.Priority := Vendor.Priority
@@ -781,7 +802,12 @@ report 393 "Suggest Vendor Payments"
         GenJnlLine1: Record "Gen. Journal Line";
         DimBuf: Record "Dimension Buffer";
         RemainingAmtAvailable: Decimal;
+#if not CLEAN29
+#pragma warning disable AL0432
         RefPaymentLines: Record "Ref. Payment - Exported";
+#pragma warning restore AL0432
+        FIBankingPaymentFeatureMG: Codeunit "FI Banking Payment Feature";
+#endif
         HandledEntry: Boolean;
     begin
         TempVendorPaymentBuffer.Reset();
@@ -848,18 +874,24 @@ report 393 "Suggest Vendor Payments"
                                 TempVendorPaymentBuffer.Amount := TempPayableVendorLedgerEntry.Amount;
 
                                 // +NSFI BANK
-                                TempVendorPaymentBuffer."Message Type" := VendLedgEntry."Message Type";
-                                TempVendorPaymentBuffer."Invoice Message" := VendLedgEntry."Invoice Message";
-                                RefPaymentLines.Reset();
-                                if GenJnlLine2."Bal. Account Type" = GenJnlLine2."Bal. Account Type"::"Bank Account" then
-                                    RefPaymentLines.SetFilter("Payment Account", GenJnlLine2."Bal. Account No.");
-                                RefPaymentLines.SetRange(Transferred, true);
-                                RefPaymentLines.SetRange("Posted to G/L", false);
-                                RefPaymentLines.SetRange("Entry No.", VendLedgEntry."Entry No.");
-                                if RefPaymentLines.Find('+') then begin
-                                    TempVendorPaymentBuffer."Bal. Account No." := RefPaymentLines."Payment Account";
-                                    TempVendorPaymentBuffer."Payment Date" := RefPaymentLines."Payment Date";
+#if not CLEAN29
+                                if not FIBankingPaymentFeatureMG.IsEnabled() then begin
+#pragma warning disable AL0432
+                                    TempVendorPaymentBuffer."Message Type" := VendLedgEntry."Message Type";
+                                    TempVendorPaymentBuffer."Invoice Message" := VendLedgEntry."Invoice Message";
+                                    RefPaymentLines.Reset();
+                                    if GenJnlLine2."Bal. Account Type" = GenJnlLine2."Bal. Account Type"::"Bank Account" then
+                                        RefPaymentLines.SetFilter("Payment Account", GenJnlLine2."Bal. Account No.");
+                                    RefPaymentLines.SetRange(Transferred, true);
+                                    RefPaymentLines.SetRange("Posted to G/L", false);
+                                    RefPaymentLines.SetRange("Entry No.", VendLedgEntry."Entry No.");
+                                    if RefPaymentLines.Find('+') then begin
+                                        TempVendorPaymentBuffer."Bal. Account No." := RefPaymentLines."Payment Account";
+                                        TempVendorPaymentBuffer."Payment Date" := RefPaymentLines."Payment Date";
+                                    end;
+#pragma warning restore AL0432
                                 end;
+#endif
                                 // -NSFI BANK
 
                                 Window2.Update(1, VendLedgEntry."Vendor No.");
@@ -888,9 +920,11 @@ report 393 "Suggest Vendor Payments"
 
         Clear(TempOldVendorPaymentBuffer);
         // +NAFI BANK
-        if SendToBank then
+#if not CLEAN29
+        if (not FIBankingPaymentFeatureMG.IsEnabled()) and SendToBank then
             TempVendorPaymentBuffer.SetCurrentKey("Payment Date", "Vendor No.", "Document No.")
         else
+#endif
             // -NSFI BANK
             TempVendorPaymentBuffer.SetCurrentKey("Document No.");
 
@@ -1303,15 +1337,32 @@ report 393 "Suggest Vendor Payments"
         end;
     end;
 
+#if CLEAN29
+#pragma warning disable AA0137 // EntryNo is only consumed by pre-CLEAN29 code below
+#endif
     local procedure GetDomesticPaymentDate(EntryNo: Integer): Date
+#if not CLEAN29
     var
+#pragma warning disable AL0432
         RefPaymentExported: Record "Ref. Payment - Exported";
+#pragma warning restore AL0432
+        FIBankingPaymentFeatureGDP: Codeunit "FI Banking Payment Feature";
+#endif
     begin
-        RefPaymentExported.SetRange(Transferred, true);
-        RefPaymentExported.SetRange("Posted to G/L", false);
-        RefPaymentExported.SetRange("Entry No.", EntryNo);
-        if RefPaymentExported.FindLast() then
-            exit(RefPaymentExported."Payment Date");
+#if CLEAN29
+#pragma warning restore AA0137
+#endif
+#if not CLEAN29
+        if not FIBankingPaymentFeatureGDP.IsEnabled() then begin
+#pragma warning disable AL0432
+            RefPaymentExported.SetRange(Transferred, true);
+            RefPaymentExported.SetRange("Posted to G/L", false);
+            RefPaymentExported.SetRange("Entry No.", EntryNo);
+            if RefPaymentExported.FindLast() then
+                exit(RefPaymentExported."Payment Date");
+#pragma warning restore AL0432
+        end;
+#endif
         exit(0D);
     end;
 

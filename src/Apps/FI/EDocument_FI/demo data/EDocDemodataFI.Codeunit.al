@@ -8,7 +8,9 @@ namespace Microsoft.DemoData.Localization;
 using Microsoft.DemoData.Finance;
 using Microsoft.DemoTool;
 using Microsoft.eServices.EDocument.DemoData;
+#if not CLEAN29
 using Microsoft.Purchases.Document;
+#endif
 
 codeunit 13439 "EDoc. Demodata FI"
 {
@@ -25,13 +27,17 @@ codeunit 13439 "EDoc. Demodata FI"
             DefineLocalGLAccountInEDocumentsModuleSetup();
     end;
 
+#if not CLEAN29
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create E-Doc. Sample Invoices", OnUpdateRequiredDataInPurchaseHeaderForPosting, '', false, false)]
     local procedure OnUpdateRequiredDataInPurchaseHeaderForPosting(var PurchaseHeader: Record "Purchase Header")
     begin
+#pragma warning disable AL0432
         PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
         PurchaseHeader.Validate("Invoice Message", PurchaseHeader."No.");
+#pragma warning restore AL0432
         PurchaseHeader.Modify(true);
     end;
+#endif
 
     local procedure DefineLocalGLAccountInEDocumentsModuleSetup()
     var

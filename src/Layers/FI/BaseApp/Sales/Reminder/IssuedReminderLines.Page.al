@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -99,11 +99,16 @@ page 439 "Issued Reminder Lines"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+#if not CLEAN29
                 field("Reference No."; Rec."Reference No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reference number that is calculated from a reference number sequence.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
             }
         }
     }

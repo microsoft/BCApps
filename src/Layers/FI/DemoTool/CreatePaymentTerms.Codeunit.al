@@ -56,8 +56,12 @@ codeunit 101003 "Create Payment Terms"
         "Payment Terms".Validate("Discount %", "Discount %");
         "Payment Terms".Validate(Description, Description);
 
+#if not CLEAN29
+#pragma warning disable AL0432
         if "Discount %" > 0 then
             "Payment Terms"."Disreg. Pmt. Disc. at Full Pmt" := true;
+#pragma warning restore AL0432
+#endif
 
         "Payment Terms".Insert();
     end;

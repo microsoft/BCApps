@@ -5,8 +5,12 @@
 
 namespace Microsoft.Bank.Setup;
 
+#if not CLEAN29
 page 32000007 "Input Dialog"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Input Dialog';
     PageType = Card;
 
@@ -175,4 +179,5 @@ page 32000007 "Input Dialog"
         exit(TimeVar);
     end;
 }
+#endif
 

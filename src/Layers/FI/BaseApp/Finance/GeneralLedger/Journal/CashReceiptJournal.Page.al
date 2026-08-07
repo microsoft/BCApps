@@ -1,11 +1,15 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
+#if not CLEAN29
 using Microsoft.Bank.Payment;
+#endif
+#if not CLEAN29
 using Microsoft.Bank.Reports;
+#endif
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Currency;
@@ -23,6 +27,7 @@ using System.Integration;
 using System.Privacy;
 using System.Threading;
 
+#pragma warning disable AS0031
 /// <summary>
 /// Provides cash receipt journal functionality for recording customer payments and cash transactions.
 /// Supports payment application, dimension management, and approval workflows with comprehensive validation.
@@ -33,6 +38,7 @@ using System.Threading;
 /// Extensibility: Multiple integration events for custom validation and processing logic throughout the payment workflow.
 /// </remarks>
 page 255 "Cash Receipt Journal"
+#pragma warning restore AS0031
 {
     AdditionalSearchTerms = 'customer payment';
     ApplicationArea = Basic, Suite;
@@ -341,11 +347,16 @@ page 255 "Cash Receipt Journal"
                     ApplicationArea = Comments;
                     Visible = false;
                 }
+#if not CLEAN29
                 field("Reference No."; Rec."Reference No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reference number that is calculated from a reference number sequence.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
                 field("Direct Debit Mandate ID"; Rec."Direct Debit Mandate ID")
                 {
                     ApplicationArea = Basic, Suite;
@@ -609,21 +620,31 @@ page 255 "Cash Receipt Journal"
     {
         area(navigation)
         {
+#if not CLEAN29
             group("Reference File")
             {
                 Caption = 'Reference File';
+                Visible = not FIBankingPaymentFeatureEnabled;
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
+                ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 action("Read Reference File")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Read Reference File';
                     Image = SuggestCustomerPayments;
                     ToolTip = 'Import the bank''s reference transfer file. Then specify the bank account whose material you want to use. If the transfer file contains material from several bank accounts, all transactions for all accounts are imported. After the file is imported, all payments for which an open customer transaction with the same reference number are available in the Cash Receipt Journal window.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
                     trigger OnAction()
                     begin
+#pragma warning disable AL0432
                         Clear(ReadBankFile);
                         ReadBankFile.SetLedgerNames(Rec."Journal Batch Name", Rec."Journal Template Name");
                         ReadBankFile.RunModal();
+#pragma warning restore AL0432
                     end;
                 }
                 action("Transfer Report")
@@ -632,11 +653,16 @@ page 255 "Cash Receipt Journal"
                     Caption = 'Transfer Report';
                     Image = PrintForm;
                     ToolTip = 'Print the Reference Payment report, which contains all transactions imported that have not been posted. The first row shows data from the bank file. The second row shows data that is based on the reference number. If the reference transfer file has transactions without corresponding transaction rows, the transaction''s second row displays TRANSACTION COULD NOT BE AUTOMATICALLY APPLIED. ';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
                     trigger OnAction()
                     begin
+#pragma warning disable AL0432
                         Clear(ReferenceReport);
                         ReferenceReport.Run();
+#pragma warning restore AL0432
                     end;
                 }
                 action("Apply Reference Lines")
@@ -644,16 +670,22 @@ page 255 "Cash Receipt Journal"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Apply Reference Lines';
                     Image = ApplyEntries;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
                     trigger OnAction()
                     begin
+#pragma warning disable AL0432
                         Clear(ApplyReperenceLines);
                         Clear(PostRefLines);
                         if ApplyReperenceLines.RunModal() = ACTION::LookupOK then
                             PostRefLines.MatchLines(Rec."Journal Template Name", Rec."Journal Batch Name");
+#pragma warning restore AL0432
                     end;
                 }
             }
+#endif
             group("&Line")
             {
                 Caption = '&Line';
@@ -1165,6 +1197,7 @@ page 255 "Cash Receipt Journal"
                 actionref("Apply Entries_Promoted"; "Apply Entries")
                 {
                 }
+#if not CLEAN29
                 actionref("Read Reference File_Promoted"; "Read Reference File")
                 {
                 }
@@ -1174,6 +1207,7 @@ page 255 "Cash Receipt Journal"
                 actionref("Apply Reference Lines_Promoted"; "Apply Reference Lines")
                 {
                 }
+#endif
             }
             group(Category_Category4)
             {
@@ -1320,6 +1354,9 @@ page 255 "Cash Receipt Journal"
         IsHandled: Boolean;
     begin
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
+#if not CLEAN29
+        FIBankingPaymentFeatureEnabled := FIBankingPaymentFeature.IsEnabled();
+#endif
         IsSaaS := EnvironmentInformation.IsSaaS();
         UseAllocationAccountNumber := AllocationAccountMgt.UseAllocationAccountNoField();
 
@@ -1371,10 +1408,16 @@ page 255 "Cash Receipt Journal"
         ShowTotalBalance: Boolean;
         BalanceVisible: Boolean;
         TotalBalanceVisible: Boolean;
+#if not CLEAN29
+#pragma warning disable AL0432
         ReadBankFile: Report "Import Ref. Payment";
         ReferenceReport: Report "Ref. Payment Imported";
         ApplyReperenceLines: Page "Apply Ref. Payment";
         PostRefLines: Codeunit "Ref. Payment Management";
+#pragma warning restore AL0432
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+        FIBankingPaymentFeatureEnabled: Boolean;
+#endif
         IsPostingGroupEditable: Boolean;
         IsPowerAutomatePrivacyNoticeApproved: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;

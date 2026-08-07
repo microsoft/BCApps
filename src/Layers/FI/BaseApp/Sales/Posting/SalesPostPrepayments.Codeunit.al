@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Posting;
 
+#if not CLEAN29
 using Microsoft.Bank.BankAccount;
+#endif
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -1456,11 +1458,17 @@ codeunit 442 "Sales-Post Prepayments"
         OnAfterPostPrepmtInvLineBuffer(GenJnlLine, PrepmtInvLineBuffer, SuppressCommit, GenJnlPostLine);
     end;
 
+#if CLEAN29
+#pragma warning disable AA0137 // SalesInvHeader is only consumed by pre-CLEAN29 code below
+#endif
     local procedure PostCustomerEntry(SalesHeader: Record "Sales Header"; TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer"; TotalPrepmtInvLineBufferLCY: Record "Prepayment Inv. Line Buffer"; DocumentType: Option Invoice,"Credit Memo"; PostingDescription: Text[100]; DocType: Enum "Gen. Journal Document Type"; DocNo: Code[20]; ExtDocNo: Text[35]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20]; CalcPmtDisc: Boolean; SalesInvHeader: Record "Sales Invoice Header")
     var
         GenJnlLine: Record "Gen. Journal Line";
         IsHandled: Boolean;
     begin
+#if CLEAN29
+#pragma warning restore AA0137
+#endif
         IsHandled := false;
         OnBeforePostCustomerEntryProcedure(SalesHeader, TotalPrepmtInvLineBuffer, TotalPrepmtInvLineBufferLCY, DocumentType, PostingDescription, DocType, DocNo, ExtDocNo, SrcCode, PostingNoSeriesCode, CalcPmtDisc, GenJnlPostLine, IsHandled);
         if not IsHandled then begin
@@ -1479,7 +1487,9 @@ codeunit 442 "Sales-Post Prepayments"
             GenJnlLine."Amount (LCY)" := -TotalPrepmtInvLineBufferLCY."Amount Incl. VAT";
             GenJnlLine."Sales/Purch. (LCY)" := -TotalPrepmtInvLineBufferLCY.Amount;
             GenJnlLine."Profit (LCY)" := -TotalPrepmtInvLineBufferLCY.Amount;
+#if not CLEAN29
             GenJnlLine."Reference No." := SalesInvHeader."Reference No.";
+#endif
 
             GenJnlLine.Correction := (DocumentType = DocumentType::"Credit Memo") and GLSetup."Mark Cr. Memos as Corrections";
 
@@ -1753,8 +1763,10 @@ codeunit 442 "Sales-Post Prepayments"
     end;
 
     local procedure InsertSalesInvHeader(var SalesInvHeader: Record "Sales Invoice Header"; SalesHeader: Record "Sales Header"; PostingDescription: Text[100]; GenJnlLineDocNo: Code[20]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20])
+#if not CLEAN29
     var
         CreateReference: Codeunit "Bank Nos Check";
+#endif
     begin
         SalesInvHeader.Init();
         SalesInvHeader.TransferFields(SalesHeader);
@@ -1771,7 +1783,9 @@ codeunit 442 "Sales-Post Prepayments"
         SalesInvHeader."Prepayment Invoice" := true;
         SalesInvHeader."Prepayment Order No." := SalesHeader."No.";
         SalesInvHeader."No. Series" := PostingNoSeriesCode;
+#if not CLEAN29
         SalesInvHeader."Reference No." := CreateReference.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
+#endif
         OnBeforeSalesInvHeaderInsert(SalesInvHeader, SalesHeader, SuppressCommit, GenJnlLineDocNo);
         SalesInvHeader.Insert();
         CopyHeaderCommentLines(SalesHeader."No.", Database::"Sales Invoice Header", GenJnlLineDocNo);

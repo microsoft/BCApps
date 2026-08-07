@@ -246,11 +246,16 @@ page 26 "Vendor Card"
                         end;
                     }
                 }
+#if not CLEAN29
                 field("Business Identity Code"; Rec."Business Identity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the vendor business identity code.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;

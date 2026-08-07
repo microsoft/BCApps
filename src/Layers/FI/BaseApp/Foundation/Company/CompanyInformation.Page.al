@@ -115,11 +115,16 @@ page 1 "Company Information"
                         VATRegistrationLogMgt.AssistEditCompanyInfoVATReg();
                     end;
                 }
+#if not CLEAN29
                 field("Business Identity Code"; Rec."Business Identity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the company''s business identity code. This code can be used as a qualifier for Finnish payments.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
                 field(GLN; Rec.GLN)
                 {
                     ApplicationArea = Basic, Suite;
