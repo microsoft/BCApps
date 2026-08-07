@@ -92,6 +92,8 @@ codeunit 4305 "SOA Filters Impl."
             From := GetSafeFromEmailFilter(AgentTaskMessage.From);
             if not ProcessedFromEmails.Contains(From) then begin
                 ProcessedFromEmails.Add(From);
+                Contact.Reset();
+                Contact.SetLoadFields("No.");
                 Contact.SetFilter("E-Mail", From);
                 Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
                 if Contact.FindSet() then
@@ -99,12 +101,44 @@ codeunit 4305 "SOA Filters Impl."
                         if not ContactList.Contains(Contact."No.") then
                             ContactList.Add(Contact."No.");
                     until Contact.Next() = 0;
+
+                Contact.Reset();
+                Contact.SetLoadFields("No.");
+                Contact.SetFilter("E-Mail 2", From);
+                Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+                if Contact.FindSet() then
+                    repeat
+                        if not ContactList.Contains(Contact."No.") then
+                            ContactList.Add(Contact."No.");
+                    until Contact.Next() = 0;
             end;
             if SOATaskContactOverride.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID) then
-                if SOATaskContactOverride."Contact No." <> '' then
+                if IsContactOverrideTrusted(SOATaskContactOverride) and (SOATaskContactOverride."Contact No." <> '') then
                     if not ContactList.Contains(SOATaskContactOverride."Contact No.") then
                         ContactList.Add(SOATaskContactOverride."Contact No.");
         until AgentTaskMessage.Next() = 0;
+    end;
+
+    internal procedure IsContactOverrideTrusted(SOATaskContactOverride: Record "SOA Task Contact Override"): Boolean
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        SOASetup: Record "SOA Setup";
+        OwnerUserSecurityID: Guid;
+    begin
+        if not AgentTaskMessage.Get(SOATaskContactOverride."Task ID", SOATaskContactOverride."Task Message ID") then
+            exit(false);
+        if AgentTaskMessage.Type <> AgentTaskMessage.Type::Input then
+            exit(false);
+        if not SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", false) then
+            exit(false);
+
+        OwnerUserSecurityID := SOASetup."Owner User Security ID";
+        if IsNullGuid(OwnerUserSecurityID) then
+            OwnerUserSecurityID := SOASetup."User Security ID";
+
+        exit(
+            ((SOATaskContactOverride.SystemCreatedBy = OwnerUserSecurityID) or (SOATaskContactOverride.SystemCreatedBy = SOASetup."User Security ID")) and
+            ((SOATaskContactOverride.SystemModifiedBy = OwnerUserSecurityID) or (SOATaskContactOverride.SystemModifiedBy = SOASetup."User Security ID")));
     end;
 
     internal procedure GetExcludeAllFilter(): Text
@@ -188,7 +222,7 @@ codeunit 4305 "SOA Filters Impl."
             2:
                 SelectContactAndSetOverride(TaskID, TaskMessageID);
             3:
-                SelectContactAndUpdateEmail(ContactEmail);
+                SelectContactAndUpdateEmail(ContactEmail, TaskID, TaskMessageID);
         end;
     end;
 
@@ -198,6 +232,7 @@ codeunit 4305 "SOA Filters Impl."
         SOATaskContactOverride: Record "SOA Task Contact Override";
         ContactList: Page "Contact List";
     begin
+        ValidateContactMappingAccess(TaskID, TaskMessageID);
         ContactList.LookupMode(true);
         if ContactList.RunModal() <> Action::LookupOK then
             exit;
@@ -218,49 +253,65 @@ codeunit 4305 "SOA Filters Impl."
     internal procedure CreateContact(ContactEmail: Text; SenderName: Text)
     var
         ExistingContact: Record Contact;
-        SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         CreateContactPage: Page "SOA Create Contact";
-        ContactEmailFilter: Text;
+        ContactCount: Integer;
     begin
-        if ContactEmail <> '' then begin
-            ExistingContact.ReadIsolation := IsolationLevel::ReadUncommitted;
-            ContactEmailFilter := SOAFiltersImpl.GetSafeFromEmailFilter(ContactEmail);
-            ExistingContact.SetFilter("E-Mail", ContactEmailFilter);
-            if ExistingContact.FindFirst() then
-                if not Confirm(StrSubstNo(ContactAlreadyExistQst, ExistingContact."No.")) then
+        if ContactEmail <> '' then
+            if FindContactByEmail(ExistingContact, ContactEmail, ContactCount) then
+                if not Confirm(ContactAlreadyExistQst, false, ExistingContact."No.") then
                     Error('')
                 else begin
                     Page.Run(Page::"Contact Card", ExistingContact);
                     exit;
                 end;
-        end;
 
         CreateContactPage.SetGlobalVariables(SenderName, ContactEmail);
         Commit();
         CreateContactPage.RunModal();
     end;
 
-    internal procedure SelectContactAndUpdateEmail(ContactEmail: Text)
+    internal procedure SelectContactAndUpdateEmail(ContactEmail: Text; TaskID: BigInteger; TaskMessageID: Guid)
     var
         SelectedContact: Record Contact;
         ContactList: Page "Contact List";
     begin
+        ValidateContactMappingAccess(TaskID, TaskMessageID);
         ContactList.LookupMode(true);
         Commit();
         if ContactList.RunModal() <> Action::LookupOK then
             exit;
         ContactList.GetRecord(SelectedContact);
-        if SelectedContact."E-Mail" <> '' then
-            if not Confirm(ContactAlreadyHasEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail", ContactEmail) then
+        if SelectedContact."E-Mail 2" <> '' then
+            if not Confirm(ContactAlreadyHasAlternateEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail 2", SelectedContact.FieldCaption("E-Mail 2"), ContactEmail) then
                 exit;
         // Direct assignment is intentional: ContactEmail originates from an incoming email's From address,
         // which has already been accepted by the mail system. Validate() is skipped to avoid rejecting
         // valid but non-standard addresses such as system aliases or distribution lists.
 #pragma warning disable AA0139
-        SelectedContact."E-Mail" := CopyStr(ContactEmail, 1, MaxStrLen(SelectedContact."E-Mail"));
+        SelectedContact."E-Mail 2" := CopyStr(ContactEmail, 1, MaxStrLen(SelectedContact."E-Mail 2"));
 #pragma warning restore AA0139
         SelectedContact.Modify(true);
         Commit();
+    end;
+
+    local procedure ValidateContactMappingAccess(TaskID: BigInteger; TaskMessageID: Guid)
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        SOASetup: Record "SOA Setup";
+        OwnerUserSecurityID: Guid;
+    begin
+        if not AgentTaskMessage.Get(TaskID, TaskMessageID) then
+            Error(ContactMappingNotAuthorizedErr);
+        if AgentTaskMessage.Type <> AgentTaskMessage.Type::Input then
+            Error(ContactMappingNotAuthorizedErr);
+
+        SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", true);
+        OwnerUserSecurityID := SOASetup."Owner User Security ID";
+        if IsNullGuid(OwnerUserSecurityID) then
+            OwnerUserSecurityID := SOASetup."User Security ID";
+
+        if (UserSecurityId() <> OwnerUserSecurityID) and (UserSecurityId() <> SOASetup."User Security ID") then
+            Error(ContactMappingNotAuthorizedErr);
     end;
 
     internal procedure HandleUnknownSenderFromNotification(MissingContactNotification: Notification)
@@ -293,16 +344,85 @@ codeunit 4305 "SOA Filters Impl."
         exit('''@' + LowerCase(FromEmail.TrimStart('"').TrimEnd('"').Trim()) + '''');
     end;
 
+    internal procedure ContactExistsByEmail(EmailAddress: Text): Boolean
+    var
+        Contact: Record Contact;
+        EmailFilter: Text;
+    begin
+        EmailFilter := GetSafeFromEmailFilter(EmailAddress);
+
+        Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetFilter("E-Mail", EmailFilter);
+        if not Contact.IsEmpty() then
+            exit(true);
+
+        Contact.Reset();
+        Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetFilter("E-Mail 2", EmailFilter);
+        exit(not Contact.IsEmpty());
+    end;
+
+    internal procedure FindContactByEmail(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
+    var
+        MatchedContact: Record Contact;
+        MatchedContactNos: List of [Code[20]];
+        EmailFilter: Text;
+    begin
+        ContactCount := 0;
+        EmailFilter := GetSafeFromEmailFilter(EmailAddress);
+
+        Contact.Reset();
+        Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetFilter("E-Mail", EmailFilter);
+        if Contact.FindSet() then
+            repeat
+                MatchedContactNos.Add(Contact."No.");
+                if ContactCount = 0 then
+                    MatchedContact := Contact;
+                ContactCount += 1;
+            until Contact.Next() = 0;
+
+        Contact.Reset();
+        Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetFilter("E-Mail 2", EmailFilter);
+        if Contact.FindSet() then
+            repeat
+                if not MatchedContactNos.Contains(Contact."No.") then begin
+                    MatchedContactNos.Add(Contact."No.");
+                    if ContactCount = 0 then
+                        MatchedContact := Contact;
+                    ContactCount += 1;
+                end;
+            until Contact.Next() = 0;
+
+        if ContactCount = 0 then
+            exit(false);
+
+        Contact := MatchedContact;
+        exit(true);
+    end;
+
+    internal procedure FindContactByAlternateEmail(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
+    begin
+        Contact.Reset();
+        Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetLoadFields("E-Mail");
+        Contact.SetFilter("E-Mail 2", GetSafeFromEmailFilter(EmailAddress));
+        ContactCount := Contact.Count();
+        exit(Contact.FindFirst());
+    end;
+
     var
         NoContactsFoundTxt: Label 'No contacts found for given email.', Locked = true;
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;
         LearnMoreLbl: Label 'Learn more';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
-        ContactAlreadyHasEmailQst: Label 'Contact %1 already has email address %2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing email, %3 = New email';
+        ContactAlreadyHasAlternateEmailQst: Label 'Contact %1 already has %2 in %3. Replace it with %4?', Comment = '%1 = Contact No., %2 = Existing alternate email, %3 = Alternate email field caption, %4 = New email';
         ContactActionsMenuQst: Label 'Create a new contact,Use another contact once,Use another contact always', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
         ContactActionsInstructionQst: Label 'Select one option for how this email should be handled.';
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;
         MissingContactNotificationLbl: Label 'A contact with email <%1> is not found. Without it, document access and creation are not possible.', Comment = '%1 - email address';
         ContactAlreadyExistQst: Label 'A contact with the same email already exists. Contact number is %1. Do you want to open it?', Comment = '%1 = Contact number';
         DuplicateContactNotificationLbl: Label 'There are %1 contacts with the same email address <%2>. The first matching contact will be used.', Comment = '%1 - number of contacts, %2 - email address';
+        ContactMappingNotAuthorizedErr: Label 'You are not authorized to change the contact mapping for this message.';
 }
