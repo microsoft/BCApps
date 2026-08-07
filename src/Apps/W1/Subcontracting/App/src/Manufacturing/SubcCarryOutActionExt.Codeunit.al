@@ -8,7 +8,8 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 
-codeunit 99001523 "Subc. Carry Out Action Ext."
+#pragma warning disable AS0072, AS0136
+codeunit 20523 "Subc. Carry Out Action Ext."
 {
 #if not CLEAN27
 #pragma warning disable AL0432
@@ -36,3 +37,4 @@ codeunit 99001523 "Subc. Carry Out Action Ext."
         ProdOrderComponent."Subc. Orig. Bin Code" := PlanningComponent."Orig. Bin Code";
     end;
 }
+#pragma warning restore AS0072, AS0136

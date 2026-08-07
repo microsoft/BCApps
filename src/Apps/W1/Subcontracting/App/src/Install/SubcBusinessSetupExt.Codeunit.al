@@ -8,7 +8,8 @@ using Microsoft.Foundation.Company;
 using Microsoft.Manufacturing.Setup;
 using System.Environment.Configuration;
 
-codeunit 99001502 "Subc. Business Setup Ext."
+#pragma warning disable AS0072, AS0136
+codeunit 20502 "Subc. Business Setup Ext."
 {
     var
         SubcontractingDescriptionLbl: Label 'Make manual Subcontracting Setup';
@@ -31,3 +32,4 @@ codeunit 99001502 "Subc. Business Setup Ext."
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
     end;
 }
+#pragma warning restore AS0072, AS0136

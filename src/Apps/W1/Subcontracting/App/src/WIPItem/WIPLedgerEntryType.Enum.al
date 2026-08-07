@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001508 "WIP Ledger Entry Type"
+#pragma warning disable AS0072, AS0136
+enum 20508 "WIP Ledger Entry Type"
 {
     Extensible = true;
     value(0; "Positive Adjustment")
@@ -16,3 +17,4 @@ enum 99001508 "WIP Ledger Entry Type"
         Caption = 'Negative Adjustment';
     }
 }
+#pragma warning restore AS0072, AS0136

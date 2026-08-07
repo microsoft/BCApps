@@ -8,12 +8,13 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 
-tableextension 99001507 "Subc. Vendor" extends Vendor
+#pragma warning disable AS0072, AS0136
+tableextension 20507 "Subc. Vendor" extends Vendor
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001515; "Subc. Location Code"; Code[10])
+        field(20515; "Subc. Location Code"; Code[10])
         {
             Caption = 'Subcontracting Location Code';
             DataClassification = CustomerContent;
@@ -48,14 +49,14 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
                 end;
             end;
         }
-        field(99001516; "Subc. Linked to Work Center"; Boolean)
+        field(20516; "Subc. Linked to Work Center"; Boolean)
         {
             CalcFormula = exist("Work Center" where("Subcontractor No." = field("No.")));
             Caption = 'Linked to Work Center';
             Editable = false;
             FieldClass = FlowField;
         }
-        field(99001517; "Subc. Work Center No."; Code[20])
+        field(20517; "Subc. Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
             DataClassification = CustomerContent;
@@ -73,3 +74,4 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
         ShowLocationCardLbl: Label 'Show Location Card';
         BinWarehouseEnabledOnLocationErr: Label 'Location %1 cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.', Comment = '%1 = Location Code';
 }
+#pragma warning restore AS0072, AS0136

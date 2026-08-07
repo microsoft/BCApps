@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.RoleCenters;
 
-pageextension 99001536 "Subc. Manufacturing Manager RC" extends "Manufacturing Manager RC"
+#pragma warning disable AS0072, AS0136
+pageextension 20536 "Subc. Manufacturing Manager RC" extends "Manufacturing Manager RC"
 {
     actions
     {
@@ -33,3 +34,4 @@ pageextension 99001536 "Subc. Manufacturing Manager RC" extends "Manufacturing M
         }
     }
 }
+#pragma warning restore AS0072, AS0136

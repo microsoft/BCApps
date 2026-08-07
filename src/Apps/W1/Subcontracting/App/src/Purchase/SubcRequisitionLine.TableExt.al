@@ -11,12 +11,13 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Routing;
 
-tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
+#pragma warning disable AS0072, AS0136
+tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001516; "Subc. Standard Task Code"; Code[10])
+        field(20516; "Subc. Standard Task Code"; Code[10])
         {
             Caption = 'Standard Task Code';
             DataClassification = CustomerContent;
@@ -38,7 +39,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                     UpdateSubcontractorPrice();
             end;
         }
-        field(99001517; "Base UM Qty/PL UM Qty"; Decimal)
+        field(20517; "Base UM Qty/PL UM Qty"; Decimal)
         {
             Access = Internal;
             AutoFormatType = 0;
@@ -49,7 +50,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             InitValue = 1;
             ToolTip = 'Specifies the quantity of the base unit of measure or the price list unit of measure.';
         }
-        field(99001518; "PL UM Qty/Base UM Qty"; Decimal)
+        field(20518; "PL UM Qty/Base UM Qty"; Decimal)
         {
             Access = Internal;
             AutoFormatType = 0;
@@ -75,7 +76,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                 end;
             end;
         }
-        field(99001519; "Subc. UoM for Pricelist"; Code[10])
+        field(20519; "Subc. UoM for Pricelist"; Code[10])
         {
             Access = Internal;
             Caption = 'UoM for Price list';
@@ -97,7 +98,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                     UpdateSubcontractorPriceUOM();
             end;
         }
-        field(99001520; "Subc. Pricelist Cost"; Decimal)
+        field(20520; "Subc. Pricelist Cost"; Decimal)
         {
             Access = Internal;
             AutoFormatExpression = "Currency Code";
@@ -189,3 +190,4 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             SubcPriceManagement.GetSubcPriceForReqLine(Rec, "Subc. UoM for Pricelist");
     end;
 }
+#pragma warning restore AS0072, AS0136

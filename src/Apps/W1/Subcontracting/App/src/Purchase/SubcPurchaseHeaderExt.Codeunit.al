@@ -9,7 +9,8 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 
-codeunit 99001533 "Subc. Purchase Header Ext"
+#pragma warning disable AS0072, AS0136
+codeunit 20533 "Subc. Purchase Header Ext"
 {
     var
 #if not CLEAN28
@@ -98,3 +99,4 @@ codeunit 99001533 "Subc. Purchase Header Ext"
         ToPurchaseHeader."Subc. Location Code" := '';
     end;
 }
+#pragma warning restore AS0072, AS0136

@@ -7,18 +7,19 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.Document;
 
-tableextension 99001525 "Subc. Warehouse Receipt Line" extends "Warehouse Receipt Line"
+#pragma warning disable AS0072, AS0136
+tableextension 20525 "Subc. Warehouse Receipt Line" extends "Warehouse Receipt Line"
 {
     fields
     {
-        field(99001549; "Subc. Purchase Line Type"; Enum "Subc. Purchase Line Type")
+        field(20549; "Subc. Purchase Line Type"; Enum "Subc. Purchase Line Type")
         {
             Caption = 'Subcontracting Line Type';
             DataClassification = CustomerContent;
             Editable = false;
             ToolTip = 'Specifies the subcontracting purchase line type associated with the warehouse receipt line.';
         }
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;
@@ -27,3 +28,4 @@ tableextension 99001525 "Subc. Warehouse Receipt Line" extends "Warehouse Receip
         }
     }
 }
+#pragma warning restore AS0072, AS0136

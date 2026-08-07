@@ -17,8 +17,8 @@
   "application": "28.4.0.0",
   "idRanges": [
     {
-      "from": 99001500,
-      "to": 99001600
+      "from": 20500,
+      "to": 20595
     }
   ],
   "features": [
