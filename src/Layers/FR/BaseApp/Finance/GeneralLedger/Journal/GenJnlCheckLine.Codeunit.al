@@ -313,12 +313,8 @@ codeunit 11 "Gen. Jnl.-Check Line"
             SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
             SpendRequest.Get(GenJnlLine."Spend Request No.");
             // This spend request may have been closed in a prior entry in this transaction
-            if not ((SpendRequest.Status = SpendRequest.Status::Closed) and (SpendRequest."Closed By Document No." = GenJnlLine."Document No.")) then begin
-                IsHandled := false;
-                OnTestSpendRequestOnBeforeTestStatusApproved(SpendRequest, GenJnlLine, IsHandled);
-                if not IsHandled then
-                    SpendRequest.TestField(Status, SpendRequest.Status::Approved);
-            end;
+            if not ((SpendRequest.Status = SpendRequest.Status::Closed) and (SpendRequest."Closed By Document No." = GenJnlLine."Document No.")) then
+                SpendRequest.TestField(Status, SpendRequest.Status::Approved);
             if Abs(GenJnlLine."Amount (LCY)") > SpendRequest."Total Expected Amount (LCY)" - SpendRequest."Total Spent Amount (LCY)" then begin
                 OverspendNotification.Scope := OverspendNotification.Scope::LocalScope;
                 OverspendNotification.Message := StrSubstNo(SpendRequestIsDepletedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount (LCY)", SpendRequest."Total Spent Amount (LCY)");
@@ -1763,14 +1759,4 @@ codeunit 11 "Gen. Jnl.-Check Line"
     begin
     end;
 
-    /// <summary>
-    /// Integration event raised before verifying that the spend request has the Approved status during journal line checking.
-    /// </summary>
-    /// <param name="SpendRequest">The spend request being checked.</param>
-    /// <param name="GenJnlLine">The general journal line being validated.</param>
-    /// <param name="IsHandled">Set to true to skip the standard approved-status check.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnTestSpendRequestOnBeforeTestStatusApproved(var SpendRequest: Record "Spend Request"; var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
 }

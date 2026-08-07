@@ -2234,16 +2234,13 @@ table 38 "Purchase Header"
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
-                SourceCodeSetup: Record "Source Code Setup";
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." = '' then begin
                     Rec."Spend Request Close" := false;
                     exit;
                 end;
-
-                SourceCodeSetup.Get();
-                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", SourceCodeSetup.Purchases);
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close");
                 if SpendRequest."Dimension Set ID" <> 0 then begin
                     DimensionSetIDArr[1] := Rec."Dimension Set ID";
                     DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";

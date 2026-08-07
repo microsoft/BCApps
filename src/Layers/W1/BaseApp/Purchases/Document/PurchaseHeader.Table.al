@@ -2184,7 +2184,6 @@ table 38 "Purchase Header"
                     Rec."Spend Request Close" := false;
                     exit;
                 end;
-
                 SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close");
                 if SpendRequest."Dimension Set ID" <> 0 then begin
                     DimensionSetIDArr[1] := Rec."Dimension Set ID";
