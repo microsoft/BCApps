@@ -935,14 +935,16 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
     begin
         // [FEATURE] [AI TEST]
-        // [SCENARIO] A batch status change spanning mixed scopes (one global, one company-default
-        // extension layout) is rejected, keeping each run to a single unambiguous scope.
+        // [SCENARIO] A batch status change spanning mixed scopes is rejected, keeping each run to a
+        // single unambiguous scope.
         // Driven through the internal impl codeunit (Tests-Report is in BaseApp internalsVisibleTo)
         // because a TestPage cannot multi-select records for CurrPage.SetSelectionFilter.
         EnsureNewLayoutsAreCleaned();
 
-        // Report 139595 ships two extension layouts; make the first global-scope, leave the second
-        // at company-default scope.
+        // Report 139595 ships two extension layouts. All-companies is now the DEFAULT scope, so mixing
+        // requires giving one layout a COMPANY-SPECIFIC status override; the untouched second layout
+        // resolves to global. (Seeding a global override on one would no longer create a mix — both
+        // sides would be global.)
         ReportLayoutList.SetRange("Report ID", 139595);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two extension layouts.');
@@ -952,7 +954,7 @@ codeunit 139595 "Report Layouts Test"
         TenantReportLayoutOverride."Report ID" := 139595;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
-        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride."Company Name" := CompanyName();
         TenantReportLayoutOverride."Layout Status" := Enum::"Report Layout Status"::Draft;
         TenantReportLayoutOverride."Override Layout Status" := true;
         TenantReportLayoutOverride.Insert(true);
@@ -966,6 +968,90 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - rejected with the mixed-scope error
         Assert.ExpectedError('different scopes');
+    end;
+
+    [Test]
+    procedure TestBatchStatusOverAllGlobalLayoutsUpdatesEveryOne()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        UpdateCount: Integer;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] The success path of a multi-layout batch run: two fresh extension layouts both
+        // resolve to all-companies scope, so the run is single-scope and applies to both. No
+        // confirmation is raised — no ConfirmHandler is registered, so a prompt would fail this test,
+        // which is what pins the removal of the former all-companies confirmation.
+        // Driven through the internal impl codeunit because a TestPage cannot multi-select.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two extension layouts.');
+
+        // Act - batch over BOTH layouts, neither of which has any override yet
+        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        UpdateCount := ReportLayoutsImpl.SetLayoutStatusBatch(ReportLayoutList, Enum::"Report Layout Status"::Retired);
+
+        // Assert - both were updated...
+        Assert.AreEqual(2, UpdateCount, 'Both extension layouts should have been updated.');
+
+        // ...each through a GLOBAL override, with no company-specific rows anywhere.
+        ReportLayoutList.FindSet();
+        repeat
+            Assert.IsTrue(
+                TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+                StrSubstNo('A global override should exist for layout %1.', ReportLayoutList."Name"));
+            Assert.AreEqual(
+                Enum::"Report Layout Status"::Retired,
+                TenantReportLayoutOverride."Layout Status",
+                StrSubstNo('The global override for %1 should carry the Retired status.', ReportLayoutList."Name"));
+            Assert.IsFalse(
+                TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+                StrSubstNo('No company-specific override should exist for layout %1.', ReportLayoutList."Name"));
+        until ReportLayoutList.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('EditExtensionAssertObsoleteLockedHandler')]
+    procedure TestObsoleteExtensionLayoutCannotBeUnObsoleted()
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] IsObsolete is ONE-WAY. Once a layout resolves to obsolete, the edit dialog must not
+        // offer a way back: the field is locked, so retiring cannot be undone through the UI. This is
+        // the guarantee the design leans on when treating obsoleting as a grave act.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Make the layout obsolete via a global override, the way the everyday edit path would.
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride.IsObsolete := true;
+        TenantReportLayoutOverride."Override IsObsolete" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // Act - reopen Edit info; the handler asserts the obsolete field is locked
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.EditLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - still obsolete; nothing cleared it
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            'The global obsolete override should still exist.');
+        Assert.IsTrue(TenantReportLayoutOverride.IsObsolete, 'The layout must still be obsolete.');
     end;
 
     [Test]
@@ -1079,6 +1165,17 @@ codeunit 139595 "Report Layouts Test"
     procedure EditExtensionOverrideObsoleteHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
     begin
         ReportLayoutEditDialog.IsObsolete.SetValue(true);
+        ReportLayoutEditDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure EditExtensionAssertObsoleteLockedHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
+    begin
+        // One-way IsObsolete: on a layout that already resolves to obsolete the field must be locked,
+        // so there is no route back through the dialog.
+        Assert.IsFalse(
+            ReportLayoutEditDialog.IsObsolete.Editable(),
+            'Mark layout as obsolete must be locked once the layout is already obsolete.');
         ReportLayoutEditDialog.OK().Invoke();
     end;
 
