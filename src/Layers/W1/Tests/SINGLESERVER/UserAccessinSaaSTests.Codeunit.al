@@ -419,6 +419,9 @@ codeunit 139460 "User Access in SaaS Tests"
     begin
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         UserPersonalization.DeleteAll(true);
+        // Exclude the user running the tests (e.g. ADMIN): once that user has a login entry the platform
+        // blocks its deletion, which would otherwise make Initialize fail depending on test execution order.
+        User.SetFilter("User Security ID", '<>%1', UserSecurityId());
         User.DeleteAll(true);
     end;
 }
