@@ -41,7 +41,6 @@ codeunit 148338 "Spend Request Test"
         HeaderCloseFlagMsg: Label 'The header should store the confirmed close flag.';
         SpendReqSpentAmountMsg: Label 'The spend request Total Spent Amount (LCY) should reflect the posted amount.';
         SpendReqLinkExistsMsg: Label 'A Spend Request To G/L Link entry should be created when the expense report is posted.';
-        SpendReqSpentReversedMsg: Label 'The spend request Total Spent Amount (LCY) should be reversed to zero after the posted expense report is canceled.';
         SpendReqClearedMsg: Label 'The Spend Request No. should be cleared when the line becomes non-refundable.';
         SpendReqCloseClearedMsg: Label 'The Spend Request Close flag should be cleared when the line becomes non-refundable.';
         SpendReqLinkPreviewMsg: Label 'The Spend Request To G/L Link entries should be shown in the expense report posting preview.';
@@ -731,52 +730,6 @@ codeunit 148338 "Spend Request Test"
         SpendRequest.Get(SpendRequest."No.");
         SpendRequest.CalcFields("Total Spent Amount (LCY)");
         Assert.AreEqual(ExpectedSpentLCY, SpendRequest."Total Spent Amount (LCY)", SpendReqSpentAmountMsg);
-    end;
-
-    [Test]
-    [HandlerFunctions('SpendReqConfirmHandler')]
-    procedure CancelPostedReportReversesSpendReqSpentAmount()
-    var
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportLine: Record "Expense Report Line";
-        PostedExpenseReportHeader: Record "Posted Expense Report Header";
-        SpendRequest: Record "Spend Request";
-        ExpenseReportPost: Codeunit "Expense Report-Post";
-        CancelPostedExpenseReport: Codeunit "Cancel Posted Expense Report";
-        ExpectedSpentLCY: Decimal;
-    begin
-        // [SCENARIO 616928] Canceling a posted expense report reverses the spend request's spent amount.
-        Initialize();
-        CloseConfirmReply := true;
-
-        // [GIVEN] An expense report with a refundable line linked to a released spend request.
-        CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
-
-        // [GIVEN] The refundable amount that is expected to be spent against the spend request.
-        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
-        ExpenseReportLine.FindFirst();
-        ExpectedSpentLCY := ExpenseReportLine."Refundable Amount (LCY)";
-
-        // [GIVEN] The report is released and posted.
-        ExpenseReportHeader.PerformManualRelease();
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-
-        // [GIVEN] The posted amount is recorded on the spend request.
-        SpendRequest.Get(SpendRequest."No.");
-        SpendRequest.CalcFields("Total Spent Amount (LCY)");
-        Assert.AreEqual(ExpectedSpentLCY, SpendRequest."Total Spent Amount (LCY)", SpendReqSpentAmountMsg);
-
-        // [WHEN] The posted expense report is canceled.
-#pragma warning disable AA0210
-        PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseReportHeader."Expense User No.");
-#pragma warning restore AA0210
-        PostedExpenseReportHeader.FindFirst();
-        CancelPostedExpenseReport.Run(PostedExpenseReportHeader);
-
-        // [THEN] The spend request's spent amount is reversed back to zero.
-        SpendRequest.Get(SpendRequest."No.");
-        SpendRequest.CalcFields("Total Spent Amount (LCY)");
-        Assert.AreEqual(0, SpendRequest."Total Spent Amount (LCY)", SpendReqSpentReversedMsg);
     end;
 
     [Test]

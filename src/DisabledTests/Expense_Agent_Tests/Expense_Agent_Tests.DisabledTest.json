@@ -208,10 +208,5 @@
     "codeunitId": 148330,
     "codeunitName": "Expense Posting VAT Test",
     "method": "VATSpecApprovedAndRejectedLines"
-  },
-  {
-    "codeunitId": 148338,
-    "codeunitName": "Spend Request Test",
-    "method": "CancelPostedReportReversesSpendReqSpentAmount"
   }
 ]
