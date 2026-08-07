@@ -1208,6 +1208,8 @@ table 115 "Sales Cr.Memo Line"
             SalesCreditMemoHeader.Get("Document No.");
             if SalesCreditMemoHeader."Applies-to Doc. Type" <> SalesCrMemoHeader."Applies-to Doc. Type"::Invoice then
                 exit;
+            if SalesCreditMemoHeader."Applies-to Doc. No." = '' then
+                exit;
 
             SalesInvoiceLine.Reset();
             SalesInvoiceLine.SetRange("Document No.", SalesCreditMemoHeader."Applies-to Doc. No.");
