@@ -30,8 +30,11 @@ codeunit 137009 "SCM Availability by Event"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
+        ProdOrderAvailabilityMgt: Codeunit "Prod. Order Availability Mgt.";
         Initialized: Boolean;
         WrongReservedQtyErr: Label 'Wrong reserved quantity in Item Availability by Event';
+        ProdOrderComponentNotFoundErr: Label 'Mocked Prod. Order Component not found on "Prod. Order Components" page.';
+        DemandAfterDueDateMissingErr: Label 'Item Availability by Event must show demand dated after the production order Due Date.';
 
     local procedure Initialize()
     begin
@@ -588,6 +591,50 @@ codeunit 137009 "SCM Availability by Event"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemAvailabilityByEventShowsLaterDemandHandler,ConfirmHandlerNo')]
+    procedure ItemAvailByEventFromProdOrderLineShowsDemandAfterDueDate()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        SalesLine: Record "Sales Line";
+        Qty: Decimal;
+        DueDate: Date;
+        LaterShipmentDate: Date;
+    begin
+        // [FEATURE] [Item Availability] [Prod. Order] [Manufacturing]
+        // [SCENARIO 598820] Item Availability by Event opened from a production order line shows demand dated after the production order Due Date.
+        Initialize();
+        Qty := LibraryRandom.RandIntInRange(10, 20);
+        DueDate := WorkDate();
+        LaterShipmentDate := CalcDate('<1M>', DueDate);
+
+        // [GIVEN] Item "I".
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Sales order for "I" with a shipment date one month after the production order Due Date.
+        CreateSalesOrder(SalesLine, Item."No.", Qty, LaterShipmentDate);
+
+        // [GIVEN] Firm Planned production order for "I" with an earlier Due Date.
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProductionOrder.Status::"Firm Planned", Item, '', '', Qty, DueDate);
+        FindProdOrderLine(ProdOrderLine, ProductionOrder);
+
+        // [WHEN] Open Item Availability by Event from the production order line.
+        LibraryVariableStorage.Enqueue(SalesLine."Document No.");
+        ProdOrderAvailabilityMgt.ShowItemAvailFromProdOrderLine(ProdOrderLine, "Item Availability Type"::"Event");
+
+        // [THEN] The later sales demand is shown on the page (verified in ItemAvailabilityByEventShowsLaterDemandHandler).
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure FindProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order")
+    begin
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+    end;
+
     local procedure AutoReservePurchaseLine(PurchaseLine: Record "Purchase Line")
     var
         ReservMgt: Codeunit "Reservation Management";
@@ -650,6 +697,26 @@ codeunit 137009 "SCM Availability by Event"
           'Asserting that the no. of lines match');
         Assert.AreEqual(ExpextedEndBalance, PageTempInvtPageData."Suggested Projected Inventory",
           'Asserting that the ultimo Suggested Projected Inventory match');
+    end;
+
+    [Test]
+    procedure ActConsumptionQtyHiddenOnFirmPlannedProdOrderComponentsPage()
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderComponents: TestPage "Prod. Order Components";
+        MockedQty: Decimal;
+    begin
+        // [SCENARIO 636784] "Act. Consumption (Qty)" on "Prod. Order Components" page is 0 when the component belongs to a Firm Planned production order.
+        Initialize();
+
+        // [GIVEN] A Firm Planned Prod. Order Component with a matching Consumption Item Ledger Entry.
+        MockedQty := LibraryRandom.RandDecInRange(10, 100, 2);
+        MockProdOrderComponentWithStatus(ProdOrderComponent, ProdOrderComponent.Status::"Firm Planned");
+        MockConsumptionItemLedgerEntry(ProdOrderComponent, MockedQty);
+
+        // [WHEN] Open the "Prod. Order Components" page for the component.
+        // [THEN] The "Act. Consumption (Qty)" control shows 0 (value is hidden for Firm Planned status).
+        OpenProdOrderComponentsAndAssertActConsQty(ProdOrderComponent, ProdOrderComponents, 0);
     end;
 
     local procedure NoSeriesSetup()
@@ -726,6 +793,51 @@ codeunit 137009 "SCM Availability by Event"
         ProdOrderComponent."Remaining Quantity" := Qty;
         ProdOrderComponent."Remaining Qty. (Base)" := Qty;
         ProdOrderComponent.Insert();
+    end;
+
+    local procedure MockProdOrderComponentWithStatus(var ProdOrderComponent: Record "Prod. Order Component"; NewStatus: Enum "Production Order Status")
+    var
+        Item: Record Item;
+    begin
+        LibraryInventory.CreateItem(Item);
+
+        ProdOrderComponent.Init();
+        ProdOrderComponent.Status := NewStatus;
+        ProdOrderComponent."Prod. Order No." :=
+            CopyStr(LibraryUtility.GenerateRandomCode(ProdOrderComponent.FieldNo("Prod. Order No."), Database::"Prod. Order Component"), 1, MaxStrLen(ProdOrderComponent."Prod. Order No."));
+        ProdOrderComponent."Prod. Order Line No." := 10000;
+        ProdOrderComponent."Line No." := 10000;
+        ProdOrderComponent."Item No." := Item."No.";
+        ProdOrderComponent."Due Date" := WorkDate();
+        ProdOrderComponent.Insert();
+    end;
+
+    local procedure MockConsumptionItemLedgerEntry(ProdOrderComponent: Record "Prod. Order Component"; ConsumedQty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.Init();
+        ItemLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(ItemLedgerEntry, ItemLedgerEntry.FieldNo("Entry No."));
+        ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Consumption;
+        ItemLedgerEntry."Order Type" := ItemLedgerEntry."Order Type"::Production;
+        ItemLedgerEntry."Order No." := ProdOrderComponent."Prod. Order No.";
+        ItemLedgerEntry."Order Line No." := ProdOrderComponent."Prod. Order Line No.";
+        ItemLedgerEntry."Prod. Order Comp. Line No." := ProdOrderComponent."Line No.";
+        ItemLedgerEntry."Item No." := ProdOrderComponent."Item No.";
+        ItemLedgerEntry."Posting Date" := WorkDate();
+
+        ItemLedgerEntry.Quantity := -ConsumedQty;
+        ItemLedgerEntry.Insert();
+    end;
+
+    local procedure OpenProdOrderComponentsAndAssertActConsQty(ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderComponents: TestPage "Prod. Order Components"; ExpectedShownQty: Decimal)
+    begin
+        ProdOrderComponents.OpenView();
+        ProdOrderComponents.Filter.SetFilter(Status, Format(ProdOrderComponent.Status));
+        ProdOrderComponents.Filter.SetFilter("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        Assert.IsTrue(ProdOrderComponents.First(), ProdOrderComponentNotFoundErr);
+        ProdOrderComponents."Act. Consumption (Qty)".AssertEquals(ExpectedShownQty);
+        ProdOrderComponents.Close();
     end;
 
     local procedure GetRequisitionWkshBatch(): Code[10]
@@ -807,6 +919,20 @@ codeunit 137009 "SCM Availability by Event"
     procedure ConfirmHadlerYes(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
+    [ModalPageHandler]
+    procedure ItemAvailabilityByEventShowsLaterDemandHandler(var ItemAvailabilitybyEvent: TestPage "Item Availability by Event")
+    begin
+        ItemAvailabilitybyEvent.Filter.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        Assert.IsTrue(ItemAvailabilitybyEvent.First(), DemandAfterDueDateMissingErr);
+        ItemAvailabilitybyEvent.OK().Invoke();
     end;
 
     [ModalPageHandler]

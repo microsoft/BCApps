@@ -45,7 +45,7 @@ page 30126 "Shpfy Products"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the status of the product in Shopify. Valid values are: active, archived, draft. If you change this, this will immediately send to Shopify.';
+                    ToolTip = 'Specifies the status of the product in Shopify. Valid values are: active, archived, draft, unlisted. If you change this, this will immediately send to Shopify.';
 
                     trigger OnValidate()
                     var

@@ -11,6 +11,8 @@ using Microsoft.EServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -685,17 +687,38 @@ codeunit 6103 "E-Document Subscribers"
         EDocLogHelper.InsertLog(EDocument, EDocService, Enum::"E-Document Service Status"::"Imported Document Created");
     end;
 
-    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile")
+    /// <summary>
+    /// Creates a new E-Document for the provided posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"): Boolean
     begin
-        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord), false);
+        exit(CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord), false));
     end;
 
-    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
+    /// <summary>
+    /// Creates a new E-Document of specified type for the provided posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"): Boolean
     begin
-        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType, false);
+        exit(CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType, false));
     end;
 
-    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"; AllowReExport: Boolean)
+    /// <summary>
+    /// Creates a new E-Document of specified type for the provided posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"; AllowReExport: Boolean): Boolean
     var
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
@@ -709,9 +732,9 @@ codeunit 6103 "E-Document Subscribers"
 
         PostedSourceDocumentHeader.GetTable(PostedRecord);
         if (DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow") then
-            exit;
+            exit(false);
 
-        EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType, AllowReExport);
+        exit(EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType, AllowReExport));
     end;
 
     local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
@@ -769,5 +792,32 @@ codeunit 6103 "E-Document Subscribers"
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
     begin
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Sales Document", 'OnAfterReleaseSalesDoc', '', false, false)]
+    local procedure OnAfterReleaseSalesDoc(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
+    var
+        EDocument: Record "E-Document";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        ResponseBlob: Codeunit "Temp Blob";
+        SalesHeaderRef: RecordRef;
+        IResponseProvider: Interface IEDocResponseProvider;
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        MessageType: Enum "E-Document Message Type";
+    begin
+        if PreviewMode then
+            exit;
+        SalesHeaderRef.GetTable(SalesHeader);
+        EDocument.SetRange("Document Record ID", SalesHeaderRef.RecordId);
+        EDocument.SetRange(Direction, EDocument.Direction::Incoming);
+        if not EDocument.FindLast() then
+            exit;
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType = "E-Document Message Type"::Unknown then
+            exit;
+        IMessageBuilder := MessageType;
+        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
+        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Accepted, ResponseBlob);
     end;
 }

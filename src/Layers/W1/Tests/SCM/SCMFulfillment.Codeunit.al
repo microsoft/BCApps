@@ -966,7 +966,7 @@ codeunit 137014 "SCM Fulfillment"
         JobPlanningLine.SetRange("Job Task No.", JobTask."Job Task No.");
         JobPlanningLine.FindFirst();
         WarehouseActivityLine.FindFirst();
-        WarehouseActivityLine.TestField("Source Type", Database::Job);
+        WarehouseActivityLine.TestField("Source Type", Database::"Job Planning Line");
         WarehouseActivityLine.TestField("Source No.", Job."No.");
         WarehouseActivityLine.TestField("Source Line No.", JobPlanningLine."Job Contract Entry No.");
         WarehouseActivityLine.TestField(Quantity, JobPlanningLine.Quantity);
@@ -1813,7 +1813,7 @@ codeunit 137014 "SCM Fulfillment"
 
         // [THEN] Warehouse pick is created only for the reserved assembly line.
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
-        WarehouseActivityLine.SetRange("Source Type", Database::Job);
+        WarehouseActivityLine.SetRange("Source Type", Database::"Job Planning Line");
         WarehouseActivityLine.SetRange("Location Code", Location.Code);
         Assert.RecordCount(WarehouseActivityLine, 1);
     end;

@@ -10,6 +10,7 @@ using Microsoft.CRM.Interaction;
 report 5191 "Delete Logged Segments"
 {
     Caption = 'Delete Logged Segments';
+    ToolTip = 'Find and delete canceled log segments.';
     ProcessingOnly = true;
     Permissions = TableData "Logged Segment" = d;
 

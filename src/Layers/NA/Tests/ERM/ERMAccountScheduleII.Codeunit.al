@@ -2,6 +2,7 @@
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -38,6 +39,10 @@
         RowNotFoundErr: Label 'Row %1 is not visible.';
         WrongValueErr: Label 'Wrong value of the field %1 in table %2.', Comment = '%1 = Field name, %2 = Table name';
         MissingSheetDataErr: Label 'Sheet %1 is either missing or does not contain the correct data.', Comment = '%1 = Sheet number';
+        TextValueDuplicateErr: Label 'Text value %1 should appear exactly once in Excel export, but found %2 occurrences', Comment = '%1 = Text value, %2 = Occurrence count';
+        AuditLogWrittenTooEarlyErr: Label 'The audit log entry for financial report %1 must not be written before the report has finished processing.', Comment = '%1 = Financial report name';
+        SheetNameTok: Label 'Sheet%1', Locked = true;
+        SheetNotListedErr: Label 'The sheet selection page must list sheet %1 of the workbook.', Comment = '%1 = Sheet number';
         IsInitialized: Boolean;
 
     [Test]
@@ -2897,7 +2902,46 @@
         FinancialReportAuditLog.SetRange(User, UserId);
         FinancialReportAuditLog.SetRange(Format, FinancialReportAuditLog.Format::Excel);
         Assert.AreEqual(1, FinancialReportAuditLog.Count(), 'Audit log entry was not created after export the financial report to PDF.');
-    end;			
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('NameValueLookupModalPageHandler')]
+    procedure FinRepAuditLogOnExcelDoesNotBlockModalPage()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        FinancialReportAuditLog: Record "Financial Report Audit Log";
+        ERMAccountScheduleII: Codeunit "ERM Account Schedule II";
+    begin
+        // [SCENARIO 641100] Export Acc. Sched. to Excel does not hold a write transaction open while the report processes its data item
+        Initialize();
+
+        // [GIVEN] A financial report "FR"
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+
+        // [GIVEN] A subscriber that opens a modal page while the report processes its data item, like the sheet selection does when updating an existing workbook with several sheets
+        // [GIVEN] The workbook contains the sheets "Sheet1" and "Sheet2"
+        LibraryVariableStorage.Enqueue(GetSheetName(1));
+        LibraryVariableStorage.Enqueue(GetSheetName(2));
+        BindSubscription(ERMAccountScheduleII);
+
+        // [WHEN] The financial report is exported to Excel
+        AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
+        AccScheduleLine.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        RunExportAccSchedule(AccScheduleLine, AccScheduleName);
+        UnbindSubscription(ERMAccountScheduleII);
+
+        // [THEN] The sheet selection page was shown exactly once, listing "Sheet1" and "Sheet2", without a write transaction being open
+        // NameValueLookupModalPageHandler
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] An audit log entry is created for the action
+        FinancialReportAuditLog.SetRange("Report Name", AccScheduleName.Name);
+        FinancialReportAuditLog.SetRange(User, UserId);
+        FinancialReportAuditLog.SetRange(Format, FinancialReportAuditLog.Format::Excel);
+        Assert.AreEqual(1, FinancialReportAuditLog.Count(), 'Audit log entry was not created after export the financial report to Excel.');
+    end;
 
     procedure FinancialReportWithBlockedStatus()
     var
@@ -3007,6 +3051,57 @@
         ColumnLayoutNames.Filter.SetFilter(Name, ColumnLayoutName.Name);
         // [THEN] The blocked column definition is not visible
         Assert.IsFalse(ColumnLayoutNames.First(), 'Blocked column definitions are not visible to users without write permission on status.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportAccScheduleToExcelWithDimFilterPostedGLEntries()
+    var
+        GLAccount: Record "G/L Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        DimensionValue: array[4] of Record "Dimension Value";
+        AccScheduleName: Record "Acc. Schedule Name";
+    begin
+        // [SCENARIO 637755] Account Schedule must be exported to excel values with filters of dimensions
+        Initialize();
+
+        // [GIVEN] 4 Dimensions with Dimension Values:
+        // [GIVEN] First - "DIM1" with "DIMVALUE1"
+        LibraryDimension.CreateDimensionValue(DimensionValue[1], LibraryERM.GetGlobalDimensionCode(1));
+
+        // [GIVEN] Second - "DIM2" with "DIMVALUE2"
+        LibraryDimension.CreateDimWithDimValue(DimensionValue[2]);
+
+        // [GIVEN] Third - "DIM3" with "DIMVALUE3"
+        LibraryDimension.CreateDimWithDimValue(DimensionValue[3]);
+
+        // [GIVEN] Fourth - "DIM4" with "DIMVALUE4"
+        LibraryDimension.CreateDimWithDimValue(DimensionValue[4]);
+
+        // [GIVEN] G/L Account with posted entries and the dimension value assigned
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine,
+            GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccount."No.",
+            LibraryRandom.RandDecInRange(1000, 5000, 2));
+        GenJournalLine.Validate("Shortcut Dimension 1 Code", DimensionValue[1].Code);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Account Schedule with Analysis View with dimensions: "DIM1", "DIM2", "DIM3" and "DIM4"
+        CreateAccScheduleNameWithViewAndDimensions(AccScheduleName, DimensionValue);
+        LibraryReportValidation.SetFileName(AccScheduleName.Name);
+
+        // [WHEN] Run export Account Schedule to Excel - Report 29 (Export Acc. Sched. to Excel)
+        RunExportAccScheduleToExcel(AccScheduleName, DimensionValue);
+
+        // [THEN] Excel file contains values of dimensions filters
+        VerifyDimensionsAndValueInExcel(DimensionValue);
+
+        // [THEN] Verify that the Currency appears only once in the export
+        VerifyTextValueAppearsOnce('Currency');
     end;
 
     local procedure Initialize()
@@ -3469,6 +3564,24 @@
         FinRepStatus.Insert(true);
     end;
 
+    local procedure VerifyTextValueAppearsOnce(TextValue: Text[20])
+    var
+        RowNo: Integer;
+        ColumnNo: Integer;
+        ValueFound: Boolean;
+        CellValue: Text[250];
+        OccurrenceCount: Integer;
+    begin
+        OccurrenceCount := 0;
+        for RowNo := 1 to 200 do
+            for ColumnNo := 1 to 20 do begin
+                CellValue := LibraryReportValidation.GetValueAt(ValueFound, RowNo, ColumnNo);
+                if ValueFound and (StrPos(CellValue, TextValue) > 0) then
+                    OccurrenceCount += 1;
+            end;
+        Assert.AreEqual(1, OccurrenceCount, StrSubstNo(TextValueDuplicateErr, TextValue, OccurrenceCount));
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure RHAccountSchedule(var AccountSchedule: TestRequestPage "Account Schedule")
@@ -3725,5 +3838,49 @@
     procedure RenameDefinitionConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure NameValueLookupModalPageHandler(var NameValueLookup: TestPage "Name/Value Lookup")
+    begin
+        Assert.IsTrue(NameValueLookup.First(), StrSubstNo(SheetNotListedErr, 1));
+        NameValueLookup.Name.AssertEquals(LibraryVariableStorage.DequeueText());
+        Assert.IsTrue(NameValueLookup.Next(), StrSubstNo(SheetNotListedErr, 2));
+        NameValueLookup.Name.AssertEquals(LibraryVariableStorage.DequeueText());
+        NameValueLookup.OK().Invoke();
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Export Acc. Sched. to Excel", 'OnIntegerOnAfterGetRecordOnAfterAccSchedLineSetFilter', '', false, false)]
+    local procedure RunModalPageOnAfterAccSchedLineSetFilter(var AccScheduleLine: Record "Acc. Schedule Line")
+    var
+        FinancialReportAuditLog: Record "Financial Report Audit Log";
+        TempNameValueBuffer: Record "Name/Value Buffer" temporary;
+        FinancialReportName: Code[10];
+    begin
+        FinancialReportName := AccScheduleLine.GetRangeMin("Schedule Name");
+
+        InsertNameValueBufferLine(TempNameValueBuffer, 1);
+        InsertNameValueBufferLine(TempNameValueBuffer, 2);
+        TempNameValueBuffer.FindFirst();
+        Page.RunModal(Page::"Name/Value Lookup", TempNameValueBuffer);
+
+        FinancialReportAuditLog.SetRange("Report Name", FinancialReportName);
+        FinancialReportAuditLog.SetRange(User, UserId);
+        FinancialReportAuditLog.SetRange(Format, FinancialReportAuditLog.Format::Excel);
+        Assert.AreEqual(0, FinancialReportAuditLog.Count(), StrSubstNo(AuditLogWrittenTooEarlyErr, FinancialReportName));
+    end;
+
+    local procedure InsertNameValueBufferLine(var TempNameValueBuffer: Record "Name/Value Buffer" temporary; LineNo: Integer)
+    begin
+        TempNameValueBuffer.Init();
+        TempNameValueBuffer.ID := LineNo;
+        TempNameValueBuffer.Name := GetSheetName(LineNo);
+        TempNameValueBuffer.Value := TempNameValueBuffer.Name;
+        TempNameValueBuffer.Insert();
+    end;
+
+    local procedure GetSheetName(LineNo: Integer): Text[250]
+    begin
+        exit(CopyStr(StrSubstNo(SheetNameTok, LineNo), 1, 250));
     end;
 }

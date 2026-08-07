@@ -28,6 +28,14 @@ Every object follows the same template: `PageType = API` or `QueryType = API`,
 = SystemId`. The app defines no tables of its own -- it reads directly from base
 app tables (G/L Entry, Cust. Ledger Entry, etc.).
 
+The six queries additionally carry an `AboutText` describing what the dataset
+contains and what it is useful for. This is consumed by MCP tooling, which lists
+API queries as callable tools and uses the text to decide when a query is
+relevant. Treat `AboutText` as a functional description aimed at an agent, not a
+caption -- vague wording degrades tool selection. The API pages do not carry it.
+
+*Updated: 2026-07-29 -- AboutText added to the queries for MCP Query API tool support*
+
 The only procedural logic lives in two page triggers:
 
 - **Accounting Periods** (`APIFinanceAccPeriods.Page.al`): computes

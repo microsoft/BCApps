@@ -40,6 +40,7 @@ codeunit 134923 "ERM Finance Performance"
         CodeCoverageMgt: Codeunit "Code Coverage Mgt.";
         LibraryInventory: Codeunit "Library - Inventory";
         IsInitialized: Boolean;
+        CustomerListHandlerInvocations: Integer;
         MaxNumberOfMeasures: Label 'The number of measures added should not exceed the number of different colors that can be shown on the chart.';
         ErrMaxNumberOfMeasures: Label 'You cannot add more than %1 measures.';
         MyNotificationFilterTxt: Label '<?xml version="1.0" encoding="utf-8" standalone="yes"?><ReportParameters><DataItems><DataItem name="Table18">VERSION(1) SORTING(Field1) WHERE(Field1=1(%1))</DataItem></DataItems></ReportParameters>';
@@ -852,8 +853,7 @@ codeunit 134923 "ERM Finance Performance"
         CodeCoverageMgt.StopApplicationCoverage();
         Assert.AreEqual(
           1,
-          CodeCoverageMgt.GetNoOfHitsCoverageForObject(
-            CodeCoverage."Object Type"::Table, DATABASE::Customer, 'PickCustomer'),
+          CustomerListHandlerInvocations,
           'PickCustomer function not called');
         Assert.AreEqual(
           0,
@@ -889,8 +889,7 @@ codeunit 134923 "ERM Finance Performance"
         CodeCoverageMgt.StopApplicationCoverage();
         Assert.AreEqual(
           1,
-          CodeCoverageMgt.GetNoOfHitsCoverageForObject(
-            CodeCoverage."Object Type"::Table, DATABASE::Customer, 'PickCustomer'),
+          CustomerListHandlerInvocations,
           'PickCustomer function not called');
         Assert.AreEqual(
           1,
@@ -1068,6 +1067,7 @@ codeunit 134923 "ERM Finance Performance"
         CostAccSetup."Align G/L Account" := CostAccSetup."Align G/L Account"::"No Alignment";
         CostAccSetup.Modify();
         LibraryVariableStorage.Clear();
+        CustomerListHandlerInvocations := 0;
 
         // Lazy Setup.
         if IsInitialized then
@@ -2182,6 +2182,7 @@ codeunit 134923 "ERM Finance Performance"
     [Scope('OnPrem')]
     procedure CustomerListModalPageHandler(var CustomerList: TestPage "Customer List")
     begin
+        CustomerListHandlerInvocations += 1;
         CustomerList.OK().Invoke();
     end;
 
@@ -2192,4 +2193,3 @@ codeunit 134923 "ERM Finance Performance"
         VendorList.OK().Invoke();
     end;
 }
-

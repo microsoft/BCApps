@@ -262,6 +262,11 @@ table 380 "Detailed Vendor Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(7000004; "Excluded from calculation"; Boolean)
+        {
+            Caption = 'Excluded from calculation';
+            Editable = false;
+        }
         field(10801; "Curr. Adjmt. G/L Account No."; Code[20])
         {
             Caption = 'Curr. Adjmt. G/L Account No.';
@@ -275,7 +280,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Vendor No.", "Currency Code")
+        key(Key2; "Vendor No.", "Currency Code", "Excluded from calculation")
         {
             SumIndexFields = Amount, "Amount (LCY)";
         }
@@ -283,7 +288,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
-        key(Key4; "Vendor Ledger Entry No.", "Ledger Entry Amount", "Posting Date")
+        key(Key4; "Vendor Ledger Entry No.", "Ledger Entry Amount", "Posting Date", "Excluded from calculation")
         {
             IncludedFields = "Currency Code", Amount, "Amount (LCY)", "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
         }
@@ -291,7 +296,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
-        key(Key6; "Vendor No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date")
+        key(Key6; "Vendor No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date", "Excluded from calculation")
         {
             IncludedFields = Amount, "Amount (LCY)";
         }

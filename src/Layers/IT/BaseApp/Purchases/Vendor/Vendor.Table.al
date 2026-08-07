@@ -486,7 +486,8 @@ table 23 Vendor
             CalcFormula = - sum("Detailed Vendor Ledg. Entry".Amount where("Vendor No." = field("No."),
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Balance';
             Editable = false;
             FieldClass = FlowField;
@@ -498,7 +499,8 @@ table 23 Vendor
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Balance (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -511,7 +513,8 @@ table 23 Vendor
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                            "Posting Date" = field("Date Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Net Change';
             Editable = false;
             FieldClass = FlowField;
@@ -524,7 +527,8 @@ table 23 Vendor
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                    "Posting Date" = field("Date Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Net Change (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -577,7 +581,8 @@ table 23 Vendor
                                                                            "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Balance Due';
             Editable = false;
             FieldClass = FlowField;
@@ -590,7 +595,8 @@ table 23 Vendor
                                                                                    "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Balance Due (LCY)';
             Editable = false;
             FieldClass = FlowField;
