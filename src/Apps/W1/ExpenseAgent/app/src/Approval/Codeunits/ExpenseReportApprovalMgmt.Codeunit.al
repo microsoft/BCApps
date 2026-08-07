@@ -186,6 +186,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
     var
         OutStream: OutStream;
     begin
+        Clear(ExpenseReportHeader."Approver Comment");
         ExpenseReportHeader."Approver Comment".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(Comment);
         ExpenseReportHeader.Modify(true);
