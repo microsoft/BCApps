@@ -84,13 +84,13 @@ page 6901 "Expense Rule Card"
 
     trigger OnAfterGetCurrRecord()
     begin
-        SetMerchantRequirementsVisibility();
+        SetMerchantRequirementsEnabled();
     end;
 
     var
         MerchantRequirementsEnabled: Boolean;
 
-    local procedure SetMerchantRequirementsVisibility()
+    local procedure SetMerchantRequirementsEnabled()
     var
         ExpenseCategory: Record "Expense Category";
     begin
