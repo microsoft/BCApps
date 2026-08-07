@@ -280,6 +280,7 @@ codeunit 135549 "Report Inbox API E2E"
         // [THEN] Response contains company data with counts
         Assert.IsTrue(StrPos(ResponseText, '"companyName"') > 0, 'Response does not contain company name');
         Assert.IsTrue(StrPos(ResponseText, '"entryCount"') > 0, 'Response does not contain entry count');
+        Assert.IsTrue(StrPos(ResponseText, '"lastModifiedDateTime"') > 0, 'Response does not contain last modified date time');
     end;
 
     [Test]

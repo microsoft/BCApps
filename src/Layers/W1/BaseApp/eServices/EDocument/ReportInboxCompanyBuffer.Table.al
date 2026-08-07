@@ -28,9 +28,9 @@ table 478 "Report Inbox Company Buffer"
         {
             Caption = 'Unread Count';
         }
-        field(4; "Last Created Date-Time"; DateTime)
+        field(4; "Last Modified Date-Time"; DateTime)
         {
-            Caption = 'Last Created Date-Time';
+            Caption = 'Last Modified Date-Time';
         }
         field(5; "Company Name Lower"; Text[30])
         {

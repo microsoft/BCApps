@@ -37,8 +37,7 @@ page 694 "Report Inbox Companies API"
                 field(companyNameLower; Rec."Company Name Lower") { }
                 field(entryCount; Rec."Entry Count") { }
                 field(unreadCount; Rec."Unread Count") { }
-                field(lastCreatedDateTime; Rec."Last Created Date-Time") { }
-                field(lastModifiedDateTime; Rec.SystemModifiedAt) { }
+                field(lastModifiedDateTime; Rec."Last Modified Date-Time") { }
             }
         }
     }
@@ -79,20 +78,23 @@ page 694 "Report Inbox Companies API"
 
         ReportInbox.SetCurrentKey("User ID", "Created Date-Time");
         ReportInbox.SetRange("User ID", CopyStr(UserId(), 1, MaxStrLen(ReportInbox."User ID")));
-
-        Rec.Init();
-        Rec."Entry Count" := ReportInbox.Count();
-        if Rec."Entry Count" = 0 then
+        if not ReportInbox.FindSet() then
             exit;
 
+        Rec.Init();
         Rec."Company Name" := CompanyNameToRead;
         Rec."Company Name Lower" := CompanyNameToRead.ToLower();
         if CompanyRec.Get(CompanyNameToRead) then
             Rec.Id := CompanyRec.SystemId;
-        if ReportInbox.FindLast() then
-            Rec."Last Created Date-Time" := ReportInbox."Created Date-Time";
-        ReportInbox.SetRange(Read, false);
-        Rec."Unread Count" := ReportInbox.Count();
+
+        repeat
+            Rec."Entry Count" += 1;
+            if not ReportInbox.Read then
+                Rec."Unread Count" += 1;
+            if ReportInbox.SystemModifiedAt > Rec."Last Modified Date-Time" then
+                Rec."Last Modified Date-Time" := ReportInbox.SystemModifiedAt;
+        until ReportInbox.Next() = 0;
+
         Rec.Insert();
     end;
 }
