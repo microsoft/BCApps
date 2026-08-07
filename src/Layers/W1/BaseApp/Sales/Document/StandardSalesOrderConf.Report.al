@@ -1047,6 +1047,9 @@ report 1305 "Standard Sales - Order Conf."
             LayoutFile = './Sales/Document/StandardSalesOrderConf.docx';
             Caption = 'Standard Sales Order Confirmation (Word)';
             Summary = 'Simple layout with most necessary fields.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("StandardSalesOrderConfThemable.docx")
         {
@@ -1054,6 +1057,9 @@ report 1305 "Standard Sales - Order Conf."
             LayoutFile = './Sales/Document/StandardSalesOrderConfThemable.docx';
             Caption = 'Standard Sales Order Confirmation - themable Word layout';
             Summary = 'Simple themable layout with most necessary fields.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("StandardOrderConfirmationEmail.docx")
         {
@@ -1061,6 +1067,9 @@ report 1305 "Standard Sales - Order Conf."
             LayoutFile = './Sales/Document/StandardOrderConfirmationEmail.docx';
             Caption = 'Standard Sales Order Confirmation Email (Word)';
             Summary = 'Layout intended for an email body.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("StandardSalesOrderConfBody.docx")
         {

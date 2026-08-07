@@ -90,6 +90,9 @@ report 5084 "Email Merge"
             LayoutFile = './CRM/DefaultEmailMergeDoc.docx';
             Caption = 'EMail Merge (Word)';
             Summary = 'The EMail Merge (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("DefaultEmailMergeDocBody.docx")
         {

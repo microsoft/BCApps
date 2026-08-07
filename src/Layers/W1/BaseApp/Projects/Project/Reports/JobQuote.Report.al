@@ -301,6 +301,9 @@ report 1016 "Job Quote"
             LayoutFile = './Projects/Project/JobQuote.docx';
             Caption = 'Project Quote (Word)';
             Summary = 'The Project Quote (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("JobQuoteBody.docx")
         {
