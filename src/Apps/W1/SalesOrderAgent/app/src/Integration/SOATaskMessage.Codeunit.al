@@ -102,7 +102,7 @@ codeunit 4398 "SOA Task Message"
         if SentAgentTaskMessage.From = '' then
             exit(false);
 
-        if SOATaskContactOverride.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then
+        if SOATaskContactOverride.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             if SOATaskContactOverride."Contact No." <> '' then begin
                 OverrideContact.SetLoadFields("E-Mail");
                 if OverrideContact.Get(SOATaskContactOverride."Contact No.") then

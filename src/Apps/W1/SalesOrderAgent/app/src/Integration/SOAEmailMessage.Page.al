@@ -412,7 +412,7 @@ page 4404 "SOA Email Message"
         else
             TaskMessageID := Rec.ID;
 
-        if SOATaskContactOverride.Get(Rec."Task ID", TaskMessageID) then
+        if SOATaskContactOverride.Get(Rec."Task ID", TaskMessageID) and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             if SOATaskContactOverride."Contact No." <> '' then
                 if Contact.Get(SOATaskContactOverride."Contact No.") then begin
                     ContactCount := 1;

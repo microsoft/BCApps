@@ -32,6 +32,7 @@ codeunit 4411 "SOA Contact Search Impl"
     var
         AgentTaskMessage: Record "Agent Task Message";
         SOATaskContactOverride: Record "SOA Task Contact Override";
+        SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         OriginalFilterGroup: Integer;
     begin
         if AgentTaskID = 0 then
@@ -47,6 +48,8 @@ codeunit 4411 "SOA Contact Search Impl"
             exit;
 
         if not SOATaskContactOverride.Get(AgentTaskID, AgentTaskMessage.ID) then
+            exit;
+        if not SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             exit;
 
         OriginalFilterGroup := Rec.FilterGroup();

@@ -105,7 +105,7 @@ codeunit 4305 "SOA Filters Impl."
                 Contact.Reset();
                 Contact.SetLoadFields("No.");
                 Contact.SetFilter("E-Mail 2", From);
-                Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
+                Contact.ReadIsolation := IsolationLevel::ReadCommitted;
                 if Contact.FindSet() then
                     repeat
                         if not ContactList.Contains(Contact."No.") then
@@ -113,10 +113,32 @@ codeunit 4305 "SOA Filters Impl."
                     until Contact.Next() = 0;
             end;
             if SOATaskContactOverride.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID) then
-                if SOATaskContactOverride."Contact No." <> '' then
+                if IsContactOverrideTrusted(SOATaskContactOverride) and (SOATaskContactOverride."Contact No." <> '') then
                     if not ContactList.Contains(SOATaskContactOverride."Contact No.") then
                         ContactList.Add(SOATaskContactOverride."Contact No.");
         until AgentTaskMessage.Next() = 0;
+    end;
+
+    internal procedure IsContactOverrideTrusted(SOATaskContactOverride: Record "SOA Task Contact Override"): Boolean
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        SOASetup: Record "SOA Setup";
+        OwnerUserSecurityID: Guid;
+    begin
+        if not AgentTaskMessage.Get(SOATaskContactOverride."Task ID", SOATaskContactOverride."Task Message ID") then
+            exit(false);
+        if AgentTaskMessage.Type <> AgentTaskMessage.Type::Input then
+            exit(false);
+        if not SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", false) then
+            exit(false);
+
+        OwnerUserSecurityID := SOASetup."Owner User Security ID";
+        if IsNullGuid(OwnerUserSecurityID) then
+            OwnerUserSecurityID := SOASetup."User Security ID";
+
+        exit(
+            ((SOATaskContactOverride.SystemCreatedBy = OwnerUserSecurityID) or (SOATaskContactOverride.SystemCreatedBy = SOASetup."User Security ID")) and
+            ((SOATaskContactOverride.SystemModifiedBy = OwnerUserSecurityID) or (SOATaskContactOverride.SystemModifiedBy = SOASetup."User Security ID")));
     end;
 
     internal procedure GetExcludeAllFilter(): Text

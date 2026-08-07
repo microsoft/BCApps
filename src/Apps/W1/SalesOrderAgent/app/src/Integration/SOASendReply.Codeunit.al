@@ -41,7 +41,7 @@ codeunit 4419 "SOA Send Reply"
 
         Subject := StrSubstNo(EmailSubjectTxt, InputAgentTaskMessage."Task ID");
         Body := AgentMessage.GetText(Rec);
-        MappedContactEmail := GetMappedContactEmail(InputAgentTaskMessage, SOASetup);
+        MappedContactEmail := GetMappedContactEmail(InputAgentTaskMessage);
 
         if MappedContactEmail <> '' then begin
             ValidateMessageAccess(Rec, SOASetup);
@@ -75,8 +75,12 @@ codeunit 4419 "SOA Send Reply"
         InvalidMappedContactErr: Label 'The contact mapping for this message is no longer valid. Choose another contact before sending the reply.';
         MappedContactEmailMissingErr: Label 'The mapped contact %1 does not have a primary email address. Add an email address to the contact or choose another contact before sending the reply.', Comment = '%1 = Contact No.';
         MultipleAlternateEmailMappingsErr: Label 'The sender''s alternate email address is assigned to more than one contact. Remove the duplicate alternate email mappings before sending the reply.';
+        MappedContactErrorTitleErr: Label 'Contact mapping requires attention';
+        MappedContactErrorDetailedMessageErr: Label 'Open the source email message and correct its contact mapping or the mapped contact''s primary email address, then retry the reply.';
+        ShowSourceEmailMessageLbl: Label 'Show source email message';
+        OriginEmailUnavailableErr: Label 'The original email could not be opened, so the mapped-contact reply was not sent.';
 
-    local procedure GetMappedContactEmail(InputAgentTaskMessage: Record "Agent Task Message"; SOASetup: Record "SOA Setup"): Text
+    local procedure GetMappedContactEmail(InputAgentTaskMessage: Record "Agent Task Message"): Text
     var
         SOATaskContactOverride: Record "SOA Task Contact Override";
         Contact: Record Contact;
@@ -84,15 +88,16 @@ codeunit 4419 "SOA Send Reply"
         ContactCount: Integer;
     begin
         if SOATaskContactOverride.Get(InputAgentTaskMessage."Task ID", InputAgentTaskMessage.ID) then begin
-            ValidateOverrideProvenance(SOATaskContactOverride, SOASetup);
+            if not SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
+                ErrorMappedContact(InvalidMappedContactErr, InputAgentTaskMessage);
             if SOATaskContactOverride."Contact No." = '' then
-                ErrorMappedContact(InvalidMappedContactErr);
+                ErrorMappedContact(InvalidMappedContactErr, InputAgentTaskMessage);
 
             Contact.SetLoadFields("E-Mail");
             if not Contact.Get(SOATaskContactOverride."Contact No.") then
-                ErrorMappedContact(InvalidMappedContactErr);
+                ErrorMappedContact(InvalidMappedContactErr, InputAgentTaskMessage);
             if Contact."E-Mail" = '' then
-                ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."));
+                ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."), InputAgentTaskMessage);
 
             exit(Contact."E-Mail");
         end;
@@ -100,9 +105,9 @@ codeunit 4419 "SOA Send Reply"
         // Only the alternate email represents a persistent mapping; primary email matches keep the existing Reply All behavior.
         if SOAFiltersImpl.FindContactByAlternateEmail(Contact, InputAgentTaskMessage.From, ContactCount) then begin
             if ContactCount > 1 then
-                ErrorMappedContact(MultipleAlternateEmailMappingsErr);
+                ErrorMappedContact(MultipleAlternateEmailMappingsErr, InputAgentTaskMessage);
             if Contact."E-Mail" = '' then
-                ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."));
+                ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."), InputAgentTaskMessage);
 
             exit(Contact."E-Mail");
         end;
@@ -118,14 +123,6 @@ codeunit 4419 "SOA Send Reply"
             Error(ReplyNotAuthorizedErr);
     end;
 
-    local procedure ValidateOverrideProvenance(SOATaskContactOverride: Record "SOA Task Contact Override"; SOASetup: Record "SOA Setup")
-    begin
-        if not IsAuthorizedUserSecurityID(SOATaskContactOverride.SystemCreatedBy, SOASetup) then
-            ErrorMappedContact(InvalidMappedContactErr);
-        if not IsAuthorizedUserSecurityID(SOATaskContactOverride.SystemModifiedBy, SOASetup) then
-            ErrorMappedContact(InvalidMappedContactErr);
-    end;
-
     local procedure IsAuthorizedUserSecurityID(UserSecurityID: Guid; SOASetup: Record "SOA Setup"): Boolean
     var
         OwnerUserSecurityID: Guid;
@@ -137,11 +134,16 @@ codeunit 4419 "SOA Send Reply"
         exit((UserSecurityID = OwnerUserSecurityID) or (UserSecurityID = SOASetup."User Security ID"));
     end;
 
-    local procedure ErrorMappedContact(ErrorMessage: Text)
+    local procedure ErrorMappedContact(ErrorMessage: Text; InputAgentTaskMessage: Record "Agent Task Message")
     var
         MappedContactErrorInfo: ErrorInfo;
     begin
-        MappedContactErrorInfo.Message(ErrorMessage);
+        MappedContactErrorInfo.Title := MappedContactErrorTitleErr;
+        MappedContactErrorInfo.Message := ErrorMessage;
+        MappedContactErrorInfo.DetailedMessage := MappedContactErrorDetailedMessageErr;
+        MappedContactErrorInfo.PageNo := Page::"SOA Email Message";
+        MappedContactErrorInfo.RecordId := InputAgentTaskMessage.RecordId();
+        MappedContactErrorInfo.AddNavigationAction(ShowSourceEmailMessageLbl);
         Error(MappedContactErrorInfo);
     end;
 
@@ -155,14 +157,14 @@ codeunit 4419 "SOA Send Reply"
         SOAEmail.SetRange("Task ID", InputAgentTaskMessage."Task ID");
         SOAEmail.SetRange("Task Message ID", InputAgentTaskMessage.ID);
         if not SOAEmail.FindFirst() then
-            exit;
+            Error(OriginEmailUnavailableErr);
 
         EmailInbox.SetLoadFields("Message Id");
         if not EmailInbox.Get(SOAEmail."Email Inbox ID") then
-            exit;
+            Error(OriginEmailUnavailableErr);
 
         if not OriginEmailMessage.Get(EmailInbox."Message Id") then
-            exit;
+            Error(OriginEmailUnavailableErr);
 
         OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, CCRecipients);
     end;
