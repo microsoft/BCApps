@@ -140,6 +140,8 @@ permissionset 6904 "Expense Management - Objects"
         page "Expense Policies" = X,
         page "Expense Policy Flags" = X,
         page "Expense Policy Flag Card" = X,
+        page "Posted Exp. Policy Flags" = X,
+        page "Posted Exp. Policy Flag Card" = X,
         page "Expense Statistics" = X,
         page "Posted Expense Report SubP." = X,
         page "Posted Exp. Report Line Items" = X,

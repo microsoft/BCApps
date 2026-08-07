@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7099 "Expense Policy Flags"
+page 7109 "Posted Exp. Policy Flags"
 {
     PageType = List;
-    SourceTable = "Expense Policy Flag";
+    SourceTable = "Posted Exp. Policy Flag";
     Caption = 'Evaluated Policies';
     Editable = false;
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
-    CardPageId = "Expense Policy Flag Card";
+    CardPageId = "Posted Exp. Policy Flag Card";
 
     layout
     {
@@ -40,10 +40,10 @@ page 7099 "Expense Policy Flags"
 
                     trigger OnDrillDown()
                     var
-                        ExpensePolicyFlagCard: Page "Expense Policy Flag Card";
+                        PostedExpPolicyFlagCard: Page "Posted Exp. Policy Flag Card";
                     begin
-                        ExpensePolicyFlagCard.SetRecord(Rec);
-                        ExpensePolicyFlagCard.RunModal();
+                        PostedExpPolicyFlagCard.SetRecord(Rec);
+                        PostedExpPolicyFlagCard.RunModal();
                     end;
                 }
                 field("Policy Text"; Rec."Policy Text")
