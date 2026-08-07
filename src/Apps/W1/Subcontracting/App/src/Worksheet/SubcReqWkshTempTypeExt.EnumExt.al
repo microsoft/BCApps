@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
-#pragma warning disable AS0072, AS0136
 enumextension 20500 "Subc. ReqWkshTempType Ext." extends "Req. Worksheet Template Type"
 {
     value(20500; Subcontracting)
@@ -13,4 +12,3 @@ enumextension 20500 "Subc. ReqWkshTempType Ext." extends "Req. Worksheet Templat
         Caption = 'Subcontracting';
     }
 }
-#pragma warning restore AS0072, AS0136

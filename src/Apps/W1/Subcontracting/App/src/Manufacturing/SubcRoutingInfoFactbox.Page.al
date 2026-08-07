@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-#pragma warning disable AS0072, AS0136
 page 20502 "Subc. Routing Info Factbox"
 {
     ApplicationArea = Subcontracting;
@@ -125,4 +124,3 @@ page 20502 "Subc. Routing Info Factbox"
         SubcRoutingFactboxMgmt: Codeunit "Subc. Routing Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
 }
-#pragma warning restore AS0072, AS0136

@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.History;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20526 "Subc. Posted Whse Receipt Line" extends "Posted Whse. Receipt Line"
 {
     fields
@@ -28,4 +27,3 @@ tableextension 20526 "Subc. Posted Whse Receipt Line" extends "Posted Whse. Rece
         }
     }
 }
-#pragma warning restore AS0072, AS0136

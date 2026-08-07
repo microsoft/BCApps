@@ -12,7 +12,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20518 "Subc. Planning Line Mgmt Ext."
 {
 #if not CLEAN28
@@ -91,4 +90,3 @@ codeunit 20518 "Subc. Planning Line Mgmt Ext."
         TransferLine.SetRange("Transfer WIP Item", false);
     end;
 }
-#pragma warning restore AS0072, AS0136
