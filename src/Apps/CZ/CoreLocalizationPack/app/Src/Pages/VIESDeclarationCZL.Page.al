@@ -46,7 +46,6 @@ page 31138 "VIES Declaration CZL"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    OptionCaption = 'Normal,Corrective';
                     ToolTip = 'Specifies type of VIES Declaration (Normal, Corrective).';
 
                     trigger OnValidate()
