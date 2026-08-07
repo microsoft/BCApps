@@ -510,7 +510,8 @@
                   },
                   {
                       "id":  "AS0125",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Build-only branch: TranslationsWithNamespaces changes every XLIFF translation id by design. Not for merge."
                   },
                   {
                       "id":  "AS0126",
