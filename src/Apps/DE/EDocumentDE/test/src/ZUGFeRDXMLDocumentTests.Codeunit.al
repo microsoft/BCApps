@@ -507,7 +507,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [THEN] Global product identification contains the GTIN with scheme 0160
         Path := '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:GlobalID';
         Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Assert.AreEqual('0160', GetAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetNodeByPathWithError(TempXMLBuffer, Path + '/@schemeID'), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -2921,30 +2921,10 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     local procedure GetNodeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
     begin
         TempXMLBuffer.Reset();
-        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
         TempXMLBuffer.SetRange(Path, XPath);
         if TempXMLBuffer.FindFirst() then
-            exit(TempXMLBuffer.Value);
+            exit(TempXMLBuffer.GetValue());
         Error('Node not found: %1', XPath);
-    end;
-
-    local procedure GetAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
-    var
-        TempXMLBufferAttribute: Record "XML Buffer" temporary;
-    begin
-        TempXMLBuffer.Reset();
-        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
-        TempXMLBuffer.SetRange(Path, ElementXPath);
-        if TempXMLBuffer.FindFirst() then begin
-            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
-            TempXMLBufferAttribute.Reset();
-            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
-            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
-            TempXMLBufferAttribute.SetRange(Name, AttributeName);
-            if TempXMLBufferAttribute.FindFirst() then
-                exit(TempXMLBufferAttribute.Value);
-        end;
-        Error('Attribute %1 not found for node: %2', AttributeName, ElementXPath);
     end;
 
     local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean
