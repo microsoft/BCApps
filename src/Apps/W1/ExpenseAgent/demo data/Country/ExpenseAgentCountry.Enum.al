@@ -51,7 +51,7 @@ enum 8221 "Expense Agent Country" implements "Expense Agent Country Data"
     value(8; FR)
     {
         Caption = 'FR';
-        Implementation = "Expense Agent Country Data" = "W1 Country Data";
+        Implementation = "Expense Agent Country Data" = "FR Country Data";
     }
     value(9; DE)
     {
