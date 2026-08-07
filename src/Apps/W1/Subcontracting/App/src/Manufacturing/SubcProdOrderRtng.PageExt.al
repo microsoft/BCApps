@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 {
     layout
@@ -228,4 +227,3 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         end;
     end;
 }
-#pragma warning restore AS0072, AS0136

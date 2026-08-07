@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.Document;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20547 "Subc. Whse Shipm. Subform Ext." extends "Whse. Shipment Subform"
 {
     layout
@@ -28,4 +27,3 @@ pageextension 20547 "Subc. Whse Shipm. Subform Ext." extends "Whse. Shipment Sub
         }
     }
 }
-#pragma warning restore AS0072, AS0136

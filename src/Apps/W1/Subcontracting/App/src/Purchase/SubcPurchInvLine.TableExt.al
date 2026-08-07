@@ -9,7 +9,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.History;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20514 "Subc. Purch. Inv. Line" extends "Purch. Inv. Line"
 {
     fields
@@ -61,4 +60,3 @@ tableextension 20514 "Subc. Purch. Inv. Line" extends "Purch. Inv. Line"
         }
     }
 }
-#pragma warning restore AS0072, AS0136

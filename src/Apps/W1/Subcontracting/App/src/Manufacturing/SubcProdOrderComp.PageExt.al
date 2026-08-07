@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20512 "Subc. Prod Order Comp" extends "Prod. Order Components"
 {
     layout
@@ -37,4 +36,3 @@ pageextension 20512 "Subc. Prod Order Comp" extends "Prod. Order Components"
         }
     }
 }
-#pragma warning restore AS0072, AS0136
