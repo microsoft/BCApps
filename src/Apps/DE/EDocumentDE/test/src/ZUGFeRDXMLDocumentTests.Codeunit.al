@@ -16,6 +16,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -482,6 +483,31 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with 2 invoice lines
         VerifyInvoiceLine(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatIncludesGTIN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        GTIN: Code[14];
+        Path: Text;
+    begin
+        // [SCENARIO] Exported ZUGFeRD product identification contains the item's GTIN and GS1 scheme
+        Initialize();
+        GTIN := '4006381333931';
+
+        // [GIVEN] A posted item invoice where the item has a GTIN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SetItemGTIN(SalesInvoiceHeader."No.", GTIN);
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Global product identification contains the GTIN with scheme 0160
+        Path := '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -2023,6 +2049,19 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesLine.Modify(true);
     end;
 
+    local procedure SetItemGTIN(DocumentNo: Code[20]; GTIN: Code[14])
+    var
+        Item: Record Item;
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.FindFirst();
+        Item.Get(SalesInvoiceLine."No.");
+        Item.Validate(GTIN, GTIN);
+        Item.Modify(true);
+    end;
+
     local procedure CreateServiceDocumentWithLine(): Code[20]
     var
         ServiceHeader: Record "Service Header";
@@ -2887,6 +2926,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         if TempXMLBuffer.FindFirst() then
             exit(TempXMLBuffer.Value);
         Error('Node not found: %1', XPath);
+    end;
+
+    local procedure GetAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, ElementXPath);
+        if TempXMLBuffer.FindFirst() then begin
+            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+            TempXMLBufferAttribute.Reset();
+            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+            TempXMLBufferAttribute.SetRange(Name, AttributeName);
+            if TempXMLBufferAttribute.FindFirst() then
+                exit(TempXMLBufferAttribute.Value);
+        end;
+        Error('Attribute %1 not found for node: %2', AttributeName, ElementXPath);
     end;
 
     local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean

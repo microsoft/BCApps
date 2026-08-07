@@ -16,6 +16,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -343,6 +344,31 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created with 2 invoice lines
         VerifyInvoiceLine(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatIncludesGTIN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        GTIN: Code[14];
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung item identification contains the item's GTIN and GS1 scheme
+        Initialize();
+        GTIN := '4006381333931';
+
+        // [GIVEN] A posted item invoice where the item has a GTIN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SetItemGTIN(SalesInvoiceHeader."No.", GTIN);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification contains the GTIN with scheme 0160
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -1988,6 +2014,19 @@ codeunit 13918 "XRechnung XML Document Tests"
         if LineDiscount then
             SalesLine.Validate("Line Discount %", LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Modify(true);
+    end;
+
+    local procedure SetItemGTIN(DocumentNo: Code[20]; GTIN: Code[14])
+    var
+        Item: Record Item;
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.FindFirst();
+        Item.Get(SalesInvoiceLine."No.");
+        Item.Validate(GTIN, GTIN);
+        Item.Modify(true);
     end;
 
     local procedure CreateServiceDocumentWithLine(): Code[20]

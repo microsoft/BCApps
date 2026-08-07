@@ -15,6 +15,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
 using Microsoft.Sales.History;
@@ -911,6 +912,16 @@ codeunit 13917 "Export ZUGFeRD Document"
         RootElement.Add(BillingSpecifiedPeriodElement);
     end;
 
+    local procedure InsertGlobalID(var SpecifiedTradeProductElement: XmlElement; ItemNo: Code[20])
+    var
+        Item: Record Item;
+    begin
+        if not Item.Get(ItemNo) or (Item.GTIN = '') then
+            exit;
+
+        SpecifiedTradeProductElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', '0160'), Item.GTIN));
+    end;
+
     local procedure InsertInvoiceLine(var SupplyChainTradeTransactionElement: XmlElement; var SalesInvoiceLine: Record "Sales Invoice Line"; Currency: Record Currency; CurrencyCode: Code[10]; PricesIncVAT: Boolean)
     var
         InvoiceLineElement: XmlElement;
@@ -937,6 +948,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             InvoiceLineElement.Add(AssociatedDocumentLineElement);
 
             SpecifiedTradeProductElement := XmlElement.Create('SpecifiedTradeProduct', XmlNamespaceRAM);
+            if SalesInvoiceLine.Type = SalesInvoiceLine.Type::Item then
+                InsertGlobalID(SpecifiedTradeProductElement, SalesInvoiceLine."No.");
             if SalesInvoiceLine."No." <> '' then
                 SpecifiedTradeProductElement.Add(XmlElement.Create('SellerAssignedID', XmlNamespaceRAM, SalesInvoiceLine."No."));
             SpecifiedTradeProductElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesInvoiceLine.Description));
@@ -1023,6 +1036,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             CrMemoLineElement.Add(AssociatedDocumentLineElement);
 
             SpecifiedTradeProductElement := XmlElement.Create('SpecifiedTradeProduct', XmlNamespaceRAM);
+            if SalesCrMemoLine.Type = SalesCrMemoLine.Type::Item then
+                InsertGlobalID(SpecifiedTradeProductElement, SalesCrMemoLine."No.");
             if SalesCrMemoLine."No." <> '' then
                 SpecifiedTradeProductElement.Add(XmlElement.Create('SellerAssignedID', XmlNamespaceRAM, SalesCrMemoLine."No."));
             SpecifiedTradeProductElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesCrMemoLine.Description));

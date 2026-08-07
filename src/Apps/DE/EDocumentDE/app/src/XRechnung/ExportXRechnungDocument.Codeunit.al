@@ -16,6 +16,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
 using Microsoft.Sales.Customer;
@@ -609,6 +610,8 @@ codeunit 13916 "Export XRechnung Document"
             ItemElement.Add(XmlElement.Create('Description', XmlNamespaceCBC, SalesInvLine."Description 2"));
         ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, CopyStr(SalesInvLine.Description, 1, 40)));
         InsertSellersItemIdentification(ItemElement, SalesInvLine."No.");
+        if SalesInvLine.Type = SalesInvLine.Type::Item then
+            InsertStandardItemIdentification(ItemElement, SalesInvLine."No.");
         InsertClassifiedTaxCategory(ItemElement, GetTaxCategoryID(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group"), SalesInvLine."VAT %");
         RootElement.Add(ItemElement);
     end;
@@ -622,6 +625,8 @@ codeunit 13916 "Export XRechnung Document"
             ItemElement.Add(XmlElement.Create('Description', XmlNamespaceCBC, SalesCrMemoLine."Description 2"));
         ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, CopyStr(SalesCrMemoLine.Description, 1, 40)));
         InsertSellersItemIdentification(ItemElement, SalesCrMemoLine."No.");
+        if SalesCrMemoLine.Type = SalesCrMemoLine.Type::Item then
+            InsertStandardItemIdentification(ItemElement, SalesCrMemoLine."No.");
         InsertClassifiedTaxCategory(ItemElement, GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group"), SalesCrMemoLine."VAT %");
         RootElement.Add(ItemElement);
     end;
@@ -652,6 +657,19 @@ codeunit 13916 "Export XRechnung Document"
         SellersItemIdElement := XmlElement.Create('SellersItemIdentification', XmlNamespaceCAC);
         SellersItemIdElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, ItemNo));
         ItemElement.Add(SellersItemIdElement);
+    end;
+
+    local procedure InsertStandardItemIdentification(var ItemElement: XmlElement; ItemNo: Code[20])
+    var
+        Item: Record Item;
+        StandardItemIdElement: XmlElement;
+    begin
+        if not Item.Get(ItemNo) or (Item.GTIN = '') then
+            exit;
+
+        StandardItemIdElement := XmlElement.Create('StandardItemIdentification', XmlNamespaceCAC);
+        StandardItemIdElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', '0160'), Item.GTIN));
+        ItemElement.Add(StandardItemIdElement);
     end;
 
     local procedure InsertPartyIdentification(var PartyElement: XmlElement; ID: Text);
