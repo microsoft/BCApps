@@ -8,7 +8,8 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
-tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
+#pragma warning disable AS0072, AS0136
+tableextension 20560 "Subc. Routing Line" extends "Routing Line"
 {
     AllowInCustomizations = AsReadWrite;
     fields
@@ -66,7 +67,7 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
                     "Transfer WIP Item" := false;
             end;
         }
-        field(99001551; Subcontracting; Boolean)
+        field(20551; Subcontracting; Boolean)
         {
             AllowInCustomizations = AsReadOnly;
             CalcFormula = exist("Work Center" where("No." = field("Work Center No."),
@@ -76,7 +77,7 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
             FieldClass = FlowField;
             ToolTip = 'Specifies whether the Work Center Group is set up with a Vendor for Subcontracting.';
         }
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;
@@ -103,13 +104,13 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
                 end;
             end;
         }
-        field(99001561; "Transfer Description"; Text[100])
+        field(20561; "Transfer Description"; Text[100])
         {
             Caption = 'Transfer Description';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the operation-specific description used on transfer orders for the semi-finished item as it is shipped to the subcontracting location. If empty, the standard description is used.';
         }
-        field(99001562; "Transfer Description 2"; Text[50])
+        field(20562; "Transfer Description 2"; Text[50])
         {
             Caption = 'Transfer Description 2';
             DataClassification = CustomerContent;
@@ -117,3 +118,4 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

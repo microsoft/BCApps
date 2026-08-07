@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001503 "Components at Location"
+#pragma warning disable AS0072, AS0136
+enum 20503 "Components at Location"
 {
     Extensible = true;
     value(0; Empty)
@@ -24,3 +25,4 @@ enum 99001503 "Components at Location"
         Caption = 'Manufacturing Setup';
     }
 }
+#pragma warning restore AS0072, AS0136

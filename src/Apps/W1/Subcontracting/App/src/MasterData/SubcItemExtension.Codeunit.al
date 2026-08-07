@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Item;
 
-codeunit 99001532 "Subc. Item Extension"
+#pragma warning disable AS0072, AS0136
+codeunit 20532 "Subc. Item Extension"
 {
     [EventSubscriber(ObjectType::Table, Database::Item, OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteItem(var Rec: Record Item; RunTrigger: Boolean)
@@ -33,3 +34,4 @@ codeunit 99001532 "Subc. Item Extension"
         SubcontractorPrice.DeletePricesForItem(Rec."No.");
     end;
 }
+#pragma warning restore AS0072, AS0136

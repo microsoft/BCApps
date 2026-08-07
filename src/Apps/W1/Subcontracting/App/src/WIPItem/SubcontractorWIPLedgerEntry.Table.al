@@ -11,7 +11,8 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
-table 99001560 "Subcontractor WIP Ledger Entry"
+#pragma warning disable AS0072, AS0136
+table 20560 "Subcontractor WIP Ledger Entry"
 {
     AllowInCustomizations = AsReadOnly;
     Caption = 'Subcontractor WIP Ledger Entry';
@@ -247,3 +248,4 @@ table 99001560 "Subcontractor WIP Ledger Entry"
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Subcontractor WIP Ledger Entry"));
     end;
 }
+#pragma warning restore AS0072, AS0136

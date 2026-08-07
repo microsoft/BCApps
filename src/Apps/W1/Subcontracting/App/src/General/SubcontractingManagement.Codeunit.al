@@ -18,7 +18,8 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
-codeunit 99001505 "Subcontracting Management"
+#pragma warning disable AS0072, AS0136
+codeunit 20505 "Subcontracting Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -460,3 +461,4 @@ codeunit 99001505 "Subcontracting Management"
     begin
     end;
 }
+#pragma warning restore AS0072, AS0136

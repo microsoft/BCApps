@@ -11,7 +11,8 @@ using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Request;
 
-codeunit 99001563 "Subc. WhsePostShipment Ext"
+#pragma warning disable AS0072, AS0136
+codeunit 20563 "Subc. WhsePostShipment Ext"
 {
 #if not CLEAN28
     var
@@ -143,3 +144,4 @@ codeunit 99001563 "Subc. WhsePostShipment Ext"
         IsHandled := true;
     end;
 }
+#pragma warning restore AS0072, AS0136

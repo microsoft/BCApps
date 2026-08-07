@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Item;
 
-pageextension 99001519 "Subc. Item List" extends "Item List"
+#pragma warning disable AS0072, AS0136
+pageextension 20519 "Subc. Item List" extends "Item List"
 {
     actions
     {
@@ -37,3 +38,4 @@ pageextension 99001519 "Subc. Item List" extends "Item List"
         }
     }
 }
+#pragma warning restore AS0072, AS0136
