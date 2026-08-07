@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20513 "Subc. Req.Line Extension"
 {
 #if not CLEAN28
@@ -80,4 +79,3 @@ codeunit 20513 "Subc. Req.Line Extension"
             end;
     end;
 }
-#pragma warning restore AS0072, AS0136

@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.RoleCenters;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20540 "Subc. Shop Super. Role Center" extends "Shop Supervisor Role Center"
 {
     actions
@@ -26,4 +25,3 @@ pageextension 20540 "Subc. Shop Super. Role Center" extends "Shop Supervisor Rol
         }
     }
 }
-#pragma warning restore AS0072, AS0136

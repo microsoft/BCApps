@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Setup;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20569 "Subc. Feature Flag Handler"
 {
     ObsoleteState = Pending;
@@ -25,5 +24,4 @@ codeunit 20569 "Subc. Feature Flag Handler"
         exit(not ManufacturingSetup."Legacy Subcontracting");
     end;
 }
-#pragma warning restore AS0072, AS0136
 #endif
