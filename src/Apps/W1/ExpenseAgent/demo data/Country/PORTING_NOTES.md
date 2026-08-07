@@ -1,0 +1,212 @@
+# Expense Agent — Country Demo Data Consolidation Notes
+
+This file catalogs the technical workarounds applied while porting the ten
+per-country Expense Agent demo-data extensions into the consolidated
+`Expense Agent Demo Data` (W1) extension.
+
+## Rationale
+
+The consolidated demo data extension must be installable on **any** BC
+localization — it can only depend on:
+
+- `Expense Agent (Preview)` (base app)
+- `Contoso Coffee Demo Dataset` (base W1 Contoso Coffee)
+- `Expense Agent Demo Data` (itself, framework layer)
+
+It cannot add hard dependencies on `Contoso Coffee Demo Dataset (<CC>)` or on
+any country localization pack (which would restrict installability to that
+country only).
+
+The original per-country apps (`ExpenseAgent_<CC>/demo data`) freely referenced
+`Create <CC> GL Accounts` codeunits from `Contoso Coffee Demo Dataset (<CC>)`
+and, in the ES case, the `Income Stmt. Bal. Acc.` field added by the ES
+localization. Neither is available here.
+
+**All data written on the target locale (numbers, names, categories,
+income/balance flags, posting types, etc.) is byte-identical to the original
+per-country app output.** The workarounds change *how* a value is looked up,
+not *what* value is written.
+
+## Data preservation
+
+For every country, the following are copied verbatim from the original
+`CreateExpenseGLAccount<CC>.Codeunit.al` / `ExpenseEventSubscriber<CC>.Codeunit.al`:
+
+- G/L account numbers (`AddAccountForLocalization(name, number)`)
+- G/L account names (`Label` values)
+- Income/Balance flag
+- G/L Account Category + SubCategory
+- Account Type (Posting / Begin-Total / End-Total)
+- Begin-Total / End-Total Totaling ranges (CA, NZ)
+- General Posting Type
+- Direct Posting / Reconciliation / Blocked flags
+- Expense Posting Group account mappings (Refundable/Non-refundable/Prepayment/Rounding)
+- Employee Posting Group mappings
+- Categories / SubCategories / Rule Header / Rule Condition / Expense /
+  Posted Expense Report data (labels, dates, amounts, vendors, participants)
+
+---
+
+## Judgment calls (per country)
+
+### Pattern A — Inlined `Contoso Coffee (CC)` name-lookup labels
+
+**Problem:** original per-country apps look up G/L accounts by name using
+`Create <CC> GL Account.<AccountName>()` from `Contoso Coffee Demo Dataset (<CC>)`.
+The consolidated extension cannot depend on the country ContosoCoffee.
+
+**Workaround:** create a per-country `<CC> GL Account Names` codeunit that
+duplicates the `Tok`/`Lbl` string constants verbatim. The base W1
+`Create Expense G/L Account.FindGLAccountByName(...)` resolves the account by
+name at runtime, so on a `<CC>`-loc install where the ContosoCoffee-`<CC>` pack
+is installed, the returned account is identical to the original code path.
+
+**Alternative rejected:** adding `Contoso Coffee Demo Dataset (<CC>)` as a
+dependency of the consolidated extension → would make the extension only
+installable on `<CC>` loc.
+
+#### US
+| # | Label | Value |
+|---|-------|-------|
+| 1 | `BusinessEntertainingDeductibleName` | `Business Entertaining, deductible` |
+| 2 | `OtherIncidentalRevenueName` | `Other Incidental Revenue` |
+| 3 | `OtherPrepaidExpensesAndAccruedIncomeName` | `Other prepaid expenses and accrued income` |
+| 4 | `PayableInvoiceRoundingName` | `Payable Invoice Rounding` |
+| 5 | `MiscExternalExpensesName` | `Misc. external expenses` |
+| 6 | `OtherTravelExpensesName` | `Other travel expenses` |
+| 7 | `RentalVehiclesName` | `Rental vehicles` |
+| 8 | `AccountsPayableDomesticName` | `Accounts Payable, Domestic` |
+| 9 | `OtherBankAccountsName` | `Other bank accounts ` (trailing space) |
+| 10 | `SaleofResourcesName` | `Sale of Resources` |
+
+- **Before (original US):** `Create US GL Account.OtherIncidentalRevenue()` and siblings — from `src/Apps/US/ContosoCoffeeDemoDatasetUS/app/DemoData/Finance/1.Setup Data/CreateUSGLAccount.Codeunit.al`.
+- **After (ported):** [demo data/Country/US/USGLAccountNames.Codeunit.al](demo%20data/Country/US/USGLAccountNames.Codeunit.al) — codeunit 8220.
+- **Used by:** [demo data/Country/US/USExpGLAccount.Codeunit.al](demo%20data/Country/US/USExpGLAccount.Codeunit.al), [demo data/Country/US/USExpPostingGrp.Codeunit.al](demo%20data/Country/US/USExpPostingGrp.Codeunit.al), [demo data/Country/US/USUpdEmpPostingGrp.Codeunit.al](demo%20data/Country/US/USUpdEmpPostingGrp.Codeunit.al), [demo data/Country/US/USPostedExpReport.Codeunit.al](demo%20data/Country/US/USPostedExpReport.Codeunit.al).
+
+#### GB
+| # | Label | Value |
+|---|-------|-------|
+| 1 | `BusinessEntertainingDeductibleName` | `Business Entertaining, deductible` |
+| 2 | `OtherIncidentalRevenueName` | `Other Incidental Revenue` |
+| 3 | `OtherPrepaidExpensesAndAccruedIncomeName` | `Other prepaid expenses and accrued income` |
+| 4 | `PayableInvoiceRoundingName` | `Payable Invoice Rounding` |
+| 5 | `MiscExternalExpensesName` | `Misc. external expenses` |
+| 6 | `OtherTravelExpensesName` | `Other travel expenses` |
+| 7 | `RentalVehiclesName` | `Rental vehicles` |
+| 8 | `OtherBankAccountsName` | `Other bank accounts ` (trailing space) |
+| 9 | `SaleofResourcesName` | `Sale of Resources` |
+
+- **Before (original GB):** `Create UK GL Account.<Name>()` from `src/Apps/GB/ContosoCoffeeDemoDatasetGB/app/DemoData/Finance/1.Setup Data/CreateUKGLAccount.Codeunit.al` (or equivalent).
+- **After (ported):** [demo data/Country/GB/GBGLAccountNames.Codeunit.al](demo%20data/Country/GB/GBGLAccountNames.Codeunit.al) — codeunit 8235.
+- **Used by:** [demo data/Country/GB/GBExpGLAccount.Codeunit.al](demo%20data/Country/GB/GBExpGLAccount.Codeunit.al), [demo data/Country/GB/GBExpPostingGrp.Codeunit.al](demo%20data/Country/GB/GBExpPostingGrp.Codeunit.al), [demo data/Country/GB/GBPostedExpReport.Codeunit.al](demo%20data/Country/GB/GBPostedExpReport.Codeunit.al).
+
+#### CA
+Single label inlined directly in [demo data/Country/CA/CAUpdEmpPostingGrp.Codeunit.al#L33](demo%20data/Country/CA/CAUpdEmpPostingGrp.Codeunit.al#L33):
+
+```al
+BankCheckingLbl: Label 'Bank, Checking', MaxLength = 100;
+```
+
+- **Before (original CA):** `Create CA GL Account.BankCheckingName()` from `src/Apps/CA/ContosoCoffeeDemoDatasetCA/app/DemoData/Finance/1.Setup Data/CreateCAGLAccount.Codeunit.al`.
+- **After (ported):** [demo data/Country/CA/CAUpdEmpPostingGrp.Codeunit.al#L28](demo%20data/Country/CA/CAUpdEmpPostingGrp.Codeunit.al#L28) uses `ExpenseGLAccount.FindGLAccountByName(BankCheckingLbl)`.
+
+#### ES
+| # | Label | Value |
+|---|-------|-------|
+| 1 | `OtherBusinessExpensesName` | `Other Business Expenses` |
+| 2 | `RemunerationAdvancesName` | `Remuneration Advances` |
+| 3 | `BanksEuroName` | `Banks Euro` |
+| 4 | `InternalResourcesName` | `Internal Resources` |
+| 5 | `ProfitOrLossName` | `Profit or Loss` |
+
+- **Before (original ES):** `Create ES GL Accounts.<Name>()` from `src/Apps/ES/ContosoCoffeeDemoDatasetES/app/DemoData/Finance/1.Setup Data/CreateESGLAccounts.Codeunit.al`.
+- **After (ported):** [demo data/Country/ES/ESGLAccountNames.Codeunit.al](demo%20data/Country/ES/ESGLAccountNames.Codeunit.al) — codeunit 8276.
+- **Used by:** [demo data/Country/ES/ESExpGLAccount.Codeunit.al](demo%20data/Country/ES/ESExpGLAccount.Codeunit.al), [demo data/Country/ES/ESExpPostingGrp.Codeunit.al](demo%20data/Country/ES/ESExpPostingGrp.Codeunit.al), [demo data/Country/ES/ESUpdEmployee.Codeunit.al](demo%20data/Country/ES/ESUpdEmployee.Codeunit.al), [demo data/Country/ES/ESUpdEmpPostingGrp.Codeunit.al](demo%20data/Country/ES/ESUpdEmpPostingGrp.Codeunit.al), [demo data/Country/ES/ESPostedExpReport.Codeunit.al](demo%20data/Country/ES/ESPostedExpReport.Codeunit.al).
+
+#### DK
+| # | Label | Value |
+|---|-------|-------|
+| 1 | `EntwinetobaccospiritsName` | `Ent., Wine / Tobacco / Spirits` |
+| 2 | `PrepaymentsAccruedCostsName` | `Prepayments - Accrued Costs` |
+| 3 | `CentdiscrepanciesName` | `Cent Discrepancies` |
+| 4 | `RestaurantdiningName` | `Restaurant Dining` |
+| 5 | `MileagerateName` | `Mileage Rate` |
+| 6 | `TravelingtradefairsetcName` | `Traveling, Trade Fairs etc.` |
+| 7 | `AccountsPayablePostingName` | `Accounts Payables` |
+| 8 | `BankName` | `Bank` |
+| 9 | `DomesticsalesofgoodsandservicesName` | `Domestic Sales of Goods and Services` |
+
+- **Before (original DK):** `Create GL Acc. DK.<Name>()` from `src/Apps/DK/ContosoCoffeeDemoDatasetDK/app/DemoData/Finance/1.Setup Data/CreateGLAccDK.Codeunit.al`.
+- **After (ported):** [demo data/Country/DK/DKGLAccountNames.Codeunit.al](demo%20data/Country/DK/DKGLAccountNames.Codeunit.al) — codeunit 8289.
+- **Used by:** [demo data/Country/DK/DKExpGLAccount.Codeunit.al](demo%20data/Country/DK/DKExpGLAccount.Codeunit.al), [demo data/Country/DK/DKExpPostingGrp.Codeunit.al](demo%20data/Country/DK/DKExpPostingGrp.Codeunit.al), [demo data/Country/DK/DKUpdEmpPostingGrp.Codeunit.al](demo%20data/Country/DK/DKUpdEmpPostingGrp.Codeunit.al), [demo data/Country/DK/DKPostedExpReport.Codeunit.al](demo%20data/Country/DK/DKPostedExpReport.Codeunit.al).
+
+#### NZ, AU
+None. Both countries' original apps only reference base W1 Contoso Coffee names (`EmployeesPayableName`, `BankLCYName`, etc.) which are available via `Create G/L Account` in the base `Contoso Coffee Demo Dataset`.
+
+---
+
+### Pattern B — ES `"Income Stmt. Bal. Acc."` late-bound field write
+
+**Problem:** the original `ExpenseAgent_ES` app strongly types
+`GLAccount.Validate("Income Stmt. Bal. Acc.", <Account>)` on 11 G/L accounts.
+That field is added to table `G/L Account` by the ES localization pack
+(unavailable in W1). Adding a dep on that pack would restrict the whole
+consolidated extension to ES loc.
+
+**Before (original ES):**
+`src/Apps/ES/ExpenseAgent_ES/demo data/Demo Data/1.Setup Data/CreateExpenseGLAccountES.Codeunit.al` line 78:
+```al
+GLAccount.Validate("Income Stmt. Bal. Acc.", IncomeStmtBalAcc);
+```
+
+**After (ported):** [demo data/Country/ES/ESExpGLAccount.Codeunit.al#L74-L96](demo%20data/Country/ES/ESExpGLAccount.Codeunit.al#L74-L96):
+```al
+local procedure UpdateIncomeStmtBalAcc(No: Code[20]; IncomeStmtBalAcc: Code[20])
+var
+    GLAccount: Record "G/L Account";
+    RecRef: RecordRef;
+    FieldRef: FieldRef;
+    i: Integer;
+begin
+    // "Income Stmt. Bal. Acc." is added by the ES localization to table G/L Account.
+    // Look it up dynamically via FieldRef so this demo data works without an ES-loc
+    // compile-time dependency; silently skip when the field is not present.
+    if not GLAccount.Get(No) then
+        exit;
+
+    RecRef.GetTable(GLAccount);
+    for i := 1 to RecRef.FieldCount do begin
+        FieldRef := RecRef.FieldIndex(i);
+        if FieldRef.Name = 'Income Stmt. Bal. Acc.' then begin
+            FieldRef.Validate(IncomeStmtBalAcc);
+            RecRef.Modify();
+            exit;
+        end;
+    end;
+end;
+```
+
+**Behavior:**
+- On an ES-loc install: the field is present, `FieldRef.Validate` fires,
+  demo data written is byte-identical to the original.
+- On a non-ES install: the loop completes without finding the field,
+  `UpdateIncomeStmtBalAcc` no-ops. This is safe because on a non-ES install
+  the country resolver returns something other than `ES` and this codepath
+  is never reached anyway.
+
+**Caveat:** field name comparison is against the English identifier
+`'Income Stmt. Bal. Acc.'`. If a future BC build renames this field's
+`Name` property (unlikely — captions are separate from names), this
+lookup would miss and no `Income Stmt. Bal. Acc.` would be written.
+
+---
+
+## Countries with no judgment calls
+
+Countries where the port is a pure 1:1 rename/renumber with no
+technique changes:
+
+- **NZ** ([demo data/Country/NZ/](demo%20data/Country/NZ/)): base W1 names only.
+- **AU** ([demo data/Country/AU/](demo%20data/Country/AU/)): base W1 names only.
+
+Countries not yet ported (as of this doc): **FR, DE, AT**.
