@@ -408,9 +408,30 @@ table 84 "Acc. Schedule Name"
         if NewName = '' then
             Error(PackageImportErr);
 
+        ClearNonExistingStatusInPackage(PackageCode);
+
         ConfigPackageTable.SetRange("Package Code", PackageCode);
         ConfigPackageMgt.ApplyPackage(ConfigPackage, ConfigPackageTable, false);
         LogImportExportTelemetry(NewName, 'imported');
+    end;
+
+    local procedure ClearNonExistingStatusInPackage(PackageCode: Code[20])
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        FinancialReportStatus: Record "Financial Report Status";
+        ConfigPackageData: Record "Config. Package Data";
+    begin
+        ConfigPackageData.SetRange("Package Code", PackageCode);
+        ConfigPackageData.SetRange("Table ID", Database::"Acc. Schedule Name");
+        ConfigPackageData.SetRange("Field ID", AccScheduleName.FieldNo(Status));
+        ConfigPackageData.SetFilter(Value, '<>%1', '');
+        if ConfigPackageData.FindSet() then
+            repeat
+                if not FinancialReportStatus.Get(CopyStr(ConfigPackageData.Value, 1, MaxStrLen(FinancialReportStatus.Code))) then begin
+                    ConfigPackageData.Value := '';
+                    ConfigPackageData.Modify();
+                end;
+            until ConfigPackageData.Next() = 0;
     end;
 
     local procedure GetPackageAccSchedName(PackageCode: Code[20]) NewName: Code[10]

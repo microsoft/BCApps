@@ -5518,6 +5518,59 @@ codeunit 134902 "ERM Account Schedule"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('DtldMessageHandler')]
+    procedure ImportRowDefinitionWithStatusMissingInDestinationCompany()
+    var
+        FinancialReportStatus: Record "Financial Report Status";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+        ConfigPackage: Record "Config. Package";
+        AccountScheduleNames: TestPage "Account Schedule Names";
+        PackageCode: Code[20];
+        StatusCode: Code[10];
+        NoOfLines: Integer;
+    begin
+        // [SCENARIO] Importing a row definition does not fail when its status does not exist in the destination company.
+        Initialize();
+
+        // [GIVEN] Financial Report Status 'S'
+        StatusCode := CreateFinancialReportStatus(FinancialReportStatus);
+        // [GIVEN] Row definition 'X' with a line, where Status is 'S'
+        CreateAccountScheduleNameAndColumn(AccScheduleName, ColumnLayoutName);
+        AccScheduleName.Validate(Status, StatusCode);
+        AccScheduleName.Modify(true);
+        AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
+        NoOfLines := AccScheduleLine.Count();
+        // [GIVEN] Row definition 'X' is exported as a rapidstart package
+        AccountScheduleNames.OpenView();
+        AccountScheduleNames.Filter.SetFilter(Name, AccScheduleName.Name);
+        AccountScheduleNames.ExportAccountSchedule.Invoke();
+        PackageCode := StrSubstNo(TwoPosTxt, AccSchedPrefixTxt, AccScheduleName.Name);
+        // [GIVEN] Row definition 'X' is removed, simulating a destination company that does not have it yet
+        ExportToXMLImport(PackageCode, AccScheduleName.Name);
+        // [GIVEN] Status 'S' does not exist in the destination company
+        FinancialReportStatus.Delete(true);
+
+        // [WHEN] Import (apply) the row definition
+        AccScheduleName.ApplyPackage(PackageCode);
+
+        // [THEN] The import succeeds without errors: '2 tables are processed.\0 errors found.\2 records inserted.\0 records modified.'
+        Assert.ExpectedMessage(
+            StrSubstNo(NoTablesAndErrorsMsg, 2, 0, 2, 0), LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+        // [THEN] Config Package is imported
+        Assert.IsTrue(ConfigPackage.Get(PackageCode), 'Package must be imported');
+        // [THEN] Row definition 'X' with its line is imported
+        Assert.IsTrue(AccScheduleName.Get(AccScheduleName.Name), 'Row definition must be imported');
+        AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
+        Assert.RecordCount(AccScheduleLine, NoOfLines);
+        // [THEN] The non-existent status is cleared on the imported row definition
+        AccScheduleName.TestField(Status, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure NewAccScheduleNamePage()
     var
         AccScheduleLine: Record "Acc. Schedule Line";
@@ -6776,6 +6829,15 @@ codeunit 134902 "ERM Account Schedule"
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
         UpdateDefaultColumnLayoutOnAccSchNameRec(AccScheduleName, ColumnLayoutName.Name);
+    end;
+
+    local procedure CreateFinancialReportStatus(var FinancialReportStatus: Record "Financial Report Status") StatusCode: Code[10]
+    begin
+        FinancialReportStatus.Init();
+        FinancialReportStatus.Code := LibraryUtility.GenerateGUID();
+        FinancialReportStatus.Name := FinancialReportStatus.Code;
+        FinancialReportStatus.Insert(true);
+        StatusCode := FinancialReportStatus.Code;
     end;
 
     local procedure CreateCashFlowAccount(AccountType: Enum "Cash Flow Account Type") AccountNo: Code[10]
