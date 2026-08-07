@@ -106,12 +106,13 @@ codeunit 10991 "EDoc. Helpers"
         if CustomerNo = '' then
             exit;
 
+        if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo) then
+            exit;
+
         Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.");
         if not Customer.Get(CustomerNo) then
             exit;
 
-        if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, Customer."No.") then
-            exit;
         if Customer."FR Electronic Address" <> '' then begin
             if Customer."FR Elec. Address Scheme" = Customer."FR Elec. Address Scheme"::" " then
                 Error(BuyerElectronicAddressSchemeRequiredErr, Customer."No.");
