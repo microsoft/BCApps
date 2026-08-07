@@ -765,6 +765,10 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocumentNotificationRec: Record "E-Document Notification";
     begin
+        Clear(ExpectedNotificationId);
+        ExpectedNotificationEntryNo := 0;
+        SentNotificationCount := 0;
+
         EDocumentNotificationRec.SetRange("User Id", UserId());
         EDocumentNotificationRec.DeleteAll();
         EDocumentPurchaseLine.DeleteAll();
