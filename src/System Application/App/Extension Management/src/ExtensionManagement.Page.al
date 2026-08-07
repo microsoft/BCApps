@@ -393,9 +393,6 @@ page 2500 "Extension Management"
     var
         DeprecationNotification: Notification;
     begin
-        if not IsSaaS then
-            exit;
-
         DeprecationNotification.Id := ExtensionManagementDeprecationNotificationIdTok;
         DeprecationNotification.Scope := NotificationScope::LocalScope;
         DeprecationNotification.Message(ExtensionManagementDeprecationMsg);
