@@ -165,6 +165,51 @@ None (no ContosoCoffee-FR name-lookups). FR introduces three FR-unique local G/L
 
 DE also introduces one DE-unique local G/L account (`CompanyCreditCardsClearingAccount=3510`, label `'Company credit card clearing account'`) declared inside [demo data/Country/DE/DEExpGLAccount.Codeunit.al](demo%20data/Country/DE/DEExpGLAccount.Codeunit.al) — same as the original per-country app's own local declaration.
 
+#### AT
+| # | Label | Value |
+|---|-------|-------|
+| 1 | `SettlementAccountCashBankName` | `Settlement account cash bank` |
+| 2 | `SalesRevenuesResourcesExportName` | `Sales revenues resources export` |
+| 3 | `TransportationThirdPartiesName` | `Transportation third parties` |
+| 4 | `KilometerAllowanceName` | `Kilometer allowance` |
+| 5 | `MealExpensesDomesticName` | `Meal expenses domestic` |
+| 6 | `MealExpensesAbroadName` | `Meal expenses abroad` |
+| 7 | `HospitalityDomesticDeductibleAmountName` | `Hospitality domestic deductible amount` |
+| 8 | `OtherName` | `Other` |
+
+- **Before (original AT):** `Create AT GL Account.<Name>()` from `src/Apps/AT/ContosoCoffeeDemoDatasetAT/app/DemoData/Finance/1. Setup Data/CreateATGLAccount.Codeunit.al`.
+- **After (ported):** [demo data/Country/AT/ATGLAccountNames.Codeunit.al](demo%20data/Country/AT/ATGLAccountNames.Codeunit.al) — codeunit 8324.
+- **Used by:** [demo data/Country/AT/ATExpPostingGrp.Codeunit.al](demo%20data/Country/AT/ATExpPostingGrp.Codeunit.al), [demo data/Country/AT/ATUpdEmpPostingGrp.Codeunit.al](demo%20data/Country/AT/ATUpdEmpPostingGrp.Codeunit.al), [demo data/Country/AT/ATPostedExpReport.Codeunit.al](demo%20data/Country/AT/ATPostedExpReport.Codeunit.al).
+
+AT also introduces one AT-unique local G/L account (`CompanyCreditCardsClearingAccount=2830`, label `'Company credit card clearing account'`) declared inside [demo data/Country/AT/ATExpGLAccount.Codeunit.al](demo%20data/Country/AT/ATExpGLAccount.Codeunit.al) — same as the original per-country app's own local declaration.
+
+### Pattern C — AT event subscribers bind/unbind gating
+
+**Problem:** the original `ExpenseAgent_AT` app declared its
+`OnDefineExpenseAccountNo` and `OnBeforeValidateCurrencyCodeInExpense`
+subscribers as plain (non-Manual) event subscribers on
+[AT Exp. Contoso Localization.Codeunit.al](../../../../AT/ExpenseAgent_AT/demo%20data/Demo%20Data/ATExpContosoLocalization.Codeunit.al) — safe because that app was only ever installed on the AT loc. In the
+consolidated extension the same static registration would fire on every
+locale, silently rewriting expense account numbers and currency codes for
+non-AT companies.
+
+**Workaround:** move both subscribers into Manual `SingleInstance` codeunits
+([demo data/Country/AT/ATPostedExpReport.Codeunit.al](demo%20data/Country/AT/ATPostedExpReport.Codeunit.al) 8335 and [demo data/Country/AT/ATCurrencySwapSub.Codeunit.al](demo%20data/Country/AT/ATCurrencySwapSub.Codeunit.al) 8336) and let the AT orchestrator
+[demo data/Country/AT/ATCountryData.Codeunit.al](demo%20data/Country/AT/ATCountryData.Codeunit.al) `BindSubscription` / `UnbindSubscription` them around `CreateHistoricalData`. Same technique used by FR and DE for their currency-swap and historical-account overrides.
+
+### ID collision — 8333, 8334, 8347, 8348 reserved by System Application
+
+The demo data extension's `idRanges` in [demo data/app.json](demo%20data/app.json) is `8201-8399`, but four codeunits inside that range are shipped by the base **System Application** and cannot be redefined here:
+
+| ID | System Application object |
+|---|---|
+| 8333 | `VS Code Integration Impl.` |
+| 8334 | `VS Code Integration` |
+| 8347 | `Feature Configuration` |
+| 8348 | `Feature Configuration Impl.` |
+
+AT files that would naturally have received the next sequential IDs 8333/8334 were shifted to **8335 (`AT Posted Exp. Report`)** and **8336 (`AT Currency Swap Sub`)** for that reason.
+
 ---
 
 ### Pattern B — ES `"Income Stmt. Bal. Acc."` late-bound field write
@@ -232,4 +277,4 @@ technique changes:
 - **AU** ([demo data/Country/AU/](demo%20data/Country/AU/)): base W1 names only.
 - **FR** ([demo data/Country/FR/](demo%20data/Country/FR/)): base W1 names only; three FR-local G/L accounts inlined verbatim from the original per-country app.
 
-Countries not yet ported (as of this doc): **AT**.
+All ten countries ported.
