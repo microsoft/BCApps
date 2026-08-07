@@ -18,6 +18,9 @@ page 7102 "Expense Policy Flags API"
     ODataKeyFields = SystemId;
     SourceTable = "Expense Policy Flag";
     AboutText = 'Provides access to data from the Expense Policy Flag table';
+    InsertAllowed = true;
+    ModifyAllowed = false;
+    DeleteAllowed = false;
 
     layout
     {

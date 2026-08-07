@@ -34,17 +34,43 @@ codeunit 7107 "Exp. Policies To Eval Builder"
         SubjectSystemId := ExpenseReportLine.SystemId;
         SubjectVersion := ExpenseReportLine."Policy Eval Version";
 
+        SetApplicablePolicyFilter(ExpensePolicy, ExpenseReportLine);
+        if ExpensePolicy.FindSet() then
+            repeat
+                if not FlagExists(SubjectSystemId, ExpensePolicy.SystemId, SubjectVersion, ExpensePolicy."Version") then
+                    InsertRow(TempPolicyToEvalBuffer, SubjectSystemId, SubjectVersion, ExpensePolicy);
+            until ExpensePolicy.Next() = 0;
+    end;
+
+    procedure HasOutstandingPolicies(ExpenseReportLine: Record "Expense Report Line"): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+        SubjectSystemId: Guid;
+        SubjectVersion: Integer;
+    begin
+        // An applicable policy is outstanding when no flag exists for the line's current subject
+        // version and the policy's current version - i.e. it has not been evaluated yet. Marking a
+        // line evaluated while a policy is still outstanding would expose a status that ignores it.
+        SubjectSystemId := ExpenseReportLine.SystemId;
+        SubjectVersion := ExpenseReportLine."Policy Eval Version";
+
+        SetApplicablePolicyFilter(ExpensePolicy, ExpenseReportLine);
+        if ExpensePolicy.FindSet() then
+            repeat
+                if not FlagExists(SubjectSystemId, ExpensePolicy.SystemId, SubjectVersion, ExpensePolicy."Version") then
+                    exit(true);
+            until ExpensePolicy.Next() = 0;
+        exit(false);
+    end;
+
+    local procedure SetApplicablePolicyFilter(var ExpensePolicy: Record "Expense Policy"; ExpenseReportLine: Record "Expense Report Line")
+    begin
         // Applicable policies are the enabled report-line policies whose category matches the line
         // or is blank (a blank category applies to every category). The category-or-blank rule is
         // pushed into the query filter so unrelated categories are never loaded.
         ExpensePolicy.SetRange("Subject Type", ExpensePolicy."Subject Type"::"Expense Report Line");
         ExpensePolicy.SetRange(Enabled, true);
         ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', ExpenseReportLine."Expense Category", '');
-        if ExpensePolicy.FindSet() then
-            repeat
-                if not FlagExists(SubjectSystemId, ExpensePolicy.SystemId, SubjectVersion, ExpensePolicy."Version") then
-                    InsertRow(TempPolicyToEvalBuffer, SubjectSystemId, SubjectVersion, ExpensePolicy);
-            until ExpensePolicy.Next() = 0;
     end;
 
     local procedure FlagExists(SubjectSystemId: Guid; PolicySystemId: Guid; SubjectVersion: Integer; PolicyVersion: Integer): Boolean

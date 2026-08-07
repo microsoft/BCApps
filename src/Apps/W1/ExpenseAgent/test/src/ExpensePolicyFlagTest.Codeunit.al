@@ -496,34 +496,112 @@ codeunit 148338 "Expense Policy Flag Test"
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
         ExpensePolicyFlag: Record "Expense Policy Flag";
+    begin
+        // [SCENARIO] A non-compliant flag whose captured Policy Version no longer matches the live
+        //            policy (Is Current = false) must not keep an up-to-date line Flagged. The normal
+        //            trigger flow always re-stales a line when its applicable policy changes, so this
+        //            superseded-flag-on-a-current-line state is forced with a raw insert to isolate the
+        //            currency check in HasCurrentPolicyViolation (defense in depth).
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'No alcohol on company expenses.');
+
+        // [GIVEN] A non-compliant flag stamped at the line's version but against a superseded policy
+        //         version (Policy Version ahead of the live policy), inserted raw to bypass the strict
+        //         OnInsert snapshot.
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version" + 1;
+        ExpensePolicyFlag."Compliant" := false;
+        ExpensePolicyFlag.Insert(false);
+
+        ExpensePolicyFlag.CalcFields("Is Current");
+        Assert.IsFalse(ExpensePolicyFlag."Is Current", 'Precondition: the flag must be non-current.');
+
+        // [WHEN] The line is marked evaluated so its status is read from flags.
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+
+        // [THEN] The superseded flag does not count as a violation; the line reports Cleared.
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A superseded (non-current) flag must not keep the line Flagged.');
+    end;
+
+    [Test]
+    procedure FlagInsertRejectsUnknownReportLine()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+    begin
+        // [SCENARIO] A flag whose subject report line does not exist is rejected on insert.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Policy text.');
+
+        // [WHEN] A flag references a non-existent report line.
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := CreateGuid();
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+
+        // [THEN] The insert is rejected.
+        asserterror ExpensePolicyFlag.Insert(true);
+        Assert.ExpectedError('does not exist');
+    end;
+
+    [Test]
+    procedure FlagInsertRejectsDisabledPolicy()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+    begin
+        // [SCENARIO] A flag for a disabled policy is rejected on insert.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Policy text.');
+
+        // [GIVEN] The policy is disabled.
+        ExpensePolicy.Validate(Enabled, false);
+        ExpensePolicy.Modify(true);
+
+        // [WHEN] A flag references the disabled policy.
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+
+        // [THEN] The insert is rejected.
+        asserterror ExpensePolicyFlag.Insert(true);
+        Assert.ExpectedError('disabled policy');
+    end;
+
+    [Test]
+    procedure FlagInsertRejectsInapplicablePolicy()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
         OtherCategory: Record "Expense Category";
     begin
-        // [SCENARIO] A non-compliant flag whose policy Version has since changed (Is Current = false)
-        //            must not keep an otherwise up-to-date line Flagged. The policy lives in a
-        //            different category so modifying it bumps its Version without re-invalidating this
-        //            line, isolating the currency check in HasCurrentPolicyViolation.
+        // [SCENARIO] A flag for a policy that does not apply to the line's category is rejected.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
         LibraryExpense.CreateExpenseCategory(OtherCategory, OtherCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ", '');
-        CreateTestPolicy(ExpensePolicy, OtherCategory.Code, 'Policy in another category.');
+        CreateTestPolicy(ExpensePolicy, OtherCategory.Code, 'Policy for another category.');
 
-        // [GIVEN] An evaluated line carrying a non-compliant flag captured against the policy's current version.
-        AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Superseded violation.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
-        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the current-version flag should make the line Flagged.');
+        // [WHEN] A flag references the other-category policy for this line.
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
 
-        // [WHEN] The policy changes so the flag's captured Policy Version is superseded (Is Current = false),
-        //        while the line itself stays up to date (the policy is in a different category).
-        ExpensePolicy."Policy Text" := 'Policy in another category v2.';
-        ExpensePolicy.Modify(true);
-        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-
-        // [THEN] The superseded flag no longer counts as a violation; the line reports Cleared, and the
-        //        flag row is preserved as history.
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A superseded (non-current) flag must not keep the line Flagged.');
-        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
-        Assert.RecordCount(ExpensePolicyFlag, 1);
+        // [THEN] The insert is rejected.
+        asserterror ExpensePolicyFlag.Insert(true);
+        Assert.ExpectedError('does not apply');
     end;
 
     [Test]
@@ -711,6 +789,36 @@ codeunit 148338 "Expense Policy Flag Test"
     end;
 
     // --- Status of never-evaluated lines -----------------------------------------------------
+
+    [Test]
+    procedure OutstandingPolicyIsDetectedUntilFlagged()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        Builder: Codeunit "Exp. Policies To Eval Builder";
+    begin
+        // [SCENARIO] HasOutstandingPolicies (the mark-evaluated guard) reports true while an applicable
+        //            policy has no verdict for the current version, and false once every applicable
+        //            policy has a flag.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+
+        // [GIVEN] No applicable policy - nothing is outstanding.
+        Assert.IsFalse(Builder.HasOutstandingPolicies(ExpenseReportLine), 'A line with no applicable policy has nothing outstanding.');
+
+        // [WHEN] An applicable policy exists but has not been evaluated.
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Must be evaluated.');
+
+        // [THEN] The policy is outstanding.
+        Assert.IsTrue(Builder.HasOutstandingPolicies(ExpenseReportLine), 'An applicable policy without a flag must be outstanding.');
+
+        // [WHEN] A verdict (flag) is recorded for the policy at the current version.
+        AddCompliantFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Compliant.');
+
+        // [THEN] Nothing is outstanding anymore.
+        Assert.IsFalse(Builder.HasOutstandingPolicies(ExpenseReportLine), 'Once every applicable policy has a flag, nothing is outstanding.');
+    end;
 
     [Test]
     procedure UnevaluatedLineWithNoApplicablePoliciesIsCleared()

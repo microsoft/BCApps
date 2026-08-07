@@ -92,28 +92,48 @@ table 7096 "Expense Policy Flag"
         if "Flagged At" = 0DT then
             "Flagged At" := CurrentDateTime();
 
-        // Resolve subject version from the current state of the subject record.
-        if not IsNullGuid("Subject System Id") then
-            case "Subject Type" of
-                "Subject Type"::"Expense Report Line":
-                    if ExpenseReportLine.GetBySystemId("Subject System Id") then
-                        "Subject Version" := ExpenseReportLine."Policy Eval Version";
-            end;
+        // A flag is an immutable evaluation record. It must reference a real report line and a real,
+        // enabled policy that actually applies to that line; otherwise a caller could record a verdict
+        // against a subject or policy that the evaluation model would never pair.
+        if "Subject Type" <> "Subject Type"::"Expense Report Line" then
+            Error(UnsupportedSubjectTypeErr);
+        if not ExpenseReportLine.GetBySystemId("Subject System Id") then
+            Error(UnknownSubjectErr);
+        if not ExpensePolicy.GetBySystemId("Policy System Id") then
+            Error(UnknownPolicyErr);
+        if not ExpensePolicy.Enabled then
+            Error(DisabledPolicyErr);
+        if not PolicyAppliesToLine(ExpensePolicy, ExpenseReportLine) then
+            Error(InapplicablePolicyErr);
 
-        // Capture a snapshot of the policy as evaluated. Policy Version records the policy's
-        // version at flag time so Is Current can tell whether the policy has changed since.
-        if not IsNullGuid("Policy System Id") then
-            if ExpensePolicy.GetBySystemId("Policy System Id") then begin
-                "Policy Text" := ExpensePolicy."Policy Text";
-                "Expense Category Code" := ExpensePolicy."Expense Category Code";
-                "Policy Version" := ExpensePolicy."Version";
-            end;
+        // Snapshot the subject and policy state as evaluated. Subject Version comes from the parent
+        // line's current Policy Eval Version; Policy Version records the policy's version at flag time
+        // so Is Current can tell whether the policy has changed since.
+        "Subject Version" := ExpenseReportLine."Policy Eval Version";
+        "Policy Text" := ExpensePolicy."Policy Text";
+        "Expense Category Code" := ExpensePolicy."Expense Category Code";
+        "Policy Version" := ExpensePolicy."Version";
 
         // Block duplicate evaluations for the same subject+policy version combination.
         if ExistingFlag.Get("Subject System Id", "Policy System Id", "Subject Version", "Policy Version") then
             Error(DuplicateEvaluationErr);
     end;
 
+    local procedure PolicyAppliesToLine(ExpensePolicy: Record "Expense Policy"; ExpenseReportLine: Record "Expense Report Line"): Boolean
+    begin
+        // Mirrors the applicability rule used by the policies-to-evaluate endpoint: an enabled
+        // report-line policy whose category matches the line or is blank (blank applies to every
+        // category).
+        if ExpensePolicy."Subject Type" <> ExpensePolicy."Subject Type"::"Expense Report Line" then
+            exit(false);
+        exit((ExpensePolicy."Expense Category Code" = ExpenseReportLine."Expense Category") or (ExpensePolicy."Expense Category Code" = ''));
+    end;
+
     var
         DuplicateEvaluationErr: Label 'Policy evaluation already ran for this version of the record and policy.';
+        UnsupportedSubjectTypeErr: Label 'Only expense report line policy flags are supported.';
+        UnknownSubjectErr: Label 'The expense report line referenced by the policy flag does not exist.';
+        UnknownPolicyErr: Label 'The expense policy referenced by the policy flag does not exist.';
+        DisabledPolicyErr: Label 'A policy flag cannot be recorded for a disabled policy.';
+        InapplicablePolicyErr: Label 'The referenced policy does not apply to the expense report line''s category.';
 }
