@@ -52,9 +52,14 @@ codeunit 6233 "Sust. Preview Post Instance"
         if SustLedgEntry.IsTemporary() then
             exit;
 
+        if NextSustLedgerPreviewEntryNo = 0 then
+            NextSustLedgerPreviewEntryNo := -2000000000;
+
         TempSustLedgEntry := SustLedgEntry;
+        TempSustLedgEntry."Entry No." := NextSustLedgerPreviewEntryNo;
         TempSustLedgEntry."Document No." := '***';
         TempSustLedgEntry.Insert();
+        NextSustLedgerPreviewEntryNo += 1;
         HasSustainabilityEntry := true;
     end;
 
@@ -87,6 +92,8 @@ codeunit 6233 "Sust. Preview Post Instance"
 
         TempSustValueEntry.Reset();
         TempSustValueEntry.DeleteAll();
+
+        NextSustLedgerPreviewEntryNo := -2000000000;
     end;
 
     var
@@ -94,4 +101,5 @@ codeunit 6233 "Sust. Preview Post Instance"
         TempSustValueEntry: Record "Sustainability Value Entry" temporary;
         HasSustainabilityEntry: Boolean;
         HasSustainabilityValueEntry: Boolean;
+        NextSustLedgerPreviewEntryNo: Integer;
 }
