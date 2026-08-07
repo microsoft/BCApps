@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.RoleCenters;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20539 "Subc. Shop S. Mfg Foundation" extends "Shop Supervisor Mfg Foundation"
 {
     actions
@@ -26,4 +25,3 @@ pageextension 20539 "Subc. Shop S. Mfg Foundation" extends "Shop Supervisor Mfg 
         }
     }
 }
-#pragma warning restore AS0072, AS0136

@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.History;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20528 "Subc. Pstd. Whse Shipment Line" extends "Posted Whse. Shipment Line"
 {
     fields
@@ -21,4 +20,3 @@ tableextension 20528 "Subc. Pstd. Whse Shipment Line" extends "Posted Whse. Ship
         }
     }
 }
-#pragma warning restore AS0072, AS0136

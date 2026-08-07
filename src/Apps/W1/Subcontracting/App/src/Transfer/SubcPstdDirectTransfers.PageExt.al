@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20554 "Subc. Pstd. Direct Transfers" extends "Posted Direct Transfers"
 {
     views
@@ -21,4 +20,3 @@ pageextension 20554 "Subc. Pstd. Direct Transfers" extends "Posted Direct Transf
         }
     }
 }
-#pragma warning restore AS0072, AS0136

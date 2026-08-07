@@ -13,7 +13,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20504 "Subc. Transfer Management"
 {
     var
@@ -474,4 +473,3 @@ codeunit 20504 "Subc. Transfer Management"
             Error(RoutingOperationNotFoundErr, PurchaseLine."Operation No.", PurchaseLine."Document No.", PurchaseLine."Routing No.", PurchaseLine."Prod. Order No.");
     end;
 }
-#pragma warning restore AS0072, AS0136
