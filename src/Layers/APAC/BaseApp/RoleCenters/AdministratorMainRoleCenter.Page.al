@@ -88,9 +88,7 @@ page 8900 "Administrator Main Role Center"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Extension Management';
-#pragma warning disable AL0432
                         RunObject = page "Extension Management";
-#pragma warning restore AL0432
                     }
                     action("Profiles")
                     {

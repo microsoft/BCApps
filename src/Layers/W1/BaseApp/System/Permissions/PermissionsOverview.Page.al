@@ -114,9 +114,7 @@ page 9883 "Permissions Overview"
                         trigger OnAssistEdit()
                         var
                             PublishedApplication: Record "Published Application";
-#pragma warning disable AL0432
                             ExtensionManagement: Page "Extension Management";
-#pragma warning restore AL0432
                         begin
                             PublishedApplication.SetRange(Installed, true);
                             ExtensionManagement.LookupMode := true;
@@ -636,3 +634,4 @@ page 9883 "Permissions Overview"
         InitialObjIDFilter := NewObjIDFilter;
     end;
 }
+

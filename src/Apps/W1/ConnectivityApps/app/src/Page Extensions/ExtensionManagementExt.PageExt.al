@@ -4,9 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 #pragma warning disable AA0247
 
-#pragma warning disable AL0432
 pageextension 20357 "Extension Management Ext." extends "Extension Management"
-#pragma warning restore AL0432
 {
     actions
     {

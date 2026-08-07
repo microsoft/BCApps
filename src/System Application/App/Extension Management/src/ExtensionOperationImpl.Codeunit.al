@@ -37,7 +37,6 @@ codeunit 2503 "Extension Operation Impl"
         InstallationFailedOpenDetailsTxt: Label 'App installation failed. User has chosen to see the details.';
         InstallationFailedDoNotOpenDetailsTxt: Label 'App installation failed. User has chosen not to check out the details.';
         PageCaptionTok: Label '%1 %2', Comment = '%1 = Page default caption %2 = App name';
-        BCAdminCenterSaaSLinkTxt: Label '%1/admin', Comment = '%1 = Business Central URL without the environment segment', Locked = true;
 
     local procedure AssertIsInitialized()
     begin
@@ -148,18 +147,6 @@ codeunit 2503 "Extension Operation Impl"
 
         UnpublishUninstalledPerTenantExtension(PackageID);
         exit(true);
-    end;
-
-    procedure OpenAdminCenter(Notification: Notification)
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-        Url: Text;
-    begin
-        if not EnvironmentInformation.IsSaaS() then
-            exit;
-
-        Url := GetUrl(ClientType::Web);
-        Hyperlink(StrSubstNo(BCAdminCenterSaaSLinkTxt, CopyStr(Url, 1, Url.LastIndexOf('/') - 1)));
     end;
 
     procedure UnpublishUninstalledPerTenantExtension(PackageID: Guid)

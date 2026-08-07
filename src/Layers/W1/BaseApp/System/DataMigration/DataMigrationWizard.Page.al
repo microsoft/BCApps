@@ -386,9 +386,7 @@ page 1808 "Data Migration Wizard"
                 Caption = 'Open Extension Management';
                 Image = Setup;
                 InFooterBar = true;
-#pragma warning disable AL0432
                 RunObject = Page "Extension Management";
-#pragma warning restore AL0432
                 Visible = Step = Step::Intro;
             }
             action(ActionDownloadTemplate)
@@ -884,3 +882,4 @@ page 1808 "Data Migration Wizard"
         end;
     end;
 }
+

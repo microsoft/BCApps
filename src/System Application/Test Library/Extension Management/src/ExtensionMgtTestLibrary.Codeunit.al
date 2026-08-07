@@ -17,9 +17,7 @@ codeunit 135109 "Extension Mgt. Test Library"
         ExtensionInstallationImpl.RunExtensionSetup(AppId);
     end;
 
-#pragma warning disable AL0432
     procedure SetAppId(Id: Guid; var MarketplaceExtnDeployment: Page "Marketplace Extn Deployment")
-#pragma warning restore AL0432
     begin
         MarketplaceExtnDeployment.SetAppID(Id);
     end;

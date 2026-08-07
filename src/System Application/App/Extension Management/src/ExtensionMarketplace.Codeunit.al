@@ -220,9 +220,7 @@ codeunit 2501 "Extension Marketplace"
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
-#pragma warning disable AL0432
         ExtensionInstallationPage: Page "Extension Installation";
-#pragma warning restore AL0432
         AppId: Guid;
     begin
         AppId := MapMarketplaceIdToAppId(MarketplaceApplicationId);
@@ -242,9 +240,7 @@ codeunit 2501 "Extension Marketplace"
     procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
-#pragma warning disable AL0432
         ExtensionInstallationPage: Page "Extension Installation";
-#pragma warning restore AL0432
     begin
         if IsNullGuid(AppId) then begin
             Session.LogMessage('0000I4S', StrSubstNo(MissingAppIdErr, AppId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
@@ -302,9 +298,7 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallExtension(MarketplaceApplicationID: Text; ResponseURL: Text)
     var
-#pragma warning disable AL0432
         MarketplaceExtnDeployment: Page "Marketplace Extn Deployment";
-#pragma warning restore AL0432
         ID: Guid;
     begin
         ID := MapMarketplaceIdToAppId(MarketplaceApplicationID);

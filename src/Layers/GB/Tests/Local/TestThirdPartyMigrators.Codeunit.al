@@ -83,9 +83,8 @@ codeunit 144503 "Test Third Party Migrators"
 
     [PageHandler]
     [Scope('OnPrem')]
-#pragma warning disable AL0432
     procedure ExtensionManagementPageHandler(var ExtensionManagement: TestPage "Extension Management")
-#pragma warning restore AL0432
     begin
     end;
 }
+

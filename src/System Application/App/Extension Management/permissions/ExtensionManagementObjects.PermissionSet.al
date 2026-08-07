@@ -22,18 +22,14 @@ permissionset 2504 "Extension Management - Objects"
                   page "Extension Deployment Status" = X,
                   page "Extension Details" = X,
                   page "Extension Details Part" = X,
-#pragma warning disable AL0432
                   page "Extension Installation" = X,
                   page "Extension Logo Part" = X,
                   page "Extension Management" = X,
-#pragma warning restore AL0432
                   page "Extension Settings" = X,
                   page "Extension Setup Launcher" = X,
                   page "Extn. Installation Progress" = X,
                   page "Extn. Orphaned App Details" = X,
                   page "Extn Deployment Status Detail" = X,
-#pragma warning disable AL0432
                   page "Marketplace Extn Deployment" = X,
                   page "Upload And Deploy Extension" = X;
-#pragma warning restore AL0432
 }

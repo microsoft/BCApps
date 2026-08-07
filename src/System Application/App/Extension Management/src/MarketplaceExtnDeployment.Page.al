@@ -13,9 +13,6 @@ using System.Globalization;
 page 2510 "Marketplace Extn Deployment"
 {
     Extensible = false;
-    ObsoleteReason = 'Use the Business Central admin center to install and manage extensions.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
     Caption = 'Install extension';
     PageType = NavigatePage;
     ContextSensitiveHelpPage = 'ui-extensions';

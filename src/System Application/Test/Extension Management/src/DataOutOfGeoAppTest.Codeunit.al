@@ -31,9 +31,7 @@ codeunit 133101 "Data Out Of Geo. App Test"
     [HandlerFunctions('InstallationPageHandler')]
     procedure NoOnPremNotificationsWithOutOfGeoAppTest()
     var
-#pragma warning disable AL0432
         MarketPlaceExtnDeployment: Page "Marketplace Extn Deployment";
-#pragma warning restore AL0432
     begin
         PermissionsMock.Set('Exten. Mgt. - Admin');
 
@@ -60,9 +58,7 @@ codeunit 133101 "Data Out Of Geo. App Test"
     [HandlerFunctions('InstallationPageHandler')]
     procedure NoOnPremNotificationsWithoutOutOfGeoAppTest()
     var
-#pragma warning disable AL0432
         MarketPlaceExtnDeployment: Page "Marketplace Extn Deployment";
-#pragma warning restore AL0432
     begin
         PermissionsMock.Set('Exten. Mgt. - Admin');
 
@@ -86,9 +82,7 @@ codeunit 133101 "Data Out Of Geo. App Test"
     [HandlerFunctions('InstallationPageHandler,NotificationHandler')]
     procedure SaaSNotificationsTest()
     var
-#pragma warning disable AL0432
         MarketPlaceExtnDeployment: Page "Marketplace Extn Deployment";
-#pragma warning restore AL0432
     begin
         PermissionsMock.Set('Exten. Mgt. - Admin');
 
@@ -168,9 +162,7 @@ codeunit 133101 "Data Out Of Geo. App Test"
 
     [ModalPageHandler]
     [Scope('OnPrem')]
-#pragma warning disable AL0432
     procedure InstallationPageHandler(var MarketPlaceExtnDeployment: TestPage "Marketplace Extn Deployment")
-#pragma warning restore AL0432
     begin
         MarketPlaceExtnDeployment.OK().Invoke();
     end;
