@@ -14,6 +14,8 @@ codeunit 147135 "ERM VAT Invoices Jnl. Export"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LocalReportManagement: Codeunit "Local Report Management";
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
@@ -220,6 +222,10 @@ codeunit 147135 "ERM VAT Invoices Jnl. Export"
 
     local procedure Initialize()
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         if IsInitialized then
             exit;
 

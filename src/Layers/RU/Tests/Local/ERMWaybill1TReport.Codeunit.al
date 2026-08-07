@@ -13,6 +13,8 @@ codeunit 144701 "ERM Waybill 1-T Report"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LocMgt: Codeunit "Localisation Management";
         StdRepMgt: Codeunit "Local Report Management";
         LibraryUtility: Codeunit "Library - Utility";
@@ -92,6 +94,10 @@ codeunit 144701 "ERM Waybill 1-T Report"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
 
         if isInitialized then

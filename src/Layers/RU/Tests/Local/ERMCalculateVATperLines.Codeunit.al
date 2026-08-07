@@ -14,6 +14,8 @@ codeunit 144512 "ERM Calculate VAT per Lines"
         Assert: Codeunit Assert;
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryRUReports: Codeunit "Library RU Reports";
         IsInitialized: Boolean;
         IncorrectFieldValueErr: Label 'Field %1 has incorrect value';
@@ -82,6 +84,10 @@ codeunit 144512 "ERM Calculate VAT per Lines"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         if IsInitialized then
             exit;
 

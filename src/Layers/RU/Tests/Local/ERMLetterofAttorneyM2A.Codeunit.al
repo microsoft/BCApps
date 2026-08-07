@@ -13,6 +13,8 @@ codeunit 144713 "ERM Letter of Attorney M-2A"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
         NoSeriesChangedErr: Label 'No Series changed after running report with preview.';
@@ -92,6 +94,10 @@ codeunit 144713 "ERM Letter of Attorney M-2A"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         if isInitialized then
             exit;
 

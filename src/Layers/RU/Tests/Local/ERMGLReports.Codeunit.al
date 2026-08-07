@@ -17,6 +17,8 @@ codeunit 144101 "ERM G/L Reports"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryJournals: Codeunit "Library - Journals";
         LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
@@ -839,6 +841,10 @@ codeunit 144101 "ERM G/L Reports"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
 
         if IsInitialized then

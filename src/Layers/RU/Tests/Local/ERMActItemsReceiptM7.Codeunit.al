@@ -15,6 +15,8 @@ codeunit 144708 "ERM Act Items Receipt M-7"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         isInitialized: Boolean;
         ValueNotExistErr: Label 'Value %1 does not exist on worksheet %2';
 
@@ -100,6 +102,10 @@ codeunit 144708 "ERM Act Items Receipt M-7"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         if isInitialized then
             exit;
 

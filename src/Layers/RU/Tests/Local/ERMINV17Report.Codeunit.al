@@ -12,6 +12,8 @@ codeunit 144704 "ERM INV-17 Report"
         LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LocMgt: Codeunit "Localisation Management";
         isInitialized: Boolean;
 
@@ -76,6 +78,10 @@ codeunit 144704 "ERM INV-17 Report"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         Clear(LibraryReportValidation);
 
         if isInitialized then

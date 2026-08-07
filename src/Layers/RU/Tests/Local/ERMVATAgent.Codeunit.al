@@ -22,6 +22,8 @@ codeunit 144009 "ERM VAT Agent"
         LibrarySales: Codeunit "Library - Sales";
         LibraryJournals: Codeunit "Library - Journals";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
+        RUReportHandlerBound: Boolean;
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRUReports: Codeunit "Library RU Reports";
@@ -574,6 +576,10 @@ codeunit 144009 "ERM VAT Agent"
         SalesSetup: Record "Sales & Receivables Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        if not RUReportHandlerBound then begin
+            BindSubscription(RUReportDownloadHandler);
+            RUReportHandlerBound := true;
+        end;
         if IsInitialized then
             exit;
 
