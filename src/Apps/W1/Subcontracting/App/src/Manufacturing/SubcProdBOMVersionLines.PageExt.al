@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.ProductionBOM;
 
-pageextension 99001514 "Subc. ProdBOMVersionLines" extends "Production BOM Version Lines"
+#pragma warning disable AS0072, AS0136
+pageextension 20514 "Subc. ProdBOMVersionLines" extends "Production BOM Version Lines"
 {
     layout
     {
@@ -20,3 +21,4 @@ pageextension 99001514 "Subc. ProdBOMVersionLines" extends "Production BOM Versi
         }
     }
 }
+#pragma warning restore AS0072, AS0136

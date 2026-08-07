@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
+#pragma warning disable AS0072, AS0136
+pageextension 20526 "Subc. Transfer Order" extends "Transfer Order"
 {
     layout
     {
@@ -125,3 +126,4 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
         exit(not TransferLine.IsEmpty());
     end;
 }
+#pragma warning restore AS0072, AS0136

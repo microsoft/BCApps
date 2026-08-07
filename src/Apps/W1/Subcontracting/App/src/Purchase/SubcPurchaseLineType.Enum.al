@@ -3,7 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
-enum 99001507 "Subc. Purchase Line Type"
+#pragma warning disable AS0072, AS0136
+enum 20507 "Subc. Purchase Line Type"
 {
     Extensible = true;
 
@@ -20,3 +21,4 @@ enum 99001507 "Subc. Purchase Line Type"
         Caption = 'Not Last Operation';
     }
 }
+#pragma warning restore AS0072, AS0136

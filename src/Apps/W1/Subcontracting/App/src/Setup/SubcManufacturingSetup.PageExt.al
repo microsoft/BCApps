@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Setup;
 
-pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
+#pragma warning disable AS0072, AS0136
+pageextension 20542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
 {
     layout
     {
@@ -54,3 +55,4 @@ pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
         }
     }
 }
+#pragma warning restore AS0072, AS0136

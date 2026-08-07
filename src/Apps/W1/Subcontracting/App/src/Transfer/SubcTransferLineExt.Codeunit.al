@@ -7,7 +7,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 
-codeunit 99001544 "Subc. Transfer Line Ext."
+#pragma warning disable AS0072, AS0136
+codeunit 20544 "Subc. Transfer Line Ext."
 {
 #if not CLEAN29
     var
@@ -173,3 +174,4 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         TransferLine."Transfer WIP Item" := TempTransferLine."Transfer WIP Item";
     end;
 }
+#pragma warning restore AS0072, AS0136

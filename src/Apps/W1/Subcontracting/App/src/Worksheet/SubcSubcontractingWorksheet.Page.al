@@ -10,7 +10,8 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using System.Security.User;
 
-page 99001504 "Subc. Subcontracting Worksheet"
+#pragma warning disable AS0072, AS0136
+page 20504 "Subc. Subcontracting Worksheet"
 {
     ApplicationArea = Subcontracting;
     AutoSplitKey = true;
@@ -446,3 +447,4 @@ page 99001504 "Subc. Subcontracting Worksheet"
     begin
     end;
 }
+#pragma warning restore AS0072, AS0136

@@ -5,7 +5,8 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
-pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status on Prod. Order"
+#pragma warning disable AS0072, AS0136
+pageextension 20544 "Subc.Change Status Prod. Order" extends "Change Status on Prod. Order"
 {
     layout
     {
@@ -109,3 +110,4 @@ pageextension 99001544 "Subc.Change Status Prod. Order" extends "Change Status o
             WIPQuantityCleanUp := false;
     end;
 }
+#pragma warning restore AS0072, AS0136

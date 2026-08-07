@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001500 "Component Supply Method"
+#pragma warning disable AS0072, AS0136
+enum 20500 "Component Supply Method"
 {
     Extensible = true;
     // No supply method is selected.
@@ -28,3 +29,4 @@ enum 99001500 "Component Supply Method"
         Caption = 'Transfer to Vendor';
     }
 }
+#pragma warning restore AS0072, AS0136

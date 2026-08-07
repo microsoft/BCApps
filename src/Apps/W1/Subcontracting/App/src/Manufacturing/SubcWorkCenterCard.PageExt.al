@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.WorkCenter;
 
-pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
+#pragma warning disable AS0072, AS0136
+pageextension 20506 "Subc. Work Center Card" extends "Work Center Card"
 {
     layout
     {
@@ -86,3 +87,4 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
         IsSubcontractingWorkCenter: Boolean;
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
 }
+#pragma warning restore AS0072, AS0136

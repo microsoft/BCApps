@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-pageextension 99001513 "Subc. ProdOrderCompLine" extends "Prod. Order Comp. Line List"
+#pragma warning disable AS0072, AS0136
+pageextension 20513 "Subc. ProdOrderCompLine" extends "Prod. Order Comp. Line List"
 {
     layout
     {
@@ -20,3 +21,4 @@ pageextension 99001513 "Subc. ProdOrderCompLine" extends "Prod. Order Comp. Line
         }
     }
 }
+#pragma warning restore AS0072, AS0136
