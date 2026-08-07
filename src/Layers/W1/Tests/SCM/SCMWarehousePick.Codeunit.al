@@ -2581,7 +2581,7 @@ codeunit 137055 "SCM Warehouse Pick"
         RemainingQty := TotalQty - FirstShipmentQty;
         CreateItemWithLotTrackingAndExpirationDate(Item, ItemTrackingCode);
         LotNo := LibraryUtility.GenerateGUID();
-        ExpirationDate := CalcDate('<+30D>', WorkDate());
+        ExpirationDate := CalcDate('<CM>', WorkDate());
         UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, TotalQty, LotNo, ExpirationDate);
 
         // [GIVEN] The first sales order, reserved against inventory, is FEFO-picked into the non-default Ship-type bin, but not shipped.
