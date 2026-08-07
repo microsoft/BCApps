@@ -80,15 +80,11 @@ and context so any app can adopt this with no per-app framework code.
 - Register the toolkit's per-case handler with `TestHandlers = "AIT Test Handler"`. Under the **platform** test
   runner (no Eval Suite) this handler brackets each case — resetting per-case accuracy/turns/token accounting and
   writing one `AIT Log Entry` per case — the work the classic runner does through its event subscribers.
-- Set `RequiredTestIsolation = Disabled`. The platform invokes the per-case handler outside function isolation but
-  still inside the codeunit isolation scope; without this property, that outer scope rolls back the committed log
-  entries when the codeunit finishes.
 
 ```
 codeunit 50100 "My Copilot Eval"
 {
     Subtype = Test;
-    RequiredTestIsolation = Disabled;
     TestHandlers = "AIT Test Handler";
 
     [TestDataSource(Codeunit::"AIT Test Data Source", 'MY-DATASET')]
@@ -135,9 +131,7 @@ codeunit:
    the names/signatures are identical.
 4. **Handler:** add `TestHandlers = "AIT Test Handler"` to the codeunit so per-case logging/metrics engage when the
    eval runs on the platform test runner (outside an Eval Suite).
-5. **Isolation:** add `RequiredTestIsolation = Disabled` so the platform runner does not roll back the handler's
-   committed `AIT Log Entry` records at the end of the test codeunit.
-6. Leave everything else unchanged — `Subtype = Test`, `TestType = AITest`, `TestPermissions`, `SingleInstance`,
+5. Leave everything else unchanged — `Subtype = Test`, `TestType = AITest`, `TestPermissions`, `SingleInstance`,
    and the eval logic.
 
 ```AL
@@ -181,7 +175,6 @@ end;
 - [ ] add the `context: interface "AIT Test Case Context"` parameter
 - [ ] drop the `Codeunit "AIT Test Context"` variable; use `context`
 - [ ] add `TestHandlers = "AIT Test Handler"` to the codeunit
-- [ ] add `RequiredTestIsolation = Disabled` to the codeunit
 - [ ] whole-codeunit only (no mixed styles)
 - [ ] verify via the platform runner (AL Test Tool / `al runtests`) — cases appear as `Method[caseName]`
 

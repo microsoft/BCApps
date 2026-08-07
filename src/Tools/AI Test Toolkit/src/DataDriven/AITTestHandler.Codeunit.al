@@ -15,8 +15,8 @@ using System.Testability;
 /// suite: it resets per-case metrics before each case and writes one <see cref="AIT Log Entry"/> after each case.
 /// Consuming test codeunits opt in via <c>TestHandlers = "AIT Test Handler"</c>.
 ///
-/// The platform runs ITestHandler hooks outside the per-function test-isolation scope. Consuming eval codeunits must
-/// declare <c>RequiredTestIsolation = Disabled</c> so the outer codeunit scope does not roll back the committed log.
+/// The platform runs ITestHandler hooks outside test isolation, so the log entry written in
+/// <c>OnAfterTestCaseRun</c> is persisted independently of the test body's transaction.
 /// </summary>
 codeunit 149050 "AIT Test Handler" implements ITestHandler
 {
@@ -63,7 +63,7 @@ codeunit 149050 "AIT Test Handler" implements ITestHandler
         if AITTestRunIteration.IsRunningUnderAITSuite() then
             exit;
 
-        // The consuming eval requires disabled codeunit isolation, so this commit persists the log entry.
+        // This hook runs outside test isolation, so the log entry persists independently of the test body.
         AITTestSuiteMgt.AddDataDrivenLogEntry(Context.CodeunitId, Context.ProcedureName, Context.TestCaseName, Context.Success);
     end;
 
