@@ -184,9 +184,15 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
                     else
                         BalAccType := '';
 
-                    FcyAcyAmt := "Source Currency Amount";
-                    FcyAcyBalance := FcyAcyBalance + "Source Currency Amount";
-                    Exrate := CalcExrate("Source Currency Amount", Amount, "G/L Account"."Source Currency Code");
+                    if ("Source Currency Code" <> '') and ("Source Currency Code" = "G/L Account"."Source Currency Code") then begin
+                        FcyAcyAmt := "Source Currency Amount";
+                        FcyAcyBalance := FcyAcyBalance + "Source Currency Amount";
+                        Exrate := CalcExrate("Source Currency Amount", Amount, "G/L Account"."Source Currency Code");
+                    end else begin
+                        FcyAcyAmt := 0;
+                        Exrate := 0;
+                    end;
+
                     OnAfterOnAfterGetRecord("G/L Account", "G/L Entry", FcyAcyAmt, FcyAcyBalance, Exrate);
                 end;
 
