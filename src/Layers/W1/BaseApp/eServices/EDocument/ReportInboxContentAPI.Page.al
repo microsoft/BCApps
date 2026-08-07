@@ -8,7 +8,7 @@ page 691 "Report Inbox Content API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
-    APIGroup = 'automate';
+    APIGroup = 'reportInbox';
     APIVersion = 'v1.0';
     EntityName = 'reportInboxContent';
     EntitySetName = 'reportInboxContents';
@@ -30,7 +30,7 @@ page 691 "Report Inbox Content API"
         {
             repeater(Group)
             {
-                field(systemId; Rec.SystemId)
+                field(id; Rec.SystemId)
                 {
                     Caption = 'System Id';
                 }
@@ -73,5 +73,5 @@ page 691 "Report Inbox Content API"
     var
         FileNameTxt: Text;
         ByteSizeInt: Integer;
-        KeyRequiredErr: Label 'Specify a single report inbox entry by its systemId, for example reportInboxContents(<systemId>). This endpoint cannot be listed as a collection; use the reportInboxItems endpoint to discover a systemId.';
+        KeyRequiredErr: Label 'Specify a single report inbox entry by its id, for example reportInboxContents(<id>). This endpoint cannot be listed as a collection; use the reportInboxItems endpoint to discover an id.';
 }

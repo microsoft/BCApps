@@ -10,7 +10,7 @@ page 690 "Report Inbox Items API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
-    APIGroup = 'automate';
+    APIGroup = 'reportInbox';
     APIVersion = 'v1.0';
     EntityName = 'reportInboxItem';
     EntitySetName = 'reportInboxItems';
@@ -18,12 +18,11 @@ page 690 "Report Inbox Items API"
     EntitySetCaption = 'Report Inbox Items';
     SourceTable = "Report Inbox Item Buffer";
     ODataKeyFields = Id;
-    DataAccessIntent = ReadOnly;
     DelayedInsert = true;
     InsertAllowed = false;
-    ModifyAllowed = false;
+    ModifyAllowed = true;
     DeleteAllowed = false;
-    Editable = false;
+    Editable = true;
     Extensible = false;
 
     layout
@@ -32,24 +31,76 @@ page 690 "Report Inbox Items API"
         {
             repeater(Group)
             {
-                field(systemId; Rec.Id)
+                field(id; Rec.Id)
                 {
-                    Caption = 'System Id';
+                    Caption = 'Id';
+                    Editable = false;
                 }
-                field(companyName; Rec."Company Name") { }
-                field(companyNameLower; Rec."Company Name Lower") { }
-                field(includeAllCompanies; Rec."Include All Companies") { }
-                field(entryNo; Rec."Entry No.") { }
-                field(reportId; Rec."Report ID") { }
-                field(reportName; Rec."Report Name") { }
-                field(description; Rec.Description) { }
-                field(createdDateTime; Rec."Created Date-Time") { }
-                field(outputType; Rec."Output Type") { }
+                field(companyName; Rec."Company Name")
+                {
+                    Editable = false;
+                }
+                field(companyNameLower; Rec."Company Name Lower")
+                {
+                    Editable = false;
+                }
+                field(includeAllCompanies; Rec."Include All Companies")
+                {
+                    Editable = false;
+                }
+                field(entryNo; Rec."Entry No.")
+                {
+                    Editable = false;
+                }
+                field(reportId; Rec."Report ID")
+                {
+                    Editable = false;
+                }
+                field(reportName; Rec."Report Name")
+                {
+                    Editable = false;
+                }
+                field(description; Rec.Description)
+                {
+                    Editable = false;
+                }
+                field(createdDateTime; Rec."Created Date-Time")
+                {
+                    Editable = false;
+                }
+                field(outputType; Rec."Output Type")
+                {
+                    Editable = false;
+                }
                 field(read; Rec.Read) { }
-                field(fileName; Rec."File Name") { }
+                field(fileName; Rec."File Name")
+                {
+                    Editable = false;
+                }
             }
         }
     }
+
+    trigger OnModifyRecord(): Boolean
+    var
+        ReportInbox: Record "Report Inbox";
+    begin
+        if not ReportInbox.ChangeCompany(Rec."Company Name") then
+            exit(false);
+        if not ReportInbox.WritePermission then
+            exit(false);
+
+        ReportInbox.SetRange("User ID", CopyStr(UserId(), 1, MaxStrLen(ReportInbox."User ID")));
+        ReportInbox.SetRange(SystemId, Rec.Id);
+        if not ReportInbox.FindFirst() then
+            exit(false);
+
+        if ReportInbox.Read <> Rec.Read then begin
+            ReportInbox.Read := Rec.Read;
+            ReportInbox.Modify();
+        end;
+        exit(true);
+    end;
 
     trigger OnFindRecord(Which: Text): Boolean
     var

@@ -29,6 +29,10 @@ table 476 "Report Inbox File Buffer"
         {
             Caption = 'Content';
         }
+        field(5; "Company Name"; Text[30])
+        {
+            Caption = 'Company Name';
+        }
     }
 
     keys

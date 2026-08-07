@@ -10,14 +10,14 @@ page 694 "Report Inbox Companies API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
-    APIGroup = 'automate';
+    APIGroup = 'reportInbox';
     APIVersion = 'v1.0';
     EntityName = 'reportInboxCompany';
     EntitySetName = 'reportInboxCompanies';
     EntityCaption = 'Report Inbox Company';
     EntitySetCaption = 'Report Inbox Companies';
     SourceTable = "Report Inbox Company Buffer";
-    ODataKeyFields = "Company Name";
+    ODataKeyFields = Id;
     DataAccessIntent = ReadOnly;
     DelayedInsert = true;
     InsertAllowed = false;
@@ -32,11 +32,13 @@ page 694 "Report Inbox Companies API"
         {
             repeater(Group)
             {
+                field(id; Rec.Id) { }
                 field(companyName; Rec."Company Name") { }
                 field(companyNameLower; Rec."Company Name Lower") { }
                 field(entryCount; Rec."Entry Count") { }
                 field(unreadCount; Rec."Unread Count") { }
                 field(lastCreatedDateTime; Rec."Last Created Date-Time") { }
+                field(lastModifiedDateTime; Rec.SystemModifiedAt) { }
             }
         }
     }
@@ -68,6 +70,7 @@ page 694 "Report Inbox Companies API"
     local procedure AddCompany(CompanyNameToRead: Text[30])
     var
         ReportInbox: Record "Report Inbox";
+        CompanyRec: Record Company;
     begin
         if not ReportInbox.ChangeCompany(CompanyNameToRead) then
             exit;
@@ -84,6 +87,8 @@ page 694 "Report Inbox Companies API"
 
         Rec."Company Name" := CompanyNameToRead;
         Rec."Company Name Lower" := CompanyNameToRead.ToLower();
+        if CompanyRec.Get(CompanyNameToRead) then
+            Rec.Id := CompanyRec.SystemId;
         if ReportInbox.FindLast() then
             Rec."Last Created Date-Time" := ReportInbox."Created Date-Time";
         ReportInbox.SetRange(Read, false);

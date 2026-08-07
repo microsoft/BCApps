@@ -16,6 +16,10 @@ table 478 "Report Inbox Company Buffer"
         {
             Caption = 'Company Name';
         }
+        field(6; Id; Guid)
+        {
+            Caption = 'Id';
+        }
         field(2; "Entry Count"; Integer)
         {
             Caption = 'Entry Count';

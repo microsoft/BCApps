@@ -4,11 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument;
 
+using System.Environment;
+
 page 692 "Report Inbox File API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
-    APIGroup = 'automate';
+    APIGroup = 'reportInbox';
     APIVersion = 'v1.0';
     EntityName = 'reportInboxFile';
     EntitySetName = 'reportInboxFiles';
@@ -31,6 +33,7 @@ page 692 "Report Inbox File API"
             repeater(Group)
             {
                 field(id; Rec.Id) { }
+                field(companyName; Rec."Company Name") { }
                 field(fileName; Rec."File Name") { }
                 field(byteSize; Rec."Byte Size") { }
                 field(documentContent; Rec.Content) { }
@@ -40,10 +43,10 @@ page 692 "Report Inbox File API"
 
     trigger OnFindRecord(Which: Text): Boolean
     var
-        ReportInbox: Record "Report Inbox";
-        InStr: InStream;
-        OutStr: OutStream;
+        CompanyRec: Record Company;
         IdFilter: Text;
+        CompanyFilter: Text;
+        CurrentCompany: Text[30];
     begin
         if Loaded then
             exit(FileFound and Rec.Find(Which));
@@ -53,6 +56,35 @@ page 692 "Report Inbox File API"
         if IdFilter = '' then
             Error(KeyRequiredErr);
 
+        CompanyFilter := Rec.GetFilter("Company Name");
+
+        if CompanyFilter = '' then begin
+            CurrentCompany := CopyStr(CompanyName(), 1, MaxStrLen(Rec."Company Name"));
+            FileFound := LoadFromCompany(CurrentCompany, IdFilter);
+        end else
+            CompanyRec.SetFilter(Name, CompanyFilter);
+
+        if not FileFound then
+            if CompanyRec.FindSet() then
+                repeat
+                    if CompanyRec.Name <> CurrentCompany then
+                        FileFound := LoadFromCompany(CompanyRec.Name, IdFilter);
+                until (CompanyRec.Next() = 0) or FileFound;
+
+        exit(FileFound and Rec.Find(Which));
+    end;
+
+    local procedure LoadFromCompany(CompanyToRead: Text[30]; IdFilter: Text): Boolean
+    var
+        ReportInbox: Record "Report Inbox";
+        InStr: InStream;
+        OutStr: OutStream;
+    begin
+        if not ReportInbox.ChangeCompany(CompanyToRead) then
+            exit(false);
+        if not ReportInbox.ReadPermission then
+            exit(false);
+
         ReportInbox.SetRange("User ID", CopyStr(UserId(), 1, MaxStrLen(ReportInbox."User ID")));
         ReportInbox.SetFilter(SystemId, IdFilter);
         if not ReportInbox.FindFirst() then
@@ -61,6 +93,7 @@ page 692 "Report Inbox File API"
         ReportInbox.CalcFields("Report Output", "Report Name");
         Rec.Init();
         Rec.Id := ReportInbox.SystemId;
+        Rec."Company Name" := CompanyToRead;
         Rec."File Name" := CopyStr(ReportInbox.GetFileNameWithExtension(), 1, MaxStrLen(Rec."File Name"));
         Rec."Byte Size" := ReportInbox."Report Output".Length();
         if ReportInbox."Report Output".HasValue() then begin
@@ -69,12 +102,11 @@ page 692 "Report Inbox File API"
             CopyStream(OutStr, InStr);
         end;
         Rec.Insert();
-        FileFound := true;
         exit(true);
     end;
 
     var
         Loaded: Boolean;
         FileFound: Boolean;
-        KeyRequiredErr: Label 'Specify a single report inbox entry by its systemId, for example reportInboxFiles(<systemId>)/documentContent. Use the reportInboxItems endpoint to discover a systemId.';
+        KeyRequiredErr: Label 'Specify a single report inbox entry by its id, for example reportInboxFiles(<id>)/documentContent. Use the reportInboxItems endpoint to discover an id.';
 }

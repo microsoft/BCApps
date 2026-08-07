@@ -22,6 +22,11 @@ codeunit 135549 "Report Inbox API E2E"
         ReportInboxCompaniesTxt: Label 'reportInboxCompanies', Locked = true;
         SeededEntryTxt: Label 'Test Report', Locked = true;
         OtherUserEntryTxt: Label 'Entry belonging to another user', Locked = true;
+        ProbePrefixTxt: Label 'RIPROBE', Locked = true;
+        AllCompaniesFilterTxt: Label '?$filter=includeAllCompanies eq true', Locked = true;
+        MarkReadBodyTxt: Label '{"read": true}', Locked = true;
+        ApiCallerValue: Text;
+        ApiCallerResolved: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -32,7 +37,7 @@ codeunit 135549 "Report Inbox API E2E"
     begin
         // [SCENARIO] GET returns report inbox entries for the current user
         Initialize();
-        SeedEntryForEveryPossibleCaller(SeededEntryTxt);
+        SeedEntryForApiCaller(SeededEntryTxt);
 
         // [GIVEN] reportInboxItems URI without filters
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox Items API", ReportInboxItemsTxt);
@@ -55,7 +60,7 @@ codeunit 135549 "Report Inbox API E2E"
     begin
         // [SCENARIO] GET does not return entries belonging to other users
         Initialize();
-        SeedEntryForEveryPossibleCaller(SeededEntryTxt);
+        SeedEntryForApiCaller(SeededEntryTxt);
         OtherUserId := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ReportInbox."User ID"));
         CreateReportInboxEntry(OtherUserId, OtherUserEntryTxt);
         Commit();
@@ -74,6 +79,35 @@ codeunit 135549 "Report Inbox API E2E"
 
         DeleteEntriesFor(OtherUserId);
         Commit();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestPatchReportInboxItemMarksRead()
+    var
+        ReportInbox: Record "Report Inbox";
+        TargetURL: Text;
+        ResponseText: Text;
+        EntryId: Text;
+    begin
+        // [SCENARIO] PATCH marks an entry as read for the current user
+        Initialize();
+        EntryId := SeedEntryForApiCallerAndGetId(SeededEntryTxt);
+
+        // [GIVEN] reportInboxItems URI for that entry
+        TargetURL := LibraryGraphMgt.CreateTargetURL(EntryId, Page::"Report Inbox Items API", ReportInboxItemsTxt);
+
+        // [WHEN] the caller patches read to true
+        Commit();
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, MarkReadBodyTxt, ResponseText, 200);
+        Commit();
+
+        // [THEN] the change is written through to the persisted entry, not just the buffer
+        ReportInbox.Reset();
+        ReportInbox.SetRange("User ID", CopyStr(ApiCallerUserId(), 1, MaxStrLen(ReportInbox."User ID")));
+        ReportInbox.SetRange(Description, SeededEntryTxt);
+        Assert.IsTrue(ReportInbox.FindFirst(), 'The seeded entry could not be found.');
+        Assert.IsTrue(ReportInbox.Read, 'The entry was not marked as read.');
     end;
 
     [Test]
@@ -113,7 +147,7 @@ codeunit 135549 "Report Inbox API E2E"
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
 
         // [THEN] An error is raised because a key is required
-        Assert.ExpectedError('systemId');
+        Assert.ExpectedError('Specify a single report inbox entry');
     end;
 
     [Test]
@@ -126,10 +160,9 @@ codeunit 135549 "Report Inbox API E2E"
     begin
         // [SCENARIO] GET with a valid key returns the report inbox content
         Initialize();
-        SeedEntryForEveryPossibleCaller(SeededEntryTxt);
 
-        // [GIVEN] the systemId of an entry the API caller can see
-        SystemIdFilter := SystemIdVisibleToApiCaller();
+        // [GIVEN] the systemId of an entry owned by the API caller
+        SystemIdFilter := SeedEntryForApiCallerAndGetId(SeededEntryTxt);
 
         // [GIVEN] reportInboxContents URI with a specific systemId
         TargetURL := LibraryGraphMgt.CreateTargetURL(
@@ -179,7 +212,7 @@ codeunit 135549 "Report Inbox API E2E"
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
 
         // [THEN] An error is raised because a key is required
-        Assert.ExpectedError('systemId');
+        Assert.ExpectedError('Specify a single report inbox entry');
     end;
 
     [Test]
@@ -192,10 +225,9 @@ codeunit 135549 "Report Inbox API E2E"
     begin
         // [SCENARIO] GET with a valid key returns the report inbox file
         Initialize();
-        SeedEntryForEveryPossibleCaller(SeededEntryTxt);
 
-        // [GIVEN] the systemId of an entry the API caller can see
-        SystemIdFilter := SystemIdVisibleToApiCaller();
+        // [GIVEN] the systemId of an entry owned by the API caller
+        SystemIdFilter := SeedEntryForApiCallerAndGetId(SeededEntryTxt);
 
         // [GIVEN] reportInboxFiles URI with a specific systemId
         TargetURL := LibraryGraphMgt.CreateTargetURL(
@@ -237,7 +269,7 @@ codeunit 135549 "Report Inbox API E2E"
     begin
         // [SCENARIO] GET returns companies with report inbox entries for the current user
         Initialize();
-        SeedEntryForEveryPossibleCaller(SeededEntryTxt);
+        SeedEntryForApiCaller(SeededEntryTxt);
 
         // [GIVEN] reportInboxCompanies URI without filters
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox Companies API", ReportInboxCompaniesTxt);
@@ -248,6 +280,101 @@ codeunit 135549 "Report Inbox API E2E"
         // [THEN] Response contains company data with counts
         Assert.IsTrue(StrPos(ResponseText, '"companyName"') > 0, 'Response does not contain company name');
         Assert.IsTrue(StrPos(ResponseText, '"entryCount"') > 0, 'Response does not contain entry count');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetReportInboxItemsAcrossCompanies()
+    var
+        OtherCompany: Text;
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] With the wider scope, the listing entity returns entries from other companies
+        Initialize();
+        OtherCompany := OtherCompanyName();
+        SeedEntryForApiCaller(SeededEntryTxt);
+        SeedEntryForApiCallerIn(OtherCompany, SeededEntryTxt);
+
+        // [GIVEN] reportInboxItems URI asking for every company
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox Items API", ReportInboxItemsTxt) + AllCompaniesFilterTxt;
+
+        // [WHEN] User sends a GET request
+        Commit();
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Commit();
+
+        // [THEN] Entries from both the addressed company and the other one are returned
+        Assert.IsTrue(
+            StrPos(ResponseText, '"' + CompanyName() + '"') > 0,
+            'Response does not contain an entry from the addressed company');
+        Assert.IsTrue(
+            StrPos(ResponseText, '"' + OtherCompany + '"') > 0,
+            'Response does not contain an entry from ' + OtherCompany + ' - the wider scope did not reach it');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetReportInboxFileForEntryInAnotherCompany()
+    var
+        OtherCompany: Text;
+        ListURL: Text;
+        ListResponse: Text;
+        TargetURL: Text;
+        ResponseText: Text;
+        ForeignSystemId: Text;
+    begin
+        // [SCENARIO] An entry discovered in another company via the wider scope can be fetched
+        Initialize();
+        OtherCompany := OtherCompanyName();
+        SeedEntryForApiCallerIn(OtherCompany, SeededEntryTxt);
+
+        // [GIVEN] a systemId discovered in the other company
+        ListURL := LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox Items API", ReportInboxItemsTxt) + AllCompaniesFilterTxt;
+        Commit();
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ListResponse, ListURL, 200);
+        Commit();
+        ForeignSystemId := SystemIdForCompany(ListResponse, OtherCompany);
+        Assert.AreNotEqual('', ForeignSystemId, 'The wider scope returned no entry from ' + OtherCompany);
+
+        // [WHEN] the caller fetches that entry without changing the company in the URL
+        TargetURL := LibraryGraphMgt.CreateTargetURL(ForeignSystemId, Page::"Report Inbox File API", ReportInboxFilesTxt);
+
+        // [THEN] the file is returned
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.IsTrue(StrPos(ResponseText, '"fileName"') > 0, 'Response does not contain file name');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetReportInboxContentDoesNotResolveAnotherCompany()
+    var
+        OtherCompany: Text;
+        ListURL: Text;
+        ListResponse: Text;
+        TargetURL: Text;
+        ResponseText: Text;
+        ForeignSystemId: Text;
+    begin
+        // [SCENARIO] reportInboxContents resolves only in the company addressed in the request
+        Initialize();
+        OtherCompany := OtherCompanyName();
+        SeedEntryForApiCallerIn(OtherCompany, SeededEntryTxt);
+
+        // [GIVEN] a systemId discovered in the other company
+        ListURL := LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox Items API", ReportInboxItemsTxt) + AllCompaniesFilterTxt;
+        Commit();
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ListResponse, ListURL, 200);
+        Commit();
+        ForeignSystemId := SystemIdForCompany(ListResponse, OtherCompany);
+        Assert.AreNotEqual('', ForeignSystemId, 'The wider scope returned no entry from ' + OtherCompany);
+
+        // [WHEN] the caller asks for that entry without changing the company in the URL
+        TargetURL := LibraryGraphMgt.CreateTargetURL(ForeignSystemId, Page::"Report Inbox Content API", ReportInboxContentsTxt);
+
+        // [THEN] it is not found - the entity resolves in the addressed company only
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.ExpectedError('404');
     end;
 
     [Test]
@@ -272,14 +399,24 @@ codeunit 135549 "Report Inbox API E2E"
 
     local procedure Initialize()
     var
-        User: Record User;
+        Company: Record Company;
     begin
-        DeleteEntriesFor(UserId());
-        if User.FindSet() then
+        if Company.FindSet() then
             repeat
-                DeleteEntriesFor(User."User Name");
-            until User.Next() = 0;
+                DeleteEntriesIn(Company.Name, UserId());
+                DeleteEntriesIn(Company.Name, ApiCallerUserId());
+            until Company.Next() = 0;
         Commit();
+    end;
+
+    local procedure DeleteEntriesIn(CompanyToClear: Text; UserID: Text)
+    var
+        ReportInbox: Record "Report Inbox";
+    begin
+        if not ReportInbox.ChangeCompany(CopyStr(CompanyToClear, 1, 30)) then
+            exit;
+        ReportInbox.SetRange("User ID", CopyStr(UserID, 1, MaxStrLen(ReportInbox."User ID")));
+        ReportInbox.DeleteAll();
     end;
 
     local procedure DeleteEntriesFor(UserID: Text)
@@ -291,35 +428,99 @@ codeunit 135549 "Report Inbox API E2E"
         ReportInbox.DeleteAll();
     end;
 
-    /// <summary>
-    /// Seeds one report inbox entry per known user.
-    /// The API request is issued over HTTP and is therefore a separate session that need not
-    /// authenticate as the test session. "Http Web Request Mgt." sends the request with
-    /// UseDefaultCredentials, so under Windows authentication it arrives as the NST service
-    /// account rather than as UserId(). Pages 690/691/694 filter on UserId(), so an entry
-    /// seeded only for the test session is invisible to the API. Seeding one entry per user
-    /// guarantees the caller sees exactly one entry - its own - whichever credential type the
-    /// server is configured for, without hardcoding a service account name.
-    /// </summary>
-    local procedure SeedEntryForEveryPossibleCaller(NewDescription: Text)
+    local procedure SeedEntryForApiCaller(NewDescription: Text)
+    var
+        DiscardedId: Text;
+    begin
+        DiscardedId := SeedEntryForApiCallerAndGetId(NewDescription);
+    end;
+
+    local procedure SeedEntryForApiCallerAndGetId(NewDescription: Text): Text
+    var
+        ReportInbox: Record "Report Inbox";
+    begin
+        Clear(ReportInbox);
+        ReportInbox."User ID" := CopyStr(ApiCallerUserId(), 1, MaxStrLen(ReportInbox."User ID"));
+        ReportInbox."Output Type" := ReportInbox."Output Type"::PDF;
+        ReportInbox."Report ID" := Report::"Test Report - Default=Word";
+        ReportInbox.Description := CopyStr(NewDescription, 1, MaxStrLen(ReportInbox.Description));
+        ReportInbox.Insert(true);
+        Commit();
+        exit(LowerCase(DelChr(Format(ReportInbox.SystemId), '=', '{}')));
+    end;
+
+    local procedure ApiCallerUserId(): Text
+    var
+        Candidates: List of [Text];
+        ResponseText: Text;
+        ProbeTag: Text;
+        Marker: Text;
+        i: Integer;
+    begin
+        if ApiCallerResolved then
+            exit(ApiCallerValue);
+
+        BuildCandidateList(Candidates);
+        ProbeTag := ProbePrefixTxt + DelChr(Format(CreateGuid()), '=', '{}-');
+
+        for i := 1 to Candidates.Count() do
+            CreateReportInboxEntry(Candidates.Get(i), ProbeTag + '-' + Format(i));
+        Commit();
+
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText,
+            LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox Items API", ReportInboxItemsTxt),
+            200);
+        Commit();
+
+        for i := 1 to Candidates.Count() do begin
+            Marker := '"' + ProbeTag + '-' + Format(i) + '"';
+            if StrPos(ResponseText, Marker) > 0 then begin
+                ApiCallerValue := Candidates.Get(i);
+                ApiCallerResolved := true;
+            end;
+        end;
+
+        for i := 1 to Candidates.Count() do
+            DeleteProbeEntries(Candidates.Get(i));
+        Commit();
+
+        Assert.IsTrue(
+            ApiCallerResolved,
+            'Could not determine which identity the API session authenticates as.');
+        exit(ApiCallerValue);
+    end;
+
+    local procedure BuildCandidateList(var Candidates: List of [Text])
     var
         User: Record User;
     begin
-        CreateReportInboxEntry(UserId(), NewDescription);
+        Candidates.Add(UserId());
+        Candidates.Add('NT AUTHORITY\NETWORK SERVICE');
+        Candidates.Add('NT AUTHORITY\SYSTEM');
+        Candidates.Add('NETWORK SERVICE');
+        Candidates.Add('SYSTEM');
         if User.FindSet() then
             repeat
-                if User."User Name" <> UserId() then
-                    CreateReportInboxEntry(User."User Name", NewDescription);
+                if not Candidates.Contains(User."User Name") then
+                    Candidates.Add(User."User Name");
             until User.Next() = 0;
-        Commit();
+    end;
+
+    local procedure DeleteProbeEntries(UserID: Text)
+    var
+        ReportInbox: Record "Report Inbox";
+    begin
+        ReportInbox.Reset();
+        ReportInbox.SetRange("User ID", CopyStr(UserID, 1, MaxStrLen(ReportInbox."User ID")));
+        ReportInbox.SetFilter(Description, ProbePrefixTxt + '*');
+        ReportInbox.DeleteAll();
     end;
 
     local procedure CreateReportInboxEntry(UserID: Text; NewDescription: Text)
     var
         ReportInbox: Record "Report Inbox";
     begin
-        // Clear() rather than Init(): Init() preserves primary key fields, so a repeated call
-        // would reuse the AutoIncrement "Entry No." from the previous insert and collide.
         Clear(ReportInbox);
         ReportInbox."User ID" := CopyStr(UserID, 1, MaxStrLen(ReportInbox."User ID"));
         ReportInbox."Output Type" := ReportInbox."Output Type"::PDF;
@@ -328,36 +529,54 @@ codeunit 135549 "Report Inbox API E2E"
         ReportInbox.Insert(true);
     end;
 
-    /// <summary>
-    /// Reads the systemId of the first entry the API caller can actually see.
-    /// Addressing an entry by key has to use a key that belongs to the API session, which is
-    /// why the key is discovered from the collection response rather than from the record the
-    /// test inserted.
-    /// </summary>
-    local procedure SystemIdVisibleToApiCaller(): Text
+    local procedure OtherCompanyName(): Text
     var
-        ListURL: Text;
-        ListResponse: Text;
+        Company: Record Company;
     begin
-        ListURL := LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox Items API", ReportInboxItemsTxt);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ListResponse, ListURL, 200);
-        exit(FirstSystemIdFromResponse(ListResponse));
+        Company.SetFilter(Name, '<>%1', CompanyName());
+        Assert.IsTrue(
+            Company.FindFirst(),
+            'This scenario needs a second company; the database has only ' + CompanyName() + '.');
+        exit(Company.Name);
     end;
 
-    local procedure FirstSystemIdFromResponse(ResponseText: Text): Text
+    local procedure SeedEntryForApiCallerIn(CompanyToSeed: Text; NewDescription: Text)
+    var
+        ReportInbox: Record "Report Inbox";
+    begin
+        Clear(ReportInbox);
+        if not ReportInbox.ChangeCompany(CopyStr(CompanyToSeed, 1, 30)) then
+            Error('Cannot address company %1', CompanyToSeed);
+        ReportInbox."User ID" := CopyStr(ApiCallerUserId(), 1, MaxStrLen(ReportInbox."User ID"));
+        ReportInbox."Output Type" := ReportInbox."Output Type"::PDF;
+        ReportInbox."Report ID" := Report::"Test Report - Default=Word";
+        ReportInbox.Description := CopyStr(NewDescription, 1, MaxStrLen(ReportInbox.Description));
+        ReportInbox.Insert(true);
+        Commit();
+    end;
+
+    local procedure SystemIdForCompany(ResponseText: Text; CompanyToFind: Text): Text
     var
         ResponseObject: JsonObject;
         ValueToken: JsonToken;
         EntryToken: JsonToken;
-        SystemIdToken: JsonToken;
+        FieldToken: JsonToken;
         ValueArray: JsonArray;
+        i: Integer;
     begin
-        Assert.IsTrue(ResponseObject.ReadFrom(ResponseText), 'The API response is not valid JSON.');
-        Assert.IsTrue(ResponseObject.Get('value', ValueToken), 'The API response has no value array.');
+        if not ResponseObject.ReadFrom(ResponseText) then
+            exit('');
+        if not ResponseObject.Get('value', ValueToken) then
+            exit('');
         ValueArray := ValueToken.AsArray();
-        Assert.IsTrue(ValueArray.Count() > 0, 'The API returned no entries, so there is no key to address.');
-        ValueArray.Get(0, EntryToken);
-        Assert.IsTrue(EntryToken.AsObject().Get('systemId', SystemIdToken), 'The entry has no systemId.');
-        exit(SystemIdToken.AsValue().AsText());
+        for i := 0 to ValueArray.Count() - 1 do begin
+            ValueArray.Get(i, EntryToken);
+            if EntryToken.AsObject().Get('companyName', FieldToken) then
+                if FieldToken.AsValue().AsText() = CompanyToFind then
+                    if EntryToken.AsObject().Get('id', FieldToken) then
+                        exit(FieldToken.AsValue().AsText());
+        end;
+        exit('');
     end;
+
 }
