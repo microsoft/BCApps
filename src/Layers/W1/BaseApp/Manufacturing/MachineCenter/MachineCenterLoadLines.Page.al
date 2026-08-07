@@ -8,6 +8,8 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
 using System.Utilities;
 
 page 99000890 "Machine Center Load Lines"
@@ -139,13 +141,26 @@ page 99000890 "Machine Center Load Lines"
         MachineCenter: Record "Machine Center";
         PeriodType: Enum "Analysis Period Type";
         AmountType: Enum "Analysis Amount Type";
+        CapacityUoM: Code[10];
 
     procedure SetLines(var NewMachineCenter: Record "Machine Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
+    var
+        MfgSetup: Record "Manufacturing Setup";
+    begin
+        MfgSetup.SetLoadFields("Show Capacity In");
+        MfgSetup.Get();
+        MfgSetup.TestField("Show Capacity In");
+        CapacityUoM := MfgSetup."Show Capacity In";
+        SetLines(NewMachineCenter, NewPeriodType, NewAmountType, CapacityUoM);
+    end;
+
+    procedure SetLines(var NewMachineCenter: Record "Machine Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewCapUoM: Code[10])
     begin
         MachineCenter.Copy(NewMachineCenter);
         Rec.DeleteAll();
         PeriodType := NewPeriodType;
         AmountType := NewAmountType;
+        CapacityUoM := NewCapUoM;
         CurrPage.Update(false);
     end;
 
@@ -158,12 +173,22 @@ page 99000890 "Machine Center Load Lines"
     end;
 
     local procedure CalcLine()
+    var
+        CalendarMgt: Codeunit "Shop Calendar Management";
+        WorkCenter: Record "Work Center";
+        CapacityTimeFactor: Decimal;
     begin
         SetDateFilter();
         MachineCenter.CalcFields("Capacity (Effective)", "Prod. Order Need (Qty.)");
-        Rec.Capacity := MachineCenter."Capacity (Effective)";
-        Rec."Allocated Qty." := MachineCenter."Prod. Order Need (Qty.)";
-        Rec."Availability After Orders" := MachineCenter."Capacity (Effective)" - MachineCenter."Prod. Order Need (Qty.)";
+        if (CapacityUoM <> '') and (MachineCenter."Work Center No." <> '') and WorkCenter.Get(MachineCenter."Work Center No.") and (WorkCenter."Unit of Measure Code" <> '') then
+            CapacityTimeFactor :=
+                CalendarMgt.TimeFactor(WorkCenter."Unit of Measure Code") /
+                CalendarMgt.TimeFactor(CapacityUoM)
+        else
+            CapacityTimeFactor := 1;
+        Rec.Capacity := MachineCenter."Capacity (Effective)" * CapacityTimeFactor;
+        Rec."Allocated Qty." := MachineCenter."Prod. Order Need (Qty.)" * CapacityTimeFactor;
+        Rec."Availability After Orders" := Rec.Capacity - Rec."Allocated Qty.";
         if MachineCenter."Capacity (Effective)" <> 0 then
             Rec.Load := Round(MachineCenter."Prod. Order Need (Qty.)" / MachineCenter."Capacity (Effective)" * 100, 0.1)
         else
