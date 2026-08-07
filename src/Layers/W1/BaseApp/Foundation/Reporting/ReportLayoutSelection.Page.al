@@ -93,11 +93,14 @@ page 9652 "Report Layout Selection"
                     ToolTip = 'Specifies the description of the layout that is used by the report.';
 
                     trigger OnValidate()
+#if not CLEAN29
                     var
 #pragma warning disable AL0432, AS0105
                         CustomReportLayout2: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
+#endif
                     begin
+#if not CLEAN29
                         if Rec.Type = Rec.Type::"Custom Layout" then begin
                             CustomReportLayout2.SetCurrentKey("Report ID", "Company Name", Type);
                             CustomReportLayout2.SetRange("Report ID", ReportLayoutSelection."Report ID");
@@ -112,7 +115,10 @@ page 9652 "Report Layout Selection"
                             end;
                         end else
                             ValidateBuiltInReportLayoutDescription();
-
+#else
+                        // Custom layouts no longer exist; every layout validates as built-in.
+                        ValidateBuiltInReportLayoutDescription();
+#endif
                         CurrPage.Update(false);
                     end;
                 }
@@ -360,6 +366,7 @@ page 9652 "Report Layout Selection"
 
         Rec.Type := ReportLayoutSelection.Type;
         Rec."Custom Report Layout Code" := ReportLayoutSelection."Custom Report Layout Code";
+#if not CLEAN29
         case Rec.Type of
             Rec.Type::"Custom Layout":
                 Rec.CalcFields("Report Layout Description");
@@ -374,6 +381,18 @@ page 9652 "Report Layout Selection"
         end;
 
         CustomLayoutDescription := Rec."Report Layout Description";
+#else
+        // Field 7 was only a staging buffer between the layout source and the displayed variable, and
+        // the control binds to the variable. Without the custom-layout branch the modern sources fill
+        // it directly.
+        if TenantReportLayoutSelection.Get(Rec."Report ID", SelectedCompany) then
+            CustomLayoutDescription := TenantReportLayoutSelection."Layout Name"
+        else
+            if ReportMetadata.Get(Rec."Report ID") then
+                CustomLayoutDescription := ReportMetadata.DefaultLayoutName
+            else
+                CustomLayoutDescription := DefaultLbl;
+#endif
     end;
 
     local procedure LookupLayout()
@@ -452,7 +471,9 @@ page 9652 "Report Layout Selection"
     local procedure SetDefaultSelectionFromReportLayoutList(var ReportLayoutList: Record "Report Layout List"; LayoutName: Text[250])
     begin
         Rec.Validate(Type, LayoutFormatToType(ReportLayoutList."Layout Format"));
+#if not CLEAN29
         Rec."Report Layout Description" := LayoutName;
+#endif
         CustomLayoutDescription := LayoutName;
     end;
 

@@ -89,6 +89,7 @@ table 9651 "Report Layout Selection"
                     Type := Type::"Custom Layout";
             end;
         }
+#if not CLEAN29
         field(7; "Report Layout Description"; Text[250])
         {
 #pragma warning disable AL0432, AS0105
@@ -96,7 +97,11 @@ table 9651 "Report Layout Selection"
 #pragma warning restore AL0432, AS0105
             Caption = 'Report Layout Description';
             FieldClass = FlowField;
+            ObsoleteState = Pending;
+            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+            ObsoleteTag = '29.0';
         }
+#endif
         field(8; "Report Caption"; Text[80])
         {
             CalcFormula = lookup("Report Metadata".Caption where(ID = field("Report ID")));

@@ -28,12 +28,18 @@ codeunit 101596 "Create Interact. Templ. Lang."
         CustomReportLayoutCode: Code[20];
         AttachmentNo: Integer;
     begin
+#if not CLEAN29
         if LowerCase(FileExtension) = 'html' then
             InsertInteractionTmplLanguage :=
               InsertCustomAttachment(FileExtension, AttachmentNo, CustomReportLayoutCode)
         else
             InsertInteractionTmplLanguage :=
               InsertFileAttachment(InteractionTemplateCode, LanguageCode, FileExtension, AttachmentNo);
+#else
+        // The HTML branch created demo data in the obsoleted layout table; only the file attachment remains.
+        InsertInteractionTmplLanguage :=
+          InsertFileAttachment(InteractionTemplateCode, LanguageCode, FileExtension, AttachmentNo);
+#endif
 
         if InsertInteractionTmplLanguage then
             InsertDataWithAttachment(InteractionTemplateCode, LanguageCode, AttachmentNo, CustomReportLayoutCode);
@@ -77,6 +83,7 @@ codeunit 101596 "Create Interact. Templ. Lang."
         Attachment.Insert();
     end;
 
+#if not CLEAN29
     local procedure InsertCustomAttachment(FileExtension: Text[250]; var AttachmentNo: Integer; var CustomReportLayoutCode: Code[20]): Boolean
     var
 #pragma warning disable AL0432, AS0105
@@ -95,6 +102,7 @@ codeunit 101596 "Create Interact. Templ. Lang."
 
         exit(false);
     end;
+#endif
 
     local procedure InsertFileAttachment(InteractionTemplateCode: Code[10]; LanguageCode: Code[10]; FileExtension: Text[250]; var AttachmentNo: Integer): Boolean
     var

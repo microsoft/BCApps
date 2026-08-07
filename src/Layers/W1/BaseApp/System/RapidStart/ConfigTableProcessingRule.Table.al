@@ -195,8 +195,8 @@ table 8631 "Config. Table Processing Rule"
 #pragma warning disable AL0432, AS0105
             Database::"Custom Report Layout":
 #pragma warning restore AL0432, AS0105
-#endif
                 exit(RunActionOnCustomReportLayout(RecRef));
+#endif
             Database::"Transfer Header":
                 exit(RunActionOnTransferHeader(RecRef));
             Database::Item:
@@ -333,6 +333,7 @@ table 8631 "Config. Table Processing Rule"
         Clear(ConfigPackageFilters);
     end;
 
+#if not CLEAN29
     local procedure RunActionOnCustomReportLayout(RecRef: RecordRef): Boolean
     var
 #pragma warning disable AL0432, AS0105
@@ -356,6 +357,7 @@ table 8631 "Config. Table Processing Rule"
         end;
         exit(false);
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnDoesTableHaveCustomRuleInRapidStart(TableID: Integer; var Result: Boolean)

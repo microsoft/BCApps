@@ -136,12 +136,16 @@ page 524 "Report Selection - Reminder"
     begin
         InitUsageFilter();
         SetUsageFilter(false);
+#if not CLEAN29
         CustomLayoutsExist := Rec.DoesAnyCustomLayotExist();
+#endif
     end;
 
     var
         ReportUsage2: Enum "Report Selection Usage Reminder";
+#if not CLEAN29
         CustomLayoutsExist: Boolean;
+#endif
 
     local procedure SetUsageFilter(ModifyRec: Boolean)
     begin

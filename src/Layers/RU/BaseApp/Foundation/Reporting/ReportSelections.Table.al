@@ -2500,6 +2500,7 @@ table 77 "Report Selections"
         exit((ReportUsage = "Report Selection Usage"::"V.Remittance".AsInteger()) and (TableId = Database::"Gen. Journal Line"));
     end;
 
+#if not CLEAN29
     internal procedure DoesAnyCustomLayotExist(): Boolean
     var
 #pragma warning disable AL0432, AS0105
@@ -2509,6 +2510,7 @@ table 77 "Report Selections"
         CustomReportLayout.SetRange("Built-In", false);
         exit(not CustomReportLayout.IsEmpty());
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCustomReportSelectionForTable(var CustomReportSelection: Record "Custom Report Selection"; TableNo: Integer)

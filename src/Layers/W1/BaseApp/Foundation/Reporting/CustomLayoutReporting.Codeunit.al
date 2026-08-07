@@ -1031,11 +1031,16 @@ codeunit 8800 "Custom Layout Reporting"
 
     local procedure IsWordLayout(ReportID: Integer; CustomReportLayoutCode: Code[20]): Boolean
     var
+#if not CLEAN29
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
+#endif
         ReportManagementHelper: Codeunit "Report Management Helper";
     begin
+#if not CLEAN29
+        // Legacy path only: a custom layout code resolves against the obsoleted table. Without it the
+        // modern layout selection below answers for every report, which is what remains in the Clean build.
         if CustomReportLayoutCode <> '' then begin
             CustomReportLayout.Code := CustomReportLayoutCode;
             if CustomReportLayout.Find('=') then
@@ -1043,6 +1048,7 @@ codeunit 8800 "Custom Layout Reporting"
 
             exit(ReportManagementHelper.SelectedLayoutType(ReportID) = ReportLayoutType::Word);
         end;
+#endif
         exit(ReportManagementHelper.SelectedLayoutType(ReportID) = ReportLayoutType::Word);
     end;
 

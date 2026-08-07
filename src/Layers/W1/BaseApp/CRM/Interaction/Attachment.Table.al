@@ -774,16 +774,14 @@ table 5062 Attachment
 
     local procedure GetCustomLayoutCodeLength(): Integer
     var
-        // CLEAN29 exception: deliberately an unconditional pragma rather than a #if not CLEAN29 wrap.
-        // This is a type-only reference - the dummy record is never read, it only supplies MaxStrLen of
-        // the Code field - and the procedure has three live callers in the HTML custom-layout attachment
-        // path. Wrapping it would pull that whole path out of the Clean build, which is a functional
-        // change beyond this deprecation. Raised with the reviewer; revisit when that path is retired.
-#pragma warning disable AL0432, AS0105
-        DummyCustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+        CustomLayoutCode: Code[20];
     begin
-        exit(MaxStrLen(DummyCustomReportLayout.Code));
+        // This is the width of the fixed-size code prefix already stored inside existing HTML attachment
+        // blobs - written with PadStr and read back with CopyStr - so it must stay 20 whatever happens to
+        // the layout table. It previously came from MaxStrLen on a dummy Custom Report Layout record,
+        // which tied a persisted data format to an obsoleted table for no reason. Taken from a Code[20]
+        // instead of a literal so the declaration and the format cannot drift apart.
+        exit(MaxStrLen(CustomLayoutCode));
     end;
 
     local procedure ProcessWebAttachment(FileName: Text)

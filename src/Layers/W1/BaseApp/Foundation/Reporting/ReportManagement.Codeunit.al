@@ -154,16 +154,22 @@ codeunit 44 ReportManagement
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'SelectReportLayoutCode', '', false, false)]
     local procedure SelectReportLayoutCode(ObjectId: Integer; var LayoutCode: Text; var LayoutType: Option "None",RDLC,Word,Excel,Custom; var Success: Boolean)
     var
+#if not CLEAN29
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
         FeatureKey: Record "Feature Key";
+#endif
         ReportLayoutSelection: Record "Report Layout Selection";
         DesignTimeReportSelection: Codeunit "Design-time Report Selection";
+#if not CLEAN29
         AppLayoutType: Enum "Custom Report Layout Type";
+#endif
         SelectedLayoutName: Text[250];
         SelectedAppID: Guid;
+#if not CLEAN29
         PlatformRenderingInPlatformTxt: Label 'RenderWordReportsInPlatform', Locked = true;
+#endif
     begin
         OnSelectReportLayoutCode(ObjectId, LayoutCode, LayoutType, Success);
         if Success then
@@ -181,6 +187,7 @@ codeunit 44 ReportManagement
             then
                 SelectedLayoutName := ReportLayoutSelection."Custom Report Layout Code";
 
+#if not CLEAN29
         if (SelectedLayoutName <> '') and (StrLen(SelectedLayoutName) <= MaxStrLen(CustomReportLayout."Code")) then
             // The code field in Custom Report Layout table can have a maximum size of 20 characters.
             if CustomReportLayout.Get(SelectedLayoutName.ToUpper()) then begin
@@ -203,6 +210,7 @@ codeunit 44 ReportManagement
                 Success := true;
                 exit;
             end;
+#endif
 
         if SelectedLayoutName <> '' then begin
             // A layout code is defined, but not found in application table. The layout type is not known and it's expected that the code refers to a layout in the platform. 
@@ -220,16 +228,21 @@ codeunit 44 ReportManagement
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'FetchReportLayoutByCode', '', false, false)]
     local procedure FetchReportLayoutByCode(ObjectId: Integer; LayoutCode: Text; var TargetStream: OutStream; var Success: Boolean)
     var
+#if not CLEAN29
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
         TempBlobIn: codeunit "Temp Blob";
         TempInStream: InStream;
+#endif
     begin
+        // The integration event is raised in both configurations: subscribers must keep their hook once
+        // the legacy lookup below is gone, so the platform can serve the layout instead.
         OnFetchReportLayoutByCode(ObjectId, LayoutCode, TargetStream, Success);
         if Success then
             exit;
 
+#if not CLEAN29
         if not CustomReportLayout.Get(LayoutCode) then
             LayoutCode := '';
 
@@ -239,6 +252,7 @@ codeunit 44 ReportManagement
             CopyStream(TargetStream, TempInStream);
             Success := true;
         end;
+#endif
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'SelectReportLayoutUI', '', false, false)]

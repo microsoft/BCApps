@@ -154,7 +154,9 @@ codeunit 9651 "Document Report Mgt."
         exit(XmlHasDataset);
     end;
 
+#if not CLEAN29
     [Scope('OnPrem')]
+    [Obsolete('Upgrades layouts stored in the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.', '29.0')]
     procedure ApplyUpgradeToReports(var ReportUpgradeCollection: DotNet ReportUpgradeCollection; testOnly: Boolean): Boolean
     var
 #pragma warning disable AL0432, AS0105
@@ -183,6 +185,7 @@ codeunit 9651 "Document Report Mgt."
         ProcessUpgradeLog(ReportChangeLogCollection);
         exit(ReportChangeLogCollection.Count > 0);
     end;
+#endif
 
     local procedure ProcessUpgradeLog(var ReportChangeLogCollection: DotNet IReportChangeLogCollection)
     var
