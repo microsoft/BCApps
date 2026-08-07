@@ -143,6 +143,9 @@ BankCheckingLbl: Label 'Bank, Checking', MaxLength = 100;
 #### NZ, AU
 None. Both countries' original apps only reference base W1 Contoso Coffee names (`EmployeesPayableName`, `BankLCYName`, etc.) which are available via `Create G/L Account` in the base `Contoso Coffee Demo Dataset`.
 
+#### FR
+None (no ContosoCoffee-FR name-lookups). FR introduces three FR-unique local G/L accounts (`CompanyCreditCards=512900`, `ExpensePrepaymentAccount=486200`, `RentalCarExpenses=625130`) with local `Tok` labels declared inside [demo data/Country/FR/FRExpGLAccount.Codeunit.al](demo%20data/Country/FR/FRExpGLAccount.Codeunit.al) — same as the original per-country app's own local declarations.
+
 ---
 
 ### Pattern B — ES `"Income Stmt. Bal. Acc."` late-bound field write
@@ -208,5 +211,6 @@ technique changes:
 
 - **NZ** ([demo data/Country/NZ/](demo%20data/Country/NZ/)): base W1 names only.
 - **AU** ([demo data/Country/AU/](demo%20data/Country/AU/)): base W1 names only.
+- **FR** ([demo data/Country/FR/](demo%20data/Country/FR/)): base W1 names only; three FR-local G/L accounts inlined verbatim from the original per-country app.
 
-Countries not yet ported (as of this doc): **FR, DE, AT**.
+Countries not yet ported (as of this doc): **DE, AT**.
