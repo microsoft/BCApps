@@ -399,6 +399,7 @@ page 2500 "Extension Management"
         DeprecationNotification.Id := ExtensionManagementDeprecationNotificationIdTok;
         DeprecationNotification.Scope := NotificationScope::LocalScope;
         DeprecationNotification.Message(ExtensionManagementDeprecationMsg);
+        DeprecationNotification.AddAction(LearnAboutAdminCenterExtensionManagementLbl, Codeunit::"Extension Operation Impl", 'OpenAdminCenterExtensionManagementDocumentation');
         DeprecationNotification.Send();
     end;
 
@@ -447,6 +448,7 @@ page 2500 "Extension Management"
         MarkAllAsReviewedLbl: Label 'Mark All as Reviewed';
         OrphanedDataNotificationIdTok: Label 'b1c5a678-2e3f-4d91-a6b0-9f8e7d6c5b4a', Locked = true;
         ExtensionManagementDeprecationMsg: Label 'Extension management is moving to the Business Central admin center. Use the admin center to upload and manage per-tenant extensions. This page will become unavailable in a future release.';
+        LearnAboutAdminCenterExtensionManagementLbl: Label 'Learn about managing extensions in the admin center';
         ExtensionManagementDeprecationNotificationIdTok: Label '3be91c11-8195-4c65-be23-20fddbea9bb7', Locked = true;
 
     protected procedure IsSaasEnvironment(): boolean
