@@ -118,7 +118,7 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
                         GenJnlPostLine.InitGLEntry(
                             GenJnlLine, GLEntry,
                             ComponentSetup."Payable Wthldg. Tax Acc. Code",
-                            ComponentWHT, 0, false, true, 0);
+                            -ComponentWHT, 0, false, true, 0);
                         GenJnlPostLine.InsertGLEntry(GenJnlLine, GLEntry, true);
                     end;
 
@@ -149,11 +149,6 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         WHTEmployeeCalc.CalcEmployeeWHT(GenJnlLine, TaxAmount, TaxAmountLCY);
         WHTEmployeeCalc.IsThresholdIncludeded(false);
 
-        if (GenJnlLine.Amount > 0) then begin
-            TaxAmount := -TaxAmount;
-            TaxAmountLCY := -TaxAmountLCY;
-        end;
-
         sender.InitGLEntry(
                 GenJnlLine, GLEntry, GenJnlLine."Account No.", GenJnlLine."Amount (LCY)" + TaxAmount,
                 GenJnlLine."Source Currency Amount" + TaxAmount, true, GenJnlLine."System-Created Entry",
@@ -171,6 +166,9 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
             exit;
 
         if not WHTEmployeeCalc.IsEmployeeWHTApplicable(GenJnlLine) then
+            exit;
+
+        if GenJnlLine.Amount > 0 then
             exit;
 
         TempDtldCVLedgEntryBuf.Amount := TempDtldCVLedgEntryBuf.Amount + GenJnlPostLine.ExchangeAmtLCYToFCY2(TaxAmount);

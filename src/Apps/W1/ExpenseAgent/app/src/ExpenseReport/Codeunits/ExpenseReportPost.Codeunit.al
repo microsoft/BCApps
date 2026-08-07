@@ -126,6 +126,8 @@ codeunit 6987 "Expense Report-Post"
         UpdateLastPostingNos(ExpenseReportHeader);
         ProcessExpenseReportLines(ExpenseReportHeader);
         InsertPstdExpReportHeaderVATSpecs(ExpenseReportHeader."No.", PostedExpenseReportHeader."No.");
+        if AmountToEmployee <> 0 then
+            PostEmployeeEntry(ExpenseReportHeader);
     end;
 
     local procedure ValidateExpenseReportForPosting(var ExpenseReportHeader: Record "Expense Report Header")
@@ -174,7 +176,6 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         if ExpenseReportLine.FindSet() then
             repeat
-                AmountToEmployee := 0;
                 ExpenseReportLine.TestField("Expense Category");
                 ExpenseReportLine.TestField("Reimbursement Type");
 
@@ -202,8 +203,7 @@ codeunit 6987 "Expense Report-Post"
 
                 InsertExpenseLedgerEntry(GlobalExpenseLedgerEntry);
 
-                if AmountToEmployee <> 0 then
-                    PostEmployeeEntry(ExpenseReportHeader, ExpenseReportLine);
+                OnAfterProcessExpenseReportLine(ExpenseReportHeader, ExpenseReportLine, PostedExpenseReportLine, PostedExpenseReportHeader);
             until ExpenseReportLine.Next() = 0;
 
         if not PreviewMode then
@@ -631,7 +631,7 @@ codeunit 6987 "Expense Report-Post"
         exit(JobLedgEntryNo);
     end;
 
-    local procedure PostEmployeeEntry(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line")
+    local procedure PostEmployeeEntry(ExpenseReportHeader: Record "Expense Report Header")
     var
         GenJournalLine: Record "Gen. Journal Line";
     begin
@@ -645,7 +645,6 @@ codeunit 6987 "Expense Report-Post"
         GenJournalLine.Validate("Posting Group", ExpenseReportHeader."Employee Posting Group");
         GenJournalLine.Validate("Currency Code", ExpenseReportHeader."Reimbursement Currency Code");
         GenJournalLine.Validate("Source Currency Code", ExpenseReportHeader."Reimbursement Currency Code");
-        GenJournalLine.Validate("Expense Category", ExpenseReportLine."Expense Category");
         GenJournalLine."Currency Factor" := ExpenseReportHeader."Reimbursement Currency Factor";
         GenJournalLine.Amount := -AmountToEmployee;
         GenJournalLine."Amount (LCY)" := -AmountToEmployeeLCY;
@@ -657,7 +656,10 @@ codeunit 6987 "Expense Report-Post"
 
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportHeader."Dimension Set ID");
         GenJournalLine."System-Created Entry" := true;
+
+        OnBeforePostEmployeeEntry(GenJournalLine, ExpenseReportHeader, PostedExpenseReportHeader);
         GenJnlPostLine.RunWithCheck(GenJournalLine);
+        OnAfterPostEmployeeEntry(GenJournalLine, ExpenseReportHeader, PostedExpenseReportHeader);
     end;
 
     local procedure UpdateLastPostingNos(var ExpenseReportHeader: Record "Expense Report Header")
@@ -1250,5 +1252,20 @@ codeunit 6987 "Expense Report-Post"
 
         // Delete the source aggregate rows now that they are safely in the posted table.
         ExpenseReportLineVATSpec.DeleteAll();
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterProcessExpenseReportLine(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpenseReportLine: Record "Posted Expense Report Line"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostEmployeeEntry(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterPostEmployeeEntry(GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    begin
     end;
 }
