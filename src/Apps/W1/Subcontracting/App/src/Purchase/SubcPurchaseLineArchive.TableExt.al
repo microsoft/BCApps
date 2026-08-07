@@ -9,7 +9,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Archive;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20516 "Subc. Purchase Line Archive" extends "Purchase Line Archive"
 {
     fields
@@ -61,4 +60,3 @@ tableextension 20516 "Subc. Purchase Line Archive" extends "Purchase Line Archiv
         }
     }
 }
-#pragma warning restore AS0072, AS0136

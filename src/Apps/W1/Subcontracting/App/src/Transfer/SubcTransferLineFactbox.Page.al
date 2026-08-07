@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-#pragma warning disable AS0072, AS0136
 page 20501 "Subc. Transfer Line Factbox"
 {
     ApplicationArea = Subcontracting;
@@ -92,4 +91,3 @@ page 20501 "Subc. Transfer Line Factbox"
         SubcPurchFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }
-#pragma warning restore AS0072, AS0136

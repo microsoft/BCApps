@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.WorkCenter;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20519 "Subc. Work Center Extension"
 {
     [EventSubscriber(ObjectType::Table, Database::"Work Center", OnAfterDeleteEvent, '', false, false)]
@@ -34,4 +33,3 @@ codeunit 20519 "Subc. Work Center Extension"
         SubcontractorPrice.DeletePricesForWorkCenter(Rec."No.");
     end;
 }
-#pragma warning restore AS0072, AS0136

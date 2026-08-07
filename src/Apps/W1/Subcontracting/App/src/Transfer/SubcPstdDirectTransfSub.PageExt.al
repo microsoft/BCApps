@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transfer Subform"
 {
     layout
@@ -152,4 +151,3 @@ pageextension 20532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transfer 
         SubcPurchFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }
-#pragma warning restore AS0072, AS0136

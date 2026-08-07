@@ -11,7 +11,6 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20561 "Subc. Routing Factbox Mgmt."
 {
 #if not CLEAN28
@@ -343,4 +342,3 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
         Page.Run(Page::"Subc. Prod. Order Components", ProdOrderComponent);
     end;
 }
-#pragma warning restore AS0072, AS0136

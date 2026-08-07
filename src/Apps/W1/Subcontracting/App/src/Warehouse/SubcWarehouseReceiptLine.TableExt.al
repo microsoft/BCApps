@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.Document;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20525 "Subc. Warehouse Receipt Line" extends "Warehouse Receipt Line"
 {
     fields
@@ -28,4 +27,3 @@ tableextension 20525 "Subc. Warehouse Receipt Line" extends "Warehouse Receipt L
         }
     }
 }
-#pragma warning restore AS0072, AS0136

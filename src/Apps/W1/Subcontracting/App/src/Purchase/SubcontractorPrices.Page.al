@@ -11,7 +11,6 @@ using Microsoft.Purchases.Vendor;
 using System.Globalization;
 using System.Text;
 
-#pragma warning disable AS0072, AS0136
 page 20500 "Subcontractor Prices"
 {
     ApplicationArea = Subcontracting;
@@ -412,4 +411,3 @@ page 20500 "Subcontractor Prices"
         CurrPage.SetSelectionFilter(SubcontractorPrice);
     end;
 }
-#pragma warning restore AS0072, AS0136

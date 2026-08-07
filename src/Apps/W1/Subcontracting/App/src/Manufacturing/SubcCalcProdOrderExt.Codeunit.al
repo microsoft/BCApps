@@ -8,7 +8,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20517 "Subc. Calc. Prod. Order Ext."
 {
 #if not CLEAN28
@@ -67,4 +66,3 @@ codeunit 20517 "Subc. Calc. Prod. Order Ext."
     begin
     end;
 }
-#pragma warning restore AS0072, AS0136
