@@ -42,9 +42,10 @@
     changed file that cannot be attributed to an app, or a change set so large that reuse buys
     nothing.
 
-    Note what is deliberately NOT a trigger. A retained app is never compiled by this build, so
-    rulesets, analyzer baselines and the artifact/platform pins cannot invalidate it, and
-    dependents of a changed app are not refreshed - see Get-ChangedAppNames.
+    A compiled app's control ids and symbol layout depend on the symbols it was built against,
+    not only on its own source. The root apps below are compiled into nearly every other app, so
+    when one of them changes every artifact binary is stale even where its own source is
+    untouched, and reuse is abandoned for the whole run - see Get-ChangedAppNames.
 #>
 
 $ErrorActionPreference = "Stop"
@@ -61,6 +62,20 @@ $script:AppsNeverInContainer = @(
     'Prevent Metadata Updates Library'
 )
 
+# Apps that nearly every other app is compiled against, identified by the paths they are built
+# from. Matching on path rather than on the owning app matters: these roots contain nested
+# app.json files (111 under System Application alone) that are modules of the root app and not
+# apps of their own, so attribution by folder would blame a module that is in no container.
+# Layer roots are matched only after the country's view chain has been applied.
+$script:RootAppFoldersInLayer = @{
+    'BaseApp'     = 'Base Application'
+    'Application' = 'Application'
+}
+$script:RootAppFolders = @{
+    'src/System Application/App'  = 'System Application'
+    'src/Business Foundation/App' = 'Business Foundation'
+}
+
 # Changed files that cannot invalidate an app already published in the artifact. A retained app
 # is never compiled by this build, so rulesets and analyzer baselines cannot affect it. The
 # artifact and platform pins are here deliberately: bumping them fetches a newer artifact with a
@@ -75,6 +90,12 @@ $script:PatternsThatCannotInvalidateApps = @(
     '.gitattributes'
     '.editorconfig'
     '.vscode/*'
+)
+
+# Exceptions to the list above: these are compiled into the app package, so a change to one
+# changes the binary no matter what its extension suggests. Agent prompts are markdown.
+$script:PatternsCompiledIntoApps = @(
+    'src/*/.resources/*'
 )
 
 # Layers are not apps. A country layer folder carries no app.json of its own: it overlays the
@@ -517,6 +538,10 @@ function Get-ChangedAppNames {
 
     $changedKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
+    # Reuse is all-or-nothing on a root app: it is rebuilt, but the artifact binaries that
+    # reference it are not, and their control ids were assigned against its previous symbols.
+    $rootChanged = { param($app) & $notUsable "$app changed - every artifact binary compiled against it is stale" }
+
     foreach ($file in $ChangedFiles) {
         $normalized = "$file".Replace('\', '/').Trim('/')
         if (-not $normalized) { continue }
@@ -524,6 +549,9 @@ function Get-ChangedAppNames {
         $ignore = $false
         foreach ($pattern in $script:PatternsThatCannotInvalidateApps) {
             if ($normalized -like $pattern) { $ignore = $true; break }
+        }
+        foreach ($pattern in $script:PatternsCompiledIntoApps) {
+            if ($normalized -like $pattern) { $ignore = $false; break }
         }
         if ($ignore) { continue }
 
@@ -537,6 +565,11 @@ function Get-ChangedAppNames {
             if ($chain -notcontains $layer) {
                 # Compiled into another country's view only.
                 continue
+            }
+
+            $rootFolder = @($rest -split '/')[0]
+            if ($script:RootAppFoldersInLayer.ContainsKey($rootFolder)) {
+                return & $rootChanged $script:RootAppFoldersInLayer[$rootFolder]
             }
 
             $key = $null
@@ -558,6 +591,10 @@ function Get-ChangedAppNames {
         }
 
         if ($normalized -like 'src/*') {
+            foreach ($folder in $script:RootAppFolders.Keys) {
+                if ($normalized -like "$folder/*") { return & $rootChanged $script:RootAppFolders[$folder] }
+            }
+
             $key = $null
             $segments = @($normalized -split '/')
             for ($take = $segments.Count - 1; $take -ge 1 -and -not $key; $take--) {

@@ -219,12 +219,19 @@ Describe "ArtifactBaseline" {
             $result.ChangedApps.Count | Should -Be 1
         }
 
-        It "keeps every app reusable when Base Application changes" {
-            # Everything depends on Base Application, so expanding to dependents would refresh
-            # the whole container - and Base Application changes in nearly every window.
+        It "abandons reuse when Base Application changes" {
+            # Nearly every app is compiled against Base Application. Rebuilding it while keeping
+            # the artifact binaries of its dependents leaves those binaries holding control ids
+            # that were assigned against the previous symbols.
             $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/W1/BaseApp/Bank/Check/CheckManagement.Codeunit.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
-            $result.IsUsable | Should -BeTrue
-            $result.ChangedApps | Should -Be @('Microsoft_Base Application')
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'Base Application'
+        }
+
+        It "abandons reuse when any other root app changes" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/System Application/App/Environment Information/src/EnvironmentInformation.Codeunit.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'System Application'
         }
 
         It "resolves a layer file through the country's view chain" {
@@ -233,10 +240,11 @@ Describe "ArtifactBaseline" {
         }
 
         It "attributes a country layer for a build of that country" {
-            # src/Layers/DK carries no app.json - it overlays the base layer in the DK view.
+            # src/Layers/DK carries no app.json - it overlays the base layer in the DK view, so
+            # the change has to land on Base Application and trip the root gate.
             $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/DK/BaseApp/Some.Table.al') -BaseFolder $script:baseFolder -CountryCode 'dk' -Graph $script:graph
-            $result.IsUsable | Should -BeTrue
-            $result.ChangedApps | Should -Be @('Microsoft_Base Application')
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'Base Application'
         }
 
         It "ignores a layer that is not part of the country's chain" {
@@ -269,6 +277,13 @@ Describe "ArtifactBaseline" {
                 $result.IsUsable | Should -BeTrue -Because "$file cannot change a binary that is already in the artifact"
                 $result.ChangedApps.Count | Should -Be 0 -Because "$file belongs to no app"
             }
+        }
+
+        It "invalidates on a resource that is compiled into the app despite its extension" {
+            # Agent prompts are markdown but ship inside the .app package.
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/SalesOrderAgent/app/.resources/Prompts/SalesOrderAgent-AgentInstructions.md') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeTrue
+            $result.ChangedApps | Should -Be @('Microsoft_Sales Order Agent')
         }
 
         It "reports no changes for an empty diff and still lists the known apps" {

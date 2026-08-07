@@ -94,32 +94,64 @@ The two concerns that rationale cited do not survive contact with the code:
 - **Test discovery.** `runTestsInAllInstalledTestApps` derives the test set from the installed
   apps. Leaving unchanged test apps installed produces the same set, not a different one.
 
-### Only the owning app is republished; dependents are only moved out of the way
+### Only the owning app is republished, and root apps are all-or-nothing
 
 The set of apps to **republish** is not expanded down the dependency graph.
 `BuildOptimization`'s `Get-AffectedApps` does expand, because it answers a different question -
 *which tests must run* - where a change in a dependency can change a dependent's behaviour.
 
-The set of apps to **uninstall** is a third question again, and it *is* dependency-closed,
-because BC will not uninstall an app while an installed app depends on it. Those dependents are
-uninstalled and reinstalled; they are never republished.
+*Which published binaries are still valid* is a third question, and the first version of this
+module answered it wrongly. It assumed an app whose own source did not change is still valid,
+since BCApps pins dependencies at `<major>.<minor>.0.0` and a refreshed Base Application at
+`29.0.2147483647.x` still satisfies the pin.
 
-Watch out for implicit dependencies here. The graph is built from app.json `dependencies`, but
-most apps never list the base apps there - they declare `"application": "29.0.0.0"` and
-`"platform": "29.0.0.0"`, which are implicit dependencies on Base Application and System
-Application. Counting only explicit ones made a Base Application change look like it affected
-7 apps when it really affects 516.
+Version resolution is satisfied, but a compiled app carries more than a version reference: its
+control ids and symbol layout are assigned against the symbols it was compiled with. Rebuilding
+Base Application while keeping the artifact binaries of its dependents leaves those binaries
+holding ids that the freshly built test apps no longer agree on. Run 30992178951 failed exactly
+this way on both attempts - 176 tests across three test modes, nearly all of the form:
 
-*Which published binaries are still valid* is not that question. An app whose own source did not
-change has identical source at both commits, is already published, installed and synchronized in
-the restored database, and still resolves its dependencies because BCApps pins them at
-`<major>.<minor>.0.0`, so a refreshed Base Application at `29.0.2147483647.x` still satisfies it.
+```
+Function SalesPriceDiscountActivation
+The field with ID = 620239024 is not found on the page.
+```
 
-This is not a marginal difference. Measured on a real 16-commit, 3-day window
-(`1e77e9c2..28ff6645`, 432 changed files, 841 apps): expanding to dependents marks **841 of 841
-apps**, because `src/Layers/W1/BaseApp` changed and everything depends on Base Application.
-Attributing to the owning app marks **10**. Base Application changes in nearly every multi-day
-window, so expansion would make this optimization fire approximately never.
+The same tests passed in the AT control job of the same run. The container was in the intended
+shape (0 apps left uninstalled, Base Application upgraded in place) and the failing page's own
+source had not changed. 90 apps were reused and only 7 rebuilt.
+
+So the rule is dependency-closed after all - but the closure of a root app is everything, which
+makes it a gate rather than a graph walk: if `Base Application`, `System Application`,
+`Business Foundation` or `Application` changed, nothing is reused for that run.
+
+Roots are matched by **path**, not by the owning app. They contain nested `app.json` files - 111
+under `src/System Application/App`, 40 under `src/Layers/W1/BaseApp` - which are modules of the
+root app rather than apps of their own, so attribution by folder blames a module that is in no
+container. Layer roots (`BaseApp`, `Application`) are matched only after the country's view chain
+has been applied, so another country's layer still does not affect this build.
+
+Watch out for implicit dependencies if this is ever refined into a real closure. The graph is
+built from app.json `dependencies`, but most apps never list the base apps there - they declare
+`"application": "29.0.0.0"` and `"platform": "29.0.0.0"`, which are implicit dependencies on Base
+Application and System Application. Counting only explicit ones made a Base Application change
+look like it affected 7 apps when it really affects 516.
+
+### The value now depends on artifact freshness
+
+A root change disables reuse for the whole run, so the saving only lands when the artifact is
+newer than the last root commit. Over the 30 days to 2026-08-07, 149 commits on `main` touched
+the four roots:
+
+| Artifact age | Runs where reuse is valid |
+| --- | --- |
+| 1 h | 84.9% |
+| 3 h | 66.8% |
+| 6 h | 52.7% |
+| 12 h | 37.2% |
+| 24 h | 21.8% |
+
+At a daily artifact cadence the expected saving is about 22% of ~35 min per job. The remaining
+value is in publishing artifacts more often, not in refining the attribution.
 
 ### Layers are resolved through the country's view chain
 
@@ -286,7 +318,12 @@ clean:
 | `src/DisabledTests/*` | Controls which tests run, not what a binary contains |
 | `build/*` | Build tooling, package pins and per-project AL-Go settings. If a project's `appFolders` changes, a removed app is unpublished anyway (it is no longer in `KnownApps`) and an added app arrives with new files that are attributed normally |
 | `.github/*` | Workflows and the repository-wide AL-Go settings. Preprocessor-symbol changes are caught by the build-mode guard above |
-| `*.md`, `.gitignore`, `.vscode/*` | Not compiled |
+| `*.md`, `.gitignore`, `.vscode/*` | Not compiled - except under `.resources/`, see below |
+
+Markdown is the one exception worth stating. Agent prompts live in `src/*/.resources/Prompts/*.md`
+and are compiled into the `.app`, so `PatternsCompiledIntoApps` overrides the `*.md` rule. Without
+it, `Sales Order Agent` was classified unchanged in run 30992178951 on the strength of a changed
+prompt alone.
 
 The artifact and platform pins deserve their own note. `UpdateBCArtifactVersion` bumps them
 roughly weekly:
