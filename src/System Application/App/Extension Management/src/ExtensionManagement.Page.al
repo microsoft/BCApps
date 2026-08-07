@@ -16,6 +16,9 @@ using System.Integration;
 page 2500 "Extension Management"
 {
     Caption = 'Extension Management';
+    ObsoleteReason = 'Use the Business Central admin center to upload and manage per-tenant extensions.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     AdditionalSearchTerms = 'app,add-in,customize,plug-in,appsource';
     ApplicationArea = All;
     DeleteAllowed = false;
@@ -382,7 +385,19 @@ page 2500 "Extension Management"
         ActionsEnabled := false;
 
         HelpActionVisible := false;
+        ShowExtensionManagementDeprecationNotification();
         ShowUninstalledExtensionsNotification();
+    end;
+
+    local procedure ShowExtensionManagementDeprecationNotification()
+    var
+        DeprecationNotification: Notification;
+    begin
+        DeprecationNotification.Id := ExtensionManagementDeprecationNotificationIdTok;
+        DeprecationNotification.Scope := NotificationScope::LocalScope;
+        DeprecationNotification.Message(ExtensionManagementDeprecationMsg);
+        DeprecationNotification.AddAction(ReadMoreHereLbl, Codeunit::"Extension Operation Impl", 'OpenAdminCenterExtensionManagementDocumentation');
+        DeprecationNotification.Send();
     end;
 
     local procedure ShowUninstalledExtensionsNotification()
@@ -429,6 +444,9 @@ page 2500 "Extension Management"
         ShowOrphanedDataLbl: Label 'Show Data';
         MarkAllAsReviewedLbl: Label 'Mark All as Reviewed';
         OrphanedDataNotificationIdTok: Label 'b1c5a678-2e3f-4d91-a6b0-9f8e7d6c5b4a', Locked = true;
+        ExtensionManagementDeprecationMsg: Label 'Extension management is moving to the Business Central admin center. Use the admin center to upload and manage per-tenant extensions. This page will become unavailable in a future release.';
+        ReadMoreHereLbl: Label 'Read more here';
+        ExtensionManagementDeprecationNotificationIdTok: Label '3be91c11-8195-4c65-be23-20fddbea9bb7', Locked = true;
 
     protected procedure IsSaasEnvironment(): boolean
     begin

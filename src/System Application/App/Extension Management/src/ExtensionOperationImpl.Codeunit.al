@@ -37,6 +37,7 @@ codeunit 2503 "Extension Operation Impl"
         InstallationFailedOpenDetailsTxt: Label 'App installation failed. User has chosen to see the details.';
         InstallationFailedDoNotOpenDetailsTxt: Label 'App installation failed. User has chosen not to check out the details.';
         PageCaptionTok: Label '%1 %2', Comment = '%1 = Page default caption %2 = App name';
+        AdminCenterExtensionManagementUrlLbl: Label 'https://go.microsoft.com/fwlink/?LinkId=2374621', Locked = true;
 
     local procedure AssertIsInitialized()
     begin
@@ -147,6 +148,11 @@ codeunit 2503 "Extension Operation Impl"
 
         UnpublishUninstalledPerTenantExtension(PackageID);
         exit(true);
+    end;
+
+    procedure OpenAdminCenterExtensionManagementDocumentation(Notification: Notification)
+    begin
+        Hyperlink(AdminCenterExtensionManagementUrlLbl);
     end;
 
     procedure UnpublishUninstalledPerTenantExtension(PackageID: Guid)
