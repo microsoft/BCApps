@@ -1862,12 +1862,19 @@ codeunit 7307 "Whse.-Activity-Register"
     local procedure CheckItemTrackingRequiredForPutAway(WhseActivLine: Record "Warehouse Activity Line")
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCheckItemTrackingRequiredForPutAway(WhseActivLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if WhseActivLine."Activity Type" <> WhseActivLine."Activity Type"::"Put-away" then
             exit;
         if WhseActivLine."Serial No." = '' then
             exit;
 
+        ItemLedgerEntry.SetCurrentKey("Item No.", "Variant Code", "Location Code", "Serial No.");
         ItemLedgerEntry.SetRange("Item No.", WhseActivLine."Item No.");
         ItemLedgerEntry.SetRange("Variant Code", WhseActivLine."Variant Code");
         ItemLedgerEntry.SetRange("Location Code", WhseActivLine."Location Code");
@@ -2468,6 +2475,11 @@ codeunit 7307 "Whse.-Activity-Register"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBinRelatedFields(WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckItemTrackingRequiredForPutAway(WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
     begin
     end;
 

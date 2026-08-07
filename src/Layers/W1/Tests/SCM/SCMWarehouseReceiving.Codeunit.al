@@ -4408,6 +4408,7 @@ codeunit 137152 "SCM Warehouse - Receiving"
         // [THEN] Registration is blocked because the line's Lot No. must equal the posted item ledger entry's Lot No.,
         // preventing the ledger/bin content mismatch.
         Assert.ExpectedTestFieldError(WarehouseActivityLine.FieldCaption("Lot No."), Format(LotNo));
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
