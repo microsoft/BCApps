@@ -288,7 +288,7 @@ page 4300 "Agent Task List"
     trigger OnOpenPage()
     begin
         Rec.SetRange(Archived, false);
-        ShouldShowAllAgents := false;
+        ShouldShowAllAgents := Rec.GetFilter("Agent User Security ID") <> '';
         SetAgentSubstateFilter();
     end;
 
