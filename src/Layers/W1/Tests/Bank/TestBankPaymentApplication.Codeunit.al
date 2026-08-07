@@ -2141,7 +2141,6 @@ codeunit 134263 "Test Bank Payment Application"
         Vendor: Record Vendor;
         GenJournalBatch: Record "Gen. Journal Batch";
         GLEntry: Record "G/L Entry";
-        EnvironmentInformation: Codeunit "Environment Information";
         InvoicePostingGroupCode: Code[20];
         PaymentPostingGroupCode: Code[20];
         PrimaryPayablesAccountNo: Code[20];
@@ -2156,16 +2155,11 @@ codeunit 134263 "Test Bank Payment Application"
         AdjustmentPostingDate: Date;
         PaymentPostingDate: Date;
     begin
+        // [FEATURE] [Purchases] [Application] [Multiple Posting Groups]
+        // [SCENARIO] 643355 Unrealized gain/loss on a multi-posting-group FCY vendor application is not posted to the wrong payables account
         Initialize();
 
-        // Bug 643355 regression: the strict per-payables-account net-zero assertions below reflect W1 posting behavior.
-        // Localizations (e.g. ES, BE, CH) run additional multi-posting-group application logic (PostDtldCVApplicationEntry)
-        // that legitimately redistributes amounts across the two payables accounts, so the exact per-account check does not
-        // hold there. The S1 production fix (removing the vendor compensating gain/loss pair) is applied identically to
-        // every layer; W1 validates it here.
-        if EnvironmentInformation.GetApplicationFamily() <> 'W1' then
-            exit;
-
+        // [GIVEN] A vendor with two vendor posting groups (distinct payables accounts) linked as alternatives, and an FCY currency
         LibraryPurch.CreateVendor(Vendor);
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
         LibraryERM.ClearGenJournalLines(GenJournalBatch);
@@ -2188,6 +2182,7 @@ codeunit 134263 "Test Bank Payment Application"
         PostPaymentAdjustmentDocumentNo := GetUniqueCode20('AD2');
         PaymentDocumentNo := GetUniqueCode20('PAY');
 
+        // [WHEN] The FCY invoice is posted, exchange rates are adjusted, and an LCY payment under the alternative posting group is posted and applied
         RunVendorFcyApplicationE2EAutomationInTest(
   Vendor."No.",
   CurrencyCode,
@@ -2210,6 +2205,7 @@ codeunit 134263 "Test Bank Payment Application"
   80,
   90);
 
+        // [THEN] G/L entries are posted for the payment (and on W1 both payables accounts net to zero)
         GLEntry.SetRange("Document No.", PaymentDocumentNo);
         Assert.IsTrue(not GLEntry.IsEmpty(), 'Expected posted G/L entries for payment document were not found.');
     end;
@@ -2219,9 +2215,6 @@ codeunit 134263 "Test Bank Payment Application"
         FirstVendorPostingGroup: Record "Vendor Posting Group";
         SecondVendorPostingGroup: Record "Vendor Posting Group";
     begin
-        // Build dedicated fixtures via the test libraries instead of relying on ambient chart-of-accounts data
-        // (previously the demo payables accounts 5420 and 6130). Each vendor posting group is created with its own
-        // newly generated payables control account, guaranteeing two distinct accounts and a deterministic scenario.
         LibraryPurch.CreateVendorPostingGroup(FirstVendorPostingGroup);
         LibraryPurch.CreateVendorPostingGroup(SecondVendorPostingGroup);
         FirstPostingGroupCode := FirstVendorPostingGroup.Code;
@@ -2260,6 +2253,7 @@ codeunit 134263 "Test Bank Payment Application"
         Vendor: Record Vendor;
         VendLedgEntry: Record "Vendor Ledger Entry";
         CurrencyExchangeRate: Record "Currency Exchange Rate";
+        EnvironmentInformation: Codeunit "Environment Information";
         EffectiveInvoiceDocumentNo: Code[20];
         PaymentAmountLCY: Decimal;
     begin
@@ -2272,9 +2266,6 @@ codeunit 134263 "Test Bank Payment Application"
         AssertDocumentNoIsAvailableForTest(PaymentDocumentNo, JournalTemplateName, JournalBatchName);
 
         ConfigurePurchasesMultiplePostingGroupsSetupForTest();
-        // The two vendor posting groups (and their payables accounts) are created by
-        // GetTwoVendorPostingGroupsWithDifferentPayablesAccounts; here we only link them as alternatives so the
-        // invoice's group and the payment's group are mutually substitutable for the multi-posting-group scenario.
         LibraryPurch.CreateAltVendorPostingGroup(InvoiceVendorPostingGroup, PaymentVendorPostingGroup);
         LibraryPurch.CreateAltVendorPostingGroup(PaymentVendorPostingGroup, InvoiceVendorPostingGroup);
 
@@ -2304,9 +2295,6 @@ codeunit 134263 "Test Bank Payment Application"
           AdjustmentPostingDate,
           AdjustmentPostingDate);
 
-        // Repro Bug 643355: the vendor's default posting group stays on the invoice group; the payment carries the
-        // alternative posting group explicitly on the journal line (multi-posting-groups), exactly like the repro
-        // where the payment line's Posting Group = FOREIGNADV while the vendor default remains the invoice group.
         VendLedgEntry.CalcFields("Remaining Amount");
         PaymentAmountLCY :=
             Abs(Round(
@@ -2314,9 +2302,6 @@ codeunit 134263 "Test Bank Payment Application"
                     PaymentPostingDate, CurrencyCode, VendLedgEntry."Remaining Amount",
                     CurrencyExchangeRate.ExchangeRate(PaymentPostingDate, CurrencyCode))));
 
-        // Repro Bug 643355: the payment is posted in local currency (blank Currency Code), not the invoice's
-        // foreign currency. It is posted standalone (Open) here - the application is a SEPARATE step below,
-        // exactly like the repro (post the payment first, then Apply Entries / Post Application).
         PostVendorGenJournalLineForTest(
           VendorNo,
           '',
@@ -2330,15 +2315,14 @@ codeunit 134263 "Test Bank Payment Application"
           BalancingGLAccountNo,
                     '');
 
-        // Repro Bug 643355 (Apply step): open Vendor Ledger Entries, select the payment, click Apply Entries,
-        // Set Applies-to ID on the invoice, then Post Application. This applies the blank-currency (LCY) payment to
-        // the FCY invoice through VendEntry-Apply Posted Entries, which is where the cross-posting-group unrealized
-        // gain/loss compensation in PostDtldCVLedgEntry fires - the exact path S1 corrects.
         LibraryERM.ApplyVendorLedgerEntries(
           Enum::"Gen. Journal Document Type"::Payment,
           Enum::"Gen. Journal Document Type"::Invoice,
           PaymentDocumentNo,
           EffectiveInvoiceDocumentNo);
+
+        if EnvironmentInformation.GetApplicationFamily() <> 'W1' then
+            exit;
 
         VerifyVendorFcyApplicationExpectedDistributionForTest(
           VendorNo,
@@ -2366,10 +2350,6 @@ codeunit 134263 "Test Bank Payment Application"
         if not Vend.Get(VendorNo) then
             Error(VendorDoesNotExistErr, VendorNo);
 
-        // Repro Bug 643355 posts the invoice on a direct G/L account line with a No-Tax VAT product group.
-        // Create an expense account fully set up for purchase, align the vendor's Gen./VAT Bus. posting groups
-        // to it (so the line's posting setups exist), and force 0% VAT so the FCY amounts stay clean
-        // (invoice payable = the line amount, with no VAT component).
         GLAccount.Get(LibraryERM.CreateGLAccountWithPurchSetup());
         GLAccount.Validate("Direct Posting", true);
         GLAccount.Modify(true);
@@ -2505,9 +2485,6 @@ codeunit 134263 "Test Bank Payment Application"
         GenJournalLine.Validate("External Document No.", DocumentNo);
         GenJournalLine.Validate("Currency Code", CurrencyCode);
 
-        // Repro Bug 643355: override the posting group on the payment line (multi-posting-groups), leaving the
-        // vendor default untouched. This is what pairs a payment posted under the alternative group with an
-        // invoice under the primary group and exercises the cross-posting-group unrealized gain/loss path.
         if PaymentPostingGroup <> '' then
             GenJournalLine.Validate("Posting Group", PaymentPostingGroup);
 
@@ -2549,11 +2526,6 @@ codeunit 134263 "Test Bank Payment Application"
         PrimaryNetAmount: Decimal;
         SecondaryNetAmount: Decimal;
     begin
-        // After a fully-applied FCY invoice/payment across two different vendor posting groups, the payables
-        // control account of BOTH posting groups must net to zero for this vendor. The bug (Incorrect Payables
-        // Account Selected for Unrealized Gain/Loss) posts the gain/loss to the payment posting group's account
-        // instead of the invoice posting group's account, which leaves the invoice group's account non-zero and
-        // the payment group's account non-zero by the equal-and-opposite amount.
         PrimaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom, PostingDateTo, PrimaryPayablesAccountNo);
         Assert.AreEqual(
           0, Round(PrimaryNetAmount, 0.01),
@@ -2579,18 +2551,15 @@ codeunit 134263 "Test Bank Payment Application"
         PrePaymentAdjustmentPrimaryAmount: Decimal;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
-        // 1) The vendor must be fully applied after invoice + adjustment + payment + application.
         VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
         VendorLedgerEntry.SetRange(Open, true);
         if not VendorLedgerEntry.IsEmpty() then
             Error(VendorHasOpenEntriesErr, VendorNo);
 
-        // 2) The invoice must actually post to the primary payables account (guards against the wrong-account bug).
         InvoicePrimaryAmount := GetGLAmountByDocumentAndAccountForTest(InvoiceDocumentNo, PrimaryPayablesAccountNo);
         if Round(InvoicePrimaryAmount, 0.01) = 0 then
             Error(InvoiceNotOnPrimaryAccountErr, InvoiceDocumentNo, PrimaryPayablesAccountNo);
 
-        // 3) The pre-payment exchange adjustment must have produced an unrealized adjustment on the primary payables account.
         PrePaymentAdjustmentPrimaryAmount := GetGLAmountByDocumentAndAccountForTest(PrePaymentAdjustmentDocumentNo, PrimaryPayablesAccountNo);
         if Round(PrePaymentAdjustmentPrimaryAmount, 0.01) = 0 then
             Error(MissingPrepaymentAdjustmentErr, PrimaryPayablesAccountNo, PrePaymentAdjustmentDocumentNo, PrePaymentAdjustmentPrimaryAmount);
@@ -2600,10 +2569,6 @@ codeunit 134263 "Test Bank Payment Application"
     var
         GLEntry: Record "G/L Entry";
     begin
-        // Sum ALL G/L entries on the (dedicated, freshly created) payables control account - do NOT filter by
-        // Source Type = Vendor. The unrealized exchange-rate adjustment posts to the payables account with a blank
-        // Source Type, so a Source Type = Vendor filter would silently exclude the adjustment and misreport the
-        // control-account balance (making the buggy +5/-5 imbalance look like +10/-5).
         GLEntry.SetRange("G/L Account No.", GLAccountNo);
         GLEntry.SetRange("Posting Date", PostingDateFrom, PostingDateTo);
         GLEntry.CalcSums(Amount);
