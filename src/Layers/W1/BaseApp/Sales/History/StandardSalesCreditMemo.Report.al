@@ -1028,6 +1028,9 @@ report 1307 "Standard Sales - Credit Memo"
             LayoutFile = './Sales/History/StandardSalesCreditMemo.docx';
             Caption = 'Standard Sales Credit Memo (Word)';
             Summary = 'The Standard Sales Credit Memo (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("StandardSalesCreditMemoThemable.docx")
         {
@@ -1035,6 +1038,9 @@ report 1307 "Standard Sales - Credit Memo"
             LayoutFile = './Sales/History/StandardSalesCreditMemoThemable.docx';
             Caption = 'Standard Sales Credit Memo - themable Word layout';
             Summary = 'The Standard Sales Credit Memo (Word) provides a basic Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("StandardSalesCreditMemoEmail.docx")
         {
@@ -1042,6 +1048,9 @@ report 1307 "Standard Sales - Credit Memo"
             LayoutFile = './Sales/History/StandardSalesCreditMemoEmail.docx';
             Caption = 'Standard Sales Credit Memo Email (Word)';
             Summary = 'The Standard Sales Credit Memo Email (Word) provides an email body layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("StandardSalesCreditMemoBody.docx")
         {
@@ -1050,13 +1059,7 @@ report 1307 "Standard Sales - Credit Memo"
             Caption = 'Body-only: Standard Sales Credit Memo (Word)';
             Summary = 'Body-only: The Standard Sales Credit Memo (Word) provides a basic layout.';
         }
-        layout("StandardSalesCreditMemoThemableBody.docx")
-        {
-            Type = Word;
-            LayoutFile = './Sales/History/StandardSalesCreditMemoThemableBody.docx';
-            Caption = 'Body-only: Standard Sales Credit Memo - themable Word layout';
-            Summary = 'Body-only: The Standard Sales Credit Memo (Word) provides a basic Themable layout.';
-        }
+
         layout("StandardSalesCreditMemoEmailBody.docx")
         {
             Type = Word;
