@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7110 "Posted Exp. Policy Flag Card"
+page 7106 "Posted Exp. Policy Flag Card"
 {
     PageType = Card;
     SourceTable = "Posted Exp. Policy Flag";
