@@ -146,6 +146,12 @@ page 99000754 "Work Center Card"
                     ApplicationArea = Planning;
                     Importance = Promoted;
                 }
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Avail. Until")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                    StyleExpr = CalendarHorizonStyleTxt;
+                }
                 field("Calendar Rounding Precision"; Rec."Calendar Rounding Precision")
                 {
                     ApplicationArea = Manufacturing;
@@ -307,6 +313,26 @@ page 99000754 "Work Center Card"
                 }
             }
         }
+        area(processing)
+        {
+            action("Calculate Work Center Calendar")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Calculate Work Center Calendar';
+                Image = CalcWorkCenterCalendar;
+                ToolTip = 'Create new calendar entries for the work center to define the available daily capacity.';
+
+                trigger OnAction()
+                var
+                    WorkCenter: Record "Work Center";
+                    CalculateWorkCenterCalendar: Report "Calculate Work Center Calendar";
+                begin
+                    WorkCenter.SetRange("No.", Rec."No.");
+                    CalculateWorkCenterCalendar.SetTableView(WorkCenter);
+                    CalculateWorkCenterCalendar.RunModal();
+                end;
+            }
+        }
         area(reporting)
         {
             action("Subcontractor - Dispatch List")
@@ -317,7 +343,6 @@ page 99000754 "Work Center Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
-                ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';
             }
         }
         area(Promoted)
@@ -326,6 +351,9 @@ page 99000754 "Work Center Card"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
+                actionref("Calculate Work Center Calendar_Promoted"; "Calculate Work Center Calendar")
+                {
+                }
                 actionref("Lo&ad_Promoted"; "Lo&ad")
                 {
                 }
@@ -362,6 +390,14 @@ page 99000754 "Work Center Card"
         UpdateEnabled();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Calendar Entries Avail. Until");
+        CalendarHorizonStyleTxt := '';
+        if (Rec."Calendar Entries Avail. Until" <> 0D) and (Rec."Calendar Entries Avail. Until" < WorkDate()) then
+            CalendarHorizonStyleTxt := 'Unfavorable';
+    end;
+
     trigger OnInit()
     begin
         FromProductionBinCodeEnable := true;
@@ -378,6 +414,7 @@ page 99000754 "Work Center Card"
         OpenShopFloorBinCodeEnable: Boolean;
         ToProductionBinCodeEnable: Boolean;
         FromProductionBinCodeEnable: Boolean;
+        CalendarHorizonStyleTxt: Text;
 
     local procedure UpdateEnabled()
     var

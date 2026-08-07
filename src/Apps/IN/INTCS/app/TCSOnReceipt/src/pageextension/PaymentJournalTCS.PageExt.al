@@ -116,7 +116,6 @@ pageextension 18905 "Payment Journal TCS" extends "Payment Journal"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

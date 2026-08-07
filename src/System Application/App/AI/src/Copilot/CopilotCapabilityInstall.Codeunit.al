@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System;
 using System.Environment;
 using System.Privacy;
 
@@ -53,6 +54,8 @@ codeunit 7760 "Copilot Capability Install"
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
         ModuleInfo: ModuleInfo;
+        BizChatEnabled: Boolean;
+        BizChatStatusKnown: Boolean;
     begin
         NavApp.GetCurrentModuleInfo(ModuleInfo);
 
@@ -62,7 +65,21 @@ codeunit 7760 "Copilot Capability Install"
         if CopilotCapability <> Enum::"Copilot Capability"::Chat then
             exit;
 
-        if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
-            RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftLearnID());
+        BizChatStatusKnown := TryGetBizChatEnabled(BizChatEnabled);
+
+        if (not BizChatStatusKnown) or BizChatEnabled then begin
+            if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftCopilotID()) then
+                RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftCopilotID());
+        end else
+            if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
+                RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftLearnID());
+    end;
+
+    [TryFunction]
+    local procedure TryGetBizChatEnabled(var BizChatEnabled: Boolean)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        BizChatEnabled := ALCopilotFunctions.IsBizChatEnabled();
     end;
 }

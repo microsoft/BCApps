@@ -500,7 +500,7 @@ ValueObject : JsonToken;
         ResponseMessage := RestClient.Get(RequestPath);
 
         if not ResponseMessage.GetIsSuccessStatusCode() then begin
-            Session.LogMessage('', StrSubstNo(GetFieldsFailedErr, ResponseMessage.GetHttpStatusCode(), ResponseMessage.GetReasonPhrase()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraTok);
+            Session.LogMessage('0000UWF', StrSubstNo(GetFieldsFailedErr, ResponseMessage.GetHttpStatusCode(), ResponseMessage.GetReasonPhrase()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraTok);
             exit;
         end;
 

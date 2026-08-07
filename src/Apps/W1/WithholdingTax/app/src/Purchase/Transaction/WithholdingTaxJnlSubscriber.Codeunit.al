@@ -1683,6 +1683,36 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
         PostUnrealizedWHT(GenJournalLine, GenJnlPostLine);
     end;
 
+
+    [EventSubscriber(ObjectType::Page, Page::"Create Payment", OnBeforeUpdateGnlJnlLineDimensionsFromVendorPayment, '', false, false)]
+    local procedure AssignWHTPostingGroupOnCreatePayment(var GenJournalLine: Record "Gen. Journal Line"; TempVendorPaymentBuffer: Record "Vendor Payment Buffer" temporary)
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        WithholdingTaxEntry: Record "Withholding Tax Entry";
+    begin
+        if CheckWithholdingTaxDisabled() then
+            exit;
+
+        if GenJournalLine."Applies-to ID" = '' then
+            exit;
+
+        if TempVendorPaymentBuffer."Vendor Ledg. Entry No." = 0 then
+            exit;
+
+        VendorLedgerEntry.SetLoadFields("Document No.", "Vendor No.");
+        VendorLedgerEntry.Get(TempVendorPaymentBuffer."Vendor Ledg. Entry No.");
+
+        WithholdingTaxEntry.SetLoadFields("Wthldg. Tax Prod. Post. Group");
+        WithholdingTaxEntry.SetRange("Document No.", VendorLedgerEntry."Document No.");
+        WithholdingTaxEntry.SetRange("Transaction Type", WithholdingTaxEntry."Transaction Type"::Purchase);
+        WithholdingTaxEntry.SetRange("Document Type", WithholdingTaxEntry."Document Type"::Invoice);
+        WithholdingTaxEntry.SetRange("Bill-to/Pay-to No.", VendorLedgerEntry."Vendor No.");
+        if not WithholdingTaxEntry.FindFirst() then
+            exit;
+
+        GenJournalLine."Wthldg. Tax Prod. Post. Group" := WithholdingTaxEntry."Wthldg. Tax Prod. Post. Group";
+    end;
+
     local procedure PostUnrealizedWHT(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         GenJournalLineWHT: Record "Gen. Journal Line";

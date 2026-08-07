@@ -433,6 +433,56 @@
     [Test]
     [HandlerFunctions('MessageHandler,VerifyMatchDetailsOnPaymentApplicationsPage')]
     [Scope('OnPrem')]
+    procedure TestCustPaymentReferenceMatch()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        BankPmtApplRule: Record "Bank Pmt. Appl. Rule";
+        Amount: Decimal;
+        DocumentNo: Code[20];
+        ExtDocNo: Code[20];
+        PaymentReference: Code[50];
+    begin
+        Initialize();
+
+        // Setup
+        CreateCustomer(Customer);
+        Amount := LibraryRandom.RandDecInRange(1, 1000, 2);
+        ExtDocNo := '';
+        PaymentReference := 'PMTREF0001';
+        DocumentNo := CreateAndPostSalesInvoiceWithOneLine(Customer."No.", ExtDocNo, Amount);
+
+        // The W1 Sales Header has no Payment Reference field, so set the reference on the open ledger entry
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document No.", DocumentNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry."Payment Reference" := PaymentReference;
+        CustLedgerEntry.Modify();
+
+        CreateBankReconciliationAmountTolerance(BankAccReconciliation, 0);
+        // No document number in the transaction text, so the payment reference is the only possible match
+        CreateBankReconciliationLine(BankAccReconciliation, BankAccReconciliationLine, Amount / 2, '', '');
+        BankAccReconciliationLine.Validate("Payment Reference No.", PaymentReference);
+        BankAccReconciliationLine.Modify(true);
+
+        // Exercise
+        RunMatch(BankAccReconciliation, true);
+
+        // Verify
+        SetRule(BankPmtApplRule, BankPmtApplRule."Related Party Matched"::No,
+          BankPmtApplRule."Doc. No./Ext. Doc. No. Matched"::Yes, BankPmtApplRule."Amount Incl. Tolerance Matched"::"No Matches");
+        VerifyReconciliation(BankPmtApplRule, BankAccReconciliationLine."Statement Line No.");
+        VerifyEntryApplied(BankAccReconciliationLine, false);
+        VerifyMatchDetailsData(BankAccReconciliation, BankPmtApplRule,
+          BankAccReconciliationLine."Account Type"::Customer, Amount / 2, 0, 0, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,VerifyMatchDetailsOnPaymentApplicationsPage')]
+    [Scope('OnPrem')]
     procedure TestCustDocInAdditionalTextMatch()
     var
         BankAccReconciliation: Record "Bank Acc. Reconciliation";

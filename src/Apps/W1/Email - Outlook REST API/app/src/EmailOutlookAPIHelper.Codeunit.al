@@ -433,7 +433,7 @@ codeunit 4509 "Email - Outlook API Helper"
         HTMLBody := Filters."Body Type" = Filters."Body Type"::HTML;
         if Filters."Last Message Only" then
             Body := KeepLastMessageOnly(Body);
-        EmailMessage.Create('', Subject, Body, HTMLBody, true);
+        EmailMessage.Create('', Subject, Body, HTMLBody, not Filters.GetBypassBodySanitization());
 
         if HasAttachments then
             AddAttachmentsToMessage(EmailJsonObject, EmailMessage);
@@ -597,6 +597,9 @@ codeunit 4509 "Email - Outlook API Helper"
         for Counter := 0 to AttachmentsArray.Count() - 1 do begin
             AttachmentsArray.Get(Counter, JsonToken);
             AttachmentObject := JsonToken.AsObject();
+
+            if not AttachmentObject.Contains('contentBytes') then
+                continue;
 
             AttachmentName := CopyStr(GetTextFromJsonObject(AttachmentObject, 'name'), 1, MaxStrLen(AttachmentName));
             ContentType := CopyStr(GetTextFromJsonObject(AttachmentObject, 'contentType'), 1, MaxStrLen(ContentType));

@@ -118,7 +118,6 @@ pageextension 18746 "Payment Jnl" extends "Payment Journal"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

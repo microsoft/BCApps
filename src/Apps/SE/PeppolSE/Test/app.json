@@ -1,0 +1,49 @@
+{
+  "id": "13c6f48e-6655-4381-ac1b-68e42719b41b",
+  "name": "PEPPOL SE Tests",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "brief": "Tests for the PEPPOL BIS 3.0 SE localization.",
+  "description": "Tests for the PEPPOL BIS 3.0 SE localization.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2215848",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2215848",
+  "url": "https://go.microsoft.com/fwlink/?linkid=2215848",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
+      "name": "PEPPOL",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "ced0b8f1-c085-4064-a5da-28582d0d4549",
+      "name": "PEPPOL SE",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 148165,
+      "to": 148169
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem"
+}

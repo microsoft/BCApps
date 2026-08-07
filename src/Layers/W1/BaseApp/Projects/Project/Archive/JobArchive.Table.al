@@ -674,10 +674,15 @@ table 5135 "Job Archive"
     var
         JobTaskArchive: Record "Job Task Archive";
         CommentLineArchive: Record "Comment Line Archive";
+        JobAssignedResourceArchive: Record "Job Assigned Resource Archive";
     begin
         JobTaskArchive.SetRange("Job No.", "No.");
         JobTaskArchive.SetRange("Version No.", "Version No.");
         JobTaskArchive.DeleteAll(true);
+
+        JobAssignedResourceArchive.SetRange("Job No.", "No.");
+        JobAssignedResourceArchive.SetRange("Version No.", "Version No.");
+        JobAssignedResourceArchive.DeleteAll();
 
         CommentLineArchive.SetRange("Table Name", CommentLineArchive."Table Name"::Job);
         CommentLineArchive.SetRange("No.", "No.");

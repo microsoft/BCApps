@@ -1085,7 +1085,7 @@ page 2900 "Demand Forecast Variant Matrix"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeEnterBaseQty(Rec, ColumnID, IsHandled);
+        OnBeforeEnterBaseQty(Rec, ColumnID, IsHandled, MatrixRecords, ForecastType, ProductionForecastName, DateFilter, QtyType, MATRIX_CellData);
         if not IsHandled then begin
             Item.SetRange("No.", Rec."No.");
             Item.FindFirst();
@@ -1194,7 +1194,7 @@ page 2900 "Demand Forecast Variant Matrix"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeEnterBaseQty(var Item: Record "Forecast Item Variant Loc"; ColumnID: Integer; var IsHandled: Boolean);
+    local procedure OnBeforeEnterBaseQty(var Item: Record "Forecast Item Variant Loc"; ColumnID: Integer; var IsHandled: Boolean; MatrixRecords: array[32] of Record Date; ForecastType: Enum "Demand Forecast Type"; ProductionForecastName: Code[10]; DateFilter: Text; QtyType: Enum "Analysis Amount Type"; var MATRIX_CellData: array[32] of Decimal);
     begin
     end;
 

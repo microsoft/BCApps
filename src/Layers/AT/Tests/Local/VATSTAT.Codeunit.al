@@ -1610,8 +1610,8 @@ codeunit 144001 VATSTAT
     var
         PurchaseHeader: Record "Purchase Header";
         VATStatementLine: Record "VAT Statement Line";
-        VATStatementAT: Report "VAT Statement AT";
         Item: Record Item;
+        VATStatementAT: Report "VAT Statement AT";
         VATTotalRowNo: Code[10];
         VATBusPostingGroupCode: Code[20];
         VATProPostingGroupCode: Code[20];

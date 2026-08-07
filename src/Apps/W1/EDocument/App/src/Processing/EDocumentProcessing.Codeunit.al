@@ -6,6 +6,8 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Reporting;
@@ -139,6 +141,13 @@ codeunit 6108 "E-Document Processing"
             EDocExport.CheckEDocument(SourceDocumentHeader, EDocumentProcPhase);
     end;
 
+    /// <summary>
+    /// Creates a new E-Document for specified posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
     procedure CreateEDocumentFromPostedDocumentPage(PostedRecord: Variant; DocumentType: Enum "E-Document Type"): Boolean
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -155,8 +164,8 @@ codeunit 6108 "E-Document Processing"
             Error(ElectronicDocumentErr, DocumentSendingProfile.Code);
 
         RunEDocumentCheck(PostedRecord, Enum::"E-Document Processing Phase"::Post);
-        EDocumentSubscribers.CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType);
-        exit(true);
+
+        exit(EDocumentSubscribers.CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType));
     end;
 
     procedure ProcessEDocumentAsEmail(DocumentSendingProfile: Record "Document Sending Profile"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant;
@@ -244,6 +253,12 @@ codeunit 6108 "E-Document Processing"
         PurchaseLine: Record "Purchase Line";
     begin
         case EDocument."Document Type" of
+            EDocument."Document Type"::"Sales Order":
+                begin
+                    SourceDocumentLines.Open(Database::"Sales Line");
+                    SourceDocumentLines.Field(1).SetFilter('%1|%2', "Sales Document Type"::Order, "Sales Document Type"::"Blanket Order");
+                    SourceDocumentLines.Field(2).SetRange(EDocument."Document No.");
+                end;
             EDocument."Document Type"::"Sales Invoice":
                 begin
                     SourceDocumentLines.Open(Database::"Sales Invoice Line");
@@ -742,6 +757,24 @@ codeunit 6108 "E-Document Processing"
                 end;
         end;
         exit(false);
+    end;
+
+    procedure SendOrderRejection(EDocument: Record "E-Document")
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        ResponseBlob: Codeunit "Temp Blob";
+        IResponseProvider: Interface IEDocResponseProvider;
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        MessageType: Enum "E-Document Message Type";
+    begin
+        EDocument.TestField(Direction, EDocument.Direction::Incoming);
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType = "E-Document Message Type"::Unknown then
+            exit;
+        IMessageBuilder := MessageType;
+        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Rejected, ResponseBlob);
+        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Rejected, ResponseBlob);
     end;
 
     [IntegrationEvent(false, false)]

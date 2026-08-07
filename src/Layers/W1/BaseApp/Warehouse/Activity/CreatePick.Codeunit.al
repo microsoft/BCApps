@@ -1634,7 +1634,7 @@ codeunit 7312 "Create Pick"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCreateWhseActivHeader(CurrWarehouseActivityHeader, LocationCode, FirstWhseDocNo, LastWhseDocNo, NoOfSourceDoc, NoOfLines, WhseDocCreated, IsHandled);
+        OnBeforeCreateWhseActivHeader(CurrWarehouseActivityHeader, LocationCode, FirstWhseDocNo, LastWhseDocNo, NoOfSourceDoc, NoOfLines, WhseDocCreated, IsHandled, TempWarehouseActivityLine);
         if not IsHandled then begin
             CurrWarehouseActivityHeader.Init();
             CurrWarehouseActivityHeader."No." := '';
@@ -1647,6 +1647,7 @@ codeunit 7312 "Create Pick"
                 CurrWarehouseActivityHeader.Validate("Assigned User ID", CreatePickParameters."Assigned ID");
             CurrWarehouseActivityHeader."Sorting Method" := CreatePickParameters."Sorting Method";
             CurrWarehouseActivityHeader."Breakbulk Filter" := CreatePickParameters."Breakbulk Filter";
+            CurrWarehouseActivityHeader."Do Not Fill Qty. to Handle" := CreatePickParameters."Do Not Fill Qty. to Handle";
             OnBeforeWhseActivHeaderInsert(CurrWarehouseActivityHeader, TempWarehouseActivityLine, CreatePickParameters, CurrWarehouseShipmentLine);
             CurrWarehouseActivityHeader.Insert(true);
             OnCreateWhseActivHeaderOnAfterWhseActivHeaderInsert(CurrWarehouseActivityHeader, TempWarehouseActivityLine, CreatePickParameters);
@@ -2006,7 +2007,7 @@ codeunit 7312 "Create Pick"
             CreatePickParameters."Whse. Document"::Job:
                 LineReservedQty :=
                   WarehouseAvailabilityMgt.CalcLineReservedQtyOnInvt(
-                    Database::Job, Enum::"Job Planning Line Status"::Order.AsInteger(), CurrJobPlanningLine."Job No.",
+                    Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), CurrJobPlanningLine."Job No.",
                     CurrJobPlanningLine."Job Contract Entry No.",
                     CurrJobPlanningLine."Line No.", true, TempWarehouseActivityLine);
             else
@@ -4879,7 +4880,7 @@ codeunit 7312 "Create Pick"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateWhseActivHeader(var CurrWarehouseActivityHeader: Record "Warehouse Activity Header"; LocationCode: Code[10]; var FirstWhseDocNo: Code[20]; var LastWhseDocNo: Code[20]; var NoOfSourceDoc: Integer; var NoOfLines: Integer; var WhseDocCreated: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeCreateWhseActivHeader(var CurrWarehouseActivityHeader: Record "Warehouse Activity Header"; LocationCode: Code[10]; var FirstWhseDocNo: Code[20]; var LastWhseDocNo: Code[20]; var NoOfSourceDoc: Integer; var NoOfLines: Integer; var WhseDocCreated: Boolean; var IsHandled: Boolean; var TempWarehouseActivityLine: Record "Warehouse Activity Line" temporary)
     begin
     end;
 

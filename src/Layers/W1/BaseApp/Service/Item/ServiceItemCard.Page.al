@@ -830,6 +830,7 @@ page 5980 "Service Item Card"
             Rec."Ship-to Post Code" := Rec."Post Code";
             Rec."Ship-to City" := Rec.City;
             Rec."Ship-to County" := Rec.County;
+            Rec."Ship-to Country/Region Code" := Rec."Country/Region Code";
             Rec."Ship-to Phone No." := Rec."Phone No.";
             Rec."Ship-to Contact" := Rec.Contact;
         end else

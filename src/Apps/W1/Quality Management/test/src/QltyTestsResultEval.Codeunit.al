@@ -172,6 +172,43 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsString('wildCardSearch', 'wild*'), 'String wildcard 2');
     end;
 
+    [Test]
+    procedure ValueOptionWithSpecialCharacters()
+    var
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        CaseOption: Enum "Qlty. Case Sensitivity";
+    begin
+        // [SCENARIO 639903] Option/Table Lookup conditions are matched literally, so predefined values containing
+        // special filter characters such as parentheses do not raise a filter error.
+
+        // [GIVEN] An option test with values that contain parentheses 'Test(1),Test(2)'
+        // [WHEN] Evaluating a selected option value against a comma separated pass condition
+        // [THEN] The value matches its literal option without interpreting '(' as a filter operator
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('Test(1)', 'Test(1),Test(2)', CaseOption::Sensitive), 'Option special chars comma list first');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('Test(2)', 'Test(1),Test(2)', CaseOption::Sensitive), 'Option special chars comma list second');
+        LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsInPredefinedList('Test(3)', 'Test(1),Test(2)', CaseOption::Sensitive), 'Option special chars not in list');
+
+        // [THEN] A trailing space after the condition list is tolerated
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('Test(2)', 'Test(1),Test(2) ', CaseOption::Sensitive), 'Option special chars trailing space');
+
+        // [THEN] Pipe separated lists are also supported
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('C', 'C|D', CaseOption::Sensitive), 'Option pipe list match');
+        LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsInPredefinedList('A', 'C|D', CaseOption::Sensitive), 'Option pipe list no match');
+
+        // [THEN] Empty value does not match a non-empty condition and an empty condition matches anything
+        LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsInPredefinedList('', 'C|D', CaseOption::Sensitive), 'Option empty value');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('A', '', CaseOption::Sensitive), 'Option empty condition');
+
+        // [THEN] Empty tokens from a malformed list (trailing or doubled delimiters) do not match an empty value
+        LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsInPredefinedList('', 'A,', CaseOption::Sensitive), 'Option empty token trailing delimiter');
+        LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsInPredefinedList('', 'A||B', CaseOption::Sensitive), 'Option empty token doubled delimiter');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('B', 'A||B', CaseOption::Sensitive), 'Option doubled delimiter still matches real value');
+
+        // [THEN] Case insensitive comparison matches values that differ only by case
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('test(1)', 'Test(1),Test(2)', CaseOption::Insensitive), 'Option special chars case insensitive');
+    end;
+
+
     [TryFunction]
     procedure Try_TestValueDateIntentionallyBad()
     var

@@ -227,7 +227,6 @@ pageextension 18248 "GST Purchase Journal Ext" extends "Purchase Journal"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

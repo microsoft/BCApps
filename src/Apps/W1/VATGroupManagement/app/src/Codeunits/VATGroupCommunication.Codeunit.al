@@ -16,6 +16,7 @@ codeunit 4700 "VAT Group Communication"
     var
         VATReportSetup: Record "VAT Report Setup";
         NoVATSetupErr: Label 'The VAT Report Setup could not be found.';
+        InvalidGroupRepresentativeURLErr: Label 'The Group Representative API URL is not a valid Microsoft Business Central endpoint.';
         BearerTokenFromCacheErr: Label 'The OAuth2 token could not be retrieved from cache. Choose the action Renew OAuth2 Token on the page %1 and log in to get a new token.', Comment = '%1 the caption of a page.';
         OAuthFailedNoErr: label 'Authorization has failed with an unexpected error.';
         OAuthFailedErr: Label 'Authorization has failed with the error %1', Comment = '%1 is the error description.';
@@ -66,17 +67,25 @@ codeunit 4700 "VAT Group Communication"
     [TryFunction]
     internal procedure Send(Method: Text; Endpoint: Text; Content: Text; var HttpResponseBodyText: Text; IsBatch: Boolean)
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
+        RequestUri: Text;
     begin
         CheckLoadVATReportSetup();
 
-        HttpRequestMessage.Method(Method);
         if IsBatch then
-            HttpRequestMessage.SetRequestUri(PrepareBatchURI(Endpoint))
+            RequestUri := PrepareBatchURI(Endpoint)
         else
-            HttpRequestMessage.SetRequestUri(PrepareURI(Endpoint));
+            RequestUri := PrepareURI(Endpoint);
+
+        if EnvironmentInformation.IsSaaSInfrastructure() then
+            if not VATReportSetup.IsAllowedGroupRepresentativeAPIURL(RequestUri) then
+                Error(InvalidGroupRepresentativeURLErr);
+
+        HttpRequestMessage.Method(Method);
+        HttpRequestMessage.SetRequestUri(RequestUri);
         PrepareHeaders(HttpRequestMessage, IsBatch);
         PrepareContent(HttpRequestMessage, Content);
 

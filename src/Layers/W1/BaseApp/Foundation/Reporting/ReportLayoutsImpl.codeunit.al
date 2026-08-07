@@ -34,6 +34,9 @@ codeunit 9660 "Report Layouts Impl."
         DefaultLayoutDeleteTxt: Label 'You are about to delete the currently selected default layout "%1", for report "%2". Do you want to continue? A new default layout must be selected manually from the Report Layout Selection page.', Comment = '%1 = Layout Name, %2 = Report Name';
         DefaultLayoutSetTxt: Label '"%1" has been set as the default layout for Report "%2"', Comment = '%1 = Layout Name, %2 = Report Name';
         FileFilterWordTxt: Label 'Word Files (*.docx)|*.docx', Comment = '{Split=r''\|''}{Locked=s''1''}';
+        ImportWordTemplateTxt: Label 'Choose Word template file';
+        ImportWordHeaderFooterTxt: Label 'Choose header/footer Word file';
+        FileFilterWordTemplateTxt: Label 'Word Templates (*.dotx)|*.dotx', Comment = '{Split=r''\|''}{Locked=s''1''}';
         FileFilterRdlcTxt: Label 'SQL Report Builder (*.rdl;*.rdlc)|*.rdl;*.rdlc', Comment = '{Split=r''\|''}{Locked=s''1''}';
         FileFilterExcelTxt: Label 'Excel Files (*.xlsx)|*.xlsx', Comment = '{Split=r''\|''}{Locked=s''1''}';
         FileFilterExternalTxt: Label 'All Files (*.*)|*.*', Comment = '{Split=r''\|''}{Locked=s''1''}';
@@ -133,11 +136,20 @@ codeunit 9660 "Report Layouts Impl."
     end;
 
     internal procedure CreateNewReportLayout(SelectedReportLayoutList: Record "Report Layout List"; var ReturnReportID: Integer; var ReturnLayoutName: Text)
+    begin
+        CreateNewReportLayout(SelectedReportLayoutList, Enum::"Report Layout Subtype"::Default, ReturnReportID, ReturnLayoutName);
+    end;
+
+    internal procedure CreateNewReportLayout(SelectedReportLayoutList: Record "Report Layout List"; ImpliedSubtype: Enum "Report Layout Subtype"; var ReturnReportID: Integer; var ReturnLayoutName: Text)
     var
         ReportLayoutNewDialog: Page "Report Layout New Dialog";
+        EffectiveSubtype: Enum "Report Layout Subtype";
     begin
         ReportLayoutNewDialog.SetReportID(SelectedReportLayoutList."Report ID");
-        if ReportLayoutNewDialog.RunModal() = Action::OK then
+        if ImpliedSubtype <> Enum::"Report Layout Subtype"::Default then
+            ReportLayoutNewDialog.SetImpliedSubtype(ImpliedSubtype);
+        if ReportLayoutNewDialog.RunModal() = Action::OK then begin
+            EffectiveSubtype := ReportLayoutNewDialog.SelectedLayoutSubtype();
             case true of
                 ReportLayoutNewDialog.SelectedAddCustomLayout():
                     InsertNewLayout(
@@ -146,6 +158,7 @@ codeunit 9660 "Report Layouts Impl."
                     ReportLayoutNewDialog.SelectedLayoutIsGlobal(),
                     ReportLayoutNewDialog.SelectedCreateEmptyLayout(),
                     ReportLayoutNewDialog.SelectedExcelMultipleDataSheets(),
+                    EffectiveSubtype,
                     ReturnReportID, ReturnLayoutName);
 
                 ReportLayoutNewDialog.SelectedAddWordLayout():
@@ -155,6 +168,7 @@ codeunit 9660 "Report Layouts Impl."
                     ReportLayoutNewDialog.SelectedLayoutIsGlobal(),
                     ReportLayoutNewDialog.SelectedCreateEmptyLayout(),
                     ReportLayoutNewDialog.SelectedExcelMultipleDataSheets(),
+                    EffectiveSubtype,
                     ReturnReportID, ReturnLayoutName);
 
                 ReportLayoutNewDialog.SelectedAddRDLCLayout():
@@ -164,6 +178,7 @@ codeunit 9660 "Report Layouts Impl."
                     ReportLayoutNewDialog.SelectedLayoutIsGlobal(),
                     ReportLayoutNewDialog.SelectedCreateEmptyLayout(),
                     ReportLayoutNewDialog.SelectedExcelMultipleDataSheets(),
+                    Enum::"Report Layout Subtype"::Default,
                     ReturnReportID, ReturnLayoutName);
 
                 ReportLayoutNewDialog.SelectedAddExcelLayout():
@@ -173,8 +188,10 @@ codeunit 9660 "Report Layouts Impl."
                     ReportLayoutNewDialog.SelectedLayoutIsGlobal(),
                     ReportLayoutNewDialog.SelectedCreateEmptyLayout(),
                     ReportLayoutNewDialog.SelectedExcelMultipleDataSheets(),
+                    Enum::"Report Layout Subtype"::Default,
                     ReturnReportID, ReturnLayoutName);
             end;
+        end;
     end;
 
     internal procedure SetDefaultReportLayoutSelection(SelectedReportLayoutList: Record "Report Layout List"; ShowMessage: Boolean)
@@ -275,7 +292,12 @@ codeunit 9660 "Report Layouts Impl."
         end
     end;
 
-    internal procedure InsertNewLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; LayoutIsGlobal: Boolean; CreateEmptyLayout: Boolean; ExcelSheetConfiguration: enum "Excel Sheet Configuration"; var ReturnReportID: Integer; var ReturnLayoutName: Text)
+    internal procedure InsertNewLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; LayoutIsGlobal: Boolean; CreateEmptyLayout: Boolean; ExcelSheetConfiguration: Enum "Excel Sheet Configuration"; var ReturnReportID: Integer; var ReturnLayoutName: Text)
+    begin
+        InsertNewLayout(ReportID, LayoutName, LayoutDescription, LayoutFormat, LayoutIsGlobal, CreateEmptyLayout, ExcelSheetConfiguration, Enum::"Report Layout Subtype"::Default, ReturnReportID, ReturnLayoutName);
+    end;
+
+    internal procedure InsertNewLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; LayoutIsGlobal: Boolean; CreateEmptyLayout: Boolean; ExcelSheetConfiguration: Enum "Excel Sheet Configuration"; LayoutSubtype: Enum "Report Layout Subtype"; var ReturnReportID: Integer; var ReturnLayoutName: Text)
     var
         TenantReportLayout: Record "Tenant Report Layout";
         FileManagement: Codeunit "File Management";
@@ -310,6 +332,7 @@ codeunit 9660 "Report Layouts Impl."
 
         TenantReportLayout."Layout Format" := LayoutFormat;
         TenantReportLayout."Description" := LayoutDescription;
+        TenantReportLayout."Layout Subtype" := LayoutSubtype;
         TenantReportLayout.ExcelLayoutMultipleDataSheets := ExcelSheetConfiguration;
         TenantReportLayout."Layout Status" := Enum::"Report Layout Status"::Draft;
 
@@ -352,9 +375,21 @@ codeunit 9660 "Report Layouts Impl."
         if (not EmptyLayoutCreated) then begin
             case TenantReportLayout."Layout Format" of
                 TenantReportLayout."Layout Format"::Word:
-                    begin
-                        DialogCaption := ImportWordTxt;
-                        FileFilterTxt := FileFilterWordTxt;
+                    case LayoutSubtype of
+                        Enum::"Report Layout Subtype"::Theme:
+                            begin
+                                DialogCaption := ImportWordTemplateTxt;
+                                FileFilterTxt := FileFilterWordTemplateTxt;
+                            end;
+                        Enum::"Report Layout Subtype"::HeaderFooter:
+                            begin
+                                DialogCaption := ImportWordHeaderFooterTxt;
+                                FileFilterTxt := FileFilterWordTxt;
+                            end;
+                        else begin
+                            DialogCaption := ImportWordTxt;
+                            FileFilterTxt := FileFilterWordTxt;
+                        end;
                     end;
                 TenantReportLayout."Layout Format"::RDLC:
                     begin
@@ -434,7 +469,7 @@ codeunit 9660 "Report Layouts Impl."
         TenantReportLayout."Name" := LayoutName;
 
         if TenantReportLayout.Get(ReportID, LayoutName, TenantReportLayout."App ID") then begin
-            InsertNewLayout(ReportID, LayoutName, LayoutDescription, LayoutFormat, TenantReportLayout."Company Name" = '', false, TenantReportLayout.ExcelLayoutMultipleDataSheets, ReturnReportID, ReturnLayoutName);
+            InsertNewLayout(ReportID, LayoutName, LayoutDescription, LayoutFormat, TenantReportLayout."Company Name" = '', false, TenantReportLayout.ExcelLayoutMultipleDataSheets, TenantReportLayout."Layout Subtype", ReturnReportID, ReturnLayoutName);
 
             InitReportLayoutDimensions(TenantReportLayout, CustomDimensions);
             AddReportLayoutDimensionsDescription(LayoutDescription, CustomDimensions);
@@ -451,7 +486,9 @@ codeunit 9660 "Report Layouts Impl."
         ExcelReportManager: DotNet ExcelReportManager;
         IsValid: Boolean;
         ErrorMessage: Text;
+        CompositeWarnings: Text;
         ValidLayoutLbl: Label 'The report layout is valid.';
+        ValidLayoutWithWarningsMsg: Label 'The report layout is valid.\%1', Comment = '%1 = composite part warnings';
         LayoutFormatNotSupportedLbl: Label 'Layout validation is not supported for this layout format.';
     begin
         case SelectedReportLayoutList."Layout Format" of
@@ -467,10 +504,75 @@ codeunit 9660 "Report Layouts Impl."
             end;
         end;
 
-        if IsValid then
-            Message(ValidLayoutLbl)
-        else
+        if IsValid then begin
+            CompositeWarnings := ValidateCompositePartReferences(SelectedReportLayoutList);
+            if CompositeWarnings <> '' then
+                Message(ValidLayoutWithWarningsMsg, CompositeWarnings)
+            else
+                Message(ValidLayoutLbl);
+        end else
             Error(ErrorMessage);
+    end;
+
+    local procedure ValidateCompositePartReferences(SelectedReportLayoutList: Record "Report Layout List"): Text
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        Warnings: TextBuilder;
+        PartNotFoundTxt: Label 'Header/Footer part "%1" was not found in Report Layout List.', Comment = '%1 = composite part name';
+        ThemeNotFoundTxt: Label 'Theme part "%1" was not found in Report Layout List.', Comment = '%1 = composite part name';
+        PartObsoleteTxt: Label 'Header/Footer part "%1" is marked as obsolete.', Comment = '%1 = composite part name';
+        ThemeObsoleteTxt: Label 'Theme part "%1" is marked as obsolete.', Comment = '%1 = composite part name';
+    begin
+        TenantReportLayoutCfg.SetRange("Report ID", SelectedReportLayoutList."Report ID");
+        if not TenantReportLayoutCfg.FindSet() then begin
+            TenantReportLayoutCfg.SetRange("Report ID", 0);
+            if not TenantReportLayoutCfg.FindSet() then
+                exit('');
+        end;
+
+        repeat
+            if TenantReportLayoutCfg."Header Part Name" <> '' then
+                ValidatePartReference(
+                    TenantReportLayoutCfg."Header Part Name",
+                    Enum::"Report Layout Subtype"::HeaderFooter,
+                    PartNotFoundTxt, PartObsoleteTxt, Warnings);
+            if TenantReportLayoutCfg."Theme Part Name" <> '' then
+                ValidatePartReference(
+                    TenantReportLayoutCfg."Theme Part Name",
+                    Enum::"Report Layout Subtype"::Theme,
+                    ThemeNotFoundTxt, ThemeObsoleteTxt, Warnings);
+        until TenantReportLayoutCfg.Next() = 0;
+
+        exit(Warnings.ToText());
+    end;
+
+    local procedure ValidatePartReference(CompositeName: Text; ExpectedSubtype: Enum "Report Layout Subtype"; NotFoundFormat: Text; ObsoleteFormat: Text; var Warnings: TextBuilder)
+    var
+        ReportLayoutList: Record "Report Layout List";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        AppId: Guid;
+        LayoutName: Text;
+    begin
+        LayoutName := LookupHelper.DecodeLayoutName(CompositeName);
+        AppId := LookupHelper.DecodeAppId(CompositeName);
+        ReportLayoutList.SetRange("Name", LayoutName);
+        ReportLayoutList.SetRange("Layout Subtype", ExpectedSubtype);
+        // The composite reference identifies the part by app as well as name; filter on the App ID too so a
+        // same-named part of the same subtype in a different app is not matched by mistake.
+        if not IsNullGuid(AppId) then
+            ReportLayoutList.SetRange("Application ID", AppId);
+        if not ReportLayoutList.FindFirst() then begin
+            if Warnings.Length > 0 then
+                Warnings.Append('\');
+            Warnings.Append(StrSubstNo(NotFoundFormat, LayoutName));
+            exit;
+        end;
+
+        if ReportLayoutList.IsObsolete then begin
+            if Warnings.Length > 0 then
+                Warnings.Append('\');
+            Warnings.Append(StrSubstNo(ObsoleteFormat, LayoutName));
+        end;
     end;
 
     local procedure CreateLayoutMime(FileNameWithExtension: Text) MimeType: Text[255]

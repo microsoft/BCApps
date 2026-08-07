@@ -27,6 +27,15 @@ codeunit 1016 "Jobs-Send"
     local procedure "Code"()
     var
         TempDocumentSendingProfile: Record "Document Sending Profile" temporary;
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeCode(Job, IsHandled);
+        if not IsHandled then
+            SendJob(TempDocumentSendingProfile);
+    end;
+
+    local procedure SendJob(var TempDocumentSendingProfile: Record "Document Sending Profile" temporary)
     begin
         if not ConfirmSend(Job, TempDocumentSendingProfile) then
             exit;
@@ -85,6 +94,11 @@ codeunit 1016 "Jobs-Send"
             ElectronicDocumentFormat.ValidateElectronicFormat(DocumentSendingProfile."Electronic Format");
             ElectronicDocumentFormat.ValidateElectronicJobsDocument(Job, DocumentSendingProfile."Electronic Format");
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCode(var Job: Record Job; var IsHandled: Boolean)
+    begin
     end;
 }
 

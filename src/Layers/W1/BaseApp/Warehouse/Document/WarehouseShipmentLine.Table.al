@@ -261,6 +261,8 @@ table 7321 "Warehouse Shipment Line"
                         FieldCaption("Qty. to Ship"),
                         "Qty. Outstanding");
 
+                OnValidateQtyToShipOnBeforeCheckConfirm(Confirmed, Rec, CurrFieldNo);
+
                 if not Confirmed then
                     Error('');
 
@@ -1314,6 +1316,11 @@ table 7321 "Warehouse Shipment Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCompareShipAndPickQty(WarehouseShipmentLine: Record "Warehouse Shipment Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateQtyToShipOnBeforeCheckConfirm(var Confirmed: Boolean; WarehouseShipmentLine: Record "Warehouse Shipment Line"; CurrentFieldNo: Integer)
     begin
     end;
 

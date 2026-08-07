@@ -1308,7 +1308,7 @@ table 5767 "Warehouse Activity Line"
                     AssemblyLine.Get("Source Subtype", "Source No.", "Source Line No.");
                     TestField("Bin Code", AssemblyLine."Bin Code");
                 end;
-            Database::Job:
+            Database::Job, Database::"Job Planning Line":
                 begin
                     JobPlanningLine.SetRange("Job Contract Entry No.", "Source Line No.");
                     JobPlanningLine.SetLoadFields("Bin Code");
@@ -2301,8 +2301,8 @@ table 5767 "Warehouse Activity Line"
         Job: Record Job;
     begin
         "Activity Type" := "Activity Type"::Pick;
-        "Source Type" := Database::Job;
-        "Source Subtype" := 0;
+        "Source Type" := Database::"Job Planning Line";
+        "Source Subtype" := "Job Planning Line Status"::Order.AsInteger(); // Warehouse operations only apply to Order status
         "Source No." := JobPlanningLine."Job No.";
         "Source Line No." := JobPlanningLine."Job Contract Entry No.";
         "Source Subline No." := JobPlanningLine."Line No.";

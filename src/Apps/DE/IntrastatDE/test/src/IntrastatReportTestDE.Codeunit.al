@@ -138,6 +138,26 @@ codeunit 148700 "Intrastat Report Test DE"
             'New Intrastat report must inherit the Default Submission Channel from the setup.');
     end;
 
+    [Test]
+    procedure DataExchDefinitionGroupsDetailLinesByCountryOfOrigin()
+    var
+        DataExchFieldGrouping: Record "Data Exch. Field Grouping";
+    begin
+        // [SCENARIO 624364] The INTRA-2022-DE detail line definitions group by Country/Region of Origin (Field ID 24)
+        // so detail lines with the same tariff but different origin country are not merged into one.
+        Initialize();
+
+        // [THEN] The receipt detail line definition groups by Country/Region of Origin (Field ID 24)
+        DataExchFieldGrouping.SetRange("Data Exch. Def Code", IntrastatDEDataExchDefCodeTok);
+        DataExchFieldGrouping.SetRange("Data Exch. Line Def Code", '7-RCPTDETAIL');
+        DataExchFieldGrouping.SetRange("Field ID", 24);
+        Assert.IsFalse(DataExchFieldGrouping.IsEmpty(), 'Receipt detail must group by Country/Region of Origin (Field ID 24).');
+
+        // [THEN] The shipment detail line definition groups by Country/Region of Origin (Field ID 24)
+        DataExchFieldGrouping.SetRange("Data Exch. Line Def Code", '8-SHPTDETAIL');
+        Assert.IsFalse(DataExchFieldGrouping.IsEmpty(), 'Shipment detail must group by Country/Region of Origin (Field ID 24).');
+    end;
+
     local procedure Initialize()
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";

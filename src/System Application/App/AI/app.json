@@ -100,6 +100,12 @@
       "name": "Client Type Management",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
+    },
+    {
+      "id": "901c89b7-132b-4c59-bb3f-2bfa4fbc70b5",
+      "name": "Navigation Bar Subscribers",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
     }
   ],
   "screenshots": [],

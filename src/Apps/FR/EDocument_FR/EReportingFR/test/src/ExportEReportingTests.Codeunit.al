@@ -22,7 +22,9 @@ codeunit 148145 "Export E-Reporting Tests"
                   tabledata "E-Document Service" = rimd,
                   tabledata "E-Document Service Status" = rimd,
                   tabledata "VAT Entry" = rimd,
-                  tabledata "VAT Posting Setup" = rimd;
+                  tabledata "VAT Posting Setup" = rimd,
+                  tabledata "VAT Business Posting Group" = rimd,
+                  tabledata "VAT Product Posting Group" = rimd;
 
     trigger OnRun()
     begin
@@ -912,8 +914,23 @@ codeunit 148145 "Export E-Reporting Tests"
 
     local procedure CreateVATPostingSetup(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; VATPercent: Decimal)
     var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
         VATPostingSetup: Record "VAT Posting Setup";
     begin
+        // Create the backing posting groups so the fabricated VAT Posting Setup is not orphaned.
+        // Otherwise LibraryERM.FindVATPostingSetupInvt (used by LibrarySales.CreateCustomer) can pick up
+        // a setup whose VAT Business Posting Group does not exist, breaking customer creation in other tests.
+        if not VATBusinessPostingGroup.Get(VATBusPostingGroup) then begin
+            VATBusinessPostingGroup.Init();
+            VATBusinessPostingGroup.Code := VATBusPostingGroup;
+            VATBusinessPostingGroup.Insert();
+        end;
+        if not VATProductPostingGroup.Get(VATProdPostingGroup) then begin
+            VATProductPostingGroup.Init();
+            VATProductPostingGroup.Code := VATProdPostingGroup;
+            VATProductPostingGroup.Insert();
+        end;
         VATPostingSetup.Init();
         VATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
         VATPostingSetup."VAT Prod. Posting Group" := VATProdPostingGroup;

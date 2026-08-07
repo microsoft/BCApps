@@ -53,7 +53,7 @@ codeunit 30270 "Shpfy Bulk Operation Mgt."
         BulkOperationId := BulkOperationAPI.CreateBulkOperationMutation(IBulkOperation.GetGraphQL(), Jsonl);
         if BulkOperationId = 0 then
             exit(false);
-        CreateBulkOperation(Shop, BulkOperationId, Type, IBulkOperation.GetName(), RequestData, BulkOperationType);
+        CreateBulkOperation(Shop, BulkOperationId, Type, IBulkOperation.GetName(), RequestData, BulkOperationType, Jsonl);
         if GuiAllowed then
             Message(BulkOperationCreatedLbl);
         exit(true);
@@ -92,7 +92,7 @@ codeunit 30270 "Shpfy Bulk Operation Mgt."
         end;
     end;
 
-    local procedure CreateBulkOperation(Shop: Record "Shpfy Shop"; BulkOperationId: BigInteger; Type: Option; Name: Text[250]; RequestData: JsonArray; BulkOperationType: Enum "Shpfy Bulk Operation Type")
+    local procedure CreateBulkOperation(Shop: Record "Shpfy Shop"; BulkOperationId: BigInteger; Type: Option; Name: Text[250]; RequestData: JsonArray; BulkOperationType: Enum "Shpfy Bulk Operation Type"; Jsonl: Text)
     var
         BulkOperation: Record "Shpfy Bulk Operation";
     begin
@@ -104,6 +104,8 @@ codeunit 30270 "Shpfy Bulk Operation Mgt."
         BulkOperation."Bulk Operation Type" := BulkOperationType;
         BulkOperation.Insert();
         BulkOperation.SetRequestData(RequestData);
+        if Shop."Logging Mode" = Enum::"Shpfy Logging Mode"::All then
+            BulkOperation.SetSentJsonl(Jsonl);
     end;
 
     internal procedure UpdateBulkOperationStatus(Shop: Record "Shpfy Shop"; SearchBulkOperationId: BigInteger; Type: Option; var BulkOperationStatus: Enum "Shpfy Bulk Operation Status")

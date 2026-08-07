@@ -88,7 +88,6 @@ pageextension 18575 "Cash Receipt Journal" extends "Cash Receipt Journal"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

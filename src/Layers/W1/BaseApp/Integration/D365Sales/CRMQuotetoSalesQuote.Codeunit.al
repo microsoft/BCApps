@@ -182,7 +182,7 @@ codeunit 5348 "CRM Quote to Sales Quote"
                             CODEUNIT.Run(CODEUNIT::"CRM Sales Order to Sales Order", CRMSalesOrder);
                             YourReferenceFilter := CopyStr(CRMSalesOrder.orderNumber, 1, MaxStrLen(OrderSalesHeader."Your Reference"));
                             OrderSalesHeader.SetRange("Your Reference", YourReferenceFilter);
-                            OnBeforeFindOrderSalesHeader(OrderSalesHeader);
+                            OnBeforeFindOrderSalesHeader(OrderSalesHeader, CRMSalesOrder);
                             if not OrderSalesHeader.FindFirst() then begin
                                 Session.LogMessage('0000D6L', UnableToFindOrderTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrmTelemetryCategoryTok);
                                 Error(UnableToFindOrderErr)
@@ -707,7 +707,7 @@ codeunit 5348 "CRM Quote to Sales Quote"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindOrderSalesHeader(var OrderSalesHeader: Record "Sales Header")
+    local procedure OnBeforeFindOrderSalesHeader(var OrderSalesHeader: Record "Sales Header"; CRMSalesorder: Record "CRM Salesorder")
     begin
     end;
 

@@ -765,6 +765,7 @@ table 254 "VAT Entry"
                 if Closed then
                     Error(VATDateModifiableClosedErr);
 
+                VATDateReportingMgt.ResetVATReturnPeriodWarning();
                 VATDateReportingMgt.CheckDateAllowed("VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), false);
                 VATDateReportingMgt.CheckDateAllowed(xRec."VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), true, false);
                 VATDateReportingMgt.UpdateLinkedEntries(Rec);
@@ -1274,8 +1275,12 @@ table 254 "VAT Entry"
         VATEntryLocal.Copy(Rec);
         VATEntryLocal.SetRange("G/L Acc. No.", '');
         if WithUI then begin
-            if ShowConfirm then
-                Response := ConfirmManagement.GetResponseOrDefault(ConfirmAdjustQst, false);
+            if GuiAllowed() then begin
+                if ShowConfirm and not Response then
+                    Response := ConfirmManagement.GetResponseOrDefault(ConfirmAdjustQst, false);
+            end else
+                // Background execution has no user to confirm with; proceed so the report can run unattended.
+                Response := true;
             if not Response then
                 exit;
 
@@ -1425,6 +1430,9 @@ table 254 "VAT Entry"
         VATEntryUpdate.SetRange("G/L Acc. No.", '');
         VATEntryUpdate.SetFilter("Entry No.", EntryNoFilter.ToText());
         VATEntryUpdate.ModifyAll("G/L Acc. No.", GLAccountNo, false);
+        // Persist each batch so a long-running adjustment that times out can resume from where it
+        // left off instead of restarting from scratch and never completing.
+        Commit();
         EntryNoFilter.Clear();
         TotalChunkDuration += CurrentDateTime() - StartTime;
         ChunkCount += 1;
