@@ -35,17 +35,15 @@ codeunit 7107 "Exp. Policies To Eval Builder"
         SubjectVersion := ExpenseReportLine."Policy Eval Version";
 
         // Applicable policies are the enabled report-line policies whose category matches the line
-        // or is blank (a blank category applies to every category). Iterate in code because a blank
-        // "applies to all" category cannot be expressed with a single SetRange filter.
+        // or is blank (a blank category applies to every category). The category-or-blank rule is
+        // pushed into the query filter so unrelated categories are never loaded.
         ExpensePolicy.SetRange("Subject Type", ExpensePolicy."Subject Type"::"Expense Report Line");
         ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', ExpenseReportLine."Expense Category", '');
         if ExpensePolicy.FindSet() then
             repeat
-                if (ExpensePolicy."Expense Category Code" = ExpenseReportLine."Expense Category") or
-                   (ExpensePolicy."Expense Category Code" = '')
-                then
-                    if not FlagExists(SubjectSystemId, ExpensePolicy.SystemId, SubjectVersion, ExpensePolicy."Version") then
-                        InsertRow(TempPolicyToEvalBuffer, SubjectSystemId, SubjectVersion, ExpensePolicy);
+                if not FlagExists(SubjectSystemId, ExpensePolicy.SystemId, SubjectVersion, ExpensePolicy."Version") then
+                    InsertRow(TempPolicyToEvalBuffer, SubjectSystemId, SubjectVersion, ExpensePolicy);
             until ExpensePolicy.Next() = 0;
     end;
 

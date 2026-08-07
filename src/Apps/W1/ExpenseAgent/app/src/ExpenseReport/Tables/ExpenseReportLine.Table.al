@@ -1058,6 +1058,9 @@ table 6907 "Expense Report Line"
         {
             Clustered = true;
         }
+        key(PolicyInvalidation; "Expense Category", "Policies Evaluated At")
+        {
+        }
     }
 
     trigger OnInsert()
@@ -1192,11 +1195,36 @@ table 6907 "Expense Report Line"
         if Rec."Evaluated Policy Version" < Rec."Policy Eval Version" then
             exit("Expense Policy Status"::Stale);
 
-        Rec.CalcFields("Has Policy Violation");
-        if Rec."Has Policy Violation" then
+        if Rec.HasCurrentPolicyViolation() then
             exit("Expense Policy Status"::Flagged);
 
         exit("Expense Policy Status"::Cleared);
+    end;
+
+    internal procedure HasCurrentPolicyViolation(): Boolean
+    var
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+    begin
+        // A line is only Flagged by a violation that still reflects the current policy set. Superseded
+        // non-compliant flags (policy since changed, disabled, or deleted) are kept as history but must
+        // not keep a line Flagged - any policy change bumps the policy Version, so the flag's captured
+        // Policy Version no longer matches and Is Current reads false. The raw "Has Policy Violation"
+        // FlowField is the cheap gate; this refines it to current flags only.
+        Rec.CalcFields("Has Policy Violation");
+        if not Rec."Has Policy Violation" then
+            exit(false);
+
+        ExpensePolicyFlag.SetRange("Subject System Id", Rec.SystemId);
+        ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
+        ExpensePolicyFlag.SetRange("Subject Version", Rec."Evaluated Policy Version");
+        ExpensePolicyFlag.SetRange(Compliant, false);
+        if ExpensePolicyFlag.FindSet() then
+            repeat
+                ExpensePolicyFlag.CalcFields("Is Current");
+                if ExpensePolicyFlag."Is Current" then
+                    exit(true);
+            until ExpensePolicyFlag.Next() = 0;
+        exit(false);
     end;
 
     local procedure HasApplicablePolicies(): Boolean

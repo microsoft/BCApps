@@ -335,7 +335,7 @@ page 6929 "Expense Report Lines API"
                     Caption = 'Policy Status';
                     Editable = false;
                 }
-                field(hasPolicyViolation; Rec."Has Policy Violation")
+                field(hasPolicyViolation; HasPolicyViolationDisplay)
                 {
                     Caption = 'Has Policy Violation';
                     Editable = false;
@@ -412,6 +412,7 @@ page 6929 "Expense Report Lines API"
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
         PolicyStatusDisplay: Enum "Expense Policy Status";
+        HasPolicyViolationDisplay: Boolean;
         TargetExpenseReportNotFoundErr: Label 'Expense report with Id %1 not found.', Comment = '%1 = Expense Report Header SystemId';
 
     trigger OnInit()
@@ -439,6 +440,7 @@ page 6929 "Expense Report Lines API"
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
         PolicyStatusDisplay := Rec.GetPolicyStatus();
+        HasPolicyViolationDisplay := Rec.HasCurrentPolicyViolation();
 
         JobDescription := '';
         JobTaskDescription := '';

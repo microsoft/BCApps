@@ -462,6 +462,71 @@ codeunit 148338 "Expense Policy Flag Test"
     end;
 
     [Test]
+    procedure MovingPolicyToAnotherCategoryStalesOldCategoryLine()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        OtherCategory: Record "Expense Category";
+    begin
+        // [SCENARIO] Moving a policy to a different category invalidates the lines in the policy's
+        //            previous category, not only the new one. Otherwise those lines keep a verdict
+        //            from a policy that no longer applies to them and stay incorrectly Current.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+
+        // [GIVEN] A policy for the line's category and the line evaluated (Cleared, no flags).
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'No alcohol on company expenses.');
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the evaluated line should be Cleared.');
+
+        // [WHEN] The policy is moved to a different category.
+        LibraryExpense.CreateExpenseCategory(OtherCategory, OtherCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ", '');
+        ExpensePolicy."Expense Category Code" := OtherCategory.Code;
+        ExpensePolicy.Modify(true);
+
+        // [THEN] The line in the policy's OLD category is invalidated and reports Stale.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Moving a policy out of the line''s category must invalidate the line in the old category.');
+    end;
+
+    [Test]
+    procedure SupersededFlagDoesNotKeepLineFlagged()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        OtherCategory: Record "Expense Category";
+    begin
+        // [SCENARIO] A non-compliant flag whose policy Version has since changed (Is Current = false)
+        //            must not keep an otherwise up-to-date line Flagged. The policy lives in a
+        //            different category so modifying it bumps its Version without re-invalidating this
+        //            line, isolating the currency check in HasCurrentPolicyViolation.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        LibraryExpense.CreateExpenseCategory(OtherCategory, OtherCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ", '');
+        CreateTestPolicy(ExpensePolicy, OtherCategory.Code, 'Policy in another category.');
+
+        // [GIVEN] An evaluated line carrying a non-compliant flag captured against the policy's current version.
+        AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Superseded violation.');
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the current-version flag should make the line Flagged.');
+
+        // [WHEN] The policy changes so the flag's captured Policy Version is superseded (Is Current = false),
+        //        while the line itself stays up to date (the policy is in a different category).
+        ExpensePolicy."Policy Text" := 'Policy in another category v2.';
+        ExpensePolicy.Modify(true);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+
+        // [THEN] The superseded flag no longer counts as a violation; the line reports Cleared, and the
+        //        flag row is preserved as history.
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A superseded (non-current) flag must not keep the line Flagged.');
+        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        Assert.RecordCount(ExpensePolicyFlag, 1);
+    end;
+
+    [Test]
     procedure DeletingReportLineRemovesFlags()
     var
         ExpenseReportLine: Record "Expense Report Line";
