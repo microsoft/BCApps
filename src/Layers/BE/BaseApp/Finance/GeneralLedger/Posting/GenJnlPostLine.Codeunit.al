@@ -11228,5 +11228,4 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure OnAfterPostEmployee(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer)
     begin
     end;
-
 }

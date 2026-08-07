@@ -295,7 +295,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
         GLAccount: Record "G/L Account";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         OverspendNotification: Notification;
-        IsHandled: Boolean;
     begin
         if GenJnlLine."Spend Request No." = '' then begin
             if (GenJnlLine."Account Type" = GenJnlLine."Account Type"::"G/L Account") and (GenJnlLine."Account No." <> '') then
@@ -1744,5 +1743,4 @@ codeunit 11 "Gen. Jnl.-Check Line"
     local procedure OnCheckAccountNoOnBeforeCheckICPartner(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean);
     begin
     end;
-
 }
