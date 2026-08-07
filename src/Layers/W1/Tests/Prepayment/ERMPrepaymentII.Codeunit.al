@@ -2023,6 +2023,52 @@ codeunit 134101 "ERM Prepayment II"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
+    [Test]
+    procedure SalesPrepmtInvoiceWithPartialPrepaymentAndTwoVATRates()
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        LineGLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        DocumentNo: Code[20];
+        PrepmtGLAccountNo: Code[20];
+        CustomerNo: Code[20];
+        SecondLineGLAccountNo: Code[20];
+        ExpectedPrepmtAmount: Decimal;
+    begin
+        // [FEATURE] [Sales] [Prepayment Invoice]
+        // [SCENARIO 641515] Prepayment Invoice Amount is calculated per line for a partial prepayment with two different VAT rates.
+
+        // [GIVEN] Update General Posting Setup and create a customer.
+        Initialize();
+        PrepmtGLAccountNo := LibrarySales.CreatePrepaymentVATSetup(LineGLAccount, VATCalculationType);
+        CustomerNo :=
+          LibrarySales.CreateCustomerWithBusPostingGroups(
+            LineGLAccount."Gen. Bus. Posting Group", LineGLAccount."VAT Bus. Posting Group");
+
+        // [GIVEN] A second G/L Account routed to the same prepayment account but with a different VAT rate.
+        SecondLineGLAccountNo := CreateGLAccountWithDifferentVATRate(LineGLAccount);
+
+        // [GIVEN] Sales Order with 50% Prepayment and two lines with different VAT rates.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        SalesHeader.Validate("Prepayment %", 50);
+        SalesHeader.Validate("Compress Prepayment", false);
+        SalesHeader.Modify(true);
+
+        CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LineGLAccount."No.", 3, 333.33);
+        ExpectedPrepmtAmount += SalesLine."Prepmt. Line Amount";
+        CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", SecondLineGLAccountNo, 3, 133.33);
+        ExpectedPrepmtAmount += SalesLine."Prepmt. Line Amount";
+
+        // [WHEN] Post Prepayment Invoice on Sales Order.
+        DocumentNo := GetPostedDocumentNo(SalesHeader."Prepayment No. Series");
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [THEN] Sum of the posted prepayment invoice line amounts equals the sum of the per-line prepayment amounts.
+        VerifySalesInvoiceLinesTotal(DocumentNo, SalesInvoiceLine.Type::"G/L Account", PrepmtGLAccountNo, ExpectedPrepmtAmount);
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2403,12 +2449,14 @@ codeunit 134101 "ERM Prepayment II"
         Currency: Record Currency;
         SalesLine: Record "Sales Line";
         PrepaymentLineAmount: Decimal;
+        SalesPostPrepayments: Codeunit "Sales-Post Prepayments";
     begin
         Currency.Initialize(SalesHeader."Currency Code");
-        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
-        repeat
-            PrepaymentLineAmount += SalesLine.Amount * SalesLine."Prepayment %" / 100;
-        until SalesLine.Next() = 0;
+        SalesPostPrepayments.ApplyFilter(SalesHeader, 2, SalesLine);
+        if SalesLine.FindSet() then
+            repeat
+                PrepaymentLineAmount += SalesLine.Amount * SalesLine."Prepayment %" / 100;
+            until SalesLine.Next() = 0;
         exit(Round(PrepaymentLineAmount, Currency."Amount Rounding Precision"));
     end;
 
@@ -2629,6 +2677,33 @@ codeunit 134101 "ERM Prepayment II"
         LibrarySales.CalcSalesDiscount(SalesHeader);
     end;
 
+    local procedure CreateGLAccountWithDifferentVATRate(LineGLAccount: Record "G/L Account") NewGLAccountNo: Code[20]
+    var
+        NewGLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+        LineVATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        // Create a VAT Posting Setup with a different VAT rate, sharing the line's VAT Bus. Posting Group.
+        LineVATPostingSetup.Get(LineGLAccount."VAT Bus. Posting Group", LineGLAccount."VAT Prod. Posting Group");
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, LineGLAccount."VAT Bus. Posting Group", VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Calculation Type", LineVATPostingSetup."VAT Calculation Type");
+        VATPostingSetup.Validate("VAT %", LineVATPostingSetup."VAT %" + 5);
+        VATPostingSetup.Validate("Sales VAT Account", LineVATPostingSetup."Sales VAT Account");
+        VATPostingSetup.Modify(true);
+
+        // Create a G/L Account that keeps the same posting setup (same prepayment account) but the new VAT rate.
+        LibraryERM.CreateGLAccount(NewGLAccount);
+        NewGLAccount.Validate("Gen. Posting Type", NewGLAccount."Gen. Posting Type"::Sale);
+        NewGLAccount.Validate("Gen. Bus. Posting Group", LineGLAccount."Gen. Bus. Posting Group");
+        NewGLAccount.Validate("Gen. Prod. Posting Group", LineGLAccount."Gen. Prod. Posting Group");
+        NewGLAccount.Validate("VAT Bus. Posting Group", LineGLAccount."VAT Bus. Posting Group");
+        NewGLAccount.Validate("VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        NewGLAccount.Modify(true);
+        NewGLAccountNo := NewGLAccount."No.";
+    end;
+
     local procedure SetupAndCreatePurchasePrepayment(var PurchaseLine: Record "Purchase Line"; PrepmtPct: Decimal) PurchasePrepaymentsAccount: Code[20]
     var
         LineGLAccount: Record "G/L Account";
@@ -2772,6 +2847,21 @@ codeunit 134101 "ERM Prepayment II"
         SalesInvoiceLine.SetRange("No.", No);
         SalesInvoiceLine.FindFirst();
         SalesInvoiceLine.TestField(Quantity, Quantity);
+        Assert.AreNearlyEqual(
+          LineAmount, SalesInvoiceLine."Line Amount", GeneralLedgerSetup."Amount Rounding Precision",
+          StrSubstNo(AmountErr, SalesInvoiceLine.FieldCaption("Line Amount"), LineAmount, SalesInvoiceLine.TableCaption()));
+    end;
+
+    local procedure VerifySalesInvoiceLinesTotal(DocumentNo: Code[20]; Type: Enum "Sales Line Type"; No: Code[20]; LineAmount: Decimal)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        GeneralLedgerSetup.Get();
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.SetRange(Type, Type);
+        SalesInvoiceLine.SetRange("No.", No);
+        SalesInvoiceLine.CalcSums("Line Amount");
         Assert.AreNearlyEqual(
           LineAmount, SalesInvoiceLine."Line Amount", GeneralLedgerSetup."Amount Rounding Precision",
           StrSubstNo(AmountErr, SalesInvoiceLine.FieldCaption("Line Amount"), LineAmount, SalesInvoiceLine.TableCaption()));

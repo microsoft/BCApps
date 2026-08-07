@@ -2104,6 +2104,7 @@ codeunit 442 "Sales-Post Prepayments"
         PrepmtAmt: Decimal;
     begin
         ApplyFilter(SalesHeader, 2, SalesLine);
+	    SalesLine.SetLoadFields(Amount, "Amount Including VAT", "Prepayment %");
         if SalesLine.FindSet() then
             repeat
                  if SalesHeader."Prepmt. Include Tax" then

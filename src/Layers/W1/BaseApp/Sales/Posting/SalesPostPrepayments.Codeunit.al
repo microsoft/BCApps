@@ -2028,6 +2028,7 @@ codeunit 442 "Sales-Post Prepayments"
         PrepmtAmt: Decimal;
     begin
         ApplyFilter(SalesHeader, 2, SalesLine);
+        SalesLine.SetLoadFields(Amount, "Prepayment %");
         if SalesLine.FindSet() then
             repeat
                 PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;
