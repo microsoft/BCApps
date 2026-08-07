@@ -31,7 +31,7 @@ page 7109 "Posted Exp. Policy Flags"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the expense category the evaluated policy applies to.';
                 }
-                field(Description; Rec.Description)
+                field(Reason; Rec.Reason)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Reason Flagged';

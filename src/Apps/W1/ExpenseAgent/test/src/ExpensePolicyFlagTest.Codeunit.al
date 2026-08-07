@@ -980,7 +980,7 @@ codeunit 148338 "Expense Policy Flag Test"
         ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
         ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyFlag.Description := FlagDescription;
+        ExpensePolicyFlag.Reason := FlagDescription;
         ExpensePolicyFlag."Compliant" := Compliant;
         ExpensePolicyFlag.Insert(true);
     end;

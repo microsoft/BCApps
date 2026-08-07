@@ -55,11 +55,6 @@ page 7102 "Expense Policy Flags API"
                 {
                     Caption = 'Policy System Id';
                 }
-                field(policyLineNo; Rec."Policy Line No.")
-                {
-                    Caption = 'Policy Line No.';
-                    Editable = false;
-                }
                 field(policyVersion; Rec."Policy Version")
                 {
                     Caption = 'Policy Version';
@@ -70,9 +65,9 @@ page 7102 "Expense Policy Flags API"
                     Caption = 'Is Current';
                     Editable = false;
                 }
-                field(description; Rec.Description)
+                field(reason; Rec."Reason")
                 {
-                    Caption = 'Description';
+                    Caption = 'Reason';
                 }
                 field(flaggedAt; Rec."Flagged At")
                 {

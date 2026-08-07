@@ -40,9 +40,9 @@ table 7105 "Posted Exp. Policy Flag"
         {
             Caption = 'Expense Category Code';
         }
-        field(7; "Description"; Text[2048])
+        field(7; "Reason"; Text[2048])
         {
-            Caption = 'Description';
+            Caption = 'Reason';
         }
         field(8; "Policy Text"; Text[2048])
         {
@@ -55,13 +55,6 @@ table 7105 "Posted Exp. Policy Flag"
         field(10; "Compliant"; Boolean)
         {
             Caption = 'Compliant';
-        }
-        field(11; "Policy Line No."; Integer)
-        {
-            Caption = 'Policy Line No.';
-            FieldClass = FlowField;
-            CalcFormula = lookup("Expense Policy"."Line No." where(SystemId = field("Policy System Id")));
-            Editable = false;
         }
         field(12; "Is Current"; Boolean)
         {

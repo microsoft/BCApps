@@ -3505,7 +3505,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
         ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyFlag.Description := 'Receipt includes alcohol.';
+        ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
         ExpensePolicyFlag.Insert(true);
 
         ExpenseReportLine.MarkPoliciesEvaluated();
@@ -3574,7 +3574,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
         ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyFlag.Description := 'Receipt includes alcohol.';
+        ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
         ExpensePolicyFlag.Insert(true);
 
         ExpenseReportLine.MarkPoliciesEvaluated();

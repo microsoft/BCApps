@@ -43,21 +43,15 @@ page 7101 "Expense Policy Flag Card"
             {
                 Caption = 'Policy';
 
-                field("Policy Line No."; Rec."Policy Line No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the line number of the policy that was flagged.';
-                }
                 field("Policy Text"; Rec."Policy Text")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the policy text that the AI evaluated, captured when the flag was created. It is preserved even if the policy changes later.';
                     MultiLine = true;
                 }
-                field(Description; Rec.Description)
+                field(Reason; Rec.Reason)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Reason Flagged';
                     ToolTip = 'Specifies the reason this policy was flagged for the expense.';
                     MultiLine = true;
                 }

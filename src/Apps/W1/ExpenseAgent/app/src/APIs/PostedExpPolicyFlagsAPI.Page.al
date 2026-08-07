@@ -54,10 +54,6 @@ page 7105 "Posted Exp. Policy Flags API"
                 {
                     Caption = 'Policy System Id';
                 }
-                field(policyLineNo; Rec."Policy Line No.")
-                {
-                    Caption = 'Policy Line No.';
-                }
                 field(policyVersion; Rec."Policy Version")
                 {
                     Caption = 'Policy Version';
@@ -66,9 +62,9 @@ page 7105 "Posted Exp. Policy Flags API"
                 {
                     Caption = 'Is Current';
                 }
-                field(description; Rec.Description)
+                field(reason; Rec."Reason")
                 {
-                    Caption = 'Description';
+                    Caption = 'Reason';
                 }
                 field(flaggedAt; Rec."Flagged At")
                 {
