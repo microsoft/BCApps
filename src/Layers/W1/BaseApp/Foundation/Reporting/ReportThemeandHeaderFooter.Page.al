@@ -77,6 +77,7 @@ page 9666 "Report Theme and Header/Footer"
                 ApplicationArea = Basic, Suite;
                 Caption = 'New theme';
                 Image = New;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
                 ToolTip = 'Upload a new theme part.';
 
                 trigger OnAction()
@@ -89,6 +90,7 @@ page 9666 "Report Theme and Header/Footer"
                 ApplicationArea = Basic, Suite;
                 Caption = 'New header/footer';
                 Image = New;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
                 ToolTip = 'Upload a new header/footer part.';
 
                 trigger OnAction()
@@ -126,6 +128,7 @@ page 9666 "Report Theme and Header/Footer"
                 Caption = 'Edit description';
                 Image = Edit;
                 Scope = Repeater;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
                 ToolTip = 'Edit the description of the selected tenant-defined theme or header/footer part. Out-of-box parts cannot be edited.';
 
                 trigger OnAction()
@@ -139,6 +142,7 @@ page 9666 "Report Theme and Header/Footer"
                 Caption = 'Replace';
                 Image = Import;
                 Scope = Repeater;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
                 ToolTip = 'Replace the layout file of the selected tenant-defined theme or header/footer part. Out-of-box parts cannot be replaced.';
 
                 trigger OnAction()
@@ -151,6 +155,7 @@ page 9666 "Report Theme and Header/Footer"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Delete';
                 Image = Delete;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
                 ToolTip = 'Delete the selected tenant-defined artifact. Out-of-box parts cannot be deleted.';
 
                 trigger OnAction()

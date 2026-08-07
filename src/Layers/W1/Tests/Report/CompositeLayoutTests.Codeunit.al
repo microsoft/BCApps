@@ -22,7 +22,9 @@ codeunit 134619 "Composite Layout Tests"
         ReportDefaultSourceTok: Label 'Report default', Locked = true;
         CompanySourceTok: Label 'Company', Locked = true;
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
+        DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
         TestReportID: Integer;
+        DocReportExpWasEnabled: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -242,6 +244,7 @@ codeunit 134619 "Composite Layout Tests"
         Assert.AreEqual(0, StrPos(TenantReportLayoutCfgPage.HeaderPartDisplay.Value(), '::'), 'The displayed value should not contain the composite separator.');
 
         TenantReportLayoutCfgPage.Close();
+        RestoreDocumentReportExperience();
     end;
 
     [Test]
@@ -268,6 +271,7 @@ codeunit 134619 "Composite Layout Tests"
         Assert.AreEqual(PartName, ReportThemePage.Description.Value(), 'The Description column should show the part description.');
 
         ReportThemePage.Close();
+        RestoreDocumentReportExperience();
     end;
 
     [Test]
@@ -300,6 +304,7 @@ codeunit 134619 "Composite Layout Tests"
         Assert.ExpectedMessage('Theme', ActualMessage);
         Assert.ExpectedMessage('Used in 1 report configuration', ActualMessage);
         LibraryVariableStorage.AssertEmpty();
+        RestoreDocumentReportExperience();
     end;
 
     [MessageHandler]
@@ -312,6 +317,7 @@ codeunit 134619 "Composite Layout Tests"
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
     begin
+        LibraryVariableStorage.Clear();
         TestReportID := 50000;
 
         // These tests run in a non-isolated (Legacy) bucket against a shared company, so rows are not rolled back
@@ -338,13 +344,28 @@ codeunit 134619 "Composite Layout Tests"
     local procedure EnableDocumentReportExperience()
     var
         FeatureKey: Record "Feature Key";
-        DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
     begin
         // Page 9663 gates its OnOpenPage on the Document Report Experience preview; enable it so the page can be opened.
+        // Capture the original state so RestoreDocumentReportExperience can put it back and not contaminate other tests.
         if FeatureKey.Get(DocumentReportExperienceTok) then begin
+            DocReportExpWasEnabled := FeatureKey.Enabled = FeatureKey.Enabled::"All Users";
             FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
             FeatureKey.Modify();
         end;
+    end;
+
+    local procedure RestoreDocumentReportExperience()
+    var
+        FeatureKey: Record "Feature Key";
+    begin
+        // Restore the feature key to its pre-test state (the suite runs in a non-isolated bucket).
+        if not FeatureKey.Get(DocumentReportExperienceTok) then
+            exit;
+        if DocReportExpWasEnabled then
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+        else
+            FeatureKey.Enabled := FeatureKey.Enabled::None;
+        FeatureKey.Modify();
     end;
 
     local procedure CreatePart(PartName: Text; Subtype: Enum "Report Layout Subtype"): Text
