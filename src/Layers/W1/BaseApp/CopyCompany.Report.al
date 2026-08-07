@@ -53,9 +53,11 @@ report 357 "Copy Company"
                     if ReportLayoutSelection.Insert() then;
                 end;
             }
+#if not CLEAN29
 #pragma warning disable AL0432, AS0105
             dataitem("Custom Report Layout"; "Custom Report Layout")
 #pragma warning restore AL0432, AS0105
+#endif
             {
                 DataItemLink = "Company Name" = field(Name);
                 DataItemTableView = sorting("Report ID", "Company Name", Type);

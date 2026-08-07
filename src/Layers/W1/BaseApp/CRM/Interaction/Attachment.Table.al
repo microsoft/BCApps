@@ -774,6 +774,11 @@ table 5062 Attachment
 
     local procedure GetCustomLayoutCodeLength(): Integer
     var
+        // CLEAN29 exception: deliberately an unconditional pragma rather than a #if not CLEAN29 wrap.
+        // This is a type-only reference - the dummy record is never read, it only supplies MaxStrLen of
+        // the Code field - and the procedure has three live callers in the HTML custom-layout attachment
+        // path. Wrapping it would pull that whole path out of the Clean build, which is a functional
+        // change beyond this deprecation. Raised with the reviewer; revisit when that path is retired.
 #pragma warning disable AL0432, AS0105
         DummyCustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105

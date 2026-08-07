@@ -81,9 +81,11 @@ codeunit 5409 "Feature - Report Selection" implements "Feature Data Update"
                     NoOfNonUpdatedLayouts += 1;
             until CustomReportLayout.Next() = 0;
         if NoOfNonUpdatedLayouts > 0 then
+#if not CLEAN29
 #pragma warning disable AL0432, AS0105
             InsertDocumentEntry(Database::"Custom Report Layout", CustomReportLayout.TableCaption(), NoOfNonUpdatedLayouts);
 #pragma warning restore AL0432, AS0105
+#endif
     end;
 
     procedure MigrateCustomReportLayouts()

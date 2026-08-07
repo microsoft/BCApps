@@ -146,9 +146,11 @@ table 8631 "Config. Table Processing Rule"
                 exit(Action in [Action::Invoice, Action::Receive]);
             Database::"Gen. Journal Line", Database::"Gen. Journal Batch":
                 exit(Action = Action::Post);
+#if not CLEAN29
 #pragma warning disable AL0432, AS0105
             Database::"Custom Report Layout":
 #pragma warning restore AL0432, AS0105
+#endif
                 exit(Action = Action::Post);
             Database::"Transfer Header":
                 exit(Action in [Action::Ship, Action::Receive]);
@@ -189,9 +191,11 @@ table 8631 "Config. Table Processing Rule"
                 exit(RunActionOnGenJnlLine(RecRef));
             Database::"Gen. Journal Batch":
                 exit(RunActionOnGenJnlBatch(RecRef));
+#if not CLEAN29
 #pragma warning disable AL0432, AS0105
             Database::"Custom Report Layout":
 #pragma warning restore AL0432, AS0105
+#endif
                 exit(RunActionOnCustomReportLayout(RecRef));
             Database::"Transfer Header":
                 exit(RunActionOnTransferHeader(RecRef));
