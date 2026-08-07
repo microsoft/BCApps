@@ -1063,13 +1063,6 @@ report 1303 "Standard Sales - Draft Invoice"
             Caption = 'Body-only: Standard Sales Draft Invoice (Word)';
             Summary = 'Body-only: The Standard Sales Draft Invoice (Word) provides a basic layout.';
         }
-        layout("StandardDraftSalesInvoiceBlueThemableBody.docx")
-        {
-            Type = Word;
-            LayoutFile = './Sales/Document/StandardDraftSalesInvoiceBlueThemableBody.docx';
-            Caption = 'Body-only: Standard Sales Draft Invoice - themable Word layout';
-            Summary = 'Body-only: The Standard Sales Draft Invoice -Themable (Word) provides a Themable layout.';
-        }
         layout("StandardDraftSalesInvoiceEmailBody.docx")
         {
             Type = Word;
