@@ -14,6 +14,7 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
 
 Import-Module (Join-Path $PSScriptRoot 'PlatformHelper.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'ArtifactBaseline.psm1') -Force
 
 $platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
 if ($platformVersion) {
@@ -30,11 +31,57 @@ Restart-BcContainer -containerName $parameters.ContainerName
 
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
-# Clean the container for all apps. Apps will be installed by AL-Go
-foreach($app in $installedApps) {
-    Write-Host "Removing $($app.Name)"
-    UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
+# PROTOTYPE: the artifact database already has every app published, synchronized and installed,
+# which is what a test container needs - so change as little of it as possible. Only apps this
+# repository does not produce are removed. Changed apps stay installed and are replaced in place
+# by PublishBcContainerApp.ps1 with -upgrade, because uninstalling one would force out every
+# installed app that depends on it.
+#
+# See build/scripts/ArtifactBaseline.md. Any doubt falls back to removing everything.
+$appsToRemove = $installedApps
+$appsUntouched = @()
+$baseline = [PSCustomObject]@{ IsUsable = $false; Reason = 'Not enabled'; BaselineCommit = ''; ChangedApps = @(); KnownApps = @() }
 
+try {
+    if ((Get-ALGoSetting -Key 'useArtifactBaseline') -eq $true) {
+        if (-not $parameters.ContainsKey('artifactUrl') -or -not $parameters.artifactUrl) {
+            throw "No artifactUrl was passed to New-BcContainer"
+        }
+        $baseline = Resolve-ArtifactBaseline -ArtifactUrl $parameters.artifactUrl -BaseFolder (Get-BaseFolder) -BuildMode "$env:BuildMode"
+        Write-Host "Artifact Baseline: usable=$($baseline.IsUsable) commit=$($baseline.BaselineCommit) - $($baseline.Reason)"
+
+        if ($baseline.IsUsable) {
+            $split = Split-ContainerApps -InstalledApps @($installedApps) -KnownApps @($baseline.KnownApps)
+            $appsToRemove = @($split.ToUnpublish)
+            $appsUntouched = @($split.ToLeaveAlone)
+
+            # Two different populations, easy to confuse: the "N of 841" above counts apps in the
+            # REPOSITORY, these count the apps the CONTAINER holds.
+            Write-Host "Artifact Baseline: the container holds $($installedApps.Count) app(s) - leaving $($appsUntouched.Count) installed and untouched, unpublishing $($appsToRemove.Count) that this repository does not produce"
+            Write-Host "Artifact Baseline: changed apps stay installed and are replaced in place by the publish hook (-upgrade), so no dependent has to be uninstalled"
+        }
+    }
+}
+catch {
+    Write-Host "Artifact Baseline: disabled for this build - $($_.Exception.Message)"
+    $baseline.IsUsable = $false
+    $appsToRemove = $installedApps
+    $appsUntouched = @()
+}
+
+Set-ArtifactBaselineState -ContainerName $parameters.ContainerName -State @{
+    IsUsable     = $baseline.IsUsable
+    Reason       = $baseline.Reason
+    ChangedApps  = @($baseline.ChangedApps)
+    # Apps still published and unchanged, so AL-Go does not need to publish them again.
+    RetainedApps = @($appsUntouched | ForEach-Object { Get-AppKey -Publisher $_.Publisher -Name $_.Name })
+} | Out-Null
+
+# When the baseline is not usable this is every installed app, which is today's behaviour.
+foreach($app in $appsToRemove) {
+    # $AppsToUnpublish is the script parameter (note the different casing): it lets a project
+    # keep specific apps published. Do not rename it into $appsToRemove - PowerShell variable
+    # names are case-insensitive, so the two would silently become one.
     if (($AppsToUnpublish -contains "All") -or ($AppsToUnpublish -contains $app.Name)) {
         Write-Host "Unpublishing $($app.Name)"
         Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
@@ -42,8 +89,32 @@ foreach($app in $installedApps) {
 }
 
 Write-Host "Current installed apps in container $($parameters.ContainerName)"
-foreach ($app in (Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
-    Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - IsInstalled: $($app.IsInstalled) - IsPublished: $($app.IsPublished)"
+$containerApps = @(Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast)
+foreach ($app in $containerApps) {
+    Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - IsInstalled: $($app.IsInstalled) - IsPublished: $($app.IsPublished) - SyncState: $($app.SyncState)"
 }
 
+# Publishing runs a sync, and BC resolves dependencies against SYNCHRONIZED extensions - being
+# published is not enough. The artifact ships some apps published but never installed (test
+# libraries such as "Permissions Mock") and those are not synchronized.
+#
+# Keyed on IsInstalled rather than SyncState: an installed app is necessarily synchronized, while
+# SyncState is an undocumented enum.
+if ($baseline.IsUsable -and $appsUntouched.Count -gt 0) {
+    $retainedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($app in $appsUntouched) { [void]$retainedNames.Add($app.Name) }
+
+    $needSync = @($containerApps | Where-Object { $retainedNames.Contains($_.Name) -and -not $_.IsInstalled })
+    if ($needSync.Count -gt 0) {
+        Write-Host "Artifact Baseline: synchronizing $($needSync.Count) retained app(s) the artifact left published but not installed"
+        foreach ($app in $needSync) {
+            try {
+                Sync-BcContainerApp -containerName $parameters.ContainerName -appName $app.Name -appVersion $app.Version -Mode ForceSync -Force
+            }
+            catch {
+                Write-Host "Artifact Baseline: could not synchronize $($app.Name) - $($_.Exception.Message)"
+            }
+        }
+    }
+}
 Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -scriptblock { $progressPreference = 'SilentlyContinue' }

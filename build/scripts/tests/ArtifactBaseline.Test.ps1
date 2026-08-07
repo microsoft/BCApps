@@ -1,0 +1,643 @@
+Describe "ArtifactBaseline" {
+    BeforeAll {
+        Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -Force
+        Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
+        Import-Module "$PSScriptRoot\..\ArtifactBaseline.psm1" -Force
+
+        $script:baseFolder = Get-BaseFolder
+        $script:testRoot = Join-Path ([System.IO.Path]::GetTempPath()) "ArtifactBaselineTests_$([guid]::NewGuid().ToString('N'))"
+        New-Item -Path $script:testRoot -ItemType Directory -Force | Out-Null
+
+        function New-ArtifactFolder {
+            param([hashtable] $Manifest)
+            $folder = Join-Path $script:testRoot ([guid]::NewGuid().ToString('N'))
+            New-Item -Path $folder -ItemType Directory -Force | Out-Null
+            if ($null -ne $Manifest) {
+                $Manifest | ConvertTo-Json | Set-Content -Path (Join-Path $folder 'manifest.json') -Encoding UTF8
+            }
+            return $folder
+        }
+
+        function New-ContainerApp {
+            param([string] $Name, [string] $Publisher = 'Microsoft')
+            return [PSCustomObject]@{ Name = $Name; Publisher = $Publisher }
+        }
+    }
+
+    AfterAll {
+        if (Test-Path $script:testRoot) {
+            Remove-Item -Path $script:testRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    Context "Get-ArtifactBaselineCommit" {
+        AfterEach {
+            $env:BCAPPS_ARTIFACT_BASELINE_COMMIT = $null
+            $env:GITHUB_ACTIONS = $null
+        }
+
+        It "reads the documented manifest property" {
+            $folder = New-ArtifactFolder -Manifest @{
+                country = 'W1'; version = '29.0.53000.0'
+                bcAppsCommit = '2b72269851ab0c2e2f9d4d8e0e0a1b2c3d4e5f60'
+            }
+            $manifest = Get-ArtifactManifest -ArtifactFolder $folder
+            Get-ArtifactBaselineCommit -Manifest $manifest | Should -Be '2b72269851ab0c2e2f9d4d8e0e0a1b2c3d4e5f60'
+        }
+
+        It "accepts the alternative property spellings" {
+            foreach ($property in @('bcAppsCommitSha', 'applicationCommit', 'sourceCommit')) {
+                $manifest = [PSCustomObject]@{ $property = 'AABBCCDDEEFF00112233445566778899AABBCCDD' }
+                Get-ArtifactBaselineCommit -Manifest $manifest | Should -Be 'aabbccddeeff00112233445566778899aabbccdd'
+            }
+        }
+
+        It "ignores a value that is not a full SHA" {
+            Get-ArtifactBaselineCommit -Manifest ([PSCustomObject]@{ bcAppsCommit = 'main' }) | Should -BeNullOrEmpty
+        }
+
+        It "returns nothing when the manifest has no commit" {
+            $folder = New-ArtifactFolder -Manifest @{ country = 'W1'; version = '29.0.53000.0' }
+            Get-ArtifactBaselineCommit -Manifest (Get-ArtifactManifest -ArtifactFolder $folder) | Should -BeNullOrEmpty
+        }
+
+        It "returns nothing when there is no manifest at all" {
+            $folder = New-ArtifactFolder -Manifest $null
+            Get-ArtifactManifest -ArtifactFolder $folder | Should -BeNullOrEmpty
+            Get-ArtifactBaselineCommit -Manifest $null | Should -BeNullOrEmpty
+        }
+
+        It "can be overridden by the environment locally" {
+            $env:BCAPPS_ARTIFACT_BASELINE_COMMIT = '1111111111111111111111111111111111111111'
+            $manifest = [PSCustomObject]@{ bcAppsCommit = '2222222222222222222222222222222222222222' }
+            Get-ArtifactBaselineCommit -Manifest $manifest | Should -Be '1111111111111111111111111111111111111111'
+        }
+
+        It "ignores the environment override in CI so the manifest is the only source of truth" {
+            $env:BCAPPS_ARTIFACT_BASELINE_COMMIT = '1111111111111111111111111111111111111111'
+            $env:GITHUB_ACTIONS = 'true'
+            $manifest = [PSCustomObject]@{ bcAppsCommit = '2222222222222222222222222222222222222222' }
+            Get-ArtifactBaselineCommit -Manifest $manifest | Should -Be '2222222222222222222222222222222222222222'
+        }
+    }
+
+    Context "Get-ArtifactFolder" {
+        It "resolves the artifact url against the artifacts cache" {
+            $cache = Join-Path $script:testRoot 'artifactcache'
+            $artifact = Join-Path $cache 'sandbox\29.0.53000.0\base'
+            New-Item -Path $artifact -ItemType Directory -Force | Out-Null
+
+            Get-ArtifactFolder -ArtifactUrl 'https://bcinsider.example/sandbox/29.0.53000.0/base?sv=1&sig=x' -ArtifactsCacheFolder $cache |
+                Should -Be $artifact
+        }
+
+        It "falls back to the BcContainerHelper config variable when no cache folder is given" {
+            $cache = Join-Path $script:testRoot 'configcache'
+            $artifact = Join-Path $cache 'sandbox\29.0.53000.0\base'
+            New-Item -Path $artifact -ItemType Directory -Force | Out-Null
+
+            # BcContainerHelper publishes this into the session; the module must find it without
+            # being told where the cache is.
+            New-Variable -Name bcContainerHelperConfig -Scope Global -Value ([PSCustomObject]@{ bcartifactsCacheFolder = $cache }) -Force
+            try {
+                Get-ArtifactFolder -ArtifactUrl 'https://bcinsider.example/sandbox/29.0.53000.0/base' | Should -Be $artifact
+            }
+            finally {
+                Remove-Variable -Name bcContainerHelperConfig -Scope Global -ErrorAction SilentlyContinue
+            }
+        }
+
+        It "returns nothing for an artifact that is not cached (and does not download)" {
+            $cache = Join-Path $script:testRoot 'artifactcache'
+            Get-ArtifactFolder -ArtifactUrl 'https://bcinsider.example/sandbox/0.0.0.0/nowhere' -ArtifactsCacheFolder $cache |
+                Should -BeNullOrEmpty
+        }
+    }
+
+    Context "Test-BuildModeChangesCompilation" {
+        It "rejects the build mode that sets preprocessor symbols" {
+            Test-BuildModeChangesCompilation -BuildMode 'Clean' -BaseFolder $script:baseFolder | Should -BeTrue
+        }
+
+        It "allows the build modes the test projects actually use" {
+            # Regression guard: an earlier version only allowed 'Default', which no container
+            # project ever builds in, so the whole feature was a no-op.
+            foreach ($mode in @('IntegrationTests', 'UncategorizedTests', 'LegacyTestsBucket1', 'LegacyTestsBucket2')) {
+                Test-BuildModeChangesCompilation -BuildMode $mode -BaseFolder $script:baseFolder | Should -BeFalse -Because "$mode does not change compilation"
+            }
+        }
+
+        It "allows Default and an empty build mode" {
+            Test-BuildModeChangesCompilation -BuildMode 'Default' -BaseFolder $script:baseFolder | Should -BeFalse
+            Test-BuildModeChangesCompilation -BuildMode '' -BaseFolder $script:baseFolder | Should -BeFalse
+        }
+    }
+
+    Context "Test-CommitAvailable / Get-ChangedFilesSinceCommit" {
+        It "finds a commit that exists in this clone" {
+            $head = (git -C $script:baseFolder rev-parse HEAD).Trim()
+            Test-CommitAvailable -Sha $head -BaseFolder $script:baseFolder | Should -BeTrue
+        }
+
+        It "does not find an unknown commit, and does not fetch into a complete clone" {
+            # A complete clone must not be shallow-ified by the lookup.
+            $wasShallow = (git -C $script:baseFolder rev-parse --is-shallow-repository).Trim()
+            Test-CommitAvailable -Sha '0000000000000000000000000000000000000001' -BaseFolder $script:baseFolder | Should -BeFalse
+            (git -C $script:baseFolder rev-parse --is-shallow-repository).Trim() | Should -Be $wasShallow
+        }
+
+        It "lists the files changed between two commits" {
+            $head = (git -C $script:baseFolder rev-parse HEAD).Trim()
+            $previous = (git -C $script:baseFolder rev-parse 'HEAD~1').Trim()
+            $files = Get-ChangedFilesSinceCommit -BaselineCommit $previous -HeadSha $head -BaseFolder $script:baseFolder
+            @($files).Count | Should -BeGreaterThan 0
+        }
+
+        It "returns an empty array (not null) when nothing changed" {
+            $head = (git -C $script:baseFolder rev-parse HEAD).Trim()
+            $files = Get-ChangedFilesSinceCommit -BaselineCommit $head -HeadSha $head -BaseFolder $script:baseFolder
+            # The distinction matters: $null means "the diff failed" and disables reuse.
+            $null -eq $files | Should -BeFalse
+            @($files).Count | Should -Be 0
+        }
+
+        It "returns null when the diff cannot be produced" {
+            $files = Get-ChangedFilesSinceCommit -BaselineCommit '0000000000000000000000000000000000000001' -HeadSha 'HEAD' -BaseFolder $script:baseFolder
+            $null -eq $files | Should -BeTrue
+        }
+    }
+
+    Context "Get-ArtifactCountry" {
+        It "reads the country the artifact was built for" {
+            Get-ArtifactCountry -ArtifactUrl 'https://bcinsider.azurefd.net/sandbox/29.0.53247.0/w1?sv=x' | Should -Be 'w1'
+            Get-ArtifactCountry -ArtifactUrl 'https://bcinsider.azurefd.net/sandbox/29.0.53247.0/dk' | Should -Be 'dk'
+        }
+
+        It "returns nothing for a url it cannot read" {
+            Get-ArtifactCountry -ArtifactUrl 'not a url' | Should -BeNullOrEmpty
+        }
+    }
+
+    Context "Get-LayerChain" {
+        It "returns just the base layer for W1" {
+            @(Get-LayerChain -CountryCode 'W1' -BaseFolder $script:baseFolder) | Should -Be @('W1')
+        }
+
+        It "accepts the lower case country from an artifact url" {
+            @(Get-LayerChain -CountryCode 'w1' -BaseFolder $script:baseFolder) | Should -Be @('W1')
+        }
+
+        It "walks baseLayer to the root, base first" {
+            @(Get-LayerChain -CountryCode 'DK' -BaseFolder $script:baseFolder) | Should -Be @('W1', 'DK')
+            @(Get-LayerChain -CountryCode 'AT' -BaseFolder $script:baseFolder) | Should -Be @('W1', 'DACH', 'AT')
+            @(Get-LayerChain -CountryCode 'US' -BaseFolder $script:baseFolder) | Should -Be @('W1', 'NA', 'US')
+        }
+
+        It "returns nothing for a country that is not a view" {
+            @(Get-LayerChain -CountryCode 'base' -BaseFolder $script:baseFolder).Count | Should -Be 0
+        }
+    }
+
+    Context "Get-ChangedAppNames" {
+        BeforeAll {
+            $script:graph = Get-AppDependencyGraph -BaseFolder $script:baseFolder
+        }
+
+        It "maps a change to the app that owns it" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeTrue
+            $result.ChangedApps | Should -Contain 'Microsoft_E-Document Core'
+            $result.KnownApps | Should -Contain 'Microsoft_Base Application'
+        }
+
+        It "does NOT expand to dependents - they are neither republished nor uninstalled" {
+            # Dependents keep working because dependencies are pinned at <major>.<minor>.0.0, and
+            # the changed app is replaced in place with -upgrade rather than uninstalled, so they
+            # never have to be moved out of the way at all.
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.ChangedApps | Should -Not -Contain 'Microsoft_E-Document Core Tests'
+            $result.ChangedApps.Count | Should -Be 1
+        }
+
+        It "abandons reuse when Base Application changes" {
+            # Nearly every app is compiled against Base Application. Rebuilding it while keeping
+            # the artifact binaries of its dependents leaves those binaries holding control ids
+            # that were assigned against the previous symbols.
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/W1/BaseApp/Bank/Check/CheckManagement.Codeunit.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'Base Application'
+        }
+
+        It "abandons reuse when any other root app changes" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/System Application/App/Environment Information/src/EnvironmentInformation.Codeunit.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'System Application'
+        }
+
+        It "resolves a layer file through the country's view chain" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/W1/Tests/ERM/Some.Codeunit.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.ChangedApps | Should -Be @('Microsoft_Tests-ERM')
+        }
+
+        It "attributes a country layer for a build of that country" {
+            # src/Layers/DK carries no app.json - it overlays the base layer in the DK view, so
+            # the change has to land on Base Application and trip the root gate.
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/DK/BaseApp/Some.Table.al') -BaseFolder $script:baseFolder -CountryCode 'dk' -Graph $script:graph
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'Base Application'
+        }
+
+        It "ignores a layer that is not part of the country's chain" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/DK/BaseApp/Some.Table.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeTrue
+            $result.ChangedApps.Count | Should -Be 0
+        }
+
+        It "gives up on a layer change when the country has no view" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Layers/W1/BaseApp/Some.Table.al') -BaseFolder $script:baseFolder -CountryCode 'base' -Graph $script:graph
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'layer chain'
+        }
+
+        It "ignores changes that cannot invalidate an app already published" {
+            # None of these are compiled into a retained app: the artifact and platform pins in
+            # particular fetch a NEWER artifact, which makes the diff smaller, not larger.
+            $inert = @(
+                'build/Packages.json'
+                'build/scripts/NewBcContainer.ps1'
+                'build/projects/Test Apps W1/.AL-Go/settings.json'
+                '.github/AL-Go-Settings.json'
+                '.github/workflows/PullRequestHandler.yaml'
+                'src/rulesets/base.ruleset.json'
+                'src/DisabledTests/Tests-ERM/Tests-ERM.DisabledTest.json'
+                'README.md'
+            )
+            foreach ($file in $inert) {
+                $result = Get-ChangedAppNames -ChangedFiles @($file) -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+                $result.IsUsable | Should -BeTrue -Because "$file cannot change a binary that is already in the artifact"
+                $result.ChangedApps.Count | Should -Be 0 -Because "$file belongs to no app"
+            }
+        }
+
+        It "invalidates on a resource that is compiled into the app despite its extension" {
+            # Agent prompts are markdown but ship inside the .app package.
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/SalesOrderAgent/app/.resources/Prompts/SalesOrderAgent-AgentInstructions.md') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeTrue
+            $result.ChangedApps | Should -Be @('Microsoft_Sales Order Agent')
+        }
+
+        It "reports no changes for an empty diff and still lists the known apps" {
+            $result = Get-ChangedAppNames -ChangedFiles @() -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeTrue
+            $result.ChangedApps.Count | Should -Be 0
+            $result.KnownApps | Should -Contain 'Microsoft_Base Application'
+        }
+
+        It "gives up when a src file maps to no app" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/SomeUnmappedFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'could not be attributed'
+        }
+
+        It "gives up on a path it does not recognize at all" {
+            $result = Get-ChangedAppNames -ChangedFiles @('some/new/toplevel/thing.ps1') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'not recognized'
+        }
+
+        It "gives up when more than the allowed ratio of apps changed" {
+            $result = Get-ChangedAppNames -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $script:baseFolder -CountryCode 'w1' -Graph $script:graph -MaxChangedRatio 0.0001
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'more than the'
+        }
+    }
+
+    Context "Get-AppFileIdentity / Get-AppKey" {
+        It "extracts publisher, name and version from the AL-Go file name convention" {
+            $identity = Get-AppFileIdentity -Path 'C:\x\Microsoft_Tests-Local_29.0.2147483647.78225.app'
+            $identity.Publisher | Should -Be 'Microsoft'
+            $identity.Name | Should -Be 'Tests-Local'
+            $identity.Version | Should -Be '29.0.2147483647.78225'
+            $identity.Key | Should -Be 'Microsoft_Tests-Local'
+        }
+
+        It "handles names containing underscores" {
+            (Get-AppFileIdentity -Path 'Microsoft__Exclude_APIV1_ Tests_29.0.1.0.app').Name | Should -Be '_Exclude_APIV1_ Tests'
+        }
+
+        It "returns nothing for a file that does not follow the convention" {
+            Get-AppFileIdentity -Path 'SomeApp.app' | Should -BeNullOrEmpty
+        }
+
+        It "keys on publisher and name, because names are not unique in this repo" {
+            Get-AppKey -Publisher 'Microsoft' -Name 'Tests-Local' | Should -Be 'Microsoft_Tests-Local'
+            Get-AppKey -Publisher 'Contoso' -Name 'Tests-Local' | Should -Not -Be 'Microsoft_Tests-Local'
+        }
+    }
+
+    Context "Select-NewestAppVersion" {
+        BeforeAll {
+            function New-PublishedApp {
+                param([string] $Name, [string] $Version, [string] $AppId = '', [string] $Publisher = 'Microsoft')
+                return [PSCustomObject]@{ Name = $Name; Version = $Version; AppId = $AppId; Publisher = $Publisher }
+            }
+        }
+
+        It "drops the artifact's copy when the app was republished in place" {
+            # Exactly the shape that failed in CI: BC keeps both versions published, and installing
+            # the superseded one fails with "the tenant already uses a different version".
+            $apps = @(
+                New-PublishedApp 'System Application' '29.0.53221.0' '437dbf0e-1111-1111-1111-000000000001'
+                New-PublishedApp 'Base Application' '29.0.53221.0' '437dbf0e-84ff-417a-965d-ed2bb9650972'
+                New-PublishedApp 'Base Application' '29.0.2147483647.78865' '437dbf0e-84ff-417a-965d-ed2bb9650972'
+            )
+            $result = @(Select-NewestAppVersion -Apps $apps)
+            $result.Count | Should -Be 2
+            @($result | Where-Object { $_.Name -eq 'Base Application' }).Version | Should -Be '29.0.2147483647.78865'
+            @($result | Where-Object { $_.Name -eq 'System Application' }).Version | Should -Be '29.0.53221.0'
+        }
+
+        It "preserves the caller's dependency ordering" {
+            $apps = @(
+                New-PublishedApp 'System Application' '1.0.0.0' 'id-sys'
+                New-PublishedApp 'Base Application' '1.0.0.0' 'id-base'
+                New-PublishedApp 'Base Application' '2.0.0.0' 'id-base'
+                New-PublishedApp 'Something Else' '1.0.0.0' 'id-else'
+            )
+            @(Select-NewestAppVersion -Apps $apps | ForEach-Object { $_.Name }) | Should -Be @('System Application', 'Base Application', 'Something Else')
+        }
+
+        It "falls back to publisher and name when AppId is empty" {
+            $apps = @(
+                New-PublishedApp 'Base Application' '29.0.53221.0'
+                New-PublishedApp 'Base Application' '29.0.2147483647.78865'
+            )
+            $result = @(Select-NewestAppVersion -Apps $apps)
+            $result.Count | Should -Be 1
+            $result[0].Version | Should -Be '29.0.2147483647.78865'
+        }
+
+        It "does not merge apps that share a name but differ in publisher" {
+            $apps = @(
+                New-PublishedApp 'Tests-Local' '1.0.0.0' -Publisher 'Microsoft'
+                New-PublishedApp 'Tests-Local' '2.0.0.0' -Publisher 'Contoso'
+            )
+            @(Select-NewestAppVersion -Apps $apps).Count | Should -Be 2
+        }
+
+        It "leaves a single-version container untouched" {
+            $apps = @(New-PublishedApp 'Base Application' '29.0.53221.0' 'id-base')
+            @(Select-NewestAppVersion -Apps $apps).Count | Should -Be 1
+        }
+
+        It "handles an empty list" {
+            @(Select-NewestAppVersion -Apps @()).Count | Should -Be 0
+        }
+
+        It "drops a superseded version even when the newest one is already installed" {
+            # Deduplicating before filtering is what makes this work; the other order leaves the
+            # superseded copy as the only candidate.
+            $apps = @(
+                [PSCustomObject]@{ Name = 'Base Application'; Version = '29.0.53300.0'; AppId = 'id-base'; Publisher = 'Microsoft'; IsPublished = $true; IsInstalled = $false }
+                [PSCustomObject]@{ Name = 'Base Application'; Version = '29.0.2147483647.78958'; AppId = 'id-base'; Publisher = 'Microsoft'; IsPublished = $true; IsInstalled = $true }
+            )
+            $toInstall = @(Select-NewestAppVersion -Apps @($apps | Where-Object { $_.IsPublished }) | Where-Object { -not $_.IsInstalled })
+            $toInstall.Count | Should -Be 0
+        }
+    }
+
+    Context "Split-ContainerApps" {
+        BeforeAll {
+            $script:installed = @(
+                New-ContainerApp 'Tests-Local'
+                New-ContainerApp 'E-Document Core'
+                New-ContainerApp 'Base Application'
+                New-ContainerApp 'Prevent Metadata Updates Library'
+                New-ContainerApp 'Third Party Thing' -Publisher 'Contoso'
+            )
+            $script:known = @(
+                'Microsoft_Tests-Local', 'Microsoft_E-Document Core', 'Microsoft_Base Application',
+                'Microsoft_Prevent Metadata Updates Library'
+            )
+        }
+
+        It "leaves every app this repository produces installed and untouched" {
+            # Including changed apps: they are replaced in place by the publish hook with -upgrade,
+            # so nothing has to be uninstalled and no dependent is disturbed.
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
+            @($split.ToLeaveAlone | ForEach-Object { $_.Name }) | Should -Contain 'Base Application'
+            @($split.ToLeaveAlone | ForEach-Object { $_.Name }) | Should -Contain 'E-Document Core'
+            @($split.ToLeaveAlone | ForEach-Object { $_.Name }) | Should -Contain 'Tests-Local'
+        }
+
+        It "never unpublishes an app this repository produces, changed or not" {
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
+            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Not -Contain 'E-Document Core'
+            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Not -Contain 'Base Application'
+        }
+
+        It "always unpublishes apps that must never be in a test container" {
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
+            @($split.ToLeaveAlone | ForEach-Object { $_.Name }) | Should -Not -Contain 'Prevent Metadata Updates Library'
+            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Contain 'Prevent Metadata Updates Library'
+        }
+
+        It "unpublishes apps this repository does not produce" {
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
+            @($split.ToUnpublish | ForEach-Object { $_.Name }) | Should -Contain 'Third Party Thing'
+        }
+
+        It "does not confuse apps that share a name but differ in publisher" {
+            $installed = @(New-ContainerApp 'Tests-Local' -Publisher 'Contoso')
+            $split = Split-ContainerApps -InstalledApps $installed -KnownApps @('Microsoft_Tests-Local')
+            @($split.ToLeaveAlone).Count | Should -Be 0
+            @($split.ToUnpublish).Count | Should -Be 1
+        }
+
+        It "the two sets are disjoint and cover the container" {
+            $split = Split-ContainerApps -InstalledApps $script:installed -KnownApps $script:known
+            (@($split.ToUnpublish).Count + @($split.ToLeaveAlone).Count) | Should -Be $script:installed.Count
+        }
+
+        It "handles an empty container" {
+            $split = Split-ContainerApps -InstalledApps @() -KnownApps $script:known
+            @($split.ToLeaveAlone).Count | Should -Be 0
+            @($split.ToUnpublish).Count | Should -Be 0
+        }
+    }
+
+    Context "Test-ShouldPublishAppFile" {
+        BeforeAll {
+            $script:retained = @('Microsoft_Base Application', 'Microsoft_E-Document Core', 'Microsoft_Tests-Local')
+            $script:changed = @('Microsoft_E-Document Core')
+        }
+
+        It "publishes a changed app even when it is retained" {
+            Test-ShouldPublishAppFile -AppFile 'Microsoft_E-Document Core_29.0.1.1.app' -ChangedApps $script:changed -RetainedApps $script:retained | Should -BeTrue
+        }
+
+        It "skips an unchanged app the artifact already published" {
+            Test-ShouldPublishAppFile -AppFile 'Microsoft_Base Application_29.0.1.1.app' -ChangedApps $script:changed -RetainedApps $script:retained | Should -BeFalse
+        }
+
+        It "publishes an app the container does not hold" {
+            Test-ShouldPublishAppFile -AppFile 'Microsoft_Brand New App_29.0.1.1.app' -ChangedApps $script:changed -RetainedApps $script:retained | Should -BeTrue
+        }
+
+        It "publishes an app from a different publisher with the same name" {
+            Test-ShouldPublishAppFile -AppFile 'Contoso_Base Application_29.0.1.1.app' -ChangedApps $script:changed -RetainedApps $script:retained | Should -BeTrue
+        }
+
+        It "publishes when the file name convention is unknown" {
+            Test-ShouldPublishAppFile -AppFile 'weird.app' -ChangedApps $script:changed -RetainedApps $script:retained | Should -BeTrue
+        }
+    }
+
+    Context "Resolve-ArtifactBaseline" {
+        BeforeAll {
+            $script:cache = Join-Path $script:testRoot 'resolvecache'
+            $script:artifact = Join-Path $script:cache 'sandbox\29.0.53000.0\base'
+            New-Item -Path $script:artifact -ItemType Directory -Force | Out-Null
+            $script:artifactUrl = 'https://bcinsider.example/sandbox/29.0.53000.0/base'
+            $script:head = (git -C $script:baseFolder rev-parse HEAD).Trim()
+        }
+
+        BeforeEach {
+            New-Variable -Name bcContainerHelperConfig -Scope Global -Value ([PSCustomObject]@{ bcartifactsCacheFolder = $script:cache }) -Force
+        }
+
+        AfterEach {
+            Remove-Variable -Name bcContainerHelperConfig -Scope Global -ErrorAction SilentlyContinue
+            $env:BCAPPS_ARTIFACT_BASELINE = $null
+        }
+
+        It "resolves end to end when the artifact was built from this very commit" {
+            @{ country = 'W1'; version = '29.0.53000.0'; bcAppsCommit = $script:head } |
+                ConvertTo-Json | Set-Content -Path (Join-Path $script:artifact 'manifest.json') -Encoding UTF8
+
+            $result = Resolve-ArtifactBaseline -ArtifactUrl $script:artifactUrl -BaseFolder $script:baseFolder -BuildMode 'IntegrationTests'
+
+            $result.IsUsable | Should -BeTrue
+            $result.BaselineCommit | Should -Be $script:head
+            $result.ChangedApps.Count | Should -Be 0
+            $result.KnownApps.Count | Should -BeGreaterThan 300
+        }
+
+        It "derives the country from the artifact url and resolves the view chain" {
+            $w1Artifact = Join-Path $script:cache 'sandbox\29.0.53000.0\w1'
+            New-Item -Path $w1Artifact -ItemType Directory -Force | Out-Null
+            @{ country = 'W1'; version = '29.0.53000.0'; bcAppsCommit = $script:head } |
+                ConvertTo-Json | Set-Content -Path (Join-Path $w1Artifact 'manifest.json') -Encoding UTF8
+
+            $result = Resolve-ArtifactBaseline -ArtifactUrl 'https://bcinsider.example/sandbox/29.0.53000.0/w1' -BaseFolder $script:baseFolder -BuildMode 'IntegrationTests'
+
+            $result.IsUsable | Should -BeTrue
+            $result.BaselineCommit | Should -Be $script:head
+        }
+
+        It "is not usable for a build mode that changes compilation" {
+            $result = Resolve-ArtifactBaseline -ArtifactUrl $script:artifactUrl -BaseFolder $script:baseFolder -BuildMode 'Clean'
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'preprocessor'
+        }
+
+        It "is not usable when disabled by environment" {
+            $env:BCAPPS_ARTIFACT_BASELINE = 'disabled'
+            $result = Resolve-ArtifactBaseline -ArtifactUrl $script:artifactUrl -BaseFolder $script:baseFolder
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'Disabled'
+        }
+
+        It "is not usable when the manifest carries no commit" {
+            @{ country = 'W1'; version = '29.0.53000.0' } |
+                ConvertTo-Json | Set-Content -Path (Join-Path $script:artifact 'manifest.json') -Encoding UTF8
+            $result = Resolve-ArtifactBaseline -ArtifactUrl $script:artifactUrl -BaseFolder $script:baseFolder
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'does not carry a BCApps commit'
+        }
+
+        It "is not usable when the commit is unknown to this clone" {
+            @{ country = 'W1'; bcAppsCommit = '0000000000000000000000000000000000000001' } |
+                ConvertTo-Json | Set-Content -Path (Join-Path $script:artifact 'manifest.json') -Encoding UTF8
+            $result = Resolve-ArtifactBaseline -ArtifactUrl $script:artifactUrl -BaseFolder $script:baseFolder
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'not reachable'
+        }
+
+        It "is not usable when the artifact folder cannot be found" {
+            $result = Resolve-ArtifactBaseline -ArtifactUrl 'https://x/sandbox/0.0.0.0/nowhere' -BaseFolder $script:baseFolder
+            $result.IsUsable | Should -BeFalse
+            $result.Reason | Should -Match 'artifact folder'
+        }
+    }
+
+    Context "Build state" {
+        BeforeAll {
+            $script:originalRunnerTemp = $env:RUNNER_TEMP
+            $env:RUNNER_TEMP = Join-Path $script:testRoot 'runner-temp'
+            New-Item -Path $env:RUNNER_TEMP -ItemType Directory -Force | Out-Null
+        }
+
+        AfterAll {
+            $env:RUNNER_TEMP = $script:originalRunnerTemp
+            $env:GITHUB_RUN_ID = $null
+            $env:GITHUB_RUN_ATTEMPT = $null
+        }
+
+        BeforeEach {
+            Clear-ArtifactBaselineState
+            $env:GITHUB_RUN_ID = '1000'
+            $env:GITHUB_RUN_ATTEMPT = '1'
+        }
+
+        It "round-trips the state between hook invocations" {
+            Set-ArtifactBaselineState -ContainerName 'bcbuild' -State @{
+                IsUsable = $true; Reason = 'ok'; ChangedApps = @('Microsoft_A'); RetainedApps = @('Microsoft_B', 'Microsoft_C')
+            } | Out-Null
+
+            $state = Get-ArtifactBaselineState -ContainerName 'bcbuild'
+            $state.IsUsable | Should -BeTrue
+            @($state.ChangedApps).Count | Should -Be 1
+            @($state.RetainedApps).Count | Should -Be 2
+        }
+
+        It "ignores state written for a different container" {
+            Set-ArtifactBaselineState -ContainerName 'bcbuild' -State @{ IsUsable = $true; RetainedApps = @() } | Out-Null
+            Get-ArtifactBaselineState -ContainerName 'someothercontainer' | Should -BeNullOrEmpty
+        }
+
+        It "ignores state from a previous run on the same runner" {
+            Set-ArtifactBaselineState -ContainerName 'bcbuild' -State @{ IsUsable = $true; RetainedApps = @() } | Out-Null
+            $env:GITHUB_RUN_ID = '1001'
+            Get-ArtifactBaselineState -ContainerName 'bcbuild' | Should -BeNullOrEmpty
+        }
+
+        It "ignores state from a re-run of the same workflow run" {
+            Set-ArtifactBaselineState -ContainerName 'bcbuild' -State @{ IsUsable = $true; RetainedApps = @() } | Out-Null
+            $env:GITHUB_RUN_ATTEMPT = '2'
+            Get-ArtifactBaselineState -ContainerName 'bcbuild' | Should -BeNullOrEmpty
+        }
+
+        It "returns nothing when there is no state" {
+            Get-ArtifactBaselineState -ContainerName 'bcbuild' | Should -BeNullOrEmpty
+        }
+    }
+
+    Context "Exclusion list" {
+        It "is shared with the publish hook so both agree" {
+            $never = Get-AppsNeverInContainer
+            $never | Should -Contain 'Library - No Transactions'
+            $never | Should -Contain 'Prevent Metadata Updates Library'
+        }
+
+        It "covers apps that this repository actually produces" {
+            # If these were not repo apps they would be unpublished anyway; the point of the
+            # shared list is that they ARE repo apps and would otherwise look reusable.
+            $graph = Get-AppDependencyGraph -BaseFolder $script:baseFolder
+            $names = @($graph.Values | ForEach-Object { $_.Name })
+            foreach ($app in (Get-AppsNeverInContainer)) {
+                $names | Should -Contain $app
+            }
+        }
+    }
+}

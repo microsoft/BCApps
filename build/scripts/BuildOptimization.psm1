@@ -43,6 +43,7 @@ function Get-AppDependencyGraph {
         $graph[$appId] = [PSCustomObject]@{
             Id           = $appId
             Name         = $json.name
+            Publisher    = $json.publisher
             AppFolder    = $file.DirectoryName
             Dependencies = $depIds
             Dependents   = [System.Collections.Generic.List[string]]::new()
@@ -244,7 +245,9 @@ function Get-ChangedFilesForCI {
             return $null
         }
 
-        return [string[]]$files
+        # Comma operator: a single changed file would otherwise be unrolled to a bare string on
+        # return, and callers that use .Count would silently see nothing.
+        return ,[string[]]$files
     }
     finally {
         $ErrorActionPreference = $prevErrorAction
