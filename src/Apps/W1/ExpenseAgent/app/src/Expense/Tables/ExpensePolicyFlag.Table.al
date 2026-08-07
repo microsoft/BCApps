@@ -67,7 +67,7 @@ table 7096 "Expense Policy Flag"
 
     keys
     {
-        key(PK; "Subject System Id", "Policy System Id", "Subject Version", "Policy Version")
+        key(PK; "Subject Type", "Subject System Id", "Policy System Id", "Subject Version", "Policy Version")
         {
             Clustered = true;
         }
@@ -108,7 +108,7 @@ table 7096 "Expense Policy Flag"
         "Policy Version" := ExpensePolicy."Version";
 
         // Block duplicate evaluations for the same subject+policy version combination.
-        if ExistingFlag.Get("Subject System Id", "Policy System Id", "Subject Version", "Policy Version") then
+        if ExistingFlag.Get("Subject Type", "Subject System Id", "Policy System Id", "Subject Version", "Policy Version") then
             Error(DuplicateEvaluationErr);
     end;
 

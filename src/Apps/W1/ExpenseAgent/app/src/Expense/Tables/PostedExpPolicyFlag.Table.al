@@ -67,7 +67,7 @@ table 7105 "Posted Exp. Policy Flag"
 
     keys
     {
-        key(PK; "Subject System Id", "Policy System Id", "Subject Version", "Policy Version")
+        key(PK; "Subject Type", "Subject System Id", "Policy System Id", "Subject Version", "Policy Version")
         {
             Clustered = true;
         }

@@ -436,7 +436,7 @@ codeunit 148338 "Expense Policy Flag Test"
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Deleting a policy must leave the evaluated line Stale.');
 
         // [THEN] The orphaned flag is kept as history but is no longer current.
-        ExpensePolicyFlag.Get(ExpensePolicyFlag."Subject System Id", ExpensePolicyFlag."Policy System Id", ExpensePolicyFlag."Subject Version", ExpensePolicyFlag."Policy Version");
+        ExpensePolicyFlag.Get(ExpensePolicyFlag."Subject Type", ExpensePolicyFlag."Subject System Id", ExpensePolicyFlag."Policy System Id", ExpensePolicyFlag."Subject Version", ExpensePolicyFlag."Policy Version");
         ExpensePolicyFlag.CalcFields("Is Current");
         Assert.IsFalse(ExpensePolicyFlag."Is Current", 'A flag for a deleted policy must not be current.');
     end;

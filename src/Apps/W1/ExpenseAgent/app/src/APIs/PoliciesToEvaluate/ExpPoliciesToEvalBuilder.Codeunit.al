@@ -80,7 +80,7 @@ codeunit 7107 "Exp. Policies To Eval Builder"
         // A policy no longer needs evaluating when a flag already exists for the line's current
         // subject version and the policy's current version. This keeps the endpoint idempotent and
         // avoids returning policies that were just re-evaluated.
-        exit(ExpensePolicyFlag.Get(SubjectSystemId, PolicySystemId, SubjectVersion, PolicyVersion));
+        exit(ExpensePolicyFlag.Get(ExpensePolicyFlag."Subject Type"::"Expense Report Line", SubjectSystemId, PolicySystemId, SubjectVersion, PolicyVersion));
     end;
 
     local procedure InsertRow(var TempPolicyToEvalBuffer: Record "Exp. Policy To Eval Buffer" temporary; SubjectSystemId: Guid; SubjectVersion: Integer; var ExpensePolicy: Record "Expense Policy")
