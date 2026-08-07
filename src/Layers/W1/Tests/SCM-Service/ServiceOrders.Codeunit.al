@@ -55,6 +55,7 @@ using System.IO;
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 136101 "Service Orders"
 {
     EventSubscriberInstance = Manual;
@@ -8608,4 +8609,5 @@ codeunit 136101 "Service Orders"
         ServiceOrder.Cancel().Invoke();
     end;
 }
+#pragma warning restore AL0432, AS0105
 

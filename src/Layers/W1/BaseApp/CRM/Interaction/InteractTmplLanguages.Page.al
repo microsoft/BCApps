@@ -6,6 +6,7 @@ namespace Microsoft.CRM.Interaction;
 
 using Microsoft.Foundation.Reporting;
 
+#pragma warning disable AS0032
 page 5154 "Interact. Tmpl. Languages"
 {
     Caption = 'Interact. Tmpl. Languages';
@@ -62,6 +63,7 @@ page 5154 "Interact. Tmpl. Languages"
                         UpdateAttachments(Rec."Custom Layout Code");
                     end;
                 }
+#if not CLEAN29
                 field(CustLayoutDescription; CustomReportLayoutDescription)
                 {
                     ApplicationArea = RelationshipMgmt;
@@ -72,7 +74,9 @@ page 5154 "Interact. Tmpl. Languages"
 #if not CLEAN28
                     trigger OnLookup(var Text: Text): Boolean
                     var
+#pragma warning disable AL0432
                         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
                     begin
 #pragma warning disable AL0432
                         if CustomReportLayout.LookupLayoutOK(REPORT::"Email Merge") then begin
@@ -88,7 +92,9 @@ page 5154 "Interact. Tmpl. Languages"
 
                     trigger OnValidate()
                     var
+#pragma warning disable AL0432, AS0105
                         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
                     begin
                         if CustomReportLayoutDescription = '' then begin
                             Rec.Validate("Custom Layout Code", '');
@@ -106,6 +112,7 @@ page 5154 "Interact. Tmpl. Languages"
                         UpdateAttachments(Rec."Custom Layout Code");
                     end;
                 }
+#endif
                 field(ReportLayoutName; Rec."Report Layout Name")
                 {
                     ApplicationArea = All;
@@ -231,31 +238,47 @@ page 5154 "Interact. Tmpl. Languages"
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         Rec.CalcFields("Custom Layout Description");
         CustomReportLayoutDescription := Rec."Custom Layout Description";
+#pragma warning restore AL0432
+#endif
     end;
 
     trigger OnAfterGetRecord()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         Rec.CalcFields("Custom Layout Description");
         CustomReportLayoutDescription := Rec."Custom Layout Description";
+#pragma warning restore AL0432
+#endif
     end;
 
     trigger OnOpenPage()
+#if not CLEAN29
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
     begin
+#if not CLEAN29
         CustLayoutVisible := CustomReportLayout.ReadPermission;
         if CustLayoutVisible then begin
             CustomReportLayout.SetRange("Report ID", Report::"Email Merge");
             CustLayoutVisible := not CustomReportLayout.IsEmpty();
         end;
+#endif
     end;
 
     var
+#if not CLEAN29
         CustomReportLayoutDescription: Text;
         CustLayoutVisible: Boolean;
         CouldNotFindCustomReportLayoutErr: Label 'There is no Custom Report Layout with %1 in the description.', Comment = '%1 Description of Custom Report Layout';
+#endif
 
     local procedure UpdateAttachments(NewCustomLayoutCode: Code[20])
     begin
@@ -265,7 +288,11 @@ page 5154 "Interact. Tmpl. Languages"
             if xRec."Custom Layout Code" <> '' then
                 Rec.RemoveAttachment(false);
 
+#if not CLEAN29
+#pragma warning disable AL0432
         Rec.CalcFields("Custom Layout Description");
+#pragma warning restore AL0432
+#endif
         CurrPage.Update();
     end;
 
@@ -280,4 +307,5 @@ page 5154 "Interact. Tmpl. Languages"
         CurrPage.Update();
     end;
 }
+#pragma warning restore AS0032
 

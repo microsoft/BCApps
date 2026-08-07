@@ -15,6 +15,7 @@ using Microsoft.Test.Sustainability;
 using System.Reflection;
 using System.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 148217 "Sustainability Report Tests"
 {
     Subtype = Test;
@@ -477,3 +478,4 @@ codeunit 148217 "Sustainability Report Tests"
         StandardSalesInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
+#pragma warning restore AL0432, AS0105

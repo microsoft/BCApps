@@ -2225,11 +2225,14 @@ codeunit 134761 "Test Custom Reports"
         AddNewCustomerReportSelection(CustomerReportSelections, Usage::"Credit Memo", REPORT::"G/L Register");
     end;
 
+#if not CLEAN29
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure CustomerReportSelectionHandler(var CustomerReportSelections: TestPage "Customer Report Selections")
     var
+#pragma warning disable AL0432
         ExpectedCustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
     begin
         ExpectedCustomReportLayout.Get(LibraryVariableStorage.DequeueText());
 
@@ -2252,6 +2255,7 @@ codeunit 134761 "Test Custom Reports"
           ExpectedCustomReportLayout.Code, CustomReportSelection."Custom Report Layout Code",
           'Incorrect Value in Customer Report Selections');
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

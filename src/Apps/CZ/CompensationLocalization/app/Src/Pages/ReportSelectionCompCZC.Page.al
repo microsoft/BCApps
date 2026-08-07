@@ -10,6 +10,7 @@ using System.Reflection;
 /// <summary>
 /// Configures default report selections for compensations. Allows users to specify which reports to use for printing, emailing, and other output operations.
 /// </summary>
+#pragma warning disable AS0032
 page 31282 "Report Selection - Comp. CZC"
 {
     AboutTitle = 'About report selection for compensation';
@@ -120,12 +121,16 @@ page 31282 "Report Selection - Comp. CZC"
                     ToolTip = 'Specifies the ID of the custom email body layout that is used.';
                     Visible = false;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = false;
                 }
+#pragma warning restore AL0432
+#endif
             }
         }
         area(factboxes)
@@ -201,4 +206,5 @@ page 31282 "Report Selection - Comp. CZC"
     begin
     end;
 }
+#pragma warning restore AS0032
 

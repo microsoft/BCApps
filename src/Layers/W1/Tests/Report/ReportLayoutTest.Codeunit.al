@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 134600 "Report Layout Test"
 {
     // SaveAsPDF is not tested for Word scenarios as it currently requires Windows client and an installed Word.
@@ -22,7 +23,9 @@ codeunit 134600 "Report Layout Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+#pragma warning disable AA0137
         LibraryTablesUT: Codeunit "Library - Tables UT";
+#pragma warning restore AA0137
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -795,20 +798,26 @@ codeunit 134600 "Report Layout Test"
         VerifyJobTaskNo(20000, SalesLine[2]."Job Task No.");
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TestLenghtOfDescriptionCustomReportLayout()
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         CustomReportSelection: Record "Custom Report Selection";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 252058] Length of "Custom Report Layout"."Description" shoud be equal to length of "Custom Report Selection"."Custom Report Description"
 
+#pragma warning disable AL0432
         LibraryTablesUT.CompareFieldTypeAndLength(
           CustomReportLayout, CustomReportLayout.FieldNo(Description),
           CustomReportSelection, CustomReportSelection.FieldNo("Custom Report Description"));
+#pragma warning restore AL0432
     end;
+#endif
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -1205,3 +1214,4 @@ codeunit 134600 "Report Layout Test"
     end;
 
 }
+#pragma warning restore AL0432, AS0105

@@ -774,9 +774,14 @@ table 5062 Attachment
 
     local procedure GetCustomLayoutCodeLength(): Integer
     var
-        DummyCustomReportLayout: Record "Custom Report Layout";
+        CustomLayoutCode: Code[20];
     begin
-        exit(MaxStrLen(DummyCustomReportLayout.Code));
+        // This is the width of the fixed-size code prefix already stored inside existing HTML attachment
+        // blobs - written with PadStr and read back with CopyStr - so it must stay 20 whatever happens to
+        // the layout table. It previously came from MaxStrLen on a dummy Custom Report Layout record,
+        // which tied a persisted data format to an obsoleted table for no reason. Taken from a Code[20]
+        // instead of a literal so the declaration and the format cannot drift apart.
+        exit(MaxStrLen(CustomLayoutCode));
     end;
 
     local procedure ProcessWebAttachment(FileName: Text)

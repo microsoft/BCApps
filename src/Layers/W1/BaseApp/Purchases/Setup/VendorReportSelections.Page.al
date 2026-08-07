@@ -9,6 +9,7 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Vendor;
 using System.Reflection;
 
+#pragma warning disable AS0032
 page 9658 "Vendor Report Selections"
 {
     Caption = 'Document Layouts';
@@ -23,7 +24,9 @@ page 9658 "Vendor Report Selections"
         {
             repeater(Group)
             {
+#if not CLEAN29
                 FreezeColumn = "Custom Report Description";
+#endif
                 field(Usage2; Usage2)
                 {
                     ApplicationArea = Basic, Suite;
@@ -56,6 +59,8 @@ page 9658 "Vendor Report Selections"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Report Name';
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Custom Report Description"; Rec."Custom Report Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -94,6 +99,8 @@ page 9658 "Vendor Report Selections"
                         end;
                     end;
                 }
+#pragma warning restore AL0432
+#endif
                 field(SendToEmail; Rec."Send To Email")
                 {
                     ApplicationArea = Basic, Suite;
@@ -117,6 +124,8 @@ page 9658 "Vendor Report Selections"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -136,6 +145,8 @@ page 9658 "Vendor Report Selections"
                         CurrPage.Update(true);
                     end;
                 }
+#pragma warning restore AL0432
+#endif
                 field("Email Body Layout"; ReportSelectionsImpl.GetReportLayoutCaption(Rec."Report ID", Rec."Email Body Layout Name", Rec."Email Body Layout AppID"))
                 {
                     ApplicationArea = Basic, Suite;
@@ -255,7 +266,9 @@ page 9658 "Vendor Report Selections"
 
     var
         ReportSelectionsImpl: Codeunit "Report Selections Impl";
+#if not CLEAN29
         CouldNotFindCustomReportLayoutErr: Label 'There is no custom report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
+#endif
 
     protected var
         Usage2: Enum "Report Selection Usage Vendor";
@@ -307,4 +320,5 @@ page 9658 "Vendor Report Selections"
     begin
     end;
 }
+#pragma warning restore AS0032
 

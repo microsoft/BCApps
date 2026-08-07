@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 136314 "Job Quote Report Tests"
 {
     Subtype = Test;
@@ -533,4 +534,5 @@ codeunit 136314 "Job Quote Report Tests"
         RequestPage.Cancel().Invoke();
     end;
 }
+#pragma warning restore AL0432, AS0105
 

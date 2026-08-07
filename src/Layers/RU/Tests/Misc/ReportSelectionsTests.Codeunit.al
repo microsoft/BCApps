@@ -3486,6 +3486,7 @@
         VendorReportSelections.CopyFromReportSelectionsAction.Invoke();
     end;
 
+#if not CLEAN29
     [ModalPageHandler]
     procedure VendorReportSelectionsHandler(var VendorReportSelections: TestPage "Vendor Report Selections")
     begin
@@ -3493,6 +3494,7 @@
         VendorReportSelections."Custom Report Description".Drilldown();
         VendorReportSelections."Custom Report Description".AssertEquals(LibraryVariableStorage.DequeueText());
     end;
+#endif
 
     [ModalPageHandler]
     procedure ProFormInvoiceCustomerReportSelectionsHandler(var CustomerReportSelections: TestPage "Customer Report Selections")

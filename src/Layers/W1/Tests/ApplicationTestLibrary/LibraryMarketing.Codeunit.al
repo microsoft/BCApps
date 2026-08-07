@@ -1,6 +1,7 @@
 /// <summary>
 /// Provides utility functions for creating and managing marketing-related entities in test scenarios, including contacts, campaigns, and segments.
 /// </summary>
+#pragma warning disable AL0432, AS0105
 codeunit 131900 "Library - Marketing"
 {
 
@@ -645,4 +646,5 @@ codeunit 131900 "Library - Marketing"
         Contact.Modify();
     end;
 }
+#pragma warning restore AL0432, AS0105
 

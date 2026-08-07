@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -20,7 +21,9 @@ codeunit 104057 "Upgrade Custom Report Impl."
 
     local procedure UpgradeCompany()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportLayout: Record "Report Layout";
         ReportLayoutList: Record "Report Layout List";
         UpgradeTag: Codeunit "Upgrade Tag";
@@ -158,3 +161,4 @@ codeunit 104057 "Upgrade Custom Report Impl."
         end;
     end;
 }
+#endif

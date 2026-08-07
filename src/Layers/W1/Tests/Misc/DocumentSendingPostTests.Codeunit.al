@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 139197 DocumentSendingPostTests
 {
     EventSubscriberInstance = Manual;
@@ -5537,4 +5538,5 @@ codeunit 139197 DocumentSendingPostTests
         TestMode := true
     end;
 }
+#pragma warning restore AL0432, AS0105
 

@@ -146,7 +146,11 @@ table 8631 "Config. Table Processing Rule"
                 exit(Action in [Action::Invoice, Action::Receive]);
             Database::"Gen. Journal Line", Database::"Gen. Journal Batch":
                 exit(Action = Action::Post);
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
             Database::"Custom Report Layout":
+#pragma warning restore AL0432, AS0105
+#endif
                 exit(Action = Action::Post);
             Database::"Transfer Header":
                 exit(Action in [Action::Ship, Action::Receive]);
@@ -187,8 +191,12 @@ table 8631 "Config. Table Processing Rule"
                 exit(RunActionOnGenJnlLine(RecRef));
             Database::"Gen. Journal Batch":
                 exit(RunActionOnGenJnlBatch(RecRef));
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
             Database::"Custom Report Layout":
+#pragma warning restore AL0432, AS0105
                 exit(RunActionOnCustomReportLayout(RecRef));
+#endif
             Database::"Transfer Header":
                 exit(RunActionOnTransferHeader(RecRef));
             Database::Item:
@@ -325,9 +333,12 @@ table 8631 "Config. Table Processing Rule"
         Clear(ConfigPackageFilters);
     end;
 
+#if not CLEAN29
     local procedure RunActionOnCustomReportLayout(RecRef: RecordRef): Boolean
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportLayoutSelection: Record "Report Layout Selection";
     begin
         RecRef.SetTable(CustomReportLayout);
@@ -346,6 +357,7 @@ table 8631 "Config. Table Processing Rule"
         end;
         exit(false);
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnDoesTableHaveCustomRuleInRapidStart(TableID: Integer; var Result: Boolean)

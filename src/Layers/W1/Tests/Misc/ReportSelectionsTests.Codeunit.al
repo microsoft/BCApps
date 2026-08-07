@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 134421 "Report Selections Tests"
 {
     Subtype = Test;
@@ -3631,6 +3632,7 @@ codeunit 134421 "Report Selections Tests"
         VendorReportSelections.CopyFromReportSelectionsAction.Invoke();
     end;
 
+#if not CLEAN29
     [ModalPageHandler]
     procedure VendorReportSelectionsHandler(var VendorReportSelections: TestPage "Vendor Report Selections")
     begin
@@ -3638,6 +3640,7 @@ codeunit 134421 "Report Selections Tests"
         VendorReportSelections."Custom Report Description".Drilldown();
         VendorReportSelections."Custom Report Description".AssertEquals(LibraryVariableStorage.DequeueText());
     end;
+#endif
 
     [ModalPageHandler]
     procedure ProFormInvoiceCustomerReportSelectionsHandler(var CustomerReportSelections: TestPage "Customer Report Selections")
@@ -3670,3 +3673,4 @@ codeunit 134421 "Report Selections Tests"
         ReportLayouts.OK().Invoke();
     end;
 }
+#pragma warning restore AL0432, AS0105

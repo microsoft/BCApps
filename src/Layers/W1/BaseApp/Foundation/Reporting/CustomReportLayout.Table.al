@@ -11,10 +11,18 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
 
+#pragma warning disable AS0105
 table 9650 "Custom Report Layout"
 {
     Caption = 'Custom Report Layout';
     DataPerCompany = false;
+    ObsoleteReason = 'Replaced by system tables "Tenant Report Layout" and "Report Layout Selection". This table will be removed in a future version.';
+#if not CLEAN29
+    ObsoleteState = Pending;
+#else
+    ObsoleteState = Removed;
+#endif
+    ObsoleteTag = '29.0';
 #if not CLEAN28
 #pragma warning disable AL0432
     DrillDownPageID = "Custom Report Layouts";
@@ -1105,3 +1113,4 @@ table 9650 "Custom Report Layout"
     end;
 #endif
 }
+#pragma warning restore AS0105

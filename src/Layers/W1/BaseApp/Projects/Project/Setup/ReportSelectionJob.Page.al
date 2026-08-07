@@ -7,6 +7,7 @@ namespace Microsoft.Projects.Project.Setup;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
+#pragma warning disable AS0032
 page 307 "Report Selection - Job"
 {
     AboutTitle = 'About report selection for projects';
@@ -118,6 +119,8 @@ page 307 "Report Selection - Job"
                     ToolTip = 'Specifies the ID of the custom email body layout that is used.';
                     Visible = false;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -129,13 +132,13 @@ page 307 "Report Selection - Job"
                     var
                         CustomReportLayout: Record "Custom Report Layout";
                     begin
-#pragma warning disable AL0432
                         if CustomReportLayout.LookupLayoutOK(Rec."Report ID") then
-#pragma warning restore AL0432
                             Rec.Validate("Email Body Layout Code", CustomReportLayout.Code);
                     end;
 #endif
                 }
+#pragma warning restore AL0432
+#endif
             }
         }
         area(factboxes)
@@ -215,3 +218,4 @@ page 307 "Report Selection - Job"
     begin
     end;
 }
+#pragma warning restore AS0032

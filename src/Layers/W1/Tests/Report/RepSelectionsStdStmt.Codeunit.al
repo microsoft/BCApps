@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 134422 "Rep. Selections - Std. Stmt."
 {
     EventSubscriberInstance = Manual;
@@ -2995,3 +2996,4 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         StandardStatement.SaveAsPdf(FileManagement.ServerTempFileName('.pdf'));
     end;
 }
+#pragma warning restore AL0432, AS0105

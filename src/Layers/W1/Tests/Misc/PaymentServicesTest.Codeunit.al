@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 134425 "Payment Services Test"
 {
     EventSubscriberInstance = Manual;
@@ -1992,3 +1993,4 @@ codeunit 134425 "Payment Services Test"
         ActiveDirectoryMockEvents.Enable();
     end;
 }
+#pragma warning restore AL0432, AS0105

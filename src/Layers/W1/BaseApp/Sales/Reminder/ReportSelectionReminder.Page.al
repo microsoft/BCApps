@@ -10,6 +10,7 @@ using System.Reflection;
 /// <summary>
 /// Configures which reports are used when printing or emailing reminders and finance charges.
 /// </summary>
+#pragma warning disable AS0032
 page 524 "Report Selection - Reminder"
 {
     AboutTitle = 'About report selection for reminders';
@@ -85,6 +86,8 @@ page 524 "Report Selection - Reminder"
                     ToolTip = 'Specifies the ID of the custom email body layout that is used.';
                     Visible = false;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -96,13 +99,13 @@ page 524 "Report Selection - Reminder"
                     var
                         CustomReportLayout: Record "Custom Report Layout";
                     begin
-#pragma warning disable AL0432
                         if CustomReportLayout.LookupLayoutOK(Rec."Report ID") then
-#pragma warning restore AL0432
                             Rec.Validate("Email Body Layout Code", CustomReportLayout.Code);
                     end;
 #endif
                 }
+#pragma warning restore AL0432
+#endif
             }
         }
         area(factboxes)
@@ -133,12 +136,16 @@ page 524 "Report Selection - Reminder"
     begin
         InitUsageFilter();
         SetUsageFilter(false);
+#if not CLEAN29
         CustomLayoutsExist := Rec.DoesAnyCustomLayotExist();
+#endif
     end;
 
     var
         ReportUsage2: Enum "Report Selection Usage Reminder";
+#if not CLEAN29
         CustomLayoutsExist: Boolean;
+#endif
 
     local procedure SetUsageFilter(ModifyRec: Boolean)
     begin
@@ -192,4 +199,5 @@ page 524 "Report Selection - Reminder"
     begin
     end;
 }
+#pragma warning restore AS0032
 
