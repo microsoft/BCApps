@@ -7,7 +7,9 @@ namespace System.Environment.Configuration;
 using System.Apps;
 using System.Reflection;
 
+#pragma warning disable AL0432
 pageextension 2510 "Extension Subscribers" extends "Extension Management"
+#pragma warning restore AL0432
 {
     actions
     {

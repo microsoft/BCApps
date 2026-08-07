@@ -245,7 +245,9 @@ table 4009 "Migration Table Mapping"
 
     internal procedure LookupApp(var PublishedApplication: Record "Published Application"): Boolean
     var
+#pragma warning disable AL0432
         ExtensionManagement: Page "Extension Management";
+#pragma warning restore AL0432
     begin
         FilterOutBlacklistedPublishers(PublishedApplication);
 

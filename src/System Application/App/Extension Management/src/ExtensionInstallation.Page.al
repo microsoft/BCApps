@@ -13,6 +13,9 @@ using System;
 page 2503 "Extension Installation"
 {
     Extensible = false;
+    ObsoleteReason = 'Use the Business Central admin center to install and manage extensions.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     PageType = Card;
     SourceTable = "Extension Installation";
     SourceTableTemporary = true;
@@ -79,5 +82,4 @@ page 2503 "Extension Installation"
             FieldRef.Value(Filter);
     end;
 }
-
 

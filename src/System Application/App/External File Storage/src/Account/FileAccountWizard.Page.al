@@ -163,7 +163,9 @@ page 9451 "File Account Wizard"
 
                     trigger OnDrillDown()
                     begin
+#pragma warning disable AL0432
                         Page.Run(Page::"Extension Management");
+#pragma warning restore AL0432
                     end;
                 }
                 field(AppSource; AppSourceTok)

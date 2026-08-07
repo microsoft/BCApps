@@ -124,7 +124,9 @@ page 2508 "Extension Deployment Status"
                 ApplicationArea = All;
                 Caption = 'Upload Extension';
                 Image = Import;
+#pragma warning disable AL0432
                 RunObject = page "Upload And Deploy Extension";
+#pragma warning restore AL0432
                 ToolTip = 'Upload an extension to your application.';
                 Ellipsis = true;
                 Visible = IsSaaS;
@@ -138,7 +140,9 @@ page 2508 "Extension Deployment Status"
                 ApplicationArea = All;
                 ToolTip = 'Open the Extension Management page.';
                 Image = Setup;
+#pragma warning disable AL0432
                 RunObject = Page "Extension Management";
+#pragma warning restore AL0432
             }
         }
         area(Promoted)
@@ -186,5 +190,4 @@ page 2508 "Extension Deployment Status"
         OperationType: Option Upload,Install;
         IsSaaS: Boolean;
 }
-
 

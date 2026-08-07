@@ -111,7 +111,9 @@ page 40010 "Add Migration Table Mappings"
                         var
                             PublishedApplication: Record "Published Application";
                             MigrationTableMapping: Record "Migration Table Mapping";
+#pragma warning disable AL0432
                             ExtensionManagement: Page "Extension Management";
+#pragma warning restore AL0432
                         begin
                             MigrationTableMapping.FilterOutBlacklistedPublishers(PublishedApplication);
                             PublishedApplication.SetRange(Installed, true);

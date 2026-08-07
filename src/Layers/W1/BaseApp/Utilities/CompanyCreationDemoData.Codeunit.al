@@ -16,7 +16,9 @@ codeunit 9192 "Company Creation Demo Data"
         if not CheckAndPromptUserToInstallContosoRequiredApps() then begin
             MissingDemoAppsErr.Message := DemoDataAppsNotAvailableErr;
 
+#pragma warning disable AL0432
             MissingDemoAppsErr.PageNo := Page::"Extension Management";
+#pragma warning restore AL0432
             MissingDemoAppsErr.AddNavigationAction(GoToExtensionManagementMsg);
             Error(MissingDemoAppsErr);
         end

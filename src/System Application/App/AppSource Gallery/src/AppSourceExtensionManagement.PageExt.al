@@ -5,7 +5,9 @@
 namespace System.Apps.AppSource;
 using System.Apps;
 
+#pragma warning disable AL0432
 pageextension 2515 AppSourceExtensionManagement extends "Extension Management"
+#pragma warning restore AL0432
 {
     actions
     {

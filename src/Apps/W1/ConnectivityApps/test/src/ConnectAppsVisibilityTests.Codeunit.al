@@ -285,7 +285,9 @@ codeunit 139534 "Connect. Apps Visibility Tests"
     var
         CompanyInformation: Record "Company Information";
         ConnectivityAppsLocationMock: Codeunit "Connectivity Apps Loc. Mock";
+#pragma warning disable AL0432
         ExtensionManagement: TestPage "Extension Management";
+#pragma warning restore AL0432
     begin
         // [GIVEN] Banking Apps exist
         Initialize();
@@ -309,7 +311,9 @@ codeunit 139534 "Connect. Apps Visibility Tests"
     var
         CompanyInformation: Record "Company Information";
         ConnectivityAppsLocationMock: Codeunit "Connectivity Apps Loc. Mock";
+#pragma warning disable AL0432
         ExtensionManagement: TestPage "Extension Management";
+#pragma warning restore AL0432
     begin
         // [GIVEN] Banking Apps does not exist
         Initialize();

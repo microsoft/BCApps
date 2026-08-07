@@ -42,7 +42,9 @@ page 9202 "Advanced Settings"
 
                             trigger OnDrillDown()
                             begin
+#pragma warning disable AL0432
                                 Page.Run(Page::"Extension Management");
+#pragma warning restore AL0432
                                 CurrPage.Close();
                             end;
                         }

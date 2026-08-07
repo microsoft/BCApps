@@ -69,7 +69,9 @@ table 9012 "AAD Application"
             var
                 PublishedApplication: Record "Published Application";
             begin
+#pragma warning disable AL0432
                 if PAGE.RunModal(PAGE::"Extension Management", PublishedApplication) = ACTION::LookupOK then begin
+#pragma warning restore AL0432
                     "App ID" := PublishedApplication."Package ID";
                     "App Name" := PublishedApplication.Name;
                     exit
@@ -207,4 +209,3 @@ table 9012 "AAD Application"
         SuperPermissionSetTxt: Label 'SUPER', Locked = true;
         UserNameCannotbeChangedQst: Label 'A user named %1 will be created. Do you want to continue?', Comment = '%1 a user name eq. xxx yyyyyy';
 }
-

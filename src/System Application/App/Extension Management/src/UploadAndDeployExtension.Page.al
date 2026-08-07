@@ -13,6 +13,9 @@ using System.Globalization;
 page 2507 "Upload And Deploy Extension"
 {
     Extensible = false;
+    ObsoleteReason = 'Use the Business Central admin center to upload and manage per-tenant extensions.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     PageType = NavigatePage;
     SourceTable = "Published Application";
     SourceTableTemporary = true;
@@ -183,4 +186,3 @@ page 2507 "Upload And Deploy Extension"
         DisclaimerLbl: Label 'Per-Tenant Extension (PTE) Disclaimer';
         IsAccepted: Boolean;
 }
-
