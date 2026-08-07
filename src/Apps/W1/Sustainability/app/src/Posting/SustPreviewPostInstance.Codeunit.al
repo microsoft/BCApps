@@ -99,7 +99,7 @@ codeunit 6233 "Sust. Preview Post Instance"
     var
         TempSustLedgEntry: Record "Sustainability Ledger Entry" temporary;
         TempSustValueEntry: Record "Sustainability Value Entry" temporary;
+        NextSustLedgerPreviewEntryNo: Integer;
         HasSustainabilityEntry: Boolean;
         HasSustainabilityValueEntry: Boolean;
-        NextSustLedgerPreviewEntryNo: Integer;
 }

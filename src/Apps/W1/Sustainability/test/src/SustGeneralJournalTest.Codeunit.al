@@ -880,14 +880,14 @@ codeunit 148188 "Sust. General Journal Test"
         BankAccount: Record "Bank Account";
         Vendor: Record Vendor;
         GenJnlPost: Codeunit "Gen. Jnl.-Post";
-        EmissionCO2: Decimal;
-        EmissionCH4: Decimal;
-        EmissionN2O: Decimal;
-        BaselineEntryNo: Integer;
-        Index: Integer;
         CategoryCode: Code[20];
         SubcategoryCode: Code[20];
         AccountCode: Code[20];
+        BaselineEntryNo: Integer;
+        Index: Integer;
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
     begin
         // [SCENARIO 640599] Preview Posting of a General Journal Line must not consume the Sustainability Ledger Entry identity.
         LibrarySustainability.CleanUpBeforeTesting();
@@ -965,13 +965,13 @@ codeunit 148188 "Sust. General Journal Test"
         BankAccount: Record "Bank Account";
         Vendor: Record Vendor;
         GenJnlPost: Codeunit "Gen. Jnl.-Post";
-        EmissionCO2: Decimal;
-        EmissionCH4: Decimal;
-        EmissionN2O: Decimal;
-        Index: Integer;
         CategoryCode: Code[20];
         SubcategoryCode: Code[20];
         AccountCode: Code[20];
+        Index: Integer;
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
     begin
         // [SCENARIO 640599] Every repeated General Journal preview reuses the same reset pair of negative temporary Entry No. values.
         LibrarySustainability.CleanUpBeforeTesting();

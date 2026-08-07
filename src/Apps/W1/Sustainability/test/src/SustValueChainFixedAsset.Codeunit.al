@@ -937,12 +937,12 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
         EmissionFee: array[3] of Record "Emission Fee";
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
         FAJnlPost: Codeunit "FA. Jnl.-Post";
-        BaselineCO2eEmission: Decimal;
-        ExpectedCO2eEmission: Decimal;
-        BaselineEntryNo: Integer;
         CategoryCode: Code[20];
         SubcategoryCode: Code[20];
         AccountCode: Code[20];
+        BaselineEntryNo: Integer;
+        BaselineCO2eEmission: Decimal;
+        ExpectedCO2eEmission: Decimal;
     begin
         // [SCENARIO 580142] [Sustainability] - Value Chain: Fixed Assets (🌱)
         // [SCENARIO] FA journal posting preview must not consume the Sustainability Ledger Entry identity.
