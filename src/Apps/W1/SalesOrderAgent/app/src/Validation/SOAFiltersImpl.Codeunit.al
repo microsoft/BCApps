@@ -93,6 +93,7 @@ codeunit 4305 "SOA Filters Impl."
             if not ProcessedFromEmails.Contains(From) then begin
                 ProcessedFromEmails.Add(From);
                 Contact.Reset();
+                Contact.SetLoadFields("No.");
                 Contact.SetFilter("E-Mail", From);
                 Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
                 if Contact.FindSet() then
@@ -199,7 +200,7 @@ codeunit 4305 "SOA Filters Impl."
             2:
                 SelectContactAndSetOverride(TaskID, TaskMessageID);
             3:
-                SelectContactAndUpdateEmail(ContactEmail);
+                SelectContactAndUpdateEmail(ContactEmail, TaskID, TaskMessageID);
         end;
     end;
 
@@ -209,6 +210,7 @@ codeunit 4305 "SOA Filters Impl."
         SOATaskContactOverride: Record "SOA Task Contact Override";
         ContactList: Page "Contact List";
     begin
+        ValidateContactMappingAccess(TaskID, TaskMessageID);
         ContactList.LookupMode(true);
         if ContactList.RunModal() <> Action::LookupOK then
             exit;
@@ -234,7 +236,7 @@ codeunit 4305 "SOA Filters Impl."
     begin
         if ContactEmail <> '' then
             if FindContactByEmail(ExistingContact, ContactEmail, ContactCount) then
-                if not Confirm(StrSubstNo(ContactAlreadyExistQst, ExistingContact."No.")) then
+                if not Confirm(ContactAlreadyExistQst, false, ExistingContact."No.") then
                     Error('')
                 else begin
                     Page.Run(Page::"Contact Card", ExistingContact);
@@ -246,18 +248,19 @@ codeunit 4305 "SOA Filters Impl."
         CreateContactPage.RunModal();
     end;
 
-    internal procedure SelectContactAndUpdateEmail(ContactEmail: Text)
+    internal procedure SelectContactAndUpdateEmail(ContactEmail: Text; TaskID: BigInteger; TaskMessageID: Guid)
     var
         SelectedContact: Record Contact;
         ContactList: Page "Contact List";
     begin
+        ValidateContactMappingAccess(TaskID, TaskMessageID);
         ContactList.LookupMode(true);
         Commit();
         if ContactList.RunModal() <> Action::LookupOK then
             exit;
         ContactList.GetRecord(SelectedContact);
         if SelectedContact."E-Mail 2" <> '' then
-            if not Confirm(ContactAlreadyHasAlternateEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail 2", ContactEmail) then
+            if not Confirm(ContactAlreadyHasAlternateEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail 2", SelectedContact.FieldCaption("E-Mail 2"), ContactEmail) then
                 exit;
         // Direct assignment is intentional: ContactEmail originates from an incoming email's From address,
         // which has already been accepted by the mail system. Validate() is skipped to avoid rejecting
@@ -267,6 +270,26 @@ codeunit 4305 "SOA Filters Impl."
 #pragma warning restore AA0139
         SelectedContact.Modify(true);
         Commit();
+    end;
+
+    local procedure ValidateContactMappingAccess(TaskID: BigInteger; TaskMessageID: Guid)
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        SOASetup: Record "SOA Setup";
+        OwnerUserSecurityID: Guid;
+    begin
+        if not AgentTaskMessage.Get(TaskID, TaskMessageID) then
+            Error(ContactMappingNotAuthorizedErr);
+        if AgentTaskMessage.Type <> AgentTaskMessage.Type::Input then
+            Error(ContactMappingNotAuthorizedErr);
+
+        SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", true);
+        OwnerUserSecurityID := SOASetup."Owner User Security ID";
+        if IsNullGuid(OwnerUserSecurityID) then
+            OwnerUserSecurityID := SOASetup."User Security ID";
+
+        if (UserSecurityId() <> OwnerUserSecurityID) and (UserSecurityId() <> SOASetup."User Security ID") then
+            Error(ContactMappingNotAuthorizedErr);
     end;
 
     internal procedure HandleUnknownSenderFromNotification(MissingContactNotification: Notification)
@@ -361,6 +384,7 @@ codeunit 4305 "SOA Filters Impl."
     begin
         Contact.Reset();
         Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetLoadFields("E-Mail");
         Contact.SetFilter("E-Mail 2", GetSafeFromEmailFilter(EmailAddress));
         ContactCount := Contact.Count();
         exit(Contact.FindFirst());
@@ -371,11 +395,12 @@ codeunit 4305 "SOA Filters Impl."
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;
         LearnMoreLbl: Label 'Learn more';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
-        ContactAlreadyHasAlternateEmailQst: Label 'Contact %1 already has %2 in E-Mail 2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing E-Mail 2, %3 = New email';
+        ContactAlreadyHasAlternateEmailQst: Label 'Contact %1 already has %2 in %3. Replace it with %4?', Comment = '%1 = Contact No., %2 = Existing alternate email, %3 = Alternate email field caption, %4 = New email';
         ContactActionsMenuQst: Label 'Create a new contact,Use another contact once,Use another contact always', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
         ContactActionsInstructionQst: Label 'Select one option for how this email should be handled.';
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;
         MissingContactNotificationLbl: Label 'A contact with email <%1> is not found. Without it, document access and creation are not possible.', Comment = '%1 - email address';
         ContactAlreadyExistQst: Label 'A contact with the same email already exists. Contact number is %1. Do you want to open it?', Comment = '%1 = Contact number';
         DuplicateContactNotificationLbl: Label 'There are %1 contacts with the same email address <%2>. The first matching contact will be used.', Comment = '%1 - number of contacts, %2 - email address';
+        ContactMappingNotAuthorizedErr: Label 'You are not authorized to change the contact mapping for this message.';
 }

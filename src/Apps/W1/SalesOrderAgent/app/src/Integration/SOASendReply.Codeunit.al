@@ -25,8 +25,8 @@ codeunit 4419 "SOA Send Reply"
         AgentMessage: Codeunit "Agent Message";
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
-        BCCRecipients: List of [Text];
         CCRecipients: List of [Text];
+        EmptyBCCRecipients: List of [Text];
         ToRecipients: List of [Text];
         Body: Text;
         MappedContactEmail: Text;
@@ -41,12 +41,13 @@ codeunit 4419 "SOA Send Reply"
 
         Subject := StrSubstNo(EmailSubjectTxt, InputAgentTaskMessage."Task ID");
         Body := AgentMessage.GetText(Rec);
-        MappedContactEmail := GetMappedContactEmail(InputAgentTaskMessage);
+        MappedContactEmail := GetMappedContactEmail(InputAgentTaskMessage, SOASetup);
 
         if MappedContactEmail <> '' then begin
+            ValidateMessageAccess(Rec, SOASetup);
             ToRecipients.Add(MappedContactEmail);
-            GetOriginEmailRecipients(InputAgentTaskMessage, CCRecipients, BCCRecipients);
-            EmailMessage.CreateReply(ToRecipients, Subject, Body, true, InputAgentTaskMessage."External ID", CCRecipients, BCCRecipients);
+            GetOriginEmailCCRecipients(InputAgentTaskMessage, CCRecipients);
+            EmailMessage.CreateReply(ToRecipients, Subject, Body, true, InputAgentTaskMessage."External ID", CCRecipients, EmptyBCCRecipients);
         end else
             EmailMessage.CreateReplyAll(Subject, Body, true, InputAgentTaskMessage."External ID");
 
@@ -70,11 +71,12 @@ codeunit 4419 "SOA Send Reply"
         EmailSubjectTxt: Label 'Sales order agent reply to task %1', Comment = '%1 = Agent Task id';
         EmailReplyFailedErr: Label 'The email reply could not be sent.';
         InvalidReplyMessageErr: Label 'Only reviewed output messages can be sent as replies.';
+        ReplyNotAuthorizedErr: Label 'You are not authorized to send this reply.';
         InvalidMappedContactErr: Label 'The contact mapping for this message is no longer valid. Choose another contact before sending the reply.';
         MappedContactEmailMissingErr: Label 'The mapped contact %1 does not have a primary email address. Add an email address to the contact or choose another contact before sending the reply.', Comment = '%1 = Contact No.';
         MultipleAlternateEmailMappingsErr: Label 'The sender''s alternate email address is assigned to more than one contact. Remove the duplicate alternate email mappings before sending the reply.';
 
-    local procedure GetMappedContactEmail(InputAgentTaskMessage: Record "Agent Task Message"): Text
+    local procedure GetMappedContactEmail(InputAgentTaskMessage: Record "Agent Task Message"; SOASetup: Record "SOA Setup"): Text
     var
         SOATaskContactOverride: Record "SOA Task Contact Override";
         Contact: Record Contact;
@@ -82,6 +84,7 @@ codeunit 4419 "SOA Send Reply"
         ContactCount: Integer;
     begin
         if SOATaskContactOverride.Get(InputAgentTaskMessage."Task ID", InputAgentTaskMessage.ID) then begin
+            ValidateOverrideProvenance(SOATaskContactOverride, SOASetup);
             if SOATaskContactOverride."Contact No." = '' then
                 ErrorMappedContact(InvalidMappedContactErr);
 
@@ -104,10 +107,34 @@ codeunit 4419 "SOA Send Reply"
             exit(Contact."E-Mail");
         end;
 
-        if ContactCount > 0 then
-            ErrorMappedContact(InvalidMappedContactErr);
-
         exit('');
+    end;
+
+    local procedure ValidateMessageAccess(AgentTaskMessage: Record "Agent Task Message"; SOASetup: Record "SOA Setup")
+    begin
+        if AgentTaskMessage."Agent User Security ID" <> SOASetup."User Security ID" then
+            Error(ReplyNotAuthorizedErr);
+        if not IsAuthorizedUserSecurityID(UserSecurityId(), SOASetup) then
+            Error(ReplyNotAuthorizedErr);
+    end;
+
+    local procedure ValidateOverrideProvenance(SOATaskContactOverride: Record "SOA Task Contact Override"; SOASetup: Record "SOA Setup")
+    begin
+        if not IsAuthorizedUserSecurityID(SOATaskContactOverride.SystemCreatedBy, SOASetup) then
+            ErrorMappedContact(InvalidMappedContactErr);
+        if not IsAuthorizedUserSecurityID(SOATaskContactOverride.SystemModifiedBy, SOASetup) then
+            ErrorMappedContact(InvalidMappedContactErr);
+    end;
+
+    local procedure IsAuthorizedUserSecurityID(UserSecurityID: Guid; SOASetup: Record "SOA Setup"): Boolean
+    var
+        OwnerUserSecurityID: Guid;
+    begin
+        OwnerUserSecurityID := SOASetup."Owner User Security ID";
+        if IsNullGuid(OwnerUserSecurityID) then
+            OwnerUserSecurityID := SOASetup."User Security ID";
+
+        exit((UserSecurityID = OwnerUserSecurityID) or (UserSecurityID = SOASetup."User Security ID"));
     end;
 
     local procedure ErrorMappedContact(ErrorMessage: Text)
@@ -118,7 +145,7 @@ codeunit 4419 "SOA Send Reply"
         Error(MappedContactErrorInfo);
     end;
 
-    local procedure GetOriginEmailRecipients(InputAgentTaskMessage: Record "Agent Task Message"; var CCRecipients: List of [Text]; var BCCRecipients: List of [Text])
+    local procedure GetOriginEmailCCRecipients(InputAgentTaskMessage: Record "Agent Task Message"; var CCRecipients: List of [Text])
     var
         SOAEmail: Record "SOA Email";
         EmailInbox: Record "Email Inbox";
@@ -138,7 +165,6 @@ codeunit 4419 "SOA Send Reply"
             exit;
 
         OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, CCRecipients);
-        OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Bcc, BCCRecipients);
     end;
 
     local procedure AddMessageAttachments(var EmailMessage: Codeunit "Email Message"; var AgentTaskMessage: Record "Agent Task Message")
