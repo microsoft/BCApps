@@ -58,6 +58,12 @@ codeunit 149040 "AIT DD Test Context" implements "AIT Test Case Context"
         exit(AITTestContext.GetQuery());
     end;
 
+    procedure GetQuestion(): Codeunit "Test Input Json"
+    begin
+        Preload();
+        exit(AITTestContext.GetQuestion());
+    end;
+
     procedure GetContext(): Codeunit "Test Input Json"
     begin
         Preload();
@@ -106,10 +112,22 @@ codeunit 149040 "AIT DD Test Context" implements "AIT Test Case Context"
         AITTestContext.SetTestOutput(Context, Question, Answer);
     end;
 
+    procedure SetTestOutput(TestOutputJson: Codeunit "Test Output Json")
+    begin
+        Preload();
+        AITTestContext.SetTestOutput(TestOutputJson);
+    end;
+
     procedure SetQueryResponse(Query: Text; Response: Text)
     begin
         Preload();
         AITTestContext.SetQueryResponse(Query, Response);
+    end;
+
+    procedure SetQueryResponse(Query: Text; Response: Text; Context: Text)
+    begin
+        Preload();
+        AITTestContext.SetQueryResponse(Query, Response, Context);
     end;
 
     procedure SetAnswerForQnAEvaluation(Answer: Text)
@@ -122,6 +140,12 @@ codeunit 149040 "AIT DD Test Context" implements "AIT Test Case Context"
     begin
         Preload();
         AITTestContext.AddMessage(Content, Role);
+    end;
+
+    procedure AddMessage(Content: Text; Role: Text; Context: Text)
+    begin
+        Preload();
+        AITTestContext.AddMessage(Content, Role, Context);
     end;
 
     procedure SetTestMetric(TestMetric: Text)
@@ -138,6 +162,11 @@ codeunit 149040 "AIT DD Test Context" implements "AIT Test Case Context"
     procedure SetTokenConsumption(TokensUsed: Integer)
     begin
         AITTestContext.SetTokenConsumption(TokensUsed);
+    end;
+
+    procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    begin
+        AITTestContext.GetAITTestSuite(AITTestSuite);
     end;
 
     procedure NextTurn(): Boolean

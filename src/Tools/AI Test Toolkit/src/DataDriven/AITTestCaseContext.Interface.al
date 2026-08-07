@@ -25,6 +25,9 @@ interface "AIT Test Case Context" extends ITestContext
     /// <summary>Returns the 'query' (or legacy 'question') element for the current data row.</summary>
     procedure GetQuery(): Codeunit "Test Input Json";
 
+    /// <summary>Returns the legacy 'question' element for the current data row. Parity alias of <see cref="GetQuery"/> so classic eval bodies migrate unchanged.</summary>
+    procedure GetQuestion(): Codeunit "Test Input Json";
+
     /// <summary>Returns the 'context' element for the current data row.</summary>
     procedure GetContext(): Codeunit "Test Input Json";
 
@@ -49,14 +52,23 @@ interface "AIT Test Case Context" extends ITestContext
     /// <summary>Sets context/question/answer as the output for the current iteration.</summary>
     procedure SetTestOutput(Context: Text; Question: Text; Answer: Text);
 
+    /// <summary>Sets a structured test output for the current iteration.</summary>
+    procedure SetTestOutput(TestOutputJson: Codeunit "Test Output Json");
+
     /// <summary>Sets the query and response for a single-turn evaluation.</summary>
     procedure SetQueryResponse(Query: Text; Response: Text);
+
+    /// <summary>Sets the query, response and context for a single-turn evaluation.</summary>
+    procedure SetQueryResponse(Query: Text; Response: Text; Context: Text);
 
     /// <summary>Sets the answer for a question-and-answer evaluation.</summary>
     procedure SetAnswerForQnAEvaluation(Answer: Text);
 
     /// <summary>Adds a message to a multi-turn output.</summary>
     procedure AddMessage(Content: Text; Role: Text);
+
+    /// <summary>Adds a message with context to a multi-turn output.</summary>
+    procedure AddMessage(Content: Text; Role: Text; Context: Text);
 
     /// <summary>Sets the test metric for the output dataset.</summary>
     procedure SetTestMetric(TestMetric: Text);
@@ -66,6 +78,9 @@ interface "AIT Test Case Context" extends ITestContext
 
     /// <summary>Adds externally consumed tokens to the current method line.</summary>
     procedure SetTokenConsumption(TokensUsed: Integer);
+
+    /// <summary>Gets the AIT Test Suite record backing the current run.</summary>
+    procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite");
 
     /// <summary>Advances to the next turn of a multi-turn eval.</summary>
     procedure NextTurn(): Boolean;
