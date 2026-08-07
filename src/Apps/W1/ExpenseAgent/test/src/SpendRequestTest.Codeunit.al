@@ -25,8 +25,6 @@ codeunit 148338 "Spend Request Test"
         CloseConfirmReply: Boolean;
         CloseConfirmCount: Integer;
         NotTravelerErr: Label 'is not a traveler on Spend Request', Locked = true;
-        MustBeApprovedErr: Label 'must be approved before you can use it on an expense report', Locked = true;
-        MustBeReleasedErr: Label 'must be released before you can use it on an expense report', Locked = true;
         PolicyErr: Label 'acknowledge the travel policy', Locked = true;
         NoTravelersErr: Label 'add at least one traveler', Locked = true;
         DestinationErr: Label 'is required for international travel', Locked = true;
@@ -34,8 +32,10 @@ codeunit 148338 "Spend Request Test"
         ClosePromptOnceMsg: Label 'The close spend request confirmation should be shown exactly once.';
         SpendReqClosedMsg: Label 'The spend request should be closed after posting.';
         SpendReqNotClosedMsg: Label 'The spend request should not be closed when the confirmation is declined.';
+        HeaderSpendReqRemainsApprovedMsg: Label 'The header spend request should remain approved when a line overrides it.';
         ClosedByDocMsg: Label 'Closed By Document No. should be set on the closed spend request.';
         SpendReqReleasedMsg: Label 'The spend request should be released.';
+        SpendReqApprovedMsg: Label 'The spend request should be approved automatically when the agent is disabled.';
         SpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report line.';
         HeaderSpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report header.';
         HeaderCloseFlagMsg: Label 'The header should store the confirmed close flag.';
@@ -48,15 +48,14 @@ codeunit 148338 "Spend Request Test"
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
-    procedure ValidateSpendReqNoSucceedsAgentEnabledApproved()
+    procedure ValidateSpendReqNoSucceedsWhenApproved()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO 616928] With the agent enabled, an approved spend request can be selected on a refundable line when the user is a traveler.
+        // [SCENARIO 616928] An approved spend request can be selected on a refundable line when the user is a traveler.
         Initialize();
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
 
         // [GIVEN] A refundable expense report line for an expense user.
         CreateExpenseReportWithRefundableLine(ExpenseReportLine, ExpenseUser, true);
@@ -104,7 +103,6 @@ codeunit 148338 "Spend Request Test"
     begin
         // [SCENARIO 616928] A spend request cannot be selected when the line's expense user is not a traveler.
         Initialize();
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
 
         // [GIVEN] A refundable expense report line for an expense user.
         CreateExpenseReportWithRefundableLine(ExpenseReportLine, ExpenseUser, true);
@@ -122,15 +120,14 @@ codeunit 148338 "Spend Request Test"
     end;
 
     [Test]
-    procedure ValidateSpendReqNoFailsAgentEnabledNotApproved()
+    procedure ValidateSpendReqNoFailsWhenNotApproved()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO 616928] With the agent enabled, a spend request that is not Approved cannot be selected.
+        // [SCENARIO 616928] A spend request that is not Approved cannot be selected on a line.
         Initialize();
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
 
         // [GIVEN] A refundable expense report line for an expense user.
         CreateExpenseReportWithRefundableLine(ExpenseReportLine, ExpenseUser, true);
@@ -141,56 +138,8 @@ codeunit 148338 "Spend Request Test"
         // [WHEN] The spend request is selected on the line.
         asserterror ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
 
-        // [THEN] Validation fails because the spend request must be approved.
-        Assert.ExpectedError(MustBeApprovedErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('SpendReqConfirmHandler')]
-    procedure ValidateSpendReqNoSucceedsAgentDisabledReleased()
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        ExpenseReportLine: Record "Expense Report Line";
-    begin
-        // [SCENARIO 616928] With the agent disabled, a released spend request can be selected.
-        Initialize();
-
-        // [GIVEN] A refundable expense report line for an expense user.
-        CreateExpenseReportWithRefundableLine(ExpenseReportLine, ExpenseUser, true);
-
-        // [GIVEN] A released spend request with the user as a traveler.
-        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Released);
-
-        // [WHEN] The spend request is selected on the line.
-        ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
-        ExpenseReportLine.Modify(true);
-
-        // [THEN] The spend request is assigned to the line.
-        Assert.AreEqual(SpendRequest."No.", ExpenseReportLine."Spend Request No.", SpendReqNoSetMsg);
-    end;
-
-    [Test]
-    procedure ValidateSpendReqNoFailsAgentDisabledNotReleased()
-    var
-        SpendRequest: Record "Spend Request";
-        ExpenseUser: Record "Expense User";
-        ExpenseReportLine: Record "Expense Report Line";
-    begin
-        // [SCENARIO 616928] With the agent disabled, a spend request that is not Released cannot be selected.
-        Initialize();
-
-        // [GIVEN] A refundable expense report line for an expense user.
-        CreateExpenseReportWithRefundableLine(ExpenseReportLine, ExpenseUser, true);
-
-        // [GIVEN] An OPEN spend request with the user as a traveler.
-        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Open);
-
-        // [WHEN] The spend request is selected on the line.
-        asserterror ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
-
-        // [THEN] Validation fails because the spend request must be released.
-        Assert.ExpectedError(MustBeReleasedErr);
+        // [THEN] Validation fails because only approved spend requests are selectable.
+        Assert.ExpectedErrorCode('DB:NothingInsideFilter');
     end;
 
     [Test]
@@ -207,8 +156,8 @@ codeunit 148338 "Spend Request Test"
         // [GIVEN] A refundable expense report line for an expense user.
         CreateExpenseReportWithRefundableLine(ExpenseReportLine, ExpenseUser, true);
 
-        // [GIVEN] A released spend request with the user as a traveler.
-        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Released);
+        // [GIVEN] An approved spend request with the user as a traveler.
+        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Approved);
 
         // [GIVEN] The spend request is linked to the line.
         ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
@@ -369,13 +318,13 @@ codeunit 148338 "Spend Request Test"
     end;
 
     [Test]
-    procedure ReleaseSpendReqSucceedsAllPrerequisites()
+    procedure ReleaseSpendReqAutoApprovesWhenAgentDisabled()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ReleaseSpendRequest: Codeunit "Release Spend Request";
     begin
-        // [SCENARIO 616928] An expense spend request with all prerequisites can be released.
+        // [SCENARIO 616928] With the agent disabled, releasing an expense spend request that meets all prerequisites approves it automatically.
         Initialize();
 
         // [GIVEN] A releasable spend request with every prerequisite satisfied.
@@ -384,7 +333,29 @@ codeunit 148338 "Spend Request Test"
         // [WHEN] The spend request is released.
         ReleaseSpendRequest.Release(SpendRequest);
 
-        // [THEN] The spend request status becomes Released.
+        // [THEN] The spend request is approved automatically because there is no agent to approve it.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, SpendReqApprovedMsg);
+    end;
+
+    [Test]
+    procedure ReleaseSpendReqStaysReleasedWhenAgentEnabled()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 616928] With the agent enabled, releasing an expense spend request leaves it released for the agent to approve.
+        Initialize();
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+
+        // [GIVEN] A releasable spend request with every prerequisite satisfied.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+
+        // [WHEN] The spend request is released.
+        ReleaseSpendRequest.Release(SpendRequest);
+
+        // [THEN] The spend request stays released.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
     end;
@@ -439,23 +410,23 @@ codeunit 148338 "Spend Request Test"
         SpendRequest: Record "Spend Request";
         ExpenseReportPost: Codeunit "Expense Report-Post";
     begin
-        // [SCENARIO 616928] When the close is declined on entry, posting the report leaves the spend request released.
+        // [SCENARIO 616928] When the close is declined on entry, posting the report leaves the spend request approved.
         Initialize();
 
         // [GIVEN] The close is declined when the spend request is selected on entry.
         CloseConfirmReply := false;
 
-        // [GIVEN] An expense report with a refundable line linked to a released spend request.
+        // [GIVEN] An expense report with a refundable line linked to an approved spend request.
         CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
 
         // [WHEN] The report is released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
-        // [THEN] The close was prompted once and the spend request remains released.
+        // [THEN] The close was prompted once and the spend request remains approved.
         Assert.AreEqual(1, CloseConfirmCount, ClosePromptOnceMsg);
         SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqNotClosedMsg);
+        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, SpendReqNotClosedMsg);
     end;
 
     [Test]
@@ -635,15 +606,15 @@ codeunit 148338 "Spend Request Test"
         ExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
     begin
-        // [SCENARIO 616928] Selecting a released spend request on the header stores the confirmed close flag on the header.
+        // [SCENARIO 616928] Selecting an approved spend request on the header stores the confirmed close flag on the header.
         Initialize();
         CloseConfirmReply := true;
 
         // [GIVEN] An expense user.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
 
-        // [GIVEN] A released spend request with the user as a traveler.
-        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Released);
+        // [GIVEN] An approved spend request with the user as a traveler.
+        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Approved);
 
         // [GIVEN] An expense report header for that user.
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
@@ -670,9 +641,9 @@ codeunit 148338 "Spend Request Test"
         // [GIVEN] An expense user.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
 
-        // [GIVEN] A released spend request WITHOUT the user as a traveler.
+        // [GIVEN] An approved spend request WITHOUT the user as a traveler.
         LibraryExpense.CreateSpendRequest(SpendRequest);
-        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
 
         // [GIVEN] An expense report header for that user.
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
@@ -711,9 +682,9 @@ codeunit 148338 "Spend Request Test"
         LibraryExpense.CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
 
-        // [GIVEN] Two released spend requests (header and line) with the user as traveler on both.
-        CreateSpendRequestWithTraveler(HeaderSpendRequest, ExpenseUser."No.", HeaderSpendRequest.Status::Released);
-        CreateSpendRequestWithTraveler(LineSpendRequest, ExpenseUser."No.", LineSpendRequest.Status::Released);
+        // [GIVEN] Two approved spend requests (header and line) with the user as traveler on both.
+        CreateSpendRequestWithTraveler(HeaderSpendRequest, ExpenseUser."No.", HeaderSpendRequest.Status::Approved);
+        CreateSpendRequestWithTraveler(LineSpendRequest, ExpenseUser."No.", LineSpendRequest.Status::Approved);
 
         // [GIVEN] An expense report whose header references the header spend request.
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
@@ -729,11 +700,11 @@ codeunit 148338 "Spend Request Test"
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
-        // [THEN] The line's spend request is closed and the header's remains released.
+        // [THEN] The line's spend request is closed and the header's remains approved.
         LineSpendRequest.Get(LineSpendRequest."No.");
         Assert.AreEqual(LineSpendRequest.Status::Closed, LineSpendRequest.Status, SpendReqClosedMsg);
         HeaderSpendRequest.Get(HeaderSpendRequest."No.");
-        Assert.AreEqual(HeaderSpendRequest.Status::Released, HeaderSpendRequest.Status, SpendReqNotClosedMsg);
+        Assert.AreEqual(HeaderSpendRequest.Status::Approved, HeaderSpendRequest.Status, HeaderSpendReqRemainsApprovedMsg);
     end;
 
     [Test]
@@ -921,7 +892,7 @@ codeunit 148338 "Spend Request Test"
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
         LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUser."No.");
-        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
 
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         for Index := 1 to NumberOfLines do begin
@@ -950,7 +921,7 @@ codeunit 148338 "Spend Request Test"
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
         LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUser."No.");
-        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
 
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         // The spend request is set once on the header; every line inherits it during posting.
@@ -978,8 +949,8 @@ codeunit 148338 "Spend Request Test"
         LibraryExpense.CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
 
-        // A released spend request with the user as a traveler.
-        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Released);
+        // An approved spend request with the user as a traveler.
+        CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Approved);
 
         // A report with a refundable line linked to the spend request; capture its refundable amount.
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');

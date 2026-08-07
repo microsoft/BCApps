@@ -18,13 +18,12 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             Caption = 'Requested For';
             ToolTip = 'Specifies the expense user for whom the spend request is being created.';
             DataClassification = CustomerContent;
-            TableRelation = if (Type = const(Expense)) "Expense User";
+            TableRelation = "Expense User";
 
             trigger OnValidate()
             begin
                 TestStatusOpen();
-                if Rec.Type = Rec.Type::Expense then
-                    UpdateRequestedForTraveler(xRec."Requested For");
+                UpdateRequestedForTraveler(xRec."Requested For");
             end;
         }
         field(6901; "Business Justification"; Text[2048])
@@ -60,9 +59,9 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
                 TestStatusOpen();
             end;
         }
-        field(6904; "Origin Country"; Code[10])
+        field(6904; "Origin Country/Region Code"; Code[10])
         {
-            Caption = 'Origin Country';
+            Caption = 'Origin Country/Region Code';
             ToolTip = 'Specifies the origin country for the travel.';
             DataClassification = CustomerContent;
             TableRelation = "Country/Region".Code;
@@ -70,11 +69,12 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                UpdateInternationalTravel();
             end;
         }
-        field(6905; "Destination Country"; Code[10])
+        field(6905; "Dest. Country/Region Code"; Code[10])
         {
-            Caption = 'Destination Country';
+            Caption = 'Destination Country/Region Code';
             ToolTip = 'Specifies the destination country for the travel.';
             DataClassification = CustomerContent;
             TableRelation = "Country/Region".Code;
@@ -82,6 +82,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                UpdateInternationalTravel();
             end;
         }
         field(6906; "Restrictions"; Text[250])
@@ -144,9 +145,6 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     var
         Traveler: Record Traveler;
     begin
-        if Rec.Type <> Rec.Type::Expense then
-            exit;
-
         if Rec."Requested For" = '' then
             exit;
 
@@ -203,5 +201,15 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
         exit(SequenceNoMgt.GetNextSeqNo(Database::Traveler))
+    end;
+
+    local procedure UpdateInternationalTravel()
+    begin
+        if (Rec."Origin Country/Region Code" = '') or (Rec."Dest. Country/Region Code" = '') then begin
+            Rec.Validate("International Travel", false);
+            exit;
+        end;
+
+        Rec.Validate("International Travel", Rec."Origin Country/Region Code" <> Rec."Dest. Country/Region Code");
     end;
 }

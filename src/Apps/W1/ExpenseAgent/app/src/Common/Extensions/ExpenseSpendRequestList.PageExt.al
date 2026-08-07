@@ -35,7 +35,6 @@ pageextension 6903 "Expense Spend Request List" extends "Spend Request List"
                 ApplicationArea = Basic, Suite;
                 RunObject = page "Travelers";
                 RunPageLink = "Spend Request No." = field("No.");
-                Enabled = Rec.Type = Rec.Type::Expense;
             }
         }
         addafter(Dimensions_Promoted)

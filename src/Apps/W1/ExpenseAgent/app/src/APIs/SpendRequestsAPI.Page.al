@@ -19,7 +19,6 @@ page 7099 "Spend Requests API"
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request";
-    SourceTableView = where(Type = const(Expense));
     AboutText = 'Provides access to data from the Spend Request table';
 
     layout
@@ -36,10 +35,6 @@ page 7099 "Spend Requests API"
                 field(number; Rec."No.")
                 {
                     Caption = 'No.';
-                }
-                field(documentType; Rec.Type)
-                {
-                    Caption = 'Document Type';
                 }
                 field(requestedBy; Rec."Requested By")
                 {
@@ -123,11 +118,11 @@ page 7099 "Spend Requests API"
                 {
                     Caption = 'International Travel';
                 }
-                field(originCountry; Rec."Origin Country")
+                field(originCountry; Rec."Origin Country/Region Code")
                 {
                     Caption = 'Origin Country';
                 }
-                field(destinationCountry; Rec."Destination Country")
+                field(destinationCountry; Rec."Dest. Country/Region Code")
                 {
                     Caption = 'Destination Country';
                 }

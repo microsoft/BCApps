@@ -165,34 +165,16 @@ codeunit 6908 "Expense Event Subscriber"
             IsHandled := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Spend Request", OnCheckSpendRequestAmountOnBeforeTestStatusApproved, '', false, false)]
-    local procedure OnCheckSpendRequestAmountOnBeforeTestStatusApproved(var SpendRequest: Record "Spend Request"; SourceCode: Code[10]; var IsHandled: Boolean)
-    begin
-        CheckSpendRequestStatus(SpendRequest, SourceCode, IsHandled);
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Spend Request", OnValidateSpendRequestOnBeforeTestStatusApproved, '', false, false)]
-    local procedure OnValidateSpendRequestOnBeforeTestStatusApproved(var SpendRequest: Record "Spend Request"; SourceCode: Code[10]; var IsHandled: Boolean)
-    begin
-        CheckSpendRequestStatus(SpendRequest, SourceCode, IsHandled);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Check Line", OnTestSpendRequestOnBeforeTestStatusApproved, '', false, false)]
-    local procedure OnTestSpendRequestOnBeforeTestStatusApproved(var SpendRequest: Record "Spend Request"; var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
-    begin
-        CheckSpendRequestStatus(SpendRequest, GenJnlLine."Source Code", IsHandled);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnUpdateSpendRequestOnBeforeCloseApprovedSpendRequest, '', false, false)]
-    local procedure OnUpdateSpendRequestOnBeforeCloseApprovedSpendRequest(var SpendRequest: Record "Spend Request"; var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var IsHandled: Boolean)
-    begin
-        UpdateSpendRequestStatusToClosed(SpendRequest, GenJnlLine, GLEntry, IsHandled);
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Spend Request", OnBeforeRelease, '', false, false)]
     local procedure OnBeforeReleaseSpendRequest(var SpendRequest: Record "Spend Request")
     begin
         CheckSpendRequestBeforeRelease(SpendRequest);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Spend Request", OnAfterRelease, '', false, false)]
+    local procedure OnAfterReleaseSpendRequest(var SpendRequest: Record "Spend Request")
+    begin
+        AutoApproveSpendRequestWhenAgentDisabled(SpendRequest);
     end;
 
     internal procedure IsSourceExpense(SourceCode: Code[10]): Boolean
@@ -282,45 +264,10 @@ codeunit 6908 "Expense Event Subscriber"
             Error(CannotDeleteEmployeeWithExpenseErr, EmployeeNo);
     end;
 
-    local procedure CheckSpendRequestStatus(SpendRequest: Record "Spend Request"; SourceCode: Code[10]; var IsHandled: Boolean)
-    var
-        ExpenseReportLine: Record "Expense Report Line";
-    begin
-        if (SpendRequest.Type <> SpendRequest.Type::Expense) then
-            exit;
-
-        if not IsSourceExpense(SourceCode) then
-            exit;
-
-        ExpenseReportLine.CheckSpendRequestStatus(SpendRequest."No.");
-        IsHandled := true;
-    end;
-
-    local procedure UpdateSpendRequestStatusToClosed(SpendRequest: Record "Spend Request"; GenJnlLine: Record "Gen. Journal Line"; GLEntry: Record "G/L Entry"; var IsHandled: Boolean)
-    begin
-        if (SpendRequest.Type <> SpendRequest.Type::Expense) then
-            exit;
-
-        if not IsSourceExpense(GenJnlLine."Source Code") then
-            exit;
-
-        if SpendRequest.Status in [SpendRequest.Status::Approved, SpendRequest.Status::Released] then begin
-            SpendRequest.Status := SpendRequest.Status::Closed;
-            SpendRequest."Closed At" := CurrentDateTime();
-            SpendRequest."Closed By Document No." := GLEntry."Document No.";
-            SpendRequest.Modify();
-        end;
-
-        IsHandled := true;
-    end;
-
     local procedure CheckSpendRequestBeforeRelease(SpendRequest: Record "Spend Request")
     var
         Traveler: Record Traveler;
     begin
-        if SpendRequest.Type <> SpendRequest.Type::Expense then
-            exit;
-
         if SpendRequest.Status = SpendRequest.Status::Released then
             exit;
 
@@ -331,11 +278,27 @@ codeunit 6908 "Expense Event Subscriber"
         if not SpendRequest."Travel Policy Acknowledgment" then
             Error(PolicyNotAcknowledgedErr);
 
-        if SpendRequest."International Travel" and (SpendRequest."Destination Country" = '') then
-            Error(DestinationRequiredErr, SpendRequest.FieldCaption("Destination Country"));
+        if SpendRequest."International Travel" and (SpendRequest."Dest. Country/Region Code" = '') then
+            Error(DestinationRequiredErr, SpendRequest.FieldCaption("Dest. Country/Region Code"));
 
         Traveler.SetRange("Spend Request No.", SpendRequest."No.");
         if Traveler.IsEmpty() then
             Error(NoTravelersErr);
+    end;
+
+    local procedure AutoApproveSpendRequestWhenAgentDisabled(var SpendRequest: Record "Spend Request")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if SpendRequest.Status <> SpendRequest.Status::Released then
+            exit;
+
+        // Without the agent there is no approver, so a released request is approved right away.
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Enable Agent" then
+            exit;
+
+        SpendRequest.Status := SpendRequest.Status::Approved;
+        SpendRequest.Modify();
     end;
 }

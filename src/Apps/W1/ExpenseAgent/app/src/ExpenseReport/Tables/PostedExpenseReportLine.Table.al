@@ -433,7 +433,7 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request to which the posted expense report line is linked.';
-            TableRelation = "Spend Request";
+            TableRelation = "Spend Request" where(Status = const(Approved));
         }
         field(101; "Spend Request Close"; Boolean)
         {

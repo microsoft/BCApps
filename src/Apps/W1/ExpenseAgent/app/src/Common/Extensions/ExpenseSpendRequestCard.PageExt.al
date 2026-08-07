@@ -12,7 +12,7 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
     {
         modify("Requested By")
         {
-            Visible = Rec.Type <> Rec.Type::Expense;
+            Visible = false;
         }
         modify("Currency Code")
         {
@@ -26,16 +26,11 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
         {
             Importance = Additional;
         }
-        modify(Type)
-        {
-            Visible = false;
-        }
         addafter("Requested By")
         {
             field("Requested For"; Rec."Requested For")
             {
                 ApplicationArea = Basic, Suite;
-                Visible = Rec.Type = Rec.Type::Expense;
             }
         }
         addafter(Lines)
@@ -43,7 +38,6 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
             group("Travel Details")
             {
                 Caption = 'Travel Details';
-                Visible = Rec.Type = Rec.Type::Expense;
                 field("Business Justification"; Rec."Business Justification")
                 {
                     ApplicationArea = Basic, Suite;
@@ -55,11 +49,11 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
-                field("Origin Country"; Rec."Origin Country")
+                field("Origin Country"; Rec."Origin Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Destination Country"; Rec."Destination Country")
+                field("Destination Country"; Rec."Dest. Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -85,33 +79,31 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
             {
                 ApplicationArea = Basic, Suite;
                 Importance = Additional;
-                Visible = Rec.Type = Rec.Type::Expense;
             }
             field("Actual End Date and Time"; Rec."Actual End Date and Time")
             {
                 ApplicationArea = Basic, Suite;
                 Importance = Additional;
-                Visible = Rec.Type = Rec.Type::Expense;
             }
         }
         modify("Approved by User Name")
         {
-            Editable = Rec.Type <> Rec.Type::Expense;
+            Editable = false;
         }
     }
     actions
     {
         modify(Approve)
         {
-            Visible = Rec.Type <> Rec.Type::Expense;
+            Visible = false;
         }
         modify(Reject)
         {
-            Visible = Rec.Type <> Rec.Type::Expense;
+            Visible = false;
         }
         modify(Print)
         {
-            Visible = Rec.Type <> Rec.Type::Expense;
+            Visible = false;
         }
         addlast(Navigation)
         {
@@ -121,7 +113,6 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
                 Caption = 'Travelers';
                 ToolTip = 'View the travelers associated with this spend request.';
                 ApplicationArea = Basic, Suite;
-                Visible = Rec.Type = Rec.Type::Expense;
                 RunObject = page "Travelers";
                 RunPageLink = "Spend Request No." = field("No.");
             }

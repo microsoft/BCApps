@@ -23,9 +23,6 @@ page 6840 "Spend Request List"
                 field("No."; Rec."No.")
                 {
                 }
-                field(Type; Rec.Type)
-                {
-                }
                 field("Requested By"; Rec."Requested By")
                 {
                 }

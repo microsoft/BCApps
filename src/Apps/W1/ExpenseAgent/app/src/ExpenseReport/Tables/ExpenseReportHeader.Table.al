@@ -507,19 +507,16 @@ table 6906 "Expense Report Header"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request number that is associated with this expense report.';
-            TableRelation = "Spend Request" where(Type = const(Expense));
+            TableRelation = "Spend Request" where(Status = const(Approved));
 
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
-                SourceCodeSetup: Record "Source Code Setup";
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." <> '' then begin
-                    SourceCodeSetup.Get();
-
                     CheckTraveler();
-                    SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", SourceCodeSetup.Expense);
+                    SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
                         DimensionSetIDArr[1] := Rec."Dimension Set ID";

@@ -1041,21 +1041,18 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request number that is associated with this expense report line.The spend request must be approved and released before it can be selected.';
-            TableRelation = "Spend Request" where(Type = const(Expense));
+            TableRelation = "Spend Request" where(Status = const(Approved));
 
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
-                SourceCodeSetup: Record "Source Code Setup";
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." <> '' then begin
-                    SourceCodeSetup.Get();
-
                     Rec.TestField(Refundable, true);
                     CheckTraveler();
                     SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose);
-                    SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", SourceCodeSetup.Expense, Rec."Refundable Amount (LCY)");
+                    SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Refundable Amount (LCY)");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
                         DimensionSetIDArr[1] := Rec."Dimension Set ID";
@@ -1141,10 +1138,7 @@ table 6907 "Expense Report Line"
         ExpenseReportNotFoundErr: Label 'Expense Report %1 does not exist.', Comment = '%1 = Expense Report No.';
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
-        SpendRequestMustBeApprovedErr: Label 'Spend Request %1 must be approved before you can use it on an expense report.', Comment = '%1 = Spend Request No.';
-        SpendRequestMustBeReleasedErr: Label 'Spend Request %1 must be released before you can use it on an expense report.', Comment = '%1 = Spend Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
-
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
     begin
@@ -1538,10 +1532,8 @@ table 6907 "Expense Report Line"
     local procedure CheckSpendRequestAmount()
     var
         SpendRequest: Record "Spend Request";
-        SourceCodeSetup: Record "Source Code Setup";
     begin
-        SourceCodeSetup.Get();
-        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", SourceCodeSetup.Expense, Rec."Refundable Amount (LCY)");
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Refundable Amount (LCY)");
     end;
 
     local procedure UpdateVATAmount()
@@ -2099,22 +2091,6 @@ table 6907 "Expense Report Line"
             exit;
 
         Rec."Modified By Exp. User Id" := ExpenseUser.SystemId;
-    end;
-
-    internal procedure CheckSpendRequestStatus(SpendRequestNo: Code[20])
-    var
-        SpendRequest: Record "Spend Request";
-    begin
-        ExpenseAgentSetup.GetRecordOnce();
-        SpendRequest.Get(SpendRequestNo);
-
-        SpendRequest.TestField(Type, SpendRequest.Type::Expense);
-        if ExpenseAgentSetup."Enable Agent" then begin
-            if SpendRequest.Status <> SpendRequest.Status::Approved then
-                Error(SpendRequestMustBeApprovedErr, SpendRequestNo);
-        end else
-            if SpendRequest.Status <> SpendRequest.Status::Released then
-                Error(SpendRequestMustBeReleasedErr, SpendRequestNo);
     end;
 
     local procedure CheckTraveler()

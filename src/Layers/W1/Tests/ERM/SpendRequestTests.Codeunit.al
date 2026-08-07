@@ -438,22 +438,6 @@ codeunit 134242 "Spend Request Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure SpendRequestTypeDefaultIsExpense()
-    var
-        SpendRequest: Record "Spend Request";
-    begin
-        // [SCENARIO] A new spend request defaults to Expense type.
-        Initialize();
-
-        // [WHEN] A spend request is created.
-        CreateSpendRequest(SpendRequest);
-
-        // [THEN] Type is Expense.
-        Assert.AreEqual(SpendRequest.Type::Expense, SpendRequest.Type, 'Default type should be Expense.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure GLLinkCreationTracksSpending()
     var
         SpendRequest: Record "Spend Request";
@@ -813,27 +797,6 @@ codeunit 134242 "Spend Request Tests"
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(OriginalLCY, SpendRequest."Total Expected Amount (LCY)",
             'Total Expected Amount (LCY) should be unchanged.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure SpendRequestFieldTypeValidation()
-    var
-        SpendRequest: Record "Spend Request";
-    begin
-        // [SCENARIO] Validating the Type field checks that the request is Open.
-        Initialize();
-
-        // [GIVEN] A released spend request.
-        CreateSpendRequest(SpendRequest);
-        SpendRequest.Status := SpendRequest.Status::Released;
-        SpendRequest.Modify();
-
-        // [WHEN] Attempting to validate the Type field.
-        asserterror SpendRequest.Validate(Type, SpendRequest.Type::Expense);
-
-        // [THEN] An error is raised because the status is not Open.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
     end;
 
     [Test]

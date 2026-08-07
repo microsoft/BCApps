@@ -26,9 +26,6 @@ page 6841 "Spend Request Card"
                         Rec.AssistEditNo();
                     end;
                 }
-                field(Type; Rec.Type)
-                {
-                }
                 field("Requested By"; Rec."Requested By")
                 {
                 }

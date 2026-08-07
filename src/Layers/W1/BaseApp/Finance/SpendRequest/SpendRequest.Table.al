@@ -41,15 +41,6 @@ table 6840 "Spend Request"
                 end;
             end;
         }
-        field(2; Type; Enum "Spend Request Type")
-        {
-            Caption = 'Document Type';
-            ToolTip = 'Specifies the document type of the spend request.';
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-            end;
-        }
         field(3; "Requested By"; Code[20])
         {
             Caption = 'Requested By';
@@ -301,7 +292,7 @@ table 6840 "Spend Request"
     }
     fieldgroups
     {
-        fieldgroup(DropDown; "No.", Type, Purpose, Status)
+        fieldgroup(DropDown; "No.", Purpose, Status)
         {
         }
         fieldgroup(Brick; "No.", Purpose, Status, "Total Expected Amount")
@@ -556,11 +547,11 @@ table 6840 "Spend Request"
     /// <param name="SpendRequestNo"></param>
     /// <param name="SpendRequestclose"></param>
     /// <param name="NewAmountLCY"></param>
-    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean; SourceCode: Code[10]; NewAmountLCY: Decimal)
+    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean; NewAmountLCY: Decimal)
     begin
-        ValidateSpendRequest(SpendRequestNo, SpendRequestclose, SourceCode);
+        ValidateSpendRequest(SpendRequestNo, SpendRequestclose);
         if NewAmountLCY <> 0 then
-            CheckSpendRequestAmount(SpendRequestNo, SourceCode, NewAmountLCY);
+            CheckSpendRequestAmount(SpendRequestNo, NewAmountLCY);
     end;
 
     /// <summary>
@@ -568,9 +559,7 @@ table 6840 "Spend Request"
     /// </summary>
     /// <param name="SpendRequestNo"></param>
     /// <param name="SpendRequestclose"></param>
-    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean; SourceCode: Code[10])
-    var
-        IsHandled: Boolean;
+    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean)
     begin
         if SpendRequestNo = '' then begin
             SpendRequestclose := false;
@@ -578,10 +567,7 @@ table 6840 "Spend Request"
         end;
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
-        IsHandled := false;
-        OnValidateSpendRequestOnBeforeTestStatusApproved(Rec, SourceCode, IsHandled);
-        if not IsHandled then
-            Rec.TestField(Status, Rec.Status::Approved);
+        Rec.TestField(Status, Rec.Status::Approved);
 
         if GuiAllowed() and not SkipSpendRequestClose then
             SpendRequestclose := Confirm(SpendRequestCloseQst, true, Rec."No.");
@@ -602,46 +588,22 @@ table 6840 "Spend Request"
     /// </summary>
     /// <param name="SpendRequestNo"></param>
     /// <param name="NewAmountLCY"></param>
-    procedure CheckSpendRequestAmount(SpendRequestNo: Code[20]; SourceCode: Code[10]; NewAmountLCY: Decimal)
+    procedure CheckSpendRequestAmount(SpendRequestNo: Code[20]; NewAmountLCY: Decimal)
     var
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         AlreadyAllocatedNotification: Notification;
-        IsHandled: Boolean;
     begin
         if NewAmountLCY = 0 then
             exit;
         NewAmountLCY := Abs(NewAmountLCY);
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
-        IsHandled := false;
-        OnCheckSpendRequestAmountOnBeforeTestStatusApproved(Rec, SourceCode, IsHandled);
-        if not IsHandled then
-            Rec.TestField(Status, Rec.Status::Approved);
+        Rec.TestField(Status, Rec.Status::Approved);
         if GuiAllowed() then
             if Rec."Total Spent Amount (LCY)" + NewAmountLCY > Rec."Total Expected Amount (LCY)" then begin
                 AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
                 AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, Rec."No.", Rec."Total Expected Amount (LCY)", Rec."Total Spent Amount (LCY)");
                 NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, Rec.RecordId);
             end;
-    end;
-
-    /// <summary>
-    /// Integration event raised before verifying that the spend request has the Approved status during validation.
-    /// </summary>
-    /// <param name="SpendRequest">The spend request being validated.</param>
-    /// <param name="IsHandled">Set to true to skip the standard approved-status check.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnValidateSpendRequestOnBeforeTestStatusApproved(var SpendRequest: Record "Spend Request"; SourceCode: Code[10]; var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Integration event raised before verifying that the spend request has the Approved status while checking the amount.
-    /// </summary>
-    /// <param name="SpendRequest">The spend request being checked.</param>
-    /// <param name="IsHandled">Set to true to skip the standard approved-status check.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnCheckSpendRequestAmountOnBeforeTestStatusApproved(var SpendRequest: Record "Spend Request"; SourceCode: Code[10]; var IsHandled: Boolean)
-    begin
     end;
 }
