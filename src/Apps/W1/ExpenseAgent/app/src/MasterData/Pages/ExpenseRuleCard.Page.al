@@ -58,7 +58,7 @@ page 6901 "Expense Rule Card"
             group(Merchant)
             {
                 Caption = 'Merchant Requirements';
-                Visible = MerchantRequirementsVisible;
+                Enabled = MerchantRequirementsEnabled;
 
                 field("Required Specific Merchant"; Rec."Required Specific Merchant")
                 {
@@ -82,25 +82,20 @@ page 6901 "Expense Rule Card"
         }
     }
 
-    trigger OnAfterGetRecord()
-    begin
-        SetMerchantRequirementsVisibility();
-    end;
-
     trigger OnAfterGetCurrRecord()
     begin
         SetMerchantRequirementsVisibility();
     end;
 
     var
-        MerchantRequirementsVisible: Boolean;
+        MerchantRequirementsEnabled: Boolean;
 
     local procedure SetMerchantRequirementsVisibility()
     var
         ExpenseCategory: Record "Expense Category";
     begin
-        MerchantRequirementsVisible := true;
+        MerchantRequirementsEnabled := true;
         if ExpenseCategory.Get(Rec."Expense Category Code") then
-            MerchantRequirementsVisible := ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::Mileage;
+            MerchantRequirementsEnabled := ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::Mileage;
     end;
 }
