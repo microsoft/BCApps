@@ -146,6 +146,25 @@ None. Both countries' original apps only reference base W1 Contoso Coffee names 
 #### FR
 None (no ContosoCoffee-FR name-lookups). FR introduces three FR-unique local G/L accounts (`CompanyCreditCards=512900`, `ExpensePrepaymentAccount=486200`, `RentalCarExpenses=625130`) with local `Tok` labels declared inside [demo data/Country/FR/FRExpGLAccount.Codeunit.al](demo%20data/Country/FR/FRExpGLAccount.Codeunit.al) — same as the original per-country app's own local declarations.
 
+#### DE
+| # | Label | Value |
+|---|-------|-------|
+| 1 | `BusinessaccountOperatingDomesticName` | `Business account, Operating, Domestic` |
+| 2 | `SaleofResourcesName` | `Sale of Resource` |
+| 3 | `AssetsintheformofprepaidexpensesName` | `Assets in the form of prepaid expenses` |
+| 4 | `SalesInvoiceRoundingName` | `Sales Invoice Rounding` |
+| 5 | `BoardandlodgingName` | `Board and lodging` |
+| 6 | `MiscexternalexpensesName` | `Misc. external expenses` |
+| 7 | `OthertravelexpensesName` | `Other travel expenses` |
+| 8 | `RentalvehiclesName` | `Rental vehicles` |
+| 9 | `BusinessEntertainingdeductibleName` | `Business Entertaining, deductible` |
+
+- **Before (original DE):** `Create DE GL Acc.<Name>()` from `src/Apps/DE/ContosoCoffeeDemoDatasetDE/app/DemoData/Finance/1.Setup data/CreateDEGLAcc.Codeunit.al`.
+- **After (ported):** [demo data/Country/DE/DEGLAccountNames.Codeunit.al](demo%20data/Country/DE/DEGLAccountNames.Codeunit.al) — codeunit 8312.
+- **Used by:** [demo data/Country/DE/DEExpPostingGrp.Codeunit.al](demo%20data/Country/DE/DEExpPostingGrp.Codeunit.al), [demo data/Country/DE/DEUpdEmpPostingGrp.Codeunit.al](demo%20data/Country/DE/DEUpdEmpPostingGrp.Codeunit.al), [demo data/Country/DE/DEPostedExpReport.Codeunit.al](demo%20data/Country/DE/DEPostedExpReport.Codeunit.al).
+
+DE also introduces one DE-unique local G/L account (`CompanyCreditCardsClearingAccount=3510`, label `'Company credit card clearing account'`) declared inside [demo data/Country/DE/DEExpGLAccount.Codeunit.al](demo%20data/Country/DE/DEExpGLAccount.Codeunit.al) — same as the original per-country app's own local declaration.
+
 ---
 
 ### Pattern B — ES `"Income Stmt. Bal. Acc."` late-bound field write
@@ -213,4 +232,4 @@ technique changes:
 - **AU** ([demo data/Country/AU/](demo%20data/Country/AU/)): base W1 names only.
 - **FR** ([demo data/Country/FR/](demo%20data/Country/FR/)): base W1 names only; three FR-local G/L accounts inlined verbatim from the original per-country app.
 
-Countries not yet ported (as of this doc): **DE, AT**.
+Countries not yet ported (as of this doc): **AT**.
