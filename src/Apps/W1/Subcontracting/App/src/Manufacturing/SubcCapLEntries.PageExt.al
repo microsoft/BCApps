@@ -9,7 +9,6 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Utilities;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
 {
     layout
@@ -89,4 +88,3 @@ pageextension 20502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
     var
         NoDocumentFoundMsg: Label 'No related document could be found for this entry.';
 }
-#pragma warning restore AS0072, AS0136

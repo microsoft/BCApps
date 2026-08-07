@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Vendor;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20524 "Subc. DirectTransHeader Ext." extends "Direct Trans. Header"
 {
     AllowInCustomizations = AsReadOnly;
@@ -79,4 +78,3 @@ tableextension 20524 "Subc. DirectTransHeader Ext." extends "Direct Trans. Heade
     end;
 
 }
-#pragma warning restore AS0072, AS0136

@@ -14,7 +14,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Warehouse.Document;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
 {
     AllowInCustomizations = AsReadOnly;
@@ -250,4 +249,3 @@ tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
             end;
     end;
 }
-#pragma warning restore AS0072, AS0136

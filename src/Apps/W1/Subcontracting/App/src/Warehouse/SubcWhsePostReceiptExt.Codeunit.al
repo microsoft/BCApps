@@ -15,7 +15,6 @@ using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Journal;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20551 "Subc. WhsePostReceipt Ext"
 {
     var
@@ -398,4 +397,3 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
         exit(WarehouseReceiptLineSystemIdCustomDimensionTok);
     end;
 }
-#pragma warning restore AS0072, AS0136

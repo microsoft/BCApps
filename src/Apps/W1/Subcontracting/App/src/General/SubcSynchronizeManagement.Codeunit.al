@@ -13,7 +13,6 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20511 "Subc. Synchronize Management"
 {
     var
@@ -279,4 +278,3 @@ codeunit 20511 "Subc. Synchronize Management"
         exit(IsSubcontracting);
     end;
 }
-#pragma warning restore AS0072, AS0136
