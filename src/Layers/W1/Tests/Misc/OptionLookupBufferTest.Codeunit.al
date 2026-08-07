@@ -18,6 +18,7 @@ codeunit 134645 "Option Lookup Buffer Test"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         InvalidTypeErr: Label 'is not a valid type for this document';
+        LongFormattedTypeTxt: Label 'Formatted Type Longer Than 20';
 
     [Test]
     [Scope('OnPrem')]
@@ -37,7 +38,7 @@ codeunit 134645 "Option Lookup Buffer Test"
         Assert.RecordCount(TempOptionLookupBuffer, 7);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(SalesLine.FormatType());
+        TempOptionLookupBuffer.Get(SalesLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(SalesLine.Type::"G/L Account"));
@@ -67,7 +68,7 @@ codeunit 134645 "Option Lookup Buffer Test"
         Assert.RecordCount(TempOptionLookupBuffer, 8);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(SalesLine.FormatType());
+        TempOptionLookupBuffer.Get(SalesLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(SalesLine.Type::"G/L Account"));
@@ -81,6 +82,132 @@ codeunit 134645 "Option Lookup Buffer Test"
         TempOptionLookupBuffer.TestField(ID, SalesLine.Type::Test_Custom1.AsInteger());
         // [THEN] Buffer table has no entry for 'Test Custom2'
         assert.IsFalse(TempOptionLookupBuffer.Get(Format(SalesLine.Type::Test_Custom2)), 'Custom2 should not be found');
+    end;
+
+    [Test]
+    procedure FormatSalesLineTypeLongerThan20Characters()
+    var
+        SalesLine: Record "Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized sales line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A sales line type with a caption longer than 20 characters
+        SalesLine.Type := SalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(SalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The sales line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, SalesLine.FormatTypeAsText(), 'The formatted sales line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatPurchaseLineTypeLongerThan20Characters()
+    var
+        PurchaseLine: Record "Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized purchase line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A purchase line type with a caption longer than 20 characters
+        PurchaseLine.Type := PurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(PurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The purchase line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, PurchaseLine.FormatTypeAsText(), 'The formatted purchase line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatStandardSalesLineTypeLongerThan20Characters()
+    var
+        StandardSalesLine: Record "Standard Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized standard sales line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A standard sales line type with a caption longer than 20 characters
+        StandardSalesLine.Type := StandardSalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(StandardSalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard sales line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, StandardSalesLine.FormatTypeAsText(), 'The formatted standard sales line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatStandardPurchaseLineTypeLongerThan20Characters()
+    var
+        StandardPurchaseLine: Record "Standard Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized standard purchase line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A standard purchase line type with a caption longer than 20 characters
+        StandardPurchaseLine.Type := StandardPurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(StandardPurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard purchase line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, StandardPurchaseLine.FormatTypeAsText(), 'The formatted standard purchase line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatSalesLineTypeFromSubscriberLongerThan20Characters()
+    var
+        SalesLine: Record "Sales Line";
+        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
+    begin
+        // [SCENARIO] A subscriber can format a sales line type with text longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A subscriber that handles sales line type formatting with text longer than 20 characters
+        BindSubscription(OptionLookupBufferTest);
+        Assert.IsTrue(StrLen(LongFormattedTypeTxt) > 20, 'The test text must be longer than 20 characters.');
+
+        // [WHEN] The sales line type is formatted
+        // [THEN] The complete subscriber-provided text is returned
+        Assert.AreEqual(LongFormattedTypeTxt, SalesLine.FormatTypeAsText(), 'The subscriber-provided sales line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatPurchaseLineTypeFromSubscriberLongerThan20Characters()
+    var
+        PurchaseLine: Record "Purchase Line";
+        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
+    begin
+        // [SCENARIO] A subscriber can format a purchase line type with text longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A subscriber that handles purchase line type formatting with text longer than 20 characters
+        BindSubscription(OptionLookupBufferTest);
+        Assert.IsTrue(StrLen(LongFormattedTypeTxt) > 20, 'The test text must be longer than 20 characters.');
+
+        // [WHEN] The purchase line type is formatted
+        // [THEN] The complete subscriber-provided text is returned
+        Assert.AreEqual(LongFormattedTypeTxt, PurchaseLine.FormatTypeAsText(), 'The subscriber-provided purchase line type was truncated.');
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeFormatTypeAsText', '', false, false)]
+    local procedure OnBeforeSalesLineFormatTypeAsText(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
+    begin
+        FormattedType := LongFormattedTypeTxt;
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeFormatTypeAsText', '', false, false)]
+    local procedure OnBeforePurchaseLineFormatTypeAsText(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
+    begin
+        FormattedType := LongFormattedTypeTxt;
+        IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Option Lookup Buffer", 'OnBeforeIncludeOption', '', false, false)]
@@ -113,7 +240,7 @@ codeunit 134645 "Option Lookup Buffer Test"
         Assert.RecordCount(TempOptionLookupBuffer, 7);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(PurchaseLine.FormatType());
+        TempOptionLookupBuffer.Get(PurchaseLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(PurchaseLine.Type::"G/L Account"));
@@ -278,9 +405,9 @@ codeunit 134645 "Option Lookup Buffer Test"
         SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.Type::Resource));
 
         // [WHEN] Setting the Subtype on the Sales Line to co
-        SalesInvoice.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatType(), 1, 2));
+        SalesInvoice.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to Comment
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -299,12 +426,12 @@ codeunit 134645 "Option Lookup Buffer Test"
         // [WHEN] Setting the Subtype on the Sales Line to ' '
         SalesInvoice.SalesLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
 
         // [WHEN] Setting the Subtype on the Sales Line to ''
         SalesInvoice.SalesLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -556,9 +683,9 @@ codeunit 134645 "Option Lookup Buffer Test"
         PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.Type::Item));
 
         // [WHEN] Setting the Subtype on the purchase line to 'co'
-        PurchaseOrder.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatType(), 1, 2));
+        PurchaseOrder.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to "Comment"
-        PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.FormatType()));
+        PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.FormatTypeAsText()));
     end;
 
     [ModalPageHandler]

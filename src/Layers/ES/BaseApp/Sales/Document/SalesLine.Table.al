@@ -4475,7 +4475,7 @@ table 37 "Sales Line"
         PriceDescriptionTxt: Label 'x%1 (%2%3/%4)', Locked = true;
         PriceDescriptionWithLineDiscountTxt: Label 'x%1 (%2%3/%4) - %5%', Locked = true;
         SelectNonstockItemErr: Label 'You can only select a catalog item for an empty line.';
-        CommentLbl: Label 'Comment';
+        CommentLbl: Label 'Comment', MaxLength = 30;
         LineDiscountPctErr: Label 'The value in the Line Discount % field must be between 0 and 100.';
         SalesBlockedErr: Label 'You cannot sell %1 %2 because the %3 check box is selected on the %1 card.', Comment = '%1 - Table Caption (Item), %2 - Item No., %3 - Field Caption';
         CannotChangePrepaidServiceChargeErr: Label 'You cannot change the line because it will affect service charges that are already invoiced as part of a prepayment.';
@@ -10206,12 +10206,20 @@ table 37 "Sales Line"
     /// Blank line type is represented by the comment label.
     /// </remarks>
     /// <returns>The text representation of the line type.</returns>
-    procedure FormatType() FormattedType: Text[20]
+    #if not CLEAN29
+    [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
+    procedure FormatType(): Text[20]
+    begin
+        exit(CopyStr(FormatTypeAsText(), 1, 20));
+    end;
+    #endif
+
+    procedure FormatTypeAsText() FormattedType: Text[30]
     var
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeFormatType(Rec, FormattedType, IsHandled);
+        OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
             exit(FormattedType);
 
@@ -11990,8 +11998,16 @@ table 37 "Sales Line"
     /// <param name="SalesLine">The sales line being processed.</param>
     /// <param name="FormattedType">The formatted type text.</param>
     /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    #if not CLEAN29
+    [Obsolete('Use OnBeforeFormatTypeAsText instead.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    begin
+    end;
+    #endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFormatTypeAsText(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
     end;
 
