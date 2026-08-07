@@ -13,16 +13,16 @@ codeunit 31170 "VAT Report Submit CZL"
 
     trigger OnRun()
     var
-        EPOAPISubmission: Codeunit "EPO API Submission CZL";
+        EPOAPIMgt: Codeunit "EPO API Mgt. CZL";
         TempBlobSubmission: Codeunit "Temp Blob";
         TempBlobResponse: Codeunit "Temp Blob";
         VATReportArchiveMgtCZL: Codeunit "VAT Report Archive Mgt CZL";
         XmlDocumentSubmission: XmlDocument;
         OutStreamSubmission: OutStream;
+        FormUrl: Text;
     begin
         XmlDocumentSubmission := GetVATReportSubmission(Rec);
-        if not EPOAPISubmission.TrySend(XmlDocumentSubmission) then
-            Error(GetLastErrorText());
+        EPOAPIMgt.TryGetFormUrl(XmlDocumentSubmission, FormUrl);
 
         // archive submission
         TempBlobSubmission.CreateOutStream(OutStreamSubmission, TextEncoding::UTF8);
@@ -32,12 +32,12 @@ codeunit 31170 "VAT Report Submit CZL"
         VATReportArchiveMgtCZL.ArchiveSubmissionMessage(TempBlobSubmission, Rec);
 
         // archive response
-        TempBlobResponse := EPOAPISubmission.GetHttpResonse().GetContent().AsBlob();
+        TempBlobResponse := EPOAPIMgt.GetHttpResponse().GetContent().AsBlob();
         VATReportArchiveMgtCZL.RemoveVATReportResponseFromDocAttachment(Rec);
         VATReportArchiveMgtCZL.InsertVATReportResponseToDocAttachment(Rec, TempBlobResponse);
         VATReportArchiveMgtCZL.ArchiveResponseMessage(TempBlobResponse, Rec);
 
-        Hyperlink(EPOAPISubmission.GetFormUrl());
+        Hyperlink(FormUrl);
     end;
 
     local procedure GetVATReportSubmission(VATReportHeader: Record "VAT Report Header"): XmlDocument
