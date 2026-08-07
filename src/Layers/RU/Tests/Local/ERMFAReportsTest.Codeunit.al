@@ -317,10 +317,7 @@ codeunit 144714 "ERM FA Reports Test"
 
     local procedure Initialize()
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
+        EnsureHandlerBound();
         LibraryVariableStorage.Clear();
 
         if isInitialized then
@@ -328,6 +325,16 @@ codeunit 144714 "ERM FA Reports Test"
 
         Commit();
         isInitialized := true;
+    end;
+
+    local procedure EnsureHandlerBound()
+    begin
+        // Bind the RU report download handler before any report is exported. Called from the report
+        // print helpers (not only Initialize) because several FA report tests do not call Initialize.
+        if RUReportHandlerBound then
+            exit;
+        BindSubscription(RUReportDownloadHandler);
+        RUReportHandlerBound := true;
     end;
 
     local procedure FAMovement()
@@ -446,6 +453,7 @@ codeunit 144714 "ERM FA Reports Test"
         FADocHeader: Record "FA Document Header";
         FA2Report: Report "FA Movement FA-2";
     begin
+        EnsureHandlerBound();
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         FADocHeader.SetRange("No.", FADocNo);
@@ -460,6 +468,7 @@ codeunit 144714 "ERM FA Reports Test"
         PostedFADocHeader: Record "Posted FA Doc. Header";
         PostedFA2Report: Report "FA Posted Movement FA-2";
     begin
+        EnsureHandlerBound();
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         PostedFADocHeader.SetRange("No.", PostedFADocNo);
@@ -483,6 +492,7 @@ codeunit 144714 "ERM FA Reports Test"
         PurchHeader: Record "Purchase Header";
         FA14Report: Report "Purch. FA Receipt FA-14";
     begin
+        EnsureHandlerBound();
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         PurchHeader.SetRange("No.", DocumentNo);
@@ -499,6 +509,7 @@ codeunit 144714 "ERM FA Reports Test"
         PurchInvHeader: Record "Purch. Inv. Header";
         FA14Report: Report "Posted Purch. FA Receipt FA-14";
     begin
+        EnsureHandlerBound();
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         PurchInvHeader.SetRange("No.", DocumentNo);
@@ -597,6 +608,7 @@ codeunit 144714 "ERM FA Reports Test"
         FixedAsset: Record "Fixed Asset";
         FAInvCardFA6: Report "FA Inventory Card FA-6";
     begin
+        EnsureHandlerBound();
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         FixedAsset.SetRange("No.", FANo);
@@ -672,6 +684,7 @@ codeunit 144714 "ERM FA Reports Test"
         FADocumentHeader: Record "FA Document Header";
         FAMovementFA15: Report "FA Movement FA-15";
     begin
+        EnsureHandlerBound();
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         FADocumentHeader.SetRange("No.", DocumentNo);
@@ -686,6 +699,7 @@ codeunit 144714 "ERM FA Reports Test"
         PostedFADocHeader: Record "Posted FA Doc. Header";
         PostedFAMovementFA15: Report "Posted FA Movement FA-15";
     begin
+        EnsureHandlerBound();
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         PostedFADocHeader.SetRange("No.", DocumentNo);
