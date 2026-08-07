@@ -7,7 +7,7 @@ namespace Microsoft.Agent.SalesOrderAgent;
 using Microsoft.CRM.Contact;
 using System.Agents;
 
-codeunit 4580 "SOA Contact Search Impl"
+codeunit 4411 "SOA Contact Search Impl"
 {
     Access = Internal;
     EventSubscriberInstance = Manual;
