@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20500 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
 {
     AllowInCustomizations = AsReadOnly;
@@ -47,4 +46,3 @@ tableextension 20500 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
         key(Key99001500; "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Purch. Order No.", "Subc. Purch. Order Line No.") { }
     }
 }
-#pragma warning restore AS0072, AS0136

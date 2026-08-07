@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
-#pragma warning disable AS0072, AS0136
 codeunit 20558 "Subc. Worksheet Handler"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReqJnlManagement, OnOpenJnlBatchOnBeforeTemplateSelection, '', false, false)]
@@ -26,4 +25,3 @@ codeunit 20558 "Subc. Worksheet Handler"
         ReqWorksheetTemplateTypeList.Add(Enum::"Req. Worksheet Template Type"::Subcontracting);
     end;
 }
-#pragma warning restore AS0072, AS0136

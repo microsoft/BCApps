@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Upgrade;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20570 "Subc. Upgrade Tag Def. Ext."
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
@@ -26,4 +25,3 @@ codeunit 20570 "Subc. Upgrade Tag Def. Ext."
         exit('MS-644283-SubcReqWkshTemplTypeRenumber-20260803');
     end;
 }
-#pragma warning restore AS0072, AS0136
