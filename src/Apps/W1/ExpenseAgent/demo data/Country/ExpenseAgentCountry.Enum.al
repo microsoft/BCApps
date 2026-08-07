@@ -31,7 +31,7 @@ enum 8221 "Expense Agent Country" implements "Expense Agent Country Data"
     value(4; NZ)
     {
         Caption = 'NZ';
-        Implementation = "Expense Agent Country Data" = "W1 Country Data";
+        Implementation = "Expense Agent Country Data" = "NZ Country Data";
     }
     value(5; AU)
     {
