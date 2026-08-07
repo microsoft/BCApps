@@ -95,7 +95,6 @@ codeunit 99001572 "Subc. Invt. Put-away Ext"
                     if not PurchLine.Get("Purchase Document Type"::Order, WarehouseActivityLine."Source No.", WarehouseActivityLine."Source Line No.") then
                         exit;
                     WarehouseActivityLine."Subc. Purchase Line Type" := PurchLine."Subc. Purchase Line Type";
-                    WarehouseActivityLine."Transfer WIP Item" := PurchLine."Transfer WIP Item";
                 end;
             Database::"Transfer Line":
                 begin

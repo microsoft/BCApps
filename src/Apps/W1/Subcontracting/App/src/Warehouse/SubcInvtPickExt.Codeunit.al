@@ -55,13 +55,6 @@ codeunit 99001573 "Subc. Invt. Pick Ext"
             IsHandled := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", OnBeforeCalcBaseQty, '', false, false)]
-    local procedure KeepBaseQtyZeroForWipItemPickLine_OnBeforeCalcBaseQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; var Qty: Decimal; FromFieldName: Text; ToFieldName: Text)
-    begin
-        if WarehouseActivityLine."Transfer WIP Item" then
-            Qty := 0;
-    end;
-
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", OnBeforeAutofillQtyToHandleLine, '', false, false)]
     local procedure SetNonBaseQtyToHandleForWipItemPickLine_OnBeforeAutofillQtyToHandleLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
     var
