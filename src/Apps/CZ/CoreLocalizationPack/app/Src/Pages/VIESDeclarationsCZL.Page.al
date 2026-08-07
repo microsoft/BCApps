@@ -36,6 +36,7 @@ page 31140 "VIES Declarations CZL"
                 field("Declaration Type"; Rec."Declaration Type")
                 {
                     ApplicationArea = Basic, Suite;
+                    OptionCaption = 'Normal,Corrective';
                     ToolTip = 'Specifies type of VIES Declaration (Normal, Corrective).';
                 }
                 field("Corrected Declaration No."; Rec."Corrected Declaration No.")
