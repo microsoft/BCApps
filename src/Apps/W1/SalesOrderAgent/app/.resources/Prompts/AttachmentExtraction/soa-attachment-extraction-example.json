@@ -1,0 +1,54 @@
+{
+  "schema": "soa-attachment-content",
+  "document_summary": "",
+  "parties": [
+    {
+      "role": "",
+      "name": "",
+      "address": "",
+      "contact_information": ""
+    }
+  ],
+  "references": [
+    {
+      "type": "",
+      "value": ""
+    }
+  ],
+  "requested_dates": [
+    {
+      "type": "",
+      "value": ""
+    }
+  ],
+  "items": [
+    {
+      "identifiers": [
+        {
+          "type": "",
+          "value": ""
+        }
+      ],
+      "description": "",
+      "quantity": null,
+      "unit_of_measure": "",
+      "attributes": [
+        {
+          "name": "",
+          "value": ""
+        }
+      ],
+      "unit_price": null,
+      "line_amount": null,
+      "status_notes": [],
+      "source_location": ""
+    }
+  ],
+  "additional_relevant_information": [
+    {
+      "label": "",
+      "value": ""
+    }
+  ],
+  "warnings": []
+}
