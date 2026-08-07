@@ -61,6 +61,9 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             Caption = 'Standard ESG Sales Invoice (Word)';
             Summary = 'The Standard ESG Sales Invoice (Word) provides a basic layout.';
             LayoutFile = 'src\Reports\StandardESGSalesInvoice.docx';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("StandardESGSalesInvoiceBlueSimple.docx")
         {
@@ -68,6 +71,9 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             Caption = 'Standard ESG Sales Invoice - Blue (Word)';
             Summary = 'The Standard ESG Sales Invoice (Word) provides a basic layout with blue theme.';
             LayoutFile = 'src\Reports\StandardESGSalesInvoiceBlueSimple.docx';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '31.0';
         }
         layout("StandardESGSalesInvoiceBody.docx")
         {
@@ -76,13 +82,7 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             Caption = 'Body-only: Standard ESG Sales Invoice (Word)';
             Summary = 'Body-only: The Standard ESG Sales Invoice (Word) provides a basic layout.';
         }
-        layout("StandardESGSalesInvoiceBlueSimpleBody.docx")
-        {
-            Type = Word;
-            LayoutFile = 'src\Reports\StandardESGSalesInvoiceBlueSimpleBody.docx';
-            Caption = 'Body-only: Standard ESG Sales Invoice - Blue (Word)';
-            Summary = 'Body-only: The Standard ESG Sales Invoice (Word) provides a basic layout with blue theme.';
-        }
+
     }
 
     trigger OnPreReport()
