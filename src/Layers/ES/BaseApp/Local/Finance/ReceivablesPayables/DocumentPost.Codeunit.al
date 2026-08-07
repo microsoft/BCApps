@@ -55,7 +55,7 @@ codeunit 7000006 "Document-Post"
         Text1100014: Label 'Do you want to post the journal lines?';
         Text1100016: Label 'The journal lines were successfully posted.';
         Text1100017: Label 'The journal lines were successfully posted. You are now in the %1 journal.';
-        CarteraDocBillGroupErr: Label 'A grouped document cannot be settled from a journal.\Remove Document %1/%2 from Group/Pmt. Order %3 and try again.', Comment = '%1=Document Number,%2=Bill number,%3=Bill Group number.';
+        CarteraDocBillGroupErr: Label 'Please change the Applies-to Doc. No. or remove the applied document from the Bill Group before posting.\A grouped document cannot be settled from a journal.\Remove Document %1/%2 from Group/Pmt. Order %3 and try again.', Comment = '%1=Document Number,%2=Bill number,%3=Bill Group number.';
 
     procedure CheckGenJnlLine(var GenJnlLine: Record "Gen. Journal Line")
     var
@@ -1294,4 +1294,3 @@ codeunit 7000006 "Document-Post"
     begin
     end;
 }
-
