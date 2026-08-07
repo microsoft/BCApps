@@ -15,6 +15,7 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = AITest;
+    RequiredTestIsolation = Disabled;
     TestHandlers = "AIT Test Handler";
 
     var
