@@ -43,6 +43,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XmlNamespaceRSM: Text;
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
+        ItemGTINCache: Dictionary of [Code[20], Code[14]];
         DocumentLanguageCode: Code[10];
 
     trigger OnRun()
@@ -280,6 +281,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         LineAmount: Dictionary of [Decimal, Decimal];
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
+        Clear(ItemGTINCache);
         GetSetups();
         FindEDocumentService();
         if not DocumentLinesExist(SalesInvoiceHeader, SalesInvLine) then
@@ -314,6 +316,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         LineAmount: Dictionary of [Decimal, Decimal];
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
+        Clear(ItemGTINCache);
         GetSetups();
         FindEDocumentService();
         if not DocumentLinesExist(SalesCrMemoHeader, SalesCrMemoLine) then
@@ -914,12 +917,26 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     local procedure InsertGlobalID(var SpecifiedTradeProductElement: XmlElement; ItemNo: Code[20])
     var
-        Item: Record Item;
+        GTIN: Code[14];
     begin
-        if not Item.Get(ItemNo) or (Item.GTIN = '') then
+        GTIN := GetItemGTIN(ItemNo);
+        if GTIN = '' then
             exit;
 
-        SpecifiedTradeProductElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', '0160'), Item.GTIN));
+        SpecifiedTradeProductElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', '0160'), GTIN));
+    end;
+
+    local procedure GetItemGTIN(ItemNo: Code[20]) GTIN: Code[14]
+    var
+        Item: Record Item;
+    begin
+        if ItemGTINCache.Get(ItemNo, GTIN) then
+            exit;
+
+        Item.SetLoadFields(Item.GTIN);
+        if Item.Get(ItemNo) then
+            GTIN := Item.GTIN;
+        ItemGTINCache.Add(ItemNo, GTIN);
     end;
 
     local procedure InsertInvoiceLine(var SupplyChainTradeTransactionElement: XmlElement; var SalesInvoiceLine: Record "Sales Invoice Line"; Currency: Record Currency; CurrencyCode: Code[10]; PricesIncVAT: Boolean)

@@ -49,6 +49,7 @@ codeunit 13916 "Export XRechnung Document"
         GLNSchemeIDTok: Label '0088', Locked = true;
         XmlNamespaceCBC: Text;
         XmlNamespaceCAC: Text;
+        ItemGTINCache: Dictionary of [Code[20], Code[14]];
         AlwaysIncludeTwoDecimalPlacesForAmountFields: Boolean;
         AllLinesNotSubjectToVAT: Boolean;
         DocumentLanguageCode: Code[10];
@@ -152,6 +153,7 @@ codeunit 13916 "Export XRechnung Document"
         LineAmount: Dictionary of [Decimal, Decimal];
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
+        Clear(ItemGTINCache);
         GetSetups();
         if not DocumentLinesExist(SalesInvoiceHeader, SalesInvLine) then
             exit;
@@ -199,6 +201,7 @@ codeunit 13916 "Export XRechnung Document"
         LineAmount: Dictionary of [Decimal, Decimal];
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
+        Clear(ItemGTINCache);
         GetSetups();
         if not DocumentLinesExist(SalesCrMemoHeader, SalesCrMemoLine) then
             exit;
@@ -661,15 +664,29 @@ codeunit 13916 "Export XRechnung Document"
 
     local procedure InsertStandardItemIdentification(var ItemElement: XmlElement; ItemNo: Code[20])
     var
-        Item: Record Item;
         StandardItemIdElement: XmlElement;
+        GTIN: Code[14];
     begin
-        if not Item.Get(ItemNo) or (Item.GTIN = '') then
+        GTIN := GetItemGTIN(ItemNo);
+        if GTIN = '' then
             exit;
 
         StandardItemIdElement := XmlElement.Create('StandardItemIdentification', XmlNamespaceCAC);
-        StandardItemIdElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', '0160'), Item.GTIN));
+        StandardItemIdElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', '0160'), GTIN));
         ItemElement.Add(StandardItemIdElement);
+    end;
+
+    local procedure GetItemGTIN(ItemNo: Code[20]) GTIN: Code[14]
+    var
+        Item: Record Item;
+    begin
+        if ItemGTINCache.Get(ItemNo, GTIN) then
+            exit;
+
+        Item.SetLoadFields(Item.GTIN);
+        if Item.Get(ItemNo) then
+            GTIN := Item.GTIN;
+        ItemGTINCache.Add(ItemNo, GTIN);
     end;
 
     local procedure InsertPartyIdentification(var PartyElement: XmlElement; ID: Text);
