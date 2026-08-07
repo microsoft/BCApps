@@ -18,7 +18,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
-codeunit 99001505 "Subcontracting Management"
+codeunit 20505 "Subcontracting Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";

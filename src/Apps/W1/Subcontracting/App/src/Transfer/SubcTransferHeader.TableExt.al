@@ -7,24 +7,24 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Vendor;
 
-tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
+tableextension 20520 "Subc. Transfer Header" extends "Transfer Header"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001530; "Subcontr. Purch. Order No."; Code[20])
+        field(20530; "Subcontr. Purch. Order No."; Code[20])
         {
             Caption = 'Subcontr. Purch. Order No.';
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(99001531; "Subcontr. PO Line No."; Integer)
+        field(20531; "Subcontr. PO Line No."; Integer)
         {
             Caption = 'Subcontr. Purch. Order Line No.';
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(99001536; "Source ID"; Code[20])
+        field(20536; "Source ID"; Code[20])
         {
             Caption = 'Source ID';
             DataClassification = CustomerContent;
@@ -45,17 +45,17 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
                 HandleSubcontractingSourceLookup(Rec);
             end;
         }
-        field(99001537; "Source Ref. No."; Integer)
+        field(20537; "Source Ref. No."; Integer)
         {
             Caption = 'Source Ref. No.';
             DataClassification = CustomerContent;
         }
-        field(99001540; "Subc. Source Type"; Enum "Transfer Source Type")
+        field(20540; "Subc. Source Type"; Enum "Transfer Source Type")
         {
             Caption = 'Source Type';
             DataClassification = CustomerContent;
         }
-        field(99001541; "Subc. Return Order"; Boolean)
+        field(20541; "Subc. Return Order"; Boolean)
         {
             Caption = 'Return Order';
             DataClassification = CustomerContent;

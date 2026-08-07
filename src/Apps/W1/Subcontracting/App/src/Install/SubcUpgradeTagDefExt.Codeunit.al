@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Upgrade;
 
-codeunit 99001570 "Subc. Upgrade Tag Def. Ext."
+codeunit 20570 "Subc. Upgrade Tag Def. Ext."
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
