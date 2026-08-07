@@ -6,7 +6,9 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Security.AccessControl;
 
-permissionsetextension 99001501 "D365 BUS FULL ACCESS - Subcontracting" extends "D365 BUS FULL ACCESS"
+#pragma warning disable AS0072, AS0136
+permissionsetextension 20501 "D365 BUS FULL ACCESS - Subcontracting" extends "D365 BUS FULL ACCESS"
 {
     IncludedPermissionSets = "Subcontract. - Edit";
 }
+#pragma warning restore AS0072, AS0136

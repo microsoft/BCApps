@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-codeunit 99001543 "Subc. Trans Shpt Header Ext"
+#pragma warning disable AS0072, AS0136
+codeunit 20543 "Subc. Trans Shpt Header Ext"
 {
     [EventSubscriber(ObjectType::Table, Database::"Transfer Shipment Header", OnAfterCopyFromTransferHeader, '', false, false)]
     local procedure OnAfterCopyFromTransferHeader(var TransferShipmentHeader: Record "Transfer Shipment Header"; TransferHeader: Record "Transfer Header")
@@ -31,3 +32,4 @@ codeunit 99001543 "Subc. Trans Shpt Header Ext"
         TransferShipmentHeader."Subcontr. PO Line No." := TransferHeader."Subcontr. PO Line No.";
     end;
 }
+#pragma warning restore AS0072, AS0136

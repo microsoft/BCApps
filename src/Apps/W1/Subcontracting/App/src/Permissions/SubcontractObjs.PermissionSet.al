@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 99001501 "Subcontract. - Objs"
+#pragma warning disable AS0072, AS0136
+permissionset 20501 "Subcontract. - Objs"
 {
     Caption = 'Subcontracting - Objects';
     Assignable = true;
@@ -94,3 +95,4 @@ permissionset 99001501 "Subcontract. - Objs"
         report "Subc. Create SubCReturnOrder" = X,
         report "Subc. Dispatching List" = X;
 }
+#pragma warning restore AS0072, AS0136

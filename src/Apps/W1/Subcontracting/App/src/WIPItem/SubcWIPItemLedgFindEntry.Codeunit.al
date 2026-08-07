@@ -6,7 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Navigate;
 
-codeunit 99001564 "Subc. WIP Item Ledg Find Entry"
+#pragma warning disable AS0072, AS0136
+codeunit 20564 "Subc. WIP Item Ledg Find Entry"
 {
 
     var
@@ -64,3 +65,4 @@ codeunit 99001564 "Subc. WIP Item Ledg Find Entry"
         end;
     end;
 }
+#pragma warning restore AS0072, AS0136
