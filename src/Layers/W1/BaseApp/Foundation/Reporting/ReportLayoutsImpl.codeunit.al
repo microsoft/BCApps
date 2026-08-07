@@ -21,7 +21,8 @@ codeunit 9660 "Report Layouts Impl."
 {
     Access = Internal;
     Permissions = tabledata "Tenant Report Layout" = rimd,
-                  tabledata "Tenant Report Layout Selection" = rimd;
+                  tabledata "Tenant Report Layout Selection" = rimd,
+                  tabledata "Tenant Report Layout Override" = rimd;
 
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
@@ -43,6 +44,7 @@ codeunit 9660 "Report Layouts Impl."
         EmptyLayoutNameTxt: Label 'A layout name must be specified.';
         CannotUpdateLayoutTxt: Label 'The Layout could not be updated for export. The exported file will contain the original layout.';
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = Layout Name';
+        MixedScopeErr: Label 'The selected layouts have different scopes. Some apply to all companies and some only to the current company. Select layouts of a single scope and try again.';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
     begin
@@ -50,19 +52,27 @@ codeunit 9660 "Report Layouts Impl."
     end;
 
     /// <summary>
-    /// Sets the status for a user-defined layout.
-    /// Only user-defined layouts have entries in "Tenant Report Layout" (table 2000000232).
-    /// Extension-defined layouts reside in the read-only App database and cannot be modified.
+    /// Sets the status for a layout.
+    /// User-defined layouts are updated in place in "Tenant Report Layout" (table 2000000232).
+    /// Extension-installed layouts reside in the read-only App database; their status is set by
+    /// writing an override record in "Tenant Report Layout Override" (table 2000000248) instead of
+    /// copying the layout into the tenant table.
     /// </summary>
     /// <param name="ReportLayoutList">The layout record from the virtual table</param>
     /// <param name="NewStatus">The new status to set</param>
-    /// <returns>True if the status was updated, false if the layout is not user-defined or not found</returns>
+    /// <returns>True if the status was updated, false if the user-defined layout was not found</returns>
     internal procedure SetLayoutStatus(ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status"): Boolean
     var
         TenantReportLayout: Record "Tenant Report Layout";
     begin
-        if not ReportLayoutList."User Defined" then
-            exit(false);
+        if not ReportLayoutList."User Defined" then begin
+            // Extension-installed layout: override the status rather than copying the layout.
+            // The override is written for all companies unless this company already has a status
+            // override of its own (see CP0529-338 Q1). Mixed-scope selections are rejected by
+            // SetLayoutStatusBatch before this point.
+            UpsertLayoutOverride(ReportLayoutList, LayoutStatusIsGlobalScope(ReportLayoutList), false, '', true, NewStatus, false, false);
+            exit(true);
+        end;
 
         if TenantReportLayout.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", EmptyGuid) then begin
             TenantReportLayout."Layout Status" := NewStatus;
@@ -73,19 +83,126 @@ codeunit 9660 "Report Layouts Impl."
     end;
 
     /// <summary>
+    /// Renders the override scope for telemetry as a stable, non-localized token.
+    /// </summary>
+    local procedure ScopeDimension(IsGlobal: Boolean): Text
+    begin
+        if IsGlobal then
+            exit('AllCompanies');
+        exit('CurrentCompany');
+    end;
+
+    /// <summary>
+    /// Determines whether a status change to an extension-installed layout applies globally.
+    /// Status changes are tenant-wide by default: a layout installed by an extension is the same layout
+    /// in every company, so its lifecycle state normally is too.
+    /// "Tenant Report Layout Override" is field-granular, so an existing exception has to be recognised
+    /// from the field that is about to change, not from the mere existence of a row: only a row that sets
+    /// "Override Layout Status" for the current company keeps the change company-scoped. A
+    /// description-only or obsolete-only row therefore never drags the status change out of global scope.
+    /// </summary>
+    local procedure LayoutStatusIsGlobalScope(ReportLayoutList: Record "Report Layout List"): Boolean
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+    begin
+        // A company-specific status override, where one already exists, keeps the change in that company.
+        // Such a row can no longer be created from the UI, but it may come from an earlier version or from
+        // a vendor's install codeunit, and it is what a future company-scoped option would build on.
+        if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", SelectedCompany) then
+            if TenantReportLayoutOverride."Override Layout Status" then
+                exit(false);
+
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Creates or updates a "Tenant Report Layout Override" record for an extension-installed layout.
+    /// Only the fields flagged by the corresponding Apply* parameter are written, together with their
+    /// "Override *" flag; unset fields pass through from the layout metadata unchanged. "IsObsolete" is
+    /// one-way: it can only ever be set to true and never clears a layout that is obsolete in metadata.
+    /// </summary>
+    /// <param name="ReportLayoutList">The (extension-installed) layout row from the virtual table</param>
+    /// <param name="MakeGlobal">True writes a global override (empty Company Name) — the default for an in-place edit; false writes one scoped to the selected company</param>
+    local procedure UpsertLayoutOverride(ReportLayoutList: Record "Report Layout List"; MakeGlobal: Boolean; ApplyDescription: Boolean; NewDescription: Text[250]; ApplyStatus: Boolean; NewStatus: Enum "Report Layout Status"; ApplyObsolete: Boolean; NewIsObsolete: Boolean)
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        OverrideCompanyName: Text[30];
+        OverrideExists: Boolean;
+    begin
+        if MakeGlobal then
+            OverrideCompanyName := ''
+        else
+            OverrideCompanyName := SelectedCompany;
+
+        OverrideExists := TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", OverrideCompanyName);
+        if not OverrideExists then begin
+            TenantReportLayoutOverride.Init();
+            TenantReportLayoutOverride."Report ID" := ReportLayoutList."Report ID";
+            TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+            TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+            TenantReportLayoutOverride."Company Name" := OverrideCompanyName;
+        end;
+
+        if ApplyDescription then begin
+            TenantReportLayoutOverride.Description := NewDescription;
+            TenantReportLayoutOverride."Override Description" := true;
+        end;
+
+        if ApplyStatus then begin
+            TenantReportLayoutOverride."Layout Status" := NewStatus;
+            TenantReportLayoutOverride."Override Layout Status" := true;
+        end;
+
+        // One-way: only ever mark obsolete; never write false over a metadata-obsolete layout.
+        if ApplyObsolete and NewIsObsolete then begin
+            TenantReportLayoutOverride.IsObsolete := true;
+            TenantReportLayoutOverride."Override IsObsolete" := true;
+        end;
+
+        if OverrideExists then
+            TenantReportLayoutOverride.Modify(true)
+        else
+            TenantReportLayoutOverride.Insert(true);
+    end;
+
+    /// <summary>
     /// Sets the status for multiple selected layouts.
     /// Use this from page actions when user selects multiple layouts.
     /// </summary>
     /// <param name="ReportLayoutList">Record set with selected layouts (filtered/marked)</param>
     /// <param name="NewStatus">The new status to set</param>
-    /// <returns>Number of layouts updated (excludes extension-defined layouts)</returns>
+    /// <returns>Number of layouts updated — user-defined layouts in place, extension-installed layouts
+    /// through a "Tenant Report Layout Override" record</returns>
     internal procedure SetLayoutStatusBatch(var ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status"): Integer
     var
         CustomDimensions: Dictionary of [Text, Text];
         UpdateCount: Integer;
+        HasGlobalScope: Boolean;
+        HasCompanyScope: Boolean;
     begin
         if not ReportLayoutList.FindSet() then
             exit(0);
+
+        // First pass: classify the scope of the extension-installed layouts in the selection.
+        // User-defined layouts update in place and are not part of the scope decision.
+        repeat
+            if not ReportLayoutList."User Defined" then
+                if LayoutStatusIsGlobalScope(ReportLayoutList) then
+                    HasGlobalScope := true
+                else
+                    HasCompanyScope := true;
+        until ReportLayoutList.Next() = 0;
+
+        // Keep each run to a single scope so the effect is unambiguous.
+        if HasGlobalScope and HasCompanyScope then
+            Error(MixedScopeErr);
+
+        // No confirmation for the all-companies case: a status change is metadata about the layout's
+        // lifecycle, not a change to the layout itself, and it is tenant-wide by default. Prompting on
+        // the normal path would train users to dismiss the dialog without reading it.
+
+        // Second pass: apply the status change.
+        ReportLayoutList.FindSet();
         repeat
             if SetLayoutStatus(ReportLayoutList, NewStatus) then
                 UpdateCount += 1;
@@ -598,6 +715,8 @@ codeunit 9660 "Report Layouts Impl."
         AllCompaniesTxt: Label '';
         AvailableInAllCompanies: Boolean;
         NewIsObsolete: Boolean;
+        ApplyDescription: Boolean;
+        ApplyObsolete: Boolean;
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if SelectedReportLayoutList."User Defined" then begin
@@ -607,13 +726,52 @@ codeunit 9660 "Report Layouts Impl."
             CompanyName := SelectedCompany;
 
         ReportLayoutEditDialog.SetupDialog(SelectedReportLayoutList, SelectedCompany);
-        if ReportLayoutEditDialog.RunModal() = Action::OK then begin
+        begin
+            if ReportLayoutEditDialog.RunModal() <> Action::OK then
+                exit;
 
             NewDescription := ReportLayoutEditDialog.SelectedLayoutDescription();
             NewLayoutName := ReportLayoutEditDialog.SelectedLayoutName();
             CreateCopy := ReportLayoutEditDialog.CopyOperationEnabled();
             AvailableInAllCompanies := ReportLayoutEditDialog.SelectedAvailableInAllCompanies();
             NewIsObsolete := ReportLayoutEditDialog.SelectedIsObsolete();
+
+            // Extension-installed layout, edited in place (not copied): write an override record rather
+            // than copying the layout. Only the properties the user actually changed are written, so
+            // pressing OK without editing anything writes nothing at all; IsObsolete is one-way.
+            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
+                // Such an edit overrides for ALL companies. An extension layout is the same layout
+                // everywhere, so its description and lifecycle state normally are too, and the override
+                // records metadata about the layout rather than changing the layout itself. This is why
+                // "Available in All Companies" is shown as a read-only Yes for an in-place edit: it
+                // states the scope the override will be written at. A copy is an ordinary tenant layout,
+                // so it takes its own company scope from that field, handled further below.
+                AvailableInAllCompanies := true;
+
+                NewEditedLayoutName := SelectedReportLayoutList.Name;
+                ApplyDescription := NewDescription <> SelectedReportLayoutList."Description";
+                ApplyObsolete := NewIsObsolete and (not SelectedReportLayoutList.IsObsolete);
+                if not (ApplyDescription or ApplyObsolete) then
+                    exit;
+
+                UpsertLayoutOverride(SelectedReportLayoutList, AvailableInAllCompanies, ApplyDescription, NewDescription, false, Enum::"Report Layout Status"::Draft, ApplyObsolete, NewIsObsolete);
+
+                // Telemetry for the override path uses its OWN event id, freshly allocated from the
+                // number series rather than reusing the one the user-defined Edit path logs under:
+                // that event carries a different custom-dimension schema (Old/New layout name and
+                // description), and reusing it here would change the meaning of an id existing
+                // queries already consume. The dimensions below are metadata only — the layout
+                // description is user-entered free text and is reported as a changed/not-changed
+                // flag rather than its content.
+                CustomDimensions.Add('ReportId', Format(SelectedReportLayoutList."Report ID"));
+                CustomDimensions.Add('LayoutName', SelectedReportLayoutList.Name);
+                CustomDimensions.Add('DescriptionChanged', Format(ApplyDescription));
+                CustomDimensions.Add('ObsoleteSet', Format(ApplyObsolete));
+                CustomDimensions.Add('OverrideScope', ScopeDimension(AvailableInAllCompanies));
+                AddReportLayoutDimensionsAction('EditOverride', CustomDimensions);
+                Log('0000RTQ', 'Report layout properties overridden by user', CustomDimensions);
+                exit;
+            end;
 
             // Check if a layout having NewLayoutName already exists
             if TenantReportLayout.Get(SelectedReportLayoutList."Report ID", NewLayoutName, EmptyGuid) then
