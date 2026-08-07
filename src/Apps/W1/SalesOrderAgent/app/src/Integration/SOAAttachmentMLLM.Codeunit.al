@@ -10,7 +10,7 @@ using System.AI;
 using System.Azure.KeyVault;
 using System.Text;
 
-codeunit 4420 "SOA Attachment MLLM"
+codeunit 4421 "SOA Attachment MLLM"
 {
     Access = Internal;
     Permissions = tabledata "Agent Task File" = r, tabledata "Agent Task Message Attachment" = rM;
