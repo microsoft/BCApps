@@ -17,7 +17,7 @@ codeunit 4412 "SOA Contact Search Impl"
     var
         AgentTaskID: BigInteger;
 
-    procedure SetAgentTaskID(NewAgentTaskID: BigInteger)
+    internal procedure SetAgentTaskID(NewAgentTaskID: BigInteger)
     begin
         AgentTaskID := NewAgentTaskID;
     end;
@@ -28,10 +28,11 @@ codeunit 4412 "SOA Contact Search Impl"
         FindRecordContact(Rec, Which, Found, IsHandled);
     end;
 
-    procedure FindRecordContact(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
+    local procedure FindRecordContact(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
     var
         AgentTaskMessage: Record "Agent Task Message";
         SOATaskContactOverride: Record "SOA Task Contact Override";
+        OriginalFilterGroup: Integer;
     begin
         if AgentTaskID = 0 then
             exit;
@@ -48,8 +49,10 @@ codeunit 4412 "SOA Contact Search Impl"
         if not SOATaskContactOverride.Get(AgentTaskID, AgentTaskMessage.ID) then
             exit;
 
-        Rec.Reset();
+        OriginalFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(11);
         Rec.SetRange("No.", SOATaskContactOverride."Contact No.");
+        Rec.FilterGroup(OriginalFilterGroup);
         Found := Rec.Find(Which);
         IsHandled := true;
     end;

@@ -58,7 +58,7 @@ pagecustomization "SOA Contact List" customizes "Contact List"
         {
             Visible = true;
         }
-        modify("E-Mail 2")
+        modify("SOA E-Mail 2")
         {
             Visible = true;
         }

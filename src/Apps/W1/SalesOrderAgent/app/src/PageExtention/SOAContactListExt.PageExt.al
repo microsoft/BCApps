@@ -12,7 +12,7 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
     {
         addafter("E-Mail")
         {
-            field("E-Mail 2"; Rec."E-Mail 2")
+            field("SOA E-Mail 2"; Rec."E-Mail 2")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Email 2';

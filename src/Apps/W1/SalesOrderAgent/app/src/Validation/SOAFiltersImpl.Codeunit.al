@@ -102,6 +102,7 @@ codeunit 4305 "SOA Filters Impl."
                     until Contact.Next() = 0;
 
                 Contact.Reset();
+                Contact.SetLoadFields("No.");
                 Contact.SetFilter("E-Mail 2", From);
                 Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
                 if Contact.FindSet() then
@@ -256,7 +257,7 @@ codeunit 4305 "SOA Filters Impl."
             exit;
         ContactList.GetRecord(SelectedContact);
         if SelectedContact."E-Mail 2" <> '' then
-            if not Confirm(ContactAlreadyHasEmail2Qst, false, SelectedContact."No.", SelectedContact."E-Mail 2", ContactEmail) then
+            if not Confirm(ContactAlreadyHasAlternateEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail 2", ContactEmail) then
                 exit;
         // Direct assignment is intentional: ContactEmail originates from an incoming email's From address,
         // which has already been accepted by the mail system. Validate() is skipped to avoid rejecting
@@ -296,6 +297,24 @@ codeunit 4305 "SOA Filters Impl."
     internal procedure GetSafeFromEmailFilter(FromEmail: Text): Text
     begin
         exit('''@' + LowerCase(FromEmail.TrimStart('"').TrimEnd('"').Trim()) + '''');
+    end;
+
+    internal procedure ContactExistsByEmail(EmailAddress: Text): Boolean
+    var
+        Contact: Record Contact;
+        EmailFilter: Text;
+    begin
+        EmailFilter := GetSafeFromEmailFilter(EmailAddress);
+
+        Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetFilter("E-Mail", EmailFilter);
+        if not Contact.IsEmpty() then
+            exit(true);
+
+        Contact.Reset();
+        Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetFilter("E-Mail 2", EmailFilter);
+        exit(not Contact.IsEmpty());
     end;
 
     internal procedure FindContactByEmail(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
@@ -338,7 +357,7 @@ codeunit 4305 "SOA Filters Impl."
         exit(true);
     end;
 
-    internal procedure FindContactByEmail2(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
+    internal procedure FindContactByAlternateEmail(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
     begin
         Contact.Reset();
         Contact.ReadIsolation := IsolationLevel::ReadCommitted;
@@ -352,7 +371,7 @@ codeunit 4305 "SOA Filters Impl."
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;
         LearnMoreLbl: Label 'Learn more';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
-        ContactAlreadyHasEmail2Qst: Label 'Contact %1 already has %2 in E-Mail 2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing E-Mail 2, %3 = New email';
+        ContactAlreadyHasAlternateEmailQst: Label 'Contact %1 already has %2 in E-Mail 2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing E-Mail 2, %3 = New email';
         ContactActionsMenuQst: Label 'Create a new contact,Use another contact once,Use another contact always', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
         ContactActionsInstructionQst: Label 'Select one option for how this email should be handled.';
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;

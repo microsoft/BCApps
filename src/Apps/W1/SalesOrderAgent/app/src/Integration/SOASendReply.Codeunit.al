@@ -70,6 +70,9 @@ codeunit 4419 "SOA Send Reply"
         EmailSubjectTxt: Label 'Sales order agent reply to task %1', Comment = '%1 = Agent Task id';
         EmailReplyFailedErr: Label 'The email reply could not be sent.';
         InvalidReplyMessageErr: Label 'Only reviewed output messages can be sent as replies.';
+        InvalidMappedContactErr: Label 'The contact mapping for this message is no longer valid. Choose another contact before sending the reply.';
+        MappedContactEmailMissingErr: Label 'The mapped contact %1 does not have a primary email address. Add an email address to the contact or choose another contact before sending the reply.', Comment = '%1 = Contact No.';
+        MultipleAlternateEmailMappingsErr: Label 'The sender''s alternate email address is assigned to more than one contact. Remove the duplicate alternate email mappings before sending the reply.';
 
     local procedure GetMappedContactEmail(InputAgentTaskMessage: Record "Agent Task Message"): Text
     var
@@ -79,15 +82,40 @@ codeunit 4419 "SOA Send Reply"
         ContactCount: Integer;
     begin
         if SOATaskContactOverride.Get(InputAgentTaskMessage."Task ID", InputAgentTaskMessage.ID) then begin
+            if SOATaskContactOverride."Contact No." = '' then
+                ErrorMappedContact(InvalidMappedContactErr);
+
             Contact.SetLoadFields("E-Mail");
-            if Contact.Get(SOATaskContactOverride."Contact No.") then
-                exit(Contact."E-Mail");
+            if not Contact.Get(SOATaskContactOverride."Contact No.") then
+                ErrorMappedContact(InvalidMappedContactErr);
+            if Contact."E-Mail" = '' then
+                ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."));
+
+            exit(Contact."E-Mail");
         end;
 
-        if SOAFiltersImpl.FindContactByEmail2(Contact, InputAgentTaskMessage.From, ContactCount) and (ContactCount = 1) then
+        // Only the alternate email represents a persistent mapping; primary email matches keep the existing Reply All behavior.
+        if SOAFiltersImpl.FindContactByAlternateEmail(Contact, InputAgentTaskMessage.From, ContactCount) then begin
+            if ContactCount > 1 then
+                ErrorMappedContact(MultipleAlternateEmailMappingsErr);
+            if Contact."E-Mail" = '' then
+                ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."));
+
             exit(Contact."E-Mail");
+        end;
+
+        if ContactCount > 0 then
+            ErrorMappedContact(InvalidMappedContactErr);
 
         exit('');
+    end;
+
+    local procedure ErrorMappedContact(ErrorMessage: Text)
+    var
+        MappedContactErrorInfo: ErrorInfo;
+    begin
+        MappedContactErrorInfo.Message(ErrorMessage);
+        Error(MappedContactErrorInfo);
     end;
 
     local procedure GetOriginEmailRecipients(InputAgentTaskMessage: Record "Agent Task Message"; var CCRecipients: List of [Text]; var BCCRecipients: List of [Text])
