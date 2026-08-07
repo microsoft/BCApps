@@ -11,7 +11,7 @@ page 37111 "PowerBI ABC Analysis"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'ABC Analysis';
+    Caption = 'ABC Analysis (Power BI)';
     AboutTitle = 'About ABC Analysis';
     AboutText = 'The ABC Analysis page provides insights into customer segmentation based on sales volume, helping to identify key customers and prioritize sales efforts.';
 
@@ -52,4 +52,3 @@ page 37111 "PowerBI ABC Analysis"
         ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
-
