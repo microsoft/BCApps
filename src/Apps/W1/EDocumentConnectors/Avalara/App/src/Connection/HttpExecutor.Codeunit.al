@@ -35,7 +35,7 @@ codeunit 6377 "Http Executor"
         FeatureTelemetry.LogUsage('0000NHA', this.AvalaraProcessing.GetAvalaraTok(), 'Avalara request.');
 
         if not HttpClient.Send(Request.GetRequest(), this.HttpResponseMessage) then begin
-            Session.LogMessage('', HttpSendFailedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+            Session.LogMessage('0000UW6', HttpSendFailedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
             Error(HttpSendFailedMsg);
         end;
         HttpResponse := this.HttpResponseMessage;
@@ -61,12 +61,12 @@ codeunit 6377 "Http Executor"
         case LocalHttpResponseMessage.HttpStatusCode() of
             200:
                 begin
-                    Session.LogMessage('', HTTPSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+                    Session.LogMessage('0000UW7', HTTPSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
                     exit;
                 end;
             201:
                 begin
-                    Session.LogMessage('', HTTPSuccessAndCreatedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+                    Session.LogMessage('0000UW8', HTTPSuccessAndCreatedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
                     exit;
                 end;
             400:
@@ -85,7 +85,7 @@ codeunit 6377 "Http Executor"
         end;
 
         FriendlyErrorMsg := StrSubstNo(HttpErrorMsg, LocalHttpResponseMessage.HttpStatusCode(), FriendlyErrorMsg);
-        Session.LogMessage('', StrSubstNo(HttpErrorMsg, LocalHttpResponseMessage.HttpStatusCode(), Response), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+        Session.LogMessage('0000UW9', StrSubstNo(HttpErrorMsg, LocalHttpResponseMessage.HttpStatusCode(), Response), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
         Error(FriendlyErrorMsg);
     end;
 

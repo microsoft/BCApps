@@ -194,6 +194,11 @@ page 254 "Purchase Journal"
                     Editable = false;
                     ToolTip = 'Specifies the name of the vendor.';
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field(GenJnlLineApprovalStatus; GenJnlLineApprovalStatus)
                 {
                     ApplicationArea = Basic, Suite;
