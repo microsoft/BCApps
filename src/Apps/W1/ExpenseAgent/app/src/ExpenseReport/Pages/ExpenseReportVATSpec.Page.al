@@ -50,7 +50,16 @@ page 7086 "Expense Report VAT Spec."
                     Caption = 'Reclaim %';
                     ToolTip = 'Specifies the reclaim percentage.';
                 }
-<<<<<<<< HEAD:src/Apps/W1/ExpenseAgent/app/src/ExpenseReport/Pages/ExpenseReportLineVATFactBox.Page.al
+                field("Reclaim VAT Amount"; Rec."Reclaim VAT Amount")
+                {
+                    Caption = 'Reclaim VAT Amount';
+                    ToolTip = 'Specifies the reclaimable VAT amount for this row.';
+                }
+                field("Reclaim VAT Amount (LCY)"; Rec."Reclaim VAT Amount (LCY)")
+                {
+                    Caption = 'Reclaim VAT Amount (LCY)';
+                    ToolTip = 'Specifies the reclaimable VAT amount for this row.';
+                }
                 field("Reclaim Status"; Rec."Reclaim Status")
                 {
                     Caption = 'Reclaim Status';
@@ -65,22 +74,6 @@ page 7086 "Expense Report VAT Spec."
                     ObsoleteState = Pending;
                     ObsoleteTag = '29.0';
                     Visible = false;
-========
-                field("Reclaim VAT Amount"; Rec."Reclaim VAT Amount")
-                {
-                    Caption = 'Reclaim VAT Amount';
-                    ToolTip = 'Specifies the reclaimable VAT amount for this row.';
-                }
-                field("Reclaim VAT Amount (LCY)"; Rec."Reclaim VAT Amount (LCY)")
-                {
-                    Caption = 'Reclaim VAT Amount (LCY)';
-                    ToolTip = 'Specifies the reclaimable VAT amount for this row.';
-                }
-                field("Reclaim Status"; Rec."Reclaim Status")
-                {
-                    Caption = 'Reclaim Status';
-                    ToolTip = 'Specifies whether the VAT reclaim for this row is pending, approved, or rejected.';
->>>>>>>> 2ec42e77683 (Add-Expense-VAT-Reclaim-Approvals):src/Apps/W1/ExpenseAgent/app/src/ExpenseReport/Pages/ExpenseReportVATSpec.Page.al
                 }
 #endif
             }
