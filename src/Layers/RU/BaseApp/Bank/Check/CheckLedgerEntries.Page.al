@@ -164,7 +164,6 @@ page 374 "Check Ledger Entries"
                 Caption = 'Delete Entries';
                 Image = Delete;
                 RunObject = Report "Delete Check Ledger Entries";
-                ToolTip = 'Find and delete check ledger entries.';
             }
             action("&Print")
             {
