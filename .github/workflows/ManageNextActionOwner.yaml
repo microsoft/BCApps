@@ -1,0 +1,671 @@
+name: Manage next action owner
+
+on:
+  issues:
+    types: [opened, reopened, edited, labeled, unlabeled]
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize, ready_for_review, converted_to_draft, labeled, unlabeled]
+  workflow_run:
+    workflows: [Capture PR review for next action owner]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      item_number:
+        description: Open issue or pull request number
+        required: true
+        type: number
+      turn:
+        description: Classification to apply
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - Microsoft
+          - Partner
+          - Blocked
+
+permissions:
+  actions: read
+  issues: write
+  pull-requests: read
+
+env:
+  NEXT_ACTION_REVIEW_ARTIFACT: next-action-review-event
+  NEXT_ACTION_REVIEW_DIRECTORY: next-action-review-event
+
+jobs:
+  resolve_review_bridge:
+    if: >-
+      github.repository_owner == 'microsoft' &&
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.name == 'Capture PR review for next action owner' &&
+      github.event.workflow_run.path == '.github/workflows/CaptureNextActionReview.yaml' &&
+      (github.event.workflow_run.event == 'pull_request_review' ||
+        github.event.workflow_run.event == 'pull_request_review_comment') &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: read
+    outputs:
+      pr_number: ${{ steps.resolve.outputs.result }}
+    steps:
+      - name: Resolve next-action review event
+        id: resolve
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          result-encoding: string
+          script: |
+            const run = context.payload.workflow_run;
+            if (run.name !== 'Capture PR review for next action owner'
+                || run.path !== '.github/workflows/CaptureNextActionReview.yaml'
+                || !['pull_request_review', 'pull_request_review_comment'].includes(run.event)
+                || run.conclusion !== 'success'
+                || run.run_attempt !== 1) {
+              throw new Error('Unexpected next-action review workflow run.');
+            }
+
+            let pullNumber;
+            const runPulls = run.pull_requests ?? [];
+            if (runPulls.length > 1) {
+              throw new Error('Next-action review workflow run is associated with multiple pull requests.');
+            }
+            if (runPulls.length === 1) {
+              pullNumber = runPulls[0].number;
+            } else {
+              const headOwner = run.head_repository?.owner?.login;
+              const headBranch = run.head_branch;
+              const headSha = run.head_sha;
+              if (!headOwner || !headBranch || !headSha) {
+                throw new Error('Next-action review workflow run lacks trusted pull request metadata.');
+              }
+              const candidates = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${headOwner}:${headBranch}`,
+                per_page: 100,
+              });
+              const matches = candidates.filter(pull => pull.head.sha === headSha);
+              if (matches.length !== 1) {
+                throw new Error(`Expected one pull request for the next-action review run; found ${matches.length}.`);
+              }
+              pullNumber = matches[0].number;
+            }
+            if (!Number.isSafeInteger(pullNumber) || pullNumber < 1) {
+              throw new Error('Next-action review workflow run has an invalid pull request number.');
+            }
+
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+            const matches = artifacts.filter(
+              artifact => artifact.name === process.env.NEXT_ACTION_REVIEW_ARTIFACT,
+            );
+            if (matches.length !== 1) {
+              throw new Error(
+                `Expected one ${process.env.NEXT_ACTION_REVIEW_ARTIFACT} artifact; found ${matches.length}.`,
+              );
+            }
+            const [artifact] = matches;
+            if (artifact.expired
+                || !Number.isSafeInteger(artifact.size_in_bytes)
+                || artifact.size_in_bytes < 1
+                || artifact.size_in_bytes > 4 * 1024) {
+              throw new Error('Next-action review artifact is expired or outside the 4 KiB size limit.');
+            }
+            return String(pullNumber);
+
+  classify:
+    needs: resolve_review_bridge
+    if: >-
+      always() &&
+      github.repository_owner == 'microsoft' &&
+      ((github.event_name != 'workflow_run' && needs.resolve_review_bridge.result == 'skipped') ||
+        (github.event_name == 'workflow_run' && needs.resolve_review_bridge.result == 'success'))
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: read
+    concurrency:
+      group: next-action-owner-${{ github.event.issue.number || github.event.pull_request.number || needs.resolve_review_bridge.outputs.pr_number || inputs.item_number || github.run_id }}
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - name: Download next-action review event
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ env.NEXT_ACTION_REVIEW_ARTIFACT }}
+          path: ${{ github.workspace }}/${{ env.NEXT_ACTION_REVIEW_DIRECTORY }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          skip-decompress: true
+
+      - name: Manage next action owner
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          BRIDGE_PR_NUMBER: ${{ needs.resolve_review_bridge.outputs.pr_number }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const LABELS = {
+              Microsoft: {
+                name: 'Turn: Microsoft',
+                description: 'Next action is with the BCApps team.',
+                color: '0E8A16',
+              },
+              Partner: {
+                name: 'Turn: Partner',
+                description: 'Next action is with the partner or contributor.',
+                color: '1D76DB',
+              },
+              Blocked: {
+                name: 'Turn: Blocked',
+                description: 'No action is expected until an explicit blocker is resolved.',
+                color: 'D73A4A',
+              },
+            };
+            const TURN_LABELS = Object.values(LABELS).map(label => label.name);
+            const TEAM_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
+            const TEAM_PERMISSIONS = new Set(['write', 'push', 'maintain', 'admin']);
+            const OPINIONATED_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
+            const BRIDGE_WORKFLOW = 'Capture PR review for next action owner';
+            const BRIDGE_WORKFLOW_PATH = '.github/workflows/CaptureNextActionReview.yaml';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            let eventName = context.eventName;
+            let payload = context.payload;
+
+            if (eventName === 'workflow_run') {
+              if (payload.workflow_run.name !== BRIDGE_WORKFLOW
+                  || payload.workflow_run.path !== BRIDGE_WORKFLOW_PATH
+                  || !['pull_request_review', 'pull_request_review_comment']
+                    .includes(payload.workflow_run.event)
+                  || payload.workflow_run.conclusion !== 'success'
+                  || payload.workflow_run.run_attempt !== 1) {
+                throw new Error('Unexpected next-action review workflow run.');
+              }
+
+              const directory = path.join(
+                process.env.GITHUB_WORKSPACE,
+                process.env.NEXT_ACTION_REVIEW_DIRECTORY,
+              );
+              const entries = fs.readdirSync(directory, { withFileTypes: true });
+              if (entries.length !== 1
+                  || entries[0].name !== process.env.NEXT_ACTION_REVIEW_ARTIFACT
+                  || !entries[0].isFile()) {
+                throw new Error('Next-action review artifact must contain only the expected raw file.');
+              }
+              const eventPath = path.join(directory, process.env.NEXT_ACTION_REVIEW_ARTIFACT);
+              const stat = fs.lstatSync(eventPath);
+              if (!stat.isFile() || stat.isSymbolicLink() || stat.size < 1 || stat.size > 4 * 1024) {
+                throw new Error('Next-action review payload is outside the 4 KiB size limit.');
+              }
+
+              const bridged = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+              const expectedKeys = ['id', 'kind', 'pull_number', 'repository'];
+              if (!bridged
+                  || typeof bridged !== 'object'
+                  || Array.isArray(bridged)
+                  || JSON.stringify(Object.keys(bridged).sort()) !== JSON.stringify(expectedKeys)) {
+                throw new Error('Next-action review payload has an invalid shape.');
+              }
+              const allowedKinds = ['review_submitted', 'review_dismissed', 'review_comment_created'];
+              if (bridged.repository !== `${owner}/${repo}`
+                  || !allowedKinds.includes(bridged.kind)
+                  || !Number.isSafeInteger(bridged.pull_number)
+                  || bridged.pull_number < 1
+                  || !Number.isSafeInteger(bridged.id)
+                  || bridged.id < 1) {
+                throw new Error('Next-action review payload has invalid identifiers.');
+              }
+              const bridgePullNumber = Number(process.env.BRIDGE_PR_NUMBER);
+              if (!Number.isSafeInteger(bridgePullNumber)
+                  || bridged.pull_number !== bridgePullNumber) {
+                throw new Error('Next-action review pull request does not match its workflow run.');
+              }
+
+              const expectedSourceEvent = bridged.kind === 'review_comment_created'
+                ? 'pull_request_review_comment'
+                : 'pull_request_review';
+              if (payload.workflow_run.event !== expectedSourceEvent) {
+                throw new Error('Next-action review kind does not match its workflow run.');
+              }
+              const runActor = payload.workflow_run.actor?.login;
+              const runCreatedAt = Date.parse(payload.workflow_run.created_at ?? '');
+              if (!runActor || !Number.isFinite(runCreatedAt)) {
+                throw new Error('Next-action review workflow run lacks trusted event metadata.');
+              }
+              const sameActor = user => user?.login?.toLowerCase() === runActor.toLowerCase();
+              const nearRunCreation = timestamp => {
+                const eventTime = Date.parse(timestamp ?? '');
+                return Number.isFinite(eventTime)
+                  && Math.abs(eventTime - runCreatedAt) <= 60 * 1000;
+              };
+              const requireUniqueEvent = (events, selectedId) => {
+                if (events.length !== 1 || selectedId(events[0]) !== bridged.id) {
+                  throw new Error('Next-action review artifact does not match the unique triggering event.');
+                }
+              };
+
+              const expectedPullUrl = `https://api.github.com/repos/${owner}/${repo}/pulls/${bridged.pull_number}`;
+              if (bridged.kind === 'review_submitted') {
+                const { data: review } = await github.rest.pulls.getReview({
+                  owner,
+                  repo,
+                  pull_number: bridged.pull_number,
+                  review_id: bridged.id,
+                });
+                if (review.id !== bridged.id || review.pull_request_url !== expectedPullUrl) {
+                  throw new Error('Canonical review does not match the bridged identifiers.');
+                }
+                if (review.state.toUpperCase() === 'DISMISSED') {
+                  throw new Error('Submitted review was dismissed before it could be authenticated.');
+                }
+                const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                  owner,
+                  repo,
+                  pull_number: bridged.pull_number,
+                  per_page: 100,
+                });
+                const matching = reviews.filter(candidate =>
+                  candidate.state !== 'PENDING'
+                  && sameActor(candidate.user)
+                  && nearRunCreation(candidate.submitted_at));
+                requireUniqueEvent(matching, candidate => candidate.id);
+                eventName = 'pull_request_review';
+                payload = {
+                  action: 'submitted',
+                  pull_request: { number: bridged.pull_number },
+                  review,
+                  sender: review.user,
+                };
+              } else if (bridged.kind === 'review_dismissed') {
+                const { data: review } = await github.rest.pulls.getReview({
+                  owner,
+                  repo,
+                  pull_number: bridged.pull_number,
+                  review_id: bridged.id,
+                });
+                if (review.id !== bridged.id
+                    || review.pull_request_url !== expectedPullUrl
+                    || review.state.toUpperCase() !== 'DISMISSED') {
+                  throw new Error('Canonical dismissed review does not match the bridged identifiers.');
+                }
+                const timeline = await github.paginate(github.rest.issues.listEventsForTimeline, {
+                  owner,
+                  repo,
+                  issue_number: bridged.pull_number,
+                  per_page: 100,
+                });
+                const matching = timeline.filter(candidate =>
+                  candidate.event === 'review_dismissed'
+                  && sameActor(candidate.actor)
+                  && nearRunCreation(candidate.created_at));
+                requireUniqueEvent(matching, candidate => candidate.dismissed_review?.review_id);
+                eventName = 'pull_request_review';
+                payload = {
+                  action: 'dismissed',
+                  pull_request: { number: bridged.pull_number },
+                  review,
+                  sender: payload.workflow_run.actor,
+                };
+              } else {
+                const comments = await github.paginate(github.rest.pulls.listReviewComments, {
+                  owner,
+                  repo,
+                  pull_number: bridged.pull_number,
+                  per_page: 100,
+                });
+                const matching = comments.filter(candidate =>
+                  sameActor(candidate.user)
+                  && nearRunCreation(candidate.created_at));
+                requireUniqueEvent(matching, candidate => candidate.id);
+                const { data: comment } = await github.rest.pulls.getReviewComment({
+                  owner,
+                  repo,
+                  comment_id: bridged.id,
+                });
+                if (comment.id !== bridged.id || comment.pull_request_url !== expectedPullUrl) {
+                  throw new Error('Canonical review comment does not match the bridged identifiers.');
+                }
+                eventName = 'pull_request_review_comment';
+                payload = {
+                  action: 'created',
+                  pull_request: { number: bridged.pull_number },
+                  comment,
+                  sender: comment.user,
+                };
+              }
+            }
+
+            const rawNumber = payload.issue?.number
+              ?? payload.pull_request?.number
+              ?? payload.inputs?.item_number;
+            const issue_number = Number(rawNumber);
+            if (!Number.isSafeInteger(issue_number) || issue_number < 1) {
+              throw new Error(`Invalid issue or pull request number: ${rawNumber}`);
+            }
+
+            function labelNames(issue) {
+              return issue.labels.map(label => typeof label === 'string' ? label : label.name);
+            }
+
+            function isHuman(user) {
+              return user?.type === 'User' && !/\[bot\]$/i.test(user.login ?? '');
+            }
+
+            async function actorKind(user, association = null) {
+              if (!isHuman(user)) {
+                return 'bot';
+              }
+              if (association && !TEAM_ASSOCIATIONS.has(association)) {
+                return 'partner';
+              }
+
+              try {
+                const response = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
+                  username: user.login,
+                });
+                return TEAM_PERMISSIONS.has(response.data.permission) ? 'team' : 'partner';
+              } catch (error) {
+                if (error.status === 404) {
+                  return 'partner';
+                }
+                throw error;
+              }
+            }
+
+            async function readItem() {
+              const { data: issue } = await github.rest.issues.get({
+                owner,
+                repo,
+                issue_number,
+              });
+              if (issue.state !== 'open' || !issue.pull_request) {
+                return { issue, pull: null, open: issue.state === 'open' };
+              }
+
+              const { data: pull } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: issue_number,
+              });
+              return { issue, pull, open: pull.state === 'open' };
+            }
+
+            function normalizedTurn(item) {
+              const current = labelNames(item.issue).filter(name => TURN_LABELS.includes(name));
+              if (current.includes(LABELS.Blocked.name)) {
+                return LABELS.Blocked.name;
+              }
+              if (current.length === 1) {
+                return current[0];
+              }
+              return item.pull?.draft ? LABELS.Partner.name : LABELS.Microsoft.name;
+            }
+
+            async function verifyLabelDefinitions() {
+              for (const expected of Object.values(LABELS)) {
+                let actual;
+                try {
+                  ({ data: actual } = await github.rest.issues.getLabel({
+                    owner,
+                    repo,
+                    name: expected.name,
+                  }));
+                } catch (error) {
+                  if (error.status === 404) {
+                    throw new Error(
+                      `Required label "${expected.name}" is not provisioned. `
+                        + 'See docs/features/next-action-owner/DESIGN.md.',
+                    );
+                  }
+                  throw error;
+                }
+
+                const description = actual.description ?? '';
+                if (actual.name !== expected.name
+                    || actual.color.toUpperCase() !== expected.color
+                    || description !== expected.description) {
+                  throw new Error(
+                    `Required label "${expected.name}" does not match `
+                      + 'docs/features/next-action-owner/DESIGN.md.',
+                  );
+                }
+              }
+            }
+
+            function eventActor() {
+              if (eventName === 'issue_comment') {
+                return {
+                  user: payload.comment.user,
+                  association: payload.comment.author_association,
+                };
+              }
+              if (eventName === 'pull_request_review') {
+                return {
+                  user: payload.review.user,
+                  association: payload.review.author_association,
+                };
+              }
+              if (eventName === 'pull_request_review_comment') {
+                return {
+                  user: payload.comment.user,
+                  association: payload.comment.author_association,
+                };
+              }
+              if (payload.action === 'opened') {
+                const subject = payload.issue ?? payload.pull_request;
+                return { user: subject.user, association: subject.author_association };
+              }
+              return { user: payload.sender, association: null };
+            }
+
+            async function currentActorKind() {
+              const actor = eventActor();
+              return actorKind(actor.user, actor.association);
+            }
+
+            async function hasOutstandingTeamChangesRequested() {
+              const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                owner,
+                repo,
+                pull_number: issue_number,
+                per_page: 100,
+              });
+              const latestByReviewer = new Map();
+              for (const review of reviews) {
+                const state = review.state.toUpperCase();
+                if (!review.user?.login || !OPINIONATED_REVIEW_STATES.has(state)) {
+                  continue;
+                }
+                const key = review.user.login.toLowerCase();
+                const previous = latestByReviewer.get(key);
+                const submitted = Date.parse(review.submitted_at ?? '');
+                const submittedAt = Number.isFinite(submitted) ? submitted : 0;
+                if (!previous
+                    || submittedAt > previous.submittedAt
+                    || (submittedAt === previous.submittedAt && review.id > previous.review.id)) {
+                  latestByReviewer.set(key, { review, state, submittedAt });
+                }
+              }
+
+              for (const latest of latestByReviewer.values()) {
+                if (latest.state === 'CHANGES_REQUESTED'
+                    && await actorKind(
+                      latest.review.user,
+                      latest.review.author_association,
+                    ) === 'team') {
+                  return true;
+                }
+              }
+              return false;
+            }
+
+            async function editedDecision(item) {
+              const kind = await currentActorKind();
+              return kind === 'partner'
+                ? { kind: 'event', label: LABELS.Microsoft.name }
+                : { kind: 'normalize', label: normalizedTurn(item) };
+            }
+
+            async function reviewClearedDecision() {
+              const outstanding = await hasOutstandingTeamChangesRequested();
+              return {
+                kind: 'event',
+                label: outstanding ? LABELS.Partner.name : LABELS.Microsoft.name,
+              };
+            }
+
+            async function classify(item) {
+              if (eventName === 'workflow_dispatch') {
+                const requested = payload.inputs.turn;
+                if (requested === 'auto') {
+                  return { kind: 'normalize', label: normalizedTurn(item) };
+                }
+                if (!Object.hasOwn(LABELS, requested)) {
+                  throw new Error(`Invalid turn classification: ${requested}`);
+                }
+                return { kind: 'explicit', label: LABELS[requested].name };
+              }
+
+              const action = payload.action;
+              if ((eventName === 'issues' || eventName === 'pull_request_target')
+                  && (action === 'labeled' || action === 'unlabeled')) {
+                const changedLabel = payload.label?.name;
+                if (action === 'labeled'
+                    && TURN_LABELS.includes(changedLabel)
+                    && isHuman(payload.sender)) {
+                  return { kind: 'explicit', label: changedLabel };
+                }
+                return { kind: 'normalize', label: normalizedTurn(item) };
+              }
+
+              if (labelNames(item.issue).includes(LABELS.Blocked.name)) {
+                return { kind: 'event', label: LABELS.Blocked.name };
+              }
+              if (item.pull?.draft) {
+                return { kind: 'event', label: LABELS.Partner.name };
+              }
+
+              if (eventName === 'issues') {
+                if (action === 'opened' || action === 'reopened') {
+                  return { kind: 'event', label: LABELS.Microsoft.name };
+                }
+                if (action === 'edited') {
+                  return editedDecision(item);
+                }
+              }
+
+              if (eventName === 'pull_request_target') {
+                if (['opened', 'reopened', 'ready_for_review', 'synchronize'].includes(action)) {
+                  return { kind: 'event', label: LABELS.Microsoft.name };
+                }
+                if (action === 'edited') {
+                  return editedDecision(item);
+                }
+              }
+
+              if (eventName === 'issue_comment'
+                  || eventName === 'pull_request_review_comment') {
+                const kind = await currentActorKind();
+                if (kind === 'team') {
+                  return { kind: 'event', label: LABELS.Partner.name };
+                }
+                if (kind === 'partner') {
+                  return { kind: 'event', label: LABELS.Microsoft.name };
+                }
+                return { kind: 'normalize', label: normalizedTurn(item) };
+              }
+
+              if (eventName === 'pull_request_review') {
+                const state = payload.review.state.toUpperCase();
+                if (state === 'DISMISSED') {
+                  return reviewClearedDecision();
+                }
+
+                const kind = await currentActorKind();
+                if (kind === 'partner') {
+                  return { kind: 'event', label: LABELS.Microsoft.name };
+                }
+                if (kind === 'bot') {
+                  return { kind: 'normalize', label: normalizedTurn(item) };
+                }
+
+                if (state === 'APPROVED') {
+                  return reviewClearedDecision();
+                }
+                if (state === 'CHANGES_REQUESTED' || state === 'COMMENTED') {
+                  return { kind: 'event', label: LABELS.Partner.name };
+                }
+              }
+
+              return { kind: 'normalize', label: normalizedTurn(item) };
+            }
+
+            let item = await readItem();
+            if (!item.open) {
+              core.info(`#${issue_number} is closed; no labels were changed.`);
+              return;
+            }
+
+            await verifyLabelDefinitions();
+            const decision = await classify(item);
+
+            // Refetch immediately before mutation so close, block, and draft changes win.
+            item = await readItem();
+            if (!item.open) {
+              core.info(`#${issue_number} was closed; no labels were changed.`);
+              return;
+            }
+
+            let selected = decision.label;
+            if (decision.kind === 'normalize') {
+              selected = normalizedTurn(item);
+            } else if (decision.kind !== 'explicit') {
+              const current = labelNames(item.issue);
+              if (current.includes(LABELS.Blocked.name)) {
+                selected = LABELS.Blocked.name;
+              } else if (item.pull?.draft) {
+                selected = LABELS.Partner.name;
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: [selected],
+            });
+            for (const name of TURN_LABELS) {
+              if (name === selected) {
+                continue;
+              }
+              try {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number, name });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            const verified = await readItem();
+            const remaining = labelNames(verified.issue).filter(name => TURN_LABELS.includes(name));
+            if (remaining.length !== 1 || remaining[0] !== selected) {
+              throw new Error(`Failed to enforce exactly one turn label; found: ${remaining.join(', ') || 'none'}`);
+            }
+            core.info(`#${issue_number}: ${selected}`);
