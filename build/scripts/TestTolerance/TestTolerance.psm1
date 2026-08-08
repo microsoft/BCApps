@@ -171,11 +171,11 @@ function Get-UnstableTestKey {
       "branch": "main",
       "updatedAt": "2026-04-24T00:00:00Z",
       "tests": [
-        { "extensionId": "...", "codeunitId": 137404, "codeunitName": "SCM Manufacturing", "testMethod": "TestSomething", "reason": "...", "linkedIssue": "..." }
+        { "extensionId": "...", "codeunitId": 137404, "codeunitName": "SCM Manufacturing", "testMethod": "TestSomething", "reason": "...", "linkedIssue": "...", "unstableSince": "2026-04-24T00:00:00.0000000Z" }
       ]
     }
 
-    The 'reason' and 'linkedIssue' fields are optional. The function returns an empty
+    The 'reason', 'linkedIssue' and 'unstableSince' fields are optional. The function returns an empty
     hashtable when the file does not exist, so callers can treat "no artifact" as
     "no unstable tests yet".
 
@@ -693,11 +693,13 @@ function Receive-UnstableTestsArtifact {
     tests hashtable by marking every failed test key as unstable.
 
     Each returned entry is keyed by 'extensionId::codeunit::testMethod' and contains the test
-    identity fields plus an auto-detected reason of the form:
+    identity fields, an auto-detected reason of the form
       "Auto-detected: failed in at least 1 of the last <RunCount> CI/CD run(s)"
+    and the test's 'unstableSince' timestamp.
 
-    This function does not inspect passed tests or merge with an existing unstable list; it
-    only transforms the supplied failed-test set into the artifact format.
+    Because the sliding window rebuilds the list from scratch each run, a still-unstable test keeps the
+    'unstableSince' it had in the previous artifact ('ExistingTests'); a test that is unstable for the
+    first time is stamped with this run's time.
 
     Returns the updated hashtable keyed by 'extensionId::codeunit::testMethod'.
 
@@ -705,6 +707,9 @@ function Receive-UnstableTestsArtifact {
     Hashtable of failed tests keyed by test key to convert into unstable-test entries.
 .Parameter RunCount
     Number of CI/CD runs the window covered; used only to build the auto-detected reason text.
+.Parameter ExistingTests
+    The 'tests' array from the previous artifact (camelCase entries), used to keep each still-unstable
+    test's original 'unstableSince' across the recompute.
 #>
 function Update-UnstableTestsList {
     [CmdletBinding()]
@@ -713,8 +718,21 @@ function Update-UnstableTestsList {
         [Parameter(Mandatory = $true)]
         [hashtable] $FailedTests,
 
-        [int] $RunCount = 0
+        [int] $RunCount = 0,
+
+        [System.Collections.IList] $ExistingTests = @()
     )
+
+    # A newly unstable test is stamped with this run's time; still-unstable tests keep the prior value.
+    $now = (Get-Date).ToUniversalTime().ToString('o')
+    $existingSince = @{}
+    foreach ($entry in $ExistingTests) {
+        $props = $entry.PSObject.Properties
+        if ((-not $props['unstableSince']) -or [string]::IsNullOrWhiteSpace([string]$entry.unstableSince) -or (-not $props['testMethod'])) { continue }
+        $extId = if ($props['extensionId']) { [string]$entry.extensionId } else { '' }
+        $cuId = if ($props['codeunitId']) { [int]$entry.codeunitId } else { 0 }
+        $existingSince[(Get-UnstableTestKey -CodeunitId $cuId -TestMethod ([string]$entry.testMethod) -ExtensionId $extId)] = [string]$entry.unstableSince
+    }
 
     $result = @{}
     foreach ($key in @($FailedTests.Keys)) {
@@ -730,6 +748,7 @@ function Update-UnstableTestsList {
             SourceRunId    = if ($ft.PSObject.Properties['SourceRunId']) { $ft.SourceRunId } else { '' }
             Reason         = "Auto-detected: failed in at least 1 of the last $RunCount CI/CD run(s)"
             LinkedIssue    = ''
+            UnstableSince  = if ($existingSince.ContainsKey($key)) { $existingSince[$key] } else { $now }
         }
     }
 
@@ -907,6 +926,9 @@ function Get-FailedTestsFromRuns {
     Update-UnstableTestsList). 'Reason' overrides the entry reason; when empty, the test's own Reason
     property (if any) is used. 'Repository' is used to build the sourceRunUrl from the test's SourceRunId.
 
+    Every entry records 'unstableSince', an ISO 8601 UTC timestamp. If the test already carries one it is
+    kept; otherwise the current time is stamped, marking when the test was first added to the list.
+
 .Parameter Test
     A single failed/unstable test object with PascalCase properties.
 .Parameter Reason
@@ -929,6 +951,7 @@ function ConvertTo-UnstableTestEntry {
     $sourceRunId = if ($Test.PSObject.Properties['SourceRunId']) { [string]$Test.SourceRunId } else { '' }
     $reasonValue = if ($Reason) { $Reason } elseif ($Test.PSObject.Properties['Reason']) { [string]$Test.Reason } else { '' }
     $linkedIssue = if ($Test.PSObject.Properties['LinkedIssue']) { [string]$Test.LinkedIssue } else { '' }
+    $unstableSince = if (($Test.PSObject.Properties['UnstableSince']) -and $Test.UnstableSince) { [string]$Test.UnstableSince } else { (Get-Date).ToUniversalTime().ToString('o') }
 
     return [pscustomobject][ordered]@{
         extensionId    = if ($Test.PSObject.Properties['ExtensionId']) { [string]$Test.ExtensionId } else { '' }
@@ -939,6 +962,7 @@ function ConvertTo-UnstableTestEntry {
         failureDetail  = if ($Test.PSObject.Properties['FailureDetail']) { [string]$Test.FailureDetail } else { '' }
         reason         = $reasonValue
         linkedIssue    = $linkedIssue
+        unstableSince  = $unstableSince
         sourceRunUrl   = if ($Repository -and $sourceRunId) { "https://github.com/$Repository/actions/runs/$sourceRunId" } else { '' }
     }
 }

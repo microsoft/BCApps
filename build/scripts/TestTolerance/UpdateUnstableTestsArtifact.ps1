@@ -72,21 +72,22 @@ try {
     Write-Host "::notice::Observed $($failedTests.Count) distinct failed test(s) across $($RunIds.Count) run(s)."
 
     # --- 2. Build the unstable tests list (additive merge or full recompute) ---
+    # Load the existing artifact so each still-unstable test keeps its original 'unstableSince'
+    # (carried forward through both the recompute and the additive merge).
+    $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $downloadDir
+    $existingTests = @()
+    if ($existingPath -and (Test-Path $existingPath)) {
+        $existing = Get-Content -Raw -Path $existingPath | ConvertFrom-Json
+        if (($existing.PSObject.Properties['tests']) -and $existing.tests) {
+            $existingTests = @($existing.tests)
+        }
+        Write-Host "Existing unstable tests list for branch '$Branch' has $($existingTests.Count) test(s)."
+    }
+    else {
+        Write-Host "No existing unstable tests artifact found for branch '$Branch'."
+    }
+
     if ($Additive) {
-        $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $downloadDir
-
-        $existingTests = @()
-        if ($existingPath -and (Test-Path $existingPath)) {
-            $existing = Get-Content -Raw -Path $existingPath | ConvertFrom-Json
-            if (($existing.PSObject.Properties['tests']) -and $existing.tests) {
-                $existingTests = @($existing.tests)
-            }
-            Write-Host "Existing unstable tests list for branch '$Branch' has $($existingTests.Count) test(s)."
-        }
-        else {
-            Write-Host "No existing unstable tests artifact found for branch '$Branch'. Starting from an empty list."
-        }
-
         if ($failedTests.Count -eq 0) {
             Write-Host "::warning::No failed tests found in the supplied run(s). The unstable tests list will be rewritten unchanged."
         }
@@ -94,7 +95,8 @@ try {
         $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$existingTests) -FailedTests $failedTests -Repository $repo)
     }
     else {
-        $updatedTests = Update-UnstableTestsList -FailedTests $failedTests -RunCount $RunIds.Count
+        $updatedTests = Update-UnstableTestsList -FailedTests $failedTests -RunCount $RunIds.Count -ExistingTests ([System.Collections.IList]$existingTests)
+        # Entries already carry their 'unstableSince' (kept or stamped by Update-UnstableTestsList).
         $tests = @($updatedTests.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo })
     }
 
