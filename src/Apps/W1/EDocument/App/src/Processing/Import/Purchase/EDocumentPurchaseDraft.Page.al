@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 using System.Feedback;
 using System.Telemetry;
 using System.Text;
@@ -416,6 +417,7 @@ page 6181 "E-Document Purchase Draft"
                     Caption = 'Provide feedback';
                     ToolTip = 'Provide feedback on the Payables Agent experience.';
                     Image = Comment;
+                    Visible = FeedbackActionVisible;
 
                     trigger OnAction()
                     begin
@@ -528,6 +530,7 @@ page 6181 "E-Document Purchase Draft"
         HasErrors := false;
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
+        FeedbackActionVisible := IsUserInitiatedFeedbackEnabled();
         EDocumentNotification.SendPurchaseDocumentDraftNotifications(Rec."Entry No");
         if PurchasesPayablesSetup.Get() then
             ApplyVATDiffEnabled := PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc";
@@ -732,6 +735,13 @@ page 6181 "E-Document Purchase Draft"
         EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
+    local procedure IsUserInitiatedFeedbackEnabled(): Boolean
+    var
+        TenantFeedbackSettings: Codeunit "Tenant Feedback Settings";
+    begin
+        exit(TenantFeedbackSettings.GetUserInitiatedFeedbackEnabled());
+    end;
+
     local procedure ProvideFeedback()
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
@@ -742,6 +752,9 @@ page 6181 "E-Document Purchase Draft"
         InStream: InStream;
         ContextFiles, ContextProperties : Dictionary of [Text, Text];
     begin
+        if not IsUserInitiatedFeedbackEnabled() then
+            exit;
+
         if EDocDraftFeedback.RunModal() = Action::Yes then begin
             if EDocumentDataStorage.Get(Rec."Unstructured Data Entry No.") then begin
                 EDocumentDataStorage.GetTempBlob().CreateInStream(InStream);
@@ -792,5 +805,6 @@ page 6181 "E-Document Purchase Draft"
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
         PageEditable, HasPDFSource, IsCreditMemo : Boolean;
         ApplyVATDiffEnabled: Boolean;
+        FeedbackActionVisible: Boolean;
         AppliedVATAmountDiff: Decimal;
 }
