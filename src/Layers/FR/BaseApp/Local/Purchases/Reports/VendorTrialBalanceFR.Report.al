@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,6 +16,9 @@ report 10807 "Vendor Trial Balance FR"
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor Trial Balance';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -258,4 +262,4 @@ report 10807 "Vendor Trial Balance FR"
         CreditCaption_Control1120036Lbl: Label 'Credit';
         Grand_totalCaptionLbl: Label 'Grand total';
 }
-
+#endif

@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +17,9 @@ report 10815 "Bank Account Journal"
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account Journal';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -357,4 +361,4 @@ report 10815 "Bank Account Journal"
         TotalCaption_Control1120090Lbl: Label 'Total';
         TotalCaption_Control1120100Lbl: Label 'Total';
 }
-
+#endif
