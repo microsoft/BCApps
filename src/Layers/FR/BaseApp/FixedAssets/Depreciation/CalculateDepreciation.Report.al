@@ -18,6 +18,7 @@ report 5692 "Calculate Depreciation"
     AdditionalSearchTerms = 'write down fixed asset';
     ApplicationArea = FixedAssets;
     Caption = 'Calculate Depreciation';
+    ToolTip = 'Calculate depreciation according to the conditions that you define. If the fixed assets that are included in the batch job are integrated with the general ledger (defined in the depreciation book that is used in the batch job), the resulting entries are transferred to the fixed assets general ledger journal. Otherwise, the batch job transfers the entries to the fixed asset journal. You can then post the journal or adjust the entries before posting, if necessary.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

@@ -12,6 +12,7 @@ report 5626 "Insurance - Uninsured FAs"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Uninsured Fixed Assets';
+    ToolTip = 'View the individual fixed assets for which amounts have not been posted to an insurance policy. For each fixed asset, the report shows the asset''s acquisition cost, accumulated depreciation, and book value.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
