@@ -12,7 +12,6 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.TransactionNature;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
@@ -44,14 +43,6 @@ permissionset 1001 "LOCAL"
                   tabledata "Company Officials" = RIMD,
                   tabledata "Company Types" = RIMD,
                   tabledata "Compress Depreciation" = RIMD,
-                  tabledata "Computed Contribution" = RIMD,
-                  tabledata "Computed Withholding Tax" = RIMD,
-                  tabledata "Contribution Bracket" = RIMD,
-                  tabledata "Contribution Bracket Line" = RIMD,
-                  tabledata "Contribution Code" = RIMD,
-                  tabledata "Contribution Code Line" = RIMD,
-                  tabledata "Contribution Payment" = RIMD,
-                  tabledata Contributions = RIMD,
                   tabledata "Customer Bill Header" = RIMD,
                   tabledata "Customer Bill Line" = RIMD,
                   tabledata "Customs Authority Vendor" = RIMD,
@@ -83,14 +74,12 @@ permissionset 1001 "LOCAL"
                   tabledata "Posted Payment Lines" = RIMD,
                   tabledata "Posted Vendor Bill Header" = RIMD,
                   tabledata "Posted Vendor Bill Line" = RIMD,
-                  tabledata "Purch. Withh. Contribution" = RIMD,
                   tabledata "Reprint Info Fiscal Reports" = RIMD,
                   tabledata "Service Tariff Number" = RIMD,
                   tabledata "Spesometro Appointment" = RIMD,
 #if not CLEAN27
                   tabledata "Subcontractor Prices" = RIMD,
 #endif
-                  tabledata "Tmp Withholding Contribution" = RIMD,
                   tabledata "Transport Reason Code" = RIMD,
                   tabledata "VAT Book Entry" = RIMD,
                   tabledata "VAT Exemption" = RIMD,
@@ -102,11 +91,5 @@ permissionset 1001 "LOCAL"
                   tabledata "VAT Transaction Report Amount" = RIMD,
                   tabledata "Vendor Bill Header" = RIMD,
                   tabledata "Vendor Bill Line" = RIMD,
-                  tabledata "Vendor Bill Withholding Tax" = RIMD,
-                  tabledata "Withhold Code" = RIMD,
-                  tabledata "Withhold Code Line" = RIMD,
-                  tabledata "Withholding Tax" = RIMD,
-                  tabledata "Withholding Tax Line" = RIMD,
-                  tabledata "Withholding Tax Payment" = RIMD,
-                  tabledata "Withholding Exceptional Event" = RIMD;
+                  tabledata "Vendor Bill Withholding Tax" = RIMD;
 }

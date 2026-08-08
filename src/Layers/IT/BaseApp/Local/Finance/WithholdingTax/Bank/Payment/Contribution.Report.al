@@ -9,7 +9,7 @@ using Microsoft.Purchases.Vendor;
 report 12102 Contribution
 {
     DefaultLayout = RDLC;
-    RDLCLayout = './Local/Bank/Payment/Contribution.rdlc';
+    RDLCLayout = './Local/Finance/WithholdingTax/Bank/Payment/Contribution.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Contribution';
     UsageCategory = ReportsAndAnalysis;

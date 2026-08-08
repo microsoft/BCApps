@@ -12,7 +12,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Purchases.Remittance;
 using Microsoft.Purchases.Setup;
@@ -591,24 +590,6 @@ page 29 "Vendor Ledger Entries"
                 separator(Action1130015)
                 {
                 }
-                action(CreateWithHoldTaxEntry)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Create WithHold Tax entry';
-                    Image = NewSparkle;
-                    ToolTip = 'Generate an entry for withholding tax.';
-
-                    trigger OnAction()
-                    var
-                        WithholdingTax: Record "Withholding Tax";
-                    begin
-                        if Rec."Document Type" <> Rec."Document Type"::Payment then
-                            Error(
-                              Text12100, Rec."Entry No.", Rec."Document Type");
-                        WithholdingTax.CheckWithhEntryExist(Rec);
-                        WithholdingTax.InsertWithholdTax(Rec);
-                    end;
-                }
                 group(IncomingDocument)
                 {
                     Caption = 'Incoming Document';
@@ -782,9 +763,6 @@ page 29 "Vendor Ledger Entries"
                 actionref(ReverseTransaction_Promoted; ReverseTransaction)
                 {
                 }
-                actionref(CreateWithHoldTaxEntry_Promoted; CreateWithHoldTaxEntry)
-                {
-                }
             }
             group(Category_Category5)
             {
@@ -847,7 +825,6 @@ page 29 "Vendor Ledger Entries"
     var
         CalcRunningVendBalance: Codeunit "Calc. Running Vend. Balance";
         Navigate: Page Navigate;
-        Text12100: Label 'You cannot create the withhold entry from entry %1 because it''s an %2 Document.';
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
         HasIncomingDocument: Boolean;
         HasDocumentAttachment: Boolean;
