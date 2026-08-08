@@ -4,18 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Service.Participant;
 
-pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
+pageextension 10980 "FR Service Participants" extends "Service Participants"
 {
     layout
     {
-        addlast(DocumentList)
+        addafter("Participant Identifier")
         {
-            field("Clearance Date"; Rec."Clearance Date")
+            field("FR Identifier Scheme"; Rec."FR Identifier Scheme")
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'E-Reporting Acceptance Date';
+                ApplicationArea = All;
             }
         }
     }
