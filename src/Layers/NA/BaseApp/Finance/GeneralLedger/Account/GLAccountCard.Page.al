@@ -514,7 +514,6 @@ page 17 "G/L Account Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Chart of Accounts";
-                ToolTip = 'View the chart of accounts.';
             }
             action("Export GIFI Info. to Excel")
             {
@@ -533,7 +532,6 @@ page 17 "G/L Account Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Consolidated Trial Balance";
-                ToolTip = 'View the trial balance for a consolidated company.';
             }
             action(Action1900210206)
             {
@@ -543,7 +541,6 @@ page 17 "G/L Account Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "G/L Register";
-                ToolTip = 'View posted G/L entries.';
             }
             action("Trial Balance Detail/Summary")
             {

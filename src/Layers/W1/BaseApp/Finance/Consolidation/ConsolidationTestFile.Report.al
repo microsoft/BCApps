@@ -22,6 +22,7 @@ using System.Utilities;
 report 15 "Consolidation - Test File"
 {
     Caption = 'Consolidation - Test File';
+    ToolTip = 'Preview the consolidation in a file, without transferring data.';
     AllowScheduling = false;
     DefaultRenderingLayout = RDLCLayout;
 

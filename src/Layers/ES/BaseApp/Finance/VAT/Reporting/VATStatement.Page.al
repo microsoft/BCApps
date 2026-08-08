@@ -192,7 +192,6 @@ page 317 "VAT Statement"
                     Ellipsis = true;
                     Image = SettleOpenTransactions;
                     RunObject = Report "Calc. and Post VAT Settlement";
-                    ToolTip = 'Close open VAT entries and transfers purchase and sales VAT amounts to the VAT settlement account.';
                 }
             }
             group("Telematic VAT")

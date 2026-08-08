@@ -21,6 +21,7 @@ report 503 "Foreign Currency Balance"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Foreign Currency Balance';
+    ToolTip = 'View the balances for all customers and vendors in both foreign currencies and in local currency (LCY). The report displays two LCY balances. One is the foreign currency balance converted to LCY by using the exchange rate at the time of the transaction. The other is the foreign currency balance converted to LCY by using the exchange rate of the work date.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

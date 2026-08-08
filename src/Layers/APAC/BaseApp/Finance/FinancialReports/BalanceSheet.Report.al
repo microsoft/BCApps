@@ -24,6 +24,7 @@ report 28024 "Balance Sheet"
     RDLCLayout = './Finance/FinancialReports/BalanceSheet.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Balance Sheet';
+    ToolTip = 'View a report that shows your company''s assets, liabilities, and equity.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

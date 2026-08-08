@@ -440,7 +440,6 @@ page 422 "G/L Balance/Budget"
                     Ellipsis = true;
                     Image = CopyBudget;
                     RunObject = Report "Copy G/L Budget";
-                    ToolTip = 'Create a copy of the current budget.';
                 }
                 group("C&reate Budget")
                 {

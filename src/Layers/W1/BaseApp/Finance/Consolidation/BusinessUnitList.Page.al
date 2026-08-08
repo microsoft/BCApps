@@ -160,7 +160,6 @@ page 240 "Business Unit List"
                     Ellipsis = true;
                     Image = "Report";
                     RunObject = Report "G/L Consolidation Eliminations";
-                    ToolTip = 'View or edit elimination entries to remove transactions that are recorded across more than one company or remove entries involving intercompany transactions.';
                 }
                 action("Trial B&alance")
                 {
@@ -169,7 +168,6 @@ page 240 "Business Unit List"
                     Ellipsis = true;
                     Image = "Report";
                     RunObject = Report "Consolidated Trial Balance";
-                    ToolTip = 'View general ledger balances and activities.';
                 }
                 action("Trial &Balance (4)")
                 {
@@ -178,7 +176,6 @@ page 240 "Business Unit List"
                     Ellipsis = true;
                     Image = "Report";
                     RunObject = Report "Consolidated Trial Balance (4)";
-                    ToolTip = 'View detailed general ledger balances.';
                 }
             }
         }
@@ -195,7 +192,6 @@ page 240 "Business Unit List"
                     Ellipsis = true;
                     Image = TestDatabase;
                     RunObject = Report "Consolidation - Test Database";
-                    ToolTip = 'Preview the consolidation, without transferring data.';
                 }
                 action("T&est File")
                 {
@@ -204,7 +200,6 @@ page 240 "Business Unit List"
                     Ellipsis = true;
                     Image = TestFile;
                     RunObject = Report "Consolidation - Test File";
-                    ToolTip = 'Preview the consolidation in a file, without transferring data.';
                 }
                 separator(Action43)
                 {
@@ -216,7 +211,6 @@ page 240 "Business Unit List"
                     Ellipsis = true;
                     Image = Import;
                     RunObject = Report "Import Consolidation from File";
-                    ToolTip = 'Run consolidation for the file that you import.';
                 }
                 action("Export File")
                 {
@@ -224,7 +218,6 @@ page 240 "Business Unit List"
                     Caption = 'Export File';
                     Image = Export;
                     RunObject = Report "Export Consolidation";
-                    ToolTip = 'Export transactions from the business units to a file.';
                 }
                 action(StartConsolidation)
                 {

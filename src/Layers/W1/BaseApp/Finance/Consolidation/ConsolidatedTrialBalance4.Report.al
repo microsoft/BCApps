@@ -21,6 +21,7 @@ report 18 "Consolidated Trial Balance (4)"
 {
     ApplicationArea = Suite;
     Caption = 'Consolidated Trial Balance (4)';
+    ToolTip = 'View detailed general ledger balances.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -87,7 +87,6 @@ page 320 "VAT Statement Names"
                 Caption = 'EC Sales List';
                 Image = "Report";
                 RunObject = Report "EC Sales List";
-                ToolTip = 'View, print, or save an overview of your sales to other EU countries/regions. You can use the information when you report to the customs and tax authorities.';
             }
         }
         area(Promoted)

@@ -25,6 +25,7 @@ report 91 "Export Consolidation"
 {
     ApplicationArea = Suite;
     Caption = 'Export Consolidation';
+    ToolTip = 'Export transactions from the business units to a file.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

@@ -21,6 +21,7 @@ report 16 "G/L Consolidation Eliminations"
 {
     ApplicationArea = Suite;
     Caption = 'G/L Consolidation Eliminations';
+    ToolTip = 'View or edit elimination entries to remove transactions that are recorded across more than one company or remove entries involving intercompany transactions.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

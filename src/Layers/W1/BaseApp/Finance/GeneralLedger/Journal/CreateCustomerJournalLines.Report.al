@@ -20,6 +20,7 @@ report 8611 "Create Customer Journal Lines"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Create Customer Journal Lines';
+    ToolTip = 'Create journal lines during the setup of the new company.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

@@ -212,7 +212,6 @@ page 187 "VAT Setup"
                     PromotedCategory = Category5;
                     Image = MakeDiskette;
                     RunObject = report "VAT- VIES Declaration Disk";
-                    ToolTip = 'Report your sales to other EU countries or regions to the customs and tax authorities. If the information must be printed out on a printer, you can use the VAT- VIES Declaration Tax Auth report. The information is shown in the same format as in the declaration list from the customs and tax authorities.';
                 }
                 action(VATVIESDeclarationTaxAuth)
                 {
@@ -222,7 +221,6 @@ page 187 "VAT Setup"
                     PromotedCategory = Category5;
                     Image = Report2;
                     RunObject = report "VAT- VIES Declaration Tax Auth";
-                    ToolTip = 'View information to the customs and tax authorities for sales to other EU countries/regions. If the information must be printed to a file, you can use the VAT- VIES Declaration Disk report.';
                 }
             }
             group(Other)

@@ -19,6 +19,7 @@ report 19 "VAT- VIES Declaration Tax Auth"
 {
     ApplicationArea = VAT;
     Caption = 'VAT- VIES Declaration Tax Auth';
+    ToolTip = 'View information to the customs and tax authorities for sales to other EU countries/regions. If the information must be printed to a file, you can use the VAT- VIES Declaration Disk report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

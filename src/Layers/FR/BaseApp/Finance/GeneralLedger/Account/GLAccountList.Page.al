@@ -307,7 +307,6 @@ page 18 "G/L Account List"
                 Caption = 'Trial Balance by Period';
                 Image = "Report";
                 RunObject = Report "Trial Balance by Period";
-                ToolTip = 'View general ledger account balances and activities for all the selected accounts, one transaction per line for a selected period.';
             }
             action("Detail Trial Balance")
             {
@@ -315,7 +314,6 @@ page 18 "G/L Account List"
                 Caption = 'Detail Trial Balance';
                 Image = "Report";
                 RunObject = Report "Detail Trial Balance";
-                ToolTip = 'View detail general ledger account balances and activities for all the selected accounts, one transaction per line.';
             }
         }
         area(Promoted)

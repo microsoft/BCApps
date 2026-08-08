@@ -22,6 +22,7 @@ report 130 "EC Sales List"
 {
     ApplicationArea = BasicEU;
     Caption = 'EC Sales List';
+    ToolTip = 'Calculate VAT amounts from sales, and submit the amounts to a tax authority.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

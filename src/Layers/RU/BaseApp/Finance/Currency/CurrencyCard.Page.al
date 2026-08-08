@@ -340,7 +340,6 @@ page 495 "Currency Card"
                 Caption = 'Foreign Currency Balance';
                 Image = "Report";
                 RunObject = Report "Foreign Currency Balance";
-                ToolTip = 'View the balances for all customers and vendors in both foreign currencies and in local currency (LCY). The report displays two LCY balances. One is the foreign currency balance converted to LCY by using the exchange rate at the time of the transaction. The other is the foreign currency balance converted to LCY by using the exchange rate of the work date.';
             }
 #if not CLEAN28
             action("Aged Accounts Receivable")

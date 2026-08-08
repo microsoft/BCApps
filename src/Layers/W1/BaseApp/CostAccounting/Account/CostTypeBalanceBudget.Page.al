@@ -268,7 +268,6 @@ page 1120 "Cost Type Balance/Budget"
                     Ellipsis = true;
                     Image = CopyBudget;
                     RunObject = Report "Copy G/L Budget";
-                    ToolTip = 'Create a copy of the current budget.';
                 }
             }
         }

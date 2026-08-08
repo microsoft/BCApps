@@ -20,6 +20,7 @@ report 8612 "Create Vendor Journal Lines"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Create Vendor Journal Lines';
+    ToolTip = 'Prepare to transfer legacy vendor balances to the newly configured company.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

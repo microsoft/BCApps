@@ -236,7 +236,6 @@ page 154 "G/L Account Balance/Budget"
                     Ellipsis = true;
                     Image = CopyBudget;
                     RunObject = Report "Copy G/L Budget";
-                    ToolTip = 'Create a copy of the current budget.';
                 }
             }
         }

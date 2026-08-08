@@ -98,7 +98,6 @@ page 9019 "CEO and President Role Center"
                     Caption = 'Recei&vables-Payables';
                     Image = ReceivablesPayables;
                     RunObject = Report "Receivables-Payables";
-                    ToolTip = 'Perform bookkeeping tasks.';
                 }
 #if not CLEAN28
                 action("&Trial Balance/Budget")
@@ -119,7 +118,6 @@ page 9019 "CEO and President Role Center"
                     Caption = '&Closing Trial Balance';
                     Image = "Report";
                     RunObject = Report "Closing Trial Balance";
-                    ToolTip = 'View, print, or send a report that shows this year''s and last year''s figures as an ordinary trial balance. The closing of the income statement accounts is posted at the end of a fiscal year. The report can be used in connection with closing a fiscal year.';
                 }
                 action("&Fiscal Year Balance")
                 {
@@ -127,7 +125,6 @@ page 9019 "CEO and President Role Center"
                     Caption = '&Fiscal Year Balance';
                     Image = "Report";
                     RunObject = Report "Fiscal Year Balance";
-                    ToolTip = 'View, print, or send a report that shows balance sheet movements for selected periods. The report shows the closing balance by the end of the previous fiscal year for the selected ledger accounts. It also shows the fiscal year until this date, the fiscal year by the end of the selected period, and the balance by the end of the selected period, excluding the closing entries. The report can be used at the close of an accounting period or fiscal year.';
                 }
             }
             group(Customers)
