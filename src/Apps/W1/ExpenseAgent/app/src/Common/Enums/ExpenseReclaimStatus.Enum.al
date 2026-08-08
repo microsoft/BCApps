@@ -11,9 +11,9 @@ enum 6988 "Expense Reclaim Status"
 {
     Extensible = false;
 
-    value(0; "Pending")
+    value(0; " ")
     {
-        Caption = 'Pending';
+        Caption = ' ';
     }
     value(1; Approved)
     {

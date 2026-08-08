@@ -1,5 +1,3 @@
-#if not CLEAN29
-#pragma warning disable AL0432
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,36 +6,77 @@ namespace Microsoft.ExpenseAgent;
 
 page 6982 "Expense Report Statistics"
 {
-    PageType = CardPart;
-    SourceTable = "Expense Report Header";
     Caption = 'Expense Report Statistics';
-    ObsoleteReason = 'Replaced by page Expense Report FactBox';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    DeleteAllowed = false;
+    InsertAllowed = false;
+    LinksAllowed = false;
+    ModifyAllowed = false;
+    PageType = ListPlus;
+    SourceTable = "Expense Report Header";
 
     layout
     {
-        area(Content)
+        area(content)
         {
-            field("Employee Posting Group"; Rec."Employee Posting Group")
+            group(General)
             {
-                ApplicationArea = Basic, Suite;
+                Caption = 'General';
+                field("Amount (LCY)"; Rec."Amount (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Amount (LCY)';
+                    Editable = false;
+                    ToolTip = 'Specifies the total amount of all expense report lines in local currency.';
+                }
+                field("Amount without VAT (LCY)"; Rec."Amount without VAT (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Amount without VAT (LCY)';
+                    Editable = false;
+                    ToolTip = 'Specifies the total amount excluding VAT of all expense report lines in local currency.';
+                }
+                field("VAT Amount (LCY)"; Rec."VAT Amount (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'VAT Amount (LCY)';
+                    Editable = false;
+                    ToolTip = 'Specifies the total VAT amount for the expense report in local currency.';
+                }
+                field("Reimbursable Amount (LCY)"; Rec."Reimbursable Amount (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Reimbursable Amount (LCY)';
+                    Editable = false;
+                    ToolTip = 'Specifies the total reimbursable amount in local currency.';
+                }
+                field("Refundable Amount (LCY)"; Rec."Refundable Amount (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Refundable Amount (LCY)';
+                    Editable = false;
+                    ToolTip = 'Specifies the total refundable amount in local currency.';
+                }
+                field("Approved Reclaim VAT (LCY)"; Rec."Approved Reclaim VAT (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Approved Reclaim VAT (LCY)';
+                    Editable = false;
+                    ToolTip = 'Specifies the total VAT amount approved for reclaim in local currency.';
+                }
             }
-            field("Reimbursable Amount"; Rec."Reimbursable Amount")
+            part(VATSpecification; "Expense Report VAT Spec.")
             {
                 ApplicationArea = Basic, Suite;
-                DrillDown = false;
-            }
-            field("Reimbursement Currency Code"; Rec."Reimbursement Currency Code")
-            {
-                ApplicationArea = Basic, Suite;
-            }
-            field(Description; Rec.Description)
-            {
-                ApplicationArea = Basic, Suite;
+                Caption = 'VAT Specification';
+                SubPageLink = "Document No." = field("No.");
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields(
+            "Amount (LCY)", "Amount without VAT (LCY)", "VAT Amount (LCY)",
+            "Reimbursable Amount (LCY)", "Refundable Amount (LCY)", "Approved Reclaim VAT (LCY)");
+    end;
 }
-#pragma warning restore AL0432
-#endif

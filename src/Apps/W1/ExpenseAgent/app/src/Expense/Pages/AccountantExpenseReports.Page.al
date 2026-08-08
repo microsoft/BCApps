@@ -80,20 +80,6 @@ page 7091 "Accountant Expense Reports"
         }
         area(factboxes)
         {
-#if not CLEAN29
-#pragma warning disable AL0432
-            part("Expense Report Statistics"; "Expense Report Statistics")
-            {
-                ApplicationArea = Basic, Suite;
-                UpdatePropagation = Both;
-                SubPageLink = "No." = field("No.");
-                ObsoleteReason = 'Replaced by Expense Report FactBox';
-                ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
-                Visible = false;
-            }
-#pragma warning restore AL0432
-#endif
             part("Expense Report FactBox"; "Expense Report FactBox")
             {
                 ApplicationArea = Basic, Suite;
@@ -211,7 +197,7 @@ page 7091 "Accountant Expense Reports"
                 Caption = 'Statistics';
                 Image = Statistics;
                 ShortCutKey = 'F7';
-                RunObject = Page "Expense Report Stats";
+                RunObject = Page "Expense Report Statistics";
                 RunPageLink = "No." = field("No.");
                 ToolTip = 'View statistical information, such as VAT amounts, for the selected expense report.';
             }

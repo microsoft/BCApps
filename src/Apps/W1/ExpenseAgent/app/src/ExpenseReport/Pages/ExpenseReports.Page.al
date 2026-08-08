@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.Foundation.BatchProcessing;
 using System.Security.User;
 
 page 6997 "Expense Reports"
@@ -83,21 +82,7 @@ page 6997 "Expense Reports"
         }
         area(factboxes)
         {
-#if not CLEAN29
-#pragma warning disable AL0432
-            part("Expense Report Statistics"; "Expense Report Statistics")
-            {
-                ApplicationArea = Basic, Suite;
-                UpdatePropagation = Both;
-                SubPageLink = "No." = field("No.");
-                ObsoleteReason = 'Replaced by Expense Report FactBox';
-                ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
-                Visible = false;
-            }
-#pragma warning restore AL0432
-#endif
-            part("Expense Report FactBox"; "Expense Report FactBox")
+            part("Exp. Report FactBox"; "Expense Report FactBox")
             {
                 ApplicationArea = Basic, Suite;
                 UpdatePropagation = Both;
@@ -145,7 +130,7 @@ page 6997 "Expense Reports"
                     Caption = 'Statistics';
                     Image = Statistics;
                     ShortCutKey = 'F7';
-                    RunObject = Page "Expense Report Stats";
+                    RunObject = Page "Expense Report Statistics";
                     RunPageLink = "No." = field("No.");
                     ToolTip = 'View statistical information, such as VAT amounts, for the expense report.';
                 }
@@ -239,36 +224,6 @@ page 6997 "Expense Reports"
                     end;
                 }
             }
-            group("Posting")
-            {
-                Caption = 'Posting';
-                Image = Post;
-                action(Post)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Post';
-                    Ellipsis = true;
-                    Image = PostOrder;
-                    ShortCutKey = 'F9';
-                    ToolTip = 'Finalize the selected expense reports by posting the amounts to the related accounts in your company books.';
-
-                    trigger OnAction()
-                    var
-                        ExpenseReportHeader: Record "Expense Report Header";
-                        ExpenseReportBatchPostMgt: Codeunit "Expense Report Batch Post Mgt.";
-                        BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
-                    begin
-                        CurrPage.SetSelectionFilter(ExpenseReportHeader);
-                        if ExpenseReportHeader.Count > 1 then begin
-                            BatchProcessingMgt.SetParametersForPageID(Page::"Expense Reports");
-
-                            ExpenseReportBatchPostMgt.SetBatchProcessor(BatchProcessingMgt);
-                            ExpenseReportBatchPostMgt.RunWithUI(ExpenseReportHeader, ExpenseReportHeader.Count, ReadyToPostQst);
-                        end else
-                            PostDocument();
-                    end;
-                }
-            }
         }
         area(Promoted)
         {
@@ -281,15 +236,6 @@ page 6997 "Expense Reports"
                 {
                 }
                 actionref(Reopen_Promoted; Reopen)
-                {
-                }
-            }
-            group(Category_Posting)
-            {
-                Caption = 'Post';
-                ShowAs = SplitButton;
-
-                actionref(Post_Promoted; Post)
                 {
                 }
             }
@@ -309,16 +255,5 @@ page 6997 "Expense Reports"
             if not UserSetup."Unlimited Expense Approval" then
                 ExpenseReportApprovalMgmt.FilterExpenseReports(Rec, Rec.FieldNo("Created By"));
         end;
-    end;
-
-    var
-        ReadyToPostQst: Label 'The number of expense reports that will be posted is %1. \Do you want to continue?', Comment = '%1 - selected count';
-
-    local procedure PostDocument()
-    var
-        ExpenseReportPost: Codeunit "Expense Report-Post";
-    begin
-        ExpenseReportPost.PostExpenseReport(Rec);
-        CurrPage.Update(false);
     end;
 }

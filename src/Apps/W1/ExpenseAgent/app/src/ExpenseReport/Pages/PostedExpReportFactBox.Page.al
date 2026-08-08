@@ -4,11 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7092 "Expense Report FactBox"
+page 7094 "Posted Exp. Report FactBox"
 {
     PageType = CardPart;
-    SourceTable = "Expense Report Header";
-    Caption = 'Expense Report FactBox';
+    SourceTable = "Posted Expense Report Header";
+    Caption = 'Posted Expense Report FactBox';
+    Editable = false;
 
     layout
     {
@@ -17,19 +18,22 @@ page 7092 "Expense Report FactBox"
             field("Employee Posting Group"; Rec."Employee Posting Group")
             {
                 ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the value of the Employee Posting Group field.';
             }
             field("Reimbursable Amount"; Rec."Reimbursable Amount")
             {
                 ApplicationArea = Basic, Suite;
-                DrillDown = false;
+                ToolTip = 'Specifies the value of the Reimbursable Amount field.';
             }
             field("Reimbursement Currency Code"; Rec."Reimbursement Currency Code")
             {
                 ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the value of the Reimbursement Currency Code field.';
             }
             field(Description; Rec.Description)
             {
                 ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the value of the Description field.';
             }
         }
     }

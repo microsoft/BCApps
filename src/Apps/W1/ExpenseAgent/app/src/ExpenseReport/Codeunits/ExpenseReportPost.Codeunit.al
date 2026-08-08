@@ -217,23 +217,9 @@ codeunit 6987 "Expense Report-Post"
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
-                ValidateVATSpecLinesForPosting(ExpenseReportLine);
             until ExpenseReportLine.Next() = 0
         else
             Error(NothingToPostErr);
-    end;
-
-    local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line")
-    var
-        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
-    begin
-        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportLine."Document No.");
-        ExpenseReportLineVATSpec.SetRange("Document Line No.", ExpenseReportLine."Line No.");
-        if ExpenseReportLineVATSpec.FindSet() then
-            repeat
-                if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Pending" then
-                    Error(NotApprovedForVATReclaimErr, ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
-            until ExpenseReportLineVATSpec.Next() = 0;
     end;
 
     local procedure CheckMandatoryFields(var ExpenseReportLine: Record "Expense Report Line")
@@ -720,6 +706,9 @@ codeunit 6987 "Expense Report-Post"
     var
         Vendor: Record Vendor;
     begin
+        if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::" " then
+            error(NotApprovedForVATReclaimErr, ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
+
         GenJournalLine.Init();
         GenJournalLine.Validate("Posting Date", ExpenseReportHeader."Posting Date");
         GenJournalLine.Validate("Document Type", GenJournalLine."Document Type"::Invoice);
@@ -738,6 +727,10 @@ codeunit 6987 "Expense Report-Post"
         end;
 
         // Amounts come directly from the spec row — base (net) + VAT as captured on the receipt.
+        GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Manual VAT Entry";
+        GenJournalLine."VAT Calculation Type" := ExpenseReportLine."VAT Calculation Type";
+        GenJournalLine."VAT Bus. Posting Group" := ExpenseReportLineVATSpec."VAT Bus. Posting Group";
+        GenJournalLine."VAT Prod. Posting Group" := ExpenseReportLineVATSpec."VAT Prod. Posting Group";
         GenJournalLine."Gen. Posting Type" := GenJournalLine."Gen. Posting Type"::Purchase;
         GenJournalLine."Currency Code" := ExpenseReportLine."Expense Currency Code";
         GenJournalLine."Currency Factor" := ExpenseReportLine."Expense Currency Factor";
@@ -745,10 +738,6 @@ codeunit 6987 "Expense Report-Post"
         GenJournalLine."Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
 
         if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Approved" then begin
-            GenJournalLine."VAT Bus. Posting Group" := ExpenseReportLineVATSpec."VAT Bus. Posting Group";
-            GenJournalLine."VAT Prod. Posting Group" := ExpenseReportLineVATSpec."VAT Prod. Posting Group";
-            GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Manual VAT Entry";
-            GenJournalLine."VAT Calculation Type" := ExpenseReportLine."VAT Calculation Type";
             GenJournalLine."VAT Base Amount" := ExpenseReportLineVATSpec."VAT Base Amount";
             GenJournalLine."VAT Base Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
             GenJournalLine."VAT Amount" := ExpenseReportLineVATSpec."VAT Amount";
@@ -761,20 +750,6 @@ codeunit 6987 "Expense Report-Post"
                 VATSetup.TestField("Non-Deductible VAT Is Enabled");
                 GenJournalLine.Validate("Non-Deductible VAT %", 100 - ExpenseReportLineVATSpec."Reclaim %");
             end;
-        end else begin
-            // VAT is not reclaimable: include VAT in the expense amount (gross) and do not create a VAT entry.
-            GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount" + ExpenseReportLineVATSpec."VAT Amount";
-            GenJournalLine."Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)" + ExpenseReportLineVATSpec."VAT Amount (LCY)";
-
-            GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Automatic VAT Entry";
-            GenJournalLine."VAT %" := 0;
-            GenJournalLine."VAT Amount" := 0;
-            GenJournalLine."VAT Amount (LCY)" := 0;
-            GenJournalLine."VAT Base Amount" := 0;
-            GenJournalLine."VAT Base Amount (LCY)" := 0;
-            GenJournalLine."VAT Bus. Posting Group" := '';
-            GenJournalLine."VAT Prod. Posting Group" := '';
-            GenJournalLine."Gen. Posting Type" := GenJournalLine."Gen. Posting Type"::" ";
         end;
 
         // Vendor details for VAT registration tracing.

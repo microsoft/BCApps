@@ -116,7 +116,7 @@ page 6911 "Expense Report Lines"
         }
         area(FactBoxes)
         {
-            part(VATSpecFactBox; "Expense Report Line VATFactBox")
+            part(VATSpecFactBox; "Expense Report VAT Spec.")
             {
                 Caption = 'VAT Specification';
                 ApplicationArea = Basic, Suite;
