@@ -380,7 +380,7 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(XmlElement.Create('CustomizationID', XmlNamespaceCBC, 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'));
         RootXMLNode.Add(XmlElement.Create('ProfileID', XmlNamespaceCBC, 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0'));
         RootXMLNode.Add(XmlElement.Create('ID', XmlNamespaceCBC, SalesInvoiceHeader."No."));
-        RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Posting Date")));
+        RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Document Date")));
         if SalesInvoiceHeader."Due Date" <> CalcDate('<0D>') then
             RootXMLNode.Add(XmlElement.Create('DueDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Due Date")));
         RootXMLNode.Add(XmlElement.Create('InvoiceTypeCode', XmlNamespaceCBC, '380'));
@@ -394,7 +394,7 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(XmlElement.Create('CustomizationID', XmlNamespaceCBC, 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'));
         RootXMLNode.Add(XmlElement.Create('ProfileID', XmlNamespaceCBC, 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0'));
         RootXMLNode.Add(XmlElement.Create('ID', XmlNamespaceCBC, SalesCrMemoHeader."No."));
-        RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesCrMemoHeader."Posting Date")));
+        RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesCrMemoHeader."Document Date")));
         RootXMLNode.Add(XmlElement.Create('CreditNoteTypeCode', XmlNamespaceCBC, '381'));
         RootXMLNode.Add(XmlElement.Create('DocumentCurrencyCode', XmlNamespaceCBC, CurrencyCode));
         InsertBuyerReference(RootXMLNode, SalesCrMemoHeader);
