@@ -970,6 +970,49 @@ codeunit 137460 "Phys. Invt. Item Tracking"
         Assert.AreEqual(0, PhysInvtOrderLine.Count, StrSubstNo(ItemNotBeIncludedErr, NonInventoryItem.Type));
     end;
 
+    [Test]
+    [HandlerFunctions('CalcPhysOrderLinesRequestPageHandler,CalculateQuantityExpectedStrMenuHandler,ConfirmHandlerTRUE,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure CopyLinksOnPostingPhysInvtOrder()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        PhysInvtOrderHeader: Record "Phys. Invt. Order Header";
+        PhysInvtRecordHeader: Record "Phys. Invt. Record Header";
+        PstdPhysInvtOrderHdr: Record "Pstd. Phys. Invt. Order Hdr";
+        PstdPhysInvtRecordHdr: Record "Pstd. Phys. Invt. Record Hdr";
+        OrderLink: Text[250];
+        RecordingLink: Text[250];
+    begin
+        // [FEATURE] [Record Link]
+        // [SCENARIO] Record Links on Phys. Invt. Order Header and Phys. Invt. Recording Header are copied to their posted counterparts when the order is posted.
+        Initialize();
+
+        // [GIVEN] Phys. Invt. Order with one finished Recording
+        CreatePhysInventoryOrderWithFinishedRecording(PhysInvtOrderHeader, Item, Location, 5, 5);
+
+        // [GIVEN] Record Link is added to the Phys. Invt. Order Header
+        OrderLink := CreateRecordLink(PhysInvtOrderHeader);
+
+        // [GIVEN] Record Link is added to the Phys. Invt. Recording Header
+        PhysInvtRecordHeader.SetRange("Order No.", PhysInvtOrderHeader."No.");
+        PhysInvtRecordHeader.FindFirst();
+        RecordingLink := CreateRecordLink(PhysInvtRecordHeader);
+
+        // [WHEN] Phys. Invt. Order is finished and posted
+        FinishAndPostPhysInventoryOrder(PhysInvtOrderHeader);
+
+        // [THEN] Record Link is copied to Posted Phys. Invt. Order Header
+        PstdPhysInvtOrderHdr.SetRange("Pre-Assigned No.", PhysInvtOrderHeader."No.");
+        PstdPhysInvtOrderHdr.FindFirst();
+        VerifyRecordLinkUrl(PstdPhysInvtOrderHdr.RecordId, OrderLink);
+
+        // [THEN] Record Link is copied to Posted Phys. Invt. Recording Header
+        PstdPhysInvtRecordHdr.SetRange("Order No.", PstdPhysInvtOrderHdr."No.");
+        PstdPhysInvtRecordHdr.FindFirst();
+        VerifyRecordLinkUrl(PstdPhysInvtRecordHdr.RecordId, RecordingLink);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1489,6 +1532,27 @@ codeunit 137460 "Phys. Invt. Item Tracking"
         LibraryReportValidation: Codeunit "Library - Report Validation";
     begin
         LibraryReportValidation.DeleteObjectOptions(CurrentSaveValuesId);
+    end;
+
+    local procedure CreateRecordLink(SourceRecord: Variant): Text[250]
+    var
+        RecordLink: Record "Record Link";
+        RecRef: RecordRef;
+    begin
+        RecRef.GetTable(SourceRecord);
+        RecRef.AddLink(LibraryUtility.GenerateGUID());
+        RecordLink.SetRange("Record ID", RecRef.RecordId);
+        RecordLink.FindFirst();
+        exit(RecordLink.URL1);
+    end;
+
+    local procedure VerifyRecordLinkUrl(RecID: RecordId; ExpectedUrl: Text)
+    var
+        RecordLink: Record "Record Link";
+    begin
+        RecordLink.SetRange("Record ID", RecID);
+        RecordLink.FindFirst();
+        RecordLink.TestField(URL1, ExpectedUrl);
     end;
 
     local procedure CreateItemWithLotTrackingAndPhysInventory(
