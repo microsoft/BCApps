@@ -156,7 +156,6 @@ report 19 "VAT- VIES Declaration Tax Auth"
             begin
                 if (StartDate = 0D) or (EndDate = 0D) then
                     Error(Text002);
-                CompanyInfo.Get();
                 FormatAddr.Company(CompanyAddr, CompanyInfo);
                 CompanyInfo.TestField("VAT Registration No.");
 
@@ -306,9 +305,10 @@ report 19 "VAT- VIES Declaration Tax Auth"
         IsHandled: Boolean;
     begin
         GLSetup.Get();
+        CompanyInfo.Get();
 
         IsHandled := false;
-        OnInitReportForGlobalVariable(IsHandled, BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
+        OnInitReportForGlobalVariable(IsHandled, CompanyInfo, BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
     end;
 
     trigger OnPreReport()
@@ -369,7 +369,7 @@ report 19 "VAT- VIES Declaration Tax Auth"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInitReportForGlobalVariable(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
+    local procedure OnInitReportForGlobalVariable(var IsHandled: Boolean; CompanyInformation: Record "Company Information"; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
     begin
     end;
 }

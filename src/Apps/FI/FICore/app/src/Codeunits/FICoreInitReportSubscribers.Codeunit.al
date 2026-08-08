@@ -182,25 +182,23 @@ codeunit 13411 "FICore InitReport Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"VAT- VIES Declaration Tax Auth", 'OnInitReportForGlobalVariable', '', false, false)]
-    local procedure OnInitReportForGlobalVariableInVATVIESDeclaration(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
+    local procedure OnInitReportForGlobalVariableInVATVIESDeclaration(var IsHandled: Boolean; CompanyInformation: Record "Company Information"; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
-            exit;
-
-        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt) then
-            exit;
+        AssignVIESDeclarationTexts(CompanyInformation, BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
 
         IsHandled := true;
     end;
 
-    local procedure IsFeatureEnabled(): Boolean
-    var
-        VIESDeclarationFeature: Codeunit "FICore VIES Decl. Feature";
+    local procedure AssignVIESDeclarationTexts(CompanyInformation: Record "Company Information"; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
     begin
-        exit(VIESDeclarationFeature.IsEnabled());
+        BusinessIdentityCodeTxt := CompanyInformation."Business Identity Code";
+        BusinessIdentityCodeLbl := CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code");
+        RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
+        RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
+        ServiceSuppliesCode4CaptionTxt := ServiceSuppliesCode4CaptionLbl;
     end;
 
     local procedure AssignCompanyInformationTexts(var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text): Boolean
@@ -211,9 +209,6 @@ codeunit 13411 "FICore InitReport Subscribers"
 
         RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
         RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
-
-        if not IsFeatureEnabled() then
-            exit(true);
 
         BusinessIdentityCodeTxt := CompanyInformation."Business Identity Code";
         BusinessIdentityCodeLbl := CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code");
