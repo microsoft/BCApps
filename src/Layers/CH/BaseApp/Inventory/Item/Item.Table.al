@@ -196,10 +196,6 @@ table 27 Item
                     "Sales Unit of Measure" := "Base Unit of Measure";
                     "Purch. Unit of Measure" := "Base Unit of Measure";
                 end;
-
-                if CurrFieldNo <> 0 then
-                    if CurrFieldNo <> FieldNo("Base Unit of Measure") then
-                        Modify(true);
             end;
         }
         field(9; "Price Unit Conversion"; Integer)
@@ -1298,6 +1294,239 @@ table 27 Item
             OptionCaption = 'Default,No,Yes';
             OptionMembers = Default,No,Yes;
         }
+        field(123; "Opening Bal. Date Filter"; Date)
+        {
+            Caption = 'Opening Balance Date Filter';
+            FieldClass = FlowFilter;
+        }
+        field(124; "Inv. Val. Period Date Filter"; Date)
+        {
+            Caption = 'Inv. Valuation Period Date Filter';
+            FieldClass = FlowFilter;
+        }
+        field(125; "Closing Bal. Date Filter"; Date)
+        {
+            Caption = 'Closing Balance Date Filter';
+            FieldClass = FlowFilter;
+        }
+        field(126; "Opening Bal. ILE Qty."; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
+            CalcFormula = sum("Value Entry"."Item Ledger Entry Quantity" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Opening Bal. Date Filter")));
+            Caption = 'Opening Balance Item Ledg. Entry Qty.';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(127; "Opening Bal. Inv. Qty."; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
+            CalcFormula = sum("Value Entry"."Invoiced Quantity" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Opening Bal. Date Filter")));
+            Caption = 'Opening Balance Invoiced Qty.';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(128; "Opening Bal. Cost Amt. Act."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("Value Entry"."Cost Amount (Actual)" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Opening Bal. Date Filter")));
+            Caption = 'Opening Balance Cost Amt. (Actual)';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(129; "Opening Bal. Cost Amt. Exp."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("Value Entry"."Cost Amount (Expected)" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Opening Bal. Date Filter")));
+            Caption = 'Opening Balance Cost Amt. (Expected)';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(130; "Increases ILE Qty."; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
+            CalcFormula = sum("Value Entry"."Item Ledger Entry Quantity" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Inv. Val. Period Date Filter"),
+                "Item Ledger Entry Type" = filter(Purchase | "Positive Adjmt." | Output | "Assembly Output")));
+            Caption = 'Increases Item Ledg. Entry Qty.';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(131; "Increases Inv. Qty."; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
+            CalcFormula = sum("Value Entry"."Invoiced Quantity" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Inv. Val. Period Date Filter"),
+                "Item Ledger Entry Type" = filter(Purchase | "Positive Adjmt." | Output | "Assembly Output")));
+            Caption = 'Increases Invoiced Qty.';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(132; "Increases Cost Amt. Act."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("Value Entry"."Cost Amount (Actual)" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Inv. Val. Period Date Filter"),
+                "Item Ledger Entry Type" = filter(Purchase | "Positive Adjmt." | Output | "Assembly Output")));
+            Caption = 'Increases Cost Amt. (Actual)';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(133; "Increases Cost Amt. Exp."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("Value Entry"."Cost Amount (Expected)" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Inv. Val. Period Date Filter"),
+                "Item Ledger Entry Type" = filter(Purchase | "Positive Adjmt." | Output | "Assembly Output")));
+            Caption = 'Increases Cost Amt. (Expected)';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(134; "Decreases ILE Qty."; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
+            CalcFormula = sum("Value Entry"."Item Ledger Entry Quantity" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Inv. Val. Period Date Filter"),
+                "Item Ledger Entry Type" = filter(Sale | "Negative Adjmt." | Consumption | "Assembly Consumption")));
+            Caption = 'Decreases Item Ledg. Entry Qty.';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(135; "Decreases Inv. Qty."; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
+            CalcFormula = sum("Value Entry"."Invoiced Quantity" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Inv. Val. Period Date Filter"),
+                "Item Ledger Entry Type" = filter(Sale | "Negative Adjmt." | Consumption | "Assembly Consumption")));
+            Caption = 'Decreases Invoiced Qty.';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(136; "Decreases Cost Amt. Act."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("Value Entry"."Cost Amount (Actual)" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Inv. Val. Period Date Filter"),
+                "Item Ledger Entry Type" = filter(Sale | "Negative Adjmt." | Consumption | "Assembly Consumption")));
+            Caption = 'Decreases Cost Amt. (Actual)';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(137; "Decreases Cost Amt. Exp."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("Value Entry"."Cost Amount (Expected)" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Inv. Val. Period Date Filter"),
+                "Item Ledger Entry Type" = filter(Sale | "Negative Adjmt." | Consumption | "Assembly Consumption")));
+            Caption = 'Decreases Cost Amt. (Expected)';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(138; "Cost Posted To G/L"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("Value Entry"."Cost Posted to G/L" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Closing Bal. Date Filter")));
+            Caption = 'Closing Balance Cost Posted to G/L';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(139; "Exp. Cost Posted To G/L"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("Value Entry"."Expected Cost Posted to G/L" where(
+                "Item No." = field("No."),
+                "Variant Code" = field("Variant Filter"),
+                "Location Code" = field("Location Filter"),
+                "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
+                "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
+                "Posting Date" = field("Closing Bal. Date Filter")));
+            Caption = 'Closing Balance Exp. Cost Posted to G/L';
+            Editable = false;
+            FieldClass = FlowField;
+        }
         field(521; "Application Wksh. User ID"; Code[128])
         {
             Caption = 'Application Wksh. User ID';
@@ -2250,42 +2479,6 @@ table 27 Item
             Editable = false;
             FieldClass = FlowField;
             AutoFormatType = 0;
-        }
-#if not CLEANSCHEMA25
-        field(11500; "No Stockkeeping"; Boolean)
-        {
-            Caption = 'No Stockkeeping';
-            ObsoleteReason = 'Removing local functionality and adding Non-Inventory Item Type';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
-        field(11501; "Location Code"; Code[10])
-        {
-            Caption = 'Location Code';
-            TableRelation = Location;
-        }
-#if not CLEANSCHEMA25
-        field(11503; "Sale blocked"; Boolean)
-        {
-            Caption = 'Sale blocked';
-            ObsoleteReason = 'The field has been reproduced in W1 and will now have a new ID and be called Blocked for sale.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(11504; "Purchase blocked"; Boolean)
-        {
-            Caption = 'Purchase blocked';
-            ObsoleteReason = 'The field has been reproduced in W1 and will now have a new ID and be called Blocked for purchase.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
-        field(11505; "Inventory Price"; Decimal)
-        {
-            AutoFormatType = 2;
-            AutoFormatExpression = '';
-            Caption = 'Inventory Price';
         }
         field(99000752; "Single-Level Material Cost"; Decimal)
         {
@@ -4241,7 +4434,7 @@ table 27 Item
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"My Item", 'rm')]
-    procedure UpdateMyItem(CallingFieldNo: Integer)
+    local procedure UpdateMyItem(CallingFieldNo: Integer)
     var
         MyItem: Record "My Item";
     begin
