@@ -17,6 +17,7 @@ codeunit 148150 "FI Company Field Report Test"
         BusinessIdentityCodeTxt: Text[20];
         RegisteredHomeCityTxt: Text[50];
         VendorCrMemoNoTxt: Label '123';
+        FeatureIdTok: Label 'FIVATVIESDeclaration', Locked = true;
         IsInitialized: Boolean;
 
     local procedure Initialize()
@@ -32,6 +33,7 @@ codeunit 148150 "FI Company Field Report Test"
 
         LibraryVariableStorage.Clear();
         LibraryReportDataset.Reset();
+        SetVATVIESDeclarationFeature(false);
 
         if IsInitialized then
             exit;
@@ -119,6 +121,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         // [Scenario] Test FI Core extension subscriber for Finnish company fields in the VIES declaration.
         Initialize();
+        SetVATVIESDeclarationFeature(true);
 
         // [WHEN] The VAT VIES declaration report is run.
         VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
@@ -132,6 +135,51 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', RegisteredHomeCityTxt);
         LibraryReportDataset.AssertElementWithValueExists('RegHomeCityCaption', CompanyInformation.FieldCaption(CompanyInformation."Registered Home City"));
         LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', 'Total Value of Service Supplies(Code 4)');
+    end;
+
+    [Test]
+    [HandlerFunctions('VATVIESDeclarationTaxAuthReportRequestPageHandler')]
+    procedure CompanyFieldsNotInVATVIESDeclarationWhenFeatureDisabled()
+    var
+        VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
+    begin
+        // [Scenario] Finnish company fields are not added to the VIES declaration when the feature is disabled.
+        Initialize();
+
+        // [WHEN] The VAT VIES declaration report is run.
+        VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
+        VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
+        VATVIESDeclarationTaxAuthReport.Run();
+
+        // [THEN] Finnish company fields and captions remain empty in the report dataset.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('CompanyInfoBusinessIdentityCode', '');
+        LibraryReportDataset.AssertElementWithValueExists('BusinessIdentityCodeCaption', '');
+        LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', '');
+        LibraryReportDataset.AssertElementWithValueExists('RegHomeCityCaption', '');
+        LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', '');
+    end;
+
+    local procedure SetVATVIESDeclarationFeature(Enable: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
+    begin
+        if FeatureKey.Get(FeatureIdTok) then begin
+            if Enable then
+                FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+            else
+                FeatureKey.Enabled := FeatureKey.Enabled::None;
+            FeatureKey.Modify();
+        end;
+        if FeatureKeyUpdateStatus.Get(FeatureIdTok, CompanyName()) then begin
+            if Enable then
+                FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Enabled
+            else
+                FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
+            FeatureKeyUpdateStatus.Modify();
+        end;
+        Commit();
     end;
 
     local procedure CreateRefNumberSeries(StartingNo: Code[20]): Code[10]

@@ -187,9 +187,19 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
+        if not IsFeatureEnabled() then
+            exit;
+
         AssignVIESDeclarationTexts(CompanyInformation, BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
 
         IsHandled := true;
+    end;
+
+    local procedure IsFeatureEnabled(): Boolean
+    var
+        VIESDeclarationFeature: Codeunit "FICore VIES Decl. Feature";
+    begin
+        exit(VIESDeclarationFeature.IsEnabled());
     end;
 
     local procedure AssignVIESDeclarationTexts(CompanyInformation: Record "Company Information"; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
@@ -209,10 +219,6 @@ codeunit 13411 "FICore InitReport Subscribers"
 
         RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
         RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
-
-        BusinessIdentityCodeTxt := CompanyInformation."Business Identity Code";
-        BusinessIdentityCodeLbl := CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code");
-        ServiceSuppliesCode4CaptionTxt := ServiceSuppliesCode4CaptionLbl;
 
         exit(true);
     end;
