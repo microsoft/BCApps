@@ -7452,6 +7452,7 @@ table 81 "Gen. Journal Line"
         "Due Date" := PurchHeader."Prepayment Due Date";
         "Payment Terms Code" := PurchHeader."Payment Terms Code";
         "Payment Method Code" := PurchHeader."Payment Method Code";
+        "Recipient Bank Account" := PurchHeader."Vendor Bank Acc. Code";
         if PurchHeader."Payment Reference" <> '' then
             "Payment Reference" := PurchHeader."Payment Reference"
         else begin
