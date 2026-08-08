@@ -109,7 +109,7 @@ codeunit 10991 "EDoc. Helpers"
         if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo) then
             exit;
 
-        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.");
+        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.", "Country/Region Code");
         if not Customer.Get(CustomerNo) then
             exit;
 
@@ -118,10 +118,22 @@ codeunit 10991 "EDoc. Helpers"
                 Error(BuyerElectronicAddressSchemeRequiredErr, Customer."No.");
             exit;
         end;
-        if Customer."VAT Registration No." <> '' then
+        if IsFrenchCustomer(Customer) and (Customer."VAT Registration No." <> '') then
             exit;
 
         Error(BuyerElectronicAddressRequiredErr, Customer."No.");
+    end;
+
+    procedure IsFrenchCustomer(Customer: Record Customer): Boolean
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        if Customer."Country/Region Code" = '' then
+            exit(true);
+
+        CompanyInformation.SetLoadFields("Country/Region Code");
+        CompanyInformation.Get();
+        exit(Customer."Country/Region Code" = CompanyInformation."Country/Region Code");
     end;
 
     procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]): Boolean
@@ -159,7 +171,7 @@ codeunit 10991 "EDoc. Helpers"
         SIRENRequiredErr: Label 'Registration No. must be specified in Company Information for French e-invoicing.';
         SIRETRequiredErr: Label 'SIRET No. must be specified in Company Information for French e-invoicing.';
         SellerElectronicAddressRequiredErr: Label 'SIRET No., Registration No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.';
-        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
+        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, French VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         SellerCountryCodeRequiredErr: Label 'Country/Region Code must be specified in Company Information for French e-invoicing.';
         ServiceParticipantAddressIncompleteErr: Label '%1 and %2 must both be specified for French electronic invoicing.', Comment = '%1 = Participant Identifier field caption, %2 = French Identifier Scheme field caption';

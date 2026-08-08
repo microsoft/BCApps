@@ -45,7 +45,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         Assert: Codeunit Assert;
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
-        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
+        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, French VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
         BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
         ParticipantAddressIncompleteErr: Label 'must both be specified for French electronic invoicing.', Locked = true;
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
@@ -685,6 +685,26 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreEqual('9957',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
+    end;
+
+    [Test]
+    procedure CheckSalesInvRejectsNonFrenchBuyerVATFallback()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [SCENARIO] A non-French VAT registration number is not used as a French buyer endpoint
+        Initialize();
+
+        Customer.Get(CreateCustomer('', "Electronic Address Scheme"::"EM"));
+        Customer.Validate("Country/Region Code", 'DE');
+        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('DE');
+        Customer.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(Customer."No."));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressRequiredErr, Customer."No."));
     end;
 
     [Test]

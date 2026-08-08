@@ -210,7 +210,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ShipmentNos: Dictionary of [Text, Boolean];
         OrderNos: Dictionary of [Text, Boolean];
         DeliveryDates: Dictionary of [Text, Boolean];
-        ShipmentNoFilter: Text;
+        ShipmentNoFilterBuilder: TextBuilder;
     begin
         SalesInvoiceLine.SetRange("Document No.", DocumentNo);
         SalesInvoiceLine.SetLoadFields("Shipment No.", "Order No.");
@@ -219,14 +219,14 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 if SalesInvoiceLine."Shipment No." <> '' then
                     if not ShipmentNos.ContainsKey(SalesInvoiceLine."Shipment No.") then begin
                         ShipmentNos.Add(SalesInvoiceLine."Shipment No.", true);
-                        AddValueToFilter(ShipmentNoFilter, SalesInvoiceLine."Shipment No.");
+                        AddValueToFilter(ShipmentNoFilterBuilder, SalesInvoiceLine."Shipment No.");
                     end;
                 if SalesInvoiceLine."Order No." <> '' then
                     AddDistinctValue(OrderNos, SalesInvoiceLine."Order No.");
             until SalesInvoiceLine.Next() = 0;
 
-        if ShipmentNoFilter <> '' then begin
-            SalesShipmentHeader.SetFilter("No.", ShipmentNoFilter);
+        if ShipmentNoFilterBuilder.Length() > 0 then begin
+            SalesShipmentHeader.SetFilter("No.", ShipmentNoFilterBuilder.ToText());
             SalesShipmentHeader.SetLoadFields("Posting Date");
             if SalesShipmentHeader.FindSet() then
                 repeat
@@ -238,11 +238,11 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         exit((ShipmentNos.Count() > 1) or (OrderNos.Count() > 1) or (DeliveryDates.Count() > 1));
     end;
 
-    local procedure AddValueToFilter(var FilterText: Text; Value: Text)
+    local procedure AddValueToFilter(var FilterTextBuilder: TextBuilder; Value: Text)
     begin
-        if FilterText <> '' then
-            FilterText += '|';
-        FilterText += '''' + ReplaceString(Value, '''', '''''') + '''';
+        if FilterTextBuilder.Length() > 0 then
+            FilterTextBuilder.Append('|');
+        FilterTextBuilder.Append('''' + ReplaceString(Value, '''', '''''') + '''');
     end;
 
     local procedure ReplaceString(Value: Text; FindWhat: Text; ReplaceWith: Text) NewValue: Text
@@ -469,6 +469,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     var
         Customer: Record Customer;
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         CustomerNoFieldRef: FieldRef;
         CustomerNo: Code[20];
     begin
@@ -482,13 +483,13 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         if GetServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo, ElecAddress, ElecAddressScheme) then
             exit(true);
 
-        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.");
+        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.", "Country/Region Code");
         if not Customer.Get(CustomerNo) then
             exit(false);
 
         ElecAddress := Customer."FR Electronic Address";
         ElecAddressScheme := Customer."FR Elec. Address Scheme";
-        if ElecAddress = '' then begin
+        if (ElecAddress = '') and FREDocHelpers.IsFrenchCustomer(Customer) then begin
             ElecAddress := Customer."VAT Registration No.";
             ElecAddressScheme := ElecAddressScheme::"9957";
         end;
