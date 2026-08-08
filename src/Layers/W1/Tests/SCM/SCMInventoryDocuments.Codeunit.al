@@ -51,6 +51,7 @@ codeunit 137140 "SCM Inventory Documents"
         OutboundQtyNegativeLbl: Label 'Outbound reservation should have negative quantity';
         OnlyOneLineShouldHaveQtyLbl: Label 'Only one transfer line should have qty in transit';
         ShouldBeFirstTransferLbl: Label 'Should be the first transfer order';
+        QtyInTransitShouldMatchLbl: Label 'Qty in transit should match posted quantity';
 
     [Test]
     [Scope('OnPrem')]
@@ -2501,44 +2502,6 @@ codeunit 137140 "SCM Inventory Documents"
     end;
 
     [Test]
-    procedure InboundTransferReservationShowsSpecificError()
-    var
-        Item: Record Item;
-        LocationFrom: Record Location;
-        LocationTo: Record Location;
-        LocationInTransit: Record Location;
-        TransferHeader: Record "Transfer Header";
-        TransferLine: Record "Transfer Line";
-        ReservationEntry: Record "Reservation Entry";
-        InitialInventory: Decimal;
-        TransferQty: Decimal;
-    begin
-        // [SCENARIO 572435] Attempting to auto-reserve inbound transfer order line shows specific error message
-        Initialize();
-
-        // [GIVEN] Item "I" with inventory at Location "EAST"
-        InitialInventory := LibraryRandom.RandIntInRange(50, 100);
-        CreateItemWithInventoryAtLocation(Item, LocationFrom, InitialInventory);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
-        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
-
-        // [GIVEN] Transfer Order from "EAST" to "WEST", Direct Transfer = OFF
-        TransferQty := LibraryRandom.RandIntInRange(10, InitialInventory);
-        CreateTransferOrder(TransferHeader, TransferLine, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, TransferQty);
-
-        // [WHEN] Auto-reserve is called on inbound transfer line at "WEST"
-        // [THEN] Error message shown
-        asserterror AutoReserveTransferLine(TransferLine, false);
-        Assert.ExpectedError(InboundReservationErr);
-
-        // [THEN] No reservation entries exist for this transfer
-        ReservationEntry.SetRange("Source Type", DATABASE::"Transfer Line");
-        ReservationEntry.SetRange("Source ID", TransferHeader."No.");
-        ReservationEntry.SetRange("Source Subtype", 1); // Inbound
-        Assert.RecordIsEmpty(ReservationEntry);
-    end;
-
-    [Test]
     procedure OutboundTransferReservationSucceeds()
     var
         Item: Record Item;
@@ -2620,10 +2583,12 @@ codeunit 137140 "SCM Inventory Documents"
         Assert.AreEqual(1, TransferLine1.Count, OnlyOneLineShouldHaveQtyLbl);
         TransferLine1.FindFirst();
         Assert.AreEqual(TransferHeader1."No.", TransferLine1."Document No.", ShouldBeFirstTransferLbl);
-        Assert.AreEqual(Qty1, TransferLine1."Qty. in Transit (Base)", 'Qty in transit should match posted quantity');
+        Assert.AreEqual(Qty1, TransferLine1."Qty. in Transit (Base)", QtyInTransitShouldMatchLbl);
     end;
 
     [Test]
+    [HandlerFunctions('ReservationPageHandler')]
+    [Scope('OnPrem')]
     procedure InboundReservationFailsAfterShipmentBeforeReceipt()
     var
         Item: Record Item;
@@ -2633,6 +2598,7 @@ codeunit 137140 "SCM Inventory Documents"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         ReservationEntry: Record "Reservation Entry";
+        Reservation: Page Reservation;
         InitialInventory: Decimal;
         TransferQty: Decimal;
     begin
@@ -2658,9 +2624,8 @@ codeunit 137140 "SCM Inventory Documents"
         TransferLine.TestField("Qty. in Transit (Base)", TransferQty);
 
         // [WHEN] Attempt to reserve inbound transfer line at "WEST"
-        // [THEN] Error message shown
-        asserterror AutoReserveTransferLine(TransferLine, false);
-        Assert.ExpectedError(InboundReservationErr);
+        Reservation.SetReservSource(TransferLine, "Transfer Direction"::Inbound);
+        Reservation.RunModal();
 
         // [THEN] No reservation entries exist for inbound direction
         ReservationEntry.SetRange("Source Type", DATABASE::"Transfer Line");
@@ -3200,6 +3165,40 @@ codeunit 137140 "SCM Inventory Documents"
         end;
     end;
 
+    local procedure CreateItemWithInventoryAtLocation(var Item: Record Item; var Location: Record Location; Quantity: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, '', Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure CreateTransferOrder(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; ItemNo: Code[20]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; InTransitLocationCode: Code[10]; Quantity: Decimal)
+    begin
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocationCode, ToLocationCode, InTransitLocationCode);
+        TransferHeader.Validate("Direct Transfer", false);
+        TransferHeader.Modify(true);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, Quantity);
+    end;
+
+    local procedure AutoReserveTransferLine(var TransferLine: Record "Transfer Line"; IsOutbound: Boolean)
+    var
+        ReservationManagement: Codeunit "Reservation Management";
+        Direction: Enum "Transfer Direction";
+        FullAutoReservation: Boolean;
+    begin
+        TransferLine.Find();
+        if IsOutbound then
+            Direction := Direction::Outbound
+        else
+            Direction := Direction::Inbound;
+
+        ReservationManagement.SetReservSource(TransferLine, Direction);
+        ReservationManagement.AutoReserve(FullAutoReservation, TransferLine.Description, TransferLine."Shipment Date", TransferLine.Quantity, TransferLine."Quantity (Base)");
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ItemTrackingLinesModalPageHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
@@ -3263,39 +3262,11 @@ codeunit 137140 "SCM Inventory Documents"
         Reply := false;
     end;
 
-    local procedure CreateItemWithInventoryAtLocation(var Item: Record Item; var Location: Record Location; Quantity: Decimal)
-    var
-        ItemJournalLine: Record "Item Journal Line";
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ReservationPageHandler(var Reservation: TestPage Reservation)
     begin
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        LibraryInventory.CreateItem(Item);
-        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, '', Quantity);
-        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-    end;
-
-    local procedure CreateTransferOrder(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; ItemNo: Code[20]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; InTransitLocationCode: Code[10]; Quantity: Decimal)
-    begin
-        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocationCode, ToLocationCode, InTransitLocationCode);
-        TransferHeader.Validate("Direct Transfer", false);
-        TransferHeader.Modify(true);
-        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, Quantity);
-    end;
-
-    local procedure AutoReserveTransferLine(var TransferLine: Record "Transfer Line"; IsOutbound: Boolean)
-    var
-        ReservationManagement: Codeunit "Reservation Management";
-        Direction: Enum "Transfer Direction";
-        FullAutoReservation: Boolean;
-    begin
-        TransferLine.Find();
-        if IsOutbound then
-            Direction := Direction::Outbound
-        else begin
-            Direction := Direction::Inbound;
-            Error(InboundReservationErr);
-        end;
-
-        ReservationManagement.SetReservSource(TransferLine, Direction);
-        ReservationManagement.AutoReserve(FullAutoReservation, TransferLine.Description, TransferLine."Shipment Date", TransferLine.Quantity, TransferLine."Quantity (Base)");
+        AssertError Reservation."Reserve from Current Line".Invoke();
+        Assert.ExpectedError(InboundReservationErr);
     end;
 }

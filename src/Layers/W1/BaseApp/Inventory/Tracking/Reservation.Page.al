@@ -419,13 +419,13 @@ page 498 Reservation
         Text003: Label 'Do you want to cancel all reservations in the %1?';
 #pragma warning restore AA0470
         Text005: Label 'There are no reservations to cancel.';
-        Text006: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
         Text008: Label 'Action canceled.';
 #pragma warning disable AA0470
         Text009: Label '%1 of the %2 are nonspecific and may be available.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         ReservConfirmQst: Label 'Do you want to reserve specific tracking numbers?';
+        InboundQtyErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
 
     procedure SetReservSource(CurrentRecordVar: Variant)
     begin
@@ -695,7 +695,8 @@ page 498 Reservation
         if ReservEntry."Source Type" = 5741 then begin
             TransferDirection := ReservEntry.GetTransferDirection();
             if TransferDirection = TransferDirection::Inbound then
-                Error(Text006)
+                Error(InboundQtyErr);
+            // Outbound: allow reservation
         end else
             Error(Text000);
     end;
