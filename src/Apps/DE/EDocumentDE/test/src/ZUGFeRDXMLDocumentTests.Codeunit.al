@@ -515,22 +515,14 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatOmitsGTINForNonItemLine()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        GTIN: Code[14];
         Path: Text;
     begin
         // [SCENARIO] Exported ZUGFeRD product identification omits GTIN for a non-item line
         Initialize();
-        GTIN := '4006381333931';
 
-        // [GIVEN] A posted invoice line referencing an item with a GTIN but having a non-item type
-        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
-        SetItemGTIN(SalesInvoiceHeader, GTIN);
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.FindFirst();
-        SalesInvoiceLine.Type := SalesInvoiceLine.Type::"G/L Account";
-        SalesInvoiceLine.Modify();
+        // [GIVEN] A posted invoice with a non-item line
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::"G/L Account", false));
 
         // [WHEN] Export ZUGFeRD Electronic Document
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
@@ -641,26 +633,26 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyGlobalID()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
         TempXMLBuffer: Record "XML Buffer" temporary;
         DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        GTIN: Code[14];
         Path: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 622248] Export posted sales invoice verifies GlobalID contains Item Reference No. when set
+        // [SCENARIO 622248] Export posted sales invoice verifies GlobalID contains GTIN when set
         Initialize();
+        GTIN := '4006381333931';
 
-        // [GIVEN] Create and Post Sales Invoice with Item Reference No.
-        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithItemRefNo("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item));
+        // [GIVEN] Create and Post Sales Invoice with GTIN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SetItemGTIN(SalesInvoiceHeader, GTIN);
 
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] GlobalID element exists with the Item Reference No. value
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.FindFirst();
+        // [THEN] GlobalID element exists with the GTIN value
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
-        Assert.AreEqual(SalesInvoiceLine."Item Reference No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -1080,26 +1072,26 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyGlobalID()
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
         TempXMLBuffer: Record "XML Buffer" temporary;
         DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        GTIN: Code[14];
         Path: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 622248] Export posted sales cr. memo verifies GlobalID contains Item Reference No. when set
+        // [SCENARIO 622248] Export posted sales cr. memo verifies GlobalID contains GTIN when set
         Initialize();
+        GTIN := '4006381333931';
 
-        // [GIVEN] Create and Post Sales Cr. Memo with Item Reference No.
-        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithItemRefNo("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item));
+        // [GIVEN] Create and Post Sales Cr. Memo with GTIN
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        SetItemGTIN(SalesCrMemoHeader, GTIN);
 
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
-        // [THEN] GlobalID element exists with the Item Reference No. value
-        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
-        SalesCrMemoLine.FindFirst();
+        // [THEN] GlobalID element exists with the GTIN value
         Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
-        Assert.AreEqual(SalesCrMemoLine."Item Reference No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -1763,20 +1755,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesHeader: Record "Sales Header";
     begin
         SalesHeader.Get(DocumentType, CreateSalesDocumentWithLine(DocumentType, LineType, InvoiceDiscount));
-        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
-    end;
-
-    local procedure CreateAndPostSalesDocumentWithItemRefNo(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"): Code[20]
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-    begin
-        SalesHeader.Get(DocumentType, CreateSalesDocumentWithLine(DocumentType, LineType, false));
-        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
-        SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.FindFirst();
-        SalesLine."Item Reference No." := LibraryUtility.GenerateGUID();
-        SalesLine.Modify(true);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 

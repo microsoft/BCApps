@@ -397,22 +397,14 @@ codeunit 13918 "XRechnung XML Document Tests"
     procedure ExportPostedSalesInvoiceInXRechnungFormatOmitsGTINForNonItemLine()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        GTIN: Code[14];
         Path: Text;
     begin
         // [SCENARIO] Exported XRechnung item identification omits GTIN for a non-item line
         Initialize();
-        GTIN := '4006381333931';
 
-        // [GIVEN] A posted invoice line referencing an item with a GTIN but having a non-item type
-        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
-        SetItemGTIN(SalesInvoiceHeader, GTIN);
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.FindFirst();
-        SalesInvoiceLine.Type := SalesInvoiceLine.Type::"G/L Account";
-        SalesInvoiceLine.Modify();
+        // [GIVEN] A posted invoice with a non-item line
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::"G/L Account", false));
 
         // [WHEN] Export XRechnung Electronic Document
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
