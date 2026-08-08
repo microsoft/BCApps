@@ -1050,6 +1050,72 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
+    procedure UpdateWorkOrderServiceEstimated20MinDurationRaisesNoErrorWithRoundingPrecision()
+    var
+        WorkOrderService: Record "FS Work Order Service";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [UI] Service Order Integration
+        // [SCENARIO] 20 min duration (= 0.3333... hours) does not raise a precision error when Qty. Rounding Precision is set.
+        // Without the fix, ServiceLine.Validate(Quantity, 20/60) = Validate(Quantity, 0.3333...) would fail with:
+        // "The value 0.333333333333333 in field Quantity is of lower precision than expected..."
+        // [GIVEN] FS Connection Setup, where "Is Enabled" = Yes.
+        Initialize();
+        InitSetup(true, '');
+
+        // [GIVEN] Service Line where the Item UoM has rounding precision 0.00001.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        ServiceLine."Qty. Rounding Precision" := 0.00001;
+
+        // [GIVEN] Work order service with Estimated status and duration = 20 min (0.3333... hours).
+        WorkOrderService.LineStatus := WorkOrderService.LineStatus::Estimated;
+        WorkOrderService.EstimateDuration := 20;
+
+        // [WHEN] Update quantities - should not raise a precision error.
+        FSIntegrationTestLibrary.UpdateQuantities(WorkOrderService, ServiceLine, false);
+
+        // [THEN] Quantity is rounded to 0.33333 (Round(20/60, 0.00001)), not the raw 0.3333...
+        Assert.AreEqual(0.33333, ServiceLine.Quantity, 'Quantity should be 0.33333, not the raw repeating decimal 0.3333...');
+        Assert.AreEqual(0, ServiceLine."Qty. to Ship", 'Qty. to Ship should be 0');
+        Assert.AreEqual(0, ServiceLine."Qty. to Invoice", 'Qty. to Invoice should be 0');
+    end;
+
+    [Test]
+    procedure UpdateWorkOrderServiceEstimated20MinDurationRaisesNoErrorWithoutRoundingPrecision()
+    var
+        WorkOrderService: Record "FS Work Order Service";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        // [FEATURE] [UI] Service Order Integration
+        // [SCENARIO] 20 min duration (= 0.3333... hours) does not cause base quantity balance error when Qty. Rounding Precision is not defined (= 0).
+        // Without the fix, ServiceLine.Validate(Quantity, 20/60) would fail with:
+        // "This will cause the quantity and base quantity fields to be out of balance."
+        // [GIVEN] FS Connection Setup, where "Is Enabled" = Yes.
+        Initialize();
+        InitSetup(true, '');
+
+        // [GIVEN] Service Line with no rounding precision defined (default 0).
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        // Qty. Rounding Precision = 0 means not defined - RoundQty will use the default AL rounding precision.
+
+        // [GIVEN] Work order service with Estimated status and duration = 20 min (0.3333... hours).
+        WorkOrderService.LineStatus := WorkOrderService.LineStatus::Estimated;
+        WorkOrderService.EstimateDuration := 20;
+
+        // [WHEN] Update quantities - should not raise a base quantity balance error.
+        FSIntegrationTestLibrary.UpdateQuantities(WorkOrderService, ServiceLine, false);
+
+        // [THEN] Quantity is set to 0.33333 without error. RoundQty with precision 0 uses default rounding (0.00001).
+        Assert.AreEqual(0.33333, ServiceLine.Quantity, 'Quantity should be 0.33333 - RoundQty with precision 0 uses default precision 0.00001');
+        Assert.AreEqual(0, ServiceLine."Qty. to Ship", 'Qty. to Ship should be 0');
+        Assert.AreEqual(0, ServiceLine."Qty. to Invoice", 'Qty. to Invoice should be 0');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateFSBookableResourceBookingDefault()
     var
@@ -2014,4 +2080,3 @@ codeunit 139204 "FS Integration Test"
         InventorySetup.Modify(true);
     end;
 }
-
