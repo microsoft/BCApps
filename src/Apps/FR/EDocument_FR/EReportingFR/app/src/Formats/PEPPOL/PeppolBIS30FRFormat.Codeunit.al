@@ -8,12 +8,15 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
+using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
+using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Utilities;
 
@@ -26,15 +29,59 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
     var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         FREDocHelpers: Codeunit "EDoc. Helpers";
         PeppolBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
+        SalesValidation: Interface "PEPPOL30 Validation";
+        ServiceValidation: Interface "PEPPOL30 Validation";
     begin
         FREDocHelpers.CheckSellerElectronicAddress(EDocumentService.Code);
         FREDocHelpers.CheckSellerCountryCode();
         FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentService.Code);
 
-        // Delegate standard PEPPOL validation
-        PeppolBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
+        SalesValidation := Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales FR";
+        ServiceValidation := Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Service FR";
+        case SourceDocumentHeader.Number of
+            Database::"Sales Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesHeader);
+                    SalesValidation.ValidateDocument(SalesHeader);
+                    SalesValidation.ValidateDocumentLines(SalesHeader);
+                end;
+            Database::"Sales Invoice Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesInvoiceHeader);
+                    SalesValidation.ValidatePostedDocument(SalesInvoiceHeader);
+                end;
+            Database::"Sales Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesCrMemoHeader);
+                    SalesValidation.ValidatePostedDocument(SalesCrMemoHeader);
+                end;
+            Database::"Service Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceHeader);
+                    ServiceValidation.ValidateDocument(ServiceHeader);
+                    ServiceValidation.ValidateDocumentLines(ServiceHeader);
+                end;
+            Database::"Service Invoice Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceInvoiceHeader);
+                    ServiceValidation.ValidatePostedDocument(ServiceInvoiceHeader);
+                end;
+            Database::"Service Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
+                    ServiceValidation.ValidatePostedDocument(ServiceCrMemoHeader);
+                end;
+            else
+                PeppolBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
+        end;
     end;
 
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")

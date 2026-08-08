@@ -344,6 +344,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     [Test]
     procedure ExportSalesInvUsesServiceParticipantEndpointWithScheme0225()
     var
+        Customer: Record Customer;
         ServiceParticipant: Record "Service Participant";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
@@ -362,6 +363,12 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0225";
         ServiceParticipant.Insert();
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+        Customer.Get(CustomerNo);
+        Customer.GLN := '';
+        Customer."VAT Registration No." := '';
+        Customer."FR Electronic Address" := '';
+        Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::" ";
+        Customer.Modify(true);
 
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
@@ -620,6 +627,12 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0002";
         ServiceParticipant.Insert();
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+        CompanyInformation.Get();
+        CompanyInformation.GLN := '';
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation."SIRET No." := '';
+        CompanyInformation."Registration No." := '';
+        CompanyInformation.Modify(true);
 
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
