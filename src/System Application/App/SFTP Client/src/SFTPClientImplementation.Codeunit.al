@@ -14,29 +14,29 @@ codeunit 9763 "SFTP Client Implementation"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    [NonDebuggable]
     procedure Initialize(Host: Text; Port: Integer; UserName: Text; Password: SecretText): Codeunit "SFTP Operation Response"
     begin
         InitializeSFTPInterface();
         ISFTPClient.SetSHA256Fingerprints(HostkeyFingerprintsSHA256);
-        ISFTPClient.SetMD5Fingerprints(HostkeyFingerprintsMD5);
         if not ISFTPClient.SftpClient(Host, Port, UserName, Password) then
             exit(ParseException());
     end;
 
+    [NonDebuggable]
     procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream): Codeunit "SFTP Operation Response"
     begin
         InitializeSFTPInterface();
         ISFTPClient.SetSHA256Fingerprints(HostkeyFingerprintsSHA256);
-        ISFTPClient.SetMD5Fingerprints(HostkeyFingerprintsMD5);
         if not ISFTPClient.SftpClient(HostName, Port, Username, PrivateKey) then
             exit(ParseException());
     end;
 
+    [NonDebuggable]
     procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream; Passphrase: SecretText): Codeunit "SFTP Operation Response"
     begin
         InitializeSFTPInterface();
         ISFTPClient.SetSHA256Fingerprints(HostkeyFingerprintsSHA256);
-        ISFTPClient.SetMD5Fingerprints(HostkeyFingerprintsMD5);
         if not ISFTPClient.SftpClient(HostName, Port, Username, PrivateKey, Passphrase) then
             exit(ParseException());
     end;
@@ -55,11 +55,6 @@ codeunit 9763 "SFTP Client Implementation"
         HostkeyFingerprintsSHA256.Add(Fingerprint);
     end;
 
-    procedure AddFingerPrintMD5(Fingerprint: Text)
-    begin
-        HostkeyFingerprintsMD5.Add(Fingerprint);
-    end;
-
     local procedure ParseException() Result: Codeunit "SFTP Operation Response"
     var
         SocketExceptionLbl: Label 'Socket connection to the SSH server or proxy server could not be established, or an error occurred while resolving the hostname.';
@@ -68,6 +63,7 @@ codeunit 9763 "SFTP Client Implementation"
         SshAuthenticationExceptionLbl: Label 'Authentication of SSH session failed.';
         SftpPathNotFoundExceptionLbl: Label 'The specified path is invalid, or its directory was not found on the remote host.';
         ServerFingerprintNotTrustedLbl: Label 'The server''s host key fingerprint %1 is not trusted.', Comment = '%1 is the SHA256 fingerprint of the server''s host key';
+        GenericExceptionLbl: Label 'An unexpected error occurred during the SFTP operation.';
         ExceptionType: Enum "SFTP Exception Type";
         ExceptionMessage: Text;
         ServerFingerprintSHA256: Text;
@@ -87,8 +83,8 @@ codeunit 9763 "SFTP Client Implementation"
                 Result.SetError(SftpPathNotFoundExceptionLbl);
             ExceptionType::"Untrusted Server Exception":
                 Result.SetError(StrSubstNo(ServerFingerprintNotTrustedLbl, ServerFingerprintSHA256));
-            ExceptionType::"Generic Exception": // Catch-all for any other exceptions
-                Result.SetError(ExceptionMessage);
+            ExceptionType::"Generic Exception": // Catch-all for any other exceptions - return a generic message to avoid leaking raw server/.NET exception details to callers
+                Result.SetError(GenericExceptionLbl);
         end;
         exit(Result);
     end;
@@ -129,28 +125,84 @@ codeunit 9763 "SFTP Client Implementation"
         end;
     end;
 
+    [NonDebuggable]
     procedure GetFileAsStream(Path: Text; var InStream: InStream) Result: Codeunit "SFTP Operation Response"
     var
         TempBlob: Codeunit "Temp Blob";
         MemoryStream: DotNet MemoryStream;
         Arr: DotNet Array;
+        FileSizeBytes: BigInteger;
+        DownloadTok: Label 'Download', Locked = true;
     begin
         if not ISFTPClient.ReadAllBytes(Path, Arr) then
             exit(ParseException());
+        FileSizeBytes := Arr.Length;
+        LogFileSizeTelemetry(DownloadTok, FileSizeBytes, FileSizeBytes <= GetMaxFileSizeInBytes());
+        if FileSizeBytes > GetMaxFileSizeInBytes() then
+            exit(FileTooLargeResponse(FileSizeBytes));
         MemoryStream := MemoryStream.MemoryStream(Arr);
         CopyStream(TempBlob.CreateOutStream(), MemoryStream);
         Result.SetTempBlob(TempBlob);
         Result.GetResponseStream(InStream);
     end;
 
-    procedure PutFileStream(Path: Text; var SourceInStream: InStream): Codeunit "SFTP Operation Response"
+    [NonDebuggable]
+    procedure PutFileStream(Path: Text; var SourceInStream: InStream) Result: Codeunit "SFTP Operation Response"
     var
         MemoryStream: DotNet MemoryStream;
+        FileSizeBytes: BigInteger;
+        UploadTok: Label 'Upload', Locked = true;
     begin
         MemoryStream := MemoryStream.MemoryStream();
         CopyStream(MemoryStream, SourceInStream);
+        FileSizeBytes := MemoryStream.Length;
+        LogFileSizeTelemetry(UploadTok, FileSizeBytes, FileSizeBytes <= GetMaxFileSizeInBytes());
+        if FileSizeBytes > GetMaxFileSizeInBytes() then
+            exit(FileTooLargeResponse(FileSizeBytes));
         if not ISFTPClient.WriteAllBytes(Path, MemoryStream.ToArray()) then
             exit(ParseException());
+    end;
+
+    local procedure GetMaxFileSizeInBytes(): Integer
+    begin
+        // 25 MB (25 * 1024 * 1024) - current platform limitation. Telemetry is emitted for every transfer so the limit can be reassessed.
+        if MaxFileSizeOverrideSet then
+            exit(MaxFileSizeOverride);
+        exit(26214400);
+    end;
+
+    internal procedure SetMaxFileSizeInBytes(NewMaxFileSizeInBytes: Integer)
+    begin
+        MaxFileSizeOverride := NewMaxFileSizeInBytes;
+        MaxFileSizeOverrideSet := true;
+    end;
+
+    local procedure FileTooLargeResponse(FileSizeBytes: BigInteger) Result: Codeunit "SFTP Operation Response"
+    var
+        FileTooLargeErr: Label 'The file size of %1 bytes exceeds the maximum allowed size of %2 bytes.', Comment = '%1 is the actual file size in bytes, %2 is the maximum allowed size in bytes';
+    begin
+        Result.SetExceptionType(Enum::"SFTP Exception Type"::"File Too Large Exception");
+        Result.SetError(StrSubstNo(FileTooLargeErr, FileSizeBytes, GetMaxFileSizeInBytes()));
+        exit(Result);
+    end;
+
+    local procedure LogFileSizeTelemetry(Operation: Text; FileSizeBytes: BigInteger; WithinLimit: Boolean)
+    var
+        Dimensions: Dictionary of [Text, Text];
+        TelemetryVerbosity: Verbosity;
+        FileSizeTelemetryMsg: Label 'SFTP file transfer size measured.', Locked = true;
+        CategoryTok: Label 'SFTP Client', Locked = true;
+    begin
+        Dimensions.Add('Category', CategoryTok);
+        Dimensions.Add('Operation', Operation);
+        Dimensions.Add('FileSizeBytes', Format(FileSizeBytes));
+        Dimensions.Add('LimitBytes', Format(GetMaxFileSizeInBytes()));
+        Dimensions.Add('WithinLimit', Format(WithinLimit, 0, 9));
+        if WithinLimit then
+            TelemetryVerbosity := Verbosity::Normal
+        else
+            TelemetryVerbosity := Verbosity::Warning;
+        Session.LogMessage('SFTP-0001', FileSizeTelemetryMsg, TelemetryVerbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     procedure DeleteFile(Path: Text): Codeunit "SFTP Operation Response"
@@ -207,6 +259,7 @@ codeunit 9763 "SFTP Client Implementation"
     var
         ISFTPClient: Interface "ISFTP Client";
         HostkeyFingerprintsSHA256: List of [Text];
-        HostkeyFingerprintsMD5: List of [Text];
         ISFTPClientSet: Boolean;
+        MaxFileSizeOverride: Integer;
+        MaxFileSizeOverrideSet: Boolean;
 }

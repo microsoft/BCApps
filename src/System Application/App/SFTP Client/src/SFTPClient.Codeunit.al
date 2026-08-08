@@ -21,15 +21,6 @@ codeunit 9762 "SFTP Client"
     end;
 
     /// <summary>
-    /// Adds an MD5 fingerprint to the list of accepted host key fingerprints.
-    /// </summary>
-    /// <param name="Fingerprint"></param>
-    procedure AddFingerprintMD5(Fingerprint: Text)
-    begin
-        SFTPClientImplementation.AddFingerPrintMD5(Fingerprint);
-    end;
-
-    /// <summary>
     /// Initializes the SFTP client with the specified parameters. The client is connected to the server.
     /// </summary>
     /// <param name="Hostname">Hostname of the SFTP server</param>
@@ -37,6 +28,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="Username">Username for the connection</param>
     /// <param name="Password">Password for the connection</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure Initialize(Hostname: Text; Port: Integer; Username: Text; Password: SecretText): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.Initialize(HostName, Port, Username, Password));
@@ -51,6 +43,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="Username">Username for the connection</param>
     /// <param name="PrivateKey">Private Key for the connection</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.Initialize(HostName, Port, Username, PrivateKey));
@@ -66,6 +59,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="PrivateKey">Private Key for the connection</param>
     /// <param name="Passphrase">Passphrase to decrypt the private key</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream; Passphrase: SecretText): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.Initialize(HostName, Port, Username, PrivateKey, Passphrase));
@@ -101,6 +95,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="Path">Path to the file</param>
     /// <param name="InStream">An InStream that will be populated with the file content</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure GetFileAsStream(Path: Text; var InStream: InStream): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.GetFileAsStream(Path, InStream));
@@ -153,6 +148,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="Path">The destination path to upload the file to</param>
     /// <param name="SourceInStream">The stream of data to upload</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure PutFileStream(Path: Text; var SourceInStream: InStream): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.PutFileStream(Path, SourceInStream));

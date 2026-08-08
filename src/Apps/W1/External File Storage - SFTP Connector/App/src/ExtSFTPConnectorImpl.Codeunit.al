@@ -466,8 +466,7 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     local procedure AddFingerprint(Fingerprint: Text; var SFTPClient: Codeunit "SFTP Client")
     var
         SHA256PrefixTok: Label 'sha256:', Locked = true;
-        MD5PrefixTok: Label 'md5:', Locked = true;
-        InvalidFingerprintErr: Label 'Fingerprint must start with "md5:" or "sha256:".';
+        InvalidFingerprintErr: Label 'Fingerprint must start with "sha256:".';
     begin
         Fingerprint := Fingerprint.Trim();
         if Fingerprint = '' then
@@ -476,8 +475,6 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         case true of
             Fingerprint.StartsWith(SHA256PrefixTok):
                 SFTPClient.AddFingerprintSHA256(Fingerprint.Substring(StrLen(SHA256PrefixTok) + 1));
-            Fingerprint.StartsWith(MD5PrefixTok):
-                SFTPClient.AddFingerprintMD5(Fingerprint.Substring(StrLen(MD5PrefixTok) + 1));
             else
                 Error(InvalidFingerprintErr);
         end;
