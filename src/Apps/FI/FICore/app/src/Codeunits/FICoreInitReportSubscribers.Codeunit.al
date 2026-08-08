@@ -18,6 +18,9 @@ codeunit 13411 "FICore InitReport Subscribers"
     InherentPermissions = X;
     Permissions = tabledata "Company Information" = r;
 
+    var
+        ServiceSuppliesCode4CaptionLbl: Label 'Total Value of Service Supplies(Code 4)';
+
     [EventSubscriber(ObjectType::Report, Report::"Standard Purchase - Order", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardPurchaseOrder(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
     var
@@ -184,6 +187,9 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
+        if not IsFeatureEnabled() then
+            exit;
+
         if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
 
@@ -200,17 +206,17 @@ codeunit 13411 "FICore InitReport Subscribers"
     local procedure AssignCompanyInformationTexts(var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text): Boolean
     var
         CompanyInformation: Record "Company Information";
-        ServiceSuppliesCode4CaptionLbl: Label 'Total Value of Service Supplies(Code 4)';
     begin
-        if not IsFeatureEnabled() then
-            exit(false);
-
         CompanyInformation.Get();
+
+        RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
+        RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
+
+        if not IsFeatureEnabled() then
+            exit(true);
 
         BusinessIdentityCodeTxt := CompanyInformation."Business Identity Code";
         BusinessIdentityCodeLbl := CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code");
-        RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
-        RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
         ServiceSuppliesCode4CaptionTxt := ServiceSuppliesCode4CaptionLbl;
 
         exit(true);

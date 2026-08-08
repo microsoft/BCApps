@@ -17,6 +17,7 @@ codeunit 148150 "FI Company Field Report Test"
         BusinessIdentityCodeTxt: Text[20];
         RegisteredHomeCityTxt: Text[50];
         VendorCrMemoNoTxt: Label '123';
+        FeatureIdTok: Label 'FIVATVIESDeclaration', Locked = true;
         IsInitialized: Boolean;
 
     local procedure Initialize()
@@ -32,6 +33,7 @@ codeunit 148150 "FI Company Field Report Test"
 
         LibraryVariableStorage.Clear();
         LibraryReportDataset.Reset();
+        DisableVATVIESDeclarationFeature();
 
         if IsInitialized then
             exit;
@@ -50,7 +52,6 @@ codeunit 148150 "FI Company Field Report Test"
             FeatureKeyUpdateStatus.Modify();
         end;
 
-        EnableVATVIESDeclarationFeature();
         CompanyInformation.Get();
         CompanyInformation."Business Identity Code" := BusinessIdentityCodeTxt;
         CompanyInformation."Registered Home City" := RegisteredHomeCityTxt;
@@ -120,6 +121,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         // [Scenario] Test FI Core extension subscriber for Finnish company fields in the VIES declaration.
         Initialize();
+        EnableVATVIESDeclarationFeature();
 
         // [WHEN] The VAT VIES declaration report is run.
         VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
@@ -136,17 +138,32 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     local procedure EnableVATVIESDeclarationFeature()
+    begin
+        SetVATVIESDeclarationFeature(true);
+    end;
+
+    local procedure DisableVATVIESDeclarationFeature()
+    begin
+        SetVATVIESDeclarationFeature(false);
+    end;
+
+    local procedure SetVATVIESDeclarationFeature(Enable: Boolean)
     var
         FeatureKey: Record "Feature Key";
         FeatureKeyUpdateStatus: Record "Feature Data Update Status";
-        FeatureIdTok: Label 'FIVATVIESDeclaration', Locked = true;
     begin
         if FeatureKey.Get(FeatureIdTok) then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+            if Enable then
+                FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+            else
+                FeatureKey.Enabled := FeatureKey.Enabled::None;
             FeatureKey.Modify();
         end;
         if FeatureKeyUpdateStatus.Get(FeatureIdTok, CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Enabled;
+            if Enable then
+                FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Enabled
+            else
+                FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
             FeatureKeyUpdateStatus.Modify();
         end;
         Commit();
@@ -335,6 +352,7 @@ codeunit 148150 "FI Company Field Report Test"
             Assert.AreEqual(BusinessIdentityCodeTxt, ActualBusinessIdentityCode, 'Incorrect BusinessIdentityCode');
             Assert.AreEqual(RegisteredHomeCityTxt, ActualRegisteredHomeCity, 'Incorrect RegisteredHomeCity');
         end;
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure AssertDatasetIsNotEmpty()
@@ -349,6 +367,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryReportDataset.AssertElementWithValueExists('CompanyLegalOffice', RegisteredHomeCityTxt);
         LibraryReportDataset.AssertElementWithValueExists(
             'CompanyLegalOffice_Lbl', CompanyInformation.FieldCaption(CompanyInformation."Registered Home City"));
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
