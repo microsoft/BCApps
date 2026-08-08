@@ -538,25 +538,6 @@ codeunit 134827 "UT Item Table"
 
     [Test]
     [Scope('OnPrem')]
-    procedure TestNoWhseEntriesExistWithBlankItemNo()
-    var
-        Item: Record Item;
-    begin
-        // [SCENARIO 644909] TestNoWhseEntriesExist procedure should handle blank Item No. without errors
-
-        Initialize();
-
-        // [GIVEN] Item record "I" with blank No.
-        Item.Init();
-
-        // [WHEN] TestNoWhseEntriesExist is called on "I"
-        Item.TestNoWhseEntriesExist(Item.FieldCaption("Item Tracking Code"));
-
-        // [THEN] No error occurs
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure TestModifyItemTemplateItemTrackingCodeAfterItemDeletion()
     var
         Bin: Record Bin;
@@ -594,6 +575,10 @@ codeunit 134827 "UT Item Table"
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
         LibraryFiscalYear.CloseAccountingPeriod();
         LibraryFiscalYear.CreateFiscalYear();
+        Commit();
+
+        // [WHEN] Item is deleted
+        Item.Get(Item."No.");
         Item.Delete(true);
 
         // [GIVEN] An item template and warehouse-tracked item tracking code

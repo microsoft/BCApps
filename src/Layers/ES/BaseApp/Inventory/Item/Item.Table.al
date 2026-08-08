@@ -2970,12 +2970,12 @@ table 27 Item
         WarehouseEntry: Record "Warehouse Entry";
         IsHandled: Boolean;
     begin
-        if "No." = '' then
-            exit;
-
         IsHandled := false;
         OnBeforeTestNoWhseEntriesExist(Rec, CurrentFieldName, IsHandled);
         if IsHandled then
+            exit;
+
+        if "No." = '' then
             exit;
 
         WarehouseEntry.SetRange("Item No.", "No.");
