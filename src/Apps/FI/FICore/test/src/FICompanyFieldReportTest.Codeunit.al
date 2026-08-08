@@ -137,6 +137,29 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', 'Total Value of Service Supplies(Code 4)');
     end;
 
+    [Test]
+    [HandlerFunctions('VATVIESDeclarationTaxAuthReportRequestPageHandler')]
+    procedure CompanyFieldsNotInVATVIESDeclarationWhenFeatureDisabled()
+    var
+        VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
+    begin
+        // [Scenario] Finnish company fields are not added to the VIES declaration when the feature is disabled.
+        Initialize();
+
+        // [WHEN] The VAT VIES declaration report is run.
+        VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
+        VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
+        VATVIESDeclarationTaxAuthReport.Run();
+
+        // [THEN] Finnish company fields and captions remain empty in the report dataset.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('CompanyInfoBusinessIdentityCode', '');
+        LibraryReportDataset.AssertElementWithValueExists('BusinessIdentityCodeCaption', '');
+        LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', '');
+        LibraryReportDataset.AssertElementWithValueExists('RegHomeCityCaption', '');
+        LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', '');
+    end;
+
     local procedure EnableVATVIESDeclarationFeature()
     begin
         SetVATVIESDeclarationFeature(true);
@@ -460,7 +483,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         Initialize();
 
-        PostedDocumentNo := CreateSalesDocument(SalesHeader."Document Type"::Invoice, true);
+        PostedDocumentNo := CreateSalesDocument(SalesHeader."Document Type"::Invoice, true, false);
         LibraryFinanceChargeMemo.CreateFinanceChargeTermAndText(FinanceChargeTerms);
         SalesInvoiceHeader.Get(PostedDocumentNo);
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
