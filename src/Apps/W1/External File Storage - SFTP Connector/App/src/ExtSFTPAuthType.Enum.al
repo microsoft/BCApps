@@ -12,6 +12,9 @@ enum 4621 "Ext. SFTP Auth Type"
 {
     Extensible = false;
     Access = Public;
+    ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     /// <summary>
     /// Authenticate using password.

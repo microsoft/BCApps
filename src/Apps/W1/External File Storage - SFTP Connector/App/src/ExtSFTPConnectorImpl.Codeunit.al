@@ -10,11 +10,15 @@ using System.SFTPClient;
 using System.Text;
 using System.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Connector"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     Permissions = tabledata "Ext. SFTP Account" = rimd;
 
     var
@@ -495,3 +499,4 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         Account.ModifyAll(Disabled, true);
     end;
 }
+#pragma warning restore AL0432, AS0105

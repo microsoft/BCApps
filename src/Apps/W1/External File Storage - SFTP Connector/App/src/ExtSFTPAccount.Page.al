@@ -8,6 +8,7 @@ namespace System.ExternalFileStorage;
 /// <summary>
 /// Displays an account that was registered via the SFTP connector.
 /// </summary>
+#pragma warning disable AL0432, AS0105
 page 4621 "Ext. SFTP Account"
 {
     ApplicationArea = All;
@@ -19,6 +20,9 @@ page 4621 "Ext. SFTP Account"
     Permissions = tabledata "Ext. SFTP Account" = rimd;
     SourceTable = "Ext. SFTP Account";
     UsageCategory = None;
+    ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -159,3 +163,4 @@ page 4621 "Ext. SFTP Account"
             CertificateStatusText := CertificateUploadedLbl;
     end;
 }
+#pragma warning restore AL0432, AS0105
