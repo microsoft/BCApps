@@ -38,4 +38,8 @@ enum 4594 "SOA Email Attachment Status"
     {
         Caption = 'Analyze attachments not enabled';
     }
+    value(7; ExceedsFileSize)
+    {
+        Caption = 'Exceeds file size limit';
+    }
 }
