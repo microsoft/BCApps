@@ -95,7 +95,7 @@ codeunit 4305 "SOA Filters Impl."
                 Contact.Reset();
                 Contact.SetLoadFields("No.");
                 Contact.SetFilter("E-Mail", From);
-                Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
+                Contact.ReadIsolation := IsolationLevel::ReadCommitted;
                 if Contact.FindSet() then
                     repeat
                         if not ContactList.Contains(Contact."No.") then
@@ -374,33 +374,35 @@ codeunit 4305 "SOA Filters Impl."
 
     internal procedure FindContactByEmail(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
     var
-        MatchedContact: Record Contact;
-        MatchedContactNos: List of [Code[20]];
+        MatchedContactNos: Dictionary of [Code[20], Boolean];
         EmailFilter: Text;
+        MatchedContactNo: Code[20];
     begin
         ContactCount := 0;
         EmailFilter := GetSafeFromEmailFilter(EmailAddress);
 
         Contact.Reset();
         Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetLoadFields("No.");
         Contact.SetFilter("E-Mail", EmailFilter);
         if Contact.FindSet() then
             repeat
-                MatchedContactNos.Add(Contact."No.");
+                MatchedContactNos.Add(Contact."No.", true);
                 if ContactCount = 0 then
-                    MatchedContact := Contact;
+                    MatchedContactNo := Contact."No.";
                 ContactCount += 1;
             until Contact.Next() = 0;
 
         Contact.Reset();
         Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetLoadFields("No.");
         Contact.SetFilter("E-Mail 2", EmailFilter);
         if Contact.FindSet() then
             repeat
-                if not MatchedContactNos.Contains(Contact."No.") then begin
-                    MatchedContactNos.Add(Contact."No.");
+                if not MatchedContactNos.ContainsKey(Contact."No.") then begin
+                    MatchedContactNos.Add(Contact."No.", true);
                     if ContactCount = 0 then
-                        MatchedContact := Contact;
+                        MatchedContactNo := Contact."No.";
                     ContactCount += 1;
                 end;
             until Contact.Next() = 0;
@@ -408,8 +410,9 @@ codeunit 4305 "SOA Filters Impl."
         if ContactCount = 0 then
             exit(false);
 
-        Contact := MatchedContact;
-        exit(true);
+        Contact.Reset();
+        Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        exit(Contact.Get(MatchedContactNo));
     end;
 
     internal procedure FindContactByAlternateEmail(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
