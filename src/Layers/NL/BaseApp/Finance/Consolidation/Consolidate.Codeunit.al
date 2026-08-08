@@ -1620,7 +1620,7 @@ codeunit 432 Consolidate
         TempSubsidGLEntry.SetRange("G/L Account No.", TempSubsidGLAcc."No.");
     end;
 
-    internal procedure GetGLAccounts(var TempGLAccount: Record "G/L Account" temporary)
+    procedure GetGLAccounts(var TempGLAccount: Record "G/L Account" temporary)
     begin
         if not TempSubsidGLAcc.FindSet() then
             exit;
