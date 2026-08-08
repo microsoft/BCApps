@@ -16,7 +16,6 @@ using System.Security.AccessControl;
 table 6840 "Spend Request"
 {
     Caption = 'Spend Request';
-    ReplicateData = false;
     DataClassification = CustomerContent;
     DataCaptionFields = "No.", Purpose;
     Permissions = tabledata "Spend Request Detail" = rimd,
