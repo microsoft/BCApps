@@ -6,7 +6,8 @@
   "brief": "Common Tax Setups",
   "description": "Tax base contains common setups for GST, TDS and TCS.",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",

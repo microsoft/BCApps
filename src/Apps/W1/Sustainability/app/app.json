@@ -42,7 +42,8 @@
     }
   ],
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "resourceFolders": [
     ".resources"

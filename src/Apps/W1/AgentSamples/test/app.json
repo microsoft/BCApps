@@ -33,7 +33,8 @@
     "GenerateCaptions",
     "TranslationFile",
     "NoImplicitWith",
-    "NoPromotedActionProperties"
+    "NoPromotedActionProperties",
+    "TranslationsWithNamespaces"
   ],
   "idRanges": [
     {

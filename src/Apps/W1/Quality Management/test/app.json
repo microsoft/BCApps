@@ -51,7 +51,8 @@
   ],
   "features": [
     "NoImplicitWith",
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "platform": "29.0.0.0",
   "application": "29.0.0.0",

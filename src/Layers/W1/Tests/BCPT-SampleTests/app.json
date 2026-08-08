@@ -42,6 +42,7 @@
   "target": "Cloud",
   "features": [
     "GenerateCaptions",
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

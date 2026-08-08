@@ -46,7 +46,8 @@
   ],
   "features": [
     "TranslationFile",
-    "ExcludeGeneratedTranslations"
+    "ExcludeGeneratedTranslations",
+    "TranslationsWithNamespaces"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

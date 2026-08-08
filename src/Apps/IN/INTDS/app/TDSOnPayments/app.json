@@ -14,7 +14,8 @@
   "platform": "29.0.0.0",
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "dependencies": [
     {
