@@ -60,6 +60,9 @@ codeunit 8614 "Config. XML Exchange"
         PackageExportFinishScopeAllMsg: Label 'Configuration package exported successfully: %1', Comment = '%1 - package code', Locked = true;
         ImportingIsNotAllowedDuringUpgradeOrInstallationErr: Label 'Importing configuration packages is not allowed during upgrade or installation. Importing configuration packages requires multiple threads and sessions which is not supported.';
 
+
+#if not CLEAN29
+    [Obsolete('Replaced by procedure AddXMLComment', '29.0')]
     local procedure AddXMLComment(var PackageXML: DotNet XmlDocument; var Node: DotNet XmlNode; Comment: Text[250])
     var
         CommentNode: DotNet XmlNode;
@@ -67,7 +70,17 @@ codeunit 8614 "Config. XML Exchange"
         CommentNode := PackageXML.CreateComment(Comment);
         Node.AppendChild(CommentNode);
     end;
+#endif
+    local procedure AddXMLComment(var ParentXmlNode: XmlNode; Comment: Text[250])
+    var
+        CommentNode: XmlNode;
+    begin
+        CommentNode := XmlComment.Create(Comment).AsXmlNode();
+        ParentXmlNode.AsXmlElement().Add(CommentNode);
+    end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure AddTableAttributes', '29.0')]
     local procedure AddTableAttributes(ConfigPackageTable: Record "Config. Package Table"; var PackageXML: DotNet XmlDocument; var TableNode: DotNet XmlNode)
     var
         FieldNode: DotNet XmlNode;
@@ -125,7 +138,35 @@ codeunit 8614 "Config. XML Exchange"
 
         OnAfterAddTableAttributes(ConfigPackageTable, PackageXML, TableNode);
     end;
+#endif
+    local procedure AddTableAttributes(ConfigPackageTable: Record "Config. Package Table"; var TableNode: XmlNode)
+    begin
+        if ConfigPackageTable."Page ID" > 0 then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Page ID")), '', Format(ConfigPackageTable."Page ID")));
+        if ConfigPackageTable."Package Processing Order" > 0 then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Package Processing Order")), '', Format(ConfigPackageTable."Package Processing Order")));
+        if ConfigPackageTable."Processing Order" > 0 then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Processing Order")), '', Format(ConfigPackageTable."Processing Order")));
+        if ConfigPackageTable."Data Template" <> '' then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Data Template")), '', Format(ConfigPackageTable."Data Template")));
+        if ConfigPackageTable.Comments <> '' then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName(Comments)), '', Format(ConfigPackageTable.Comments)));
+        if ConfigPackageTable."Created by User ID" <> '' then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Created by User ID")), '', Format(ConfigPackageTable."Created by User ID")));
+        if ConfigPackageTable."Skip Table Triggers" then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Skip Table Triggers")), '', '1'));
+        if ConfigPackageTable."Parent Table ID" > 0 then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Parent Table ID")), '', Format(ConfigPackageTable."Parent Table ID")));
+        if ConfigPackageTable."Delete Recs Before Processing" then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Delete Recs Before Processing")), '', '1'));
+        if ConfigPackageTable."Dimensions as Columns" then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Dimensions as Columns")), '', '1'));
 
+        OnAfterAddTableAttributesProcedure(ConfigPackageTable, TableNode);
+    end;
+
+#if not CLEAN29
+    [Obsolete('Replaced by procedure AddFieldAttributes', '29.0')]
     local procedure AddFieldAttributes(ConfigPackageField: Record "Config. Package Field"; var FieldNode: DotNet XmlNode)
     begin
         if ConfigPackageField."Primary Key" then
@@ -140,7 +181,25 @@ codeunit 8614 "Config. XML Exchange"
 
         OnAfterAddFieldAttributes(ConfigPackageField, FieldNode);
     end;
+#endif
+    local procedure AddFieldAttributes(ConfigPackageField: Record "Config. Package Field"; var FieldNode: XmlNode)
+    begin
+        if ConfigPackageField."Primary Key" then
+            XMLDOMMgt.AddAttribute(FieldNode, GetElementName(ConfigPackageField.FieldName("Primary Key")), '1');
+        if ConfigPackageField."Validate Field" then
+            XMLDOMMgt.AddAttribute(FieldNode, GetElementName(ConfigPackageField.FieldName("Validate Field")), '1');
+        if ConfigPackageField."Create Missing Codes" then
+            XMLDOMMgt.AddAttribute(FieldNode, GetElementName(ConfigPackageField.FieldName("Create Missing Codes")), '1');
+        if ConfigPackageField."Processing Order" <> 0 then
+            XMLDOMMgt.AddAttribute(
+              FieldNode, GetElementName(ConfigPackageField.FieldName("Processing Order")), Format(ConfigPackageField."Processing Order"));
 
+        OnAfterAddFieldAttributesProcedure(ConfigPackageField, FieldNode);
+    end;
+
+
+#if not CLEAN29
+    [Obsolete('Replaced by procedure AddDimensionFields', '29.0')]
     local procedure AddDimensionFields(var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExportValue: Boolean)
     var
         DimCode: Code[20];
@@ -161,8 +220,59 @@ codeunit 8614 "Config. XML Exchange"
                 end;
             until ConfigPackageField.Next() = 0;
     end;
+#endif
+    local procedure AddDimensionFields(var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var RecordNode: XmlNode; ExportValue: Boolean)
+    var
+        DimCode: Code[20];
+        FieldValue: Text;
+    begin
+        ConfigPackageField.SetRange(Dimension, true);
+        if ConfigPackageField.FindSet() then
+            repeat
+                if ExportValue then begin
+                    DimCode := CopyStr(ConfigPackageField."Field Name", 1, 20);
+                    FieldValue := GetDimValueFromTable(RecRef, DimCode);
+                end else
+                    FieldValue := '';
+                RecordNode.AsXmlElement().Add(
+                    XmlElement.Create(GetElementName(CopyStr(ConfigValidateMgt.CheckName(ConfigPackageField."Field Name"), 1, 250)), '', FieldValue));
+            until ConfigPackageField.Next() = 0;
+    end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure AddDimPackageFields', '29.0')]
     local procedure AddDimPackageFields(var ConfigPackageTable: Record "Config. Package Table"; RecordNode: DotNet XmlNode)
+    var
+        ConfigPackageField: Record "Config. Package Field";
+        TempConfigPackageField: Record "Config. Package Field" temporary;
+        Dimension: Record Dimension;
+        i: Integer;
+        DimsAsColumns: Boolean;
+    begin
+        if not (ConfigMgt.IsDimSetIDTable(ConfigPackageTable."Table ID") or ConfigMgt.IsDefaultDimTable(ConfigPackageTable."Table ID")) then
+            exit;
+        i := 1;
+        if Dimension.FindSet() then
+            repeat
+                ConfigPackageMgt.InsertPackageField(
+                  TempConfigPackageField, ConfigPackageTable."Package Code", ConfigPackageTable."Table ID", ConfigMgt.DimensionFieldID() + i,
+                  Dimension.Code, Dimension."Code Caption", true, false, false, true);
+                if FieldNodeExists(RecordNode, GetElementName(TempConfigPackageField."Field Name")) then begin
+                    ConfigPackageField := TempConfigPackageField;
+                    ConfigPackageField.Insert();
+                    DimsAsColumns := true;
+                    i := i + 1;
+                end;
+            until Dimension.Next() = 0;
+
+        if DimsAsColumns then begin
+            ConfigPackageTable."Dimensions as Columns" := true;
+            ConfigPackageTable.Modify();
+        end;
+    end;
+#endif
+
+    local procedure AddDimPackageFields(var ConfigPackageTable: Record "Config. Package Table"; RecordNode: XmlNode)
     var
         ConfigPackageField: Record "Config. Package Field";
         TempConfigPackageField: Record "Config. Package Field" temporary;
@@ -217,6 +327,8 @@ codeunit 8614 "Config. XML Exchange"
             RecRef.FilterGroup(0);
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure CreateRecordNodes', '29.0')]
     local procedure CreateRecordNodes(var PackageXML: DotNet XmlDocument; ConfigPackageTable: Record "Config. Package Table")
     var
         "Field": Record "Field";
@@ -362,6 +474,145 @@ codeunit 8614 "Config. XML Exchange"
             OnCreateRecordNodesOnAfterNotFoundRecordProcessed(ConfigPackageTable, ConfigPackageField, RecRef, PackageXML, RecordNode, FieldNode, ExcelMode);
         end;
     end;
+#endif
+    local procedure CreateRecordNodes(var PackageXML: XmlDocument; ConfigPackageTable: Record "Config. Package Table")
+    var
+        "Field": Record "Field";
+        ConfigPackageField: Record "Config. Package Field";
+        ConfigPackage: Record "Config. Package";
+        ConfigProgressBarRecord: Codeunit "Config. Progress Bar";
+        RecRef: RecordRef;
+        FieldRef: FieldRef;
+        DocumentElement: XmlElement;
+        DocumentElementNode: XmlNode;
+        FieldNode: XmlNode;
+        RecordNode: XmlNode;
+        TableNode: XmlNode;
+        RecordCount: Integer;
+        ProcessedRecordCount: Integer;
+        StepCount: Integer;
+        ExportMetadata: Boolean;
+        ShowDialog: Boolean;
+        IsHandled: Boolean;
+        FieldNameLookup: Dictionary of [Integer, Text];
+        FieldElementName: Text;
+    begin
+        IsHandled := false;
+        OnBeforeCreateRecordNodesProcedure(ConfigPackageTable, ConfigPackageField, WorkingFolder, ExcelMode, Advanced, HideDialog, IsHandled);
+        if IsHandled then
+            exit;
+
+        if ConfigMgt.IsSystemTable(ConfigPackageTable."Table ID") then
+            exit;
+
+        ConfigPackageTable.TestField("Package Code");
+        ConfigPackageTable.TestField("Table ID");
+        ConfigPackage.Get(ConfigPackageTable."Package Code");
+        ExcludeRemovedFields(ConfigPackageTable);
+        PackageXML.GetRoot(DocumentElement);
+        DocumentElementNode := DocumentElement.AsXmlNode();
+        TableNode := XmlElement.Create(GetElementName(ConfigPackageTable."Table Name" + 'List')).AsXmlNode();
+        DocumentElementNode.AsXmlElement().Add(TableNode);
+
+        TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Table ID")), '', Format(ConfigPackageTable."Table ID")));
+
+        if ExcelMode then
+            TableNode.AsXmlElement().Add(XmlElement.Create(GetElementName(ConfigPackageTable.FieldName("Package Code")), '', Format(ConfigPackageTable."Package Code")))
+        else
+            AddTableAttributes(ConfigPackageTable, TableNode);
+
+        ExportMetadata := true;
+        RecRef.Open(ConfigPackageTable."Table ID");
+        IsHandled := false;
+        OnCreateRecordNodesOnBeforeApplyPackageFilter(ConfigPackageTable, RecRef, IsHandled);
+        if not IsHandled then
+            ApplyPackageFilter(ConfigPackageTable, RecRef);
+        OnCreateRecordNodesOnAfterApplyPackageFilter(ConfigPackageTable, ConfigPackage, RecRef);
+        if RecRef.FindSet() then begin
+            RecordCount := RecRef.Count();
+            ShowDialog := (not HideDialog) and (RecordCount > 1000);
+            if ShowDialog then begin
+                StepCount := Round(RecordCount / 100, 1);
+                ConfigProgressBarRecord.Init(RecordCount, StepCount, ExportPackageTxt);
+            end;
+            repeat
+                IsHandled := false;
+                OnCreateRecordNodesOnBeforeRecRefLoopIteration(ConfigPackageTable, ConfigPackage, RecRef, ConfigProgressBar, IsHandled);
+                if not IsHandled then begin
+                    RecordNode := XmlElement.Create(GetTableElementName(ConfigPackageTable."Table Name")).AsXmlNode();
+                    TableNode.AsXmlElement().Add(RecordNode);
+
+                    ConfigPackageField.SetRange("Package Code", ConfigPackageTable."Package Code");
+                    ConfigPackageField.SetRange("Table ID", ConfigPackageTable."Table ID");
+                    ConfigPackageField.SetRange("Include Field", true);
+                    ConfigPackageField.SetCurrentKey("Package Code", "Table ID", "Processing Order");
+                    OnCreateRecordNodesOnAfterConfigPackageFieldSetFilters(ConfigPackageTable, ConfigPackageField);
+                    if ConfigPackageField.FindSet() then
+                        repeat
+                            if ConfigPackageField.Dimension then begin
+                                if ConfigPackageTable."Dimensions as Columns" and ExcelMode then
+                                    AddDimensionFieldsWhenProcessingOrder(ConfigPackageField, RecRef, RecordNode, true);
+                            end else begin
+                                FieldRef := RecRef.Field(ConfigPackageField."Field ID");
+
+                                // Reuse validated field name. Validating and creating field names is expensive when done many times.
+                                if not (FieldNameLookup.Get(FieldRef.Number, FieldElementName)) then
+                                    if TypeHelper.GetField(RecRef.Number, FieldRef.Number, Field) then begin
+                                        FieldElementName := GetFieldElementName(ConfigPackageField.GetValidatedElementName());
+                                        FieldNameLookup.Add(FieldRef.Number, FieldElementName);
+                                    end;
+
+                                if (FieldElementName <> '') then begin
+                                    FieldNode := XmlElement.Create(FieldElementName, '', FormatFieldValue(FieldRef, ConfigPackage)).AsXmlNode();
+                                    if Advanced and ConfigPackageField."Localize Field" then
+                                        AddXMLComment(FieldNode, '_locComment_text="{MaxLength=' + Format(Field.Len) + '}"');
+                                    RecordNode.AsXmlElement().Add(FieldNode); // must be after AddXMLComment and before AddAttribute.
+                                    if not ExcelMode and ExportMetadata then
+                                        AddFieldAttributes(ConfigPackageField, FieldNode);
+                                    if Advanced then
+                                        if ConfigPackageField."Localize Field" then
+                                            XMLDOMMgt.AddAttribute(FieldNode, '_loc', 'locData')
+                                        else
+                                            XMLDOMMgt.AddAttribute(FieldNode, '_loc', 'locNone');
+                                end;
+                            end;
+                        until ConfigPackageField.Next() = 0;
+
+                    OnCreateRecordNodesProcedureOnAfterRecordProcessed(ConfigPackageTable, ConfigPackageField, RecRef, PackageXML, RecordNode, FieldNode, ExcelMode);
+                    ExportMetadata := false;
+                    ProcessedRecordCount += 1;
+
+                    if ShowDialog then
+                        ConfigProgressBarRecord.Update(StrSubstNo(ProgressStatusTxt, ConfigPackageTable."Table Name", ProcessedRecordCount, RecordCount));
+                end;
+            until RecRef.Next() = 0;
+            // Tag used for analytics
+            Session.LogMessage('0000BV0', StrSubstNo(ExportedTableContentTxt, RecRef.Name, RecordCount, ConfigPackageField.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
+            if ShowDialog then
+                ConfigProgressBarRecord.Close();
+        end else begin
+            RecordNode := XmlElement.Create(GetTableElementName(ConfigPackageTable."Table Name")).AsXmlNode();
+            TableNode.AsXmlElement().Add(RecordNode);
+
+            ConfigPackageField.SetRange("Package Code", ConfigPackageTable."Package Code");
+            ConfigPackageField.SetRange("Table ID", ConfigPackageTable."Table ID");
+            ConfigPackageField.SetRange("Include Field", true);
+            ConfigPackageField.SetRange(Dimension, false);
+            OnCreateRecordNodesOnNotFoundOnAfterConfigPackageFieldSetFilters(ConfigPackageTable, ConfigPackageField);
+            if ConfigPackageField.FindSet() then
+                repeat
+                    FieldRef := RecRef.Field(ConfigPackageField."Field ID");
+                    FieldNode := XmlElement.Create(GetFieldElementName(ConfigPackageField.GetValidatedElementName())).AsXmlNode();
+                    RecordNode.AsXmlElement().Add(FieldNode);
+                    if not ExcelMode then
+                        AddFieldAttributes(ConfigPackageField, FieldNode);
+                until ConfigPackageField.Next() = 0;
+
+            if ConfigPackageTable."Dimensions as Columns" and ExcelMode then
+                AddDimensionFields(ConfigPackageField, RecRef, RecordNode, false);
+            OnCreateRecordNodesProcedureOnAfterNotFoundRecordProcessed(ConfigPackageTable, ConfigPackageField, RecRef, PackageXML, RecordNode, FieldNode, ExcelMode);
+        end;
+    end;
 
     /// <summary>
     /// Export the provided configuration package to an OutStream.
@@ -408,6 +659,107 @@ codeunit 8614 "Config. XML Exchange"
     procedure ExportPackageXML(var ConfigPackageTable: Record "Config. Package Table"; XMLDataFile: Text): Boolean
     var
         ConfigPackage: Record "Config. Package";
+        PackageXML: XmlDocument;
+        FileFilter: Text;
+        ToFile: Text[50];
+        CompressedFileName: Text;
+        PackageExportStartMsg: Label 'Export of RS package started.', Locked = true;
+        PackageExportFinishMsg: Label 'Export of RS package finished. Duration: %1 milliseconds.', Locked = true;
+        DurationAsInt: BigInteger;
+        StartTime: DateTime;
+        ExecutionId: Guid;
+        Dimensions: Dictionary of [Text, Text];
+        OutStream: OutStream;
+        XMLFile: File;
+    begin
+        StartTime := CurrentDateTime();
+        Session.LogMessage('00009Q4', PackageExportStartMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
+
+        ConfigPackageTable.FindFirst();
+        ConfigPackage.Get(ConfigPackageTable."Package Code");
+        ConfigPackage.TestField(Code);
+        ConfigPackage.TestField("Package Name");
+
+        ExecutionId := CreateGuid();
+        Dimensions.Add('Category', RapidStartTxt);
+        Dimensions.Add('PackageCode', ConfigPackage.SystemId);
+        Dimensions.Add('ExecutionId', Format(ExecutionId, 0, 4));
+        Session.LogMessage('0000E3F', StrSubstNo(PackageExportStartScopeAllMsg, ConfigPackage.SystemId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+
+        if not ConfigPackage."Exclude Config. Tables" and not ExcelMode then
+            ConfigPackageMgt.AddConfigTables(ConfigPackage.Code);
+
+        if not CalledFromCode then
+            XMLDataFile := FileManagement.ServerTempFileName('');
+        FileFilter := GetFileDialogFilter();
+        if ToFile = '' then
+            ToFile := StrSubstNo(PackageFileNameTxt, ConfigPackage.Code);
+        OnExportPackageXMLOnAfterAssignToFile(ConfigPackage, ToFile);
+
+        SetWorkingFolder(FileManagement.GetDirectoryName(XMLDataFile));
+        ExportPackageToXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, Advanced);
+
+        XMLFile.Create(XMLDataFile, TextEncoding::UTF16);
+        XMLFile.CreateOutStream(OutStream);
+        PackageXML.WriteTo(OutStream);
+        XMLFile.Close();
+
+        DurationAsInt := CurrentDateTime() - StartTime;
+        Dimensions.Add('ExecutionTimeInMs', Format(DurationAsInt));
+        Session.LogMessage('0000E3G', StrSubstNo(PackageExportFinishScopeAllMsg, ConfigPackage.SystemId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+
+        // Tag used for analytics
+        Session.LogMessage('00009Q5', StrSubstNo(PackageExportFinishMsg, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
+
+        if not CalledFromCode then begin
+            CompressedFileName := FileManagement.ServerTempFileName('');
+            OnOnExportPackageXMLOnAfterAssignToFileOnAfterSetCompressedFileName(CompressedFileName, XMLDataFile);
+            ConfigPckgCompressionMgt.ServersideCompress(XMLDataFile, CompressedFileName);
+
+            FileManagement.DownloadHandler(CompressedFileName, DownloadTxt, '', FileFilter, ToFile);
+        end;
+
+        exit(true);
+    end;
+
+#if not CLEAN29
+
+    /// <summary>
+    /// Export the provided configuration package to an OutStream.
+    /// </summary>
+    /// <param name="ConfigPackage">Configuration package to export.</param>
+    /// <param name="PackageOutStream">OutStream object that the content of the package will be written to.</param>
+    [Obsolete('Replaced by procedure ExportPackageXMLToStream', '29.0')]
+    procedure ExportPackageXMLToStreamLegacy(ConfigPackage: Record "Config. Package"; PackageOutStream: OutStream)
+    var
+        ConfigPackageTable: Record "Config. Package Table";
+        XMLDataFile: File;
+        XMLDataFileName: Text;
+        XMLDataFileInStream: InStream;
+        OriginalCalledFromCode: Boolean;
+    begin
+        ConfigPackage.TestField(ConfigPackage.Code);
+        ConfigPackage.TestField(ConfigPackage."Package Name");
+        ConfigPackageTable.SetRange("Package Code", ConfigPackage.Code);
+
+        XMLDataFileName := FileManagement.ServerTempFileName('');
+
+        OriginalCalledFromCode := CalledFromCode;
+        SetCalledFromCode(true);
+        ExportPackageXMLLegacy(ConfigPackageTable, XMLDataFileName);
+        CalledFromCode := OriginalCalledFromCode;
+
+        XMLDataFile.Open(XMLDataFileName);
+        XMLDataFile.CreateInStream(XMLDataFileInStream);
+        CopyStream(PackageOutStream, XMLDataFileInStream);
+        XMLDataFile.Close();
+    end;
+
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by procedure ExportPackageXML', '29.0')]
+    procedure ExportPackageXMLLegacy(var ConfigPackageTable: Record "Config. Package Table"; XMLDataFile: Text): Boolean
+    var
+        ConfigPackage: Record "Config. Package";
         PackageXML: DotNet XmlDocument;
         FileFilter: Text;
         ToFile: Text[50];
@@ -418,6 +770,9 @@ codeunit 8614 "Config. XML Exchange"
         StartTime: DateTime;
         ExecutionId: Guid;
         Dimensions: Dictionary of [Text, Text];
+        XMLText: Text;
+        OutStream: OutStream;
+        XMLFile: File;
     begin
         StartTime := CurrentDateTime();
         Session.LogMessage('00009Q4', PackageExportStartMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
@@ -468,6 +823,7 @@ codeunit 8614 "Config. XML Exchange"
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('Replaced by procedure ExportPackageToXMLDocument', '29.0')]
     procedure ExportPackageXMLDocument(var PackageXML: DotNet XmlDocument; var ConfigPackageTable: Record "Config. Package Table"; ConfigPackage: Record "Config. Package"; Advanced: Boolean)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -533,8 +889,87 @@ codeunit 8614 "Config. XML Exchange"
 
         OnAfterExportPackageXMLDocument(ConfigPackage, HideDialog);
     end;
+#endif
 
+    procedure ExportPackageToXMLDocument(var PackageXML: XmlDocument; var ConfigPackageTable: Record "Config. Package Table"; ConfigPackage: Record "Config. Package"; Advanced: Boolean)
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        DocumentElement: XmlElement;
+        DocumentElementNode: XmlNode;
+        LocXML: Text[1024];
+        XmlText: Text;
+    begin
+        FeatureTelemetry.LogUptake('0000E3X', 'Configuration packages', Enum::"Feature Uptake Status"::"Used");
+        ConfigPackage.TestField(Code);
+        ConfigPackage.TestField("Package Name");
+
+        if Advanced then
+            LocXML := '<_locDefinition><_locDefault _loc="locNone"/></_locDefinition>';
+        XmlText := StrSubstNo(
+            '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><%1>%2</%1>',
+            GetPackageTag(),
+            LocXML);
+        XmlDocument.ReadFrom(XmlText, PackageXML);
+
+        CleanUpConfigPackageData(ConfigPackage);
+
+        if not ExcelMode then begin
+            InitializeMediaTempFolder();
+            PackageXML.GetRoot(DocumentElement);
+            DocumentElementNode := DocumentElement.AsXmlNode();
+            XMLDOMMgt.AddAttribute(
+              DocumentElementNode, GetElementName(ConfigPackage.FieldName("Min. Count For Async Import")),
+              Format(ConfigPackage."Min. Count For Async Import"));
+            if ConfigPackage."Exclude Config. Tables" then
+                XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementName(ConfigPackage.FieldName("Exclude Config. Tables")), '1');
+            if ConfigPackage."Processing Order" > 0 then
+                XMLDOMMgt.AddAttribute(
+                  DocumentElementNode, GetElementName(ConfigPackage.FieldName("Processing Order")), Format(ConfigPackage."Processing Order"));
+            if ConfigPackage."Language ID" > 0 then
+                XMLDOMMgt.AddAttribute(
+                  DocumentElementNode, GetElementName(ConfigPackage.FieldName("Language ID")), Format(ConfigPackage."Language ID"));
+            XMLDOMMgt.AddAttribute(
+              DocumentElementNode, GetElementName(ConfigPackage.FieldName("Product Version")), ConfigPackage."Product Version");
+            XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementName(ConfigPackage.FieldName("Package Name")), ConfigPackage."Package Name");
+            XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementName(ConfigPackage.FieldName(Code)), ConfigPackage.Code);
+            OnExportPackageToXMLDocumentOnAfterSetAttributes(ConfigPackage, DocumentElementNode);
+        end;
+
+        OnExportPackageToXMLDocumentOnBeforeConfigProgressBarInit(ConfigPackageTable, ConfigPackage, Advanced, HideDialog);
+
+        if not HideDialog then
+            ConfigProgressBar.Init(ConfigPackageTable.Count, 1, ExportPackageTxt);
+        ConfigPackageTable.SetAutoCalcFields("Table Name");
+        if ConfigPackageTable.FindSet() then
+            repeat
+                if not HideDialog then
+                    ConfigProgressBar.Update(ConfigPackageTable."Table Name");
+
+                ExportConfigTableToXML(ConfigPackageTable, PackageXML);
+            until ConfigPackageTable.Next() = 0;
+
+        if not ExcelMode then begin
+            UpdateConfigPackageMediaSet(ConfigPackage);
+            ExportConfigPackageMediaSetToXML(PackageXML, ConfigPackage);
+        end;
+
+        if not HideDialog then
+            ConfigProgressBar.Close();
+
+        OnAfterExportPackageToXMLDocument(ConfigPackage, HideDialog);
+    end;
+
+#if not CLEAN29
+    [Obsolete('Replaced by procedure ExportConfigTableToXML', '29.0')]
     local procedure ExportConfigTableToXML(var ConfigPackageTable: Record "Config. Package Table"; var PackageXML: DotNet XmlDocument)
+    begin
+        CreateRecordNodes(PackageXML, ConfigPackageTable);
+        ConfigPackageTable."Exported Date and Time" := CreateDateTime(Today, Time);
+        ConfigPackageTable.Modify();
+    end;
+#endif
+
+    local procedure ExportConfigTableToXML(var ConfigPackageTable: Record "Config. Package Table"; var PackageXML: XmlDocument)
     begin
         CreateRecordNodes(PackageXML, ConfigPackageTable);
         ConfigPackageTable."Exported Date and Time" := CreateDateTime(Today, Time);
@@ -556,6 +991,9 @@ codeunit 8614 "Config. XML Exchange"
         DummyModifyDate: Date;
         DummyModifyTime: Time;
         FileSize: BigInteger;
+#if not CLEAN29
+        UseImportWithDotNet: Boolean;
+#endif
     begin
         ServerFileName := FileManagement.ServerTempFileName('.xml');
         if not UploadXMLPackage(ServerFileName) then
@@ -567,9 +1005,17 @@ codeunit 8614 "Config. XML Exchange"
                 exit(false);
         DecompressedFileName := DecompressPackage(ServerFileName);
 
-        exit(ImportPackageXML(DecompressedFileName));
+#if not CLEAN29
+        UseImportWithDotNet := false;
+        OnImportPackageXMLFromClientOnBeforeImportPackage(UseImportWithDotNet);
+        if UseImportWithDotNet then
+            exit(ImportPackageXML(DecompressedFileName));
+#endif
+        exit(ImportPackageXMLFromFile(DecompressedFileName));
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure ImportPackageXMLFromFile(XMLDataFile: Text)', '29.0')]
     procedure ImportPackageXML(XMLDataFile: Text): Boolean
     var
         PackageXML: DotNet XmlDocument;
@@ -579,6 +1025,7 @@ codeunit 8614 "Config. XML Exchange"
         exit(ImportPackageXMLDocument(PackageXML, ''));
     end;
 
+    [Obsolete('Replaced by procedure ImportPackageXML(InStream: InStream)', '29.0')]
     procedure ImportPackageXMLFromStream(InStream: InStream): Boolean
     var
         PackageXML: DotNet XmlDocument;
@@ -588,6 +1035,7 @@ codeunit 8614 "Config. XML Exchange"
         exit(ImportPackageXMLDocument(PackageXML, ''));
     end;
 
+    [Obsolete('Replaced by procedure ImportPackageXMLWithCode(InStream: InStream; PackageCode: Code[20])', '29.0')]
     procedure ImportPackageXMLWithCodeFromStream(InStream: InStream; PackageCode: Code[20]): Boolean
     var
         PackageXML: DotNet XmlDocument;
@@ -599,8 +1047,41 @@ codeunit 8614 "Config. XML Exchange"
 
         exit(ImportPackageXMLDocument(PackageXML, PackageCode));
     end;
+#endif
 
     [Scope('OnPrem')]
+    procedure ImportPackageXMLFromFile(XMLDataFile: Text): Boolean
+    var
+        PackageXML: XmlDocument;
+    begin
+        XMLDOMMgt.LoadXMLDocumentFromFile(XMLDataFile, PackageXML);
+
+        exit(ImportPackageXMLDocument(PackageXML, ''));
+    end;
+
+    procedure ImportPackageXML(InStream: InStream): Boolean
+    var
+        PackageXML: XmlDocument;
+    begin
+        XmlDocument.ReadFrom(InStream, PackageXML);
+        exit(ImportPackageXMLDocument(PackageXML, ''));
+    end;
+
+    procedure ImportPackageXMLWithCode(InStream: InStream; PackageCode: Code[20]): Boolean
+    var
+        PackageXML: XmlDocument;
+    begin
+        XmlDocument.ReadFrom(InStream, PackageXML);
+        if PackageCode <> '' then
+            if PackageCode <> GetPackageCode(PackageXML) then
+                Error(PackageCodesMustMatchErr);
+
+        exit(ImportPackageXMLDocument(PackageXML, PackageCode));
+    end;
+
+#if not CLEAN29
+    [Scope('OnPrem')]
+    [Obsolete('Replaced by procedure ImportPackageXMLDocument', '29.0')]
     procedure ImportPackageXMLDocument(PackageXML: DotNet XmlDocument; PackageCode: Code[20]) Result: Boolean
     var
         ConfigPackage: Record "Config. Package";
@@ -767,8 +1248,182 @@ codeunit 8614 "Config. XML Exchange"
         Result := true;
         OnAfterImportPackageXMLDocument(PackageCode, ExcelMode, Result);
     end;
+#endif
 
+    procedure ImportPackageXMLDocument(PackageXML: XmlDocument; PackageCode: Code[20]) Result: Boolean
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageRecord: Record "Config. Package Record";
+        ConfigPackageData: Record "Config. Package Data";
+        TempBlob: Codeunit "Temp Blob";
+        ParallelSessionManagement: Codeunit "Parallel Session Management";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        DurationAsInt: BigInteger;
+        DocumentElement: XmlElement;
+        TableNodes: XmlNodeList;
+        TableNode: XmlNode;
+        OutStream: OutStream;
+        Value: Text;
+        PackageImportStartMsg: Label 'Import of RS package started.', Locked = true;
+        PackageImportFinishMsg: Label 'Import of RS package finished. Duration: %1 milliseconds. File size: %2.', Locked = true;
+        StartTime: DateTime;
+        TableID: Integer;
+        NodeCount: Integer;
+        Confirmed: Boolean;
+        NoOfChildNodes: Integer;
+        FileSize: Integer;
+        CurrTableName: Text;
+        CurrRecordCount: Integer;
+        TotalTableFields: Integer;
+        ImportedTableFields: Integer;
+        ExecutionId: Guid;
+        Dimensions: Dictionary of [Text, Text];
+        IsHandled: Boolean;
+        DocumentElementNode: XmlNode;
+        PackageXMLText: Text;
+    begin
+        VerifyCanImportConfigurationPackage();
+        StartTime := CurrentDateTime();
+        Session.LogMessage('00009Q6', PackageImportStartMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
+        FeatureTelemetry.LogUptake('0000E3D', 'Configuration packages', Enum::"Feature Uptake Status"::"Set up");
+
+        PackageXML.WriteTo(PackageXMLText);
+        FileSize := StrLen(PackageXMLText) * 2; // due to UTF-16 encoding
+        PackageXML.GetRoot(DocumentElement);
+        DocumentElementNode := DocumentElement.AsXmlNode();
+
+        if not ExcelMode then begin
+            if PackageCode = '' then begin
+                PackageCode := GetPackageCode(PackageXML);
+                if ConfigPackage.Get(PackageCode) then begin
+                    ConfigPackage.CalcFields("No. of Records");
+                    Confirmed := true;
+                    if not HideDialog then
+                        if ConfigPackage."No. of Records" > 0 then
+                            if not Confirm(PackageAllreadyContainsDataQst, true, PackageCode) then
+                                Confirmed := false;
+                    if not Confirmed then
+                        exit(false);
+                    ConfigPackage.Delete(true);
+                    Commit();
+                end;
+                ConfigPackage.Init();
+                ConfigPackage.Code := PackageCode;
+                ConfigPackage.Insert();
+            end else
+                ConfigPackage.Get(PackageCode);
+            ImportedPackageCode := PackageCode;
+
+            ConfigPackage."Package Name" :=
+              CopyStr(
+                GetAttribute(GetElementName(ConfigPackage.FieldName("Package Name")), DocumentElementNode), 1,
+                MaxStrLen(ConfigPackage."Package Name"));
+            Value := GetAttribute(GetElementName(ConfigPackage.FieldName("Language ID")), DocumentElementNode);
+            if Value <> '' then
+                Evaluate(ConfigPackage."Language ID", Value);
+            ConfigPackage."Product Version" :=
+              CopyStr(
+                GetAttribute(GetElementName(ConfigPackage.FieldName("Product Version")), DocumentElementNode), 1,
+                MaxStrLen(ConfigPackage."Product Version"));
+            Value := GetAttribute(GetElementName(ConfigPackage.FieldName("Processing Order")), DocumentElementNode);
+            if Value <> '' then
+                Evaluate(ConfigPackage."Processing Order", Value);
+            Value := GetAttribute(GetElementName(ConfigPackage.FieldName("Exclude Config. Tables")), DocumentElementNode);
+            if Value <> '' then
+                Evaluate(ConfigPackage."Exclude Config. Tables", Value);
+            Value := GetAttribute(GetElementName(ConfigPackage.FieldName("Min. Count For Async Import")), DocumentElementNode);
+            if Value <> '' then begin
+                IsHandled := false;
+                OnBeforeEvaluateMinCountForAsyncImport(ConfigPackage, Value, IsHandled);
+                if not IsHandled then
+                    Evaluate(ConfigPackage."Min. Count For Async Import", Value);
+            end;
+            OnImportPackageXMLDocumentOnBeforeModifyConfigPackage(ConfigPackage, DocumentElementNode);
+            ConfigPackage.Modify();
+        end;
+
+        ExecutionId := CreateGuid();
+        Dimensions.Add('Category', RapidStartTxt);
+        Dimensions.Add('ExecutionId', Format(ExecutionId, 0, 4));
+        Session.LogMessage('0000E3H', StrSubstNo(PackageImportStartScopeAllMsg, ConfigPackage.SystemId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+
+        Commit(); // to enable background processes to reference the ConfigPackage
+
+        TableNodes := DocumentElement.GetChildElements();
+        if not HideDialog then
+            ConfigProgressBar.Init(TableNodes.Count(), 1, ImportPackageTxt);
+        foreach TableNode in TableNodes do begin
+            NodeCount += 1;
+            if GetTableIdFromXmlNode(TableNode, TableID) then begin
+                if GetTableStatisticsForTelemetry(TableNode, CurrTableName, CurrRecordCount, TotalTableFields, ImportedTableFields) then
+                    Session.LogMessage('0000BV1', StrSubstNo(ImportedTableContentTxt, CurrTableName, CurrRecordCount, TotalTableFields, ImportedTableFields), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
+
+                NoOfChildNodes := GetChildNodeCount(TableNode);
+                if (NoOfChildNodes < ConfigPackage."Min. Count For Async Import") or ExcelMode then
+                    ImportTableFromXMLNode(TableNode, PackageCode)
+                else begin
+                    // Send to background
+                    Clear(TempBlob);
+                    TempBlob.CreateOutStream(OutStream, TEXTENCODING::UTF8);
+                    OutStream.WriteText('<doc>' + GetNodeOuterXml(TableNode) + '</doc>');
+                    ParallelSessionManagement.NewSessionRunCodeunitWithBlob(
+                      CODEUNIT::"Config. Import Table in Backgr", PackageCode, TempBlob);
+                end;
+                if ExcelMode then
+                    case true of // Dimensions
+                        ConfigMgt.IsDefaultDimTable(TableID):
+                            begin
+                                ConfigPackageRecord.SetRange("Package Code", PackageCode);
+                                ConfigPackageRecord.SetRange("Table ID", TableID);
+                                OnImportPackageXMLDocumentOnDefaultDimOnAfterConfigPackageRecordSetFilters(ConfigPackageRecord, ConfigPackageData, PackageCode);
+                                if ConfigPackageRecord.FindSet() then
+                                    repeat
+                                        ConfigPackageData.Get(
+                                          ConfigPackageRecord."Package Code", ConfigPackageRecord."Table ID",
+                                          ConfigPackageRecord."No.", GetDefaultDimensionNoLinkFieldNumber(TableID));
+                                        ConfigPackageMgt.UpdateDefaultDimValues(ConfigPackageRecord, CopyStr(ConfigPackageData.Value, 1, 20));
+                                    until ConfigPackageRecord.Next() = 0;
+                            end;
+                        ConfigMgt.IsDimSetIDTable(TableID):
+                            begin
+                                ConfigPackageRecord.SetRange("Package Code", PackageCode);
+                                ConfigPackageRecord.SetRange("Table ID", TableID);
+                                if ConfigPackageRecord.FindSet() then
+                                    repeat
+                                        ConfigPackageMgt.HandlePackageDataDimSetIDForRecord(ConfigPackageRecord);
+                                    until ConfigPackageRecord.Next() = 0;
+                            end;
+                    end;
+            end;
+        end;
+
+        Commit(); // to ensure no deadlock occurs when waiting for background processes
+
+        if not HideDialog then
+            ConfigProgressBar.Close();
+        if not ExcelMode then
+            ParallelSessionManagement.WaitForAllToFinish(0);
+
+        ConfigPackageMgt.UpdateConfigLinePackageData(ConfigPackage.Code);
+        DurationAsInt := CurrentDateTime() - StartTime;
+
+        Dimensions.Add('ExecutionTimeInMs', Format(DurationAsInt));
+        Dimensions.Add('FileSizeInBytes', Format(FileSize));
+        Session.LogMessage('0000E3I', StrSubstNo(PackageImportFinishScopeAllMsg, ConfigPackage.SystemId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+        Session.LogMessage('00009Q7', StrSubstNo(PackageImportFinishMsg, DurationAsInt, FileSize), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
+
+        // autoapply configuration lines
+        ConfigPackageMgt.ApplyConfigTables(ConfigPackage);
+
+        ConfigPackageMgt.SentPackageImportedNotification(PackageCode);
+
+        Result := true;
+        OnAfterImportPackageXMLDocument(PackageCode, ExcelMode, Result);
+    end;
+
+#if not CLEAN29
     [TryFunction]
+    [Obsolete('Replaced by procedure GetTableStatisticsForTelemetry', '29.0')]
     internal procedure GetTableStatisticsForTelemetry(TableNode: DotNet XmlNode; var TableName: Text; var RecordCount: Integer; var TotalTableFields: Integer; var ImportedTableFields: Integer)
     var
         CurrTableRecordRef: RecordRef;
@@ -801,8 +1456,97 @@ codeunit 8614 "Config. XML Exchange"
         if RecordCount > 0 then
             ImportedTableFields := TableNode.LastChild().ChildNodes().Count();
     end;
+#endif
 
+    local procedure GetTableIdFromXmlNode(TableNode: XmlNode; var TableID: Integer): Boolean
+    var
+        FirstChildNode: XmlNode;
+        ChildElements: XmlNodeList;
+    begin
+        if TableNode.IsXmlElement() then
+            ChildElements := TableNode.AsXmlElement().GetChildElements()
+        else
+            exit(false);
+        if ChildElements.Count() > 0 then begin
+            ChildElements.Get(1, FirstChildNode);
+            exit(Evaluate(TableID, FirstChildNode.AsXmlElement().InnerText()));
+        end;
+    end;
+
+    local procedure GetChildNodeCount(TableNode: XmlNode): Integer
+    var
+        ChildElements: XmlNodeList;
+    begin
+        if TableNode.IsXmlElement() then
+            ChildElements := TableNode.AsXmlElement().GetChildElements()
+        else
+            exit(0);
+        exit(ChildElements.Count());
+    end;
+
+    local procedure GetNodeOuterXml(TableNode: XmlNode): Text
+    var
+        XMLText: Text;
+    begin
+        TableNode.WriteTo(XMLText);
+        exit(XMLText);
+    end;
+
+    [TryFunction]
+    internal procedure GetTableStatisticsForTelemetry(TableNode: XmlNode; var TableName: Text; var RecordCount: Integer; var TotalTableFields: Integer; var ImportedTableFields: Integer)
+    var
+        CurrTableRecordRef: RecordRef;
+        TableNodeList: XmlNodeList;
+        TableChildNode: XmlNode;
+        NoOfChildNodes: Integer;
+        TableID: Integer;
+        NonRecordNodeCount: Integer;
+        TableElementName: Text;
+        FirstChildNode: XmlNode;
+        ChildElements: XmlNodeList;
+        LastChildNode: XmlNode;
+        LastChildChildElements: XmlNodeList;
+    begin
+        if TableNode.IsXmlElement() then
+            ChildElements := TableNode.AsXmlElement().GetChildElements()
+        else
+            exit;
+        if ChildElements.Count() > 0 then begin
+            ChildElements.Get(1, FirstChildNode);
+            Evaluate(TableID, FirstChildNode.AsXmlElement().InnerText());
+        end;
+        CurrTableRecordRef.Open(TableID);
+        TableName := CurrTableRecordRef.Name();
+        TotalTableFields := CurrTableRecordRef.FieldCount();
+        CurrTableRecordRef.Close();
+
+        if TableNode.IsXmlElement() then
+            TableNodeList := TableNode.AsXmlElement().GetChildElements()
+        else
+            exit;
+        NoOfChildNodes := TableNodeList.Count();
+
+        // ignore TableID, PageID, SkipTableTriggers etc child nodes for the table
+        TableElementName := GetElementName(CopyStr(TableName, 1, 250));
+        NonRecordNodeCount := 0;
+        foreach TableChildNode in TableNodeList do begin
+            if TableChildNode.AsXmlElement().Name.Contains(TableElementName) then
+                break;
+            NonRecordNodeCount += 1;
+        end;
+
+        RecordCount := NoOfChildNodes - NonRecordNodeCount;
+        if (RecordCount > 0) and (TableNodeList.Count() > 0) then begin
+            TableNodeList.Get(TableNodeList.Count(), LastChildNode);
+            if LastChildNode.IsXmlElement() then
+                LastChildChildElements := LastChildNode.AsXmlElement().GetChildElements();
+            ImportedTableFields := LastChildChildElements.Count();
+        end;
+    end;
+
+#if not CLEAN29
     [Scope('OnPrem')]
+    [Obsolete('Replaced by procedure ImportTableFromXMLNode', '29.0')]
     procedure ImportTableFromXMLNode(var TableNode: DotNet XmlNode; var PackageCode: Code[20])
     var
         ConfigPackageRecord: Record "Config. Package Record";
@@ -821,6 +1565,7 @@ codeunit 8614 "Config. XML Exchange"
         end;
     end;
 
+    [Obsolete('Replaced by procedure PackageDataExistsInXML', '29.0')]
     local procedure PackageDataExistsInXML(PackageCode: Code[20]; TableID: Integer; var TableNode: DotNet XmlNode): Boolean
     var
         ConfigPackageTable: Record "Config. Package Table";
@@ -857,6 +1602,7 @@ codeunit 8614 "Config. XML Exchange"
 
         exit(false);
     end;
+#endif
 
     [TryFunction]
     local procedure TryOpenTable(TableId: Integer)
@@ -866,6 +1612,8 @@ codeunit 8614 "Config. XML Exchange"
         RecordRef.Open(TableId);
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure FillPackageMetadataFromXML', '29.0')]
     local procedure FillPackageMetadataFromXML(var PackageCode: Code[20]; TableID: Integer; var TableNode: DotNet XmlNode)
     var
         ConfigPackage: Record "Config. Package";
@@ -984,6 +1732,7 @@ codeunit 8614 "Config. XML Exchange"
         end;
     end;
 
+    [Obsolete('Replaced by procedure FillPackageDataFromXML', '29.0')]
     local procedure FillPackageDataFromXML(PackageCode: Code[20]; TableID: Integer; var TableNode: DotNet XmlNode)
     var
         ConfigPackageTable: Record "Config. Package Table";
@@ -1088,6 +1837,7 @@ codeunit 8614 "Config. XML Exchange"
                 ConfigProgressBarRecord.Close();
         end;
     end;
+#endif
 
     local procedure ExcludeRemovedFields(ConfigPackageTable: Record "Config. Package Table")
     var
@@ -1105,6 +1855,8 @@ codeunit 8614 "Config. XML Exchange"
             until Field.Next() = 0;
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure FieldNodeExists', '29.0')]
     local procedure FieldNodeExists(var RecordNode: DotNet XmlNode; FieldNodeName: Text[250]): Boolean
     var
         FieldNode: DotNet XmlNode;
@@ -1113,6 +1865,14 @@ codeunit 8614 "Config. XML Exchange"
 
         if not IsNull(FieldNode) then
             exit(true);
+    end;
+#endif
+
+    local procedure FieldNodeExists(var RecordNode: XmlNode; FieldNodeName: Text[250]): Boolean
+    var
+        FieldNode: XmlNode;
+    begin
+        exit(RecordNode.SelectSingleNode(FieldNodeName, FieldNode));
     end;
 
     local procedure FormatFieldValue(var FieldRef: FieldRef; ConfigPackage: Record "Config. Package") InnerText: Text
@@ -1157,7 +1917,9 @@ codeunit 8614 "Config. XML Exchange"
         exit(InnerText);
     end;
 
+#if not CLEAN29
     [Scope('OnPrem')]
+    [Obsolete('Replaced by procedure GetAttribute', '29.0')]
     procedure GetAttribute(AttributeName: Text[1024]; var XMLNode: DotNet XmlNode): Text[1000]
     var
         XMLAttributes: DotNet XmlNamedNodeMap;
@@ -1168,6 +1930,12 @@ codeunit 8614 "Config. XML Exchange"
         if IsNull(XMLAttributeNode) then
             exit('');
         exit(Format(XMLAttributeNode.InnerText));
+    end;
+#endif
+
+    procedure GetAttribute(AttributeName: Text[1024]; var XMLNode: XmlNode): Text[1000]
+    begin
+        exit(XMLDOMMgt.GetAttributeValue(XMLNode, AttributeName));
     end;
 
     local procedure GetDimValueFromTable(var RecRef: RecordRef; DimCode: Code[20]): Code[20]
@@ -1232,6 +2000,7 @@ codeunit 8614 "Config. XML Exchange"
         exit(GetElementName(NameIn));
     end;
 
+    [Obsolete('Replaced by procedure GetNodeValue', '29.0')]
     local procedure GetNodeValue(var RecordNode: DotNet XmlNode; FieldNodeName: Text[250]): Text
     var
         FieldNode: DotNet XmlNode;
@@ -1241,12 +2010,22 @@ codeunit 8614 "Config. XML Exchange"
             exit(FieldNode.InnerText);
     end;
 
+    local procedure GetNodeValue(var RecordNode: XmlNode; FieldNodeName: Text): Text
+    var
+        FieldNode: XmlNode;
+    begin
+        if RecordNode.SelectSingleNode(FieldNodeName, FieldNode) then
+            exit(FieldNode.AsXmlElement().InnerText());
+    end;
+
     local procedure GetPackageTag(): Text
     begin
         exit(DataListTxt);
     end;
 
+#if not CLEAN29
     [Scope('OnPrem')]
+    [Obsolete('Replaced by procedure GetPackageCode', '29.0')]
     procedure GetPackageCode(PackageXML: DotNet XmlDocument): Code[20]
     var
         ConfigPackage: Record "Config. Package";
@@ -1254,6 +2033,17 @@ codeunit 8614 "Config. XML Exchange"
     begin
         DocumentElement := PackageXML.DocumentElement;
         exit(CopyStr(GetAttribute(GetElementName(ConfigPackage.FieldName(Code)), DocumentElement), 1, MaxStrLen(ConfigPackage.Code)));
+    end;
+#endif
+    procedure GetPackageCode(PackageXML: XmlDocument): Code[20]
+    var
+        ConfigPackage: Record "Config. Package";
+        DocumentElement: XmlElement;
+        DocumentElementNode: XmlNode;
+    begin
+        PackageXML.GetRoot(DocumentElement);
+        DocumentElementNode := DocumentElement.AsXmlNode();
+        exit(CopyStr(GetAttribute(GetElementName(ConfigPackage.FieldName(Code)), DocumentElementNode), 1, MaxStrLen(ConfigPackage.Code)));
     end;
 
     local procedure GetDefaultDimensionNoLinkFieldNumber(TableID: Integer): Integer
@@ -1490,6 +2280,8 @@ codeunit 8614 "Config. XML Exchange"
         exit(MediaIDGuidText);
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure GetConfigPackageDataValue', '29.0')]
     local procedure GetConfigPackageDataValue(var ConfigPackageData: Record "Config. Package Data"; var RecordNode: DotNet XmlNode; FieldNodeName: Text[250])
     var
         Base64Convert: Codeunit "Base64 Convert";
@@ -1501,7 +2293,7 @@ codeunit 8614 "Config. XML Exchange"
         end else
             ConfigPackageData.Value := CopyStr(GetNodeValue(RecordNode, FieldNodeName), 1, MaxStrLen(ConfigPackageData.Value));
     end;
-
+#endif
     local procedure UpdateConfigPackageMediaSet(ConfigPackage: Record "Config. Package")
     var
         TempNameValueBuffer: Record "Name/Value Buffer" temporary;
@@ -1522,7 +2314,29 @@ codeunit 8614 "Config. XML Exchange"
         FileManagement.ServerRemoveDirectory(MediaFolder, true);
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure ExportConfigPackageMediaSetToXML', '29.0')]
     local procedure ExportConfigPackageMediaSetToXML(var PackageXML: DotNet XmlDocument; ConfigPackage: Record "Config. Package")
+    var
+        ConfigMediaBuffer: Record "Config. Media Buffer";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageFilter: Record "Config. Package Filter";
+        ConfigPackageManagement: Codeunit "Config. Package Management";
+    begin
+        ConfigMediaBuffer.SetRange("Package Code", ConfigPackage.Code);
+        if ConfigMediaBuffer.IsEmpty() then
+            exit;
+
+        ConfigPackageManagement.InsertPackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Config. Media Buffer");
+        ConfigPackageManagement.InsertPackageFilter(
+            ConfigPackageFilter, ConfigPackage.Code, DATABASE::"Config. Media Buffer", 0,
+            ConfigMediaBuffer.FieldNo("Package Code"), ConfigPackage.Code);
+        ConfigPackageTable.CalcFields("Table Name");
+        ExportConfigTableToXML(ConfigPackageTable, PackageXML);
+    end;
+#endif
+
+    local procedure ExportConfigPackageMediaSetToXML(var PackageXML: XmlDocument; ConfigPackage: Record "Config. Package")
     var
         ConfigMediaBuffer: Record "Config. Media Buffer";
         ConfigPackageTable: Record "Config. Package Table";
@@ -1570,6 +2384,8 @@ codeunit 8614 "Config. XML Exchange"
         ConfigMediaBuffer.DeleteAll();
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by procedure AddDimensionFieldsWhenProcessingOrder', '29.0')]
     local procedure AddDimensionFieldsWhenProcessingOrder(var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExportValue: Boolean)
     var
         DimCode: Code[20];
@@ -1586,6 +2402,317 @@ codeunit 8614 "Config. XML Exchange"
             RecordNode.AppendChild(FieldNode);
         end;
     end;
+#endif
+
+    local procedure AddDimensionFieldsWhenProcessingOrder(var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var RecordNode: XmlNode; ExportValue: Boolean)
+    var
+        FieldNode: XmlNode;
+        DimCode: Code[20];
+        FieldValue: Text;
+    begin
+        if ExportValue then begin
+            DimCode := CopyStr(ConfigPackageField."Field Name", 1, 20);
+            FieldValue := GetDimValueFromTable(RecRef, DimCode);
+        end else
+            FieldValue := '';
+        FieldNode := XmlElement.Create(
+            GetElementName(CopyStr(ConfigValidateMgt.CheckName(ConfigPackageField."Field Name"), 1, 250)), '', FieldValue).AsXmlNode();
+        RecordNode.AsXmlElement().Add(FieldNode);
+    end;
+
+    procedure ImportTableFromXMLNode(var TableNode: XmlNode; var PackageCode: Code[20])
+    var
+        ConfigPackageRecord: Record "Config. Package Record";
+        ConfigPackageTable: Record "Config. Package Table";
+        TableID: Integer;
+    begin
+        if GetTableIdFromXmlNode(TableNode, TableID) then begin
+            FillPackageMetadataFromXML(PackageCode, TableID, TableNode);
+            if not TableObjectExists(TableID) then begin
+                ConfigPackageMgt.InsertPackageTableWithoutValidation(ConfigPackageTable, PackageCode, TableID);
+                ConfigPackageMgt.InitPackageRecord(ConfigPackageRecord, PackageCode, TableID);
+                ConfigPackageMgt.RecordError(ConfigPackageRecord, 0, CopyStr(StrSubstNo(TableDoesNotExistErr, TableID), 1, 250));
+            end else
+                if PackageDataExistsInXML(PackageCode, TableID, TableNode) then
+                    FillPackageDataFromXML(PackageCode, TableID, TableNode);
+        end;
+    end;
+
+    local procedure PackageDataExistsInXML(PackageCode: Code[20]; TableID: Integer; var TableNode: XmlNode): Boolean
+    var
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageField: Record "Config. Package Field";
+        RecRef: RecordRef;
+        RecordNodes: XmlNodeList;
+        RecordNode: XmlNode;
+        I: Integer;
+    begin
+        if not ConfigPackageTable.Get(PackageCode, TableID) then
+            exit(false);
+
+        ConfigPackageTable.CalcFields("Table Name");
+        if not TableNode.IsXmlElement() then
+            exit(false);
+
+        TableNode.SelectNodes(GetElementName(ConfigPackageTable."Table Name"), RecordNodes);
+        if RecordNodes.Count() = 0 then
+            exit(false);
+
+        for I := 1 to RecordNodes.Count() do begin
+            RecordNodes.Get(I, RecordNode);
+            if RecordNode.AsXmlElement().HasElements() then begin
+                RecRef.Open(ConfigPackageTable."Table ID");
+                ConfigPackageField.SetRange("Package Code", ConfigPackageTable."Package Code");
+                ConfigPackageField.SetRange("Table ID", ConfigPackageTable."Table ID");
+                if ConfigPackageField.FindSet() then
+                    repeat
+                        if ConfigPackageField."Include Field" and FieldNodeExists(RecordNode, GetElementName(ConfigPackageField."Field Name")) then
+                            if GetNodeValue(RecordNode, GetElementName(ConfigPackageField."Field Name")) <> '' then begin
+                                RecRef.Close();
+                                exit(true);
+                            end;
+                    until ConfigPackageField.Next() = 0;
+                RecRef.Close();
+            end;
+        end;
+
+        exit(false);
+    end;
+
+    local procedure FillPackageMetadataFromXML(var PackageCode: Code[20]; TableID: Integer; var TableNode: XmlNode)
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageField: Record "Config. Package Field";
+        "Field": Record "Field";
+        ConfigMgt: Codeunit "Config. Management";
+        RecordNode: XmlNode;
+        FieldNode: XmlNode;
+        Value: Text;
+        IsTableInserted: Boolean;
+        ChildElements: XmlNodeList;
+    begin
+        if ExcelMode then begin
+            PackageCode :=
+              CopyStr(GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Package Code"))), 1, MaxStrLen(PackageCode));
+            if PackageCode = '' then
+                Error(MissingInExcelFileErr, ConfigPackageTable.FieldCaption("Package Code"));
+        end;
+        if (TableID > 0) and (not ConfigPackageTable.Get(PackageCode, TableID)) and TryOpenTable(TableID) then begin
+            if not ExcelMode then begin
+                ConfigPackageTable.Init();
+                ConfigPackageTable."Package Code" := PackageCode;
+                ConfigPackageTable."Table ID" := TableID;
+                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Page ID")));
+                if Value <> '' then
+                    Evaluate(ConfigPackageTable."Page ID", Value);
+                if ConfigPackageTable."Page ID" = 0 then
+                    ConfigPackageTable."Page ID" := ConfigMgt.FindPage(TableID);
+                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Package Processing Order")));
+                if Value <> '' then
+                    Evaluate(ConfigPackageTable."Package Processing Order", Value);
+                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Processing Order")));
+                if Value <> '' then
+                    Evaluate(ConfigPackageTable."Processing Order", Value);
+                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Dimensions as Columns")));
+                if Value <> '' then
+                    Evaluate(ConfigPackageTable."Dimensions as Columns", Value);
+                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Skip Table Triggers")));
+                if Value <> '' then
+                    Evaluate(ConfigPackageTable."Skip Table Triggers", Value);
+                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Parent Table ID")));
+                if Value <> '' then
+                    Evaluate(ConfigPackageTable."Parent Table ID", Value);
+                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Delete Recs Before Processing")));
+                if Value <> '' then
+                    Evaluate(ConfigPackageTable."Delete Recs Before Processing", Value);
+                Value := GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Created by User ID")));
+                if Value <> '' then
+                    Evaluate(ConfigPackageTable."Created by User ID", CopyStr(Value, 1, 50));
+                OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromTableNode(ConfigPackageTable, TableNode);
+                ConfigPackageTable."Data Template" :=
+                  CopyStr(
+                    GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName("Data Template"))), 1,
+                    MaxStrLen(ConfigPackageTable."Data Template"));
+                ConfigPackageTable.Comments :=
+                  CopyStr(
+                    GetNodeValue(TableNode, GetElementName(ConfigPackageTable.FieldName(Comments))),
+                    1, MaxStrLen(ConfigPackageTable.Comments));
+                ConfigPackageTable."Imported Date and Time" := CreateDateTime(Today, Time);
+                ConfigPackageTable."Imported by User ID" := UserId;
+                ConfigPackageTable.Insert(true);
+                ConfigPackageField.SetRange("Package Code", ConfigPackageTable."Package Code");
+                ConfigPackageField.SetRange("Table ID", ConfigPackageTable."Table ID");
+                ConfigPackageMgt.SelectAllPackageFields(ConfigPackageField, false);
+            end else begin // Excel import
+                if not ConfigPackage.Get(PackageCode) then begin
+                    ConfigPackage.Init();
+                    ConfigPackage.Validate(Code, PackageCode);
+                    ConfigPackage.Insert(true);
+                end;
+                ConfigPackageTable.Init();
+                ConfigPackageTable."Package Code" := PackageCode;
+                ConfigPackageTable."Table ID" := TableID;
+                ConfigPackageTable.Insert(true);
+                IsTableInserted := true;
+            end;
+
+            ConfigPackageTable.CalcFields("Table Name");
+            if ConfigPackageTable."Table Name" <> '' then begin
+                TableNode.SelectNodes(GetElementName(ConfigPackageTable."Table Name"), ChildElements);
+                if ChildElements.Count() > 0 then begin
+                    ChildElements.Get(1, RecordNode);
+                    if RecordNode.AsXmlElement().HasElements() then begin
+                        ConfigPackageMgt.SetFieldFilter(Field, TableID, 0);
+                        if Field.FindSet() then
+                            repeat
+                                if FieldNodeExists(RecordNode, GetElementName(Field.FieldName)) then begin
+                                    ConfigPackageField.Get(PackageCode, TableID, Field."No.");
+                                    ConfigPackageField."Primary Key" := ConfigValidateMgt.IsKeyField(TableID, Field."No.");
+                                    ConfigPackageField."Include Field" := true;
+                                    if RecordNode.SelectSingleNode(GetElementName(Field.FieldName), FieldNode) and not ExcelMode then begin
+                                        Value := GetAttribute(GetElementName(ConfigPackageField.FieldName("Primary Key")), FieldNode);
+                                        ConfigPackageField."Primary Key" := Value = '1';
+                                        Value := GetAttribute(GetElementName(ConfigPackageField.FieldName("Validate Field")), FieldNode);
+                                        ConfigPackageField."Validate Field" := (Value = '1') and
+                                          not ConfigPackageMgt.ValidateException(TableID, Field."No.");
+                                        Value := GetAttribute(GetElementName(ConfigPackageField.FieldName("Create Missing Codes")), FieldNode);
+                                        ConfigPackageField."Create Missing Codes" := (Value = '1') and
+                                          not ConfigPackageMgt.ValidateException(TableID, Field."No.");
+                                        Value := GetAttribute(GetElementName(ConfigPackageField.FieldName("Processing Order")), FieldNode);
+                                        if Value <> '' then
+                                            Evaluate(ConfigPackageField."Processing Order", Value);
+
+                                        OnFillPackageMetadataFromXMLOnBeforeModifyConfigPackageField(ConfigPackageField, Value, FieldNode);
+                                    end;
+                                    ConfigPackageField.Modify();
+                                end;
+                            until Field.Next() = 0;
+                        if IsTableInserted then
+                            AddDimPackageFields(ConfigPackageTable, RecordNode);
+                    end;
+                end;
+            end;
+        end;
+    end;
+
+    local procedure FillPackageDataFromXML(PackageCode: Code[20]; TableID: Integer; var TableNode: XmlNode)
+    var
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageData: Record "Config. Package Data";
+        ConfigPackageRecord: Record "Config. Package Record";
+        ConfigPackageField: Record "Config. Package Field";
+        TempConfigPackageField: Record "Config. Package Field" temporary;
+        ConfigProgressBarRecord: Codeunit "Config. Progress Bar";
+        RecRef: RecordRef;
+        FieldRef: FieldRef;
+        RecordNodes: XmlNodeList;
+        RecordNode: XmlNode;
+        NodeCount: Integer;
+        RecordCount: Integer;
+        StepCount: Integer;
+        ErrorText: Text[250];
+        ShouldAssignValue: Boolean;
+        ShouldShowTableContainsRecordsQst: Boolean;
+    begin
+        if ConfigMgt.IsSystemTable(TableID) then
+            exit;
+
+        if ConfigPackageTable.Get(PackageCode, TableID) then begin
+            ExcludeRemovedFields(ConfigPackageTable);
+            if ExcelMode then begin
+                ConfigPackageTable.CalcFields("No. of Package Records");
+                ShouldShowTableContainsRecordsQst := ConfigPackageTable."No. of Package Records" > 0;
+                OnFillPackageDataFromXMLOnAfterCalcShouldShowTableContainsRecordsQst(ConfigPackageTable, PackageCode, TableID, HideDialog, ShouldShowTableContainsRecordsQst);
+                if ShouldShowTableContainsRecordsQst then
+                    if Confirm(TableContainsRecordsQst, true, TableID, PackageCode, ConfigPackageTable."No. of Package Records") then
+                        ConfigPackageTable.DeletePackageData()
+                    else
+                        exit;
+            end;
+            ConfigPackageTable.CalcFields("Table Name");
+            if not HideDialog then
+                ConfigProgressBar.Update(ConfigPackageTable."Table Name");
+
+            TableNode.SelectNodes(GetElementName(ConfigPackageTable."Table Name"), RecordNodes);
+            RecordCount := RecordNodes.Count();
+
+            if not HideDialog and (RecordCount > 1000) then begin
+                StepCount := Round(RecordCount / 100, 1);
+                ConfigProgressBarRecord.Init(RecordCount, StepCount, StrSubstNo(RecordProgressTxt, ConfigPackageTable."Table Name"));
+            end;
+
+            ConfigPackageField.SetRange("Package Code", ConfigPackageTable."Package Code");
+            ConfigPackageField.SetRange("Table ID", ConfigPackageTable."Table ID");
+            ConfigPackageField.SetRange("Include Field", true);
+            if ConfigPackageField.FindSet() then
+                repeat
+                    TempConfigPackageField := ConfigPackageField;
+                    TempConfigPackageField.Insert();
+                until ConfigPackageField.Next() = 0;
+
+            for NodeCount := 1 to RecordCount do begin
+                RecordNodes.Get(NodeCount, RecordNode);
+
+                if RecordNode.AsXmlElement().HasElements() then begin
+                    ConfigPackageMgt.InitPackageRecord(ConfigPackageRecord, PackageCode, ConfigPackageTable."Table ID");
+                    RecRef.Close();
+                    RecRef.Open(ConfigPackageTable."Table ID");
+                    TempConfigPackageField.Reset();
+                    if TempConfigPackageField.FindSet() then
+                        repeat
+                            ConfigPackageData.Init();
+                            OnFillPackageDataFromXMLOnAfterConfigPackageDataInit(ConfigPackageData, TempConfigPackageField);
+                            ConfigPackageData."Package Code" := TempConfigPackageField."Package Code";
+                            ConfigPackageData."Table ID" := TempConfigPackageField."Table ID";
+                            ConfigPackageData."Field ID" := TempConfigPackageField."Field ID";
+                            ConfigPackageData."No." := ConfigPackageRecord."No.";
+                            if FieldNodeExists(RecordNode, TempConfigPackageField.GetElementName()) or
+                               TempConfigPackageField.Dimension
+                            then
+                                GetConfigPackageDataValue(ConfigPackageData, RecordNode, TempConfigPackageField.GetElementName());
+                            OnFillPackageDataFromXMLOnAfterConfigPackageDataInsert(ConfigPackageData, TempConfigPackageField, ExcelMode);
+                            ConfigPackageData.Insert();
+
+                            ShouldAssignValue := not TempConfigPackageField.Dimension;
+                            OnFillPackageDataFromXMLOnAfterCalcShouldAssignValue(ConfigPackageField, ConfigPackageData, ConfigPackageRecord, TempConfigPackageField, ShouldAssignValue);
+                            if ShouldAssignValue then begin
+                                FieldRef := RecRef.Field(ConfigPackageData."Field ID");
+                                if ConfigPackageData.Value <> '' then begin
+                                    ErrorText := CopyStr(ConfigValidateMgt.EvaluateValue(FieldRef, ConfigPackageData.Value, not ExcelMode), 1, MaxStrLen(ErrorText));
+                                    if ErrorText <> '' then
+                                        ConfigPackageMgt.FieldError(ConfigPackageData, ErrorText, ErrorTypeEnum::General)
+                                    else
+                                        ConfigPackageData.Value := Format(FieldRef.Value);
+
+                                    ConfigPackageData.Modify();
+                                end;
+                            end;
+                        until TempConfigPackageField.Next() = 0;
+
+                    ConfigPackageTable."Imported Date and Time" := CurrentDateTime;
+                    ConfigPackageTable."Imported by User ID" := UserId;
+                    ConfigPackageTable.Modify();
+                    if not HideDialog and (RecordCount > 1000) then
+                        ConfigProgressBarRecord.Update(StrSubstNo('Records: %1 of %2', ConfigPackageRecord."No.", RecordCount));
+                end;
+            end;
+            if not HideDialog and (RecordCount > 1000) then
+                ConfigProgressBarRecord.Close();
+        end;
+    end;
+
+    local procedure GetConfigPackageDataValue(var ConfigPackageData: Record "Config. Package Data"; var RecordNode: XmlNode; FieldNodeName: Text[250])
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        OutStream: OutStream;
+    begin
+        if ConfigPackageMgt.IsBLOBField(ConfigPackageData."Table ID", ConfigPackageData."Field ID") then begin
+            ConfigPackageData."BLOB Value".CreateOutStream(OutStream);
+            Base64Convert.FromBase64(GetNodeValue(RecordNode, FieldNodeName), OutStream);
+        end else
+            ConfigPackageData.Value := CopyStr(GetNodeValue(RecordNode, FieldNodeName), 1, MaxStrLen(ConfigPackageData.Value));
+    end;
 
     local procedure VerifyCanImportConfigurationPackage()
     var
@@ -1599,20 +2726,25 @@ codeunit 8614 "Config. XML Exchange"
             Error(ImportingIsNotAllowedDuringUpgradeOrInstallationErr);
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnAfterAddFieldAttributesProcedure', '29.0')]
     local procedure OnAfterAddFieldAttributes(var ConfigPackageField: Record "Config. Package Field"; var FieldNode: DotNet XmlNode)
     begin
     end;
 
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnAfterAddTableAttributesProcedure', '29.0')]
     local procedure OnAfterAddTableAttributes(ConfigPackageTable: Record "Config. Package Table"; var PackageXML: DotNet XmlDocument; var TableNode: DotNet XmlNode)
     begin
     end;
 
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnAfterExportPackageToXMLDocument', '29.0')]
     local procedure OnAfterExportPackageXMLDocument(var ConfigPackage: Record "Config. Package"; HideDialog: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterImportPackageXMLDocument(PackageCode: Code[20]; ExcelMode: Boolean; var Result: Boolean)
@@ -1624,10 +2756,13 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnBeforeCreateRecordNodesProcedure', '29.0')]
     local procedure OnBeforeCreateRecordNodes(var ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var TypeHelper: Codeunit "Type Helper"; var XMLDOMManagement: Codeunit "XML DOM Management"; var WorkingFolder: Text; var ExcelMode: Boolean; var Advanced: Boolean; var HideDialog: Boolean; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEvaluateMinCountForAsyncImport(var ConfigPackage: Record "Config. Package"; var Value: Text; var IsHandled: Boolean)
@@ -1659,30 +2794,38 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnCreateRecordNodesProcedureOnAfterRecordProcessed', '29.0')]
     local procedure OnCreateRecordNodesOnAfterRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExcelMode: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateRecordNodesOnNotFoundOnAfterConfigPackageFieldSetFilters(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field")
     begin
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnCreateRecordNodesProcedureOnAfterNotFoundRecordProcessed', '29.0')]
     local procedure OnCreateRecordNodesOnAfterNotFoundRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: DotNet XmlDocument; var RecordNode: DotNet XmlNode; var FieldNode: DotNet XmlNode; ExcelMode: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnExportPackageToXMLDocumentOnAfterSetAttributes', '29.0')]
     local procedure OnExportPackageXMLDocumentOnAfterSetAttributes(var ConfigPackage: Record "Config. Package"; var XMLDOMMgt: Codeunit "XML DOM Management"; var DocumentElement: DotNet XmlElement)
     begin
     end;
 
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnExportPackageToXMLDocumentOnBeforeConfigProgressBarInit', '29.0')]
     local procedure OnExportPackageXMLDocumentOnBeforeConfigProgressBarInit(var ConfigPackageTable: Record "Config. Package Table"; var ConfigPackage: Record "Config. Package"; var XMLDOMMgt: Codeunit "XML DOM Management"; Advanced: Boolean; HideDialog: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnExportPackageXMLOnAfterAssignToFile(ConfigPackage: Record "Config. Package"; var ToFile: Text[50])
@@ -1694,10 +2837,13 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromTableNode', '29.0')]
     local procedure OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromXML(ConfigPackageTable: Record "Config. Package Table"; var TableNode: DotNet XmlNode)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnFillPackageDataFromXMLOnAfterConfigPackageDataInit(var ConfigPackageData: Record "Config. Package Data"; var ConfigPackageField: Record "Config. Package Field")
@@ -1734,10 +2880,13 @@ codeunit 8614 "Config. XML Exchange"
     begin
     end;
 
+#if not CLEAN29
     [IntegrationEvent(false, false)]
+    [Obsolete('Replaced by event OnFillPackageMetadataFromXMLOnBeforeModifyConfigPackageField', '29.0')]
     local procedure OnFillPackageMetadataFromXMLOnBeforeConfigPackageFieldModify(var ConfigPackageField: Record "Config. Package Field"; var Value: Text; var FieldNode: DotNet XmlNode)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnFormatFieldValueOnBeforeExitInnerText(var FieldRef: FieldRef; ConfigPackage: Record "Config. Package"; var InnerText: Text)
@@ -1751,6 +2900,66 @@ codeunit 8614 "Config. XML Exchange"
 
     [IntegrationEvent(false, false)]
     local procedure OnVerifyCanImportConfigurationPackage(var CanImportConfigurationPackage: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAddTableAttributesProcedure(ConfigPackageTable: Record "Config. Package Table"; var TableNode: XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAddFieldAttributesProcedure(var ConfigPackageField: Record "Config. Package Field"; var FieldNode: XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnImportPackageXMLDocumentOnBeforeModifyConfigPackage(var ConfigPackage: Record "Config. Package"; var DocumentElement: XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreateRecordNodesProcedure(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; WorkingFolder: Text; ExcelMode: Boolean; Advanced: Boolean; HideDialog: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateRecordNodesProcedureOnAfterRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: XmlDocument; var RecordNode: XmlNode; var FieldNode: XmlNode; ExcelMode: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateRecordNodesProcedureOnAfterNotFoundRecordProcessed(ConfigPackageTable: Record "Config. Package Table"; var ConfigPackageField: Record "Config. Package Field"; var RecRef: RecordRef; var PackageXML: XmlDocument; var RecordNode: XmlNode; var FieldNode: XmlNode; ExcelMode: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFillPackageMetadataFromXMLOnAfterGetPackageTableValueFromTableNode(ConfigPackageTable: Record "Config. Package Table"; var TableNode: XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFillPackageMetadataFromXMLOnBeforeModifyConfigPackageField(var ConfigPackageField: Record "Config. Package Field"; var Value: Text; var FieldNode: XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnExportPackageToXMLDocumentOnAfterSetAttributes(var ConfigPackage: Record "Config. Package"; var DocumentElement: XmlNode)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnExportPackageToXMLDocumentOnBeforeConfigProgressBarInit(var ConfigPackageTable: Record "Config. Package Table"; var ConfigPackage: Record "Config. Package"; Advanced: Boolean; HideDialog: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterExportPackageToXMLDocument(var ConfigPackage: Record "Config. Package"; HideDialog: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnImportPackageXMLFromClientOnBeforeImportPackage(var UseImportWithDotNet: Boolean)
     begin
     end;
 }
