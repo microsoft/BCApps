@@ -227,6 +227,22 @@ table 4325 "SOA Setup"
         {
             DataClassification = SystemMetadata;
         }
+        field(51; "Plain Date"; Date)
+        {
+            Caption = 'Plain Date';
+        }
+        field(52; "Assist Date"; Date)
+        {
+            Caption = 'Assist Date';
+        }
+        field(53; "DrillDown Date"; Date)
+        {
+            Caption = 'DrillDown Date';
+        }
+        field(54; "Assist And DrillDown Date"; Date)
+        {
+            Caption = 'Assist and DrillDown Date';
+        }
     }
 
     keys
