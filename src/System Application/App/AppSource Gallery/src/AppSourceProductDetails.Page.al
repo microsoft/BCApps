@@ -179,12 +179,17 @@ page 2516 "AppSource Product Details"
                 trigger OnAction()
                 var
                     ExtensionManagement: Codeunit "Extension Management";
+                    PublisherType: Text;
                 begin
                     if PlansAreVisible then
                         if not Confirm(PurchaseLicensesElsewhereLbl) then
                             exit;
 
-                    ExtensionManagement.InstallMarketplaceExtension(AppID);
+                    PublisherType := AppSourceJsonUtilities.GetStringValue(ProductObject, 'publisherType');
+                    if PublisherType = '' then
+                        ExtensionManagement.InstallMarketplaceExtension(AppID)
+                    else
+                        ExtensionManagement.InstallMarketplaceExtensionWithPublisher(AppID, PublisherType);
                 end;
             }
 
