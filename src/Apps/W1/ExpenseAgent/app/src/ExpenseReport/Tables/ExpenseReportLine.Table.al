@@ -1969,10 +1969,11 @@ table 6907 "Expense Report Line"
         ExpenseReport.CopyReportLineAttachments(SourceDocNo, SourceLineNo, NewLine."Document No.", NewLine."Line No.");
 
         NewLine.UpdateAmounts();
-        NewLine.ApplyRule(false, true);
-        NewLine.Modify();
 
         Rec.Delete(true);
+
+        NewLine.ApplyRule(false, true);
+        NewLine.Modify();
 
         if NewLine."Expense No." <> '' then
             if Expense.Get(NewLine."Expense No.") then begin
