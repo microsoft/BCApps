@@ -13,6 +13,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -31,8 +32,8 @@ codeunit 148146 "Identification Tests"
                   tabledata "Sales Invoice Header" = rimd,
                   tabledata "Cust. Ledger Entry" = rimd,
                   tabledata "Detailed Cust. Ledg. Entry" = rimd,
-                  tabledata "FR E-Invoice Lifecycle" = rimD,
-                  tabledata "FR E-Invoice Lifecycle VAT" = rimD,
+                  tabledata "FR E-Invoice Lifecycle" = rimd,
+                  tabledata "FR E-Invoice Lifecycle VAT" = rimd,
                   tabledata "VAT Entry" = rimd,
                   tabledata "VAT Posting Setup" = rimd;
 
@@ -44,6 +45,7 @@ codeunit 148146 "Identification Tests"
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
@@ -292,6 +294,7 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CapturedOccurrenceRejectsRegulatoryValueChanges()
     var
         EDocument: Record "E-Document";
@@ -553,6 +556,7 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure LifecycleOccurrenceAndVATBreakdownRejectDeletion()
     var
         EDocument: Record "E-Document";
@@ -856,6 +860,7 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure LifecycleErrorHandlerStoresTaskError()
     var
         EDocument: Record "E-Document";
@@ -870,6 +875,7 @@ codeunit 148146 "Identification Tests"
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
         FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
         FREInvoiceLifecycle.Modify();
+        Commit();
         asserterror Error(WorkerFailureErr);
 
         FREInvoiceLifecycleError.Run(FREInvoiceLifecycle);
@@ -885,6 +891,7 @@ codeunit 148146 "Identification Tests"
     var
         Customer: Record Customer;
         GeneralPostingSetup: Record "General Posting Setup";
+        Location: Record Location;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -910,6 +917,8 @@ codeunit 148146 "Identification Tests"
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.FindFirst();
+        Location.Code := SalesLine."Location Code";
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
         if not GeneralPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group") then
             LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
         Customer.Get(SalesHeader."Sell-to Customer No.");

@@ -21,9 +21,6 @@ codeunit 10991 "EDoc. Helpers"
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocumentService: Record "E-Document Service";
     begin
-        if (Rec.Status = xRec.Status) and (Rec.Service = xRec.Service) then
-            exit;
-
         if not GetFrenchEDocumentService(Rec, EDocumentService, EDocumentServiceStatus) then
             exit;
 
