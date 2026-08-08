@@ -222,7 +222,7 @@ page 6841 "Spend Request Card"
                 trigger OnAction()
                 begin
                     if Rec.Status = Rec.Status::Closed then
-                        Error('A closed spend request cannot be updated.');
+                        Error(SpendRequestClosedErr);
                     Rec.UpdateCurrencyExchangeRate();
                     Rec.Modify();
                 end;
@@ -286,29 +286,32 @@ page 6841 "Spend Request Card"
                     {
                     }
                 }
-                group("Category_Request Approval")
-                {
-                    Caption = 'Request Approval';
-
-                    actionref(Approve_Promoted; Approve)
-                    {
-                    }
-                    actionref(Reject_Promoted; Reject)
-                    {
-                    }
-                }
                 actionref(RefreshCurrency_Promoted; RefreshCurrency)
                 {
                 }
-                group(Category_SpendRequest)
-                {
-                    Caption = 'Spend Request';
+            }
+            group(Category_Approval)
+            {
+                Caption = 'Approval';
 
-                    actionref(Dimensions_Promoted; Dimensions)
-                    {
-                    }
+                actionref(Approve_Promoted; Approve)
+                {
+                }
+                actionref(Reject_Promoted; Reject)
+                {
+                }
+            }
+            group(Category_SpendRequest)
+            {
+                Caption = 'Spend Request';
+
+                actionref(Dimensions_Promoted; Dimensions)
+                {
                 }
             }
         }
     }
+
+    var
+        SpendRequestClosedErr: Label 'A closed spend request cannot be updated.';
 }

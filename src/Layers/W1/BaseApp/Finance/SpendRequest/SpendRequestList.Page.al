@@ -79,7 +79,7 @@ page 6840 "Spend Request List"
                 trigger OnAction()
                 begin
                     if Rec.Status = Rec.Status::Closed then
-                        Error('A closed spend request cannot be updated.');
+                        Error(SpendRequestClosedErr);
                     Rec.UpdateCurrencyExchangeRate();
                     Rec.Modify();
                 end;
@@ -131,15 +131,18 @@ page 6840 "Spend Request List"
                 actionref(RefreshCurrency_Promoted; RefreshCurrency)
                 {
                 }
-                group(Category_SpendRequest)
-                {
-                    Caption = 'Spend Request';
+            }
+            group(Category_SpendRequest)
+            {
+                Caption = 'Spend Request';
 
-                    actionref(Dimensions_Promoted; Dimensions)
-                    {
-                    }
+                actionref(Dimensions_Promoted; Dimensions)
+                {
                 }
             }
         }
     }
+
+    var
+        SpendRequestClosedErr: Label 'A closed spend request cannot be updated.';
 }
