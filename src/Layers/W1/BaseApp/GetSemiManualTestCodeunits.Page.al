@@ -27,7 +27,7 @@ page 130416 "Get Semi-Manual Test Codeunits"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the object ID number for the object named in the codeunit.';
                 }
-                field("Object Name"; Rec."Object Name")
+                field("Object Name"; Rec.Name)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the object name in the codeunit.';

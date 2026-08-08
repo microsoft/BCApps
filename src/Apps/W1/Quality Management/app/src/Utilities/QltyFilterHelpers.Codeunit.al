@@ -119,7 +119,7 @@ codeunit 20403 "Qlty. Filter Helpers"
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
             AllObjWithCaption.SetRange("Object ID", TableNumber);
             AllObjWithCaption.FindFirst();
-            TableReference := AllObjWithCaption."Object Name";
+            TableReference := AllObjWithCaption.Name;
         end;
     end;
 
@@ -187,28 +187,28 @@ codeunit 20403 "Qlty. Filter Helpers"
         TablesAllObjWithCaption.SetRange("Object Type", TablesAllObjWithCaption."Object Type"::Table);
         if not Evaluate(ResultTableID, CurrentTable) then begin
             TablesAllObjWithCaption.SetRange("Object Caption");
-            TablesAllObjWithCaption.SetRange("Object Name", CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption."Object Name")));
+            TablesAllObjWithCaption.SetRange(Name, CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption.Name)));
             if TablesAllObjWithCaption.FindFirst() then begin
                 ResultTableID := TablesAllObjWithCaption."Object ID";
-                CurrentTable := TablesAllObjWithCaption."Object Name";
+                CurrentTable := TablesAllObjWithCaption.Name;
             end else begin
                 TablesAllObjWithCaption.SetRange("Object Caption");
-                TablesAllObjWithCaption.SetFilter("Object Name", StrSubstNo('@%1', CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption."Object Name"))));
+                TablesAllObjWithCaption.SetFilter(Name, StrSubstNo('@%1', CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption.Name))));
                 if TablesAllObjWithCaption.FindFirst() then begin
                     ResultTableID := TablesAllObjWithCaption."Object ID";
-                    CurrentTable := TablesAllObjWithCaption."Object Name";
+                    CurrentTable := TablesAllObjWithCaption.Name;
                 end else begin
-                    TablesAllObjWithCaption.SetRange("Object Name");
+                    TablesAllObjWithCaption.SetRange(Name);
                     TablesAllObjWithCaption.SetRange("Object Caption", CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption."Object Caption")));
                     if TablesAllObjWithCaption.FindFirst() then begin
                         ResultTableID := TablesAllObjWithCaption."Object ID";
-                        CurrentTable := TablesAllObjWithCaption."Object Name";
+                        CurrentTable := TablesAllObjWithCaption.Name;
                     end else begin
-                        TablesAllObjWithCaption.SetRange("Object Name");
-                        TablesAllObjWithCaption.SetFilter("Object Caption", StrSubstNo('@%1', CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption."Object Name"))));
+                        TablesAllObjWithCaption.SetRange(Name);
+                        TablesAllObjWithCaption.SetFilter("Object Caption", StrSubstNo('@%1', CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption.Name))));
                         if TablesAllObjWithCaption.FindFirst() then begin
                             ResultTableID := TablesAllObjWithCaption."Object ID";
-                            CurrentTable := TablesAllObjWithCaption."Object Name";
+                            CurrentTable := TablesAllObjWithCaption.Name;
                         end;
                     end;
                 end;
@@ -216,18 +216,18 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
         if ResultTableID = 0 then begin
             TablesAllObjWithCaption.SetRange("Object Caption");
-            TablesAllObjWithCaption.SetFilter("Object Name", StrSubstNo('@*%1*', CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption."Object Name"))));
+            TablesAllObjWithCaption.SetFilter(Name, StrSubstNo('@*%1*', CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption.Name))));
             if TablesAllObjWithCaption.Count() = 1 then begin
                 TablesAllObjWithCaption.FindFirst();
                 ResultTableID := TablesAllObjWithCaption."Object ID";
-                CurrentTable := TablesAllObjWithCaption."Object Name";
+                CurrentTable := TablesAllObjWithCaption.Name;
             end else begin
-                TablesAllObjWithCaption.SetRange("Object Name");
-                TablesAllObjWithCaption.SetFilter("Object Caption", StrSubstNo('@*%1*', CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption."Object Name"))));
+                TablesAllObjWithCaption.SetRange(Name);
+                TablesAllObjWithCaption.SetFilter("Object Caption", StrSubstNo('@*%1*', CopyStr(CurrentTable, 1, MaxStrLen(TablesAllObjWithCaption.Name))));
                 if TablesAllObjWithCaption.Count() = 1 then begin
                     TablesAllObjWithCaption.FindFirst();
                     ResultTableID := TablesAllObjWithCaption."Object ID";
-                    CurrentTable := TablesAllObjWithCaption."Object Name";
+                    CurrentTable := TablesAllObjWithCaption.Name;
                 end;
             end;
         end;

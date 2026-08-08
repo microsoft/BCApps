@@ -75,7 +75,7 @@ table 8619 "Config. Template Line"
         }
         field(7; "Table Name"; Text[250])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = filter(Table),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = filter(Table),
                                                                         "Object ID" = field("Table ID")));
             Caption = 'Table Name';
             Editable = false;

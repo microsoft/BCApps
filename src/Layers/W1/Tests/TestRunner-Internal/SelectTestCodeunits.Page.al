@@ -17,7 +17,7 @@ page 130022 "Select Test Codeunits"
                 {
                     ApplicationArea = All;
                 }
-                field("Object Name"; "Object Name")
+                field("Object Name"; Name)
                 {
                     ApplicationArea = All;
                 }

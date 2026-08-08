@@ -300,7 +300,7 @@ page 10128 "Posted Bank Rec. Adj Lines Sub"
         AllObj: Record AllObj;
     begin
         AllObj.SetRange("Object Type", AllObj."Object Type"::Table);
-        AllObj.SetRange("Object Name", Rec.TableName);
+        AllObj.SetRange(Name, Rec.TableName);
         AllObj.FindFirst();
         exit(AllObj."Object ID");
     end;

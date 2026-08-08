@@ -479,7 +479,7 @@ codeunit 144055 "UT TAB Telebank"
     begin
         ExportProtocol."Export Object Type" := ExportProtocol."Export Object Type"::Report;
         ExportProtocol.Validate("Export ID", FindObject(AllObj, AllObj."Object Type"::Report));
-        Assert.AreEqual(AllObj."Object Name", ExportProtocol."Export Name", ExportProtocol.FieldName("Export Name"));
+        Assert.AreEqual(AllObj.Name, ExportProtocol."Export Name", ExportProtocol.FieldName("Export Name"));
     end;
 
     [Test]
@@ -491,7 +491,7 @@ codeunit 144055 "UT TAB Telebank"
     begin
         ExportProtocol."Export Object Type" := ExportProtocol."Export Object Type"::XMLPort;
         ExportProtocol.Validate("Export ID", FindObject(AllObj, AllObj."Object Type"::XMLport));
-        Assert.AreEqual(AllObj."Object Name", ExportProtocol."Export Name", ExportProtocol.FieldName("Export Name"));
+        Assert.AreEqual(AllObj.Name, ExportProtocol."Export Name", ExportProtocol.FieldName("Export Name"));
     end;
 
     [Test]
