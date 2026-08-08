@@ -2586,6 +2586,7 @@ codeunit 148017 "FEC Audit File Export Tests"
         IncomeAccountNo := GLAccount."No.";
 
         // [GIVEN] The general posting setup uses that account as its Purch. Pmt. Disc. account (not the Sales one)
+        LibrarySetupStorage.Save(Database::"General Ledger Setup");
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.Validate("Adjust for Payment Disc.", true);
         GeneralLedgerSetup.Modify(true);
