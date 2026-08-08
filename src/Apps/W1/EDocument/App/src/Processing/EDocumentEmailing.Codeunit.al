@@ -14,7 +14,6 @@ using System.Utilities;
 
 codeunit 6188 "E-Document Emailing"
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
