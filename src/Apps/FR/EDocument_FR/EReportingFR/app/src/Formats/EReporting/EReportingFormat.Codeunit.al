@@ -89,35 +89,6 @@ codeunit 10970 "E-Reporting Format" implements "E-Document"
         EDocServiceSupportedType.Insert();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"E-Document", 'OnBeforeModifyEvent', '', false, false)]
-    local procedure SetClearanceDateOnModify(var Rec: Record "E-Document"; var xRec: Record "E-Document"; RunTrigger: Boolean)
-    var
-        EDocumentServiceStatus: Record "E-Document Service Status";
-        EDocumentService: Record "E-Document Service";
-    begin
-        if Rec.Service = '' then
-            exit;
-
-        EDocumentService.SetLoadFields("Document Format");
-        if not EDocumentService.Get(Rec.Service) then
-            exit;
-
-        if EDocumentService."Document Format" <> EDocumentService."Document Format"::"E-Reporting FR" then
-            exit;
-
-        if not EDocumentServiceStatus.Get(Rec."Entry No", Rec.Service) then
-            exit;
-
-        case EDocumentServiceStatus.Status of
-            EDocumentServiceStatus.Status::Approved,
-            EDocumentServiceStatus.Status::Cleared:
-                Rec."Clearance Date" := CurrentDateTime();
-            EDocumentServiceStatus.Status::Rejected,
-            EDocumentServiceStatus.Status::"Not Cleared":
-                Rec."Clearance Date" := 0DT;
-        end;
-    end;
-
     var
         GetCompleteInfoNotSupportedErr: Label 'Getting complete info from received document is not supported for this e-document format.';
 }

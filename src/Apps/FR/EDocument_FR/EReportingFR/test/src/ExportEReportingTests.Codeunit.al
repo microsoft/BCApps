@@ -698,6 +698,7 @@ codeunit 148145 "Export E-Reporting Tests"
         CreateEDocumentServiceStatus(EDocument."Entry No", 'ERFR-APPR', "E-Document Service Status"::Approved);
 
         // [WHEN] E-Document is modified
+        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         // [THEN] Clearance Date is set to non-zero DateTime
@@ -723,6 +724,7 @@ codeunit 148145 "Export E-Reporting Tests"
         CreateEDocumentServiceStatus(EDocument."Entry No", 'ERFR-CLR', "E-Document Service Status"::Cleared);
 
         // [WHEN] E-Document is modified
+        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         // [THEN] Clearance Date is set to non-zero DateTime
@@ -750,6 +752,7 @@ codeunit 148145 "Export E-Reporting Tests"
         CreateEDocumentServiceStatus(EDocument."Entry No", 'ERFR-REJ', "E-Document Service Status"::Rejected);
 
         // [WHEN] E-Document is modified
+        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         // [THEN] Clearance Date is reset to 0DT
@@ -777,6 +780,7 @@ codeunit 148145 "Export E-Reporting Tests"
         CreateEDocumentServiceStatus(EDocument."Entry No", 'ERFR-NCLR', "E-Document Service Status"::"Not Cleared");
 
         // [WHEN] E-Document is modified
+        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         // [THEN] Clearance Date is reset to 0DT

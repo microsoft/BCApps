@@ -4,32 +4,24 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-enum 10976 "Electronic Address Scheme"
+enum 10974 "FR E-Invoice Lifecycle Proc."
 {
-    Extensible = true;
+    Extensible = false;
 
-    value(0; "EM")
+    value(0; Captured)
     {
-        Caption = 'Email (EM)';
+        Caption = 'Captured';
     }
-    value(1; "0009")
+    value(1; "Message Created")
     {
-        Caption = 'SIRET (0009)';
+        Caption = 'Message Created';
     }
-    value(2; "0002")
+    value(2; Queued)
     {
-        Caption = 'SIREN (0002)';
+        Caption = 'Queued';
     }
-    value(3; " ")
+    value(4; Failed)
     {
-        Caption = ' ';
-    }
-    value(4; "0225")
-    {
-        Caption = 'FRCTC electronic address (0225)';
-    }
-    value(5; "9957")
-    {
-        Caption = 'French VAT number (9957)';
+        Caption = 'Failed';
     }
 }

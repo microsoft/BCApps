@@ -25,6 +25,7 @@ permissionset 6105 "E-Doc. Core - User"
     IncludedPermissionSets = "E-Doc. Core - Read";
 
     Permissions =
+        codeunit "E-Document Message API" = X,
         tabledata "E-Document" = iMD,
     #region Service
         tabledata "E-Document Service" = im,
