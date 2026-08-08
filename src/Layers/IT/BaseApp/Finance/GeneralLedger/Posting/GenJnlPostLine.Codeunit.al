@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -294,6 +294,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
     var
         xGLEntryNo: Integer;
+        xVATEntryNo: Integer;
         Balancing: Boolean;
         IsTransactionConsistent: Boolean;
         IsPosted: Boolean;
@@ -304,7 +305,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit;
 
         xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
         ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         GetJournalsSourceCode();
 
@@ -382,6 +385,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GlobalGLEntry, GenJnlLine, IsTransactionConsistent, FirstTransactionNo, GLReg, TempGLEntryBuf,
             NextEntryNo, NextTransactionNo, NextVATEntryNo);
         ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         GLEntryInconsistent := not IsTransactionConsistent;
     end;
@@ -1053,7 +1057,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnBeforeInsertVATEntry(VATEntry, GenJnlLine, NextVATEntryNo, TempGLEntryVATEntryLink, TempGLEntryBuf, GLReg);
             VATEntry.Insert(true);
             TempGLEntryVATEntryLink.InsertLinkSelf(TempGLEntryBuf."Entry No.", VATEntry."Entry No.");
-            NextVATEntryNo := NextVATEntryNo + 1;
+            NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
             OnAfterInsertVATEntry(GenJnlLine, VATEntry, TempGLEntryBuf."Entry No.", NextVATEntryNo, TempGLEntryVATEntryLink);
 
             InsertVATBookEntry(VATEntry);
@@ -1097,7 +1101,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 OnInsertVATOnBeforeReverseChargeVATEntryInsert(VATEntry, GenJnlLine);
                 VATEntry.Insert(true);
                 VATEntry."Tax Liable" := true;
-                NextVATEntryNo := NextVATEntryNo + 1;
+                NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
                 InsertVATBookEntry(VATEntry);
                 VATEntry := VATEntry2;
             end;
@@ -2248,11 +2252,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GenJnlTemplate.Init();
 
         OnStartPostingOnBeforeSetNextVatEntryNo(VATEntry);
-        VATEntry.LockTable();
-        if VATEntry.FindLast() then
-            NextVATEntryNo := VATEntry."Entry No." + 1
-        else
-            NextVATEntryNo := 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            VATEntry.LockTable();
+            if VATEntry.FindLast() then
+                NextVATEntryNo := VATEntry."Entry No." + 1
+            else
+                NextVATEntryNo := 1;
+        end else
+            NextVATEntryNo := VATEntry.GetNextEntryNo();
         OnStartPostingOnAfterSetNextVatEntryNo(VATEntry, NextVATEntryNo);
         NextConnectionNo := 1;
         FirstNewVATEntryNo := NextVATEntryNo;
@@ -2334,6 +2341,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Transaction", 'r')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
     local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
     begin
         if LedgEntryNo = xLedgEntryNo then
@@ -6245,7 +6253,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry.Insert(true);
         OnPostUnrealVATEntryOnBeforeInsertLinkSelf(TempGLEntryVATEntryLink, VATEntry, GLEntryNo, NextVATEntryNo);
         TempGLEntryVATEntryLink.InsertLinkSelf(GLEntryNo + 1, NextVATEntryNo);
-        NextVATEntryNo := NextVATEntryNo + 1;
+        NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
         InsertVATBookEntry(VATEntry);
 
         VATEntry2."Remaining Unrealized Amount" :=
@@ -7640,7 +7648,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 OnInsertVATEntriesFromTempOnBeforeVATEntryInsert(VATEntry, TempVATEntry, GLReg, GLEntry);
                 VATEntry.Insert(true);
                 InsertVATBookEntry(VATEntry);
-                NextVATEntryNo := NextVATEntryNo + 1;
+                NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
                 if VATEntry."Unrealized VAT Entry No." = 0 then
                     TempGLEntryVATEntryLink.InsertLinkSelf(GLEntry."Entry No.", VATEntry."Entry No.");
                 LinkedAmount += VATEntry.Amount + VATEntry.Base;
@@ -8074,10 +8082,24 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     /// <summary>
+    /// Returns next VAT entry no. that should be used when creating next vat entry with concurrent posting.
+    /// </summary>
+    /// <param name="VATEntryNo">Current VAT entry no.</param>
+    /// <returns>Next VAT entry no. to be used for posting</returns>
+    local procedure GetNextVATEntryNoForPosting(VATEntryNo: Integer): Integer
+    begin
+        GetGLSetup();
+        if GLSetup.UseConcurrentPosting() then
+            exit(VATEntry.GetNextEntryNo());
+
+        exit(VATEntryNo + 1);
+    end;
+
+    /// <summary>
     /// Increases global variable NextVATEntryNo by 1 (one).
     /// </summary>
     /// <remarks>
-    /// Variable NextVATEntryNo is used as entry no. when creating vat entries
+    /// Variable NextVATEntryNo is used as entry no. when creating VAT entries
     /// </remarks>
     procedure IncrNextVATEntryNo()
     var
@@ -8087,7 +8109,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeIncrNextVATEntryNo(NextVATEntryNo, IsHandled);
         if IsHandled then
             exit;
-        NextVATEntryNo := NextVATEntryNo + 1;
+
+        NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
     end;
 
     /// <summary>
@@ -9874,8 +9897,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure OnAfterCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; var DtldLedgEntryInserted: Boolean; PreviewMode: Boolean)
     begin
     end;
-
-
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertVATOnAfterCalcVATDifferenceLCY(GenJournalLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; var VATDifferenceLCY: Decimal; var CurrExchRate: Record "Currency Exchange Rate")
