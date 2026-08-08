@@ -220,6 +220,7 @@ page 8751 "Document Attachment - External"
                 var
                     DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+                    MediaReferenceCounts: Dictionary of [Guid, Integer];
                     SuccessCount: Integer;
                     FailedCount: Integer;
                 begin
@@ -231,6 +232,12 @@ page 8751 "Document Attachment - External"
                     DocumentAttachment.SetRange("Stored Internally", true);
                     SuccessCount := 0;
                     FailedCount := 0;
+
+                    // Multiple Document Attachment records can share the same Tenant Media
+                    // record; build a reference count once so it's only physically deleted
+                    // after the last referencing attachment in the selection is processed.
+                    ExternalStorageImpl.BuildMediaReferenceCounts(MediaReferenceCounts, MediaReferenceCounts);
+
                     if DocumentAttachment.FindSet() then
                         repeat
                             if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
