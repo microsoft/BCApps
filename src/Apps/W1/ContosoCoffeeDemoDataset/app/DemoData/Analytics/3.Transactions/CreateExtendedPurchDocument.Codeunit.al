@@ -151,5 +151,5 @@ codeunit 5688 "Create Extended Purch Document"
     end;
 
     var
-        AnalyticsReferenceTok: Label 'ANALYTICS', MaxLength = 35;
+        AnalyticsReferenceTok: Label 'ANALYTICS', MaxLength = 35, Locked = true;
 }

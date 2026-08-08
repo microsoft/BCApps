@@ -8,7 +8,7 @@ permissionset 4766 "Contoso Demo - Read"
 {
     Access = Public;
     Assignable = true;
-    Caption = 'Contoso Demo - Edit';
+    Caption = 'Contoso Demo - Read';
 
     IncludedPermissionSets = "Contoso Demo - Objects";
 
