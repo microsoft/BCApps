@@ -54,6 +54,7 @@
     "../../../src/Apps/W1/ExcelReports/App",
     "../../../src/Apps/W1/ExciseTaxes/app",
     "../../../src/Apps/W1/ExpenseAgent/app",
+    "../../../src/Apps/W1/ExpenseWithholdingTax/app",
     "../../../src/Apps/W1/External File Storage - Azure Blob Service Connector/App",
     "../../../src/Apps/W1/External File Storage - Azure File Service Connector/App",
     "../../../src/Apps/W1/External File Storage - SFTP Connector/App",
