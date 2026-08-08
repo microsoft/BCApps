@@ -66,5 +66,5 @@ codeunit 20422 "Qlty. Demo Data Mgmt."
     end;
 
     var
-        NotInstalledMsg: Label 'The "Quality Management Contoso Coffee Demo Dataset" app is not installed.\\To explore Quality Management with demo data, please install this app from Microsoft AppSource.';
+        NotInstalledMsg: Label 'The "Quality Management Contoso Coffee Demo Dataset" app is not installed.\\To explore Quality Management with demo data, please install this app from Microsoft Marketplace.';
 }
