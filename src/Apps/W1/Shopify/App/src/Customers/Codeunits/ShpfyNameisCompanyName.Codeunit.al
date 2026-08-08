@@ -21,7 +21,7 @@ codeunit 30120 "Shpfy Name is CompanyName" implements "Shpfy ICustomer Name"
     /// <param name="LastName">Parameter of type Text.</param>
     /// <param name="CompanyName">Parameter of type Text.</param>
     /// <returns>Return variable "Text".</returns>
-    internal procedure GetName(FirstName: Text; LastName: Text; CompanyName: Text): Text
+    procedure GetName(FirstName: Text; LastName: Text; CompanyName: Text): Text
     var
         Customer: Record Customer;
     begin

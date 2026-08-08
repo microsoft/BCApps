@@ -19,7 +19,7 @@ codeunit 30172 "Shpfy CreateProdStatusActive" implements "Shpfy ICreateProductSt
     /// </summary>
     /// <param name="Item">Record Item.</param>
     /// <returns>Return value of type enum "Shopify Product Status".</returns>
-    internal procedure GetStatus(Item: Record Item): enum "Shpfy Product Status";
+    procedure GetStatus(Item: Record Item): enum "Shpfy Product Status";
     begin
         exit(Enum::"Shpfy Product Status"::Active);
     end;

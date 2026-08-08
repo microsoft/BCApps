@@ -14,7 +14,7 @@ codeunit 30304 "Shpfy Comp. By Email/Phone" implements "Shpfy ICompany Mapping",
 {
     Access = Internal;
 
-    internal procedure DoMapping(CompanyId: BigInteger; ShopCode: Code[20]; TemplateCode: Code[20]; AllowCreate: Boolean): Code[20]
+    procedure DoMapping(CompanyId: BigInteger; ShopCode: Code[20]; TemplateCode: Code[20]; AllowCreate: Boolean): Code[20]
     var
         ShopifyCompany: Record "Shpfy Company";
     begin
@@ -34,7 +34,7 @@ codeunit 30304 "Shpfy Comp. By Email/Phone" implements "Shpfy ICompany Mapping",
         exit('');
     end;
 
-    internal procedure FindMapping(var ShopifyCompany: Record "Shpfy Company"; var TempShopifyCustomer: Record "Shpfy Customer" temporary): Boolean
+    procedure FindMapping(var ShopifyCompany: Record "Shpfy Company"; var TempShopifyCustomer: Record "Shpfy Customer" temporary): Boolean
     var
         Customer: Record Customer;
     begin
