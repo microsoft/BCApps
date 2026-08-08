@@ -12,6 +12,7 @@ page 10970 "FR E-Invoice Lifecycles"
     InherentPermissions = X;
     PageType = List;
     SourceTable = "FR E-Invoice Lifecycle";
+    SourceTableView = sorting("Entry No.") order(descending);
     UsageCategory = History;
 
     layout
@@ -75,6 +76,7 @@ page 10970 "FR E-Invoice Lifecycles"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Retry Message Creation';
                 Enabled = Rec."Processing Status" = Rec."Processing Status"::Failed;
+                Image = Refresh;
                 ToolTip = 'Schedules another attempt to create the lifecycle message.';
 
                 trigger OnAction()

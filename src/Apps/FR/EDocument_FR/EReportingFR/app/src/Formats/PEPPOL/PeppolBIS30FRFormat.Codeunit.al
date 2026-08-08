@@ -211,23 +211,32 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ShipmentNos: Dictionary of [Text, Boolean];
         OrderNos: Dictionary of [Text, Boolean];
         DeliveryDates: Dictionary of [Text, Boolean];
+        ShipmentNoFilter: Text;
     begin
         SalesInvoiceLine.SetRange("Document No.", DocumentNo);
         SalesInvoiceLine.SetLoadFields("Shipment No.", "Order No.");
-        SalesShipmentHeader.SetLoadFields("Posting Date");
         if SalesInvoiceLine.FindSet() then
             repeat
                 if SalesInvoiceLine."Shipment No." <> '' then
                     if not ShipmentNos.ContainsKey(SalesInvoiceLine."Shipment No.") then begin
                         ShipmentNos.Add(SalesInvoiceLine."Shipment No.", true);
-                        if SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.") then begin
-                            ShipmentPostingDates.Add(SalesInvoiceLine."Shipment No.", SalesShipmentHeader."Posting Date");
-                            AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
-                        end;
+                        if ShipmentNoFilter <> '' then
+                            ShipmentNoFilter += '|';
+                        ShipmentNoFilter += SalesInvoiceLine."Shipment No.";
                     end;
                 if SalesInvoiceLine."Order No." <> '' then
                     AddDistinctValue(OrderNos, SalesInvoiceLine."Order No.");
             until SalesInvoiceLine.Next() = 0;
+
+        if ShipmentNoFilter <> '' then begin
+            SalesShipmentHeader.SetFilter("No.", ShipmentNoFilter);
+            SalesShipmentHeader.SetLoadFields("No.", "Posting Date");
+            if SalesShipmentHeader.FindSet() then
+                repeat
+                    ShipmentPostingDates.Add(SalesShipmentHeader."No.", SalesShipmentHeader."Posting Date");
+                    AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
+                until SalesShipmentHeader.Next() = 0;
+        end;
 
         exit((ShipmentNos.Count() > 1) or (OrderNos.Count() > 1) or (DeliveryDates.Count() > 1));
     end;

@@ -14,6 +14,8 @@ codeunit 10985 "FR E-Invoice Lifecycle Error"
 
     trigger OnRun()
     begin
+        Rec.TestField("Processing Status", Rec."Processing Status"::Queued);
+        Rec.TestField("E-Document Message Entry No.", 0);
         Rec."Processing Status" := Rec."Processing Status"::Failed;
         Rec."Last Error" := CopyStr(GetLastErrorText(), 1, MaxStrLen(Rec."Last Error"));
         Rec.Modify();

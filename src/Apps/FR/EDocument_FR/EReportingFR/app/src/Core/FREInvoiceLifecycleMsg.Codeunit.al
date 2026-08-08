@@ -20,7 +20,7 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
     var
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
     begin
-        FREInvoiceLifecycle.SetCurrentKey("E-Document Entry No.", "Created At");
+        FREInvoiceLifecycle.SetCurrentKey("E-Document Entry No.", "E-Document Message Entry No.", "Processing Status", "Created At");
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.SetRange("E-Document Message Entry No.", 0);
         FREInvoiceLifecycle.SetRange("Processing Status", FREInvoiceLifecycle."Processing Status"::Queued);
@@ -254,15 +254,23 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
     end;
 
     local procedure ValidatePaymentStatus(LifecycleStatus: Enum "FR E-Invoice Lifecycle Status")
+    var
+        UnsupportedStatusErrorInfo: ErrorInfo;
     begin
-        if not (LifecycleStatus in [LifecycleStatus::Collected, LifecycleStatus::"Negative Collected"]) then
-            Error(UnsupportedLifecycleStatusErr, LifecycleStatus);
+        if LifecycleStatus in [LifecycleStatus::Collected, LifecycleStatus::"Negative Collected"] then
+            exit;
+
+        UnsupportedStatusErrorInfo.ErrorType(ErrorType::Internal);
+        UnsupportedStatusErrorInfo.Message(InternalLifecycleStatusErr);
+        UnsupportedStatusErrorInfo.DetailedMessage(StrSubstNo(UnsupportedLifecycleStatusErr, LifecycleStatus));
+        Error(UnsupportedStatusErrorInfo);
     end;
 
     var
         NoCapturedOccurrenceErr: Label 'No unprocessed French invoice lifecycle occurrence exists for E-Document entry %1.', Comment = '%1 = E-Document entry number';
         VATBreakdownErr: Label 'Lifecycle occurrence %1 does not have the VAT breakdown required for a French collected status message.', Comment = '%1 = lifecycle occurrence entry number';
         UnsupportedLifecycleStatusErr: Label 'Lifecycle status %1 is not supported by the French collected status message builder.', Comment = '%1 = lifecycle status';
+        InternalLifecycleStatusErr: Label 'An internal lifecycle status error occurred.';
         LifecycleMessageNameTok: Label 'Invoice lifecycle collected status', Locked = true;
         RsmNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:CrossDomainAcknowledgementAndResponse:100', Locked = true;
         RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;

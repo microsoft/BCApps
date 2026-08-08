@@ -181,6 +181,9 @@ table 10970 "FR E-Invoice Lifecycle"
         key(EDocument; "E-Document Entry No.", "Created At")
         {
         }
+        key(QueuedMessage; "E-Document Entry No.", "E-Document Message Entry No.", "Processing Status", "Created At")
+        {
+        }
         key(DetailedLedgerEntry; "Lifecycle Status", "Detailed Ledger Entry No.")
         {
         }
@@ -192,6 +195,11 @@ table 10970 "FR E-Invoice Lifecycle"
     end;
 
     trigger OnDelete()
+    begin
+        Error(ImmutableOccurrenceErr);
+    end;
+
+    trigger OnRename()
     begin
         Error(ImmutableOccurrenceErr);
     end;

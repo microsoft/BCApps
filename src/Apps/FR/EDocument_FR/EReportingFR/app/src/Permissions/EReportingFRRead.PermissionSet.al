@@ -11,5 +11,7 @@ permissionset 10971 "E-Reporting FR Read"
     Caption = 'E-Reporting FR - Read';
 
     Permissions = tabledata "FR E-Invoice Lifecycle" = R,
-                  tabledata "FR E-Invoice Lifecycle VAT" = R;
+                  tabledata "FR E-Invoice Lifecycle VAT" = R,
+                  page "FR E-Invoice Lifecycles" = X,
+                  page "FR E-Invoice Lifecycle VAT" = X;
 }

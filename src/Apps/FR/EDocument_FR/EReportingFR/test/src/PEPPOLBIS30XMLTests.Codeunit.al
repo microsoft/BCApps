@@ -702,6 +702,27 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure CheckRaisesErrorWhenCompanyParticipantIdentifierIsMissing()
+    var
+        ServiceParticipant: Record "Service Participant";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [SCENARIO] Check rejects a company participant scheme without its identifier even when SIRET is valid
+        Initialize();
+
+        ServiceParticipant.Init();
+        ServiceParticipant.Service := EDocumentService.Code;
+        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Company;
+        ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0225";
+        ServiceParticipant.Insert();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        Assert.ExpectedError(ParticipantAddressIncompleteErr);
+    end;
+
+    [Test]
     procedure CheckRaisesErrorWhenBuyerElectronicAddressIsMissing()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -874,11 +895,13 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesLine.Validate("Qty. to Ship", 1);
         SalesLine.Modify(true);
         OriginalWorkDate := WorkDate();
-        WorkDate(CalcDate('<-1D>', OriginalWorkDate));
+        SalesHeader.Validate("Posting Date", CalcDate('<-1D>', OriginalWorkDate));
+        SalesHeader.Modify(true);
         FirstShipmentNo := LibrarySales.PostSalesDocument(SalesHeader, true, false);
 
-        WorkDate(OriginalWorkDate);
         SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesHeader.Validate("Posting Date", OriginalWorkDate);
+        SalesHeader.Modify(true);
         SalesLine.FindFirst();
         SalesLine.Validate("Qty. to Ship", 1);
         SalesLine.Modify(true);

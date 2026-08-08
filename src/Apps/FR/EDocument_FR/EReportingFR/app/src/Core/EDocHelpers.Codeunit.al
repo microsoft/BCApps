@@ -21,13 +21,17 @@ codeunit 10991 "EDoc. Helpers"
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocumentService: Record "E-Document Service";
     begin
+        if (Rec.Status = xRec.Status) and (Rec.Service = xRec.Service) then
+            exit;
+
         if not GetFrenchEDocumentService(Rec, EDocumentService, EDocumentServiceStatus) then
             exit;
 
         case EDocumentServiceStatus.Status of
             EDocumentServiceStatus.Status::Approved,
             EDocumentServiceStatus.Status::Cleared:
-                Rec."Clearance Date" := CurrentDateTime();
+                if Rec."Clearance Date" = 0DT then
+                    Rec."Clearance Date" := CurrentDateTime();
             EDocumentServiceStatus.Status::Rejected,
             EDocumentServiceStatus.Status::"Not Cleared":
                 Rec."Clearance Date" := 0DT;
@@ -94,7 +98,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Registration No." = '' then
-            Error(SIRENRequiredErr);
+            RaiseCompanyInformationError(CompanyInformation, SIRENRequiredErr);
     end;
 
     procedure CheckSIRETNotEmpty()
@@ -103,7 +107,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."SIRET No." = '' then
-            Error(SIRETRequiredErr);
+            RaiseCompanyInformationError(CompanyInformation, SIRETRequiredErr);
     end;
 
     procedure CheckSellerElectronicAddress(EDocumentServiceCode: Code[20])
@@ -121,7 +125,7 @@ codeunit 10991 "EDoc. Helpers"
         if CompanyInformation.GetVATRegistrationNumber() <> '' then
             exit;
 
-        Error(SellerElectronicAddressRequiredErr);
+        RaiseCompanyInformationError(CompanyInformation, SellerElectronicAddressRequiredErr);
     end;
 
     procedure CheckSellerCountryCode()
@@ -130,7 +134,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Country/Region Code" = '' then
-            Error(SellerCountryCodeRequiredErr);
+            RaiseCompanyInformationError(CompanyInformation, SellerCountryCodeRequiredErr);
     end;
 
     procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef)
@@ -152,21 +156,22 @@ codeunit 10991 "EDoc. Helpers"
         if CustomerNo = '' then
             exit;
 
+        if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo) then
+            exit;
+
         Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.");
         if not Customer.Get(CustomerNo) then
             exit;
 
-        if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, Customer."No.") then
-            exit;
         if Customer."FR Electronic Address" <> '' then begin
             if Customer."FR Elec. Address Scheme" = Customer."FR Elec. Address Scheme"::" " then
-                Error(BuyerElectronicAddressSchemeRequiredErr, Customer."No.");
+                RaiseCustomerError(Customer, StrSubstNo(BuyerElectronicAddressSchemeRequiredErr, Customer."No."));
             exit;
         end;
         if Customer."VAT Registration No." <> '' then
             exit;
 
-        Error(BuyerElectronicAddressRequiredErr, Customer."No.");
+        RaiseCustomerError(Customer, StrSubstNo(BuyerElectronicAddressRequiredErr, Customer."No."));
     end;
 
     procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]): Boolean
@@ -190,17 +195,52 @@ codeunit 10991 "EDoc. Helpers"
         HasIdentifier := ServiceParticipant."Participant Identifier" <> '';
         HasScheme := ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" ";
         if HasIdentifier <> HasScheme then begin
+            ParticipantAddressErrorInfo.Title(ServiceParticipantSetupTitleLbl);
             ParticipantAddressErrorInfo.Message(
                 StrSubstNo(ServiceParticipantAddressIncompleteErr, ServiceParticipant.FieldCaption("Participant Identifier"), ServiceParticipant.FieldCaption("FR Identifier Scheme")));
+            ParticipantAddressErrorInfo.DetailedMessage(ParticipantAddressErrorInfo.Message());
             ParticipantAddressErrorInfo.RecordId(ServiceParticipant.RecordId());
             ParticipantAddressErrorInfo.PageNo(Page::"Service Participants");
+            ParticipantAddressErrorInfo.AddNavigationAction(ShowServiceParticipantLbl);
             Error(ParticipantAddressErrorInfo);
         end;
 
         exit(HasIdentifier);
     end;
 
+    local procedure RaiseCompanyInformationError(CompanyInformation: Record "Company Information"; ErrorMessage: Text)
     var
+        CompanyInformationErrorInfo: ErrorInfo;
+    begin
+        CompanyInformationErrorInfo.Title(CompanyInformationSetupTitleLbl);
+        CompanyInformationErrorInfo.Message(ErrorMessage);
+        CompanyInformationErrorInfo.DetailedMessage(ErrorMessage);
+        CompanyInformationErrorInfo.RecordId(CompanyInformation.RecordId());
+        CompanyInformationErrorInfo.PageNo(Page::"Company Information");
+        CompanyInformationErrorInfo.AddNavigationAction(ShowCompanyInformationLbl);
+        Error(CompanyInformationErrorInfo);
+    end;
+
+    local procedure RaiseCustomerError(Customer: Record Customer; ErrorMessage: Text)
+    var
+        CustomerErrorInfo: ErrorInfo;
+    begin
+        CustomerErrorInfo.Title(CustomerSetupTitleLbl);
+        CustomerErrorInfo.Message(ErrorMessage);
+        CustomerErrorInfo.DetailedMessage(ErrorMessage);
+        CustomerErrorInfo.RecordId(Customer.RecordId());
+        CustomerErrorInfo.PageNo(Page::"Customer Card");
+        CustomerErrorInfo.AddNavigationAction(ShowCustomerLbl);
+        Error(CustomerErrorInfo);
+    end;
+
+    var
+        CompanyInformationSetupTitleLbl: Label 'Company information setup is incomplete';
+        CustomerSetupTitleLbl: Label 'Customer setup is incomplete';
+        ServiceParticipantSetupTitleLbl: Label 'Service participant setup is incomplete';
+        ShowCompanyInformationLbl: Label 'Show Company Information';
+        ShowCustomerLbl: Label 'Show Customer';
+        ShowServiceParticipantLbl: Label 'Show Service Participant';
         SIRENRequiredErr: Label 'Registration No. must be specified in Company Information for French e-invoicing.';
         SIRETRequiredErr: Label 'SIRET No. must be specified in Company Information for French e-invoicing.';
         SellerElectronicAddressRequiredErr: Label 'SIRET No., Registration No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.';

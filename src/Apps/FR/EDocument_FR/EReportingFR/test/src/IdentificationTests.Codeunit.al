@@ -48,6 +48,13 @@ codeunit 148146 "Identification Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         EDocHelpers: Codeunit "EDoc. Helpers";
+        ImmutableLifecycleErr: Label 'The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.', Locked = true;
+        ImmutableLifecycleVATErr: Label 'A French electronic invoice lifecycle VAT breakdown cannot be changed.', Locked = true;
+        WorkerFailureErr: Label 'Lifecycle worker test failure.', Locked = true;
+        XmlNodeMissingErr: Label 'The payload must contain XML node %1.', Comment = '%1 = XML path', Locked = true;
+        XmlNodeValueErr: Label 'The XML node %1 has an unexpected value.', Comment = '%1 = XML path', Locked = true;
+        XmlAttributeMissingErr: Label 'The XML node %1 must contain attribute %2.', Comment = '%1 = XML path, %2 = attribute name', Locked = true;
+        XmlAttributeValueErr: Label 'The XML attribute %1 on node %2 has an unexpected value.', Comment = '%1 = attribute name, %2 = XML path', Locked = true;
         IsInitialized: Boolean;
 
     [Test]
@@ -489,25 +496,36 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
-    procedure DetailedApplicationRejectsMissingSenderPlatformSetup()
+    procedure DetailedApplicationWithoutSenderPlatformCreatesCDVLifecycleMessage()
     var
         EDocument: Record "E-Document";
         EDocumentService: Record "E-Document Service";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        XmlDoc: XmlDocument;
     begin
-        // [SCENARIO] A PPF lifecycle occurrence is not retained when the sender platform identity is incomplete
+        // [SCENARIO] A production payment flow without a configured sender platform creates the general CDV profile
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         EDocumentService.Get(EDocument.Service);
         Clear(EDocumentService."FR Sender Platform ID");
         EDocumentService.Modify();
 
-        asserterror FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
-        Assert.ExpectedError('FR Sender Platform ID must have a value');
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
-        Assert.RecordIsEmpty(FREInvoiceLifecycle);
+        FREInvoiceLifecycle.FindFirst();
+        Assert.AreEqual('', FREInvoiceLifecycle."Sender Platform ID", 'The general CDV profile must not retain PPF sender information.');
+
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
+
+        EDocumentMessageAPI.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
+        TempBlob.CreateInStream(InStream);
+        XmlDocument.ReadFrom(InStream, XmlDoc);
+        AssertXmlValue(XmlDoc, '//*[local-name()="GuidelineSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', 'urn.cpro.gouv.fr:1p0:CDV:invoice');
     end;
 
     [Test]
@@ -550,9 +568,13 @@ codeunit 148146 "Identification Tests"
         CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
         Commit();
 
+        asserterror FREInvoiceLifecycle.Rename(FREInvoiceLifecycle."Entry No." + 1);
+        Assert.ExpectedError(ImmutableLifecycleErr);
         asserterror FREInvoiceLifecycle.Delete();
+        Assert.ExpectedError(ImmutableLifecycleErr);
         FREInvoiceLifecycleVAT.Get(FREInvoiceLifecycle."Entry No.", 10000);
         asserterror FREInvoiceLifecycleVAT.Delete();
+        Assert.ExpectedError(ImmutableLifecycleVATErr);
     end;
 
     [Test]
@@ -810,6 +832,55 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    procedure LifecycleWorkerCreatesQueuedMessage()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        FREInvoiceLifecycleWorker: Codeunit "FR E-Invoice Lifecycle Worker";
+    begin
+        // [SCENARIO] The background worker creates a message for a queued lifecycle occurrence
+        CreateEDocument(EDocument);
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
+        FREInvoiceLifecycle.Modify();
+
+        FREInvoiceLifecycleWorker.Run(FREInvoiceLifecycle);
+
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Created", FREInvoiceLifecycle."Processing Status", 'The worker must create the queued lifecycle message.');
+        Assert.IsTrue(FREInvoiceLifecycle."E-Document Message Entry No." <> 0, 'The worker must link the created E-Document message.');
+    end;
+
+    [Test]
+    procedure LifecycleErrorHandlerStoresTaskError()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleError: Codeunit "FR E-Invoice Lifecycle Error";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] The background error handler marks a queued occurrence failed and stores the task error
+        CreateEDocument(EDocument);
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
+        FREInvoiceLifecycle.Modify();
+        asserterror Error(WorkerFailureErr);
+
+        FREInvoiceLifecycleError.Run(FREInvoiceLifecycle);
+
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::Failed, FREInvoiceLifecycle."Processing Status", 'The error handler must mark the queued lifecycle occurrence as failed.');
+        Assert.ExpectedMessage(WorkerFailureErr, FREInvoiceLifecycle."Last Error");
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PostedPaymentApplicationCreatesCollectedLifecycle()
     var
         Customer: Record Customer;
@@ -1165,8 +1236,8 @@ codeunit 148146 "Identification Tests"
     var
         XmlNode: XmlNode;
     begin
-        Assert.IsTrue(XmlDoc.SelectSingleNode(XPath, XmlNode), StrSubstNo('The payload must contain XML node %1.', XPath));
-        Assert.AreEqual(ExpectedValue, XmlNode.AsXmlElement().InnerText(), StrSubstNo('The XML node %1 has an unexpected value.', XPath));
+        Assert.IsTrue(XmlDoc.SelectSingleNode(XPath, XmlNode), StrSubstNo(XmlNodeMissingErr, XPath));
+        Assert.AreEqual(ExpectedValue, XmlNode.AsXmlElement().InnerText(), StrSubstNo(XmlNodeValueErr, XPath));
     end;
 
     local procedure AssertXmlAttribute(XmlDoc: XmlDocument; XPath: Text; AttributeName: Text; ExpectedValue: Text)
@@ -1174,8 +1245,8 @@ codeunit 148146 "Identification Tests"
         XmlAttribute: XmlAttribute;
         XmlNode: XmlNode;
     begin
-        Assert.IsTrue(XmlDoc.SelectSingleNode(XPath, XmlNode), StrSubstNo('The payload must contain XML node %1.', XPath));
-        Assert.IsTrue(XmlNode.AsXmlElement().Attributes().Get(AttributeName, XmlAttribute), StrSubstNo('The XML node %1 must contain attribute %2.', XPath, AttributeName));
-        Assert.AreEqual(ExpectedValue, XmlAttribute.Value(), StrSubstNo('The XML attribute %1 on node %2 has an unexpected value.', AttributeName, XPath));
+        Assert.IsTrue(XmlDoc.SelectSingleNode(XPath, XmlNode), StrSubstNo(XmlNodeMissingErr, XPath));
+        Assert.IsTrue(XmlNode.AsXmlElement().Attributes().Get(AttributeName, XmlAttribute), StrSubstNo(XmlAttributeMissingErr, XPath, AttributeName));
+        Assert.AreEqual(ExpectedValue, XmlAttribute.Value(), StrSubstNo(XmlAttributeValueErr, AttributeName, XPath));
     end;
 }

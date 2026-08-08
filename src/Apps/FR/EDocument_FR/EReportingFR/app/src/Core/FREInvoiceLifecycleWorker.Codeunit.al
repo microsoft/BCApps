@@ -15,6 +15,8 @@ codeunit 10976 "FR E-Invoice Lifecycle Worker"
     var
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        Rec.TestField("Processing Status", Rec."Processing Status"::Queued);
+        Rec.TestField("E-Document Message Entry No.", 0);
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(Rec);
     end;
 }

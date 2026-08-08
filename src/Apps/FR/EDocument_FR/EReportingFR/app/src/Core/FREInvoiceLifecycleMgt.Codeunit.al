@@ -132,10 +132,13 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         EDocHelpers: Codeunit "EDoc. Helpers";
     begin
         EDocument.Get(FREInvoiceLifecycle."E-Document Entry No.");
+        if not EDocHelpers.GetFrenchEDocumentService(EDocument, EDocumentService, EDocumentServiceStatus) then
+            exit;
+        if EDocumentService."FR Sender Platform ID" = '' then
+            exit;
+
         EDocument.TestField("Document Date");
         EDocument.TestField("Clearance Date");
-        EDocHelpers.GetFrenchEDocumentService(EDocument, EDocumentService, EDocumentServiceStatus);
-        EDocumentService.TestField("FR Sender Platform ID");
         EDocumentService.TestField("FR Sender Platform Scheme");
         EDocumentService.TestField("FR Sender Platform Name");
         CompanyInformation.Get();
@@ -165,6 +168,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     begin
         InvoiceCustLedgerEntry.Get(FREInvoiceLifecycle."Invoice Cust. Ledger Entry No.");
         FindInvoiceVATEntries(VATEntry, InvoiceCustLedgerEntry);
+        VATEntry.SetLoadFields("VAT Bus. Posting Group", "VAT Prod. Posting Group", "Source Currency Code", "Source Currency VAT Base", "Source Currency VAT Amount", Base, Amount);
         if VATEntry.FindSet() then
             repeat
                 VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
@@ -306,6 +310,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     var
         EDocument: Record "E-Document";
         OriginalOccurrence: Record "FR E-Invoice Lifecycle";
+        UnsupportedStatusErrorInfo: ErrorInfo;
     begin
         EDocument.Get(EDocumentEntryNo);
         if IsNullGuid(SourceOccurrenceID) then
@@ -332,8 +337,12 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
                     if ReportedAmount <> -OriginalOccurrence."Reported Amount" then
                         Error(ReversalAmountErr);
                 end;
-            else
-                Error(PaymentStatusErr, LifecycleStatus);
+            else begin
+                UnsupportedStatusErrorInfo.ErrorType(ErrorType::Internal);
+                UnsupportedStatusErrorInfo.Message(InternalLifecycleStatusErr);
+                UnsupportedStatusErrorInfo.DetailedMessage(StrSubstNo(PaymentStatusErr, LifecycleStatus));
+                Error(UnsupportedStatusErrorInfo);
+            end;
         end;
     end;
 
@@ -440,6 +449,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         OriginalOccurrenceErr: Label 'The original Collected occurrence does not exist.';
         ReversalAmountErr: Label 'A Negative Collected occurrence must exactly reverse the reported amount of the original Collected occurrence.';
         PaymentStatusErr: Label 'Lifecycle status %1 is not a payment lifecycle status.', Comment = '%1 = lifecycle status';
+        InternalLifecycleStatusErr: Label 'An internal lifecycle status error occurred.';
         ConflictingReplayErr: Label 'The payment lifecycle occurrence was already captured with different values.';
         VATBreakdownErr: Label 'A VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
