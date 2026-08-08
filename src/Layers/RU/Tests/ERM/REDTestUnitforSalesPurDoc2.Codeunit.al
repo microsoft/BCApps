@@ -30,6 +30,8 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         NoOfPeriodsErr: Label 'No. of Periods must not be %1 in Deferral Header', Comment = '%1 - No of periods';
         FieldErrorTok: Label 'NCLCSRTS:TableErrorStr';
         FieldErrorErr: Label 'Calc. Method must not be 4 in Deferral Template Deferral Code';
+        AmountLCYNotFilledErr: Label 'Amount (LCY) should be filled before posting.';
+        AmountLCYSumErr: Label 'The sum of the deferral line Amount (LCY) values must equal the header Amount to Defer (LCY).';
 
     [Test]
     [Scope('OnPrem')]
@@ -1138,6 +1140,50 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         DeferralHeader.TestField("No. of Periods", 12);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestDeferralScheduleLCYFilledBeforePostingWithCurrency()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        DeferralHeader: Record "Deferral Header";
+        DeferralLine: Record "Deferral Line";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        DeferralTemplateCode: Code[10];
+        ItemNo: Code[20];
+        ExpectedAmountToDeferLCY: Decimal;
+        TotalLineAmountLCY: Decimal;
+    begin
+        // [FEATURE] [Purchase] [Currency]
+        // [SCENARIO 641062] Amount (LCY) is filled in the deferral schedule of an unposted foreign currency document
+        Initialize();
+        // [GIVEN] User has assigned a default deferral code to an Item
+        CreateItemWithDefaultDeferralCode(
+            DeferralTemplateCode, ItemNo, CalcMethod::"Straight-Line",
+            StartDate::"Posting Date", LibraryRandom.RandIntInRange(2, 5));
+        // [WHEN] A purchase invoice with foreign currency and the deferral Item is created
+        CreatePurchDocWithCurrencyAndLine(
+            PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice,
+            PurchaseLine.Type::Item, ItemNo, SetDateDay(1, WorkDate()));
+        FindDeferralHeader(PurchaseLine, DeferralHeader);
+
+        // [THEN] The deferral header Amount to Defer (LCY) equals the Amount to Defer converted with the document exchange rate
+        ExpectedAmountToDeferLCY :=
+            Round(
+                CurrencyExchangeRate.ExchangeAmtFCYToLCY(
+                    PurchaseHeader."Posting Date", PurchaseHeader."Currency Code",
+                    DeferralHeader."Amount to Defer", PurchaseHeader."Currency Factor"));
+        Assert.AreEqual(ExpectedAmountToDeferLCY, DeferralHeader."Amount to Defer (LCY)", AmountLCYNotFilledErr);
+
+        // [THEN] Every deferral line has a non-zero Amount (LCY) and all line amounts sum to the header Amount to Defer (LCY)
+        RangeDeferralLines(DeferralHeader, DeferralLine);
+        repeat
+            Assert.AreNotEqual(0, DeferralLine."Amount (LCY)", AmountLCYNotFilledErr);
+            TotalLineAmountLCY += DeferralLine."Amount (LCY)";
+        until DeferralLine.Next() = 0;
+        Assert.AreEqual(DeferralHeader."Amount to Defer (LCY)", TotalLineAmountLCY, AmountLCYSumErr);
+    end;
+
     local procedure Initialize()
     var
         AccountingPeriod: Record "Accounting Period";
@@ -1287,6 +1333,55 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
                     PurchaseLine.Modify(true);
                 end;
         end;
+    end;
+
+    local procedure CreatePurchDocWithCurrencyAndLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; DocumentType: Enum "Purchase Document Type"; PurchLineType: Enum "Purchase Line Type"; No: Code[20]; PostingDate: Date)
+    var
+        Item: Record Item;
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, LibraryPurchase.CreateVendorNo());
+        PurchaseHeader.Validate("Currency Code", CreateCurrency());
+        PurchaseHeader.Validate("Posting Date", PostingDate);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchLineType, No, 2);
+        case PurchaseLine.Type of
+            PurchaseLine.Type::"G/L Account":
+                begin
+                    PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(1000, 2));
+                    PurchaseLine.Modify(true);
+                end;
+            PurchaseLine.Type::Item:
+                if Item.Get(No) then begin
+                    PurchaseLine.Validate("Direct Unit Cost", Item."Unit Cost");
+                    PurchaseLine.Modify(true);
+                end;
+        end;
+    end;
+
+    local procedure CreateCurrency(): Code[10]
+    var
+        Currency: Record Currency;
+    begin
+        LibraryERM.CreateCurrency(Currency);
+        LibraryERM.CreateRandomExchangeRate(Currency.Code);
+        exit(Currency.Code);
+    end;
+
+    local procedure FindDeferralHeader(PurchaseLine: Record "Purchase Line"; var DeferralHeader: Record "Deferral Header")
+    begin
+        DeferralHeader.Get("Deferral Document Type"::Purchase, '', '',
+          PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+    end;
+
+    local procedure RangeDeferralLines(DeferralHeader: Record "Deferral Header"; var DeferralLine: Record "Deferral Line")
+    begin
+        DeferralLine.SetRange("Deferral Doc. Type", DeferralHeader."Deferral Doc. Type");
+        DeferralLine.SetRange("Gen. Jnl. Template Name", DeferralHeader."Gen. Jnl. Template Name");
+        DeferralLine.SetRange("Gen. Jnl. Batch Name", DeferralHeader."Gen. Jnl. Batch Name");
+        DeferralLine.SetRange("Document Type", DeferralHeader."Document Type");
+        DeferralLine.SetRange("Document No.", DeferralHeader."Document No.");
+        DeferralLine.SetRange("Line No.", DeferralHeader."Line No.");
+        DeferralLine.Find('-');
     end;
 
     local procedure CreatePurchDocWithLineRevCharge(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; DocumentType: Enum "Purchase Document Type"; PurchLineType: Enum "Purchase Line Type"; No: Code[20]; PostingDate: Date)
