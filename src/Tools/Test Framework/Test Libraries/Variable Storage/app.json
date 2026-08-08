@@ -13,6 +13,12 @@
   "logo": "ExtensionLogo.png",
   "dependencies": [
     {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "publisher": "Microsoft",
       "name": "Library Assert",
