@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.ProductionBOM;
 
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Setup;
 
 codeunit 99000793 "Calculate Low-Level Code"
@@ -24,6 +25,7 @@ codeunit 99000793 "Calculate Low-Level Code"
         Item2."Low-Level Code" := CalcLevels(1, Item2."No.", 0, 0);
         if ProdBOM.Get(Item."Production BOM No.") then
             SetRecursiveLevelsOnBOM(ProdBOM, Item2."Low-Level Code" + 1, false);
+        RecalcSKULowerLevels(Item2."No.", Item2."Low-Level Code" + 1, false);
         OnBeforeItemModify(Item2);
         Item2.Modify();
         Rec.Copy(Item2);
@@ -42,6 +44,7 @@ codeunit 99000793 "Calculate Low-Level Code"
         Item2: Record Item;
         ProdBOMLine: Record "Production BOM Line";
         AsmBOMComp: Record "BOM Component";
+        SKU: Record "Stockkeeping Unit";
         ActLevel: Integer;
         TotalLevels: Integer;
         CalculateDeeperLevel: Boolean;
@@ -68,6 +71,15 @@ codeunit 99000793 "Calculate Low-Level Code"
                             if ActLevel > TotalLevels then
                                 TotalLevels := ActLevel;
                         until Item2.Next() = 0;
+                    
+                    SKU.SetCurrentKey("Production BOM No.");
+                    SKU.SetRange("Production BOM No.", No);
+                    if SKU.FindSet() then
+                        repeat
+                            ActLevel := CalcLevels(Type::Item, SKU."Item No.", Level + 1, LevelDepth + 1);
+                            if ActLevel > TotalLevels then
+                                TotalLevels := ActLevel;
+                        until SKU.Next() = 0;
                     OnCalcLevelsForProdBOM(Item2, No, Level, LevelDepth, TotalLevels);
                 end;
             Type::Assembly:
@@ -152,6 +164,24 @@ codeunit 99000793 "Calculate Low-Level Code"
             until ProdBOMLine.Next() = 0;
     end;
 
+    local procedure RecalcSKULowerLevels(ItemNo: Code[20]; LowLevelCode: Integer; IgnoreMissingItemsOrBOMs: Boolean)
+    var
+        SKU: Record "Stockkeeping Unit";
+        CompBOM: Record "Production BOM Header";
+        EntityPresent: Boolean;
+    begin
+        if LowLevelCode > 50 then
+            Error(ProdBomErr, 50, Item."No.", ItemNo, LowLevelCode);
+        SKU.SetRange("Item No.", ItemNo);
+        SKU.SetFilter("Production BOM No.", '<>%1', '');
+        if SKU.FindSet() then
+            repeat
+                EntityPresent := CompBOM.Get(SKU."Production BOM No.");
+                if EntityPresent or (not IgnoreMissingItemsOrBOMs) then
+                    SetRecursiveLevelsOnBOM(CompBOM, LowLevelCode, IgnoreMissingItemsOrBOMs);
+            until SKU.Next() = 0;
+    end;
+
     procedure RecalcAsmLowerLevels(ParentItemNo: Code[20]; LowLevelCode: Integer; IgnoreMissingItemsOrBOMs: Boolean)
     var
         CompItem: Record Item;
@@ -196,6 +226,8 @@ codeunit 99000793 "Calculate Low-Level Code"
                 if EntityPresent or (not IgnoreMissingItemsOrBOMs) then
                     SetRecursiveLevelsOnBOM(CompBOM, CompItem."Low-Level Code" + 1, IgnoreMissingItemsOrBOMs);
             end;
+            // calc low level code for BOMs set on the item's Stockkeeping Units
+            RecalcSKULowerLevels(CompItem."No.", CompItem."Low-Level Code" + 1, IgnoreMissingItemsOrBOMs);
             OnSetRecursiveLevelsOnItemOnBeforeCompItemModify(CompItem, IgnoreMissingItemsOrBOMs);
             CompItem.Modify();
         end;
