@@ -192,6 +192,46 @@ page 6933 "Expense Management Role Center"
                         ToolTip = 'Setup employee posting groups.';
                     }
                 }
+                group("Corporate Card")
+                {
+                    Caption = 'Corporate Card';
+
+                    action("Corp Card Dashboard")
+                    {
+                        Caption = 'Corp Card Dashboard';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EACorpCardDashboard";
+                        ToolTip = 'View corporate card import statistics and recent batches.';
+                    }
+                    action("Corp Card Providers")
+                    {
+                        Caption = 'Corp Card Providers';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EACorpCardProviders";
+                        ToolTip = 'Manage corporate card providers and scheduling.';
+                    }
+                    action("Corp Card Setup")
+                    {
+                        Caption = 'Corp Card Setup';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "Expense Agent Setup";
+                        ToolTip = 'Configure corporate card import parameters.';
+                    }
+                    action("Merchant Normalization Rules")
+                    {
+                        Caption = 'Merchant Normalization Rules';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EACorpCardMerchantRules";
+                        ToolTip = 'Setup regex patterns for merchant name normalization.';
+                    }
+                    action("MCC Code Mappings")
+                    {
+                        Caption = 'MCC Code Mappings';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EACorpCardMCCMap";
+                        ToolTip = 'Map merchant category codes to expense categories.';
+                    }
+                }
             }
         }
     }
