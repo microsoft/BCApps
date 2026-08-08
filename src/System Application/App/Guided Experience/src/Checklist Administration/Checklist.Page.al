@@ -85,7 +85,7 @@ page 1993 Checklist
 
                 trigger OnAction()
                 var
-                    TempChecklistItemBuffer: Record "Checklist Item Buffer";
+                    TempChecklistItemBuffer: Record "Checklist Item Buffer" temporary;
                 begin
                     TempChecklistItemBuffer.ID := CreateGuid();
                     TempChecklistItemBuffer.Code := '0';

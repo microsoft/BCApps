@@ -16,7 +16,7 @@ codeunit 775 "User Details Impl."
     procedure Get(var UserDetails: Record "User Details")
     var
         User: Record User;
-        TempLocalUserDetails: Record "User Details";
+        TempLocalUserDetails: Record "User Details" temporary;
         UserDetailsFacade: Codeunit "User Details";
     begin
         TempLocalUserDetails.Copy(UserDetails, true);

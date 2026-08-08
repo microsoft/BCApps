@@ -24,7 +24,7 @@ codeunit 8944 "Email Address Lookup Impl"
 
     procedure LookupEmailAddress(Entity: Enum "Email Address Entity"; var EmailAddressLookupRec: Record "Email Address Lookup"): Boolean
     var
-        TempEmailAddressLookupSuggestions: Record "Email Address Lookup";
+        TempEmailAddressLookupSuggestions: Record "Email Address Lookup" temporary;
         EmailAddressLookup: Codeunit "Email Address Lookup";
         IsHandled: Boolean;
     begin

@@ -27,7 +27,7 @@ page 9848 "User Security Groups Part"
 
                     trigger OnDrillDown()
                     var
-                        TempSecurityGroupBuffer: Record "Security Group Buffer";
+                        TempSecurityGroupBuffer: Record "Security Group Buffer" temporary;
                         SecurityGroups: Page "Security Groups";
                     begin
                         TempSecurityGroupBuffer.SetRange(Code, Rec."Security Group Code");

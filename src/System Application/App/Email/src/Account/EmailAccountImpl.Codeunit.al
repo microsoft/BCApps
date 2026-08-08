@@ -27,7 +27,7 @@ codeunit 8889 "Email Account Impl."
 
     procedure GetAllAccounts(LoadLogos: Boolean; var TempEmailAccount: Record "Email Account" temporary)
     var
-        TempEmailAccounts: Record "Email Account";
+        TempEmailAccounts: Record "Email Account" temporary;
         Connector: Enum "Email Connector";
         EmailConnector: Interface "Email Connector";
     begin
@@ -66,7 +66,7 @@ codeunit 8889 "Email Account Impl."
     [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'rd')]
     procedure DeleteAccounts(var EmailAccountsToDelete: Record "Email Account"; HideDialog: Boolean)
     var
-        TempCurrentDefaultEmailAccount: Record "Email Account";
+        TempCurrentDefaultEmailAccount: Record "Email Account" temporary;
         EmailRateLimitToDelete: Record "Email Rate Limit";
         ConfirmManagement: Codeunit "Confirm Management";
         EmailScenario: Codeunit "Email Scenario";
@@ -104,8 +104,8 @@ codeunit 8889 "Email Account Impl."
 
     local procedure HandleDefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "Email Connector"; HideDialog: Boolean)
     var
-        TempAllEmailAccounts: Record "Email Account";
-        TempNewDefaultEmailAccount: Record "Email Account";
+        TempAllEmailAccounts: Record "Email Account" temporary;
+        TempNewDefaultEmailAccount: Record "Email Account" temporary;
         EmailScenario: Codeunit "Email Scenario";
         NewDefaultEmailAccountSelected: Boolean;
     begin
@@ -176,7 +176,7 @@ codeunit 8889 "Email Account Impl."
 
     procedure IsAnyAccountRegistered(): Boolean
     var
-        TempEmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account" temporary;
     begin
         GetAllAccounts(false, TempEmailAccount);
 
@@ -185,7 +185,7 @@ codeunit 8889 "Email Account Impl."
 
     procedure IsAccountRegistered(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
     var
-        TempEmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account" temporary;
     begin
         if IsNullGuid(EmailAccountId) then
             exit(false);

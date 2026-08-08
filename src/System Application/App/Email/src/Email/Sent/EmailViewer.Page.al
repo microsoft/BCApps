@@ -227,7 +227,7 @@ page 12 "Email Viewer"
     end;
 
     var
-        TempEmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account" temporary;
         EmailMessageImpl: Codeunit "Email Message Impl.";
         EmailViewer: Codeunit "Email Viewer";
         EmailImpl: Codeunit "Email Impl";

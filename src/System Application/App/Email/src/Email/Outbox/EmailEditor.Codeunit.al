@@ -126,7 +126,7 @@ codeunit 8906 "Email Editor"
 
     procedure CreateOutbox(var EmailOutbox: Record "Email Outbox")
     var
-        TempDefaultEmailAccount: Record "Email Account";
+        TempDefaultEmailAccount: Record "Email Account" temporary;
         EmailScenario: Codeunit "Email Scenario";
     begin
         EmailOutbox."User Security Id" := UserSecurityId();
@@ -281,7 +281,7 @@ codeunit 8906 "Email Editor"
 
     procedure AttachFromRelatedRecords(EmailMessageID: Guid);
     var
-        TempEmailRelatedAttachment: Record "Email Related Attachment";
+        TempEmailRelatedAttachment: Record "Email Related Attachment" temporary;
         Email: Codeunit Email;
         EmailRelatedAttachmentsPage: Page "Email Related Attachments";
     begin
@@ -416,7 +416,7 @@ codeunit 8906 "Email Editor"
 
     procedure LookupRecipients(MessageID: Guid; var Text: Text): Boolean
     var
-        TempSuggestedEmailAddressLookup: Record "Email Address Lookup";
+        TempSuggestedEmailAddressLookup: Record "Email Address Lookup" temporary;
         EmailRelatedRecord: Record "Email Related Record";
         EmailAddressLookup: Codeunit "Email Address Lookup";
         EmailAddressLookupPage: Page "Email Address Lookup";
@@ -499,7 +499,7 @@ codeunit 8906 "Email Editor"
     internal procedure PopulateRelatedRecordCache(MessageID: Guid)
     var
         EmailRelatedRecord: Record "Email Related Record";
-        TempEmailAddressLookupRecord: Record "Email Address Lookup";
+        TempEmailAddressLookupRecord: Record "Email Address Lookup" temporary;
         EmailAddressLookup: Codeunit "Email Address Lookup";
     begin
         EmailRelatedRecord.SetFilter("Email Message Id", MessageID);

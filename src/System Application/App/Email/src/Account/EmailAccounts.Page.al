@@ -579,7 +579,7 @@ page 8887 "Email Accounts"
     end;
 
     var
-        TempDefaultEmailAccount: Record "Email Account";
+        TempDefaultEmailAccount: Record "Email Account" temporary;
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailRateLimitImpl: Codeunit "Email Rate Limit Impl.";
         IsDefault: Boolean;

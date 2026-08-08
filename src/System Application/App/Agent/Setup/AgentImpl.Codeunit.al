@@ -158,7 +158,7 @@ codeunit 4301 "Agent Impl."
 
     local procedure SetProfile(Agent: Record Agent; var AllProfile: Record "All Profile")
     var
-        TempUserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings" temporary;
         UserSettings: Codeunit "User Settings";
     begin
         UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
@@ -179,7 +179,7 @@ codeunit 4301 "Agent Impl."
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
     var
         Agent: Record Agent;
-        TempUserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings" temporary;
         UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
@@ -208,7 +208,7 @@ codeunit 4301 "Agent Impl."
     local procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
-        TempUserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings" temporary;
         UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
