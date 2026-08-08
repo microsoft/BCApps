@@ -398,9 +398,12 @@ table 39 "Purchase Line"
                 end;
                 "Bin Code" := '';
 
-                if Type = Type::Item then
-                    if "Location Code" <> xRec."Location Code" then
-                        PlanPriceCalcByField(FieldNo("Location Code"));
+                IsHandled := false;
+                OnValidateLocationCodeOnBeforePlanPriceCalcByField(Rec, IsHandled, CurrFieldNo, xRec);
+                if not IsHandled then
+                    if Type = Type::Item then
+                        if "Location Code" <> xRec."Location Code" then
+                            PlanPriceCalcByField(FieldNo("Location Code"));
 
                 IsHandled := false;
                 OnValidateLocationCodeOnBeforeSetInboundWhseHandlingTime(CurrFieldNo, Rec, xRec, IsHandled);
@@ -4838,8 +4841,11 @@ table 39 "Purchase Line"
                     GLSetup."Unit-Amount Rounding Precision");
         end;
 
-        if PurchHeader."Language Code" <> '' then
-            GetItemTranslation();
+        IsHandled := false;
+        OnCopyFromItemOnBeforeGetItemTranslation(Rec, Item, IsHandled);
+        if not IsHandled then
+            if PurchHeader."Language Code" <> '' then
+                GetItemTranslation();
 
         OnCopyFromItemOnAfterGetItemTranslation(Rec, Item);
 
@@ -8755,9 +8761,14 @@ table 39 "Purchase Line"
     end;
 
     local procedure CheckWMS()
+    var
+        SkipCheckLocationOnWMS: Boolean;
     begin
-        if CurrFieldNo <> 0 then
-            CheckLocationOnWMS();
+        SkipCheckLocationOnWMS := false;
+        OnBeforeCheckWMS(Rec, CurrFieldNo, SkipCheckLocationOnWMS);
+        if not SkipCheckLocationOnWMS then
+            if CurrFieldNo <> 0 then
+                CheckLocationOnWMS();
         if "Document Type" = "Document Type"::"Return Order" then
             if ("Job No." <> '') and (Type = Type::Item) then
                 if Location.Get("Location Code") then
@@ -10755,6 +10766,11 @@ table 39 "Purchase Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckWMS(var PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var SkipCheckLocationOnWMS: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoAndQuantityForItemChargeAssgnt(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
@@ -11411,6 +11427,11 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateLocationCodeOnBeforeSpecialOrderError(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; CurrFieldNo: Integer; xPurchaseLine: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateLocationCodeOnBeforePlanPriceCalcByField(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; CurrFieldNo: Integer; xPurchaseLine: Record "Purchase Line")
     begin
     end;
 
@@ -12195,6 +12216,11 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnShowDimensionsOnAfterEditDimensionSet(var PurchaseLine: Record "Purchase Line"; OldDimensionSetId: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyFromItemOnBeforeGetItemTranslation(var PurchaseLine: Record "Purchase Line"; var Item: Record Item; var IsHandled: Boolean)
     begin
     end;
 
