@@ -837,8 +837,10 @@ table 20405 "Qlty. Inspection Header"
             if Proceed then begin
                 IsChangingStatus := true;
                 OnBeforeReopenInspection(Rec, IsHandled);
-                if IsHandled then
+                if IsHandled then begin
+                    IsChangingStatus := false;
                     exit;
+                end;
 
                 Rec.Validate(Status, Rec.Status::Open);
                 Rec.Modify(true);
@@ -883,8 +885,10 @@ table 20405 "Qlty. Inspection Header"
             if Proceed then begin
                 IsChangingStatus := true;
                 OnBeforeFinishInspection(Rec, IsHandled);
-                if IsHandled then
+                if IsHandled then begin
+                    IsChangingStatus := false;
                     exit;
+                end;
 
                 Rec.Validate(Status, Rec.Status::Finished);
                 Rec.Get(Rec.RecordId());
