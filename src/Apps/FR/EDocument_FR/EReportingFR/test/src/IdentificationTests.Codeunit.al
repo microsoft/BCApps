@@ -884,7 +884,9 @@ codeunit 148146 "Identification Tests"
     procedure PostedPaymentApplicationCreatesCollectedLifecycle()
     var
         Customer: Record Customer;
+        GeneralPostingSetup: Record "General Posting Setup";
         SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         EDocument: Record "E-Document";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
@@ -905,6 +907,11 @@ codeunit 148146 "Identification Tests"
 
         // [GIVEN] A posted sales invoice "SI" with an outgoing Factur-X FR E-Document
         LibrarySales.CreateSalesInvoice(SalesHeader);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        if not GeneralPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
         Customer.Get(SalesHeader."Sell-to Customer No.");
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
         Customer.Modify(true);
@@ -1065,6 +1072,7 @@ codeunit 148146 "Identification Tests"
         EDocumentServiceStatus."E-Document Service Code" := EDocument.Service;
         EDocumentServiceStatus.Status := EDocumentServiceStatus.Status::Approved;
         EDocumentServiceStatus.Insert();
+        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         InvoiceCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();

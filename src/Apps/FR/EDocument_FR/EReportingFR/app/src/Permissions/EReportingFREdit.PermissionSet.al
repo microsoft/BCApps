@@ -12,5 +12,7 @@ permissionset 10972 "E-Reporting FR Edit"
 
     IncludedPermissionSets = "E-Reporting FR Read";
 
-    Permissions = codeunit "FR E-Invoice Lifecycle Mgt." = X;
+    Permissions = tabledata "FR E-Invoice Lifecycle" = IM,
+                  tabledata "FR E-Invoice Lifecycle VAT" = I,
+                  codeunit "FR E-Invoice Lifecycle Mgt." = X;
 }
