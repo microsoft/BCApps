@@ -119,6 +119,12 @@ codeunit 4305 "SOA Filters Impl."
         until AgentTaskMessage.Next() = 0;
     end;
 
+    /// <summary>
+    /// Determines whether an override belongs to an existing input message and was created and last modified by that message's configured owner or agent.
+    /// Overrides affect security filters, contact lookup, and reply routing, so consumers must ignore rows that fail this provenance check.
+    /// </summary>
+    /// <param name="SOATaskContactOverride">The override to verify.</param>
+    /// <returns>True when the override has trusted provenance; otherwise, false.</returns>
     internal procedure IsContactOverrideTrusted(SOATaskContactOverride: Record "SOA Task Contact Override"): Boolean
     var
         AgentTaskMessage: Record "Agent Task Message";
@@ -294,6 +300,10 @@ codeunit 4305 "SOA Filters Impl."
         Commit();
     end;
 
+    /// <summary>
+    /// Ensures that a mapping is changed only for an existing input message by its configured owner or agent.
+    /// Internal procedures are not an authorization boundary, so every override and alternate-email write path calls this validation.
+    /// </summary>
     local procedure ValidateContactMappingAccess(TaskID: BigInteger; TaskMessageID: Guid)
     var
         AgentTaskMessage: Record "Agent Task Message";

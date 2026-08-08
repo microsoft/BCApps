@@ -115,6 +115,10 @@ codeunit 4419 "SOA Send Reply"
         exit('');
     end;
 
+    /// <summary>
+    /// Ensures that a mapped reply belongs to the selected SOA setup and is sent by its configured owner or agent.
+    /// Mapped replies redirect the original thread, so this check is enforced independently of the codeunit's internal access.
+    /// </summary>
     local procedure ValidateMessageAccess(AgentTaskMessage: Record "Agent Task Message"; SOASetup: Record "SOA Setup")
     begin
         if AgentTaskMessage."Agent User Security ID" <> SOASetup."User Security ID" then
@@ -123,6 +127,9 @@ codeunit 4419 "SOA Send Reply"
             Error(ReplyNotAuthorizedErr);
     end;
 
+    /// <summary>
+    /// Determines whether a user is the configured SOA owner or agent, including the fallback for setups created before an explicit owner was stored.
+    /// </summary>
     local procedure IsAuthorizedUserSecurityID(UserSecurityID: Guid; SOASetup: Record "SOA Setup"): Boolean
     var
         OwnerUserSecurityID: Guid;
