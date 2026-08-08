@@ -2070,12 +2070,17 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesLine: Record "Sales Line";
         UnitOfMeasure: Record "Unit of Measure";
+        LineNo: Code[20];
     begin
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         UnitOfMeasure."International Standard Code" := LibraryUtility.GenerateGUID();
         UnitOfMeasure.Modify(true);
+        if LineType = LineType::"G/L Account" then
+            LineNo := LibraryERM.CreateGLAccountWithSalesSetup()
+        else
+            LineNo := LibraryInventory.CreateItemNo();
         LibrarySales.CreateSalesLine(
-        SalesLine, SalesHeader, LineType, LibraryInventory.CreateItemNo(), LibraryRandom.RandDecInRange(10, 20, 5));
+        SalesLine, SalesHeader, LineType, LineNo, LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
         SalesLine.Validate("Unit of Measure", UnitOfMeasure.Code);
         SalesLine.Validate("Tax Category", LibraryRandom.RandText(2));
