@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
+pageextension 8127 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 {
     layout
     {

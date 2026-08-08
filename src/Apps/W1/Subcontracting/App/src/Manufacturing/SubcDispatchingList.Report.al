@@ -30,7 +30,7 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
-report 99001504 "Subc. Dispatching List"
+report 8128 "Subc. Dispatching List"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Subcontractor - Dispatch List';

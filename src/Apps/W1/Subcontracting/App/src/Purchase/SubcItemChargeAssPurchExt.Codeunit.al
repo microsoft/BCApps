@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
-codeunit 99001536 "Subc. ItemChargeAssPurchExt"
+codeunit 8160 "Subc. ItemChargeAssPurchExt"
 {
     var
         AssignToUndoneRcptErr: Label 'You cannot assign the item charge to subcontracting receipt %1, line %2, because it has been undone.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
