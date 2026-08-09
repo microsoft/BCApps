@@ -203,7 +203,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         ShouldAssign := QltyInspectionHeader.WritePermission();
-        ShouldPrompt := false;
+        ShouldPrompt := GuiAllowed();
     end;
 
     #region Verify Permissions

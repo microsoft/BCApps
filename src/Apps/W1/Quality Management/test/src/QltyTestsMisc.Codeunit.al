@@ -54,6 +54,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         Any: Codeunit Any;
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
+        CapturedAssignToSelfNotificationMessage: Text;
+        AssignToSelfNotificationReceived: Boolean;
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
@@ -2833,6 +2835,60 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.IsTrue(QltyInspectionHeader.GetPreventAutoAssignment(), 'Inspection should be ignored');
     end;
 
+    [Test]
+    [HandlerFunctions('AssignToSelfNotificationHandler')]
+    procedure ModifyUnassignedInspection_SendsAssignToSelfNotification()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        // [SCENARIO] Modifying an unassigned Quality Inspection sends the "assign to yourself" notification
+        // instead of silently auto-assigning the current user. Regression coverage for
+        // Qlty. Permission Mgmt. GetShouldAutoAssign hardcoding ShouldPrompt := false, which made
+        // the OnModify trigger always call AssignToSelf and never reach the notification path.
+
+        // [GIVEN] Quality management setup with location, item, and inspection template are configured
+        Initialize();
+
+        QltyInspectionUtility.EnsureSetupExists();
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateItem(Item);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] A quality inspection is created from a purchase line for an untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        QltyInspectionGenRule.Delete();
+
+        // [GIVEN] The inspection has no Assigned User ID (bypass OnModify to reset the state, then re-fetch so xRec matches)
+        QltyInspectionHeader."Assigned User ID" := '';
+        QltyInspectionHeader.Modify(false);
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Precondition: the inspection must start unassigned');
+
+        // [WHEN] A user-modifiable field is changed and the inspection is modified (which runs OnModify)
+        AssignToSelfNotificationReceived := false;
+        CapturedAssignToSelfNotificationMessage := '';
+        QltyInspectionHeader.Validate(Description, 'x');
+        QltyInspectionHeader.Modify(true);
+
+        // [THEN] The "assign to yourself" notification was sent instead of the current user being silently assigned
+        LibraryAssert.IsTrue(AssignToSelfNotificationReceived, 'The AssignToSelf notification should have been sent when modifying an unassigned inspection');
+        LibraryAssert.IsTrue(StrPos(CapturedAssignToSelfNotificationMessage, QltyInspectionHeader."No.") > 0, 'The notification message should reference the inspection number');
+
+        // [THEN] The Assigned User ID remained blank because the user was prompted (not silently auto-assigned)
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'The inspection should not be silently auto-assigned when the notification prompt is available');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
@@ -2864,6 +2920,13 @@ codeunit 139964 "Qlty. Tests - Misc."
     [MessageHandler]
     procedure MessageHandler(MessageText: Text)
     begin
+    end;
+
+    [SendNotificationHandler]
+    procedure AssignToSelfNotificationHandler(var NotificationToShow: Notification): Boolean
+    begin
+        AssignToSelfNotificationReceived := true;
+        CapturedAssignToSelfNotificationMessage := NotificationToShow.Message();
     end;
 
     [ModalPageHandler]
