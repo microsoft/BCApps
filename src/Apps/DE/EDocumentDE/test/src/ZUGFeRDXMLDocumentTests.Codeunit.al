@@ -58,6 +58,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
+        DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -634,7 +635,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         GTIN: Code[14];
         Path: Text;
     begin
@@ -651,7 +651,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] GlobalID element exists with the GTIN value
-        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
         Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
@@ -660,22 +660,21 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         Path: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 622248] Export posted sales invoice does not export GlobalID when Item Reference No. is empty
+        // [SCENARIO 622248] Export posted sales invoice does not export GlobalID when GTIN is empty
         Initialize();
 
-        // [GIVEN] Create and Post Sales Invoice without Item Reference No.
+        // [GIVEN] Create and Post Sales Invoice without GTIN
         SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
 
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] GlobalID element does not exist
-        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
-        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'GlobalID should not exist when Item Reference No. is empty');
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
     #endregion
@@ -723,6 +722,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Path := '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:GlobalID';
         Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Assert.AreEqual('0160', GetNodeByPathWithError(TempXMLBuffer, Path + '/@schemeID'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatOmitsGTINForNonItemLine()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported ZUGFeRD credit-memo product identification omits GTIN for a non-item line
+        Initialize();
+
+        // [GIVEN] A posted credit memo with a non-item line
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::"G/L Account", false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Global product identification does not exist
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
     [Test]
@@ -1073,7 +1093,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         GTIN: Code[14];
         Path: Text;
     begin
@@ -1090,7 +1109,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
         // [THEN] GlobalID element exists with the GTIN value
-        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
         Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
@@ -1099,22 +1118,21 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         Path: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 622248] Export posted sales cr. memo does not export GlobalID when Item Reference No. is empty
+        // [SCENARIO 622248] Export posted sales cr. memo does not export GlobalID when GTIN is empty
         Initialize();
 
-        // [GIVEN] Create and Post Sales Cr. Memo without Item Reference No.
+        // [GIVEN] Create and Post Sales Cr. Memo without GTIN
         SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
 
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
         // [THEN] GlobalID element does not exist
-        Path := DocumentTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
-        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'GlobalID should not exist when Item Reference No. is empty');
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
     #endregion
