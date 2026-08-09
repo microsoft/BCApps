@@ -6,7 +6,7 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Environment.Configuration;
 
-codeunit 13415 "FICore VIES Decl. Feature"
+codeunit 13416 "FICore VIES Decl. Feature"
 {
     Access = Internal;
     InherentEntitlements = X;
