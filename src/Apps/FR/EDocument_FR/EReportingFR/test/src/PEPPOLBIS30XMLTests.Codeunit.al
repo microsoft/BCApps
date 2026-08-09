@@ -703,14 +703,18 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     [Test]
     procedure CheckSalesInvRejectsNonFrenchBuyerVATFallback()
     var
+        CountryRegion: Record "Country/Region";
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
         // [SCENARIO] A non-French VAT registration number is not used as a French buyer endpoint
         Initialize();
 
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Validate("ISO Code", 'DE');
+        CountryRegion.Modify(true);
         Customer.Get(CreateCustomer('', "Electronic Address Scheme"::"EM"));
-        Customer.Validate("Country/Region Code", 'DE');
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('DE');
         Customer.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(Customer."No."));
