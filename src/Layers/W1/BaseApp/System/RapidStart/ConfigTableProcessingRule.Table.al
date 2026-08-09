@@ -2,7 +2,9 @@
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
+#if not CLEAN29
 using Microsoft.Foundation.Reporting;
+#endif
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
@@ -150,8 +152,8 @@ table 8631 "Config. Table Processing Rule"
 #pragma warning disable AL0432, AS0105
             Database::"Custom Report Layout":
 #pragma warning restore AL0432, AS0105
-#endif
                 exit(Action = Action::Post);
+#endif
             Database::"Transfer Header":
                 exit(Action in [Action::Ship, Action::Receive]);
             Database::Item:

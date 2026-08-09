@@ -7,7 +7,6 @@ namespace Microsoft.CRM.Interaction;
 using Microsoft.CRM.Segment;
 using Microsoft.CRM.Setup;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Foundation.Reporting;
 using System.Environment;
 using System.IO;
 using System.Utilities;

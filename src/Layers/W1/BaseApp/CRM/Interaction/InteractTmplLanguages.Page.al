@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CRM.Interaction;
 
+#if not CLEAN29
 using Microsoft.Foundation.Reporting;
+#endif
 
 #pragma warning disable AS0032
 page 5154 "Interact. Tmpl. Languages"

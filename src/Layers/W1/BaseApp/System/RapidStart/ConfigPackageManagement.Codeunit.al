@@ -1516,9 +1516,9 @@ codeunit 8611 "Config. Package Management"
 #pragma warning disable AL0432, AS0105
             Database::Microsoft.Foundation.Reporting."Custom Report Layout":
 #pragma warning restore AL0432, AS0105
-#endif
                 // Moving Layouts to be on the top
                 ConfigPackageTable."Processing Order" := 0;
+#endif
             // Moving Jobs tables down so contacts table can be processed first
             Database::Microsoft.Projects.Project.Job.Job, Database::Microsoft.Projects.Project.Job."Job Task",
                 Database::Microsoft.Projects.Project.Planning."Job Planning Line", Database::Microsoft.Projects.Project.Journal."Job Journal Line",

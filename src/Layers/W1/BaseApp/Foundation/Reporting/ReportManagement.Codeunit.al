@@ -6,9 +6,13 @@ namespace Microsoft.Foundation.Reporting;
 
 using System.Device;
 using System.Environment;
+#if not CLEAN29
 using System.Environment.Configuration;
+#endif
 using System.Reflection;
+#if not CLEAN29
 using System.Utilities;
+#endif
 
 codeunit 44 ReportManagement
 {

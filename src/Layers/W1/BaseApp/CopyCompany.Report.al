@@ -57,7 +57,6 @@ report 357 "Copy Company"
 #pragma warning disable AL0432, AS0105
             dataitem("Custom Report Layout"; "Custom Report Layout")
 #pragma warning restore AL0432, AS0105
-#endif
             {
                 DataItemLink = "Company Name" = field(Name);
                 DataItemTableView = sorting("Report ID", "Company Name", Type);
@@ -74,6 +73,7 @@ report 357 "Copy Company"
                 end;
 #pragma warning restore AL0432, AS0105
             }
+#endif
             dataitem("Feature Data Update Status"; "Feature Data Update Status")
             {
                 DataItemLink = "Company Name" = field(Name);
