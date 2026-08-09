@@ -32,8 +32,8 @@ codeunit 148146 "Identification Tests"
                   tabledata "Sales Invoice Header" = rimd,
                   tabledata "Cust. Ledger Entry" = rimd,
                   tabledata "Detailed Cust. Ledg. Entry" = rimd,
-                  tabledata "FR E-Invoice Lifecycle" = rimd,
-                  tabledata "FR E-Invoice Lifecycle VAT" = rimd,
+                  tabledata "FR E-Invoice Lifecycle" = rimD,
+                  tabledata "FR E-Invoice Lifecycle VAT" = rimD,
                   tabledata "VAT Entry" = rimd,
                   tabledata "VAT Posting Setup" = rimd;
 
@@ -1245,6 +1245,7 @@ codeunit 148146 "Identification Tests"
         EDocumentService."FR Sender Platform Scheme" := '0238';
         EDocumentService."FR Sender Platform Name" := 'Test Approved Platform';
         CompanyInformation.Get();
+        CompanyInformation.Name := 'Test Company';
         CompanyInformation."Registration No." := '123456789';
         CompanyInformation.Modify();
     end;
