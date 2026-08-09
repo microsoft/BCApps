@@ -11,8 +11,8 @@ page 36983 "Customer Retention Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Customer Retention Overview';
-    AboutTitle = 'About Customer Retention Overview';
+    Caption = 'Customer Retention Overview (Power BI)';
+    AboutTitle = 'About Customer Retention Overview (Power BI)';
     AboutText = 'The Customer Retention Overview page provides insights into customer retention metrics, helping to analyze customer loyalty and retention trends.';
 
     layout
