@@ -971,6 +971,58 @@ codeunit 139595 "Report Layouts Test"
     end;
 
     [Test]
+    procedure TestBatchStatusResolvesScopeWithoutSetSelectedCompany()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        UpdateCount: Integer;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Scope resolution must not depend on a caller having called SetSelectedCompany first.
+        // "Report Theme and Header/Footer" reaches SetLayoutStatusBatch without calling it, and a blank
+        // company would make the company-row lookup probe the GLOBAL row instead: an already-overridden
+        // layout would then classify as company scope while a fresh one classified as global, and this
+        // batch would fail with the mixed-scope error even though both are global.
+        // Note this test deliberately does NOT call SetSelectedCompany.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two extension layouts.');
+        ReportLayoutList.FindFirst();
+
+        // One layout already carries a GLOBAL status override; the other has none. Both are global scope.
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride."Layout Status" := Enum::"Report Layout Status"::Draft;
+        TenantReportLayoutOverride."Override Layout Status" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // Act - batch over BOTH, with SelectedCompany never set
+        ReportLayoutList.Reset();
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        UpdateCount := ReportLayoutsImpl.SetLayoutStatusBatch(ReportLayoutList, Enum::"Report Layout Status"::Approved);
+
+        // Assert - no spurious mixed-scope error, and both layouts updated globally
+        Assert.AreEqual(2, UpdateCount, 'Both layouts should have been updated; a blank company must not split the scope.');
+        ReportLayoutList.FindSet();
+        repeat
+            Assert.IsTrue(
+                TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+                StrSubstNo('A global override should exist for layout %1.', ReportLayoutList."Name"));
+            Assert.AreEqual(
+                Enum::"Report Layout Status"::Approved,
+                TenantReportLayoutOverride."Layout Status",
+                StrSubstNo('The global override for %1 should carry the Approved status.', ReportLayoutList."Name"));
+        until ReportLayoutList.Next() = 0;
+    end;
+
+    [Test]
     procedure TestBatchStatusOverAllGlobalLayoutsUpdatesEveryOne()
     var
         ReportLayoutList: Record "Report Layout List";

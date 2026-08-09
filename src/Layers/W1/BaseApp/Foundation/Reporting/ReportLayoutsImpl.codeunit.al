@@ -52,6 +52,22 @@ codeunit 9660 "Report Layouts Impl."
     end;
 
     /// <summary>
+    /// The company an override applies to, for the scope-sensitive paths below.
+    /// Falls back to the running company when a caller has not called SetSelectedCompany:
+    /// "Report Theme and Header/Footer" reaches SetLayoutStatusBatch without setting it, and a blank
+    /// value would silently probe the GLOBAL row instead of this company's — misclassifying scope and,
+    /// in a batch spanning an already-overridden layout and a fresh one, raising the mixed-scope error
+    /// when both are in fact global. Resolving here rather than mutating the field keeps this
+    /// independent of call order, so a future caller cannot reintroduce the same gap.
+    /// </summary>
+    local procedure OverrideCompany(): Text[30]
+    begin
+        if SelectedCompany <> '' then
+            exit(SelectedCompany);
+        exit(CopyStr(CompanyName(), 1, MaxStrLen(SelectedCompany)));
+    end;
+
+    /// <summary>
     /// Sets the status for a layout.
     /// User-defined layouts are updated in place in "Tenant Report Layout" (table 2000000232).
     /// Extension-installed layouts reside in the read-only App database; their status is set by
@@ -108,7 +124,7 @@ codeunit 9660 "Report Layouts Impl."
         // A company-specific status override, where one already exists, keeps the change in that company.
         // Such a row can no longer be created from the UI, but it may come from an earlier version or from
         // a vendor's install codeunit, and it is what a future company-scoped option would build on.
-        if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", SelectedCompany) then
+        if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", OverrideCompany()) then
             if TenantReportLayoutOverride."Override Layout Status" then
                 exit(false);
 
@@ -132,7 +148,7 @@ codeunit 9660 "Report Layouts Impl."
         if MakeGlobal then
             OverrideCompanyName := ''
         else
-            OverrideCompanyName := SelectedCompany;
+            OverrideCompanyName := OverrideCompany();
 
         OverrideExists := TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", OverrideCompanyName);
         if not OverrideExists then begin
