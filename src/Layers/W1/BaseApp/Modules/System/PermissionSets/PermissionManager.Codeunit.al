@@ -172,6 +172,10 @@ codeunit 9002 "Permission Manager"
             UserPersonalization.Validate(Scope, AllProfile.Scope);
             UserPersonalization.Insert();
         end else
+            // Only overwrite an existing user's role center in CRONUS evaluation companies (demo experience).
+            // For real (non-evaluation) companies the user may have chosen a custom role center, which must
+            // not be reset during a plan re-sync (regression from PR 213237). IsAllProfileFiltered is only
+            // set for the CRONUS evaluation case below.
             if IsAllProfileFiltered then begin
                 UserPersonalization.Validate("Profile ID", AllProfile."Profile ID");
                 UserPersonalization.Validate("App ID", AllProfile."App ID");
@@ -225,12 +229,12 @@ codeunit 9002 "Permission Manager"
         if Company."Evaluation Company" then begin
             if Company.Name.ToLower().StartsWith('cronus') then begin
                 AllProfile.SetRange("Profile ID", 'Business Manager Evaluation');
-                IsFiltered := true;
+                IsFiltered := true; // CRONUS evaluation: overwrite existing users' role center for the demo experience
             end;
-        end else begin
+        end else
+            // Real (non-evaluation) company: new users still get the 'Business Manager' role center, but
+            // IsFiltered is intentionally left false so existing users' customized role centers are preserved.
             AllProfile.SetRange("Profile ID", 'Business Manager');
-            IsFiltered := true;
-        end;
     end;
 
     local procedure GetCharRepresentationOfPermission(PermissionOption: Integer): Text[1]
