@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Compact read-only summary of "Posted Exp. Rep. Line VAT Spec" rows for a given Posted Expense Report.
 /// Used as a part on the Posted Expense Report Statistics page.
 /// </summary>
-page 7093 "Posted ExpRep VATSpecification"
+page 7071 "Posted ExpRep VATSpecification"
 {
     Caption = 'VAT Specification';
     PageType = ListPart;

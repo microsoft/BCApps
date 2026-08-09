@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7094 "Posted Expense Report FactBox"
+page 7072 "Posted Expense Report FactBox"
 {
     PageType = CardPart;
     SourceTable = "Posted Expense Report Header";
