@@ -89,7 +89,6 @@ pageextension 18748 "Cash Payment Voucher" extends "Cash Payment Voucher"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

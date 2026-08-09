@@ -80,10 +80,11 @@ codeunit 57 "Document Totals"
         if IsHandled then
             exit;
 
+        NeedRefreshSalesLine := false;
+
         if TotalsUpToDate then
             exit;
         TotalsUpToDate := true;
-        NeedRefreshSalesLine := false;
 
         SalesSetup.GetRecordOnce();
         TotalSalesLine2.Copy(TotalSalesLine);

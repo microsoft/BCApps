@@ -16,6 +16,7 @@ page 9231 "Items by Location Matrix"
     LinksAllowed = false;
     PageType = ListPart;
     SourceTable = Item;
+    SourceTableView = where(Type = const(Inventory));
 
     layout
     {

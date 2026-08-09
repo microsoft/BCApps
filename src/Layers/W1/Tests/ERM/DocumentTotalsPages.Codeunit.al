@@ -26,6 +26,7 @@ codeunit 134344 "Document Totals Pages"
         WrongDecimalErr: Label 'Wrong count of decimals', Locked = true;
         InvoiceDiscountPerRoundingMsg: Label 'The system has recalculated the discount percentage to align with the rounded discount amount.';
         VATAmountErr: Label '%1 should be equal to %2', Comment = '%1 - VAT Amount Field, %2 - VAT Amount Field';
+        LineDescriptionRevertedErr: Label 'The line Description should be retained after editing.';
 
     [Test]
     [HandlerFunctions('ChangeExchangeRateMPH')]
@@ -2120,6 +2121,75 @@ codeunit 134344 "Document Totals Pages"
         Assert.IsTrue(SalesOrder.SalesLines."Invoice Disc. Pct.".AsDecimal() <> 0, InvoiceDiscountPercentErr);
 
         LibraryNotificationMgt.RecallNotificationsForRecord(SalesLine);
+    end;
+
+    [Test]
+    procedure SalesOrderTotalsUnchangedWhenLineDescriptionChanged()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesOrder: TestPage "Sales Order";
+        ExpectedTotalInclVAT: Decimal;
+    begin
+        // [FEATURE] [Sales] [Order] [AI test 0.4]
+        // [SCENARIO 639659] Changing only the line Description on a Sales Order does not change the document totals
+        Initialize();
+
+        // [GIVEN] A Sales Order with one item line
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        CreateSalesLineWithAmount(SalesHeader, 1, LibraryRandom.RandDecInRange(100, 1000, 2));
+
+        // [GIVEN] The current document "Total Amount Incl. VAT"
+        SalesHeader.CalcFields("Amount Including VAT");
+        ExpectedTotalInclVAT := SalesHeader."Amount Including VAT";
+
+        // [GIVEN] The Sales Order page is open on the line
+        SalesOrder.OpenEdit();
+        SalesOrder.Filter.SetFilter("No.", SalesHeader."No.");
+
+        // [WHEN] Only the line Description is changed
+        SalesOrder.SalesLines.Description.SetValue(LibraryUtility.GenerateGUID());
+
+        // [THEN] The document "Total Amount Incl. VAT" is unchanged (not doubled)
+        Assert.AreEqual(
+          ExpectedTotalInclVAT, SalesOrder.SalesLines."Total Amount Incl. VAT".AsDecimal(),
+          VATAmountErr);
+    end;
+
+    [Test]
+    procedure SalesOrderLineDescriptionRetainedAfterQtyValidationWithCalcInvDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesSetup: Record "Sales & Receivables Setup";
+        NewDescription: Text[100];
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [Sales] [Order]
+        // [SCENARIO 638838] The line Description edited after validating Quantity is retained when "Calc. Inv. Discount" is enabled.
+        Initialize();
+
+        // [GIVEN] "Calc. Inv. Discount" is enabled in Sales & Receivables Setup.
+        SalesSetup.Get();
+        SalesSetup.Validate("Calc. Inv. Discount", true);
+        SalesSetup.Modify(true);
+
+        // [GIVEN] Create a Sales Order for a customer with an invoice discount and one item line.
+        CreateSalesDocumentWithCustInvDisc(SalesHeader, SalesLine, SalesHeader."Document Type"::Order);
+        Commit();
+
+        // [GIVEN] The Sales Order page is open on the line.
+        SalesOrder.OpenEdit();
+        SalesOrder.Filter.SetFilter("No.", SalesHeader."No.");
+
+        // [GIVEN] The Quantity is validated, which triggers an invoice discount recalculation for the line.
+        SalesOrder.SalesLines.Quantity.SetValue(LibraryRandom.RandIntInRange(2, 5));
+
+        // [WHEN] The line Description is changed to a custom value.
+        NewDescription := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(NewDescription));
+        SalesOrder.SalesLines.Description.SetValue(NewDescription);
+
+        // [THEN] Verify the custom Description is retained and not reverted to the original item description.
+        Assert.AreEqual(NewDescription, SalesOrder.SalesLines.Description.Value(), LineDescriptionRevertedErr);
     end;
 
     local procedure Initialize()

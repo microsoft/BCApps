@@ -2,6 +2,7 @@
 
 using System.Apps;
 using System.Reflection;
+using System.Security.AccessControl;
 
 page 9631 "Page Inspection"
 {
@@ -142,6 +143,27 @@ page 9631 "Page Inspection"
                     trigger OnDrillDown()
                     begin
                         HyperLink(ViewFullTableURL);
+                    end;
+                }
+            }
+            group(ViewTablePermissionsGroup)
+            {
+                ShowCaption = false;
+                Visible = not PageIsOpening and not PageIsSystem and not PageIsReportRequest and not PageIsReportViewer and not PageIsXMLPortPage and not PageIsRoleCenter and not IsViewQueryPage and PageHasSourceTable;
+                field(ViewTablePermissionsLbl; ViewTablePermissionsLbl)
+                {
+                    ApplicationArea = All;
+                    DrillDown = true;
+                    ShowCaption = false;
+                    ToolTip = 'View an overview of permissions that apply to this table across all permission sets.';
+
+                    trigger OnDrillDown()
+                    var
+                        PermissionsOverviewPage: Page "Permissions Overview";
+                        ObjType: Option None,"Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
+                    begin
+                        PermissionsOverviewPage.SetInitialObjectFilter(ObjType::"Table Data", Format(Rec."Source Table No."));
+                        PermissionsOverviewPage.Run();
                     end;
                 }
             }
@@ -309,6 +331,7 @@ page 9631 "Page Inspection"
         InfoFormatSecondDetailOnlyLbl: Label '(%1)', Locked = true;
         ViewFullTableURL: Text;
         ViewTableLbl: Label 'View table';
+        ViewTablePermissionsLbl: Label 'View table permissions';
         UpdateExploreInVsCodeRequestURL: Boolean;
         ExploreInVsCodeTextLbl: Label 'Explore page in Visual Studio Code';
         ShowExploreInVSCodeLink: Boolean;

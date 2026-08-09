@@ -1426,7 +1426,6 @@ page 22 "Customer List"
                     Caption = 'Customer - Order Summary';
                     Image = "Report";
                     RunObject = Report "Customer - Order Summary";
-                    ToolTip = 'View the order detail (the quantity not yet shipped) for each customer in three periods of 30 days each, starting from a selected date. There are also columns with orders to be shipped before and after the three periods and a column with the total order detail for each customer. The report can be used to analyze a company''s expected sales volume.';
                 }
                 action("Customer - Order Detail")
                 {
@@ -1434,7 +1433,6 @@ page 22 "Customer List"
                     Caption = 'Customer - Order Detail';
                     Image = "Report";
                     RunObject = Report "Customer - Order Detail";
-                    ToolTip = 'View a list of orders divided by customer. The order amounts are totaled for each customer and for the entire list. The report can be used, for example, to obtain an overview of sales over the short term or to analyze possible shipment problems.';
                 }
 #if not CLEAN28
                 action("Customer - Sales List")
@@ -1468,7 +1466,6 @@ page 22 "Customer List"
                     Caption = 'Customer/Item Sales';
                     Image = "Report";
                     RunObject = Report "Customer/Item Sales";
-                    ToolTip = 'View a list of item sales for each customer during a selected time period. The report contains information on quantity, sales amount, profit, and possible discounts. It can be used, for example, to analyze a company''s customer groups.';
                 }
             }
             action("Customer - Reconciliation Act")

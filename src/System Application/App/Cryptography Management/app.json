@@ -42,6 +42,13 @@
       "version": "29.0.0.0"
     }
   ],
+  "internalsVisibleTo": [
+    {
+      "id": "96e34a7d-38cc-48a9-9348-d2194d67167d",
+      "name": "Cryptography Management Test",
+      "publisher": "Microsoft"
+    }
+  ],
   "screenshots": [],
   "platform": "29.0.0.0",
   "idRanges": [

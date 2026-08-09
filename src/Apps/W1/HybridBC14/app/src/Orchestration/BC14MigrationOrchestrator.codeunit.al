@@ -21,6 +21,7 @@ codeunit 46862 "BC14 Migration Orchestrator"
         OneStepUpgradeTok: Label 'One Step Upgrade', Locked = true;
         OneStepUpgradeDisabledLbl: Label 'One Step Upgrade is disabled in settings. Skipping automatic upgrade.', Locked = true;
         OneStepUpgradeNoPendingCompaniesLbl: Label 'One Step Upgrade: No pending companies found to upgrade.', Locked = true;
+        OneStepUpgradeNoDataReplicatedLbl: Label 'One Step Upgrade: No data was replicated in run %1. Skipping upgrade (setup run).', Locked = true, Comment = '%1 = Run ID';
         OneStepUpgradeCompanySetupPendingLbl: Label 'One Step Upgrade skipped: company setup is not yet completed. The upgrade will start automatically after the next replication, or you can start it manually once company setup is complete.';
         OneStepUpgradeSchedulingLbl: Label 'One Step Upgrade: Scheduling upgrade for company %1.', Locked = true, Comment = '%1 = Company Name';
         UpgradeWasScheduledMsg: Label 'Upgrade was successfully scheduled';
@@ -285,6 +286,7 @@ codeunit 46862 "BC14 Migration Orchestrator"
     internal procedure TriggerUpgradeIfOneStepEnabled(RunId: Text[50])
     var
         HybridReplicationSummary: Record "Hybrid Replication Summary";
+        HybridReplicationDetail: Record "Hybrid Replication Detail";
         HybridCompanyStatus: Record "Hybrid Company Status";
         BC14GlobalSettings: Record "BC14 Global Migration Settings";
         BC14CompanySettings: Record BC14CompanyMigrationInfo;
@@ -302,6 +304,15 @@ codeunit 46862 "BC14 Migration Orchestrator"
 
         if not HybridReplicationSummary.Get(RunId) then
             exit;
+
+        // A setup-phase run replicates no per-company data and therefore produces no
+        // Hybrid Replication Detail rows. Guard against entering the upgrade flow in that
+        // case (no companies are selected/created yet), mirroring the other migration tools.
+        HybridReplicationDetail.SetRange("Run ID", RunId);
+        if HybridReplicationDetail.IsEmpty() then begin
+            Session.LogMessage('0000TXR', StrSubstNo(OneStepUpgradeNoDataReplicatedLbl, RunId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
+            exit;
+        end;
 
         if not ValidateReplicationBeforeUpgrade(HybridReplicationSummary, false) then
             exit;

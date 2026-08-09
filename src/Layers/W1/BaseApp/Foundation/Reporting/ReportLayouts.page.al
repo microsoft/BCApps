@@ -411,7 +411,7 @@ page 9660 "Report Layouts"
 
             group(CompositeLayoutDetails)
             {
-                Caption = 'Composite Layout';
+                Caption = 'Composite layout';
                 Image = Document;
                 Visible = DocumentReportExperienceEnabled;
                 // The assignment page and lookup helper declare RIMD on Tenant Report Layout Cfg (indirect
