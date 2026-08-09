@@ -178,6 +178,7 @@ table 20405 "Qlty. Inspection Header"
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Name";
+            ValidateTableRelation = false;
             Caption = 'Assigned User ID';
             ToolTip = 'Specifies the user this inspection is assigned to. Changing another user''s assignment requires the Quality Admin & Supervisor role.';
 
@@ -612,7 +613,7 @@ table 20405 "Qlty. Inspection Header"
             end;
             if ShouldTryAndChangePrompt then
                 if QltyPermissionMgmt.GetShouldAutoAssign(PromptToAssignIfPossible) then
-                    if PromptToAssignIfPossible and GuiAllowed() then
+                    if PromptToAssignIfPossible then
                         QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(Rec)
                     else
                         Rec.AssignToSelf();
