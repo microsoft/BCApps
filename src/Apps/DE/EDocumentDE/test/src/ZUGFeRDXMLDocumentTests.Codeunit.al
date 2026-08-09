@@ -513,6 +513,42 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatIncludesProductIdentifiers()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        GTIN: Code[14];
+        ItemReferenceNo: Code[50];
+        Path: Text;
+    begin
+        // [SCENARIO] Exported ZUGFeRD invoice keeps standard, seller, and buyer product identifiers separate
+        Initialize();
+        GTIN := '4006381333931';
+        ItemReferenceNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A posted item invoice with a GTIN and buyer item reference
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithItemReference("Sales Document Type"::Invoice, ItemReferenceNo));
+        SetItemGTIN(SalesInvoiceHeader, GTIN);
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.FindFirst();
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Each product identifier is exported in its corresponding element
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.AreEqual(1, CountNodesByPath(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetNodeByPathWithError(TempXMLBuffer, Path + '/@schemeID'), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(SalesInvoiceLine."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:BuyerAssignedID';
+        Assert.AreEqual(ItemReferenceNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatOmitsGTINForNonItemLine()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -722,6 +758,42 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Path := '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:GlobalID';
         Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Assert.AreEqual('0160', GetNodeByPathWithError(TempXMLBuffer, Path + '/@schemeID'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatIncludesProductIdentifiers()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        GTIN: Code[14];
+        ItemReferenceNo: Code[50];
+        Path: Text;
+    begin
+        // [SCENARIO] Exported ZUGFeRD credit memo keeps standard, seller, and buyer product identifiers separate
+        Initialize();
+        GTIN := '4006381333931';
+        ItemReferenceNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A posted item credit memo with a GTIN and buyer item reference
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithItemReference("Sales Document Type"::"Credit Memo", ItemReferenceNo));
+        SetItemGTIN(SalesCrMemoHeader, GTIN);
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::Item);
+        SalesCrMemoLine.FindFirst();
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Each product identifier is exported in its corresponding element
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.AreEqual(1, CountNodesByPath(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetNodeByPathWithError(TempXMLBuffer, Path + '/@schemeID'), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID';
+        Assert.AreEqual(SalesCrMemoLine."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:BuyerAssignedID';
+        Assert.AreEqual(ItemReferenceNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -1773,6 +1845,21 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesHeader: Record "Sales Header";
     begin
         SalesHeader.Get(DocumentType, CreateSalesDocumentWithLine(DocumentType, LineType, InvoiceDiscount));
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesDocumentWithItemReference(DocumentType: Enum "Sales Document Type"; ItemReferenceNo: Code[50]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        SalesHeader.Get(DocumentType, CreateSalesDocumentWithLine(DocumentType, Enum::"Sales Line Type"::Item, false));
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine."Item Reference No." := ItemReferenceNo;
+        SalesLine.Modify();
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
@@ -3005,6 +3092,14 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
         TempXMLBuffer.SetRange(Path, XPath);
         exit(TempXMLBuffer.FindFirst());
+    end;
+
+    local procedure CountNodesByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Integer
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        exit(TempXMLBuffer.Count());
     end;
 
     local procedure GetLastNodeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
