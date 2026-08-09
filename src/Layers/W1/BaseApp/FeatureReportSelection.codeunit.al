@@ -1,3 +1,4 @@
+#pragma warning disable AS0018, AS0088
 #if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -11,6 +12,9 @@ using System.Reflection;
 
 codeunit 5409 "Feature - Report Selection" implements "Feature Data Update"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Migrates layouts out of the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.';
+    ObsoleteTag = '29.0';
     Permissions = TableData "Feature Data Update Status" = rm;
     TableNo = "Tenant Report Layout";
 
@@ -171,3 +175,4 @@ codeunit 5409 "Feature - Report Selection" implements "Feature Data Update"
     end;
 }
 #endif
+#pragma warning restore AS0018, AS0088

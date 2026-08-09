@@ -317,7 +317,9 @@ page 9652 "Report Layout Selection"
         CustomLayoutDescription: Text;
         IsInitialized: Boolean;
         DocumentReportExperienceEnabled: Boolean;
+#if not CLEAN29
         CouldNotFindCustomReportLayoutErr: Label 'There is no custom report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
+#endif
         CouldNotFindBuiltInReportLayoutErr: Label 'There is no built-in report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
         ShowLayoutPartsMsg: Label 'Header/Footer Part: %1\Theme Part: %2', Comment = '%1 = resolved header/footer part, %2 = resolved theme part';
         PartWithSourceTxt: Label '%1 (from %2)', Comment = '%1 = part name, %2 = where the part is resolved from';

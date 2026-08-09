@@ -1029,7 +1029,11 @@ codeunit 8800 "Custom Layout Reporting"
         exit(CustomLayoutReporting.CallReportSaveAs(ReportID, RequestParameterText, ReportFormatValue, FileStream, RecRef))
     end;
 
+    // The layout-code parameter is only consulted on the legacy path below, so in the Clean build it is
+    // unread. The signature stays for the three call sites, which still pass a code.
+#pragma warning disable AA0137
     local procedure IsWordLayout(ReportID: Integer; CustomReportLayoutCode: Code[20]): Boolean
+#pragma warning restore AA0137
     var
 #if not CLEAN29
 #pragma warning disable AL0432, AS0105

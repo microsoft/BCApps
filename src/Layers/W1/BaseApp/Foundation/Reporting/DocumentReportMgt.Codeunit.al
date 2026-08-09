@@ -30,7 +30,9 @@ codeunit 9651 "Document Report Mgt."
         TemplateAfterUpdateValidationErr: Label 'The automatic update could not resolve all the conflicts in the current Word layout. For example, the layout uses fields that are missing in the report design or the report ID is wrong.\The following errors were detected:\%1\You must manually update the layout to match the current report design.';
         UpgradeMessageMsg: Label 'The report upgrade process returned the following log messages:\%1.';
 #pragma warning restore AA0470
+#if not CLEAN29
         NoReportLayoutUpgradeRequiredMsg: Label 'The layout upgrade process completed without detecting any required changes in the current application.';
+#endif
         CompanyInformationPicErr: Label 'The document contains elements that cannot be converted to PDF. This may be caused by missing image data in the document.';
 
     procedure ValidateWordLayout(ReportID: Integer; DocumentStream: InStream; useConfirm: Boolean; updateContext: Boolean): Boolean
@@ -185,8 +187,9 @@ codeunit 9651 "Document Report Mgt."
         ProcessUpgradeLog(ReportChangeLogCollection);
         exit(ReportChangeLogCollection.Count > 0);
     end;
-#endif
 
+    // Only reachable from the obsoleted upgrade path above, so it goes with it - otherwise it is a
+    // method declared and never used once that path is compiled out.
     local procedure ProcessUpgradeLog(var ReportChangeLogCollection: DotNet IReportChangeLogCollection)
     var
         ReportLayoutUpdateLog: Codeunit "Report Layout Update Log";
@@ -201,6 +204,7 @@ codeunit 9651 "Document Report Mgt."
         else
             Message(UpgradeMessageMsg, Format(ReportChangeLogCollection));
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure BulkUpgrade(testMode: Boolean)

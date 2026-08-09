@@ -274,8 +274,8 @@ page 9650 "Custom Report Layouts"
                 var
 #pragma warning disable AL0432
                     CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
                     FeatureReportSelection: Codeunit "Feature - Report Selection";
+#pragma warning restore AL0432
                 begin
                     CustomReportLayout.Copy(Rec);
                     CurrPage.SetSelectionFilter(CustomReportLayout);

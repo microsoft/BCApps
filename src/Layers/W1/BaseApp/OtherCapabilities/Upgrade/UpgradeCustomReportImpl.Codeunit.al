@@ -1,3 +1,4 @@
+#pragma warning disable AS0088
 #if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -12,6 +13,9 @@ using System.Upgrade;
 
 codeunit 104057 "Upgrade Custom Report Impl."
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Upgrades layouts stored in the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.';
+    ObsoleteTag = '29.0';
 
     // to allow test or manual upgrade
     trigger OnRun()
@@ -162,3 +166,4 @@ codeunit 104057 "Upgrade Custom Report Impl."
     end;
 }
 #endif
+#pragma warning restore AS0088
