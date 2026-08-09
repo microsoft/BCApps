@@ -550,7 +550,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
         if OutboundEDocument.FindLast() then
             EDocMessageMgt.CreateMessage(OutboundEDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Incoming, ResponseType, TempBlob)
         else
-            Session.LogMessage('', OrderResponseNoMatchTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+            Session.LogMessage('0000UWG', OrderResponseNoMatchTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
 
         // Response stored on the outbound E-Document; inbound carrier must not continue through the import pipeline.
         EDocument.DeleteOrphanedImport();
