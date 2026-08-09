@@ -17,6 +17,7 @@ report 1131 "Cost Allocation"
 {
     ApplicationArea = CostAccounting;
     Caption = 'Allocate Costs';
+    ToolTip = 'Specifies the cost allocation options.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
