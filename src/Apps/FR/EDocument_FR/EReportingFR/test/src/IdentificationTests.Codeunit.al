@@ -32,8 +32,8 @@ codeunit 148146 "Identification Tests"
                   tabledata "Sales Invoice Header" = rimd,
                   tabledata "Cust. Ledger Entry" = rimd,
                   tabledata "Detailed Cust. Ledg. Entry" = rimd,
-                  tabledata "FR E-Invoice Lifecycle" = rimD,
-                  tabledata "FR E-Invoice Lifecycle VAT" = rimD,
+                  tabledata "FR E-Invoice Lifecycle" = rimd,
+                  tabledata "FR E-Invoice Lifecycle VAT" = rimd,
                   tabledata "VAT Entry" = rimd,
                   tabledata "VAT Posting Setup" = rimd;
 
