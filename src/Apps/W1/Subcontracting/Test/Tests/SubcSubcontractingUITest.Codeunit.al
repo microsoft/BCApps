@@ -5,17 +5,22 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 using System.Reflection;
+using System.TestLibraries.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 139990 "Subc. Subcontracting UI Test"
 {
@@ -32,6 +37,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting UI Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         SubcontractingMgmtLibrary.Initialize();
@@ -49,6 +55,159 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Subcontracting UI Test");
+    end;
+
+    [Test]
+    procedure SubcontractingAssistedSetupIsRegistered()
+    var
+        AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
+    begin
+        // [SCENARIO 642233] The Subcontracting assisted setup is registered with Guided Experience.
+        Initialize();
+
+        // [GIVEN] The Subcontracting assisted setup registration does not exist
+        AssistedSetupTestLibrary.Delete(Page::"Subcontracting Setup Wizard");
+
+        // [WHEN] Assisted setups are registered
+        AssistedSetupTestLibrary.CallOnRegister();
+
+        // [THEN] The Subcontracting setup wizard is registered
+        Assert.IsTrue(AssistedSetupTestLibrary.Exists(Page::"Subcontracting Setup Wizard"), 'The Subcontracting assisted setup should be registered.');
+    end;
+
+    [Test]
+    [HandlerFunctions('SetupNotCompletedConfirmHandler')]
+    procedure SubcontractingSetupWizardShowsCompanyDefaultsAndConfigurationLinks()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
+        ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
+        CreateProdOrderInfoLine: Boolean;
+        SubcDefaultCompLocation: Enum "Components at Location";
+        SubcCompTransferLeadTime: DateFormula;
+        SubcontractingBatchName: Code[10];
+        SubcontractingTemplateName: Code[10];
+    begin
+        // [SCENARIO 642233] The setup wizard displays the installed company defaults and the next configuration links.
+        Initialize();
+
+        // [GIVEN] The company has Subcontracting defaults
+        ManufacturingSetup.Get();
+        SubcontractingTemplateName := ManufacturingSetup."Subcontracting Template Name";
+        SubcontractingBatchName := ManufacturingSetup."Subcontracting Batch Name";
+        CreateProdOrderInfoLine := ManufacturingSetup."Create Prod. Order Info Line";
+        ComponentDirectUnitCost := ManufacturingSetup."Component Direct Unit Cost";
+        SubcCompTransferLeadTime := ManufacturingSetup."Subc. Comp. Transfer Lead Time";
+        SubcDefaultCompLocation := ManufacturingSetup."Subc. Default Comp. Location";
+
+        // [WHEN] The setup wizard is opened
+        SubcontractingSetupWizard.OpenEdit();
+
+        // [THEN] The welcome step is shown
+        Assert.IsFalse(SubcontractingSetupWizard.ActionBack.Enabled(), 'Back should be disabled on the welcome step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be enabled on the welcome step.');
+        Assert.IsFalse(SubcontractingSetupWizard.ActionFinish.Enabled(), 'Finish should be disabled on the welcome step.');
+
+        // [WHEN] The user continues to company defaults
+        SubcontractingSetupWizard.ActionNext.Invoke();
+
+        // [THEN] The defaults created during installation are displayed
+        SubcontractingSetupWizard."Subcontracting Template Name".AssertEquals(SubcontractingTemplateName);
+        SubcontractingSetupWizard."Subcontracting Batch Name".AssertEquals(SubcontractingBatchName);
+        SubcontractingSetupWizard."Create Prod. Order Info Line".AssertEquals(CreateProdOrderInfoLine);
+        SubcontractingSetupWizard."Component Direct Unit Cost".AssertEquals(ComponentDirectUnitCost);
+        SubcontractingSetupWizard."Subc. Comp. Transfer Lead Time".AssertEquals(SubcCompTransferLeadTime);
+        SubcontractingSetupWizard."Subc. Default Comp. Location".AssertEquals(SubcDefaultCompLocation);
+        Assert.IsTrue(SubcontractingSetupWizard.ActionBack.Enabled(), 'Back should be enabled on the company defaults step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be enabled on the company defaults step.');
+
+        // [WHEN] The user continues to the final step
+        SubcontractingSetupWizard.ActionNext.Invoke();
+
+        // [THEN] Links to the remaining Subcontracting configuration are displayed
+        Assert.IsTrue(SubcontractingSetupWizard.WorkCentersLink.Visible(), 'The work centers link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.VendorsLink.Visible(), 'The vendors link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.LocationsLink.Visible(), 'The locations link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.SubcontractorPricesLink.Visible(), 'The subcontractor prices link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.ComponentSupplyMethodsLink.Visible(), 'The component supply methods link should be visible.');
+        Assert.IsTrue(SubcontractingSetupWizard.DocumentationLink.Visible(), 'The documentation link should be visible.');
+        Assert.IsFalse(SubcontractingSetupWizard.ActionNext.Enabled(), 'Next should be disabled on the final step.');
+        Assert.IsTrue(SubcontractingSetupWizard.ActionFinish.Enabled(), 'Finish should be enabled on the final step.');
+
+        // [WHEN] The user closes the guide without finishing the setup
+        LibraryVariableStorage.Enqueue(SetupNotCompletedQst);
+        LibraryVariableStorage.Enqueue(true);
+        SubcontractingSetupWizard.Close();
+
+        // [THEN] The expected confirmation was handled
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] Opening and navigating the guide did not replace the installed defaults
+        ManufacturingSetup.Get();
+        Assert.AreEqual(SubcontractingTemplateName, ManufacturingSetup."Subcontracting Template Name", 'The Subcontracting template default should be preserved.');
+        Assert.AreEqual(SubcontractingBatchName, ManufacturingSetup."Subcontracting Batch Name", 'The Subcontracting batch default should be preserved.');
+        Assert.AreEqual(CreateProdOrderInfoLine, ManufacturingSetup."Create Prod. Order Info Line", 'The production order information line default should be preserved.');
+        Assert.AreEqual(ComponentDirectUnitCost, ManufacturingSetup."Component Direct Unit Cost", 'The component direct unit cost default should be preserved.');
+        Assert.AreEqual(SubcCompTransferLeadTime, ManufacturingSetup."Subc. Comp. Transfer Lead Time", 'The component transfer lead time default should be preserved.');
+        Assert.AreEqual(SubcDefaultCompLocation, ManufacturingSetup."Subc. Default Comp. Location", 'The default component location source should be preserved.');
+    end;
+
+    [Test]
+    procedure FinishingSubcontractingSetupWizardSavesDefaultsAndCompletesAssistedSetup()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
+        GuidedExperience: Codeunit "Guided Experience";
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
+        CreateProdOrderInfoLine: Boolean;
+        OriginalCreateProdOrderInfoLine: Boolean;
+    begin
+        // [SCENARIO 642233] Finishing the setup guide saves changes and marks the assisted setup as completed.
+        Initialize();
+
+        // [GIVEN] The Subcontracting assisted setup is registered and incomplete
+        AssistedSetupTestLibrary.Delete(Page::"Subcontracting Setup Wizard");
+        AssistedSetupTestLibrary.CallOnRegister();
+        AssistedSetupTestLibrary.SetStatusToNotCompleted(Page::"Subcontracting Setup Wizard");
+        Assert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Subcontracting Setup Wizard"), 'The assisted setup should initially be incomplete.');
+
+        // [GIVEN] A changed company default in the setup wizard
+        ManufacturingSetup.Get();
+        OriginalCreateProdOrderInfoLine := ManufacturingSetup."Create Prod. Order Info Line";
+        CreateProdOrderInfoLine := not OriginalCreateProdOrderInfoLine;
+        SubcontractingSetupWizard.OpenEdit();
+        SubcontractingSetupWizard.ActionNext.Invoke();
+        SubcontractingSetupWizard."Create Prod. Order Info Line".SetValue(CreateProdOrderInfoLine);
+        SubcontractingSetupWizard.ActionNext.Invoke();
+
+        // [WHEN] The user finishes the setup wizard
+        SubcontractingSetupWizard.ActionFinish.Invoke();
+
+        // [THEN] The company default is saved and the assisted setup is completed
+        ManufacturingSetup.Get();
+        Assert.AreEqual(CreateProdOrderInfoLine, ManufacturingSetup."Create Prod. Order Info Line", 'The changed company default should be saved.');
+        Assert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Subcontracting Setup Wizard"), 'The assisted setup should be completed.');
+
+        ManufacturingSetup."Create Prod. Order Info Line" := OriginalCreateProdOrderInfoLine;
+        ManufacturingSetup.Modify();
+    end;
+
+    [Test]
+    procedure ManufacturingSetupContainsDefaultComponentLocationSource()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        PageControl: Record "Page Control Field";
+    begin
+        // [SCENARIO 642233] Manufacturing Setup remains available for maintaining all Subcontracting company defaults.
+        Initialize();
+
+        // [WHEN] Controls on Manufacturing Setup are inspected
+        PageControl.SetRange(TableNo, Database::"Manufacturing Setup");
+        PageControl.SetRange(PageNo, Page::"Manufacturing Setup");
+        PageControl.SetRange(FieldNo, ManufacturingSetup.FieldNo("Subc. Default Comp. Location"));
+
+        // [THEN] Default Component Location Source is available for later maintenance
+        Assert.IsFalse(PageControl.IsEmpty(), StrSubstNo(ControlNotExistMsg, ManufacturingSetup.FieldCaption("Subc. Default Comp. Location")));
     end;
 
     [Test]
@@ -322,6 +481,133 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
+    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardNotifiesWhenSubcontractorHasNoLocation()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 642229] A notification identifies a subcontractor vendor that has no subcontracting location.
+        Initialize();
+
+        // [GIVEN] A Work Center and a vendor without a Subcontracting Location Code
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+
+        // [WHEN] The vendor is selected as the subcontractor on the Work Center Card
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+
+        // [THEN] Any previous notification is recalled before one notification is sent for that vendor
+        VerifySubcontractorLocationNotification(Vendor."No.");
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardDoesNotStackSubcontractorLocationNotifications()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 642229] Revalidating an unconfigured subcontractor replaces the existing notification.
+        Initialize();
+
+        // [GIVEN] A Work Center Card showing a notification for a vendor without a subcontracting location
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+        VerifySubcontractorLocationNotification(Vendor."No.");
+
+        // [WHEN] The same vendor is validated again
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+
+        // [THEN] The previous notification is recalled before its replacement is sent with the same notification ID
+        VerifySubcontractorLocationNotification(Vendor."No.");
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardRecallsSubcontractorLocationNotificationWhenNoLongerNeeded()
+    var
+        Location: Record Location;
+        ConfiguredVendor: Record Vendor;
+        UnconfiguredVendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 642229] A previous notification is removed when the subcontractor is configured or cleared.
+        Initialize();
+
+        // [GIVEN] An unconfigured vendor, a configured vendor, and a Work Center Card showing the notification
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        UnconfiguredVendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        ConfiguredVendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ConfiguredVendor.Validate("Subc. Location Code", Location.Code);
+        ConfiguredVendor.Modify(true);
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(UnconfiguredVendor."No.");
+        VerifySubcontractorLocationNotification(UnconfiguredVendor."No.");
+
+        // [WHEN] The configured vendor is selected
+        WorkCenterCard."Subcontractor No.".SetValue(ConfiguredVendor."No.");
+
+        // [THEN] The previous notification is recalled and no notification is sent for the configured vendor
+        VerifySubcontractorLocationNotification('');
+
+        // [WHEN] The unconfigured vendor is selected again
+        WorkCenterCard."Subcontractor No.".SetValue(UnconfiguredVendor."No.");
+
+        // [THEN] The previous notification is recalled before a new notification is sent
+        VerifySubcontractorLocationNotification(UnconfiguredVendor."No.");
+
+        // [WHEN] The subcontractor is cleared
+        WorkCenterCard."Subcontractor No.".SetValue('');
+
+        // [THEN] The notification is recalled without sending another one
+        VerifySubcontractorLocationNotification('');
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationNotificationActionHandler,SubcontractorLocationRecallHandler,VendorCardHandler')]
+    procedure WorkCenterCardSubcontractorLocationNotificationActionOpensVendorCard()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 642229] The notification action opens the selected subcontractor vendor.
+        Initialize();
+
+        // [GIVEN] A Work Center and a vendor without a Subcontracting Location Code
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+
+        // [WHEN] The vendor is selected as the subcontractor and the notification action is invoked
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+
+        // [THEN] The notification is sent for the vendor and the Vendor Card opens for that vendor
+        VerifySubcontractorLocationNotification(Vendor."No.");
+        Assert.AreEqual(Vendor."No.", LibraryVariableStorage.DequeueText(), VendorCardNoErr);
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     procedure WorkCenterListSubcontractingActionsDisabledWhenNotSubcontracting()
     var
         WorkCenter: Record "Work Center";
@@ -526,6 +812,73 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         exit(1);
     end;
 
+    local procedure VerifySubcontractorLocationNotification(VendorNo: Code[20])
+    begin
+        Assert.AreEqual(RecallNotificationTok, LibraryVariableStorage.DequeueText(), NotificationOrderErr);
+        Assert.AreEqual(Format(GetMissingSubcontractingLocationNotificationId()), LibraryVariableStorage.DequeueText(), NotificationIdErr);
+        if VendorNo <> '' then begin
+            Assert.AreEqual(SendNotificationTok, LibraryVariableStorage.DequeueText(), NotificationOrderErr);
+            Assert.AreEqual(Format(GetMissingSubcontractingLocationNotificationId()), LibraryVariableStorage.DequeueText(), NotificationIdErr);
+            Assert.AreEqual(StrSubstNo(MissingSubcontractingLocationMsg, VendorNo), LibraryVariableStorage.DequeueText(), NotificationMessageErr);
+            Assert.AreEqual(VendorNo, LibraryVariableStorage.DequeueText(), NotificationVendorErr);
+        end;
+    end;
+
+    local procedure GetMissingSubcontractingLocationNotificationId(): Guid
+    begin
+        exit('{8A4B9A58-21EC-49DD-A3A5-C7E81F745B6D}');
+    end;
+
+    [SendNotificationHandler]
+    procedure SubcontractorLocationNotificationHandler(var SubcontractorLocationNotification: Notification): Boolean
+    begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
+        CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
+        exit(true);
+    end;
+
+    [SendNotificationHandler]
+    procedure SubcontractorLocationNotificationActionHandler(var SubcontractorLocationNotification: Notification): Boolean
+    var
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
+    begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
+        CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
+        // Simulate choosing the Open Vendor Card notification action.
+        SubcNotificationMgmt.OpenVendorCard(SubcontractorLocationNotification);
+        exit(true);
+    end;
+
+    local procedure CaptureSubcontractorLocationNotification(SubcontractorLocationNotification: Notification)
+    begin
+        LibraryVariableStorage.Enqueue(SendNotificationTok);
+        LibraryVariableStorage.Enqueue(Format(SubcontractorLocationNotification.Id));
+        LibraryVariableStorage.Enqueue(SubcontractorLocationNotification.Message);
+        LibraryVariableStorage.Enqueue(SubcontractorLocationNotification.GetData(VendorNoTok));
+    end;
+
+    [RecallNotificationHandler]
+    procedure SubcontractorLocationRecallHandler(var SubcontractorLocationNotification: Notification): Boolean
+    begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
+        LibraryVariableStorage.Enqueue(RecallNotificationTok);
+        LibraryVariableStorage.Enqueue(Format(SubcontractorLocationNotification.Id));
+        exit(true);
+    end;
+
+    [PageHandler]
+    procedure VendorCardHandler(var VendorCard: TestPage "Vendor Card")
+    begin
+        LibraryVariableStorage.Enqueue(VendorCard."No.".Value());
+        VendorCard.Close();
+    end;
+
     [PageHandler]
     procedure HandlePostedPurchaseReceiptPage(var PostedPurchaseReceipt: TestPage "Posted Purchase Receipt")
     begin
@@ -670,11 +1023,20 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         exit(1);
     end;
 
+    [ConfirmHandler]
+    procedure SetupNotCompletedConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
@@ -688,4 +1050,14 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ILEProdActionsNotEnabledErr: Label 'Production actions should be enabled for a subcontracting Item Ledger Entry.';
         ILEPurchActionsEnabledErr: Label 'Purchase Order action should not be enabled for a non-subcontracting Item Ledger Entry.';
         ILEPurchActionsNotEnabledErr: Label 'Purchase Order action should be enabled for a subcontracting Item Ledger Entry.';
-}
+        SetupNotCompletedQst: Label 'The Subcontracting setup is not complete. Are you sure you want to exit?';
+        MissingSubcontractingLocationMsg: Label 'Vendor %1 has no subcontracting location. This location is used to track components and work-in-process (WIP) items at the subcontractor. Choose a Subcontracting Location Code on the vendor before using this work center for subcontracting.', Comment = '%1 = Vendor No.';
+        NotificationIdErr: Label 'The subcontractor location notification ID is unexpected.';
+        NotificationMessageErr: Label 'The subcontractor location notification message is unexpected.';
+        NotificationOrderErr: Label 'The subcontractor location notification interactions occurred in an unexpected order.';
+        NotificationVendorErr: Label 'The vendor in the subcontractor location notification is unexpected.';
+        RecallNotificationTok: Label 'Recall', Locked = true;
+        SendNotificationTok: Label 'Send', Locked = true;
+        VendorCardNoErr: Label 'The Vendor Card opened for an unexpected vendor.';
+        VendorNoTok: Label 'VendorNo', Locked = true;
+    }

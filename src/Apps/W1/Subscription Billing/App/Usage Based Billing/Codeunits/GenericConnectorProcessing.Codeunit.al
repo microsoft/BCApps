@@ -8,7 +8,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
     var
         ImportAndProcessUsageData: Codeunit "Import And Process Usage Data";
         CreateUsageDataBilling: Codeunit "Create Usage Data Billing";
-        ProgressTracker: Codeunit "Progress Tracker";
+        ProgressTracker: Codeunit "Sub. Billing Progress Tracker";
         ProcessImportedLinesLbl: Label 'Processing imported usage data lines...';
         CreateBillingDataLbl: Label 'Creating usage data billing...';
         ImportEntryDetailLbl: Label 'Import Entry No. %1', Comment = '%1 = Usage Data Import Entry No.';

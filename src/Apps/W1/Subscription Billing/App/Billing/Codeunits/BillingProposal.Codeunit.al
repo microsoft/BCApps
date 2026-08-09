@@ -12,7 +12,7 @@ codeunit 8062 "Billing Proposal"
     var
         SalesHeaderGlobal: Record "Sales Header";
         PurchaseHeaderGlobal: Record "Purchase Header";
-        ProgressTracker: Codeunit "Progress Tracker";
+        ProgressTracker: Codeunit "Sub. Billing Progress Tracker";
         LastContractNo: Code[20];
         LastPartnerNo: Code[20];
         CreatingProposalLbl: Label 'Creating billing proposal...';
