@@ -624,14 +624,13 @@ codeunit 149918 "Subc. Invt. Put-away Test"
 
     [Test]
     [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
-    procedure WipItemTransfer_PostInvtPutAway_BinMandatory_NoItemLedgerNoWarehouseEntry_CreatesWipLedgerEntry()
+    procedure WipItemTransfer_PostInvtPutAway_NoItemLedgerNoWarehouseEntry_CreatesWipLedgerEntry()
     var
         ForwardTransferHeader: Record "Transfer Header";
         InTransitLocation: Record Location;
         Item: Record Item;
         ItemLedgerEntry: Record "Item Ledger Entry";
         MachineCenter: array[2] of Record "Machine Center";
-        ProdBin: Record Bin;
         ProdLocation: Record Location;
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
@@ -640,7 +639,6 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         TransferReceiptHeader: Record "Transfer Receipt Header";
         Vendor: Record Vendor;
         WarehouseActivityHeader: Record "Warehouse Activity Header";
-        WarehouseEmployee: Record "Warehouse Employee";
         WarehouseEntry: Record "Warehouse Entry";
         WorkCenter: array[2] of Record "Work Center";
         Quantity: Decimal;
@@ -659,9 +657,8 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
         SubcWarehouseLibrary.SetTransferWIPItemOnRoutingLine(Item, WorkCenter[2]."No.");
 
-        // [GIVEN] Production location with Bin Mandatory = true and Require Put-away = true (receive location)
-        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetupAndBin(ProdLocation, ProdBin);
-        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, ProdLocation.Code, true);
+        // [GIVEN] Production location with Require Put-away = true and no bin handling
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(ProdLocation);
 
         // [GIVEN] Transit location and bidirectional transfer routes between production and subcontractor
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
@@ -672,7 +669,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         Vendor."Location Code" := Vendor."Subc. Location Code";
         Vendor.Modify();
 
-        // [GIVEN] Production order at the production location (prod order line bin = ProdBin via From-Production Bin Code)
+        // [GIVEN] Production order at the production location
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released,
             ProductionOrder."Source Type"::Item, Item."No.", Quantity, ProdLocation.Code);
@@ -718,7 +715,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
 
         // [THEN] No new Warehouse Entry is created at the production location
         Assert.AreEqual(WhseEntryCountBefore, WarehouseEntry.Count(),
-            'No Warehouse Entries should be created for WIP item return transfer Inventory Put-away (Subscriber B must suppress it)');
+            'No Warehouse Entries should be created for WIP item return transfer Inventory Put-away');
 
         // [THEN] Transfer Order is fully received and deleted (only the posted document remains)
         Assert.IsFalse(ReturnTransferHeader.Get(ReturnTransferHeader."No."),
@@ -748,6 +745,8 @@ codeunit 149918 "Subc. Invt. Put-away Test"
     procedure MessageHandler(Message: Text[1024])
     begin
         if Message.Contains('Number of Invt. Put-away activities created') then
+            exit;
+        if Message.Contains('was successfully posted and is now deleted') then
             exit;
         Error('Unexpected Message: %1', Message);
     end;

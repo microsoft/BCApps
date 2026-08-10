@@ -976,7 +976,10 @@ codeunit 149908 "Subc. Warehouse Library"
                 WarehouseActivityLine.Modify(true);
             until WarehouseActivityLine.Next() = 0;
 
-        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+        if WarehouseActivityHeader.Type = WarehouseActivityHeader.Type::"Invt. Put-away" then
+            LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false)
+        else
+            LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
     end;
 
     /// <summary>

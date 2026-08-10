@@ -68,6 +68,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;
@@ -1267,6 +1268,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure ExistingTransferRequiresPickAfterLocationToggle()
     var
         Item: Record Item;

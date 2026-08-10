@@ -74,6 +74,7 @@ codeunit 149905 "Subc. Whse Item Tracking"
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;
@@ -661,7 +662,6 @@ codeunit 149905 "Subc. Whse Item Tracking"
         // [WHEN] The Place line is split across two bins using the standard Warehouse Activity Line SplitLine method
         // (the same procedure invoked by the "Split Line" action on the Put-away page)
         WarehouseActivityLine.Validate("Bin Code", Bin1.Code);
-        WarehouseActivityLine.Validate(Quantity, Qty1);
         WarehouseActivityLine.Validate("Qty. to Handle", Qty1);
         WarehouseActivityLine.Modify(true);
 
