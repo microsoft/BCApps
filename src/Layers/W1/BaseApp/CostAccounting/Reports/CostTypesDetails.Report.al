@@ -15,6 +15,7 @@ report 1125 "Cost Types Details"
     RDLCLayout = './CostAccounting/Reports/CostTypesDetails.rdlc';
     ApplicationArea = CostAccounting;
     Caption = 'Cost Types Details';
+    ToolTip = 'View cost entries for each cost type. You can review the transactions for each cost type.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

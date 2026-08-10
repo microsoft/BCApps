@@ -6,13 +6,17 @@ Imports Shopify orders into Business Central, maps them to customers and items, 
 
 The pipeline has three stages.
 
-- **Discovery**: `ShpfyOrdersAPI` queries the Shopify GraphQL API for orders updated since the last sync. It writes lightweight rows into the `Orders to Import` queue table, not full order data. The query distinguishes first-time sync (open orders only) from incremental sync (all orders by updated-at).
+- **Discovery**: `ShpfyOrdersAPI` queries the Shopify GraphQL API for orders updated since the last sync. `ShpfySyncOrdersfromShopify` refreshes the cached shop settings before this call, so plan-dependent query fields use the current Shopify plan. It writes lightweight rows into the `Orders to Import` queue table, not full order data. The query distinguishes first-time sync (open orders only) from incremental sync (all orders by updated-at).
 
-- **Import**: `ShpfyImportOrder` fetches the full order JSON for each queued entry, populates `Order Header` and `Order Line` records, and pulls in related data (tax lines, attributes, risks, shipping charges, transactions, fulfillment orders, returns, refunds). It detects conflicts when a previously processed order is edited in Shopify and flags them with `Has Order State Error`. Staff member retrieval in the GraphQL query and salesperson assignment during header population are conditional on `Shop."Advanced Shopify Plan"` (requires Plus/Advanced plans).
+- **Import**: `ShpfyImportOrder` fetches the full order JSON for each queued entry, populates `Order Header` and `Order Line` records, and pulls in related data (tax lines, attributes, risks, shipping charges, transactions, fulfillment orders, returns, refunds). Order line GraphQL pages now request 10 line items per call. If refund import is enabled and the Shopify order has returns, it queries `returns.exchangeLineItems` and marks matching `Order Line` records with `Is Exchange Item`. It detects conflicts when a previously processed order is edited in Shopify and flags them with `Has Order State Error`. Staff member retrieval in the GraphQL query and salesperson assignment during header population are conditional on `Shop."Advanced Shopify Plan"` (requires Plus/Advanced plans).
 
 *Updated: 2026-04-08 -- staff member gating changed from B2B Enabled to Advanced Shopify Plan*
 
-- **Processing**: `ShpfyProcessOrder` runs mapping then document creation. `ShpfyOrderMapping.DoMapping` resolves Shopify customers to BC customer numbers (with B2B company mapping as a separate path) and maps each order line's variant to an item/variant/UoM. `ShpfyProcessOrder.CreateHeaderFromShopifyOrder` builds a Sales Header with all three address contexts (sell-to, ship-to, bill-to), then `CreateLinesFromShopifyOrder` adds item lines, tip lines (G/L), gift card lines (G/L), shipping charge lines, and a cash rounding line. Global discounts that were not allocated to individual lines are applied as invoice discount. If the shop has "Auto Release Sales Orders" enabled, the document is released immediately.
+*Updated: 2026-07-29 -- order sync now refreshes cached plan data, order line pages use 10 items, and exchange item lines are marked during import*
+
+- **Processing**: `ShpfyProcessOrder` runs mapping then document creation. `ShpfyOrderMapping.DoMapping` resolves Shopify customers to BC customer numbers (with B2B company mapping as a separate path) and maps each order line's variant to an item/variant/UoM. `ShpfyProcessOrder.CreateHeaderFromShopifyOrder` builds a Sales Header with all three address contexts (sell-to, ship-to, bill-to), then `CreateLinesFromShopifyOrder` adds non-exchange item lines, tip lines (G/L), gift card lines (G/L), shipping charge lines, and a cash rounding line. Global discounts that were not allocated to individual lines are applied as invoice discount. If the shop has "Auto Release Sales Orders" enabled, the document is released immediately.
+
+*Updated: 2026-07-29 -- exchange item order lines are excluded from BC sales document lines*
 
 ## Things to know
 
@@ -24,6 +28,13 @@ The pipeline has three stages.
 
 *Updated: 2026-04-08 -- contact lookup/validation added to Shopify Order page (PR #7525)*
 
+- B2C mapping no longer overwrites a manually assigned `Sell-to Customer No.` just because bill-to mapping runs. If bill-to mapping cannot find a customer and no shop default customer is available, the existing sell-to customer is copied to bill-to so the order can still map.
+- When customer mapping by email or phone is allowed to create an unknown BC customer, a Shopify customer with no default address can still be created from the first available Shopify customer address. If the Shopify customer has no addresses at all, mapping still returns blank.
+- `SetAndInsertOrderLines` calls `TempOrderLine.Init()` for each GraphQL line item. Without that reset, a previous tip line could leave the temporary record's `Tip` flag set for the next line.
+- Order tax lines can now belong to shipping charges as well as headers and item lines. The shared `Parent Id` points to the Shopify shipping line id for shipping-level taxes.
+- `Created At`, `Updated At`, `Closed At`, and `Processed At` on the order header are Shopify timestamps. `Document Date` is the BC document date and is initialized from Shopify `createdAt` during import.
 - Fulfilled orders become invoices instead of sales orders when `Create Invoices From Orders` is enabled on the shop.
 - `ShpfyProcessOrders` (plural) is the batch entry point. After processing orders it also processes refunds if the shop uses the "Auto Create Credit Memo" strategy.
 - `ShpfyOrders` (public API codeunit) exposes `MarkAsPaid` and `CancelOrder` for external callers.
+
+*Updated: 2026-07-29 -- captured customer mapping preservation, no-default-address customer creation, line reset, shipping tax links, and timestamp semantics*

@@ -92,6 +92,26 @@
       "publisher": "Microsoft"
     },
     {
+      "id": "f469f78f-a0ec-4469-b312-7a25fcab8357",
+      "name": "Tests-ERM-Application",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "973f745d-a630-4a01-874e-1c454470bffd",
+      "name": "Tests-ERM-Sales",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "589810f5-1ed0-4fca-b4b4-6f049cb8dbfa",
+      "name": "Tests-ERM-Purchase",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "6ed824d3-8f8f-47c7-b85e-8e9d81c33741",
+      "name": "Tests-ERM-Finance",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "79447c3f-14b4-4c10-8779-03911f30ab26",
       "name": "Tests-Report",
       "publisher": "Microsoft"
@@ -144,6 +164,31 @@
     {
       "id": "6f0b528b-a4de-4ccd-a948-d1350e228e4a",
       "name": "Tests-SCM",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "1ecba011-fc8c-4b60-b6bf-97248fe43419",
+      "name": "Tests-SCM-Warehouse",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "4f458f6b-47c2-41bb-9b05-78b66b52dcde",
+      "name": "Tests-SCM-Costing",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "47946531-3c0b-4b18-8e92-c7673c785e2a",
+      "name": "Tests-SCM-Planning",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "8f41d123-35ca-46d5-bf6e-c4fd2a9470d4",
+      "name": "Tests-SCM-Reservation",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "1c6b74a7-fa42-42f5-bc45-00a03f2e83a2",
+      "name": "Tests-SCM-Workflow",
       "publisher": "Microsoft"
     },
     {

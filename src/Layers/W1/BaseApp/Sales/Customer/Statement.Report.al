@@ -227,7 +227,7 @@ report 116 Statement
                         }
                         dataitem("Detailed Cust. Ledg. Entry"; "Detailed Cust. Ledg. Entry")
                         {
-                            DataItemTableView = sorting("Customer No.", "Posting Date", "Entry Type", "Currency Code");
+                            DataItemTableView = sorting("Customer No.", "Posting Date", "Entry Type", "Currency Code") where("Excluded from calculation" = const(false));
                             column(PostDate_DtldCustLedgEntries; Format("Posting Date"))
                             {
                             }

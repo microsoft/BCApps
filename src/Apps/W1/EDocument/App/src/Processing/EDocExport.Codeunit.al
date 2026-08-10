@@ -57,12 +57,26 @@ codeunit 6102 "E-Doc. Export"
         OnAfterEDocumentCheck(EDocSourceRecRef, EDocumentProcessingPhase);
     end;
 
-    internal procedure CreateEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type")
+    /// <summary>
+    /// Creates a new E-Document for the provided document header and attempts to export it.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    internal procedure CreateEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type"): Boolean
     begin
-        CreateEDocument(DocumentHeader, DocumentSendingProfile, EDocumentType, false);
+        exit(CreateEDocument(DocumentHeader, DocumentSendingProfile, EDocumentType, false));
     end;
 
-    internal procedure CreateEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type"; AllowReExport: Boolean)
+    /// <summary>
+    /// Creates a new E-Document of specified type for the provided document header and attempts to export it.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    internal procedure CreateEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type"; AllowReExport: Boolean): Boolean
     var
         WorkFlow: Record Workflow;
         EDocumentService: Record "E-Document Service";
@@ -73,12 +87,12 @@ codeunit 6102 "E-Doc. Export"
 
         WorkFlow.TestField(Enabled);
         if DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow" then
-            exit;
+            exit(false);
 
         if not EDocWorkFlowProcessing.GetServicesFromEntryPointResponseInWorkflow(WorkFlow, EDocumentService) then
-            exit;
+            exit(false);
 
-        CreateAndExportEDocument(DocumentHeader, EDocumentService, WorkFlow.Code, DocumentSendingProfile.Code, EDocumentType, AllowReExport);
+        exit(CreateAndExportEDocument(DocumentHeader, EDocumentService, WorkFlow.Code, DocumentSendingProfile.Code, EDocumentType, AllowReExport));
     end;
 
     /// <summary>

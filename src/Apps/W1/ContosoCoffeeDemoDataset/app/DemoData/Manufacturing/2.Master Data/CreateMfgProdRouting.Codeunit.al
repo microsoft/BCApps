@@ -36,8 +36,8 @@ codeunit 4772 "Create Mfg Prod. Routing"
         AirpotSerialTok: Label 'Airpot - Serial', MaxLength = 30;
         AutoDripTok: Label 'AutoDrip', MaxLength = 30;
         AirpotParallelTok: Label 'Airpot - Parallel', MaxLength = 30;
-        AirpotSubcontr1Tok: Label 'Airpot - Subcontracting 1', MaxLength = 30;
-        AirpotSubcontr2Tok: Label 'Airpot - Subcontracting 2', MaxLength = 30;
+        AirpotSubcMidTok: Label 'Airpot - Subc. Mid-Routing', MaxLength = 30;
+        AirpotSubcFinalTok: Label 'Airpot - Subc. Final Op', MaxLength = 30;
         ReservAssemblyTok: Label 'Reservoir assembly', MaxLength = 30;
         ElectricalWiringTok: Label 'Electrical wiring', MaxLength = 30;
         TestingTok: Label 'Testing', MaxLength = 30;
@@ -88,16 +88,16 @@ codeunit 4772 "Create Mfg Prod. Routing"
 
     local procedure Scenario5Subcontracting()
     begin
-        ContosoManufacturing.InsertRoutingHeader(SPSCM1009SUB1(), AirpotSubcontr1Tok, 0);
+        ContosoManufacturing.InsertRoutingHeader(SPSCM1009SUB1(), AirpotSubcMidTok, 0);
         ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', OperationNo10(), OperationNo20(), "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter500(), BodyAssemblyTok, 0, 25, 100, 0, RoutingLink500(), ContosoUtilities.AdjustPrice(28.12));  //Currency
         ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', OperationNo20(), '30', "Capacity Type Routing"::"Machine Center", MfgCapacity.MachineCenter110(), ElectricalWiringTok, 60, 18, 1, 0, '', 0);
         ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', '30', '40', "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter100(), TestingTok, 10, 9, 1, 0, '', 0);
         ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB1(), '', '40', '', "Capacity Type Routing"::"Machine Center", MfgCapacity.MachineCenter210(), PackingTok, 10, 8, 1, 0, '', 0);
         CertifyRouting(SPSCM1009SUB1());
 
-        ContosoManufacturing.InsertRoutingHeader(SPSCM1009SUB2(), AirpotSubcontr2Tok, 0);
-        ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB2(), '', OperationNo10(), '', "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter500(), UnitAssemblyTok, 0, 25, 100, 0, RoutingLink500(), ContosoUtilities.AdjustPrice(45.32));  //Currency
-        CertifyRouting(SPSCM1009SUB2());
+        ContosoManufacturing.InsertRoutingHeader(SPSCM1009SUBF(), AirpotSubcFinalTok, 0);
+        ContosoManufacturing.InsertRoutingLine(SPSCM1009SUBF(), '', OperationNo10(), '', "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter500(), UnitAssemblyTok, 0, 25, 100, 0, RoutingLink500(), ContosoUtilities.AdjustPrice(45.32));  //Currency
+        CertifyRouting(SPSCM1009SUBF());
     end;
 
     local procedure CreateRoutingLinks()
@@ -180,8 +180,16 @@ codeunit 4772 "Create Mfg Prod. Routing"
         exit('SP-SCM1009-SUB-1');
     end;
 
+    procedure SPSCM1009SUBF(): Code[20]
+    begin
+        exit('SP-SCM1009-SUB-F');
+    end;
+
+#if not CLEAN29
+    [Obsolete('Routing renamed to SP-SCM1009-SUB-F. Use SPSCM1009SUBF instead.', '29.0')]
     procedure SPSCM1009SUB2(): Code[20]
     begin
-        exit('SP-SCM1009-SUB-2');
+        exit(SPSCM1009SUBF());
     end;
+#endif
 }

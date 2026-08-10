@@ -818,4 +818,21 @@ table 297 "Issued Reminder Header"
     internal procedure OnGetReportParameters(var LogInteraction: Boolean; var ShowNotDueAmounts: Boolean; var ShowMIRLines: Boolean; ReportID: Integer; var Handled: Boolean)
     begin
     end;
+
+    /// <summary>
+    /// Returns the description to use when logging an interaction for this issued reminder.
+    /// When the posting description still holds the default text derived from the pre-assigned
+    /// (unissued) reminder number, it is replaced with the same text based on the issued reminder
+    /// number so the Contact History references the registered reminder. Customized posting
+    /// descriptions are preserved.
+    /// </summary>
+    /// <returns>The interaction log description text.</returns>
+    internal procedure GetLogInteractionDescription(): Text[100]
+    var
+        ReminderHeader: Record "Reminder Header";
+    begin
+        if ("Pre-Assigned No." <> '') and ("Posting Description" = ReminderHeader.GetDefaultPostingDescription("Pre-Assigned No.")) then
+            exit(ReminderHeader.GetDefaultPostingDescription("No."));
+        exit("Posting Description");
+    end;
 }
