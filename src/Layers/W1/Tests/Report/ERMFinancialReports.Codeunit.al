@@ -1530,6 +1530,9 @@ codeunit 134982 "ERM Financial Reports"
         // [SCENARIO 646076] Close Income Statement consolidates multiple G/L entries into one journal line per account when no dimensions are selected and ARC is not enabled.
         Initialize();
 
+        // [GIVEN] No dimensions are selected for the Close Income Statement report
+        ClearSelectedDimensionsForCloseIncomeStatement();
+
         // [GIVEN] Additional Reporting Currency is blank
         GeneralLedgerSetup.Get();
         OldAdditionalReportingCurrency := GeneralLedgerSetup."Additional Reporting Currency";
@@ -1609,6 +1612,9 @@ codeunit 134982 "ERM Financial Reports"
     begin
         // [SCENARIO 646077] Close Income Statement consolidates multiple G/L entries into one journal line per account when no dimensions are selected and ARC is enabled.
         Initialize();
+
+        // [GIVEN] No dimensions are selected for the Close Income Statement report
+        ClearSelectedDimensionsForCloseIncomeStatement();
 
         // [GIVEN] Additional Reporting Currency is enabled
         OldAdditionalReportingCurrency := UpdateCurOnGeneralLedgerSetup(LibraryERM.CreateCurrencyWithRandomExchRates());
@@ -2582,6 +2588,19 @@ codeunit 134982 "ERM Financial Reports"
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
         GenJournalLine.SetRange("Document No.", DocNo);
         GenJournalLine.FindSet();
+    end;
+
+    local procedure ClearSelectedDimensionsForCloseIncomeStatement()
+    var
+        SelectedDimension: Record "Selected Dimension";
+        AllObj: Record AllObj;
+    begin
+        // Other tests in this codeunit leave Selected Dimension records behind for report 94. They would make
+        // the report close per dimension, which hides defects that only occur when no dimensions are selected.
+        SelectedDimension.SetRange("User ID", UserId());
+        SelectedDimension.SetRange("Object Type", AllObj."Object Type"::Report);
+        SelectedDimension.SetRange("Object ID", Report::"Close Income Statement");
+        SelectedDimension.DeleteAll();
     end;
 
     local procedure RunCloseIncomeStatement(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; DocumentNo: Code[20])
