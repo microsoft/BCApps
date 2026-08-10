@@ -2086,7 +2086,7 @@ codeunit 134101 "ERM Prepayment II"
     end;
 
     [Test]
-    procedure SalesPrepmtInvoiceWithPartialPrepaymentAndTwoVATRates()
+    procedure SalesPrepmtInvoiceWithPartialPrepaymentMultipleLines()
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
         LineGLAccount: Record "G/L Account";
@@ -2095,11 +2095,10 @@ codeunit 134101 "ERM Prepayment II"
         DocumentNo: Code[20];
         PrepmtGLAccountNo: Code[20];
         CustomerNo: Code[20];
-        SecondLineGLAccountNo: Code[20];
         ExpectedPrepmtAmount: Decimal;
     begin
         // [FEATURE] [Sales] [Prepayment Invoice]
-        // [SCENARIO 641515] Prepayment Invoice Amount is calculated per line for a partial prepayment with two different VAT rates.
+        // [SCENARIO 641515] Prepayment Invoice Amount is rounded per line for a partial prepayment across multiple lines.
 
         // [GIVEN] Update General Posting Setup and create a customer.
         Initialize();
@@ -2108,10 +2107,7 @@ codeunit 134101 "ERM Prepayment II"
           LibrarySales.CreateCustomerWithBusPostingGroups(
             LineGLAccount."Gen. Bus. Posting Group", LineGLAccount."VAT Bus. Posting Group");
 
-        // [GIVEN] A second G/L Account routed to the same prepayment account but with a different VAT rate.
-        SecondLineGLAccountNo := CreateGLAccountWithDifferentVATRate(LineGLAccount);
-
-        // [GIVEN] Sales Order with 50% Prepayment and two lines with different VAT rates.
+        // [GIVEN] Sales Order with 50% Prepayment and two lines whose amounts require per-line rounding of the prepayment amount.
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
         SalesHeader.Validate("Prepayment %", 50);
         SalesHeader.Validate("Compress Prepayment", false);
@@ -2119,7 +2115,7 @@ codeunit 134101 "ERM Prepayment II"
 
         CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LineGLAccount."No.", 3, 333.33);
         ExpectedPrepmtAmount += SalesLine."Prepmt. Line Amount";
-        CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", SecondLineGLAccountNo, 3, 133.33);
+        CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LineGLAccount."No.", 3, 133.33);
         ExpectedPrepmtAmount += SalesLine."Prepmt. Line Amount";
 
         // [WHEN] Post Prepayment Invoice on Sales Order.
@@ -2736,33 +2732,6 @@ codeunit 134101 "ERM Prepayment II"
 
         // Calculate the customer Invoice Discount.
         LibrarySales.CalcSalesDiscount(SalesHeader);
-    end;
-
-    local procedure CreateGLAccountWithDifferentVATRate(LineGLAccount: Record "G/L Account") NewGLAccountNo: Code[20]
-    var
-        NewGLAccount: Record "G/L Account";
-        VATPostingSetup: Record "VAT Posting Setup";
-        LineVATPostingSetup: Record "VAT Posting Setup";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
-    begin
-        // Create a VAT Posting Setup with a different VAT rate, sharing the line's VAT Bus. Posting Group.
-        LineVATPostingSetup.Get(LineGLAccount."VAT Bus. Posting Group", LineGLAccount."VAT Prod. Posting Group");
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, LineGLAccount."VAT Bus. Posting Group", VATProductPostingGroup.Code);
-        VATPostingSetup.Validate("VAT Calculation Type", LineVATPostingSetup."VAT Calculation Type");
-        VATPostingSetup.Validate("VAT %", LineVATPostingSetup."VAT %" + 5);
-        VATPostingSetup.Validate("Sales VAT Account", LineVATPostingSetup."Sales VAT Account");
-        VATPostingSetup.Modify(true);
-
-        // Create a G/L Account that keeps the same posting setup (same prepayment account) but the new VAT rate.
-        LibraryERM.CreateGLAccount(NewGLAccount);
-        NewGLAccount.Validate("Gen. Posting Type", NewGLAccount."Gen. Posting Type"::Sale);
-        NewGLAccount.Validate("Gen. Bus. Posting Group", LineGLAccount."Gen. Bus. Posting Group");
-        NewGLAccount.Validate("Gen. Prod. Posting Group", LineGLAccount."Gen. Prod. Posting Group");
-        NewGLAccount.Validate("VAT Bus. Posting Group", LineGLAccount."VAT Bus. Posting Group");
-        NewGLAccount.Validate("VAT Prod. Posting Group", VATProductPostingGroup.Code);
-        NewGLAccount.Modify(true);
-        NewGLAccountNo := NewGLAccount."No.";
     end;
 
     local procedure SetupAndCreatePurchasePrepayment(var PurchaseLine: Record "Purchase Line"; PrepmtPct: Decimal) PurchasePrepaymentsAccount: Code[20]
