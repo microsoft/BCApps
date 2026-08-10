@@ -14,11 +14,28 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         SourceDepreciationBookCode: Code[10];
         DerogatoryDepreciationBookCode: Code[10];
+        TestBodyCompleted: Boolean;
+        TestBodyCompletedErr: Label 'The test body ran to completion.';
+#if not CLEAN29
+        SimulatedBodyFailureErr: Label 'Simulated failure after the test body toggled the French feature state.';
+#endif
 
 #if not CLEAN29
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure DisabledFeatureFAJournalUsesOnlyLegacyRelationship()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            DisabledFeatureFAJournalBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure DisabledFeatureFAJournalBody()
     var
         DepreciationBook: Record "Depreciation Book";
         LegacyTaxDepreciationBook: Record "Depreciation Book";
@@ -27,9 +44,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FAPostingGroup: Record "FA Posting Group";
         FAJournalLine: Record "FA Journal Line";
         FALedgerEntry: Record "FA Ledger Entry";
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         DisableAcceleratedDepreciationFeature();
         CreateDistinctRoutingSetup(
             DepreciationBook, LegacyTaxDepreciationBook, CentralTaxDepreciationBook,
@@ -49,12 +64,23 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FALedgerEntry.TestField("Derogatory Source Entry No.", 0);
         FALedgerEntry.SetRange("Depreciation Book Code", CentralTaxDepreciationBook.Code);
         Assert.AreEqual(0, FALedgerEntry.Count(), 'Disabled routing must not invoke the central relationship.');
-        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure EnabledFeatureFAJournalUsesOnlyCentralRelationship()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            EnabledFeatureFAJournalBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure EnabledFeatureFAJournalBody()
     var
         DepreciationBook: Record "Depreciation Book";
         LegacyTaxDepreciationBook: Record "Depreciation Book";
@@ -63,9 +89,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FAPostingGroup: Record "FA Posting Group";
         FAJournalLine: Record "FA Journal Line";
         FALedgerEntry: Record "FA Ledger Entry";
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         EnableAcceleratedDepreciationFeature();
         CreateDistinctRoutingSetup(
             DepreciationBook, LegacyTaxDepreciationBook, CentralTaxDepreciationBook,
@@ -85,12 +109,23 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         Assert.AreEqual(1, FALedgerEntry.Count(), 'The central tax book must receive exactly one counterpart.');
         FALedgerEntry.FindFirst();
         Assert.AreNotEqual(0, FALedgerEntry."Derogatory Source Entry No.", 'The central counterpart must be linked.');
-        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 #else
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure Clean29FAJournalUsesCentralRelationship()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            Clean29FAJournalBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure Clean29FAJournalBody()
     var
         DepreciationBook: Record "Depreciation Book";
         TaxDepreciationBook: Record "Depreciation Book";
@@ -98,9 +133,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FAPostingGroup: Record "FA Posting Group";
         FAJournalLine: Record "FA Journal Line";
         FALedgerEntry: Record "FA Ledger Entry";
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
         CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FAPostingGroup.Code);
         CreateFADepreciationBook(FixedAsset."No.", TaxDepreciationBook.Code, FAPostingGroup.Code);
@@ -114,13 +147,24 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         Assert.AreEqual(1, FALedgerEntry.Count(), 'CLEAN29 must use the central relationship.');
         FALedgerEntry.FindFirst();
         Assert.AreNotEqual(0, FALedgerEntry."Derogatory Source Entry No.", 'The CLEAN29 counterpart must be linked.');
-        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 #endif
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure FAReversalCompatibilityOverloadCreatesLinkedCounterpart()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            FAReversalOverloadBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure FAReversalOverloadBody()
     var
         DepreciationBook: Record "Depreciation Book";
         TaxDepreciationBook: Record "Depreciation Book";
@@ -132,9 +176,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         CounterpartReversalFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         NewCounterpartEntryNo: Integer;
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         EnableCentralRoutingIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
         CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FAPostingGroup.Code);
@@ -156,12 +198,23 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         CounterpartReversalFALedgerEntry.TestField("Reversed Entry No.", CounterpartFALedgerEntry."Entry No.");
         CounterpartReversalFALedgerEntry.TestField(
             "Derogatory Source Entry No.", ReversingFALedgerEntry."Entry No.");
-        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure MaintenanceReversalCompatibilityOverloadCreatesLinkedCounterpart()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            MaintenanceReversalOverloadBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure MaintenanceReversalOverloadBody()
     var
         DepreciationBook: Record "Depreciation Book";
         TaxDepreciationBook: Record "Depreciation Book";
@@ -173,9 +226,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         CounterpartReversalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         NewCounterpartEntryNo: Integer;
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         EnableCentralRoutingIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
         CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FAPostingGroup.Code);
@@ -198,12 +249,23 @@ codeunit 134194 "UT Derogatory Linkage Upg."
             "Reversed Entry No.", CounterpartMaintenanceLedgerEntry."Entry No.");
         CounterpartReversalMaintenanceLedgerEntry.TestField(
             "Derogatory Source Entry No.", ReversingMaintenanceLedgerEntry."Entry No.");
-        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure GeneratedMirrorDoesNotRunDuplicateBookDispatcher()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            GeneratedMirrorDuplicationBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure GeneratedMirrorDuplicationBody()
     var
         DepreciationBook: Record "Depreciation Book";
         TaxDepreciationBook: Record "Depreciation Book";
@@ -215,9 +277,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FALedgerEntry: Record "FA Ledger Entry";
         DuplicateTemplateName: Code[10];
         DuplicateBatchName: Code[10];
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         EnableCentralRoutingIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
         CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FAPostingGroup.Code);
@@ -239,7 +299,6 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
         FALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBook.Code);
         Assert.AreEqual(1, FALedgerEntry.Count(), 'The generated mirror must still post exactly one counterpart.');
-        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 
     [Test]
@@ -275,6 +334,18 @@ codeunit 134194 "UT Derogatory Linkage Upg."
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure DisabledFeatureReversalTracksTemporaryConsistencyEntry()
     var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            DisabledFeatureReversalBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure DisabledFeatureReversalBody()
+    var
         DepreciationBook: Record "Depreciation Book";
         FixedAsset: Record "Fixed Asset";
         FAPostingGroup: Record "FA Posting Group";
@@ -282,9 +353,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         NewFAEntryNo: Integer;
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         DisableAcceleratedDepreciationFeature();
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
         CreateFixedAssetWithPostingGroup(FixedAsset, FAPostingGroup);
@@ -299,12 +368,23 @@ codeunit 134194 "UT Derogatory Linkage Upg."
 
         // The feature-disabled legacy route must still register the reversed entry for the G/L consistency check.
         FAInsertLedgerEntry.CheckFAReverseEntry(FALedgerEntry);
-        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 #endif
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure NormalBookValueExcludesDerogatoryEntry()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            NormalBookValueBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure NormalBookValueBody()
     var
         DepreciationBook: Record "Depreciation Book";
         TaxDepreciationBook: Record "Depreciation Book";
@@ -315,9 +395,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FALedgerEntry: Record "FA Ledger Entry";
         AcquisitionAmount: Decimal;
         DerogatoryAmount: Decimal;
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         EnableCentralRoutingIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
         CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FAPostingGroup.Code);
@@ -347,12 +425,23 @@ codeunit 134194 "UT Derogatory Linkage Upg."
 #if not CLEAN29
         FALedgerEntry.TestField("Exclude Derogatory", true);
 #endif
-        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure SalvageCounterpartReversalKeepsReversalSourceCode()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        asserterror begin
+            SalvageReversalSourceCodeBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+    end;
+
+    local procedure SalvageReversalSourceCodeBody()
     var
         SourceCodeSetup: Record "Source Code Setup";
         DepreciationBook: Record "Depreciation Book";
@@ -364,9 +453,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         ReversalFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         NewFAEntryNo: Integer;
-        PreviousFeatureStatus: Integer;
     begin
-        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         EnableCentralRoutingIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
         CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FAPostingGroup.Code);
@@ -394,9 +481,42 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         repeat
             ReversalFALedgerEntry.TestField("Source Code", SourceCodeSetup.Reversal);
         until ReversalFALedgerEntry.Next() = 0;
+    end;
+
+#if not CLEAN29
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure FailedTestBodyRestoresFeatureState()
+    var
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        PreviousFeatureStatus: Integer;
+        BaselineFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        DisableAcceleratedDepreciationFeature();
+        Commit();
+        BaselineFeatureStatus := CaptureFeatureStateIfRequired();
+
+        asserterror begin
+            SimulatedFailureBody();
+            CompleteTestBody();
+        end;
+        asserterror RestoreFeatureStateAfterTestBody(BaselineFeatureStatus);
+
+        // The rethrown body failure must not take the restored feature state with it.
+        Assert.IsFalse(
+            AcceleratedDeprFeature.IsEnabled(),
+            'The failed test body must not leave the toggled French feature state committed.');
         RestoreFeatureStateIfRequired(PreviousFeatureStatus);
     end;
 
+    local procedure SimulatedFailureBody()
+    begin
+        EnableAcceleratedDepreciationFeature();
+        Commit();
+        Error(SimulatedBodyFailureErr);
+    end;
+#endif
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure UniqueFAEntriesAreLinked()
@@ -616,6 +736,31 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         CreateFixedAssetWithPostingGroup(FixedAsset, FAPostingGroup);
     end;
 #endif
+
+    // The posting tests mutate company-wide French feature state and "FA Jnl.-Post Batch" commits it. Their
+    // body therefore runs inside asserterror - the only AL construct that catches a failing body while still
+    // allowing the database writes these tests need - and the sentinel error below ends a successful body.
+    local procedure CompleteTestBody()
+    begin
+        TestBodyCompleted := true;
+        Error(TestBodyCompletedErr);
+    end;
+
+    local procedure RestoreFeatureStateAfterTestBody(PreviousFeatureStatus: Integer)
+    var
+        BodyErrorText: Text;
+        BodyCompleted: Boolean;
+    begin
+        BodyErrorText := GetLastErrorText();
+        BodyCompleted := TestBodyCompleted;
+        TestBodyCompleted := false;
+        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
+        // The restore must be committed before the body failure is rethrown, because the rethrow rolls the
+        // database back to the commit that "FA Jnl.-Post Batch" already made with the toggled state.
+        Commit();
+        if not BodyCompleted then
+            Error(BodyErrorText);
+    end;
 
     // "FA Jnl.-Post Batch" commits, and the test framework rejects Commit under TransactionModel::AutoRollback
     // ("Tests cannot call the Commit function if TransactionModel property is set to AutoRollback."). The posting
