@@ -17,19 +17,24 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
     var
         CompletionTaskTxt: SecretText;
         SafetyClauseTxt: SecretText;
-        CompletionTaskBuildingFromKeyVaultFailed: Boolean;
+        TaskPromptTxt: Text;
+        CompletionTaskBuildingFailed: Boolean;
     begin
         if GetAzureKeyVaultSecret(SafetyClauseTxt, 'BankAccRecAIMatchingSft') then
             CompletionTaskTxt := SafetyClauseTxt
         else
-            CompletionTaskBuildingFromKeyVaultFailed := true;
+            CompletionTaskBuildingFailed := true;
 
-        if CompletionTaskBuildingFromKeyVaultFailed then begin
+        TaskPromptTxt := NavApp.GetResourceAsText('BankAccRecAIMatchingTask.md', TextEncoding::UTF8);
+        if TaskPromptTxt = '' then
+            CompletionTaskBuildingFailed := true;
+
+        if CompletionTaskBuildingFailed then begin
             Session.LogMessage('0000LFJ', TelemetryConstructingPromptFailedErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureName());
             Error(ConstructingPromptFailedErr);
         end;
 
-        CompletionTaskTxt := AddCompletionPromptLine(CompletionTaskTxt, NavApp.GetResourceAsText('BankAccRecAIMatchingTask.md', TextEncoding::UTF8));
+        CompletionTaskTxt := AddCompletionPromptLine(CompletionTaskTxt, TaskPromptTxt);
 
         if (IncludeFewShotExample) then begin
             CompletionTaskTxt := AddCompletionPromptLine(CompletionTaskTxt, '\n**Example 1**:\n');
@@ -66,9 +71,7 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
         exit(CompletionTaskTxt);
     end;
 
-    local procedure AddCompletionPromptLine(Completion: SecretText; NewPromptLine: Text): SecretText
-    var
-        ConcatSubstrTok: Label '%1%2', Locked = true;
+    internal procedure AddCompletionPromptLine(Completion: SecretText; NewPromptLine: Text): SecretText
     begin
         exit(SecretStrSubstNo(ConcatSubstrTok, Completion, NewPromptLine));
     end;
@@ -76,7 +79,6 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
     procedure BuildBankRecCompletionPrompt(TaskPrompt: SecretText; StatementLines: Text; LedgerLines: Text): SecretText
     var
         CompletionPrompt: SecretText;
-        ConcatSubstrTok: Label '%1%2', Locked = true;
     begin
         LedgerLines += '"""\n**Matches**:'; // close the ledger lines section
         StatementLines += '"""\n'; // close the statement lines section
@@ -89,7 +91,6 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
     var
         UserMessageTxt: SecretText;
         EmptyText: SecretText;
-        ConcatSubstrTok: Label '%1%2', Locked = true;
     begin
         LedgerLines += '"""\n**Matches**:'; // close the ledger lines section
         StatementLines += '"""\n'; // close the statement lines section
@@ -729,6 +730,7 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
 
     var
         AOAIToken: Codeunit "AOAI Token";
+        ConcatSubstrTok: Label '%1%2', Locked = true;
         MatchedByCopilotTxt: label 'Matched by Copilot based on semantic similarity.', Comment = 'Copilot is a Microsoft service name and must not be translated';
         SuccessfullyFilteredBLEListTxt: label 'Successfully filtered bank account ledger entries based on posting date.', Locked = true;
         UnableToFilterBLEListUnderTokenLimitTxt: label 'Unable to filter the bank account ledger entry list.', Locked = true;
