@@ -166,12 +166,13 @@ codeunit 6442 "SignUp Authentication"
     end;
 
     /// <summary>
-    /// The method returns the authentication URL.
+    /// The method returns the authentication URL for the given Entra tenant.
     /// </summary>
-    /// <returns>Authentication URL, where %1 is the Entra tenant ID.</returns>
-    procedure GetAuthUrl(): Text
+    /// <param name="EntraTenantId">Entra tenant ID</param>
+    /// <returns>Authentication URL</returns>
+    procedure GetAuthUrl(EntraTenantId: Text): Text
     begin
-        exit(this.AuthURLTxt);
+        exit(StrSubstNo(this.AuthURLTxt, EntraTenantId));
     end;
 
     /// <summary>
@@ -292,7 +293,7 @@ codeunit 6442 "SignUp Authentication"
         this.SignUpConnectionSetup.Get();
 
         HttpRequestMessage := this.PrepareRequest(SecretStrSubstNo(this.AuthTemplateTxt, TypeHelper.UriEscapeDataString(ClientId), ClientSecret, TypeHelper.UriEscapeDataString(ClientId)),
-                                                  StrSubstNo(this.GetAuthUrl(), ClientTenant));
+                                                  this.GetAuthUrl(ClientTenant));
 
         if not this.SendRequest(HttpRequestMessage, Response) then
             exit;
