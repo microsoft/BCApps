@@ -99,10 +99,7 @@ codeunit 6530 "E-Doc. Remittance Advice Mgt."
         GenJournalLine: Record "Gen. Journal Line";
     begin
         SetGroupFilters(GenJournalLine, AnchorGenJnlLine);
-        if GenJournalLine.FindSet(true) then
-            repeat
-                GenJournalLine.SetRemitAdviceEDocCreated();
-            until GenJournalLine.Next() = 0;
+        GenJournalLine.ModifyAll("Remit. Advice E-Doc. Created", true);
     end;
 
     local procedure SetGroupFilters(var GenJournalLine: Record "Gen. Journal Line"; AnchorGenJnlLine: Record "Gen. Journal Line")

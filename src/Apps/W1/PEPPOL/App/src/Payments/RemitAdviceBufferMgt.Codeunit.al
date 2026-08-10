@@ -13,8 +13,6 @@ using Microsoft.Purchases.Vendor;
 /// </summary>
 codeunit 37207 "Remit. Advice Buffer Mgt."
 {
-    Access = Internal;
-
     /// <summary>
     /// Builds the remittance advice buffer (header + applied-document lines) from an unposted
     /// vendor payment journal line and the other lines in the same payment group.

@@ -15,8 +15,6 @@ using System.Xml;
 /// </summary>
 codeunit 37208 "Export Remit. Advice PEPPOL30"
 {
-    Access = Internal;
-
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
         PEPPOL30PurchaseFormat: Enum "PEPPOL 3.0 Purchase";
