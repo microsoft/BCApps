@@ -26,10 +26,14 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
     /// </summary>
     procedure LoadHistoricalLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; ProductCode: Text[100]; Description: Text[100])
     var
+        PurchInvLine: Record "Purch. Inv. Line";
         ProductCodes: List of [Text];
         Descriptions: List of [Text];
     begin
         TotalLoaded := 0;
+
+        if not PurchInvLine.ReadPermission() then
+            exit;
 
         if ProductCode <> '' then
             ProductCodes.Add(ProductCode);
