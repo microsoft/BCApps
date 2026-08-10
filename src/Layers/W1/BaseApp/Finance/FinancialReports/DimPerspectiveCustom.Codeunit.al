@@ -30,6 +30,7 @@ codeunit 8365 DimPerspectiveCustom implements IDimensionPerspective
                 TempDimPerspectiveLine := DimPerspectiveLine;
                 TempDimPerspectiveLine.Insert();
             until DimPerspectiveLine.Next() = 0;
+        OnAfterPopulateLineBufferForReporting(DimPerspectiveName, TempDimPerspectiveLine);
     end;
 
     procedure FilterGLEntryByPerspectiveTotaling(DimPerspectiveLine: Record "Dimension Perspective Line"; var GLEntry: Record "G/L Entry")
@@ -99,5 +100,10 @@ codeunit 8365 DimPerspectiveCustom implements IDimensionPerspective
             Error('');
 
         DimPerspectiveLine.DeleteAll(true);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterPopulateLineBufferForReporting(DimPerspectiveName: Record "Dimension Perspective Name"; var TempDimPerspectiveLine: Record "Dimension Perspective Line")
+    begin
     end;
 }

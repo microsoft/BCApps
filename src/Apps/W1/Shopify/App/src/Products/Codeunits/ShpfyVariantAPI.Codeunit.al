@@ -17,6 +17,7 @@ codeunit 30189 "Shpfy Variant API"
     var
         Shop: Record "Shpfy Shop";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        FilterMgt: Codeunit "Shpfy Filter Mgt.";
         JsonHelper: Codeunit "Shpfy Json Helper";
         ProductEvents: Codeunit "Shpfy Product Events";
         MetafieldAPI: Codeunit "Shpfy Metafield API";
@@ -189,7 +190,7 @@ codeunit 30189 "Shpfy Variant API"
                 HasChange := true;
                 GraphQuery.Append(', compareAtPrice: null');
             end;
-        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) or (ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No.") or (ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code") then begin
+        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) or HasTariffNoChanged(ShopifyVariant."Tariff No.", xShopifyVariant."Tariff No.") or (ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code") then begin
             HasChange := true;
             GraphQuery.Append(', inventoryItem: {tracked: ');
             if Shop."Inventory Tracked" then
@@ -206,7 +207,7 @@ codeunit 30189 "Shpfy Variant API"
                 GraphQuery.Append(ShopifyVariant.SKU);
                 GraphQuery.Append('\"');
             end;
-            if ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No." then begin
+            if HasTariffNoChanged(ShopifyVariant."Tariff No.", xShopifyVariant."Tariff No.") then begin
                 HasChange := true;
                 GraphQuery.Append(', harmonizedSystemCode: \"');
                 GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
@@ -235,6 +236,14 @@ codeunit 30189 "Shpfy Variant API"
         end;
         GraphQuery.Append('}');
         exit(GraphQuery);
+    end;
+
+    local procedure HasTariffNoChanged(NewTariffNo: Code[20]; OldTariffNo: Code[20]): Boolean
+    begin
+        // Shopify stores the harmonized system code without separators, so a Business Central Tariff No.
+        // such as "6104.43" and the value read back from Shopify ("610443") represent the same code.
+        // Only treat the tariff as changed when the digits differ, to avoid redundant updates.
+        exit(FilterMgt.KeepDigits(NewTariffNo) <> FilterMgt.KeepDigits(OldTariffNo));
     end;
 
     local procedure GetVariantGraphQuery(var ShopifyVariant: Record "Shpfy Variant"; InventoryQuantities: Text): TextBuilder
@@ -556,8 +565,13 @@ codeunit 30189 "Shpfy Variant API"
     begin
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_GetVariantById, Parameters);
-        if JsonHelper.GetJsonObject(JResponse.AsObject(), JData, 'data.productVariant') then
-            exit(UpdateShopifyVariantFields(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem, JData));
+        // When the productVariant node is present, the variant still exists on Shopify, so report it as existing.
+        // UpdateShopifyVariantFields internally skips the field update when the local record is already up to date.
+        // Only a missing node (variant genuinely deleted on Shopify) returns false so the caller can delete the record.
+        if JsonHelper.GetJsonObject(JResponse.AsObject(), JData, 'data.productVariant') then begin
+            UpdateShopifyVariantFields(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem, JData);
+            exit(true);
+        end;
     end;
 
     /// <summary> 
@@ -756,8 +770,7 @@ codeunit 30189 "Shpfy Variant API"
     /// <param name="ShopifyVariant">Parameter of type Record "Shopify Variant".</param>
     /// <param name="ShopifyInventoryItem">Parameter of type Record "Shopify Inventory Item".</param>
     /// <param name="JVariant">Parameter of type JsonObject.</param>
-    /// <returns>Return variable "Result" of type Boolean.</returns>
-    internal procedure UpdateShopifyVariantFields(ShopifyProduct: Record "Shpfy Product"; var ShopifyVariant: Record "Shpfy Variant"; var ShopifyInventoryItem: Record "Shpfy Inventory Item"; JVariant: JsonObject) Result: Boolean
+    internal procedure UpdateShopifyVariantFields(ShopifyProduct: Record "Shpfy Product"; var ShopifyVariant: Record "Shpfy Variant"; var ShopifyInventoryItem: Record "Shpfy Inventory Item"; JVariant: JsonObject)
     var
         RecordRef: RecordRef;
         UpdatedAt: DateTime;
@@ -768,9 +781,8 @@ codeunit 30189 "Shpfy Variant API"
     begin
         UpdatedAt := JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt');
         if UpdatedAt < ShopifyVariant."Updated At" then
-            exit(false);
+            exit;
 
-        Result := true;
         ShopifyVariant."Updated At" := UpdatedAt;
         ShopifyVariant."Created At" := JsonHelper.GetValueAsDateTime(JVariant, 'createdAt');
         ShopifyVariant."Available For Sales" := JsonHelper.GetValueAsBoolean(JVariant, 'availableForSale');
@@ -816,6 +828,8 @@ codeunit 30189 "Shpfy Variant API"
                         end;
                 end;
         end;
+        JsonHelper.GetValueIntoField(JVariant, 'inventoryItem.harmonizedSystemCode', RecordRef, ShopifyVariant.FieldNo("Tariff No."));
+        JsonHelper.GetValueIntoField(JVariant, 'inventoryItem.countryCodeOfOrigin', RecordRef, ShopifyVariant.FieldNo("Country/Region of Origin Code"));
         RecordRef.SetTable(ShopifyVariant);
         ShopifyVariant."UoM Option Id" := 0;
         if Shop."UoM as Variant" then

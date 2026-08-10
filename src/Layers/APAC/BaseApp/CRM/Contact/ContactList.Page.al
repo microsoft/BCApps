@@ -1022,7 +1022,6 @@ page 5052 "Contact List"
                 Caption = 'Contact Labels';
                 Image = "Report";
                 RunObject = Report "Contact - Labels";
-                ToolTip = 'View mailing labels with names and addresses of your contacts. For example, you can use the report to review contact information before you send sales and marketing campaign letters.';
             }
             action("Questionnaire Handout")
             {
@@ -1030,7 +1029,6 @@ page 5052 "Contact List"
                 Caption = 'Questionnaire Handout';
                 Image = "Report";
                 RunObject = Report "Questionnaire - Handouts";
-                ToolTip = 'View your profile questionnaire for the contact. You can print this report to have a printed copy of the questions that are within the profile questionnaire.';
             }
             action("Sales Cycle Analysis")
             {
@@ -1038,7 +1036,6 @@ page 5052 "Contact List"
                 Caption = 'Sales Cycle Analysis';
                 Image = "Report";
                 RunObject = Report "Sales Cycle - Analysis";
-                ToolTip = 'View information about your sales cycles. The report includes details about the sales cycle, such as the number of opportunities currently at that stage, the estimated and calculated current values of opportunities created using the sales cycle, and so on.';
             }
         }
         area(Promoted)

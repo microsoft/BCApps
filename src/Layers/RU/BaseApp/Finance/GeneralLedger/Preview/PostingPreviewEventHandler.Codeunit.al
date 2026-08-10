@@ -10,6 +10,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
@@ -73,6 +74,7 @@ codeunit 20 "Posting Preview Event Handler"
         TempWarehouseEntry: Record "Warehouse Entry" temporary;
         TempPhysInventoryLedgerEntry: Record "Phys. Inventory Ledger Entry" temporary;
         TempGLCorrespondenceEntry: Record "G/L Correspondence Entry" temporary;
+        TempSpendRequestToGLEntryLink: Record "Spend Request To G/L Link" temporary;
         CommitPrevented: Boolean;
         ShowDocNo: Boolean;
         TransactionConsistent: Boolean;
@@ -125,6 +127,8 @@ codeunit 20 "Posting Preview Event Handler"
                 RecRef.GetTable(TempPhysInventoryLedgerEntry);
             Database::"G/L Correspondence Entry":
                 RecRef.GETTABLE(TempGLCorrespondenceEntry);
+            Database::"Spend Request To G/L Link":
+                RecRef.GetTable(TempSpendRequestToGLEntryLink);
             else
                 OnGetEntries(TableNo, RecRef);
         end
@@ -209,6 +213,8 @@ codeunit 20 "Posting Preview Event Handler"
                 Page.Run(Page::"Phys. Inventory Ledger Entries", TempPhysInventoryLedgerEntry);
             Database::"G/L Correspondence Entry":
                 Page.Run(Page::"G/L Corresp. Entries Preview", TempGLCorrespondenceEntry);
+            Database::"Spend Request To G/L Link":
+                Page.Run(Page::"Spend Req. To G/L Link Preview", TempSpendRequestToGLEntryLink);
             else
                 OnAfterShowEntries(TableNo);
         end;
@@ -240,6 +246,7 @@ codeunit 20 "Posting Preview Event Handler"
         InsertDocumentEntry(TempWarehouseEntry, TempDocumentEntry);
         InsertDocumentEntry(TempPhysInventoryLedgerEntry, TempDocumentEntry);
         InsertDocumentEntry(TempGLCorrespondenceEntry, TempDocumentEntry);
+        InsertDocumentEntry(TempSpendRequestToGLEntryLink, TempDocumentEntry);
 
         OnAfterFillDocumentEntry(TempDocumentEntry);
     end;
@@ -826,6 +833,35 @@ codeunit 20 "Posting Preview Event Handler"
         TempGLCorrespondenceEntry.Insert();
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Spend Request To G/L Link", OnAfterInsertEvent, '', false, false)]
+    local procedure OnInsertSpendRequestToGLLink(var Rec: Record "Spend Request To G/L Link")
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        PreventCommit();
+        TempSpendRequestToGLEntryLink := Rec;
+        if not ShowDocNo then
+            TempSpendRequestToGLEntryLink."Document No." := DocumentMaskTok;
+        TempSpendRequestToGLEntryLink.Insert();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Spend Request To G/L Link", OnAfterModifyEvent, '', false, false)]
+    local procedure OnModifySpendRequestToGLLink(var Rec: Record "Spend Request To G/L Link"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        TempSpendRequestToGLEntryLink := Rec;
+        if not ShowDocNo then
+            TempSpendRequestToGLEntryLink."Document No." := DocumentMaskTok;
+
+        OnBeforeModifyTempSpendRequestToGLEntryLink(Rec, TempSpendRequestToGLEntryLink);
+
+        if TempSpendRequestToGLEntryLink.Modify() then
+            PreventCommit();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterFinishPosting', '', false, false)]
     local procedure OnAfterGenJnlPostLineFinishPosting(var GlobalGLEntry: Record "G/L Entry"; var GLRegister: Record "G/L Register"; var IsTransactionConsistent: Boolean; var GenJournalLine: Record "Gen. Journal Line")
     begin
@@ -1073,5 +1109,9 @@ codeunit 20 "Posting Preview Event Handler"
         Result := true;
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeModifyTempSpendRequestToGLEntryLink(var Rec: Record "Spend Request To G/L Link"; var TempSpendRequestToGLEntryLink: Record "Spend Request To G/L Link")
+    begin
+    end;
 }
 

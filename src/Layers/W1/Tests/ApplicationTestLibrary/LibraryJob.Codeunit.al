@@ -73,6 +73,17 @@ codeunit 131920 "Library - Job"
         JobTask.Modify(true)
     end;
 
+    procedure CreateJobAssignedResource(JobNo: Code[20]; JobTaskNo: Code[20]; ResourceNo: Code[20]; var JobAssignedResource: Record "Job Assigned Resource")
+    begin
+        // Create an assigned resource for a project (blank JobTaskNo) or a project task
+
+        JobAssignedResource.Init();
+        JobAssignedResource.Validate("Job No.", JobNo);
+        JobAssignedResource.Validate("Job Task No.", JobTaskNo);
+        JobAssignedResource.Validate("Resource No.", ResourceNo);
+        JobAssignedResource.Insert(true);
+    end;
+
     procedure CreateJobPlanningLine(LineType: Enum "Job Planning Line Line Type"; Type: Enum "Job Planning Line Type"; JobTask: Record "Job Task"; var JobPlanningLine: Record "Job Planning Line")
     begin
         // Create a job planning line for job task <JobTask> of type <LineType> for consumable type <Type>

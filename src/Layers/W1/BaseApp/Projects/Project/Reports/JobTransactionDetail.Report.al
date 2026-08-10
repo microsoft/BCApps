@@ -14,6 +14,7 @@ report 1007 "Job - Transaction Detail"
     AdditionalSearchTerms = 'Job - Transaction Detail';
     ApplicationArea = Jobs;
     Caption = 'Project Task - Transaction Detail';
+    ToolTip = 'View all postings with entries for a selected project for a selected period, which have been charged to a certain project. At the end of each project list, the amounts are totaled separately for the Sales and Usage entry types.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -13,6 +13,7 @@ report 713 "Inventory - Customer Sales"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Customer Sales';
+    ToolTip = 'View, print, or save a list of customers that have purchased selected items within a selected period, for example, to analyze customers'' purchasing patterns. The report specifies quantity, amount, discount, profit percentage, and profit.';
     DefaultRenderingLayout = Excel;
     UsageCategory = ReportsAndAnalysis;
 

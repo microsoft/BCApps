@@ -61,6 +61,8 @@ codeunit 30228 "Shpfy Refunds API"
         ReturnLocations := CollectReturnLocations(RefundHeader."Return Id");
         GetRefundLines(RefundId, RefundHeader, ReturnLocations);
         GetRefundShippingLines(RefundId);
+        if RefundHeader."Return Id" <> 0 then
+            GetRefundExchangeLines(RefundId, RefundHeader);
     end;
 
     local procedure GetRefundHeader(RefundId: BigInteger; UpdatedAt: DateTime; var RefundHeader: Record "Shpfy Refund Header")
@@ -155,6 +157,43 @@ codeunit 30228 "Shpfy Refunds API"
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.refund.refundShippingLines.pageInfo.hasNextPage');
     end;
 
+    local procedure GetRefundExchangeLines(RefundId: BigInteger; RefundHeader: Record "Shpfy Refund Header")
+    var
+        DataCapture: Record "Shpfy Data Capture";
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JExchangeLineItems: JsonArray;
+        JExchangeLineItem: JsonToken;
+        JLineItems: JsonArray;
+        JLineItem: JsonToken;
+        ExchangeQuantity: Integer;
+        LineItemId: BigInteger;
+    begin
+        Parameters.Add('RefundId', Format(RefundId));
+        GraphQLType := "Shpfy GraphQL Type"::Refunds_GetRefundExchangeLines;
+        repeat
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+            DataCapture.Add(Database::"Shpfy Refund Header", RefundHeader.SystemId, JResponse);
+            GraphQLType := "Shpfy GraphQL Type"::Refunds_GetNextRefundExchangeLines;
+            JExchangeLineItems := JsonHelper.GetJsonArray(JResponse, 'data.refund.return.exchangeLineItems.nodes');
+            if Parameters.ContainsKey('After') then
+                Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.refund.return.exchangeLineItems.pageInfo.endCursor'))
+            else
+                Parameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.refund.return.exchangeLineItems.pageInfo.endCursor'));
+
+            foreach JExchangeLineItem in JExchangeLineItems do begin
+                ExchangeQuantity := JsonHelper.GetValueAsInteger(JExchangeLineItem, 'quantity');
+                JLineItems := JsonHelper.GetJsonArray(JExchangeLineItem, 'lineItems');
+                foreach JLineItem in JLineItems do begin
+                    LineItemId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLineItem, 'id'));
+                    if LineItemId <> 0 then
+                        FillInExchangeRefundLine(RefundHeader, LineItemId, ExchangeQuantity, JLineItem.AsObject());
+                end;
+            end;
+        until not JsonHelper.GetValueAsBoolean(JResponse, 'data.refund.return.exchangeLineItems.pageInfo.hasNextPage');
+    end;
+
     local procedure CollectReturnLocations(ReturnId: BigInteger): Dictionary of [BigInteger, BigInteger]
     var
         ReturnsAPI: Codeunit "Shpfy Returns API";
@@ -241,6 +280,66 @@ codeunit 30228 "Shpfy Refunds API"
     internal procedure IsNonZeroOrReturnRefund(RefundHeader: Record "Shpfy Refund Header"): Boolean
     begin
         exit((RefundHeader."Return Id" > 0) or (RefundHeader."Total Refunded Amount" > 0));
+    end;
+
+    internal procedure FillInExchangeRefundLine(RefundHeader: Record "Shpfy Refund Header"; OrderLineId: BigInteger; ExchangeQuantity: Integer; JLineItem: JsonObject)
+    var
+        DataCapture: Record "Shpfy Data Capture";
+        RefundLine: Record "Shpfy Refund Line";
+        SyntheticRefundLineId: BigInteger;
+        UnitPriceShop: Decimal;
+        UnitPricePresentment: Decimal;
+        TotalDiscountShop: Decimal;
+        TotalDiscountPresentment: Decimal;
+        SubtotalShop: Decimal;
+        SubtotalPresentment: Decimal;
+        TotalTaxShop: Decimal;
+        TotalTaxPresentment: Decimal;
+        JTaxLines: JsonArray;
+        JTaxLine: JsonToken;
+    begin
+        if ExchangeQuantity <= 0 then
+            exit;
+
+        // A Shopify line item id is globally unique, so negating it yields a synthetic refund-line id
+        // that cannot collide with Shopify's positive refund-line ids or with another exchange line.
+        SyntheticRefundLineId := -OrderLineId;
+
+        UnitPriceShop := JsonHelper.GetValueAsDecimal(JLineItem, 'originalUnitPriceSet.shopMoney.amount');
+        UnitPricePresentment := JsonHelper.GetValueAsDecimal(JLineItem, 'originalUnitPriceSet.presentmentMoney.amount');
+        TotalDiscountShop := JsonHelper.GetValueAsDecimal(JLineItem, 'totalDiscountSet.shopMoney.amount');
+        TotalDiscountPresentment := JsonHelper.GetValueAsDecimal(JLineItem, 'totalDiscountSet.presentmentMoney.amount');
+        SubtotalShop := (UnitPriceShop * ExchangeQuantity) - TotalDiscountShop;
+        SubtotalPresentment := (UnitPricePresentment * ExchangeQuantity) - TotalDiscountPresentment;
+        JTaxLines := JsonHelper.GetJsonArray(JLineItem, 'taxLines');
+        foreach JTaxLine in JTaxLines do begin
+            TotalTaxShop += JsonHelper.GetValueAsDecimal(JTaxLine, 'priceSet.shopMoney.amount');
+            TotalTaxPresentment += JsonHelper.GetValueAsDecimal(JTaxLine, 'priceSet.presentmentMoney.amount');
+        end;
+
+        if not RefundLine.Get(RefundHeader."Refund Id", SyntheticRefundLineId) then begin
+            RefundLine.Init();
+            RefundLine."Refund Line Id" := SyntheticRefundLineId;
+            RefundLine."Refund Id" := RefundHeader."Refund Id";
+            RefundLine."Order Line Id" := OrderLineId;
+            RefundLine.Insert();
+        end;
+
+        RefundLine."Restock Type" := RefundLine."Restock Type"::Return;
+        RefundLine.Quantity := -ExchangeQuantity;
+        RefundLine.Restocked := false;
+        RefundLine.Amount := UnitPriceShop;
+        RefundLine."Presentment Amount" := UnitPricePresentment;
+        RefundLine."Subtotal Amount" := -SubtotalShop;
+        RefundLine."Presentment Subtotal Amount" := -SubtotalPresentment;
+        RefundLine."Total Tax Amount" := -TotalTaxShop;
+        RefundLine."Presentment Total Tax Amount" := -TotalTaxPresentment;
+        RefundLine."Can Create Credit Memo" := true;
+        RefundLine."Location Id" := 0;
+        RefundLine."Is Exchange Item" := true;
+        RefundLine.Modify();
+
+        DataCapture.Add(Database::"Shpfy Refund Line", RefundLine.SystemId, JLineItem);
     end;
 
     local procedure UpdateTransactions(JRefund: JsonObject; RefundHeader: Record "Shpfy Refund Header")
