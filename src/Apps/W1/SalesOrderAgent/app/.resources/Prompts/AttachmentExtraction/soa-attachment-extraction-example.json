@@ -1,54 +1,103 @@
 {
   "schema": "soa-attachment-content",
-  "document_summary": "",
+  "document_summary": "Purchase order from Fabrikam Retail requesting four products for delivery to the Boston warehouse.",
   "parties": [
     {
-      "role": "",
-      "name": "",
-      "address": "",
-      "contact_information": ""
+      "role": "buyer",
+      "name": "Fabrikam Retail Inc.",
+      "address": "1200 Harbor Street, Boston, MA 02128, USA",
+      "contact_information": "orders@fabrikam-retail.com, +1 617 555 0134",
+      "contact_person": "Dana Reyes"
+    },
+    {
+      "role": "ship-to",
+      "name": "Fabrikam Boston Warehouse",
+      "address": "45 Dockside Road, Boston, MA 02129, USA"
     }
   ],
   "references": [
-    {
-      "type": "",
-      "value": ""
-    }
+    { "type": "purchase order number", "value": "PO-2026-004871" },
+    { "type": "document date", "value": "2026-03-04" },
+    { "type": "customer account number", "value": "CUST-10093" }
   ],
   "requested_dates": [
-    {
-      "type": "",
-      "value": ""
-    }
+    { "type": "requested delivery date", "value": "2026-03-19" },
+    { "type": "ship-by date", "value": "2026-03-16", "applies_to_source_location": "line 3" }
   ],
   "items": [
     {
       "identifiers": [
-        {
-          "type": "",
-          "value": ""
-        }
+        { "type": "vendor item number", "value": "1928-S" },
+        { "type": "customer item number", "value": "FR-CHAIR-BLU-L" },
+        { "type": "variant code", "value": "BLUE-L" },
+        { "type": "GTIN", "value": "05012345678900" }
       ],
-      "description": "",
-      "quantity": null,
-      "unit_of_measure": "",
+      "description": "ATHENS Desk Chair, blue fabric upholstery, large frame, height-adjustable gas lift, chrome five-star base, assembly required",
+      "quantity": 12,
+      "unit_of_measure": "PCS",
       "attributes": [
-        {
-          "name": "",
-          "value": ""
-        }
+        { "name": "Brand", "value": "ATHENS" },
+        { "name": "Color", "value": "Blue" },
+        { "name": "Size", "value": "Large" },
+        { "name": "Material", "value": "Fabric" },
+        { "name": "Frame Finish", "value": "Chrome" },
+        { "name": "Assembly", "value": "Required" }
       ],
-      "unit_price": null,
-      "line_amount": null,
-      "status_notes": [],
-      "source_location": ""
+      "unit_price": 149.5,
+      "line_amount": 1794,
+      "source_location": "line 1"
+    },
+    {
+      "identifiers": [
+        { "type": "manufacturer item number", "value": "TC-7734" }
+      ],
+      "description": "PARIS Guest Table, oak veneer top, 1400 x 800 mm, four legs, flat-packed",
+      "quantity": 3,
+      "unit_of_measure": "EA",
+      "attributes": [
+        { "name": "Material", "value": "Oak veneer" },
+        { "name": "Dimensions", "value": "1400 x 800 mm" },
+        { "name": "Packaging", "value": "Flat-packed" },
+        { "name": "Model Year", "value": "2025" }
+      ],
+      "unit_price": 320,
+      "source_location": "line 2"
+    },
+    {
+      "identifiers": [
+        { "type": "catalog number", "value": "CAT-0099-XL" }
+      ],
+      "description": "MUNICH Storage Cabinet, white, XL, six shelves, lockable doors",
+      "quantity": 5,
+      "unit_of_measure": "BOX",
+      "attributes": [
+        { "name": "Color", "value": "White" },
+        { "name": "Size", "value": "XL" },
+        { "name": "Shelf Count", "value": "6" },
+        { "name": "Lockable", "value": "Yes" }
+      ],
+      "status_notes": [
+        "Replaces discontinued CAT-0099-L",
+        "Partial delivery accepted"
+      ],
+      "source_location": "line 3"
+    },
+    {
+      "description": "On-site installation service for the delivered furniture",
+      "quantity": 1,
+      "unit_of_measure": "SERVICE",
+      "attributes": [
+        { "name": "Service Type", "value": "On-site installation" },
+        { "name": "Preferred Time Window", "value": "Weekday mornings" }
+      ],
+      "source_location": "line 4"
     }
   ],
   "additional_relevant_information": [
-    {
-      "label": "",
-      "value": ""
-    }
+    { "label": "Delivery instruction", "value": "Deliver to loading dock B, call 30 minutes before arrival" },
+    { "label": "Order note", "value": "Do not split the order across more than two shipments" }
   ],
-  "warnings": []
+  "warnings": [
+    "The unit price for line 3 is not visible in the document"
+  ]
 }

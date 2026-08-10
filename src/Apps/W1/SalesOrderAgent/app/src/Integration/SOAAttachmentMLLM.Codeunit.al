@@ -19,11 +19,11 @@ codeunit 4421 "SOA Attachment MLLM"
 
     var
         ExtractionSystemPromptTok: Label 'Prompts/AttachmentExtraction/soa-attachment-extraction-system.md', Locked = true;
+        ExtractionUserPromptTok: Label 'Prompts/AttachmentExtraction/soa-attachment-extraction-user.md', Locked = true;
         ExtractionSchemaTok: Label 'Prompts/AttachmentExtraction/soa-attachment-extraction-example.json', Locked = true;
         SecurityPromptTok: Label 'SalesOrderAgent-Irrelevance-SecurityPromptV28', Locked = true;
         SchemaNameTok: Label 'soa-attachment-content', Locked = true;
         FileDataTok: Label 'data:%1;base64,%2', Comment = '%1 = MIME type, %2 = base64 file content', Locked = true;
-        UserMessageTok: Label 'Extract all Sales Order Agent-relevant information from the complete attached file "%1". Return JSON following this flexible example structure. Only schema is mandatory. Omit unavailable information instead of inventing it: %2', Comment = '%1 = file name, %2 = flexible JSON structure', Locked = true;
         AttachmentFileNotFoundErr: Label 'The attachment file could not be found.';
         AttachmentFileEmptyErr: Label 'The attachment file is empty.';
         AttachmentMimeTypeMissingErr: Label 'The attachment MIME type is missing.';
@@ -74,6 +74,7 @@ codeunit 4421 "SOA Attachment MLLM"
         PromptTemplate: Text;
         SchemaTemplate: Text;
         SecurityPrompt: SecretText;
+        UserPromptTemplate: Text;
     begin
         if not AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
             Error(AttachmentFileNotFoundErr);
@@ -88,8 +89,9 @@ codeunit 4421 "SOA Attachment MLLM"
         FileData := StrSubstNo(FileDataTok, AgentTaskFile."File MIME Type", Base64Convert.ToBase64(FileInStream));
 
         PromptTemplate := NavApp.GetResourceAsText(ExtractionSystemPromptTok, TextEncoding::UTF8);
+        UserPromptTemplate := NavApp.GetResourceAsText(ExtractionUserPromptTok, TextEncoding::UTF8);
         SchemaTemplate := NavApp.GetResourceAsText(ExtractionSchemaTok, TextEncoding::UTF8);
-        if (PromptTemplate = '') or (SchemaTemplate = '') then
+        if (PromptTemplate = '') or (UserPromptTemplate = '') or (SchemaTemplate = '') then
             Error(ExtractionPromptNotFoundErr);
         if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPrompt) then
             Error(ExtractionPromptNotFoundErr);
@@ -105,7 +107,7 @@ codeunit 4421 "SOA Attachment MLLM"
         AOAIChatMessages.SetPrimarySystemMessage(Prompt);
 
         AOAIUserMessage.AddFilePart(FileData);
-        AOAIUserMessage.AddTextPart(StrSubstNo(UserMessageTok, AgentTaskFile."File Name", SchemaTemplate));
+        AOAIUserMessage.AddTextPart(StrSubstNo(UserPromptTemplate, AgentTaskFile."File Name", SchemaTemplate));
         AOAIChatMessages.AddUserMessage(AOAIUserMessage);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
