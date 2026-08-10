@@ -195,7 +195,6 @@ page 99000896 "Available - Transfer Lines"
         Text002: Label 'Do you want to cancel the reservation?';
 #pragma warning disable AA0470
         Text003: Label 'Available Quantity is %1.';
-        Text004: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         InboundQtyErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
