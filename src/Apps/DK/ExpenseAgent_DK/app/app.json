@@ -1,0 +1,39 @@
+{
+  "id": "f1c6dae4-c092-429f-845c-00657fa4d293",
+  "name": "Expense Agent (Preview) (DK)",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "brief": "The Expense Agent module will enable users to capture and report on business expenses. The solution provides a foundation for enforcing expense policies, improving financial transparency, and supporting compliance with internal controls and audit requirements.",
+  "description": "The Expense Agent module will enable users to capture and report on business expenses. The solution provides a foundation for enforcing expense policies, improving financial transparency, and supporting compliance with internal controls and audit requirements.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2139719",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2139719",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "./ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "66efe10c-8033-403b-a86d-77c0887178ba",
+      "name": "Expense Agent (Preview)",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 6900,
+      "to": 6999
+    }
+  ],
+  "features": [
+    "TranslationFile"
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  }
+}
