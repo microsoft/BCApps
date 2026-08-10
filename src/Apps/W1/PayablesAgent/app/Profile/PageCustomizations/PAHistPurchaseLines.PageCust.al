@@ -42,5 +42,9 @@ pagecustomization "PA Hist. Purchase Lines" customizes "E-Doc. Historical Lines 
         {
             Visible = true;
         }
+        modify("Posting Date")
+        {
+            Visible = true;
+        }
     }
 }
