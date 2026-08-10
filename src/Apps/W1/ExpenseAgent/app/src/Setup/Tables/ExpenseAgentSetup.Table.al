@@ -310,6 +310,7 @@ table 6930 "Expense Agent Setup"
         field(31; "Evaluate Policies"; Boolean)
         {
             Caption = 'Evaluate policies';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. Enabling this consumes additional AI credits.';
         }
         field(34; "Expense User Nos."; Code[20])

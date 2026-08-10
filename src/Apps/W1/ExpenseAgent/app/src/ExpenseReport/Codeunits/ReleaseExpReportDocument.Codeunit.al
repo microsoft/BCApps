@@ -158,10 +158,16 @@ codeunit 6984 "Release Exp. Report Document"
     procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
+        ExpReportNo: Code[20];
     begin
+        // Capture the document number before releasing: the record is passed by reference through
+        // Codeunit.Run and must be re-read from the database afterwards, so the key can no longer be
+        // taken from the in-memory record image once control returns.
+        ExpReportNo := ExpReportHeader."No.";
+
         Codeunit.Run(Codeunit::"Release Exp. Report Document", ExpReportHeader);
 
-        ExpReportHeader.Get(ExpReportHeader."No.");
+        ExpReportHeader.Get(ExpReportNo);
 
         CheckPendingApprovalStatus(ExpReportHeader);
         ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo);

@@ -28,16 +28,19 @@ codeunit 7107 "Exp. Policies To Eval Builder"
     local procedure BuildForLine(var TempPolicyToEvalBuffer: Record "Exp. Policy To Eval Buffer" temporary; ExpenseReportLine: Record "Expense Report Line")
     var
         ExpensePolicy: Record "Expense Policy";
+        ExistingFlagKeys: Dictionary of [Text, Boolean];
         SubjectSystemId: Guid;
         SubjectVersion: Integer;
     begin
         SubjectSystemId := ExpenseReportLine.SystemId;
         SubjectVersion := ExpenseReportLine."Policy Eval Version";
 
+        LoadExistingFlagKeys(SubjectSystemId, SubjectVersion, ExistingFlagKeys);
+
         SetApplicablePolicyFilter(ExpensePolicy, ExpenseReportLine);
         if ExpensePolicy.FindSet() then
             repeat
-                if not FlagExists(SubjectSystemId, ExpensePolicy.SystemId, SubjectVersion, ExpensePolicy."Version") then
+                if not FlagExists(ExistingFlagKeys, ExpensePolicy.SystemId, ExpensePolicy."Version") then
                     InsertRow(TempPolicyToEvalBuffer, SubjectSystemId, SubjectVersion, ExpensePolicy);
             until ExpensePolicy.Next() = 0;
     end;
@@ -45,6 +48,7 @@ codeunit 7107 "Exp. Policies To Eval Builder"
     procedure HasOutstandingPolicies(ExpenseReportLine: Record "Expense Report Line"): Boolean
     var
         ExpensePolicy: Record "Expense Policy";
+        ExistingFlagKeys: Dictionary of [Text, Boolean];
         SubjectSystemId: Guid;
         SubjectVersion: Integer;
     begin
@@ -54,10 +58,12 @@ codeunit 7107 "Exp. Policies To Eval Builder"
         SubjectSystemId := ExpenseReportLine.SystemId;
         SubjectVersion := ExpenseReportLine."Policy Eval Version";
 
+        LoadExistingFlagKeys(SubjectSystemId, SubjectVersion, ExistingFlagKeys);
+
         SetApplicablePolicyFilter(ExpensePolicy, ExpenseReportLine);
         if ExpensePolicy.FindSet() then
             repeat
-                if not FlagExists(SubjectSystemId, ExpensePolicy.SystemId, SubjectVersion, ExpensePolicy."Version") then
+                if not FlagExists(ExistingFlagKeys, ExpensePolicy.SystemId, ExpensePolicy."Version") then
                     exit(true);
             until ExpensePolicy.Next() = 0;
         exit(false);
@@ -73,14 +79,36 @@ codeunit 7107 "Exp. Policies To Eval Builder"
         ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', ExpenseReportLine."Expense Category", '');
     end;
 
-    local procedure FlagExists(SubjectSystemId: Guid; PolicySystemId: Guid; SubjectVersion: Integer; PolicyVersion: Integer): Boolean
+    local procedure LoadExistingFlagKeys(SubjectSystemId: Guid; SubjectVersion: Integer; var ExistingFlagKeys: Dictionary of [Text, Boolean])
     var
         ExpensePolicyFlag: Record "Expense Policy Flag";
+    begin
+        // Load every flag recorded for this subject version once, keyed by policy and policy version,
+        // so the applicable-policy loop can test each policy against an in-memory set instead of
+        // issuing a separate database Get per policy (the previous N+1 pattern against a persistent
+        // table on every policies-to-evaluate or mark-evaluated request).
+        Clear(ExistingFlagKeys);
+        ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
+        ExpensePolicyFlag.SetRange("Subject System Id", SubjectSystemId);
+        ExpensePolicyFlag.SetRange("Subject Version", SubjectVersion);
+        ExpensePolicyFlag.SetLoadFields("Policy System Id", "Policy Version");
+        if ExpensePolicyFlag.FindSet() then
+            repeat
+                ExistingFlagKeys.Set(FlagKey(ExpensePolicyFlag."Policy System Id", ExpensePolicyFlag."Policy Version"), true);
+            until ExpensePolicyFlag.Next() = 0;
+    end;
+
+    local procedure FlagExists(ExistingFlagKeys: Dictionary of [Text, Boolean]; PolicySystemId: Guid; PolicyVersion: Integer): Boolean
     begin
         // A policy no longer needs evaluating when a flag already exists for the line's current
         // subject version and the policy's current version. This keeps the endpoint idempotent and
         // avoids returning policies that were just re-evaluated.
-        exit(ExpensePolicyFlag.Get(ExpensePolicyFlag."Subject Type"::"Expense Report Line", SubjectSystemId, PolicySystemId, SubjectVersion, PolicyVersion));
+        exit(ExistingFlagKeys.ContainsKey(FlagKey(PolicySystemId, PolicyVersion)));
+    end;
+
+    local procedure FlagKey(PolicySystemId: Guid; PolicyVersion: Integer): Text
+    begin
+        exit(Format(PolicySystemId) + '|' + Format(PolicyVersion));
     end;
 
     local procedure InsertRow(var TempPolicyToEvalBuffer: Record "Exp. Policy To Eval Buffer" temporary; SubjectSystemId: Guid; SubjectVersion: Integer; var ExpensePolicy: Record "Expense Policy")

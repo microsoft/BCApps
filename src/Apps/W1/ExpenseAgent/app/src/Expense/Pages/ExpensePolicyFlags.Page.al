@@ -8,6 +8,7 @@ page 7123 "Expense Policy Flags"
 {
     PageType = List;
     SourceTable = "Expense Policy Flag";
+    SourceTableView = sorting("Flagged At") order(descending);
     Caption = 'Evaluated Policies';
     Editable = false;
     InsertAllowed = false;
@@ -36,7 +37,7 @@ page 7123 "Expense Policy Flags"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Reason Flagged';
                     ToolTip = 'Specifies the reason this policy was flagged for the expense. Choose the value to see the full flag details.';
-                    StyleExpr = 'Ambiguous';
+                    StyleExpr = ReasonStyleExpr;
 
                     trigger OnDrillDown()
                     var
@@ -59,4 +60,17 @@ page 7123 "Expense Policy Flags"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        // Only a flagged (non-compliant) result carries an unfavorable meaning; compliant rows keep
+        // the default style so the colour is not mismatched to the reason text.
+        if Rec.Compliant then
+            ReasonStyleExpr := ''
+        else
+            ReasonStyleExpr := 'Unfavorable';
+    end;
+
+    var
+        ReasonStyleExpr: Text;
 }

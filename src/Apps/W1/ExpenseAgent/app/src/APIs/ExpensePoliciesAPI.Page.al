@@ -21,6 +21,7 @@ page 7104 "Expense Policies API"
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
+    Editable = false;
 
     layout
     {

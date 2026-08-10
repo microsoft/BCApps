@@ -62,6 +62,7 @@ codeunit 148302 "Expense Report Posting Test"
         CannotImportAndDeleteAttachmentOnPostedExpenseReportErr: Label 'You cannot import and delete attachments on %1 %2, %3 %4.', Comment = '%1 = Posted Expense Report No., %2 = P-ER000001, %3 = Line No., %4 = 10000';
         CannotUpdateAndDeleteAttachmentOnExpenseErr: Label 'You cannot update and delete attachment on an %1 %2 that is part of an %3 %4.', Comment = '%1 = Expense No., %2 = EXP100001, %3 = Expense Report No., %4 = ER100001';
         CannotUpdateAndDeleteAttachmentOnExpenseReportErr: Label 'You cannot update and delete attachment on an %1 %2, %3 %4 that is part of an %5 %6.', Comment = '%1 = Expense Report No., %2 = ER100001, %3 = Line No., %4 = 10000, %5 = Expense No., %6 = EXP100001';
+        CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
@@ -3654,7 +3655,7 @@ codeunit 148302 "Expense Report Posting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('PostConfirmHandler')]
     procedure PolicyFlagsCopiedToPostedExpenseReport()
     var
         Employee: Record Employee;
@@ -3706,6 +3707,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader.PerformManualRelease();
 
         // [WHEN] The report is posted.
+        LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
         // [THEN] The posted line carries the copied policy flag.
@@ -3717,6 +3719,9 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicyFlag.Reset();
         ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
         Assert.RecordIsEmpty(ExpensePolicyFlag);
+
+        // [THEN] The expected posting confirmation was shown (the handler consumed the enqueued text).
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -8669,6 +8674,13 @@ codeunit 148302 "Expense Report Posting Test"
     [ConfirmHandler]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure PostConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), Question, 'Unexpected confirmation question shown during posting.');
         Reply := true;
     end;
 

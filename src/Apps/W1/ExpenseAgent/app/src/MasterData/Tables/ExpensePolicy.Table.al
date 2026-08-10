@@ -16,32 +16,39 @@ table 7092 "Expense Policy"
         field(1; "Subject Type"; Enum "Expense Policy Subject")
         {
             Caption = 'Subject Type';
+            DataClassification = CustomerContent;
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            DataClassification = CustomerContent;
         }
         field(10; "Expense Category Code"; Code[20])
         {
             Caption = 'Expense Category Code';
+            DataClassification = CustomerContent;
             TableRelation = "Expense Category";
         }
         field(11; "Description"; Text[50])
         {
             Caption = 'Description';
+            DataClassification = CustomerContent;
         }
         field(12; "Policy Text"; Text[2048])
         {
             Caption = 'Policy Text';
+            DataClassification = CustomerContent;
         }
         field(20; "Enabled"; Boolean)
         {
             Caption = 'Enabled';
+            DataClassification = CustomerContent;
             InitValue = true;
         }
         field(21; "Version"; Integer)
         {
             Caption = 'Version';
+            DataClassification = CustomerContent;
             Editable = false;
         }
     }
@@ -53,6 +60,9 @@ table 7092 "Expense Policy"
             Clustered = true;
         }
         key(Category; "Expense Category Code")
+        {
+        }
+        key(Applicable; "Subject Type", Enabled, "Expense Category Code")
         {
         }
     }
