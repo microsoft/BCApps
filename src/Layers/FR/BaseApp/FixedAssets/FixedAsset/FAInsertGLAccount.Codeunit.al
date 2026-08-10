@@ -70,6 +70,9 @@ codeunit 5601 "FA Insert G/L Account"
         FAPostingGr: Record "FA Posting Group";
         FAPostingGr2: Record "FA Posting Group";
         FADeprBook: Record "FA Depreciation Book";
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         FAGetGLAccNo: Codeunit "FA Get G/L Account No.";
         DepreciationCalc: Codeunit "Depreciation Calculation";
         NextEntryNo: Integer;
@@ -461,7 +464,18 @@ codeunit 5601 "FA Insert G/L Account"
                 end;
 #if not CLEAN29
             FAPostingType::Derogatory:
-                begin
+                if AcceleratedDeprFeature.IsEnabled() then begin
+                    if AllocAmount > 0 then begin
+                        FAPostingGr.TestField("Derogatory Expense Acc.");
+                        GLAccNo := FAPostingGr."Derogatory Expense Acc."
+                    end else begin
+                        FAPostingGr.TestField("Derog. Bal. Account (Decrease)");
+                        GLAccNo := FAPostingGr."Derog. Bal. Account (Decrease)";
+                    end;
+                    FAPostingGr.CalcFields("Allocated Derogatory Pct.");
+                    if FAPostingGr."Allocated Derogatory Pct." > 100 then
+                        FAPostingGr.FieldError("Allocated Derogatory Pct.", FieldErrorText);
+                end else begin
                     if AllocAmount > 0 then begin
                         FAPostingGr.TestField("Derogatory Expense Account");
                         GLAccNo := FAPostingGr."Derogatory Expense Account"
@@ -1013,4 +1027,3 @@ codeunit 5601 "FA Insert G/L Account"
     begin
     end;
 }
-
