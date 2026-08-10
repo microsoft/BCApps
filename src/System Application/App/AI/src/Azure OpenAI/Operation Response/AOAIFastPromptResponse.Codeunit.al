@@ -7,7 +7,7 @@ namespace System.AI;
 /// <summary>
 /// The result of a fast prompt lookup.
 /// </summary>
-codeunit 7777 "AOAI Fast Prompt Response"
+codeunit 7789 "AOAI Fast Prompt Response"
 {
     Access = Public;
     InherentEntitlements = X;
