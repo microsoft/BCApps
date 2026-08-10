@@ -547,6 +547,8 @@ codeunit 131900 "Library - Marketing"
         WebSource.Insert(true);
     end;
 
+#if not CLEAN29
+    [Obsolete('Creates a layout in the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.', '29.0')]
     procedure CreateEmailMergeCustomLayoutNo(): Code[20]
     var
         CustomReportLayout: Record "Custom Report Layout";
@@ -558,6 +560,7 @@ codeunit 131900 "Library - Marketing"
         CustomReportLayout.Insert(true);
         exit(CustomReportLayout.Code);
     end;
+#endif
 
     procedure CreateEmailMergeAttachment(var Attachment: Record Attachment) ContentBodyText: Text
     begin
@@ -592,6 +595,8 @@ codeunit 131900 "Library - Marketing"
         Contact.FindSet();
     end;
 
+#if not CLEAN29
+    [Obsolete('Reads the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection. Use FindEmailMergeCustomLayoutName instead.', '29.0')]
     procedure FindEmailMergeCustomLayoutNo(): Code[20]
     var
         CustomReportLayout: Record "Custom Report Layout";
@@ -601,6 +606,7 @@ codeunit 131900 "Library - Marketing"
         CustomReportLayout.FindFirst();
         exit(CustomReportLayout.Code);
     end;
+#endif
 
     procedure FindEmailMergeCustomLayoutName(): Text[250]
     var
