@@ -5739,6 +5739,7 @@ codeunit 137405 "SCM Item Tracking"
 
     local procedure CreateLotTrackedItemAtLocation(var Item: Record Item; var Location: Record Location)
     var
+        InventoryPostingSetup: Record "Inventory Posting Setup";
         ItemTrackingCodeCode: Code[10];
     begin
         LibraryWarehouse.CreateLocation(Location);
@@ -5748,6 +5749,9 @@ codeunit 137405 "SCM Item Tracking"
 
         ItemTrackingCodeCode := CreateItemTrackingCodeLotSpecificWhseTracking(true);
         CreateItem(Item, ItemTrackingCodeCode, '', LibraryUtility.GetGlobalNoSeriesCode());
+
+        if not InventoryPostingSetup.Get(Location.Code, Item."Inventory Posting Group") then
+            LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, Location.Code, Item."Inventory Posting Group");
     end;
 
     local procedure SetTrackingSpecItemLotLocation(var TrackingSpecification: Record "Tracking Specification"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50])
