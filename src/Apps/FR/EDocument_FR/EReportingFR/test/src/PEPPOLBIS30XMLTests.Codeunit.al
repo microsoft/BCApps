@@ -43,6 +43,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         BuyerElectronicAddressRequiredErr: Label 'Electronic Address, French VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
@@ -668,6 +669,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         // [THEN] Error about Country/Region Code is raised
         Assert.ExpectedError('Country/Region Code must be specified in Company Information for French e-invoicing.');
+        Assert.ExpectedErrorCode('Dialog');
 
         // Cleanup
         CompanyInformation.Get();
@@ -722,6 +724,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         asserterror CheckInvoice(SalesInvoiceHeader);
 
         Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressRequiredErr, Customer."No."));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -773,6 +776,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         asserterror CheckInvoice(SalesInvoiceHeader);
 
         Assert.ExpectedError(ParticipantAddressIncompleteErr);
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -791,6 +795,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         asserterror CheckInvoice(SalesInvoiceHeader);
 
         Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -808,6 +813,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         asserterror CheckInvoice(SalesInvoiceHeader);
 
         Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressSchemeRequiredErr, CustomerNo));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -832,6 +838,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         asserterror CheckInvoice(SalesInvoiceHeader);
 
         Assert.ExpectedError(ParticipantAddressIncompleteErr);
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -856,6 +863,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         asserterror CheckInvoice(SalesInvoiceHeader);
 
         Assert.ExpectedError(ParticipantAddressIncompleteErr);
+        Assert.ExpectedErrorCode('Dialog');
     end;
     #endregion
 
@@ -866,6 +874,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceCode: Code[20];
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
+        LibrarySetupStorage.Restore();
         ServiceParticipant.SetRange(Service, EDocumentService.Code);
         ServiceParticipant.DeleteAll();
         InitializeCompanyIdentity();
@@ -899,6 +908,9 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         EDocumentService.Insert(true);
         EDocumentService.Validate("Document Format", EDocumentService."Document Format"::"Peppol BIS 3.0 FR");
         EDocumentService.Modify(true);
+
+        LibrarySetupStorage.SaveCompanyInformation();
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
 
         IsInitialized := true;
         Commit();
