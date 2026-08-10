@@ -93,7 +93,7 @@ report 94 "Close Income Statement"
                         else
                             TempEntryNoAmountBuffer."Business Unit Code" := '';
                         TempEntryNoAmountBuffer."Source Currency Code" := "Source Currency Code";
-                        TempEntryNoAmountBuffer."Entry No." := GetEntryNo(DimensionBufferID);
+                        TempEntryNoAmountBuffer."Entry No." := GetEntryNo(DimensionBufferID, TempEntryNoAmountBuffer."Business Unit Code", "Source Currency Code");
                         if TempEntryNoAmountBuffer.Find() then begin
                             TempEntryNoAmountBuffer.Amount := TempEntryNoAmountBuffer.Amount + Amount;
                             TempEntryNoAmountBuffer.Amount2 := TempEntryNoAmountBuffer.Amount2 + "Additional-Currency Amount";
@@ -132,7 +132,6 @@ report 94 "Close Income Statement"
                     TempEntryNoAmountBuffer.Reset();
                     MaxEntry := TempEntryNoAmountBuffer.Count();
                     EntryCount := 0;
-                    EntryNo := 0;
                     Window.Update(2, Text012);
                     Window.Update(3, 0);
 
@@ -158,7 +157,8 @@ report 94 "Close Income Statement"
                                 GenJnlLine."Business Unit Code" := TempEntryNoAmountBuffer."Business Unit Code";
 
                                 TempDimBuf2.DeleteAll();
-                                DimBufMgt.RetrieveDimensions(TempEntryNoAmountBuffer."Entry No.", TempDimBuf2);
+                                DimBufMgt.RetrieveDimensions(
+                                    GetDimensionBufferID(TempEntryNoAmountBuffer."Business Unit Code", TempEntryNoAmountBuffer."Entry No."), TempDimBuf2);
                                 NewDimensionID := DimMgt.CreateDimSetIDFromDimBuf(TempDimBuf2);
                                 GenJnlLine."Dimension Set ID" := NewDimensionID;
                                 DimMgt.UpdateGlobalDimFromDimSetID(NewDimensionID, GlobalDimVal1, GlobalDimVal2);
@@ -202,6 +202,7 @@ report 94 "Close Income Statement"
 
                     TempEntryNoAmountBuffer.DeleteAll();
                     EntryCount := 0;
+                    ResetEntryNoGrouping();
 
                     LastWindowUpdateDateTime := CurrentDateTime;
                 end;
@@ -509,6 +510,8 @@ report 94 "Close Income Statement"
         NoOfAccounts: Integer;
         ThisAccountNo: Integer;
         EntryNo: Integer;
+        GroupEntryNos: Dictionary of [Text, Integer];
+        EntryNoDimensionIds: Dictionary of [Text, Integer];
 #pragma warning disable AA0074
         Text000: Label 'Enter the ending date for the fiscal year.';
         Text001: Label 'Enter a Document No.';
@@ -849,22 +852,62 @@ report 94 "Close Income Statement"
 
     local procedure AddSourceCurrencyFields(): Boolean
     begin
+        // The source currency of the group is always carried over, also when the group nets to a zero source
+        // currency amount. Otherwise a consolidated closing line would lose the currency it was closed for.
+        GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
+
         if TempEntryNoAmountBuffer."Source Currency Amount" = 0 then
             exit(false);
 
-        GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
         GenJnlLine."Source Currency Amount" := -(TempEntryNoAmountBuffer."Source Currency Amount");
         GenJnlLine."Source Curr. VAT Amount" := -(TempEntryNoAmountBuffer."Source Currency VAT Amount");
         exit(true);
     end;
 
-    local procedure GetEntryNo(DimensionBufferID: Integer): Integer
+    local procedure GetEntryNo(DimensionBufferID: Integer; BusinessUnitCode: Code[20]; SourceCurrencyCode: Code[10]): Integer
+    var
+        GroupKey: Text;
+        AssignedEntryNo: Integer;
     begin
-        if DimensionBufferID <> 0 then
+        // Closing entries are grouped per business unit, per selected dimension combination and per source
+        // currency. The dimension buffer ID alone cannot carry the source currency, so when one dimension
+        // combination is used by more than one source currency the extra groups get a synthetic negative
+        // ID. GetDimensionBufferID() translates such an ID back to the real dimension buffer ID.
+        GroupKey := MakeGroupKey(BusinessUnitCode, Format(DimensionBufferID), SourceCurrencyCode);
+        if GroupEntryNos.Get(GroupKey, AssignedEntryNo) then
+            exit(AssignedEntryNo);
+
+        AssignedEntryNo := DimensionBufferID;
+        if EntryNoDimensionIds.ContainsKey(MakeGroupKey(BusinessUnitCode, Format(AssignedEntryNo), '')) then begin
+            EntryNo := EntryNo - 1;
+            AssignedEntryNo := EntryNo;
+        end;
+
+        GroupEntryNos.Add(GroupKey, AssignedEntryNo);
+        EntryNoDimensionIds.Add(MakeGroupKey(BusinessUnitCode, Format(AssignedEntryNo), ''), DimensionBufferID);
+        exit(AssignedEntryNo);
+    end;
+
+    local procedure GetDimensionBufferID(BusinessUnitCode: Code[20]; BufferEntryNo: Integer): Integer
+    var
+        DimensionBufferID: Integer;
+    begin
+        if EntryNoDimensionIds.Get(MakeGroupKey(BusinessUnitCode, Format(BufferEntryNo), ''), DimensionBufferID) then
             exit(DimensionBufferID);
 
-        EntryNo := EntryNo - 1;
-        exit(EntryNo);
+        exit(BufferEntryNo);
+    end;
+
+    local procedure MakeGroupKey(BusinessUnitCode: Code[20]; DimensionPart: Text; SourceCurrencyCode: Code[10]): Text
+    begin
+        exit(BusinessUnitCode + '|' + DimensionPart + '|' + SourceCurrencyCode);
+    end;
+
+    local procedure ResetEntryNoGrouping()
+    begin
+        Clear(GroupEntryNos);
+        Clear(EntryNoDimensionIds);
+        EntryNo := 0;
     end;
 
     /// <summary>
