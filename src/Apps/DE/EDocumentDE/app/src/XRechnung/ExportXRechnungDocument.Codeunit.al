@@ -1365,7 +1365,7 @@ codeunit 13916 "Export XRechnung Document"
         AllowanceChargeElement := XmlElement.Create('AllowanceCharge', XmlNamespaceCAC);
         AllowanceChargeElement.Add(XmlElement.Create('ChargeIndicator', XmlNamespaceCBC, 'false'));
         AllowanceChargeElement.Add(XmlElement.Create('AllowanceChargeReason', XmlNamespaceCBC, AllowanceChargeReason));
-        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatDecimal(MultiplierFactorNumeric)));
+        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatFiveDecimal(MultiplierFactorNumeric)));
         AllowanceChargeElement.Add(XmlElement.Create('Amount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(Amount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         AllowanceChargeElement.Add(XmlElement.Create('BaseAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(BaseAmount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         if InsertTaxCat then
@@ -1380,7 +1380,7 @@ codeunit 13916 "Export XRechnung Document"
         AllowanceChargeElement := XmlElement.Create('AllowanceCharge', XmlNamespaceCAC);
         AllowanceChargeElement.Add(XmlElement.Create('ChargeIndicator', XmlNamespaceCBC, 'false'));
         AllowanceChargeElement.Add(XmlElement.Create('AllowanceChargeReason', XmlNamespaceCBC, AllowanceChargeReason));
-        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatDecimal(MultiplierFactorNumeric)));
+        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatFiveDecimal(MultiplierFactorNumeric)));
         AllowanceChargeElement.Add(XmlElement.Create('Amount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(Amount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         AllowanceChargeElement.Add(XmlElement.Create('BaseAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(BaseAmount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         RootXMLNode.Add(AllowanceChargeElement);
