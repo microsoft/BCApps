@@ -562,7 +562,7 @@ codeunit 144108 "ERM Service Invoice ES"
         Item: Record Item;
         ServiceLine: Record "Service Line";
     begin
-        // [SCENARIO 644547] A Service Credit Memo for an Apply to Oldest customer is still blocked from posting when a Bill is in an open Bill Group.
+        // [SCENARIO 644547] A Service Credit Memo for an Apply to Oldest customer is still blocked from posting when the oldest Bill is in an open Bill Group.
         Initialize();
         CompanyInformation.Get();
 
@@ -581,8 +581,8 @@ codeunit 144108 "ERM Service Invoice ES"
         // [WHEN] The Service Credit Memo is posted.
         asserterror PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
 
-        // [THEN] Posting is blocked because a Bill is in an open Bill Group and the customer uses Apply to Oldest Application Method.
-        Assert.ExpectedError('Apply to Oldest Application Method');
+        // [THEN] Posting is blocked because the customer uses Apply to Oldest and the oldest Bill is included in an open Bill Group.
+        Assert.ExpectedError('cannot be applied, since it is included in a bill group');
     end;
 
     local procedure Initialize()
