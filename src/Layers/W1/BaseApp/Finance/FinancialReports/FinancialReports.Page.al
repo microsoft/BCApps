@@ -404,7 +404,6 @@ page 108 "Financial Reports"
             group(RunReport)
             {
                 Caption = 'Run Report';
-                ShowAs = SplitButton;
                 actionref(ViewFinancialReport_Promoted; ViewFinancialReport) { }
                 actionref(Print_Promoted; Print) { }
                 actionref(Packages_Promoted; Packages) { }
