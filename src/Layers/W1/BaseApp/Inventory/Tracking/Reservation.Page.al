@@ -696,9 +696,12 @@ page 498 Reservation
             TransferDirection := ReservEntry.GetTransferDirection();
             if TransferDirection = TransferDirection::Inbound then
                 Error(InboundQtyErr);
-            // Outbound: allow reservation
-        end else
+
+            // Outbound transfer lines should behave like other sources when nothing remains to reserve
             Error(Text000);
+        end;
+
+        Error(Text000);
     end;
 
     procedure AutoReserve()

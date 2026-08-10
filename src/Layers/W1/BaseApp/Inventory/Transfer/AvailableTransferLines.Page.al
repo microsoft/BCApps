@@ -315,7 +315,6 @@ page 99000896 "Available - Transfer Lines"
                 begin
                     Rec.SetFilter("Receipt Date", ReservMgt.GetAvailabilityFilter(ReservEntry."Shipment Date"));
                     Rec.SetRange("Transfer-to Code", ReservEntry."Location Code");
-                    Rec.SetFilter("Qty. in Transit (Base)", '>0');
                 end;
         end;
 
@@ -328,13 +327,10 @@ page 99000896 "Available - Transfer Lines"
 
     local procedure ValidateReservationApplicable()
     begin
-        if Rec."Qty. in Transit (Base)" = 0 then
-            exit;
+        if (TransferDirection = TransferDirection::Inbound) and (Rec."Qty. in Transit (Base)" <> 0) then
+            Error(InboundQtyErr);
 
-        if TransferDirection = TransferDirection::Inbound then
-            Error(InboundQtyErr)
-        else
-            Error(Text001);
+        Error(Text001);
     end;
 
     [IntegrationEvent(false, false)]
