@@ -160,7 +160,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ProfileIdNode.ReplaceWith(NewProfileIdNode);
     end;
 
-    local procedure GetFrenchBillingMode(var SourceDocumentLines: RecordRef): Text
+    internal procedure GetFrenchBillingMode(var SourceDocumentLines: RecordRef): Text
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";

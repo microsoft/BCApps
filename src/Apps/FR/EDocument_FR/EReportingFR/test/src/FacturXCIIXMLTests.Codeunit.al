@@ -81,6 +81,25 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
+    procedure FacturXSalesInvoiceXMLHasFrenchBillingMode()
+    var
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X CII XML declares the French service billing mode
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with a G/L account line
+        // [WHEN] Create CII XML via FR CII XML Builder
+        CreateSalesInvoiceCIIXML(TempBlob);
+
+        // [THEN] BusinessProcessSpecifiedDocumentContextParameter/ID = 'S1'
+        Assert.AreEqual('S1',
+            GetCIINodeValue(TempBlob, '//ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID'));
+    end;
+
+    [Test]
     procedure FacturXSalesInvoiceXMLHasDocumentNumber()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";

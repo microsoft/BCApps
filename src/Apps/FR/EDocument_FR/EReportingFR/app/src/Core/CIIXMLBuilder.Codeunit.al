@@ -48,7 +48,7 @@ codeunit 10978 "CII XML Builder"
         RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('ram', RamNamespaceTok));
         RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('udt', UdtNamespaceTok));
 
-        AddExchangedDocumentContext(RootElement);
+        AddExchangedDocumentContext(RootElement, SourceDocumentLines);
         AddExchangedDocument(RootElement, EDocument, TypeCode);
         AddSupplyChainTradeTransaction(RootElement, EDocument, SourceDocumentHeader, SourceDocumentLines, CompanyInformation);
 
@@ -58,13 +58,20 @@ codeunit 10978 "CII XML Builder"
         XmlDoc.WriteTo(OutStr);
     end;
 
-    local procedure AddExchangedDocumentContext(var RootElement: XmlElement)
+    local procedure AddExchangedDocumentContext(var RootElement: XmlElement; var SourceDocumentLines: RecordRef)
     var
+        PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         ContextElement: XmlElement;
+        BusinessProcessElement: XmlElement;
         GuidelineElement: XmlElement;
         IdElement: XmlElement;
     begin
         ContextElement := XmlElement.Create('ExchangedDocumentContext', RsmNamespaceTok);
+
+        BusinessProcessElement := XmlElement.Create('BusinessProcessSpecifiedDocumentContextParameter', RamNamespaceTok);
+        IdElement := XmlElement.Create('ID', RamNamespaceTok, PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines));
+        BusinessProcessElement.Add(IdElement);
+        ContextElement.Add(BusinessProcessElement);
 
         GuidelineElement := XmlElement.Create('GuidelineSpecifiedDocumentContextParameter', RamNamespaceTok);
         IdElement := XmlElement.Create('ID', RamNamespaceTok, FacturXProfileIdTok);
