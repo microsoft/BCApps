@@ -2484,12 +2484,7 @@ codeunit 137055 "SCM Warehouse Pick"
         FirstShipmentQty: Decimal;
         RemainingQty: Decimal;
     begin
-        // [SCENARIO 642378] Create Pick for the remaining quantity succeeds when a previous registered pick placed the
-        // picked-but-not-shipped quantity into a Ship-type bin other than the location's default Shipment Bin.
-        // [SCENARIO 642378] Previously the picked quantity was only looked for in the location's default Shipment Bin, so
-        // when the shipment was directed to a different ship bin the picked quantity was treated as zero. That wrongly
-        // removed the reservation cover on the picks/shipments, making the remaining inventory look unavailable and
-        // raising "Nothing to handle. The quantity to be picked is in bin ..., which is not set up for picking.".
+        // [SCENARIO 642378] Create Pick for the remaining quantity succeeds when a previous registered pick placed the picked-but-not-shipped quantity into a Ship-type bin other than the location's default Shipment Bin.
         Initialize();
 
         // [GIVEN] Directed put-away and pick location with two Ship-type bins in the SHIP zone.
