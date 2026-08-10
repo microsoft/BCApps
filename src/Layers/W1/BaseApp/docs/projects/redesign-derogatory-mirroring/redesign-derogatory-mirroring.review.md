@@ -489,12 +489,14 @@ All actionable EPIC-003 findings were fixed test-first and re-verified with the 
 | Minor 3 - Persistent test transactions | Rollback isolation is impossible for the posting tests: the framework rejects Commit under `AutoRollback`. They keep `AutoCommit` and now capture and restore the French feature state deterministically | Pre-fix run failed all posting tests with "Tests cannot call the Commit function if TransactionModel property is set to AutoRollback." |
 | Priority 3 - Formatting-only diffs | The final-blank-line deletions in the six French AL files were reverted | `git show` of the dedicated commit |
 
-Additional defects found and fixed while re-validating: `AA0005` in `FAInsertGLAccount.Codeunit.al` and `AA0215` for the relocated test file blocked every French build; and the cumulative `CLEAN25`-`CLEAN29` compile reported three `AL0792` and four `AA0137` errors for declarations that only the excluded legacy implementation uses.
+Additional defects found and fixed while re-validating: `AA0005` in `FAInsertGLAccount.Codeunit.al` and `AA0215` for the relocated test file blocked every French build; the cumulative `CLEAN25`-`CLEAN29` compile reported three `AL0792` and four `AA0137` errors for declarations that only the excluded legacy implementation uses; and an independent review of the remediation commits found that the French salvage reversal path inserted a blank `Source Code` whenever the FA register was already open, now fixed and covered by `SalvageCounterpartReversalKeepsReversalSourceCode`.
+
+Reviewed and deliberately not changed: the marker-gated legacy reversal fallback searches every depreciation book other than the source book so that it still resolves after the relationship is removed (AC-014/AC-019). That makes the following `TestField("Depreciation Book Code", ...)` vacuous, but the French code is at parity with the EPIC-002 W1 implementation and is out of EPIC-003 scope.
 
 Validation summary:
 
 - `al_compile` over the four projects: zero diagnostics without CLEAN symbols and with `CLEAN25`-`CLEAN29`.
 - `al_build`: W1 BaseApp, W1 Tests-Fixed Asset, FR BaseApp, FR Tests-Fixed Asset succeed; FR Tests-Fixed Asset also succeeds under CLEAN25-CLEAN29.
-- Runtime: codeunit 134194 16/16 on the French service; codeunits 134149 (42/42) and 134166 (24/24) on the W1 service.
+- Runtime: codeunit 134194 17/17 on the French service; codeunits 134149 (42/42) and 134166 (24/24) on the W1 service.
 - Open limitation: `al_build` of the FR base application under CLEAN25-CLEAN29 fails during package generation and exposes no diagnostic through the AL MCP tools; no direct `altool`/dispatch build was substituted. The packaged Clean build stays an ITEM-023 AL-Go gate.
 - Open gap outside EPIC-003: W1 codeunit 134149 still fails inside the composed French test app while the French feature is disabled, because the W1 suite configures the central `Integration G/L - Derogatory` field. Tracked under EPIC-008 (ITEM-019/ITEM-021); the equivalent French invariant is covered by codeunit 134194.
