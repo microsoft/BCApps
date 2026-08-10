@@ -7,8 +7,8 @@ page 6299 "CO2e Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'CO2e Analysis';
-    AboutTitle = 'About CO2e Analysis';
+    Caption = 'CO2e Analysis (Power BI)';
+    AboutTitle = 'About CO2e Analysis (Power BI)';
     AboutText = 'The CO2e Analysis report provides detailed insight into you CO2e Emissions and how you are purchasing Carbon Credit.';
 
     layout
