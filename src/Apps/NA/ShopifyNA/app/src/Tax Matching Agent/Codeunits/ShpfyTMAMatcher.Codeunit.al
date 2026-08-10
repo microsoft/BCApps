@@ -29,7 +29,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         RateConflictReasonTok: Label 'Shopify charged %1%, but Business Central has a Tax Detail rate of %2% for tax group %3. Business Central will post at its own rate unless you correct the Tax Detail.', Comment = '%1 = Shopify rate, %2 = existing BC rate, %3 = tax group code';
         SecurityPromptSecretNameTok: Label 'ShopifyTaxMatchingAgentSecurityPrompt', Locked = true;
         KeyVaultPromptErr: Label 'There was an error preparing the Shopify tax matching request. Log a Business Central support request about this.';
-        AuditJurisdictionCreatedLbl: Label 'Shopify Tax Matching Agent (AI) auto-created Tax Jurisdiction %1 from Shopify order %2; the tax setup is held for human review before a sales document is created.', Comment = '%1 = Tax Jurisdiction code, %2 = Shopify order id';
+        AuditJurisdictionCreatedLbl: Label 'Shopify Tax Matching Agent (AI) auto-created Tax Jurisdiction %1 from Shopify order %2, based on buyer-controlled Shopify tax data.', Comment = '%1 = Tax Jurisdiction code, %2 = Shopify order id';
 
     procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
     var
