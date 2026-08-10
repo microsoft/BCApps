@@ -221,17 +221,9 @@
       "justification": "The FindSet() or Find() method on the record must be used only in connection with the Next() method."
     },
     {
-      "id": "AA0189",
-      "action": "Warning"
-    },
-    {
       "id": "AA0198",
       "action": "Warning",
       "justification": "The name of the local variable is identical to a global variable."
-    },
-    {
-      "id": "AA0199",
-      "action": "Warning"
     },
     {
       "id": "AA0202",
@@ -501,10 +493,6 @@
     {
       "id": "AA0241",
       "action": "None"
-    },
-    {
-      "id": "AL0590",
-      "action": "Warning"
     },
     {
       "id": "AS0054",
