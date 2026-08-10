@@ -714,8 +714,8 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CountryRegion.Validate("ISO Code", 'DE');
         CountryRegion.Modify(true);
         Customer.Get(CreateCustomer('', "Electronic Address Scheme"::"EM"));
-        Customer.Validate("Country/Region Code", CountryRegion.Code);
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('DE');
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
         Customer.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(Customer."No."));
 
@@ -1071,8 +1071,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
-        if Customer."Country/Region Code" = '' then
-            Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
         if Customer.Address = '' then
             Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
         if Customer."Post Code" = '' then
