@@ -75,6 +75,7 @@ codeunit 99000793 "Calculate Low-Level Code"
                     // items that reference this Production BOM through a Stockkeeping Unit
                     SKU.SetCurrentKey("Production BOM No.");
                     SKU.SetRange("Production BOM No.", No);
+                    SKU.SetLoadFields("Item No.");
                     if SKU.FindSet() then
                         repeat
                             ActLevel := CalcLevels(Type::Item, SKU."Item No.", Level + 1, LevelDepth + 1);
@@ -174,6 +175,7 @@ codeunit 99000793 "Calculate Low-Level Code"
             Error(ProdBomErr, 50, Item."No.", ItemNo, LowLevelCode);
         SKU.SetRange("Item No.", ItemNo);
         SKU.SetFilter("Production BOM No.", '<>%1', '');
+        SKU.SetLoadFields("Production BOM No.");
         if SKU.FindSet() then
             repeat
                 EntityPresent := CompBOM.Get(SKU."Production BOM No.");
