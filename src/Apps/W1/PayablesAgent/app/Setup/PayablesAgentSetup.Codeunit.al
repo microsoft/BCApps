@@ -228,10 +228,6 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentPromptText: Text;
         AgentDriven: Boolean;
         NewConfigHash: Text;
-        PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
-        PayablesAgentAgentDrivenPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
-        SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
-        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
@@ -264,8 +260,6 @@ codeunit 3307 "Payables Agent Setup"
     internal procedure IsAgentDrivenLineMatchingEnabled(): Boolean
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
-        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
-        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
     begin
         exit(FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok);
     end;
@@ -311,8 +305,6 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     local procedure GetInstructionsExperimentKeys() Keys: List of [Text]
-    var
-        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
     begin
         // Tenant-level experiment keys whose ECS configuration changes the agent's instructions.
         // Add future prompt-affecting experiment keys here.
@@ -799,4 +791,10 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         TrialModeInitializedTok: Label 'Trial mode initialized for Payables Agent', Locked = true;
+        PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
+        PayablesAgentAgentDrivenPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
+        SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
+        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
+        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
+        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 }

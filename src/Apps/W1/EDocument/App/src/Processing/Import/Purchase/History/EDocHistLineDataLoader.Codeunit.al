@@ -136,6 +136,7 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
     var
         AllocationAccount: Record "Allocation Account";
     begin
+        PurchInvLine.SetLoadFields("Document No.", "Line No.", "Allocation Account No.", Description, "No.", Type, "Buy-from Vendor No.", Quantity, "Unit of Measure Code", "Deferral Code", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", "Posting Date");
         if PurchInvLine.FindSet() then
             repeat
                 if not TempPurchInvLine.Get(PurchInvLine."Document No.", PurchInvLine."Line No.") then begin

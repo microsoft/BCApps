@@ -96,7 +96,7 @@ page 6186 "E-Doc. Historical Lines List"
         }
     }
 
-    procedure SetRecords(var TempPurchInvLine: Record "Purch. Inv. Line" temporary)
+    internal procedure SetRecords(var TempPurchInvLine: Record "Purch. Inv. Line" temporary)
     begin
         if TempPurchInvLine.FindSet() then
             repeat
