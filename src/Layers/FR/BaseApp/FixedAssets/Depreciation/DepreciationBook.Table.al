@@ -656,7 +656,7 @@ table 5611 "Depreciation Book"
     begin
 #if not CLEAN29
         if AcceleratedDeprFeature.IsEnabled() then begin
-            if "Derogatory Calculation" <> '' then begin
+            if "Derogatory Calc." <> '' then begin
                 IndexGLIntegration(GLIntegration);
                 for i := 1 to 13 do
                     if GLIntegration[i] then
@@ -664,7 +664,7 @@ table 5611 "Depreciation Book"
             end
         end
         else
-            if "Derogatory Calc." <> '' then begin
+            if "Derogatory Calculation" <> '' then begin
                 IndexGLIntegration(GLIntegration);
                 for i := 1 to 13 do
                     if GLIntegration[i] then

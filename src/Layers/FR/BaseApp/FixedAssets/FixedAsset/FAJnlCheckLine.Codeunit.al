@@ -69,6 +69,9 @@ codeunit 5631 "FA Jnl.-Check Line"
         GenJnlline2: Record "Gen. Journal Line";
         FAJnlLine: Record "FA Journal Line";
         DimMgt: Codeunit DimensionManagement;
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         AllowPostingFrom: Date;
         AllowPostingTo: Date;
         GenJnlPosting: Boolean;
@@ -349,7 +352,10 @@ codeunit 5631 "FA Jnl.-Check Line"
                 GLIntegration := DeprBook."G/L Integration - Maintenance";
 #if not CLEAN29
             FAPostingType::Derogatory:
-                GLIntegration := DeprBook."G/L Integration - Derogatory";
+                if AcceleratedDeprFeature.IsEnabled() then
+                    GLIntegration := DeprBook."Integration G/L - Derogatory"
+                else
+                    GLIntegration := DeprBook."G/L Integration - Derogatory";
 #else
             FAPostingType::Derogatory:
                 GLIntegration := DeprBook."Integration G/L - Derogatory";
