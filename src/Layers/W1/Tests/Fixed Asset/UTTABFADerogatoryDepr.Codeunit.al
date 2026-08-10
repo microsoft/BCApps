@@ -128,15 +128,15 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         NewFAJournalLine: Record "FA Journal Line";
         FAJnlPostBatch: Codeunit "FA Jnl.-Post Batch";
     begin
-        SourceFAJournalLine."Journal Template Name" := LibraryUTUtility.GetNewCode();
-        SourceFAJournalLine."Journal Batch Name" := LibraryUTUtility.GetNewCode();
+        SourceFAJournalLine."Journal Template Name" := LibraryUTUtility.GetNewCode10();
+        SourceFAJournalLine."Journal Batch Name" := LibraryUTUtility.GetNewCode10();
         SourceFAJournalLine."Line No." := LibraryRandom.RandInt(10000);
         SourceFAJournalLine."FA No." := LibraryUTUtility.GetNewCode();
-        SourceFAJournalLine."Depreciation Book Code" := LibraryUTUtility.GetNewCode();
+        SourceFAJournalLine."Depreciation Book Code" := LibraryUTUtility.GetNewCode10();
         SourceFAJournalLine."Document No." := LibraryUTUtility.GetNewCode();
         SourceFAJournalLine.Description := LibraryUTUtility.GetNewCode();
         SourceFAJournalLine.Amount := LibraryRandom.RandDec(1000, 2);
-        NewFAJournalLine."Journal Template Name" := LibraryUTUtility.GetNewCode();
+        NewFAJournalLine."Journal Template Name" := LibraryUTUtility.GetNewCode10();
 
         Assert.IsFalse(
             FAJnlPostBatch.MakeDerogatoryFAJnlLine(NewFAJournalLine, SourceFAJournalLine),
