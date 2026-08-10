@@ -105,10 +105,16 @@ page 738 "VAT Return Period Card"
                 actionref("Receive Submitted VAT Returns_Promoted"; "Receive Submitted VAT Returns")
                 {
                     Visible = false;
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 actionref("Create VAT Return_Promoted"; "Create VAT Return")
                 {
                     Visible = false;
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
 #endif
             }

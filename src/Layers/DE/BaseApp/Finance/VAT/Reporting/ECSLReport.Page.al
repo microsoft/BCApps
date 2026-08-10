@@ -302,12 +302,21 @@ page 321 "ECSL Report"
                 {
                     Caption = 'Release';
                     ShowAs = SplitButton;
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     actionref(Release_Promoted; Release)
                     {
+                        ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
                     actionref(Reopen_Promoted; Reopen)
                     {
+                        ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
                 }
 #endif
@@ -317,6 +326,9 @@ page 321 "ECSL Report"
 #if not CLEAN29
                 actionref("Log Entries_Promoted"; "Log Entries")
                 {
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
 #endif
                 actionref("Mark as Submitted_Promoted"; "Mark as Submitted")

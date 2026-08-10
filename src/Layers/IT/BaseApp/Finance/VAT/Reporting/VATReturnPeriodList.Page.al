@@ -120,10 +120,16 @@ page 737 "VAT Return Period List"
                 actionref("Get VAT Return Periods_Promoted"; "Get VAT Return Periods")
                 {
                     Visible = false;
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 actionref("Create VAT Return_Promoted"; "Create VAT Return")
                 {
                     Visible = false;
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
 #endif
             }
