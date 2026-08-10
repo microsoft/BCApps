@@ -1726,6 +1726,68 @@ codeunit 137212 "SCM Copy Document Mgt."
         ReturnSalesLine.TestField(Quantity, TotalQty);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure CopySalesQuoteWithATOAsTeamMember()
+    var
+        Item: Record Item;
+        AssemblyItem: Record Item;
+        FromSalesHeader: Record "Sales Header";
+        FromSalesLine: Record "Sales Line";
+        ToSalesHeader: Record "Sales Header";
+        ToSalesLine: Record "Sales Line";
+        AssemblyHeader: Record "Assembly Header";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Assemble-to-Order] [Copy Document] [Permissions]
+        // [SCENARIO] AB#630947: A user restricted to the D365 Team Member permission set can copy a sales quote whose
+        // line has an assemble-to-order link, and the copy reproduces the ATO link on the target line.
+        Initialize();
+
+        // [GIVEN] Assemble-to-order item with an assembly component
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::Assembly);
+        Item.Validate("Assembly Policy", Item."Assembly Policy"::"Assemble-to-Order");
+        Item.Modify(true);
+        LibraryAssembly.CreateAssemblyList(
+            AssemblyItem."Costing Method"::Standard, Item."No.", true, 1, 0, 0, LibraryRandom.RandInt(5), '', '');
+
+        // [GIVEN] Source sales quote with the ATO item; validating the item auto-creates the ATO link
+        Qty := LibraryRandom.RandIntInRange(2, 10);
+        LibrarySales.CreateSalesDocumentWithItem(
+            FromSalesHeader, FromSalesLine, FromSalesHeader."Document Type"::Quote, LibrarySales.CreateCustomerNo(),
+            Item."No.", Qty, '', WorkDate());
+
+        // [GIVEN] Empty target sales quote created while the user still has full permissions
+        CreateEmptySalesHeader(ToSalesHeader, ToSalesHeader."Document Type"::Quote);
+        Commit();
+
+        // [GIVEN] User is now restricted to the D365 Team Member permission set (regression harness for AB#630947)
+        LibraryLowerPermissions.SetTeamMember();
+
+        // [WHEN] Copy Document is executed for the source quote into the target quote
+        CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
+        CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::Quote, FromSalesHeader."No.", ToSalesHeader);
+
+        // [THEN] The copied line exists on the target quote with the same quantity and Qty. to Assemble to Order...
+        LibraryLowerPermissions.SetO365Full();
+        ToSalesLine.SetRange("Document Type", ToSalesHeader."Document Type");
+        ToSalesLine.SetRange("Document No.", ToSalesHeader."No.");
+        ToSalesLine.SetRange(Type, ToSalesLine.Type::Item);
+        ToSalesLine.SetRange("No.", Item."No.");
+        Assert.RecordCount(ToSalesLine, 1);
+        ToSalesLine.FindFirst();
+        ToSalesLine.TestField(Quantity, Qty);
+        ToSalesLine.TestField("Qty. to Assemble to Order", Qty);
+
+        // [THEN] ...and an Assembly Header is linked to the copied sales line
+        Assert.IsTrue(
+            ToSalesLine.AsmToOrderExists(AssemblyHeader),
+            'Assemble-to-Order link should exist for the copied sales line.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
