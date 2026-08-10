@@ -2146,7 +2146,6 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
     begin
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
-        SalesCrMemoLine.SetFilter(Type, '%1', SalesCrMemoLine.Type::Item);
         SalesCrMemoLine.FindFirst();
         SetItemGTIN(SalesCrMemoLine."No.", GTIN);
     end;

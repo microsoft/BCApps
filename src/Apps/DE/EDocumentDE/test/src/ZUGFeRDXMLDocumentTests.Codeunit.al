@@ -779,7 +779,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithItemReference("Sales Document Type"::"Credit Memo", ItemReferenceNo));
         SetItemGTIN(SalesCrMemoHeader, GTIN);
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
-        SalesCrMemoLine.SetFilter(Type, '%1', SalesCrMemoLine.Type::Item);
         SalesCrMemoLine.FindFirst();
 
         // [WHEN] Export ZUGFeRD Electronic Document
@@ -2207,7 +2206,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
     begin
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
-        SalesCrMemoLine.SetFilter(Type, '%1', SalesCrMemoLine.Type::Item);
         SalesCrMemoLine.FindFirst();
         SetItemGTIN(SalesCrMemoLine."No.", GTIN);
     end;
