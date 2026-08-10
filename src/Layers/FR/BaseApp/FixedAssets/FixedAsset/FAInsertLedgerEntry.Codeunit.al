@@ -673,10 +673,10 @@ codeunit 5600 "FA Insert Ledger Entry"
     var
         SourceCodeSetup: Record "Source Code Setup";
     begin
+        SourceCodeSetup.Get();
         if NextEntryNo = 0 then begin
             FALedgEntry.LockTable();
             NextEntryNo := FALedgEntry.GetLastEntryNo();
-            SourceCodeSetup.Get();
             InitRegister("FA Register Called From"::"Fixed Asset", 1, SourceCodeSetup.Reversal, '');
             RegisterInserted := true;
         end;

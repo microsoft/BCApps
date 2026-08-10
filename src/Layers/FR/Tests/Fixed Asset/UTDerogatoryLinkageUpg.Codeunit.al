@@ -351,6 +351,53 @@ codeunit 134194 "UT Derogatory Linkage Upg."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure SalvageCounterpartReversalKeepsReversalSourceCode()
+    var
+        SourceCodeSetup: Record "Source Code Setup";
+        DepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FAPostingGroup: Record "FA Posting Group";
+        FAJournalLine: Record "FA Journal Line";
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        ReversalFALedgerEntry: Record "FA Ledger Entry";
+        FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
+        NewFAEntryNo: Integer;
+        PreviousFeatureStatus: Integer;
+    begin
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+        EnableCentralRoutingIfRequired();
+        CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
+        CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FAPostingGroup.Code);
+        CreateFADepreciationBook(FixedAsset."No.", TaxDepreciationBook.Code, FAPostingGroup.Code);
+        CreateFAJournalLine(
+            FAJournalLine, FixedAsset."No.", DepreciationBook.Code,
+            FAJournalLine."FA Posting Type"::"Acquisition Cost", 1000);
+        FAJournalLine.Validate("Salvage Value", -100);
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        SourceFALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        SourceFALedgerEntry.SetRange("Depreciation Book Code", DepreciationBook.Code);
+        SourceFALedgerEntry.SetRange(
+            "FA Posting Type", SourceFALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        SourceFALedgerEntry.FindFirst();
+
+        FAInsertLedgerEntry.InsertReverseEntry(0, 1, SourceFALedgerEntry."Entry No.", NewFAEntryNo, 0);
+
+        // Every reversal entry, including the tax-book salvage counterpart, must carry the reversal source code.
+        SourceCodeSetup.Get();
+        ReversalFALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        ReversalFALedgerEntry.SetFilter("Reversed Entry No.", '<>%1', 0);
+        Assert.AreEqual(4, ReversalFALedgerEntry.Count(), 'Both books must reverse the acquisition and its salvage companion.');
+        ReversalFALedgerEntry.FindSet();
+        repeat
+            ReversalFALedgerEntry.TestField("Source Code", SourceCodeSetup.Reversal);
+        until ReversalFALedgerEntry.Next() = 0;
+        RestoreFeatureStateIfRequired(PreviousFeatureStatus);
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure UniqueFAEntriesAreLinked()
     var
