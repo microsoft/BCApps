@@ -257,6 +257,7 @@ codeunit 8361 "Financial Report Export Job"
         FinReportPackageReport: Record "Fin. Report Package Report";
         FinRepPackageExportLog: Record "Fin. Rep. Package Export Log";
         AccountSchedule: Report "Account Schedule";
+        FinReportExportNameHandler: Codeunit FinReportExportNameHandler;
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
         TempBlob: Codeunit "Temp Blob";
@@ -309,8 +310,10 @@ codeunit 8361 "Financial Report Export Job"
         AccountSchedule.SetRunForExport();
         TempBlob.CreateOutStream(OutStr);
         OnBeforeSaveAccountSchedule(FinRepPackageSchedule, FinReportPackageReport, AccScheduleParam, AccountSchedule, OutStr, IsHandled);
-        if not IsHandled then
+        if not IsHandled then begin
+            FinReportExportNameHandler.Init(FinRepPackage.Code);
             AccountSchedule.SaveAs(AccScheduleParam, ReportFormat::PDF, OutStr);
+        end;
         TempBlob.CreateInStream(InStr);
 
         ReportDescription := StrSubstNo('%1 (%2)',
