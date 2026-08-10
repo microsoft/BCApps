@@ -20,6 +20,7 @@ codeunit 9762 "SFTP Client"
         SFTPClientImplementation.AddFingerPrintSHA256(Fingerprint);
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Adds an MD5 fingerprint to the list of accepted host key fingerprints.
     /// </summary>
@@ -33,6 +34,7 @@ codeunit 9762 "SFTP Client"
         ErrorInfo.ErrorType := ErrorType::Internal;
         Error(ErrorInfo);
     end;
+#endif
 
     /// <summary>
     /// Initializes the SFTP client with the specified parameters. The client is connected to the server.
@@ -212,5 +214,7 @@ codeunit 9762 "SFTP Client"
 
     var
         SFTPClientImplementation: Codeunit "SFTP Client Implementation";
+#if not CLEAN29
         MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported because MD5 is cryptographically broken. Use AddFingerprintSHA256 with a SHA256 fingerprint instead.';
+#endif
 }
