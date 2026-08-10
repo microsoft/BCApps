@@ -20,6 +20,8 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     var
         ConnectorDescriptionTxt: Label 'Use SFTP Server to store and retrieve files.', MaxLength = 250;
         NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
+        InvalidFingerprintErr: Label 'Fingerprint must start with "sha256:".';
+        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported because MD5 is cryptographically broken. Reconfigure this account with a "sha256:" fingerprint.';
         PathSeparatorTok: Label '/', Locked = true;
 
     /// <summary>
@@ -467,8 +469,6 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     var
         SHA256PrefixTok: Label 'sha256:', Locked = true;
         MD5PrefixTok: Label 'md5:', Locked = true;
-        InvalidFingerprintErr: Label 'Fingerprint must start with "sha256:".';
-        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported because MD5 is cryptographically broken. Reconfigure this account with a "sha256:" fingerprint.';
     begin
         Fingerprint := Fingerprint.Trim();
         if Fingerprint = '' then

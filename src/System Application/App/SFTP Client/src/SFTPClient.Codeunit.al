@@ -27,9 +27,11 @@ codeunit 9762 "SFTP Client"
     [Obsolete('MD5 host key fingerprints are cryptographically insecure and are no longer supported. Use AddFingerprintSHA256 instead.', '99.9')]
     procedure AddFingerprintMD5(Fingerprint: Text)
     var
-        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported because MD5 is cryptographically broken. Use AddFingerprintSHA256 with a SHA256 fingerprint instead.';
+        ErrorInfo: ErrorInfo;
     begin
-        Error(MD5NotSupportedErr);
+        ErrorInfo.Message(MD5NotSupportedErr);
+        ErrorInfo.ErrorType := ErrorType::Internal;
+        Error(ErrorInfo);
     end;
 
     /// <summary>
@@ -210,4 +212,5 @@ codeunit 9762 "SFTP Client"
 
     var
         SFTPClientImplementation: Codeunit "SFTP Client Implementation";
+        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported because MD5 is cryptographically broken. Use AddFingerprintSHA256 with a SHA256 fingerprint instead.';
 }

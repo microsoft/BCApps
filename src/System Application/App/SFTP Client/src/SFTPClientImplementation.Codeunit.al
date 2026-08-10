@@ -63,7 +63,6 @@ codeunit 9763 "SFTP Client Implementation"
         SshAuthenticationExceptionLbl: Label 'Authentication of SSH session failed.';
         SftpPathNotFoundExceptionLbl: Label 'The specified path is invalid, or its directory was not found on the remote host.';
         ServerFingerprintNotTrustedLbl: Label 'The server''s host key fingerprint %1 is not trusted.', Comment = '%1 is the SHA256 fingerprint of the server''s host key';
-        GenericExceptionLbl: Label 'An unexpected error occurred during the SFTP operation.';
         ExceptionType: Enum "SFTP Exception Type";
         ExceptionMessage: Text;
         ServerFingerprintSHA256: Text;
@@ -132,7 +131,6 @@ codeunit 9763 "SFTP Client Implementation"
         MemoryStream: DotNet MemoryStream;
         Arr: DotNet Array;
         FileSizeBytes: BigInteger;
-        DownloadTok: Label 'Download', Locked = true;
     begin
         if not ISFTPClient.ReadAllBytes(Path, Arr) then
             exit(ParseException());
@@ -151,7 +149,6 @@ codeunit 9763 "SFTP Client Implementation"
     var
         MemoryStream: DotNet MemoryStream;
         FileSizeBytes: BigInteger;
-        UploadTok: Label 'Upload', Locked = true;
     begin
         MemoryStream := MemoryStream.MemoryStream();
         CopyStream(MemoryStream, SourceInStream);
@@ -178,8 +175,6 @@ codeunit 9763 "SFTP Client Implementation"
     end;
 
     local procedure FileTooLargeResponse(FileSizeBytes: BigInteger) Result: Codeunit "SFTP Operation Response"
-    var
-        FileTooLargeErr: Label 'The file size of %1 bytes exceeds the maximum allowed size of %2 bytes.', Comment = '%1 is the actual file size in bytes, %2 is the maximum allowed size in bytes';
     begin
         Result.SetExceptionType(Enum::"SFTP Exception Type"::"File Too Large Exception");
         Result.SetError(StrSubstNo(FileTooLargeErr, FileSizeBytes, GetMaxFileSizeInBytes()));
@@ -190,8 +185,6 @@ codeunit 9763 "SFTP Client Implementation"
     var
         Dimensions: Dictionary of [Text, Text];
         TelemetryVerbosity: Verbosity;
-        FileSizeTelemetryMsg: Label 'SFTP file transfer size measured.', Locked = true;
-        CategoryTok: Label 'SFTP Client', Locked = true;
     begin
         Dimensions.Add('Category', CategoryTok);
         Dimensions.Add('Operation', Operation);
@@ -262,4 +255,10 @@ codeunit 9763 "SFTP Client Implementation"
         ISFTPClientSet: Boolean;
         MaxFileSizeOverride: Integer;
         MaxFileSizeOverrideSet: Boolean;
+        GenericExceptionLbl: Label 'An unexpected error occurred during the SFTP operation.';
+        FileTooLargeErr: Label 'The file size of %1 bytes exceeds the maximum allowed size of %2 bytes.', Comment = '%1 is the actual file size in bytes, %2 is the maximum allowed size in bytes';
+        FileSizeTelemetryMsg: Label 'SFTP file transfer size measured.', Locked = true;
+        CategoryTok: Label 'SFTP Client', Locked = true;
+        DownloadTok: Label 'Download', Locked = true;
+        UploadTok: Label 'Upload', Locked = true;
 }
