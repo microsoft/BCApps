@@ -2,7 +2,7 @@
 goal: Complete deterministic derogatory depreciation mirroring across W1, localization, reversal, and French upgrade paths
 version: 1.0
 date_created: 2026-08-05
-last_updated: 2026-08-06
+last_updated: 2026-08-10
 owner: Business Central Fixed Assets
 tags: [feature, fixed-assets, derogatory-depreciation, posting, reversal, upgrade, localization]
 ---
@@ -357,11 +357,13 @@ Second-pass validation (2026-08-10, AL MCP only):
 - `al_build` of FR Tests-Fixed Asset with the cumulative `CLEAN25`-`CLEAN29` symbols temporarily declared in the test `app.json` succeeds and produces a different package (165,318 against 165,386 bytes), which shows the symbols were applied; `app.json` was restored and the default package rebuilt and republished afterwards.
 - Runtime: codeunit 134194 on `navagent2_FR` is 18/18 (17 test methods, one of them new; the runner also reports one aggregate entry). The pre-fix run of the same suite was 16 passed / 2 failed, failing only on the new failure-path regression.
 
-- EPIC-004: Neutralize standard localization outer producers
+- EPIC-004: Neutralize standard localization outer producers — DONE
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-012 | Using AL definition/reference results, remove or bypass the legacy outer producer after inherited central posting in ES and in APAC, BE, CH, FI, NA, and NO; remove now-unused `Is Derogatory` calls/declarations only when semantic references are zero. | Not Started | `src/Layers/ES/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/APAC/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/BE/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/CH/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/FI/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/NA/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/NO/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al` |
+| ITEM-012 | Using AL definition/reference results, remove or bypass the legacy outer producer after inherited central posting in ES and in APAC, BE, CH, FI, NA, and NO; remove now-unused `Is Derogatory` calls/declarations only when semantic references are zero. | DONE | `src/Layers/ES/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/APAC/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/BE/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/CH/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/FI/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/NA/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al`, `src/Layers/NO/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al` |
+
+Implementation and validation notes (2026-08-10): AL definition/reference analysis confirmed that ES, APAC, BE, CH, FI, NA, and NO inherit the W1 central `FA Jnl.-Post Line` producer, so their post-inheritance `Is Derogatory` producers were removed and their acquisition adapters aligned with W1. Compatibility declarations were retained because semantic references remain. The ES total-row regression was added first and failed against the old producers with a duplicate tax-book document; after the production changes, the focused AL MCP run passed 3/3. AL MCP compilation, build, and publish of the supported ES BaseApp and Tests-Fixed Asset projects succeeded with zero diagnostics; codeunit 134453 reported 36 passed and three unrelated pre-existing failures. Per the available-environment constraint, APAC, BE, CH, FI, NA, and NO source changes were completed but not compiled, published, or executed locally; their builds remain covered by the later localization release gate. Independent review returned PASS with no actionable findings.
 
 - EPIC-005: Resolve divergent and declaration-only localizations
 
