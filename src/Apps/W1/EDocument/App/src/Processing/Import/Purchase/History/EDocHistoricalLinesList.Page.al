@@ -12,6 +12,7 @@ page 6186 "E-Doc. Historical Lines List"
     Caption = 'Historical Purchase Lines';
     PageType = List;
     SourceTable = "Purch. Inv. Line";
+    SourceTableView = sorting("Posting Date") order(descending);
     SourceTableTemporary = true;
     Editable = false;
     Extensible = false;

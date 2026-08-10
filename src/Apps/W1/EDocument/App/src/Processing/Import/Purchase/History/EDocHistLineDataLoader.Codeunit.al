@@ -128,7 +128,7 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
 
     local procedure SetBaseFilters(var PurchInvLine: Record "Purch. Inv. Line")
     begin
-        PurchInvLine.ReadIsolation(IsolationLevel::ReadUncommitted);
+        PurchInvLine.ReadIsolation(IsolationLevel::ReadCommitted);
         PurchInvLine.SetFilter("Posting Date", '>=%1', CalcDate('<-1Y>', Today));
         PurchInvLine.SetFilter(Type, '<>%1', PurchInvLine.Type::" ");
     end;
