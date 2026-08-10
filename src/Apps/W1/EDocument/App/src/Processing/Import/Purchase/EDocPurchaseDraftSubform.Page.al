@@ -443,6 +443,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
         AgentDrivenLineMatchingEnabled: Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
+        EDocumentPurchaseHeaderNotFoundErr: Label 'The purchase header for this e-document could not be found.';
         AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
         AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 
@@ -486,7 +487,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     local procedure EnsureEDocumentPurchaseHeader()
     begin
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
-            Clear(EDocumentPurchaseHeader);
+            Error(EDocumentPurchaseHeaderNotFoundErr);
     end;
 
     local procedure SetAgentDrivenLineMatchingVisibility()

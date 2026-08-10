@@ -20,7 +20,7 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
     begin
-        if FeatureConfiguration.GetConfiguration(AgentDrivenLinematchingTok) = AgentDrivenTreatmentTok then
+        if FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok then
             exit("E-Document Type"::"Purchase Invoice");
 
         PrepareDraftHelper.PrepareDraft(EDocument, EDocImportParameters);
@@ -43,6 +43,6 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     end;
 
     var
-        AgentDrivenLinematchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
+        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
         AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 }

@@ -279,6 +279,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup.GetSetup();
         if PayablesAgentSetup."Applied Instr. Config Hash" = GetInstructionsConfigHash() then
             exit;
+        Session.LogMessage('0000SEK', 'Payables Agent instructions reapplied due to experiment configuration drift.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureName());
         SetAgentInstructions(AgentUserSecurityId);
     end;
 
