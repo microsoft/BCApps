@@ -289,6 +289,7 @@ codeunit 6442 "SignUp Authentication"
         Response: Text;
     begin
         Clear(AccessToken);
+        this.SignUpConnectionSetup.Get();
 
         HttpRequestMessage := this.PrepareRequest(SecretStrSubstNo(this.AuthTemplateTxt, TypeHelper.UriEscapeDataString(ClientId), ClientSecret, TypeHelper.UriEscapeDataString(ClientId)),
                                                   StrSubstNo(this.GetAuthUrl(), ClientTenant));
