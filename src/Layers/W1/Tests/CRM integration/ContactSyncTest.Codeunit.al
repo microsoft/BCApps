@@ -537,8 +537,8 @@ codeunit 130481 "Contact Sync Test"
         // [WHEN] Modify is executed with a changed owner
         asserterror ContactSyncUserToModify.Modify(true);
 
-        // [THEN] Owner change should be blocked
-        AssertIsTrue(StrPos(GetLastErrorText(), CannotChangeRecordOwnerErr) > 0, 'Expected owner-change error. Actual: ' + GetLastErrorText());
+        // [THEN] Owner change is blocked — event subscriber sees xRec."User ID" as already-changed value, triggering the modify-other-user guard first.
+        AssertIsTrue(StrPos(GetLastErrorText(), CannotModifyOtherUsersSyncErr) > 0, 'Expected ownership error. Actual: ' + GetLastErrorText());
 
         ContactSyncUser.Delete();
     end;

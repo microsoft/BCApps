@@ -109,7 +109,7 @@ table 7121 "Contact Sync User"
         if DeltaUrlToValidate = '' then
             exit;
 
-        if Uri.ValidateIntegrationURL(DeltaUrlToValidate, GraphUrlPrefixLbl) <> DeltaUrlToValidate then
+        if Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) <> LowerCase(DeltaUrlToValidate) then
             Error(InvalidDeltaUrlErr);
     end;
 
