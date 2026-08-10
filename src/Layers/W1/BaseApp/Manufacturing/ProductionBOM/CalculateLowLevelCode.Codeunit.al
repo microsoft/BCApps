@@ -169,6 +169,7 @@ codeunit 99000793 "Calculate Low-Level Code"
     var
         SKU: Record "Stockkeeping Unit";
         CompBOM: Record "Production BOM Header";
+        TempCompBOM: Record "Production BOM Header" temporary;
         EntityPresent: Boolean;
     begin
         if LowLevelCode > 50 then
@@ -179,9 +180,19 @@ codeunit 99000793 "Calculate Low-Level Code"
         SKU.SetLoadFields("Production BOM No.");
         if SKU.FindSet() then
             repeat
-                EntityPresent := CompBOM.Get(SKU."Production BOM No.");
-                if EntityPresent or (not IgnoreMissingItemsOrBOMs) then
-                    SetRecursiveLevelsOnBOM(CompBOM, LowLevelCode, IgnoreMissingItemsOrBOMs);
+                if not TempCompBOM.Get(SKU."Production BOM No.") then begin
+                    EntityPresent := CompBOM.Get(SKU."Production BOM No.");
+                    if EntityPresent or (not IgnoreMissingItemsOrBOMs) then begin
+                        SetRecursiveLevelsOnBOM(CompBOM, LowLevelCode, IgnoreMissingItemsOrBOMs);
+                        if EntityPresent then
+                            TempCompBOM := CompBOM
+                        else begin
+                            TempCompBOM.Init();
+                            TempCompBOM."No." := SKU."Production BOM No.";
+                        end;
+                        TempCompBOM.Insert();
+                    end;
+                end;
             until SKU.Next() = 0;
     end;
 
