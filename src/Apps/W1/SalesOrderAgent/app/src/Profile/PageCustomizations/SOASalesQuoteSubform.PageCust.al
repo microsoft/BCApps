@@ -25,7 +25,7 @@ pagecustomization "SOA Sales Quote Subform" customizes "Sales Quote Subform"
         }
         modify("Variant Code")
         {
-            Visible = false;
+            Visible = true;
         }
         modify("Description")
         {
