@@ -969,7 +969,10 @@ try {
 }
 
 # Create additional tenants by cloning the default tenant (which now has all apps + demo data)
-# Number of tenants (including default) can be overridden via "numberOfTenantsForTesting" in AL-Go settings; defaults to 3
+# Number of tenants (including default) is set via "numberOfTenantsForTesting" in AL-Go settings; there is
+# no default - the setting is required. Keep it at or below the runner's core count: the agents are
+# Standard_D4ads_v5 (4 vCPU), and the tenants share one service tier and one SQL instance inside the
+# container, so oversubscribing slows every test rather than adding throughput.
 $numberOfTenants = Get-ALGoSetting -Key "numberOfTenantsForTesting"
 if ($null -eq $numberOfTenants -or $numberOfTenants -lt 1) {
     throw "AL-Go setting 'numberOfTenantsForTesting' is missing or invalid. Set it to a positive integer in .github/AL-Go-Settings.json."
