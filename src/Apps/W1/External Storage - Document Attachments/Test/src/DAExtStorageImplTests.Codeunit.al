@@ -7,6 +7,7 @@ namespace Microsoft.ExternalStorage.DocumentAttachments.Test;
 
 using Microsoft.ExternalStorage.DocumentAttachments;
 using Microsoft.Foundation.Attachment;
+using System.Environment;
 using System.ExternalFileStorage;
 using System.TestLibraries.ExternalFileStorage;
 using System.TestLibraries.Utilities;
