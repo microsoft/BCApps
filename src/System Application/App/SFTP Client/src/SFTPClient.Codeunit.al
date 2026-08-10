@@ -24,7 +24,7 @@ codeunit 9762 "SFTP Client"
     /// Adds an MD5 fingerprint to the list of accepted host key fingerprints.
     /// </summary>
     /// <param name="Fingerprint"></param>
-    [Obsolete('MD5 host key fingerprints are cryptographically insecure and are no longer supported. Use AddFingerprintSHA256 instead.', '99.9')]
+    [Obsolete('MD5 host key fingerprints are cryptographically insecure and are no longer supported. Use AddFingerprintSHA256 instead.', '29.0')]
     procedure AddFingerprintMD5(Fingerprint: Text)
     var
         ErrorInfo: ErrorInfo;
