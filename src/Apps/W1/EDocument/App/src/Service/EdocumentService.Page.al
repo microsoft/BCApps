@@ -72,12 +72,16 @@ page 6133 "E-Document Service"
                 field("Import Process"; Rec."Import Process")
                 {
                     ToolTip = 'Specifies the version of the import process to use for incoming e-documents.';
-                    Visible = false;
                 }
                 group(PurchaseDraft)
                 {
                     Caption = 'Purchase Draft';
                     Visible = Rec."Import Process" = Enum::"E-Document Import Process"::"Version 2.0";
+                    field("Read into Draft Impl."; Rec."Read into Draft Impl.")
+                    {
+                        Caption = 'Draft Format';
+                        ToolTip = 'Specifies the format used to read the incoming structured e-document into a draft, for example PEPPOL for PEPPOL BIS invoices. Leave it as Unspecified only when the integration or a PDF reader (such as Azure Document Intelligence) determines the format automatically.';
+                    }
                     field("Verify Totals When Posting"; Rec."Verify Purch. Total Amounts")
                     {
                         Caption = 'Verify totals when posting invoice.';

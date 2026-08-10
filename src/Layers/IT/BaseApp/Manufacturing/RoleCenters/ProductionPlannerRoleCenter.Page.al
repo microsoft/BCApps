@@ -156,7 +156,6 @@ page 9010 "Production Planner Role Center"
                     Caption = 'Capacity Task List';
                     Image = "Report";
                     RunObject = Report "Capacity Task List";
-                    ToolTip = 'View the production orders that are waiting to be processed at the work centers and machine centers. Printouts are made for the capacity of the work center or machine center). The report includes information such as starting and ending time, date per production order and input quantity.';
                 }
                 action("Subcontractor - Dispatch List")
                 {
@@ -164,7 +163,6 @@ page 9010 "Production Planner Role Center"
                     Caption = 'Subcontractor - Dispatch List';
                     Image = "Report";
                     RunObject = Report "Subcontractor - Dispatch List";
-                    ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';
                 }
             }
             group(Production)
@@ -176,7 +174,6 @@ page 9010 "Production Planner Role Center"
                     Caption = 'Production Order - &Shortage List';
                     Image = "Report";
                     RunObject = Report "Prod. Order - Shortage List";
-                    ToolTip = 'View a list of the missing quantity per production order. The report shows how the inventory development is planned from today until the set day - for example whether orders are still open.';
                 }
                 action("D&etailed Calculation")
                 {
@@ -204,7 +201,6 @@ page 9010 "Production Planner Role Center"
                     Caption = 'Production Order Statistics';
                     Image = "Report";
                     RunObject = report "Production Order Statistics";
-                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
                 }
                 action("Sta&tus")
                 {
@@ -220,7 +216,6 @@ page 9010 "Production Planner Role Center"
                     Caption = 'Inventory &Valuation WIP';
                     Image = "Report";
                     RunObject = Report "Inventory Valuation - WIP";
-                    ToolTip = 'View inventory valuation for selected production orders in your WIP inventory. The report also shows information about the value of consumption, capacity usage and output in WIP.';
                 }
                 action("Prod. Order - &Job Card")
                 {

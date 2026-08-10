@@ -98,7 +98,10 @@ codeunit 2027 "Image Analyzer Ext. Mgt."
         if not ImageAnalysisSetup."Image-Based Attribute Recognition Enabled" then
             exit;
 
-        ImageAnalysisManagement.Initialize();
+        // Computer Vision v1.0 Analyze API retires 2026-09-13. Use the shipped v3.2 provider instead of the
+        // default v1.0. This app only reads image Tags, and v3.2 keeps the same OAuth2 auth and tags[] response
+        // shape, so there is no functional change. See ItemFromPicture.Codeunit.al which already uses v3.2.
+        ImageAnalysisManagement.Initialize(Enum::"Image Analysis Provider"::"v3.2");
         ImageAnalysisManagement.SetMedia(MediaId);
 
         case AnalysisType of
