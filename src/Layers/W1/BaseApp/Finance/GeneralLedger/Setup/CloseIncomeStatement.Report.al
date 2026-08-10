@@ -83,17 +83,18 @@ report 94 "Close Income Statement"
                             until TempSelectedDim.Next() = 0;
 
                         DimensionBufferID := DimBufMgt.GetDimensionId(TempDimBuf2);
+
                         TempEntryNoAmountBuffer.Reset();
                         if ClosePerBusUnit and FieldActive("Business Unit Code") then
                             TempEntryNoAmountBuffer."Business Unit Code" := "Business Unit Code"
                         else
                             TempEntryNoAmountBuffer."Business Unit Code" := '';
-                        TempEntryNoAmountBuffer."Source Currency Code" := "Source Currency Code";
-                        TempEntryNoAmountBuffer."Entry No." := GetEntryNo(DimensionBufferID);
+                        TempEntryNoAmountBuffer."Entry No." := DimensionBufferID;
                         if TempEntryNoAmountBuffer.Find() then begin
                             TempEntryNoAmountBuffer.Amount := TempEntryNoAmountBuffer.Amount + Amount;
                             TempEntryNoAmountBuffer.Amount2 := TempEntryNoAmountBuffer.Amount2 + "Additional-Currency Amount";
                             if "Source Currency Code" <> '' then begin
+                                TempEntryNoAmountBuffer."Source Currency Code" := "Source Currency Code";
                                 TempEntryNoAmountBuffer."Source Currency Amount" := TempEntryNoAmountBuffer."Source Currency Amount" + "Source Currency Amount";
                                 TempEntryNoAmountBuffer."Source Currency VAT Amount" := TempEntryNoAmountBuffer."Source Currency VAT Amount" + "Source Currency VAT Amount";
                             end;
@@ -123,7 +124,6 @@ report 94 "Close Income Statement"
                     TempEntryNoAmountBuffer.Reset();
                     MaxEntry := TempEntryNoAmountBuffer.Count();
                     EntryCount := 0;
-                    EntryNo := 0;
                     Window.Update(2, Text012);
                     Window.Update(3, 0);
 
@@ -231,6 +231,8 @@ report 94 "Close Income Statement"
                       GenJnlLine."Additional-Currency Posting"::None;
                     GenJnlLine.Validate(Amount, TotalAmount);
                     GenJnlLine."Source Currency Amount" := TotalAmountAddCurr;
+                    if "G/L Entry"."Source Currency Code" <> '' then
+                        GenJnlLine."Source Currency Code" := "G/L Entry"."Source Currency Code";
                     OnGLAccountOnOnPostDataItemOnAfterGenJnlLinePopulateFields(GenJnlLine, RetainedEarningsGLAcc);
                     HandleGenJnlLine();
                     Window.Update(1, GenJnlLine."Account No.");
@@ -529,7 +531,6 @@ report 94 "Close Income Statement"
         ColumnDim: Text[250];
         NoOfAccounts: Integer;
         ThisAccountNo: Integer;
-        EntryNo: Integer;
 #pragma warning disable AA0074
         Text000: Label 'Enter the ending date for the fiscal year.';
         Text001: Label 'Enter a Document No.';
@@ -641,6 +642,7 @@ report 94 "Close Income Statement"
         GenJnlLine."Additional-Currency Posting" :=
           GenJnlLine."Additional-Currency Posting"::None;
         if GLSetup."Additional Reporting Currency" <> '' then begin
+            GenJnlLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
             if ZeroGenJnlAmount() then begin
                 GenJnlLine."Additional-Currency Posting" :=
                   GenJnlLine."Additional-Currency Posting"::"Additional-Currency Amount Only";
@@ -667,7 +669,6 @@ report 94 "Close Income Statement"
         GLEntry: Record "G/L Entry";
     begin
         GLEntry.CopyFilters(GLEntrySource);
-        GLEntry.SetRange("Source Currency Code", GLEntrySource."Source Currency Code");
         if ClosePerBusUnit then begin
             GLEntry.SetRange("Business Unit Code", GLEntrySource."Business Unit Code");
             GenJnlLine."Business Unit Code" := GLEntrySource."Business Unit Code";
@@ -793,22 +794,13 @@ report 94 "Close Income Statement"
 
     local procedure AddSourceCurrencyFields(): Boolean
     begin
-        if TempEntryNoAmountBuffer."Source Currency Amount" = 0 then
+        if (TempEntryNoAmountBuffer.Amount2 <> 0) or (TempEntryNoAmountBuffer."Source Currency Amount" = 0) then
             exit(false);
 
         GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
         GenJnlLine."Source Currency Amount" := -(TempEntryNoAmountBuffer."Source Currency Amount");
         GenJnlLine."Source Curr. VAT Amount" := -(TempEntryNoAmountBuffer."Source Currency VAT Amount");
         exit(true);
-    end;
-
-    local procedure GetEntryNo(DimensionBufferID: Integer): Integer
-    begin
-        if DimensionBufferID <> 0 then
-            exit(DimensionBufferID);
-
-        EntryNo := EntryNo - 1;
-        exit(EntryNo);
     end;
 
     /// <summary>
