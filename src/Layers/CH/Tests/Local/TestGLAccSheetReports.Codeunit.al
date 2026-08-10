@@ -287,6 +287,85 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
     [Test]
     [HandlerFunctions('GLAccSheetFCYReqPageHandler,GenJournalBatchesPageHandler')]
     [Scope('OnPrem')]
+    procedure GLSheetForeignCurrIncludesRegisteredMultiCurrencyEntries()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GLAccount: Record "G/L Account";
+        BalGLAccount: Record "G/L Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccountSourceCurrency: Record "G/L Account Source Currency";
+        GLEntry: Record "G/L Entry";
+        FcyAcyBalance: Decimal;
+        CurrencyCode: Code[10];
+        OtherCurrencyCode: Code[10];
+    begin
+        // [FEATURE] [SR G/L Acc Sheet Foreign Curr]
+        // [SCENARIO 642513] For a G/L Account using "Multiple Currencies" source currency posting (which keeps
+        // "Source Currency Code" blank), report 11564 must still populate the foreign currency columns for entries
+        // posted in one of the account's registered source currencies, using the entry's own "Source Currency Amount".
+        Initialize();
+
+        // [GIVEN] G/L Account set up for "Multiple Currencies" source currency posting with two registered currencies.
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::General);
+        GenJournalTemplate.Modify(true);
+
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
+        OtherCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
+
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Account Type", GLAccount."Account Type"::Posting);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Validate("Source Currency Posting", GLAccount."Source Currency Posting"::"Multiple Currencies");
+        GLAccount.Modify(true);
+        GLAccount.SetRange("No.", GLAccount."No.");
+        GLAccount.SetRange("Date Filter", WorkDate(), WorkDate());
+
+        GLAccountSourceCurrency.Init();
+        GLAccountSourceCurrency."G/L Account No." := GLAccount."No.";
+        GLAccountSourceCurrency."Currency Code" := CurrencyCode;
+        GLAccountSourceCurrency.Insert();
+
+        GLAccountSourceCurrency.Init();
+        GLAccountSourceCurrency."G/L Account No." := GLAccount."No.";
+        GLAccountSourceCurrency."Currency Code" := OtherCurrencyCode;
+        GLAccountSourceCurrency.Insert();
+
+        LibraryERM.CreateGLAccount(BalGLAccount);
+
+        // [GIVEN] An entry posted in "CurrencyCode" ...
+        CreateGenJournalLine(GenJournalLine, GLAccount,
+          GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.", LibraryRandom.RandIntInRange(1000, 2000), CurrencyCode);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] ... and another entry posted in "OtherCurrencyCode" to the same G/L Account.
+        CreateGenJournalLine(GenJournalLine, GLAccount,
+          GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.", LibraryRandom.RandIntInRange(1000, 2000), OtherCurrencyCode);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Run report 11564 "SR G/L Acc Sheet Foreign Curr"
+        RunSRGLAccSheetForeignCurrReport(GLAccount);
+
+        // [THEN] Both entries are recognized as registered source currencies of the account, so each row shows the
+        // entry's own "Source Currency Amount" and the running foreign currency balance accumulates across them.
+        LibraryReportDataset.LoadDataSetFile();
+        FcyAcyBalance := 0;
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.FindSet();
+        repeat
+            FcyAcyBalance += GLEntry."Source Currency Amount";
+            LibraryReportDataset.Reset();
+            LibraryReportDataset.SetRange('No_GLAccount', GLAccount."No.");
+            LibraryReportDataset.SetRange('DocumentNo_GLEntry', GLEntry."Document No.");
+            LibraryReportDataset.GetNextRow();
+            LibraryReportDataset.AssertCurrentRowValueEquals('FcyAcyAmt', GLEntry."Source Currency Amount");
+            LibraryReportDataset.AssertCurrentRowValueEquals('GLEntryFcyAcyBalance', FcyAcyBalance);
+        until GLEntry.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('GLAccSheetFCYReqPageHandler,GenJournalBatchesPageHandler')]
+    [Scope('OnPrem')]
     procedure GLSheetForeignCurrAccWithNoBalance()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
