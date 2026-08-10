@@ -29,7 +29,11 @@ using System.Utilities;
 report 117 Reminder
 {
     Caption = 'Reminder';
+#if not CLEAN28
+    DefaultRenderingLayout = "ReminderGB.rdlc";
+#else
     DefaultRenderingLayout = "Reminder.rdlc";
+#endif
     WordMergeDataItem = "Issued Reminder Header";
 
     dataset
@@ -1080,6 +1084,15 @@ report 117 Reminder
 
     rendering
     {
+#if not CLEAN28
+        layout("ReminderGB.rdlc")
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reminder/ReminderGB.rdlc';
+            Caption = 'Reminder (RDLC)';
+            Summary = 'The Reminder (RDLC) provides a detailed layout.';
+        }
+#else
         layout("Reminder.rdlc")
         {
             Type = RDLC;
@@ -1087,6 +1100,7 @@ report 117 Reminder
             Caption = 'Reminder (RDLC)';
             Summary = 'The Reminder (RDLC) provides a detailed layout.';
         }
+#endif
         layout("DefaultReminderEmail.docx")
         {
             Type = Word;

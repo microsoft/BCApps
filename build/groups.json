@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "name": "System Application",
     "groups": [
@@ -315,6 +315,62 @@
     ]
   },
   {
+    "name": "Tests-ERM-Application",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-ERM-Sales",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-ERM-Purchase",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-ERM-Finance",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-Fixed Asset",
     "groups": [
       {
@@ -561,6 +617,76 @@
   },
   {
     "name": "Tests-SCM-Service",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Warehouse",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Costing",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Planning",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Reservation",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Workflow",
     "groups": [
       {
         "name": "Base"
@@ -4301,431 +4427,6 @@
     ]
   },
   {
-    "name": "Czech language (Czechia)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Danish language (Denmark)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "German language (Austria)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "German language (Switzerland)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "German language (Germany)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "English language (Australia)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "English language (Canada)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "English language (United Kingdom)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "English language (New Zealand)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "English language (United States)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Spanish language (Spain)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Spanish language (Mexico)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Finnish language (Finland)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "French language (Belgium)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "French language (Canada)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "French language (Switzerland)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "French language (France)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Icelandic language (Iceland)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Italian language (Switzerland)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Italian language (Italy)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Norwegian language (Norway)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Dutch language (Belgium)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Dutch language (Netherlands)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Russian language (Russia)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Swedish language (Sweden)",
-    "groups": [
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "LanguagePacks",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
     "name": "System Application Test",
     "groups": [
       {
@@ -5220,37 +4921,6 @@
     ]
   },
   {
-    "name": "Adversarial Simulation Test Library",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      },
-      {
-        "name": "TestLibraries"
-      }
-    ]
-  },
-  {
     "name": "Red Team Scan Test Library",
     "groups": [
       {
@@ -5278,33 +4948,6 @@
       },
       {
         "name": "TestLibraries"
-      }
-    ]
-  },
-  {
-    "name": "AI Evaluate Tool",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      },
-      {
-        "name": "TestLibraries"
-      }
-    ]
-  },
-  {
-    "name": "Evaluation Test Library",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
       }
     ]
   },
@@ -6062,34 +5705,6 @@
       {
         "name": "OnPremExtensions",
         "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "E-Document AI Tests",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
       }
     ]
   },
@@ -9037,7 +8652,174 @@
         "name": "FinancialsExtensions"
       },
       {
-        "name": "Internal"
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (US)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (NZ)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (AT)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (AU)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (CA)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (DE)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (DK)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (ES)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (FR)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Expense Agent (Preview) (GB)",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
       },
       {
         "name": "ContosoDemoData"
@@ -9058,9 +8840,6 @@
       {
         "name": "FinancialsExtensions",
         "doNotInstall": true
-      },
-      {
-        "name": "Internal"
       }
     ]
   },
@@ -9458,18 +9237,6 @@
     ]
   },
   {
-    "name": "Agent Developer Internal Toolkit",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
     "name": "Sales Order Agent",
     "groups": [
       {
@@ -9494,29 +9261,6 @@
       },
       {
         "name": "FinancialsExtensions"
-      },
-      {
-        "name": "TestLibraries"
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "Agent Test Internal Library",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
       },
       {
         "name": "TestLibraries"
@@ -9598,26 +9342,6 @@
     ]
   },
   {
-    "name": "Agent Runtime Tests",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
     "name": "Agent Design Experience Test",
     "groups": [
       {
@@ -9638,47 +9362,6 @@
     ]
   },
   {
-    "name": "Sales Order Agent Test",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "AI Test - Microsoft Managed",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "AI Test - Partner Managed",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
     "name": "Payables Agent",
     "groups": [
       {
@@ -9689,74 +9372,6 @@
       },
       {
         "name": "FinancialsExtensions"
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "Payables Agent Tests",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "Sales Validation Agent Sample",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "Sales Validation Agent Sample Test",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "Sales Return Agent Sample",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "Sales Return Agent Sample Test",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
       },
       {
         "name": "Internal"
@@ -9840,23 +9455,6 @@
       },
       {
         "name": "OnPremExtensions"
-      }
-    ]
-  },
-  {
-    "name": "MCP Test",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": true
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": true
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
       }
     ]
   },
