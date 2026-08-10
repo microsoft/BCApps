@@ -531,3 +531,4 @@ codeunit 5633 "FA Jnl.-Post Batch"
     begin
     end;
 }
+

@@ -1027,3 +1027,4 @@ codeunit 5601 "FA Insert G/L Account"
     begin
     end;
 }
+
