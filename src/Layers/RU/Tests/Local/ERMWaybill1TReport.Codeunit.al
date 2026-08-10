@@ -13,8 +13,6 @@ codeunit 144701 "ERM Waybill 1-T Report"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LocMgt: Codeunit "Localisation Management";
         StdRepMgt: Codeunit "Local Report Management";
         LibraryUtility: Codeunit "Library - Utility";
@@ -94,10 +92,6 @@ codeunit 144701 "ERM Waybill 1-T Report"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         Clear(LibraryReportValidation);
 
         if isInitialized then
@@ -151,11 +145,13 @@ codeunit 144701 "ERM Waybill 1-T Report"
     [Scope('OnPrem')]
     procedure CreateSalesShipmentAndVerify1TReport(QuantityOfLines: Integer)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesHeader: Record "Sales Header";
         SalesShipmentHeader: Record "Sales Shipment Header";
         PostedShipItemWaybill1T: Report "Posted Ship. Item Waybill 1-T";
         DocumentNo: Code[20];
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         CreateReleasedSalesOrder(SalesHeader, QuantityOfLines);
@@ -172,16 +168,19 @@ codeunit 144701 "ERM Waybill 1-T Report"
 
         SalesShipmentHeader.Get(DocumentNo);
         VerifyShipmentWaybill1TReport(SalesShipmentHeader);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [Scope('OnPrem')]
     procedure CreateSalesInvoiceAndVerify1TReport(QuantityOfLines: Integer)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PostedInvoiceItemWaybill1T: Report "Posted Inv. Item Waybill 1-T";
         DocumentNo: Code[20];
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         CreateReleasedSalesOrder(SalesHeader, QuantityOfLines);
@@ -198,6 +197,7 @@ codeunit 144701 "ERM Waybill 1-T Report"
 
         SalesInvoiceHeader.Get(DocumentNo);
         VerifyInvoiceWaybill1TReport(SalesInvoiceHeader);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateSalesOrderWithSignatures(var SalesHeader: Record "Sales Header"; var ResponsibleEmployeeName: Text[100]; var AccountantEmployeeName: Text[100]; var ReleasedByEmployeeName: Text[100])
@@ -256,8 +256,10 @@ codeunit 144701 "ERM Waybill 1-T Report"
 
     local procedure PrintOrderItemWaybill1TToExcel(SalesHeader: Record "Sales Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         OrderItemWaybill1T: Report "Order Item Waybill 1-T";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         SalesHeader.SetRange("No.", SalesHeader."No.");
@@ -267,6 +269,7 @@ codeunit 144701 "ERM Waybill 1-T Report"
         OrderItemWaybill1T.SetTableView(SalesHeader);
         OrderItemWaybill1T.UseRequestPage(false);
         OrderItemWaybill1T.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyWaybillHeaderValues(DocumentNo: Code[20]; PostingDate: Date; ShipToAddress: Text; BillToAddress: Text)

@@ -13,8 +13,6 @@ codeunit 144713 "ERM Letter of Attorney M-2A"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
         NoSeriesChangedErr: Label 'No Series changed after running report with preview.';
@@ -94,10 +92,6 @@ codeunit 144713 "ERM Letter of Attorney M-2A"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         if isInitialized then
             exit;
 
@@ -120,10 +114,12 @@ codeunit 144713 "ERM Letter of Attorney M-2A"
 
     local procedure CreateLetterOfAttorneyAndPrint(Preview: Boolean)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         LetterOfAttorneyHeader: Record "Letter of Attorney Header";
         Employee: Record Employee;
         LetterOfAttorneyM2A: Report "Letter of Attorney M-2A";
     begin
+        BindSubscription(RUReportDownloadHandler);
         CreateAttHeader(LetterOfAttorneyHeader);
 
         Employee.Get(LetterOfAttorneyHeader."Employee No.");
@@ -133,6 +129,7 @@ codeunit 144713 "ERM Letter of Attorney M-2A"
         LetterOfAttorneyM2A.SetTableView(LetterOfAttorneyHeader);
         LetterOfAttorneyM2A.UseRequestPage(false);
         LetterOfAttorneyM2A.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateAttHeader(var LetterOfAttorneyHeader: Record "Letter of Attorney Header")

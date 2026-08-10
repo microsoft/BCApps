@@ -12,8 +12,6 @@ codeunit 144717 "ERM FA-4 Report Test"
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryRUReports: Codeunit "Library RU Reports";
         StdRepMgt: Codeunit "Local Report Management";
         isInitialized: Boolean;
@@ -95,10 +93,6 @@ codeunit 144717 "ERM FA-4 Report Test"
 
     local procedure Initialize()
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         Clear(LibraryReportValidation);
 
         if isInitialized then
@@ -296,50 +290,62 @@ codeunit 144717 "ERM FA-4 Report Test"
 
     local procedure RunFAWriteOffFA4(FADocHeader: Record "FA Document Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FAWriteoffActFA4: Report "FA Write-off Act FA-4";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(FADocHeader."No.");
         FADocHeader.SetRecFilter();
         FAWriteoffActFA4.SetFileNameSilent(LibraryReportValidation.GetFileName());
         FAWriteoffActFA4.SetTableView(FADocHeader);
         FAWriteoffActFA4.UseRequestPage(false);
         FAWriteoffActFA4.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedFAWriteOffFA4(PostedFADocHeader: Record "Posted FA Doc. Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PostedFAWriteoffActFA4: Report "FA Posted Writeoff Act FA-4";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(PostedFADocHeader."No.");
         PostedFADocHeader.SetRecFilter();
         PostedFAWriteoffActFA4.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedFAWriteoffActFA4.SetTableView(PostedFADocHeader);
         PostedFAWriteoffActFA4.UseRequestPage(false);
         PostedFAWriteoffActFA4.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunFAWriteOffFA4a(FADocHeader: Record "FA Document Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FAWriteoffActFA4a: Report "FA Writeoff Act FA-4a";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(FADocHeader."No.");
         FADocHeader.SetRecFilter();
         FAWriteoffActFA4a.SetFileNameSilent(LibraryReportValidation.GetFileName());
         FAWriteoffActFA4a.SetTableView(FADocHeader);
         FAWriteoffActFA4a.UseRequestPage(false);
         FAWriteoffActFA4a.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedFAWriteOffFA4a(PostedFADocHeader: Record "Posted FA Doc. Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PostedFAWriteoffActFA4a: Report "Posted FA Writeoff Act FA-4a";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(PostedFADocHeader."No.");
         PostedFADocHeader.SetRecFilter();
         PostedFAWriteoffActFA4a.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedFAWriteoffActFA4a.SetTableView(PostedFADocHeader);
         PostedFAWriteoffActFA4a.UseRequestPage(false);
         PostedFAWriteoffActFA4a.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RemoveMandatorySignSetup()

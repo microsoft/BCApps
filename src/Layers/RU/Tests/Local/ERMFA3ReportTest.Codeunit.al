@@ -10,8 +10,6 @@ codeunit 144715 "ERM FA-3 Report Test"
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryRUReports: Codeunit "Library RU Reports";
         isInitialized: Boolean;
 
@@ -49,10 +47,6 @@ codeunit 144715 "ERM FA-3 Report Test"
 
     local procedure Initialize()
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         Clear(LibraryReportValidation);
 
         if isInitialized then
@@ -160,26 +154,32 @@ codeunit 144715 "ERM FA-3 Report Test"
 
     local procedure RunFAMovementReport(FADocHeader: Record "FA Document Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FAMovementRep: Report "FA Movement FA-3";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(FADocHeader."No.");
         FADocHeader.SetRecFilter();
         FAMovementRep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         FAMovementRep.SetTableView(FADocHeader);
         FAMovementRep.UseRequestPage(false);
         FAMovementRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedFAMovementReport(PostedFADocHeader: Record "Posted FA Doc. Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PostedFAMovementRep: Report "FA Posted Movement FA-3";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(PostedFADocHeader."No.");
         PostedFADocHeader.SetRecFilter();
         PostedFAMovementRep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedFAMovementRep.SetTableView(PostedFADocHeader);
         PostedFAMovementRep.UseRequestPage(false);
         PostedFAMovementRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RemoveMandatorySignSetup()

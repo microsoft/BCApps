@@ -17,8 +17,6 @@ codeunit 144101 "ERM G/L Reports"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryJournals: Codeunit "Library - Journals";
         LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
@@ -841,10 +839,6 @@ codeunit 144101 "ERM G/L Reports"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         Clear(LibraryReportValidation);
 
         if IsInitialized then
@@ -1228,9 +1222,11 @@ codeunit 144101 "ERM G/L Reports"
 
     local procedure RunCustomerAccountingCard(CustomerNo: Code[20]; GLAccountNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Customer: Record Customer;
         CustomerAccountingCard: Report "Customer Accounting Card";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         LibraryVariableStorage.Enqueue(LibraryReportValidation.GetFileName());
         Commit();
@@ -1242,13 +1238,16 @@ codeunit 144101 "ERM G/L Reports"
         CustomerAccountingCard.SetTableView(Customer);
         CustomerAccountingCard.UseRequestPage(true);
         CustomerAccountingCard.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunCustomerGLTurnover(GLAccountNo: Code[20]; ReportDate: Date; SkipZeroLines: Boolean)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Customer: Record Customer;
         CustomerGLTurnover: Report "Customer G/L Turnover";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryVariableStorage.Enqueue(SkipZeroLines);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         LibraryVariableStorage.Enqueue(LibraryReportValidation.GetFileName());
@@ -1259,6 +1258,7 @@ codeunit 144101 "ERM G/L Reports"
         CustomerGLTurnover.SetTableView(Customer);
         CustomerGLTurnover.UseRequestPage(true);
         CustomerGLTurnover.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunGLAccountCardReport(var GLAccount: Record "G/L Account")
@@ -1273,8 +1273,10 @@ codeunit 144101 "ERM G/L Reports"
 
     local procedure RunVendorGLTurnover(GLAccountNo: Code[20]; ReportDate: Date)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Vendor: Record Vendor;
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         LibraryVariableStorage.Enqueue(LibraryReportValidation.GetFileName());
         Commit();
@@ -1282,6 +1284,7 @@ codeunit 144101 "ERM G/L Reports"
         Vendor.SetRange("Date Filter", ReportDate);
         Vendor.SetRange("G/L Account Filter", GLAccountNo);
         REPORT.RunModal(REPORT::"Vendor G/L Turnover", true, false, Vendor);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunFATurnover(FANoFilter: Text; DepreciationBookCode: Code[10])
@@ -1469,12 +1472,16 @@ codeunit 144101 "ERM G/L Reports"
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure FATurnoverHandler(var FATurnover: TestRequestPage "FA Turnover")
+    var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
     begin
+        BindSubscription(RUReportDownloadHandler);
         FATurnover."Starting Date".SetValue(WorkDate());
         FATurnover."Ending Date".SetValue(WorkDate());
         FATurnover."Depreciation Book Code".SetValue(LibraryVariableStorage.DequeueText());
         FATurnover."Skip zero lines".SetValue(true);
         FATurnover.SaveAsExcel(LibraryReportValidation.GetFileName());
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [RequestPageHandler]

@@ -11,8 +11,6 @@ codeunit 144712 "ERM TORG-29 Report"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         TORG29Helper: Codeunit "TORG-29 Helper";
         isInitialized: Boolean;
         ReceiptsDetailing: Option Document,Item,Operation;
@@ -234,10 +232,6 @@ codeunit 144712 "ERM TORG-29 Report"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         Clear(LibraryReportValidation);
         Clear(TORG29Helper);
         LibraryPriceCalculation.DisableExtendedPriceCalculation();
@@ -365,9 +359,11 @@ codeunit 144712 "ERM TORG-29 Report"
 
     local procedure RunTORG29Report(LocationCode: Code[10]; PostingDate: Date)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TORG29Rep: Report "Item Report TORG-29";
         SalesType: Option "Customer Price Group","All Customers",Campaign;
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         TORG29Rep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         TORG29Rep.InitializeRequest(
@@ -375,6 +371,7 @@ codeunit 144712 "ERM TORG-29 Report"
           AmountType::Cost, SalesType::"All Customers", '', true, true);
         TORG29Rep.UseRequestPage(false);
         TORG29Rep.RunModal();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure GetLastValueEntryDate(): Date

@@ -15,8 +15,6 @@ codeunit 147141 "ERM Purchase VAT Ledger Export"
         LibrarySales: Codeunit "Library - Sales";
         LibraryJournals: Codeunit "Library - Journals";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryRUReports: Codeunit "Library RU Reports";
         Assert: Codeunit Assert;
@@ -648,10 +646,6 @@ codeunit 147141 "ERM Purchase VAT Ledger Export"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         LibrarySetupStorage.Restore();
         if IsInitialized then
             exit;
@@ -814,9 +808,11 @@ codeunit 147141 "ERM Purchase VAT Ledger Export"
 
     local procedure RunVATLedgerExportReportOnDate(VendorNo: Code[20]; StartDate: Date; EndDate: Date; AddSheet: Boolean; UseExternalDocNo: Boolean)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         VATLedgerCode: Code[20];
         FileName: Text[1024];
     begin
+        BindSubscription(RUReportDownloadHandler);
         VATLedgerCode :=
           LibraryPurchase.CreatePurchaseVATLedger(StartDate, EndDate, VendorNo, UseExternalDocNo, true);
         if AddSheet then
@@ -826,6 +822,7 @@ codeunit 147141 "ERM Purchase VAT Ledger Export"
         FileName := LibraryReportValidation.GetFileName();
 
         LibraryPurchase.ExportPurchaseVATLedger(VATLedgerCode, AddSheet, FileName);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateAndPostPurchInvoice(var VendorNo: Code[20]; CurrencyCode: Code[10]; VATRate: Decimal; AddSheet: Boolean) DocumentNo: Code[20]

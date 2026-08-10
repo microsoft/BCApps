@@ -13,8 +13,6 @@ codeunit 144709 "ERM Item And Phys. Inventory"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         isInitialized: Boolean;
         ValueNotExistErr: Label 'Value %1 does not exist on worksheet %2';
         ValueNotExistInColErr: Label 'Value %1 does not exist in column %2', Comment = '%1:Function GetItemJnlLineNewAmount, %2:ColumnID in Excel Buffer';
@@ -234,10 +232,6 @@ codeunit 144709 "ERM Item And Phys. Inventory"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         if isInitialized then
             exit;
 
@@ -249,9 +243,11 @@ codeunit 144709 "ERM Item And Phys. Inventory"
 
     local procedure PrintM17ItemCard(ItemNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Item: Record Item;
         ItemCardM17: Report "Item Card M-17";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         Item.SetRange("No.", ItemNo);
@@ -259,6 +255,7 @@ codeunit 144709 "ERM Item And Phys. Inventory"
         ItemCardM17.SetFileNameSilent(LibraryReportValidation.GetFileName());
         ItemCardM17.UseRequestPage(false);
         ItemCardM17.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintINV3PhysInvForm(var ItemJnlLine: Record "Item Journal Line"; Sign: Integer)
@@ -272,8 +269,10 @@ codeunit 144709 "ERM Item And Phys. Inventory"
 
     local procedure PrintINV3PhysInvFormForExistingJournal(var ItemJnlLine: Record "Item Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PhysInventoryFormINV3: Report "Phys. Inventory Form INV-3";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         ItemJnlLine.SetRange("Journal Template Name", ItemJnlLine."Journal Template Name");
         ItemJnlLine.SetRange("Journal Batch Name", ItemJnlLine."Journal Batch Name");
@@ -281,12 +280,15 @@ codeunit 144709 "ERM Item And Phys. Inventory"
         PhysInventoryFormINV3.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PhysInventoryFormINV3.UseRequestPage(false);
         PhysInventoryFormINV3.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintINV19PhysInvForm(var ItemJnlLine: Record "Item Journal Line"; Sign: Integer)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PhysInvFormINV19: Report "Phys. Inventory Form INV-19";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         InitPhysInvJournal(ItemJnlLine, Sign);
@@ -298,6 +300,7 @@ codeunit 144709 "ERM Item And Phys. Inventory"
         PhysInvFormINV19.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PhysInvFormINV19.UseRequestPage(false);
         PhysInvFormINV19.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure InitPhysInvJournal(var ItemJnlLine: Record "Item Journal Line"; Sign: Integer)

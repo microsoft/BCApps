@@ -14,8 +14,6 @@ codeunit 147135 "ERM VAT Invoices Jnl. Export"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LocalReportManagement: Codeunit "Local Report Management";
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
@@ -222,10 +220,6 @@ codeunit 147135 "ERM VAT Invoices Jnl. Export"
 
     local procedure Initialize()
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         if IsInitialized then
             exit;
 
@@ -388,14 +382,17 @@ codeunit 147135 "ERM VAT Invoices Jnl. Export"
 
     local procedure VATInvoicesJournalExport(PostingDate: Date)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         VATInvoicesJournal: Report "VAT Invoices Journal";
     begin
+        BindSubscription(RUReportDownloadHandler);
         VATInvoicesJournal.InitializeRequest(
           Date2DMY(PostingDate, 3), 1, PostingDate, CalcDate('<1M>', PostingDate), false);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         VATInvoicesJournal.SetFileNameSilent(LibraryReportValidation.GetFileName());
         VATInvoicesJournal.UseRequestPage(false);
         VATInvoicesJournal.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure GetSalesInvHeader(InvNo: Code[20]; var SalesInvHeader: Record "Sales Invoice Header")

@@ -20,8 +20,6 @@ codeunit 144015 "ERM RU Void Check"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryJournals: Codeunit "Library - Journals";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
@@ -510,10 +508,6 @@ codeunit 144015 "ERM RU Void Check"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         LibrarySetupStorage.Restore();
         if isInitialized then
             exit;
@@ -869,24 +863,30 @@ codeunit 144015 "ERM RU Void Check"
 
     local procedure PrintCashOutgoingOrder(GenJournalLine: Record "Gen. Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CashOutgoingOrder: Report "Cash Outgoing Order";
     begin
+        BindSubscription(RUReportDownloadHandler);
         CashOutgoingOrder.SetFileNameSilent(LibraryReportValidation.GetFileName());
         GenJournalLine.SetRecFilter();
         CashOutgoingOrder.SetTableView(GenJournalLine);
         CashOutgoingOrder.UseRequestPage(false);
         CashOutgoingOrder.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintCashIngoingOrder(GenJournalLine: Record "Gen. Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CashIngoingOrder: Report "Cash Ingoing Order";
     begin
+        BindSubscription(RUReportDownloadHandler);
         CashIngoingOrder.SetFileNameSilent(LibraryReportValidation.GetFileName());
         GenJournalLine.SetRecFilter();
         CashIngoingOrder.SetTableView(GenJournalLine);
         CashIngoingOrder.UseRequestPage(false);
         CashIngoingOrder.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyVendorLedgerEntries(VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; ExpectedCount: Integer; IsOpen: Boolean)

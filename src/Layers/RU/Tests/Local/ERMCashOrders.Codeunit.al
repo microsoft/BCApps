@@ -15,8 +15,6 @@ codeunit 144723 "ERM Cash Orders"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryERM: Codeunit "Library - ERM";
         DecimalFormatTok: Label '<Sign><Integer><Decimals,3>', Locked = true;
         StdTextTok: Label 'Amount %1, including VAT %2', Locked = true;
@@ -490,11 +488,13 @@ codeunit 144723 "ERM Cash Orders"
     [Scope('OnPrem')]
     procedure CashReportCO4PageNumberingTwoBanks()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         GenJournalLine: Record "Gen. Journal Line";
         BankAccountNo: array[2] of Code[20];
         PageNumber: array[2] of Integer;
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         // [FEATURE] [Report]
         // [SCENARIO 377267] Page numbering in "Cash Report CO - 4" must consider "Last Cash Report Page No." of a certain Cash Account
         Initialize();
@@ -523,6 +523,7 @@ codeunit 144723 "ERM Cash Orders"
         Clear(LibraryReportValidation);
         LibraryReportValidation.SetFullFileName(FileName);
         VerifyPageNumbers(BankAccountNo[1], PageNumber[1] + 1);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [Test]
@@ -772,10 +773,6 @@ codeunit 144723 "ERM Cash Orders"
 
     local procedure Initialize()
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         Clear(LibraryReportValidation);
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
@@ -1060,49 +1057,61 @@ codeunit 144723 "ERM Cash Orders"
 
     local procedure RunCashOutgoingOrderReport(var GenJournalLine: Record "Gen. Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CashOutgoingOrder: Report "Cash Outgoing Order";
         FileManagement: Codeunit "File Management";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFullFileName(FileManagement.ServerTempFileName('xlsx'));
         CashOutgoingOrder.SetFileNameSilent(LibraryReportValidation.GetFileName());
         CashOutgoingOrder.SetTableView(GenJournalLine);
         CashOutgoingOrder.UseRequestPage(false);
         CashOutgoingOrder.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunCashIngoingOrderReport(var GenJournalLine: Record "Gen. Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CashIngoingOrder: Report "Cash Ingoing Order";
         FileManagement: Codeunit "File Management";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFullFileName(FileManagement.ServerTempFileName('xlsx'));
         CashIngoingOrder.SetFileNameSilent(LibraryReportValidation.GetFileName());
         CashIngoingOrder.SetTableView(GenJournalLine);
         CashIngoingOrder.UseRequestPage(false);
         CashIngoingOrder.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunCashReportCO4(BankAccountNo: Code[20]; CashReportType: Option; PrintTitleSheet: Boolean; PrintLastSheet: Boolean; ReportDate: Date)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CashReportCO4: Report "Cash Report CO-4";
         FileManagement: Codeunit "File Management";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFullFileName(FileManagement.ServerTempFileName('xlsx'));
         CashReportCO4.InitializeRequest(BankAccountNo, ReportDate, PrintTitleSheet, PrintLastSheet, CashReportType);
         CashReportCO4.SetFileNameSilent(LibraryReportValidation.GetFileName());
         CashReportCO4.UseRequestPage(false);
         CashReportCO4.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunCashReportCO4WithRequestPage(BankAccountNo: Code[20]; CashReportType: Option; PrintTitleSheet: Boolean; PrintLastSheet: Boolean; ReportDate: Date)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CashReportCO4: Report "Cash Report CO-4";
         FileManagement: Codeunit "File Management";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFullFileName(FileManagement.ServerTempFileName('xlsx'));
         CashReportCO4.InitializeRequest(BankAccountNo, ReportDate, PrintTitleSheet, PrintLastSheet, CashReportType);
         CashReportCO4.SetFileNameSilent(LibraryReportValidation.GetFileName());
         CashReportCO4.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure SetAccountantNameInCompanyInformation(NewAccountantName: Text[50])

@@ -13,8 +13,6 @@ codeunit 144705 "ERM Shipment Request M-11"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryRUReports: Codeunit "Library RU Reports";
         LibraryRandom: Codeunit "Library - Random";
         isInitialized: Boolean;
@@ -249,10 +247,6 @@ codeunit 144705 "ERM Shipment Request M-11"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         if isInitialized then
             exit;
 
@@ -264,12 +258,14 @@ codeunit 144705 "ERM Shipment Request M-11"
 
     local procedure PrintM11TransferOrder(LineQty: Integer): Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TransferHeader: Record "Transfer Header";
         ShipmentRequestM11: Report "Shipment Request M-11";
         ItemNo: array[5] of Code[20];
         Qty: array[5] of Decimal;
         i: Integer;
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         for i := 1 to LineQty do begin
@@ -286,10 +282,12 @@ codeunit 144705 "ERM Shipment Request M-11"
         ShipmentRequestM11.Run();
 
         exit(TransferHeader."No.");
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintM11TransferShipment(LineQty: Integer): Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TransferHeader: Record "Transfer Header";
         TransferShipmentHeader: Record "Transfer Shipment Header";
         ShipmentRequestM11: Report "Shipment Request M-11";
@@ -297,6 +295,7 @@ codeunit 144705 "ERM Shipment Request M-11"
         ItemNo: array[5] of Code[20];
         Qty: array[5] of Decimal;
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         FromLocationCode := InitItemInventory(ItemNo, Qty, LineQty);
@@ -313,10 +312,12 @@ codeunit 144705 "ERM Shipment Request M-11"
         ShipmentRequestM11.Run();
 
         exit(TransferShipmentHeader."No.");
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintM11TransferReceipt(LineQty: Integer): Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TransferHeader: Record "Transfer Header";
         TransferReceiptHeader: Record "Transfer Receipt Header";
         ShipmentRequestM11: Report "Shipment Request M-11";
@@ -324,6 +325,7 @@ codeunit 144705 "ERM Shipment Request M-11"
         ItemNo: array[5] of Code[20];
         Qty: array[5] of Decimal;
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         FromLocationCode := InitItemInventory(ItemNo, Qty, LineQty);
@@ -340,6 +342,7 @@ codeunit 144705 "ERM Shipment Request M-11"
         ShipmentRequestM11.Run();
 
         exit(TransferReceiptHeader."No.");
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintM11ItemReclassJnl(LineQty: Integer): Code[20]
@@ -351,11 +354,13 @@ codeunit 144705 "ERM Shipment Request M-11"
 
     local procedure PrintM11ItemReclassJnlItemNo(LineQty: Integer; ItemNo: Array[22] of Code[20]) DocumentNo: Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         ItemJnlLine: Record "Item Journal Line";
         ShipmentRequestM11: Report "Shipment Request M-11";
         Qty: array[22] of Decimal;
         i: Integer;
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         DocumentNo := LibraryUtility.GenerateGUID();
@@ -373,6 +378,7 @@ codeunit 144705 "ERM Shipment Request M-11"
         ShipmentRequestM11.SetTableView(ItemJnlLine);
         ShipmentRequestM11.UseRequestPage(false);
         ShipmentRequestM11.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateTransferOrder(var TransferHeader: Record "Transfer Header"; FromLocationCode: Code[10]; ItemNo: array[3] of Code[20]; Quantity: array[3] of Decimal; LineQty: Integer)

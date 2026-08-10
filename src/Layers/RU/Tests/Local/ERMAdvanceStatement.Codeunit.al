@@ -12,8 +12,6 @@ codeunit 144707 "ERM Advance Statement"
     var
         LibraryRUReports: Codeunit "Library RU Reports";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -167,10 +165,6 @@ codeunit 144707 "ERM Advance Statement"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         LibrarySetupStorage.Restore();
         if IsInitialized then
             exit;
@@ -240,27 +234,33 @@ codeunit 144707 "ERM Advance Statement"
 
     local procedure RunAdvanceStatementReport(var PurchaseHeader: Record "Purchase Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         AdvanceStatement: Report "Advance Statement";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         PurchaseHeader.SetRecFilter();
         AdvanceStatement.SetTableView(PurchaseHeader);
         AdvanceStatement.SetFileNameSilent(LibraryReportValidation.GetFileName());
         AdvanceStatement.UseRequestPage(false);
         AdvanceStatement.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedAdvanceStatementReport(DocumentNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchInvHeader: Record "Purch. Inv. Header";
         PostedAdvanceStatement: Report "Posted Advance Statement";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         PurchInvHeader.SetRange("No.", DocumentNo);
         PostedAdvanceStatement.SetTableView(PurchInvHeader);
         PostedAdvanceStatement.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedAdvanceStatement.UseRequestPage(false);
         PostedAdvanceStatement.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure UpdateOKPOCodeInCompanyInfo(NewOKPOCode: Code[10])

@@ -20,8 +20,6 @@ codeunit 144001 "ERM RU - Base"
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -1418,7 +1416,6 @@ codeunit 144001 "ERM RU - Base"
     var
         DummySalesHeader: Record "Sales Header";
     begin
-        EnsureHandlerBound();
         LibrarySetupStorage.Restore();
 
         if IsInitialized then
@@ -1470,24 +1467,16 @@ codeunit 144001 "ERM RU - Base"
 
     local procedure ExecuteBankPaymentOrderReport(GenJournalLine: Record "Gen. Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         BankPaymentOrder: Report "Bank Payment Order";
     begin
-        EnsureHandlerBound();
+        BindSubscription(RUReportDownloadHandler);
         Commit();
         GenJournalLine.SetRecFilter();
         BankPaymentOrder.SetTableView(GenJournalLine);
         BankPaymentOrder.SetFileNameSilent(LibraryReportValidation.GetFileName());
         BankPaymentOrder.RunModal();
-    end;
-
-    local procedure EnsureHandlerBound()
-    begin
-        // Bind the RU report download handler before any report is exported. Called from the report
-        // run helpers (not only Initialize) because some report tests do not call Initialize.
-        if RUReportHandlerBound then
-            exit;
-        BindSubscription(RUReportDownloadHandler);
-        RUReportHandlerBound := true;
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateStandardText(): Text[250]

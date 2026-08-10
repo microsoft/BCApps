@@ -14,8 +14,6 @@ codeunit 144703 "ERM Purchase Receipt M-4"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
-        RUReportHandlerBound: Boolean;
         LibraryRUReports: Codeunit "Library RU Reports";
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -137,11 +135,13 @@ codeunit 144703 "ERM Purchase Receipt M-4"
     [Scope('OnPrem')]
     procedure PrintM4PurchaseOrderWith20CharsItemNo()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurchaseReceiptM4: Report "Purchase Receipt M-4";
         GLAccountNo: Code[20];
     begin
+        BindSubscription(RUReportDownloadHandler);
         // [SCENARIO 203310] M-4 Report for Purchase Order can be printed if line has "No." of 20 chars
         Initialize();
 
@@ -164,12 +164,14 @@ codeunit 144703 "ERM Purchase Receipt M-4"
 
         // [THEN] M-4 Report is printed and contains "PO"'s "No."
         LibraryReportValidation.VerifyCellValue(5, 7, PurchaseHeader."No.");
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure PrintM4PostedPurchaseOrderWith20CharsItemNo()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchaseHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchaseLine: Record "Purchase Line";
@@ -177,6 +179,7 @@ codeunit 144703 "ERM Purchase Receipt M-4"
         DocumentNo: Code[20];
         GLAccountNo: Code[20];
     begin
+        BindSubscription(RUReportDownloadHandler);
         // [SCENARIO 203310] M-4 Report for Posted Purchase Order can be printed if line has "No." of 20 chars
         Initialize();
 
@@ -202,18 +205,21 @@ codeunit 144703 "ERM Purchase Receipt M-4"
 
         // [THEN] M-4 Report is printed and contains "No." of posted Purchase Receipt
         LibraryReportValidation.VerifyCellValue(5, 7, DocumentNo);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure PrintM4PurchaseInvoiceWith32PurchaseLines()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ItemNo: Code[20];
         Index: Integer;
         PurchaseReceiptM4: Report "Purchase Receipt M-4";
     begin
+        BindSubscription(RUReportDownloadHandler);
         // [SCENARIO 360186] M-4 report lost a line on print form
         Initialize();
 
@@ -236,16 +242,13 @@ codeunit 144703 "ERM Purchase Receipt M-4"
         // [THEN] Line with quantity = 30 should exists on the report
         LibraryReportValidation.VerifyCellValue(
             LibraryReportValidation.FindRowNoFromColumnNoAndValue(6, '30'), 1, ItemNo);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        if not RUReportHandlerBound then begin
-            BindSubscription(RUReportDownloadHandler);
-            RUReportHandlerBound := true;
-        end;
         if isInitialized then
             exit;
 
@@ -257,9 +260,11 @@ codeunit 144703 "ERM Purchase Receipt M-4"
 
     local procedure PrintM4PurchaseOrder(var LineQty: Integer): Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchaseHeader: Record "Purchase Header";
         PurchaseReceiptM4: Report "Purchase Receipt M-4";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         LineQty := LibraryRandom.RandIntInRange(2, 5);
@@ -275,14 +280,17 @@ codeunit 144703 "ERM Purchase Receipt M-4"
         PurchaseReceiptM4.Run();
 
         exit(PurchaseHeader."No.");
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintM4PostedPurchaseInvoice(var LineQty: Integer) DocumentNo: Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchaseHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         PostedPurchaseReceiptM4: Report "Posted Purchase Receipt M-4";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         LineQty := LibraryRandom.RandIntInRange(2, 5);
@@ -295,6 +303,7 @@ codeunit 144703 "ERM Purchase Receipt M-4"
         PostedPurchaseReceiptM4.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedPurchaseReceiptM4.UseRequestPage(false);
         PostedPurchaseReceiptM4.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure GetVendorFromPurchOrder(var Vendor: Record Vendor; DocumentNo: Code[20])
