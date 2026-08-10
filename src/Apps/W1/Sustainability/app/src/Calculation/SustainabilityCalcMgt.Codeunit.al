@@ -109,6 +109,83 @@ codeunit 6218 "Sustainability Calc. Mgt."
             PurchaseLine.Validate("Emission N2O", 0);
     end;
 
+    internal procedure GetFormulaInputEditability(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        if SustainabilityJnlLine."Manual Input" then
+            exit;
+
+        GetFormulaInputEditability(SustainabilityJnlLine."Account Category", false, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
+    end;
+
+    internal procedure GetFormulaInputEditability(PurchaseLine: Record "Purchase Line"; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        GetFormulaInputEditability(PurchaseLine."Sust. Account Category", true, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
+    end;
+
+    local procedure GetFormulaInputEditability(AccountCategoryCode: Code[20]; PurchaseSurface: Boolean; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        if not SustainAccountCategory.Get(AccountCategoryCode) then
+            exit;
+
+        case SustainAccountCategory."Emission Scope" of
+            Enum::"Emission Scope"::"Scope 1":
+                case SustainAccountCategory."Calculation Foundation" of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Distance:
+                        DistanceEditable := true;
+                    Enum::"Calculation Foundation"::Installations:
+                        begin
+                            CustomAmountEditable := true;
+                            InstallationMultiplierEditable := true;
+                            TimeFactorEditable := true;
+                        end;
+                end;
+            Enum::"Emission Scope"::"Scope 2":
+                case SustainAccountCategory."Calculation Foundation" of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Custom:
+                        CustomAmountEditable := true;
+                end;
+            Enum::"Emission Scope"::"Scope 3":
+                case SustainAccountCategory."Calculation Foundation" of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Distance:
+                        begin
+                            DistanceEditable := true;
+                            InstallationMultiplierEditable := true;
+                        end;
+                    Enum::"Calculation Foundation"::Custom:
+                        CustomAmountEditable := true;
+                end;
+            Enum::"Emission Scope"::"Water/Waste":
+                if (not PurchaseSurface) and (SustainAccountCategory."Calculation Foundation" = Enum::"Calculation Foundation"::Custom) then
+                    CustomAmountEditable := true;
+        end;
+    end;
+
     /// <summary>
     /// Filter general ledger entries by criteria defined in sustainability category and by date and calculate the total
     /// </summary>
