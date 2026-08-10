@@ -26,7 +26,14 @@ page 9668 "New Report Theme Header/Footer"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Name';
                 ShowMandatory = true;
+                Visible = not EditMode;
                 ToolTip = 'Specifies the name of the new theme or header/footer.';
+            }
+            field(DescriptionField; PartDescription)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Description';
+                ToolTip = 'Specifies a description for the new theme or header/footer.';
             }
         }
     }
@@ -50,9 +57,28 @@ page 9668 "New Report Theme Header/Footer"
         exit(PartName);
     end;
 
+    internal procedure GetPartDescription(): Text[250]
+    begin
+        exit(PartDescription);
+    end;
+
+    /// <summary>
+    /// Switches the dialog to description-only edit mode: the Name is hidden (renaming a part would orphan its
+    /// Tenant Report Layout Cfg assignments) and the description is pre-filled with the current value.
+    /// </summary>
+    internal procedure SetEditDescriptionMode(CurrentDescription: Text[250])
+    begin
+        EditMode := true;
+        PartDescription := CurrentDescription;
+        DialogCaption := EditDescriptionCaptionLbl;
+    end;
+
     var
         PartName: Text[250];
+        PartDescription: Text[250];
         DialogCaption: Text;
+        EditMode: Boolean;
         NewThemeCaptionLbl: Label 'New Theme';
         NewHeaderFooterCaptionLbl: Label 'New Header/Footer';
+        EditDescriptionCaptionLbl: Label 'Edit Description';
 }
