@@ -256,10 +256,6 @@
       "justification": "The FindSet() or Find() method on the record must be used only in connection with the Next() method."
     },
     {
-      "id": "AA0189",
-      "action": "Warning"
-    },
-    {
       "id": "AA0194",
       "action": "Warning",
       "justification": "Remember to specify either the 'OnAction' trigger or the 'RunObject' property on an action."
