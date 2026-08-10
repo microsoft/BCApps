@@ -9,6 +9,7 @@ using System.IO;
 codeunit 8362 FinReportExportNameHandler
 {
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
         OutputFilename: Text;
