@@ -27,8 +27,12 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
     procedure LoadHistoricalLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; ProductCode: Text[100]; Description: Text[100])
     var
         PurchInvLine: Record "Purch. Inv. Line";
+        EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
         ProductCodes: List of [Text];
         Descriptions: List of [Text];
+        SimilarDescriptions: List of [Text];
+        DescriptionEntry: Text;
+        SimilarTerm: Text;
     begin
         TotalLoaded := 0;
 
@@ -40,30 +44,37 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
         if Description <> '' then
             Descriptions.Add(Description);
 
+        // Resolve LLM-based similar terms once and reuse across vendor scopes to avoid
+        // duplicating the AI round-trip on the same-vendor and cross-vendor passes.
+        foreach DescriptionEntry in Descriptions do
+            foreach SimilarTerm in EDocSimilarDescriptions.GetSimilarDescriptions(DescriptionEntry) do begin
+                SimilarTerm := SimilarTerm.Trim();
+                if (StrLen(SimilarTerm) > 3) and (not SimilarDescriptions.Contains(SimilarTerm)) then
+                    SimilarDescriptions.Add(SimilarTerm);
+            end;
+
         // Priority tiers — same vendor matching, then cross vendor matching, then fill
         if VendorNo <> '' then begin
             // Tier 1-3: Same vendor, matched by product code / exact desc / similar desc
-            LoadMatchingLines(TempPurchInvLine, VendorNo, ProductCodes, Descriptions);
+            LoadMatchingLines(TempPurchInvLine, VendorNo, ProductCodes, Descriptions, SimilarDescriptions);
             // Tier 4-6: Cross vendor, matched by product code / exact desc / similar desc
-            LoadMatchingLines(TempPurchInvLine, '', ProductCodes, Descriptions);
+            LoadMatchingLines(TempPurchInvLine, '', ProductCodes, Descriptions, SimilarDescriptions);
             // Tier 7: Same vendor, any remaining
             LoadRemainingLines(TempPurchInvLine, VendorNo);
             // Tier 8: Cross vendor, any remaining
             LoadRemainingLines(TempPurchInvLine, '');
         end else begin
-            LoadMatchingLines(TempPurchInvLine, '', ProductCodes, Descriptions);
+            LoadMatchingLines(TempPurchInvLine, '', ProductCodes, Descriptions, SimilarDescriptions);
             LoadRemainingLines(TempPurchInvLine, '');
         end;
     end;
 
-    local procedure LoadMatchingLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; ProductCodes: List of [Text]; Descriptions: List of [Text])
+    local procedure LoadMatchingLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; ProductCodes: List of [Text]; Descriptions: List of [Text]; SimilarDescriptions: List of [Text])
     var
         PurchInvLine: Record "Purch. Inv. Line";
-        EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
         ProductCode: Text;
         Description: Text;
         SimilarTerm: Text;
-        SimilarTerms: List of [Text];
     begin
         if TotalLoaded >= MaxHistoricalRecords() then
             exit;
@@ -90,23 +101,15 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
             InsertLines(TempPurchInvLine, PurchInvLine);
         end;
 
-        // Similar description matches (LLM-generated semantically similar terms)
-        foreach Description in Descriptions do begin
+        // Similar description matches (LLM-generated semantically similar terms, precomputed once)
+        foreach SimilarTerm in SimilarDescriptions do begin
             if TotalLoaded >= MaxHistoricalRecords() then
                 exit;
-            SimilarTerms := EDocSimilarDescriptions.GetSimilarDescriptions(Description);
-            foreach SimilarTerm in SimilarTerms do begin
-                SimilarTerm := SimilarTerm.Trim();
-                if (SimilarTerm <> '') and (StrLen(SimilarTerm) > 3) then begin
-                    if TotalLoaded >= MaxHistoricalRecords() then
-                        exit;
-                    PurchInvLine.Reset();
-                    SetBaseFilters(PurchInvLine);
-                    SetVendorFilter(PurchInvLine, VendorNo);
-                    PurchInvLine.SetFilter(Description, '@*' + SimilarTerm + '*');
-                    InsertLines(TempPurchInvLine, PurchInvLine);
-                end;
-            end;
+            PurchInvLine.Reset();
+            SetBaseFilters(PurchInvLine);
+            SetVendorFilter(PurchInvLine, VendorNo);
+            PurchInvLine.SetFilter(Description, '@*' + SimilarTerm + '*');
+            InsertLines(TempPurchInvLine, PurchInvLine);
         end;
     end;
 
