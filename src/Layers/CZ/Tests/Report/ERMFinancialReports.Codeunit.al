@@ -1597,6 +1597,63 @@ codeunit 134982 "ERM Financial Reports"
         end;
     end;
 
+    [Test]
+    [HandlerFunctions('RHDetailTrialBalance')]
+    [Scope('OnPrem')]
+    procedure DetailTrialBalanceClosingEntryExcludedFromRunningBalance()
+    var
+        AccountingPeriod: Record "Accounting Period";
+        GLAccountNo: Code[20];
+        BalGLAccountNo: Code[20];
+        FiscalYearEndDate: Date;
+        ClosingEntryDate: Date;
+        LastEntryDate: Date;
+        FirstAmount: Decimal;
+        ClosingAmount: Decimal;
+        LastAmount: Decimal;
+    begin
+        // [FEATURE] [Detail Trial Balance] [AI Test]
+        // [SCENARIO 645090] Closing entry is not added to the running balance when "Include Closing Entries Within the Period" is disabled.
+        Initialize();
+
+        // [GIVEN] A closing entry can only be posted on the ending date of a fiscal year, so anchor the scenario on the first open fiscal year.
+        AccountingPeriod.SetRange("New Fiscal Year", true);
+        AccountingPeriod.SetRange(Closed, false);
+        AccountingPeriod.FindFirst();
+        FiscalYearEndDate := CalcDate('<-1D>', AccountingPeriod."Starting Date");
+        ClosingEntryDate := ClosingDate(FiscalYearEndDate);
+        LastEntryDate := AccountingPeriod."Starting Date";
+
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        BalGLAccountNo := LibraryERM.CreateGLAccountNo();
+        FirstAmount := LibraryRandom.RandDecInRange(100, 200, 2);
+        ClosingAmount := LibraryRandom.RandDecInRange(100, 200, 2);
+        LastAmount := LibraryRandom.RandDecInRange(100, 200, 2);
+
+        // [GIVEN] Ordinary entry of Amount = "X" posted to G/L Account "A" on the last day of the fiscal year.
+        CreateAndPostGenJnlLineOnPostingDate(GLAccountNo, BalGLAccountNo, FiscalYearEndDate, FirstAmount);
+
+        // [GIVEN] Closing entry of Amount = "C" posted to "A" on the closing date of the same fiscal year end.
+        CreateAndPostGenJnlLineOnPostingDate(GLAccountNo, BalGLAccountNo, ClosingEntryDate, ClosingAmount);
+
+        // [GIVEN] Ordinary entry of Amount = "Y" posted to "A" on the first day of the new fiscal year.
+        CreateAndPostGenJnlLineOnPostingDate(GLAccountNo, BalGLAccountNo, LastEntryDate, LastAmount);
+
+        // [WHEN] Save Detail Trial Balance Report for "A" with "Include Closing Entries Within the Period" = No.
+        RunDetailTrialBalanceReport(
+          GLAccountNo, false, false, false, false, CopyStr(StrSubstNo('%1..%2', FiscalYearEndDate, LastEntryDate), 1, 30));
+
+        // [THEN] The closing entry is not printed.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueNotExist('EntryNo_GLEntry', FindGLEntryNo(GLAccountNo, ClosingEntryDate));
+
+        // [THEN] Balance of the last printed entry is "X" + "Y", the excluded closing entry "C" is not accumulated.
+        LibraryReportDataset.SetRange('EntryNo_GLEntry', FindGLEntryNo(GLAccountNo, LastEntryDate));
+        if not LibraryReportDataset.GetNextRow() then
+            Error(RowNotFoundErr, 'EntryNo_GLEntry', FindGLEntryNo(GLAccountNo, LastEntryDate));
+        LibraryReportDataset.AssertCurrentRowValueEquals('GLBalance', FirstAmount + LastAmount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2481,6 +2538,28 @@ codeunit 134982 "ERM Financial Reports"
           StrSubstNo(CloseIncomeAmountMismatchErr,
             PostedGLEntry.FieldCaption("Source Currency Amount"), SourceCurrencyCode,
             -PostedGLEntry."Source Currency Amount", CloseIncomeGLEntry."Source Currency Amount"));
+    end;
+
+    local procedure CreateAndPostGenJnlLineOnPostingDate(GLAccountNo: Code[20]; BalGLAccountNo: Code[20]; PostingDate: Date; Amount: Decimal)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        CreateGeneralJournalLine(GenJournalLine, GenJournalLine."Account Type"::"G/L Account", GLAccountNo, Amount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure FindGLEntryNo(GLAccountNo: Code[20]; PostingDate: Date): Integer
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.SetRange("Posting Date", PostingDate);
+        GLEntry.FindFirst();
+        exit(GLEntry."Entry No.");
     end;
 
     [ConfirmHandler]
