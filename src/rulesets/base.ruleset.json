@@ -24,10 +24,6 @@
       "justification": "Use pragma to remove obsolete warning."
     },
     {
-      "id": "AL0457",
-      "action": "Warning"
-    },
-    {
       "id": "AL0523",
       "action": "Warning"
     },
@@ -138,6 +134,11 @@
       "justification": "Action must have a value for the ApplicationArea property so that they are visible to users. From runtime 11.0, you can specify on the application object level the ApplicationArea to use as default for all its controls and actions."
     },
     {
+      "id": "AS0094",
+      "action": "Warning",
+      "justification": "Legacy extensionsPermissionSet.xml files in INTCS, INTDS and INTaxEngine must be converted to AL PermissionSet objects. Tracked by AB#640773."
+    },
+    {
       "id": "AS0099",
       "action": "Warning",
       "justification": "The ID '0' for the EnumValue 'Marketing Text' is not valid. It should be within the range '[1..2147483647]', which is allocated to the application, and outside the range '[50000..99999]', which is allocated to per-tenant customizations."
@@ -146,10 +147,6 @@
       "id": "AS0103",
       "action": "Warning",
       "justification": "Table is missing a matching permission set."
-    },
-    {
-      "id": "AA0013",
-      "action": "Warning"
     },
     {
       "id": "AA0021",
@@ -471,6 +468,11 @@
       "action": "Warning"
     },
     {
+      "id": "AL1026",
+      "action": "Warning",
+      "justification": "RoleID exceeds the maximum length in the legacy extensionsPermissionSet.xml files of INTCS, INTDS and INTaxEngine. Tracked by AB#640773."
+    },
+    {
       "id": "AS0011",
       "action": "Warning"
     },
@@ -485,6 +487,11 @@
     {
       "id": "PTE0010",
       "action": "Warning"
+    },
+    {
+      "id": "PTE0014",
+      "action": "Warning",
+      "justification": "Legacy extensionsPermissionSet.xml files in INTCS, INTDS and INTaxEngine must be converted to AL PermissionSet objects. Tracked by AB#640773."
     },
     {
       "id": "PTE0015",
