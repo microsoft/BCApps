@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Telemetry and audit logging for Corporate Card operations.
 /// Logs import operations, exceptions, and configuration changes.
 /// </summary>
-codeunit 7214 EACorpCardAuditSubscribers
+codeunit 7214 "EA Corp Card Audit Subscribers"
 {
     Access = Internal;
     SingleInstance = true;

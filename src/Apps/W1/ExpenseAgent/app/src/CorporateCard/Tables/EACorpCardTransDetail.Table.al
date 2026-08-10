@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7219 EACorpCardTransDetail
+table 7219 "EA Corp Card Trans Detail"
 {
     Access = Internal;
     Caption = 'Corp Card Transaction Detail';
@@ -16,7 +16,7 @@ table 7219 EACorpCardTransDetail
         field(1; "Trans Entry No."; Integer)
         {
             Caption = 'Transaction Entry No.';
-            TableRelation = EACorpCardTrans."Entry No.";
+            TableRelation = "EA Corp Card Trans"."Entry No.";
             ToolTip = 'Specifies the transaction entry number for the corporate card transaction detail.';
         }
         field(2; "Line No."; Integer)

@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7225 EACorpCardMCCMap
+page 7225 "EA Corp Card MCC Map"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card MCC Map';
     PageType = List;
     UsageCategory = Lists;
-    SourceTable = EACorpCardMCCMap;
+    SourceTable = "EA Corp Card MCC Map";
 
     layout
     {

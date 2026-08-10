@@ -2,7 +2,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.IO;
 
-codeunit 7234 EACreateCorpCardL3Demo
+codeunit 7234 "EA Create Corp Card L3 Demo"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -13,8 +13,8 @@ codeunit 7234 EACreateCorpCardL3Demo
         tabledata "Data Exch. Column Def" = rimd,
         tabledata "Data Exch. Mapping" = rimd,
         tabledata "Data Exch. Field Mapping" = rimd,
-        tabledata EACorpCardProvider = rimd,
-        tabledata EACorpCardMCCMap = rimd,
+        tabledata "EA Corp Card Provider" = rimd,
+        tabledata "EA Corp Card MCC Map" = rimd,
         tabledata "Expense Category" = rimd,
         tabledata "Expense Agent Setup" = rimd;
 
@@ -25,7 +25,7 @@ codeunit 7234 EACreateCorpCardL3Demo
 
     internal procedure CreateDefaults()
     var
-        CorpCardMCCMgt: Codeunit EACorpCardMCCMgt;
+        CorpCardMCCMgt: Codeunit "EA Corp Card MCC Mgt";
     begin
         EnsureProvider();
         EnsureProviderCardLinks();
@@ -36,7 +36,7 @@ codeunit 7234 EACreateCorpCardL3Demo
 
     local procedure EnsureProvider()
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
     begin
         if not CorpCardProvider.Get(Level3ProviderCodeTok) then begin
             CorpCardProvider.Init();
@@ -69,7 +69,7 @@ codeunit 7234 EACreateCorpCardL3Demo
     var
         DataExchDef: Record "Data Exch. Def";
         DataExchMapping: Record "Data Exch. Mapping";
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardTrans: Record "EA Corp Card Trans";
     begin
         if not DataExchDef.Get(Level3DataExchDefCodeTok) then begin
             DataExchDef.Init();
@@ -115,25 +115,25 @@ codeunit 7234 EACreateCorpCardL3Demo
         EnsureColumnDef(Level3DataExchDefCodeTok, Level3DetailLineCodeTok, 6, 'TaxAmount', '/Transactions/Transaction/Level3/TaxLine/TaxAmount');
         EnsureColumnDef(Level3DataExchDefCodeTok, Level3DetailLineCodeTok, 7, 'TaxCode', '/Transactions/Transaction/Level3/TaxLine/TaxCode');
 
-        if not DataExchMapping.Get(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, Database::EACorpCardTrans) then begin
+        if not DataExchMapping.Get(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, Database::"EA Corp Card Trans") then begin
             DataExchMapping.Init();
             DataExchMapping."Data Exch. Def Code" := Level3DataExchDefCodeTok;
             DataExchMapping."Data Exch. Line Def Code" := Level3HeaderLineCodeTok;
-            DataExchMapping."Table ID" := Database::EACorpCardTrans;
+            DataExchMapping."Table ID" := Database::"EA Corp Card Trans";
             DataExchMapping.Name := Level3MappingNameLbl;
-            DataExchMapping."Mapping Codeunit" := Codeunit::EACorpCardDENoop;
+            DataExchMapping."Mapping Codeunit" := Codeunit::"EA Corp Card DE Noop";
             DataExchMapping.Insert(true);
         end;
 
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 1, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Provider Trans Id"));
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 2, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Card Id"));
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 3, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Trans Date"));
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 4, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Posting Date"));
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 5, Database::EACorpCardTrans, CorpCardTrans.FieldNo(Amount));
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 6, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Currency Code"));
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 7, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Merchant Raw"));
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 8, Database::EACorpCardTrans, CorpCardTrans.FieldNo(MCC));
-        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 9, Database::EACorpCardTrans, CorpCardTrans.FieldNo(Country));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 1, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Provider Trans Id"));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 2, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Card Id"));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 3, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Trans Date"));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 4, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Posting Date"));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 5, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(Amount));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 6, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Currency Code"));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 7, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Merchant Raw"));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 8, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(MCC));
+        EnsureFieldMapping(Level3DataExchDefCodeTok, Level3HeaderLineCodeTok, 9, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(Country));
     end;
 
     local procedure EnsureLineDef(DataExchDefCode: Code[20]; LineCode: Code[20]; LineName: Text[100]; DataLineTag: Text[250]; ParentCode: Code[20]; ColumnCount: Integer)
@@ -209,7 +209,7 @@ codeunit 7234 EACreateCorpCardL3Demo
 
     local procedure EnsureSamplePayload()
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
         ProviderOutStr: OutStream;
     begin
         if not CorpCardProvider.Get(Level3ProviderCodeTok) then
@@ -288,7 +288,7 @@ codeunit 7234 EACreateCorpCardL3Demo
     local procedure EnsureProviderCardLinks()
     var
         ExpenseUser: Record "Expense User";
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
     begin
         if not ExpenseUser.FindSet() then
             exit;
@@ -315,8 +315,8 @@ codeunit 7234 EACreateCorpCardL3Demo
 
     local procedure EnsureSampleCardIdsForLevel3Provider()
     var
-        CorpCard: Record EACorpCard;
-        ExistingProviderCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
+        ExistingProviderCard: Record "EA Corp Card";
         TargetCardId: Code[50];
         ExternalRef: Code[50];
         FallbackExpenseUserNo: Code[20];
@@ -349,7 +349,7 @@ codeunit 7234 EACreateCorpCardL3Demo
 
     local procedure GetDemoCardIds(var PrimaryCardId: Code[50]; var SecondaryCardId: Code[50])
     var
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
     begin
         CorpCard.SetRange("Provider Code", Level3ProviderCodeTok);
         if CorpCard.FindSet() then begin
@@ -366,7 +366,7 @@ codeunit 7234 EACreateCorpCardL3Demo
 
     local procedure GetNextCardId(): Code[50]
     var
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
         CandidateCardId: Code[50];
         SequenceNo: Integer;
     begin

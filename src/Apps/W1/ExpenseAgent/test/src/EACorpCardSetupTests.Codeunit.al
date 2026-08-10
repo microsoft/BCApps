@@ -22,8 +22,8 @@ codeunit 148339 EACorpCardSetupTests
     [Test]
     procedure CreateDefaultsIsIdempotentAndSeedsPayload()
     var
-        CorpCardProvider: Record EACorpCardProvider;
-        CreateCorpCardSetup: Codeunit EACreateCorpCardSetup;
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
         ProviderCountBefore: Integer;
         ProviderCountAfter: Integer;
         CardCountBefore: Integer;
@@ -73,7 +73,7 @@ codeunit 148339 EACorpCardSetupTests
 
     local procedure CountDefaultProviders(): Integer
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
     begin
         CorpCardProvider.SetFilter(Code, '%1|%2|%3|%4|%5', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok, CorpCardIsoProviderCodeTok, CorpCardCamt053ProviderCodeTok, CorpCardCamt054ProviderCodeTok);
         exit(CorpCardProvider.Count());
@@ -81,7 +81,7 @@ codeunit 148339 EACorpCardSetupTests
 
     local procedure CountCardsForDefaultProviders(): Integer
     var
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
     begin
         CorpCard.SetFilter("Provider Code", '%1|%2|%3|%4|%5', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok, CorpCardIsoProviderCodeTok, CorpCardCamt053ProviderCodeTok, CorpCardCamt054ProviderCodeTok);
         exit(CorpCard.Count());

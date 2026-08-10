@@ -415,7 +415,7 @@ page 6996 "Expense Agent Setup"
 
                     trigger OnAction()
                     var
-                        CreateCorpCardSetup: Codeunit EACreateCorpCardSetup;
+                        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
                     begin
                         CreateCorpCardSetup.CreateDefaults();
                     end;
@@ -429,7 +429,7 @@ page 6996 "Expense Agent Setup"
 
                     trigger OnAction()
                     var
-                        CreateCorpCardL3Demo: Codeunit EACreateCorpCardL3Demo;
+                        CreateCorpCardL3Demo: Codeunit "EA Create Corp Card L3 Demo";
                     begin
                         CreateCorpCardL3Demo.CreateDefaults();
                     end;

@@ -6,13 +6,13 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 
-table 7211 EACorpCard
+table 7211 "EA Corp Card"
 {
     Access = Internal;
     Caption = 'Corp Card';
     DataClassification = CustomerContent;
-    LookupPageId = EACorpCardCards;
-    DrillDownPageId = EACorpCardCards;
+    LookupPageId = "EA Corp Card Cards";
+    DrillDownPageId = "EA Corp Card Cards";
     ReplicateData = false;
 
     fields
@@ -25,7 +25,7 @@ table 7211 EACorpCard
         field(2; "Provider Code"; Code[20])
         {
             Caption = 'Provider Code';
-            TableRelation = EACorpCardProvider.Code;
+            TableRelation = "EA Corp Card Provider".Code;
             ToolTip = 'Specifies the provider code for the card.';
         }
         field(3; "External Card Ref"; Code[50])

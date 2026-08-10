@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7224 EACorpCardProviders
+page 7224 "EA Corp Card Providers"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Providers';
     PageType = List;
     UsageCategory = Administration;
-    SourceTable = EACorpCardProvider;
+    SourceTable = "EA Corp Card Provider";
 
     layout
     {
@@ -231,7 +231,7 @@ page 7224 EACorpCardProviders
 
     local procedure RunTestImportForProvider()
     var
-        CorpCardFeedMgt: Codeunit EACorpCardFeedMgt;
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         CorpCardFeedMgt.RunImport(Rec.Code);
         Message(ImportTriggeredMsg, Rec.Code);
@@ -239,19 +239,19 @@ page 7224 EACorpCardProviders
 
     local procedure OpenLatestBatchForProvider()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         if Rec."Last Batch No." = 0 then
             Error(NoBatchFoundErr, Rec.Code);
 
         CorpCardBatch.SetRange("Provider Code", Rec.Code);
         CorpCardBatch.SetRange("Batch No.", Rec."Last Batch No.");
-        Page.RunModal(Page::EACorpCardBatches, CorpCardBatch);
+        Page.RunModal(Page::"EA Corp Card Batches", CorpCardBatch);
     end;
 
     local procedure ScheduleProviderImport()
     var
-        JQMgt: Codeunit EACorpCardJQMgt;
+        JQMgt: Codeunit "EA Corp Card JQ Mgt";
     begin
         JQMgt.ScheduleProviderImport(Rec.Code, 1440, 080000T, Today());
         Message('Provider %1 scheduled for daily import.', Rec.Code);
@@ -259,7 +259,7 @@ page 7224 EACorpCardProviders
 
     local procedure UnscheduleProviderImport()
     var
-        JQMgt: Codeunit EACorpCardJQMgt;
+        JQMgt: Codeunit "EA Corp Card JQ Mgt";
     begin
         if Confirm('Are you sure you want to unschedule imports for provider %1?', false, Rec.Code) then
             JQMgt.UnscheduleProviderImport(Rec.Code);
@@ -272,7 +272,7 @@ page 7224 EACorpCardProviders
 
     local procedure InitializeDataExchangeForProvider()
     var
-        CreateCorpCardSetup: Codeunit EACreateCorpCardSetup;
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
         CreateCorpCardSetup.EnsureDataExchangeForProvider(Rec);
         CurrPage.Update(false);
@@ -302,7 +302,7 @@ page 7224 EACorpCardProviders
 
     local procedure GetSourcePayloadRecordCount(): Integer
     var
-        ProviderRefreshed: Record EACorpCardProvider;
+        ProviderRefreshed: Record "EA Corp Card Provider";
         PayloadInStr: InStream;
         PayloadTxt: Text;
         SourceFileNameLower: Text;

@@ -2,7 +2,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.IO;
 
-codeunit 7232 EACreateCorpCardSetup
+codeunit 7232 "EA Create Corp Card Setup"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -15,8 +15,8 @@ codeunit 7232 EACreateCorpCardSetup
         tabledata "Data Exch. Column Def" = rimd,
         tabledata "Data Exch. Mapping" = rimd,
         tabledata "Data Exch. Field Mapping" = rimd,
-        tabledata EACorpCard = rimd,
-        tabledata EACorpCardProvider = rimd;
+        tabledata "EA Corp Card" = rimd,
+        tabledata "EA Corp Card Provider" = rimd;
 
     trigger OnRun()
     begin
@@ -25,8 +25,8 @@ codeunit 7232 EACreateCorpCardSetup
 
     internal procedure CreateDefaults()
     var
-        CorpCardProvider: Record EACorpCardProvider;
-        CorpCardMCCMgt: Codeunit EACorpCardMCCMgt;
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardMCCMgt: Codeunit "EA Corp Card MCC Mgt";
     begin
         EnsureCorpCardProviders();
 
@@ -41,7 +41,7 @@ codeunit 7232 EACreateCorpCardSetup
         CorpCardMCCMgt.InitializeDefaultMCCMappings();
     end;
 
-    internal procedure EnsureDataExchangeForProvider(var CorpCardProvider: Record EACorpCardProvider)
+    internal procedure EnsureDataExchangeForProvider(var CorpCardProvider: Record "EA Corp Card Provider")
     var
         IsXmlDefinition: Boolean;
         IsManagedDefaultProvider: Boolean;
@@ -91,7 +91,7 @@ codeunit 7232 EACreateCorpCardSetup
     local procedure EnsureDefaultCorpCardLinks(ProviderCode: Code[20])
     var
         ExpenseUser: Record "Expense User";
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
     begin
         if not ExpenseUser.FindSet() then
             exit;
@@ -118,8 +118,8 @@ codeunit 7232 EACreateCorpCardSetup
 
     local procedure EnsureSampleCardIdsForProvider(ProviderCode: Code[20])
     var
-        CorpCard: Record EACorpCard;
-        ExistingProviderCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
+        ExistingProviderCard: Record "EA Corp Card";
         TargetCardId: Code[50];
         PrefixTxt: Text;
         ExternalRef: Code[50];
@@ -175,7 +175,7 @@ codeunit 7232 EACreateCorpCardSetup
 
     local procedure GetNextCorpCardId(): Code[50]
     var
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
         CandidateCardId: Code[50];
         SequenceNo: Integer;
     begin
@@ -214,16 +214,16 @@ codeunit 7232 EACreateCorpCardSetup
 
     local procedure EnsureCorpCardProviders()
     begin
-        EnsureCorpCardProvider(CorpCardCsvProviderCodeTok, CorpCardCsvProviderDescriptionLbl, Enum::EACorpCardFeedType::CSV, CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok);
-        EnsureCorpCardProvider(CorpCardXmlProviderCodeTok, CorpCardXmlProviderDescriptionLbl, Enum::EACorpCardFeedType::XML, CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
-        EnsureCorpCardProvider(CorpCardIsoProviderCodeTok, CorpCardIsoProviderDescriptionLbl, Enum::EACorpCardFeedType::ISO20022, CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
-        EnsureCorpCardProvider(CorpCardCamt053ProviderCodeTok, CorpCardCamt053ProviderDescriptionLbl, Enum::EACorpCardFeedType::CAMT053, CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
-        EnsureCorpCardProvider(CorpCardCamt054ProviderCodeTok, CorpCardCamt054ProviderDescriptionLbl, Enum::EACorpCardFeedType::CAMT054, CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
+        EnsureCorpCardProvider(CorpCardCsvProviderCodeTok, CorpCardCsvProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::CSV, CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok);
+        EnsureCorpCardProvider(CorpCardXmlProviderCodeTok, CorpCardXmlProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::XML, CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
+        EnsureCorpCardProvider(CorpCardIsoProviderCodeTok, CorpCardIsoProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::ISO20022, CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
+        EnsureCorpCardProvider(CorpCardCamt053ProviderCodeTok, CorpCardCamt053ProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::CAMT053, CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
+        EnsureCorpCardProvider(CorpCardCamt054ProviderCodeTok, CorpCardCamt054ProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::CAMT054, CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
     end;
 
-    local procedure EnsureCorpCardProvider(ProviderCode: Code[20]; Description: Text[100]; FeedType: Enum EACorpCardFeedType; DataExchDefCode: Code[20]; DataExchLineCode: Code[20])
+    local procedure EnsureCorpCardProvider(ProviderCode: Code[20]; Description: Text[100]; FeedType: Enum "EA Corp Card Feed Type"; DataExchDefCode: Code[20]; DataExchLineCode: Code[20])
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
     begin
         if not CorpCardProvider.Get(ProviderCode) then begin
             CorpCardProvider.Init();
@@ -253,7 +253,7 @@ codeunit 7232 EACreateCorpCardSetup
         EnsureSamplePayloadForProvider(CorpCardProvider);
     end;
 
-    local procedure EnsureSamplePayloadForProvider(var CorpCardProvider: Record EACorpCardProvider)
+    local procedure EnsureSamplePayloadForProvider(var CorpCardProvider: Record "EA Corp Card Provider")
     var
         PayloadOutStr: OutStream;
         SamplePayload: Text;
@@ -468,7 +468,7 @@ codeunit 7232 EACreateCorpCardSetup
             ExpenseAgentSetup.Modify(true);
     end;
 
-    local procedure EnsureProviderDefaults(var CorpCardProvider: Record EACorpCardProvider)
+    local procedure EnsureProviderDefaults(var CorpCardProvider: Record "EA Corp Card Provider")
     var
         IsModified: Boolean;
         DesiredDefCode: Code[20];
@@ -499,7 +499,7 @@ codeunit 7232 EACreateCorpCardSetup
         exit(ProviderCode in [CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok, CorpCardIsoProviderCodeTok, CorpCardCamt053ProviderCodeTok, CorpCardCamt054ProviderCodeTok]);
     end;
 
-    local procedure ResolveDefaultDataExchByFeedType(CorpCardProvider: Record EACorpCardProvider; var DesiredDefCode: Code[20]; var DesiredLineCode: Code[20])
+    local procedure ResolveDefaultDataExchByFeedType(CorpCardProvider: Record "EA Corp Card Provider"; var DesiredDefCode: Code[20]; var DesiredLineCode: Code[20])
     begin
         case CorpCardProvider."Feed Type" of
             CorpCardProvider."Feed Type"::CAMT053:
@@ -561,7 +561,7 @@ codeunit 7232 EACreateCorpCardSetup
         exit((DataExchDefCode = CorpCardXmlDataExchDefCodeTok) or (DataExchDefCode = CorpCardIsoDataExchDefCodeTok) or (DataExchDefCode = CorpCardCamt053DataExchDefCodeTok) or (DataExchDefCode = CorpCardCamt054DataExchDefCodeTok));
     end;
 
-    local procedure IsXmlFeedType(FeedType: Enum EACorpCardFeedType): Boolean
+    local procedure IsXmlFeedType(FeedType: Enum "EA Corp Card Feed Type"): Boolean
     begin
         exit(FeedType in [FeedType::XML, FeedType::ISO20022, FeedType::CAMT053, FeedType::CAMT054]);
     end;
@@ -1029,7 +1029,7 @@ codeunit 7232 EACreateCorpCardSetup
         // Repair legacy rows that were created without a line definition code.
         DataExchMapping.Reset();
         DataExchMapping.SetRange("Data Exch. Def Code", DataExchDefCode);
-        DataExchMapping.SetRange("Table ID", Database::EACorpCardTrans);
+        DataExchMapping.SetRange("Table ID", Database::"EA Corp Card Trans");
         if DataExchMapping.FindSet() then
             repeat
                 IsModified := false;
@@ -1038,7 +1038,7 @@ codeunit 7232 EACreateCorpCardSetup
                     IsModified := true;
                 end;
                 if DataExchMapping."Mapping Codeunit" = 0 then begin
-                    DataExchMapping."Mapping Codeunit" := Codeunit::EACorpCardDENoop;
+                    DataExchMapping."Mapping Codeunit" := Codeunit::"EA Corp Card DE Noop";
                     IsModified := true;
                 end;
                 if IsModified then
@@ -1048,10 +1048,10 @@ codeunit 7232 EACreateCorpCardSetup
         DataExchMapping.Reset();
         DataExchMapping.SetRange("Data Exch. Def Code", DataExchDefCode);
         DataExchMapping.SetRange("Data Exch. Line Def Code", LineDefCode);
-        DataExchMapping.SetRange("Table ID", Database::EACorpCardTrans);
+        DataExchMapping.SetRange("Table ID", Database::"EA Corp Card Trans");
         if DataExchMapping.FindFirst() then begin
             if DataExchMapping."Mapping Codeunit" = 0 then begin
-                DataExchMapping."Mapping Codeunit" := Codeunit::EACorpCardDENoop;
+                DataExchMapping."Mapping Codeunit" := Codeunit::"EA Corp Card DE Noop";
                 IsModified := true;
             end;
 
@@ -1063,25 +1063,25 @@ codeunit 7232 EACreateCorpCardSetup
         DataExchMapping.Init();
         DataExchMapping."Data Exch. Def Code" := DataExchDefCode;
         DataExchMapping."Data Exch. Line Def Code" := LineDefCode;
-        DataExchMapping."Table ID" := Database::EACorpCardTrans;
+        DataExchMapping."Table ID" := Database::"EA Corp Card Trans";
         DataExchMapping.Name := CorpCardDataExchMappingNameLbl;
-        DataExchMapping."Mapping Codeunit" := Codeunit::EACorpCardDENoop;
+        DataExchMapping."Mapping Codeunit" := Codeunit::"EA Corp Card DE Noop";
         DataExchMapping.Insert(true);
     end;
 
     local procedure EnsureFieldMappings(DataExchDefCode: Code[20]; LineDefCode: Code[20])
     var
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardTrans: Record "EA Corp Card Trans";
     begin
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 1, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Provider Trans Id"));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 2, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Card Id"));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 3, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Trans Date"));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 4, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Posting Date"));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 5, Database::EACorpCardTrans, CorpCardTrans.FieldNo(Amount));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 6, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Currency Code"));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 7, Database::EACorpCardTrans, CorpCardTrans.FieldNo("Merchant Raw"));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 8, Database::EACorpCardTrans, CorpCardTrans.FieldNo(MCC));
-        EnsureFieldMapping(DataExchDefCode, LineDefCode, 9, Database::EACorpCardTrans, CorpCardTrans.FieldNo(Country));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 1, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Provider Trans Id"));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 2, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Card Id"));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 3, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Trans Date"));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 4, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Posting Date"));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 5, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(Amount));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 6, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Currency Code"));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 7, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Merchant Raw"));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 8, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(MCC));
+        EnsureFieldMapping(DataExchDefCode, LineDefCode, 9, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(Country));
     end;
 
     local procedure EnsureFieldMapping(DataExchDefCode: Code[20]; LineDefCode: Code[20]; ColumnNo: Integer; TableId: Integer; FieldId: Integer)

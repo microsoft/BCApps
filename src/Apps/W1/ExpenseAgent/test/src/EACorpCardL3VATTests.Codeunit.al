@@ -22,7 +22,7 @@ codeunit 148341 EACorpCardL3VATTests
     [Test]
     procedure Level3ImportCreatesDetailLines()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
         DetailCount: Integer;
     begin
         Initialize();
@@ -38,10 +38,10 @@ codeunit 148341 EACorpCardL3VATTests
     [Test]
     procedure CreateDraftFromLevel3TransCreatesExpenseVatSpecs()
     var
-        CorpCardBatch: Record EACorpCardBatch;
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseVATSpecification: Record "Expense VAT Specification";
-        CorpCardExpWriter: Codeunit EACorpCardExpWriter;
+        CorpCardExpWriter: Codeunit "EA Corp Card Exp Writer";
         ExpenseNo: Code[20];
         VatSpecCount: Integer;
         VatSpecAmountTotal: Decimal;
@@ -64,7 +64,7 @@ codeunit 148341 EACorpCardL3VATTests
     [Test]
     procedure Level3ImportWithoutTaxLinesErrors()
     var
-        CorpCardFeedMgt: Codeunit EACorpCardFeedMgt;
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         Initialize();
         EACorpCardTestLib.SetProviderSourcePayload(CorpCardL3ProviderCodeTok, GetL3PayloadWithoutDetails(), L3SourceFileNameTok);
@@ -76,7 +76,7 @@ codeunit 148341 EACorpCardL3VATTests
     [Test]
     procedure Level3ImportWithMissingCardIdAddsException()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         Initialize();
         EACorpCardTestLib.SetProviderSourcePayload(CorpCardL3ProviderCodeTok, GetL3PayloadMissingCardId(), L3SourceFileNameTok);

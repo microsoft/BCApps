@@ -10,7 +10,7 @@ namespace Microsoft.ExpenseAgent;
 /// Note: Individual expenses transition to "Released" status, but actual approval 
 /// happens at the Expense Report level using the standard approval workflow.
 /// </summary>
-codeunit 7218 EACorpCardApprovalMgt
+codeunit 7218 "EA Corp Card Approval Mgt"
 {
     Access = Internal;
 
@@ -26,7 +26,7 @@ codeunit 7218 EACorpCardApprovalMgt
     internal procedure SubmitReportForApproval(ReportNo: Code[20])
     var
         ExpenseReportHeader: Record "Expense Report Header";
-        AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
     begin
         if not ExpenseReportHeader.Get(ReportNo) then
             Error(ReportNotFoundErr, ReportNo);
@@ -53,7 +53,7 @@ codeunit 7218 EACorpCardApprovalMgt
     internal procedure ReleaseReportForPosting(ReportNo: Code[20])
     var
         ExpenseReportHeader: Record "Expense Report Header";
-        AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
     begin
         if not ExpenseReportHeader.Get(ReportNo) then
             Error(ReportNotFoundErr, ReportNo);
@@ -73,7 +73,7 @@ codeunit 7218 EACorpCardApprovalMgt
     internal procedure RejectReport(ReportNo: Code[20]; RejectionReason: Text)
     var
         ExpenseReportHeader: Record "Expense Report Header";
-        AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
     begin
         if not ExpenseReportHeader.Get(ReportNo) then
             Error(ReportNotFoundErr, ReportNo);

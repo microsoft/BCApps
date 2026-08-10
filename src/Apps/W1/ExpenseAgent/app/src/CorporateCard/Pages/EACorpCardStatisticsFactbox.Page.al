@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.Threading;
 
-page 7232 "EACorpCardStatisticsFactbox"
+page 7232 "EA Corp Card Stats Factbox"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Statistics';
@@ -116,7 +116,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetTotalBatches(): Integer
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
         DateFilter: DateTime;
     begin
         DateFilter := CreateDateTime(Today() - 30, 0T);
@@ -126,7 +126,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetTotalTransactions(): Integer
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
         DateFilter: DateTime;
     begin
         DateFilter := CreateDateTime(Today() - 30, 0T);
@@ -137,7 +137,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetMatchSuccessRate(): Decimal
     var
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardTrans: Record "EA Corp Card Trans";
         TotalCount: Integer;
         MatchedCount: Integer;
     begin
@@ -154,7 +154,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetExceptionRate(): Decimal
     var
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardTrans: Record "EA Corp Card Trans";
         TotalCount: Integer;
         ExcepCount: Integer;
     begin
@@ -171,7 +171,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetDuplicateRate(): Decimal
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
         TotalCount: Integer;
         DuplicateCount: Integer;
         DateFilter: DateTime;
@@ -190,7 +190,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetUnmatchedTransactionCount(): Integer
     var
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardTrans: Record "EA Corp Card Trans";
     begin
         CorpCardTrans.SetRange(Status, CorpCardTrans.Status::Imported);
         exit(CorpCardTrans.Count());
@@ -198,7 +198,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetDraftExpenseCount(): Integer
     var
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardTrans: Record "EA Corp Card Trans";
     begin
         CorpCardTrans.SetRange(Status, CorpCardTrans.Status::DraftCreated);
         exit(CorpCardTrans.Count());
@@ -206,7 +206,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetPendingExceptionCount(): Integer
     var
-        CorpCardException: Record EACorpCardException;
+        CorpCardException: Record "EA Corp Card Exception";
     begin
         CorpCardException.SetRange(Resolved, false);
         exit(CorpCardException.Count());
@@ -214,7 +214,7 @@ page 7232 "EACorpCardStatisticsFactbox"
 
     local procedure GetEnabledProviderCount(): Integer
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
     begin
         CorpCardProvider.SetRange(Enabled, true);
         exit(CorpCardProvider.Count());
@@ -225,14 +225,14 @@ page 7232 "EACorpCardStatisticsFactbox"
         JobQueueEntry: Record "Job Queue Entry";
     begin
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetRange("Object ID to Run", Codeunit::EACorpCardJQRunner);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"EA Corp Card JQ Runner");
         JobQueueEntry.SetRange("Recurring Job", true);
         exit(JobQueueEntry.Count());
     end;
 
     local procedure GetActiveCardCount(): Integer
     var
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
     begin
         CorpCard.SetRange(Blocked, false);
         CorpCard.SetFilter("Valid From", '%1|..%2', 0D, Today());

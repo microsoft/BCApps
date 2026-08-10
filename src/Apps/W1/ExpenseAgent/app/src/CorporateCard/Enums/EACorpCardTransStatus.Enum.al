@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 7222 EACorpCardTransStatus
+enum 7222 "EA Corp Card Trans Status"
 {
     Caption = 'Corp Card Trans Status';
 

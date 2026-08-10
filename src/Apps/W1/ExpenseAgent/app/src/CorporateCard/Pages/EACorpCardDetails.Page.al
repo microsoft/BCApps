@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7226 EACorpCardDetails
+page 7226 "EA Corp Card Details"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Level 3 Details';
     Editable = false;
     PageType = List;
     UsageCategory = Lists;
-    SourceTable = EACorpCardTransDetail;
+    SourceTable = "EA Corp Card Trans Detail";
 
     layout
     {

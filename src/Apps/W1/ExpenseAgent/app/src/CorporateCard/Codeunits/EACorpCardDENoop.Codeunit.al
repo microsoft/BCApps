@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7229 EACorpCardDENoop
+codeunit 7229 "EA Corp Card DE Noop"
 {
     Access = Internal;
 

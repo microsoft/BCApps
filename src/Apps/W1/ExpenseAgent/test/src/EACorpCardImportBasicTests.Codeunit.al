@@ -22,7 +22,7 @@ codeunit 148340 EACorpCardImportBasicTests
     [Test]
     procedure CsvImportCreatesCompletedBatchAndTransactions()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
         ImportedTransCount: Integer;
     begin
         Initialize();
@@ -39,8 +39,8 @@ codeunit 148340 EACorpCardImportBasicTests
     [Test]
     procedure CsvImportSecondRunCountsDuplicates()
     var
-        FirstBatch: Record EACorpCardBatch;
-        CorpCardFeedMgt: Codeunit EACorpCardFeedMgt;
+        FirstBatch: Record "EA Corp Card Batch";
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         Initialize();
 

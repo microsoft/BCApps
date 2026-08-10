@@ -217,10 +217,10 @@ page 6949 "Expense User"
 
                     trigger OnAction()
                     var
-                        EACorpCard: Record "EACorpCard";
+                        EACorpCard: Record "EA Corp Card";
                     begin
                         EACorpCard.SetRange("Expense User No.", Rec."No.");
-                        Page.Run(Page::"EACorpCardCards", EACorpCard);
+                        Page.Run(Page::"EA Corp Card Cards", EACorpCard);
                     end;
                 }
             }

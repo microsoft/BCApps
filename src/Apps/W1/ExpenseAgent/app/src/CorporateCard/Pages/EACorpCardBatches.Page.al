@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7220 EACorpCardBatches
+page 7220 "EA Corp Card Batches"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Batches';
     Editable = false;
     PageType = List;
     UsageCategory = Lists;
-    SourceTable = EACorpCardBatch;
+    SourceTable = "EA Corp Card Batch";
 
     layout
     {
@@ -91,7 +91,7 @@ page 7220 EACorpCardBatches
 
                 trigger OnAction()
                 var
-                    PostImportOrch: Codeunit EACorpCardPostImportOrch;
+                    PostImportOrch: Codeunit "EA Corp Card Post Import Orch";
                 begin
                     PostImportOrch.ProcessBatchPostImport(Rec."Batch No.");
                     CurrPage.Update(false);
@@ -106,11 +106,11 @@ page 7220 EACorpCardBatches
 
                 trigger OnAction()
                 var
-                    CorpCardTrans: Record EACorpCardTrans;
+                    CorpCardTrans: Record "EA Corp Card Trans";
                 begin
                     CorpCardTrans.SetRange("Batch No.", Rec."Batch No.");
                     CorpCardTrans.SetRange("Provider Code", Rec."Provider Code");
-                    Page.RunModal(Page::EACorpCardTransList, CorpCardTrans);
+                    Page.RunModal(Page::"EA Corp Card Trans List", CorpCardTrans);
                 end;
             }
             action(ShowExceptions)
@@ -122,10 +122,10 @@ page 7220 EACorpCardBatches
 
                 trigger OnAction()
                 var
-                    CorpCardException: Record EACorpCardException;
+                    CorpCardException: Record "EA Corp Card Exception";
                 begin
                     CorpCardException.SetRange("Batch No.", Rec."Batch No.");
-                    Page.RunModal(Page::EACorpCardExceptions, CorpCardException);
+                    Page.RunModal(Page::"EA Corp Card Exceptions", CorpCardException);
                 end;
             }
         }

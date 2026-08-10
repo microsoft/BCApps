@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7222 EACorpCardImportOrch
+codeunit 7222 "EA Corp Card Import Orch"
 {
     Access = Internal;
 
-    internal procedure RunProvider(CorpCardProvider: Record EACorpCardProvider)
+    internal procedure RunProvider(CorpCardProvider: Record "EA Corp Card Provider")
     var
-        CorpCardBatch: Record EACorpCardBatch;
-        CorpCardProvReg: Codeunit EACorpCardProvReg;
-        AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
-        CorpCardProviderImpl: Interface EACorpCardProviderInterface;
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardProvReg: Codeunit "EA Corp Card Prov Reg";
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
+        CorpCardProviderImpl: Interface "EA Corp Card Provider";
     begin
         CorpCardProvReg.ResolveProvider(CorpCardProvider, CorpCardProviderImpl);
 

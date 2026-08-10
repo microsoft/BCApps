@@ -6,12 +6,12 @@ namespace Microsoft.ExpenseAgent;
 
 using System.IO;
 
-table 7212 EACorpCardBatch
+table 7212 "EA Corp Card Batch"
 {
     Caption = 'Corp Card Import Batch';
     DataClassification = CustomerContent;
-    LookupPageId = EACorpCardBatches;
-    DrillDownPageId = EACorpCardBatches;
+    LookupPageId = "EA Corp Card Batches";
+    DrillDownPageId = "EA Corp Card Batches";
     ReplicateData = false;
 
     fields
@@ -25,7 +25,7 @@ table 7212 EACorpCardBatch
         field(2; "Provider Code"; Code[20])
         {
             Caption = 'Provider Code';
-            TableRelation = EACorpCardProvider.Code;
+            TableRelation = "EA Corp Card Provider".Code;
             ToolTip = 'Specifies the provider code for the imported corporate card transactions.';
         }
         field(3; "Started DT"; DateTime)
@@ -43,7 +43,7 @@ table 7212 EACorpCardBatch
             Caption = 'Source Reference';
             ToolTip = 'Specifies the source reference for the imported corporate card transactions.';
         }
-        field(6; Status; Enum EACorpCardBatchStatus)
+        field(6; Status; Enum "EA Corp Card Batch Status")
         {
             Caption = 'Status';
             ToolTip = 'Specifies the status of the imported corporate card transactions.';
@@ -78,7 +78,7 @@ table 7212 EACorpCardBatch
         {
             Caption = 'Imported Transactions';
             FieldClass = FlowField;
-            CalcFormula = count(EACorpCardTrans where("Batch No." = field("Batch No."), "Provider Code" = field("Provider Code")));
+            CalcFormula = count("EA Corp Card Trans" where("Batch No." = field("Batch No."), "Provider Code" = field("Provider Code")));
             Editable = false;
             ToolTip = 'Specifies the number of imported corporate card transactions.';
         }

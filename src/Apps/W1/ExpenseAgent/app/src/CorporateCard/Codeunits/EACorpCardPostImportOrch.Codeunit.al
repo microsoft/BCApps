@@ -8,19 +8,19 @@ namespace Microsoft.ExpenseAgent;
 /// Orchestrates post-import processing: merchant normalization, matching, and draft creation.
 /// Runs after corporate card transactions are imported into staging.
 /// </summary>
-codeunit 7213 EACorpCardPostImportOrch
+codeunit 7213 "EA Corp Card Post Import Orch"
 {
     Access = Internal;
 
     internal procedure ProcessBatchPostImport(BatchNo: Integer)
     var
-        CorpCardBatch: Record EACorpCardBatch;
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        MerchantNorm: Codeunit EACorpCardMerchantNorm;
-        EnhancedMatchMgt: Codeunit EACorpCardEnhancedMatchMgt;
-        ExpWriter: Codeunit EACorpCardExpWriter;
-        AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
+        MerchantNorm: Codeunit "EA Corp Card Merchant Norm";
+        EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
+        ExpWriter: Codeunit "EA Corp Card Exp Writer";
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         MatchedExpenseNo: Code[20];
         DraftExpenseNo: Code[20];
         MatchedCount: Integer;

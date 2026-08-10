@@ -11,19 +11,19 @@ permissionset 7212 EACorpCardRead
     Caption = 'Corp Card Read';
 
     Permissions =
-        page EACorpCardDetails = X,
-        page EACorpCardJQSchedule = X,
-        page EACorpCardJQScheduleSubpage = X,
-        codeunit EACreateCorpCardSetup = X,
-        codeunit EACreateCorpCardL3Demo = X,
-        codeunit EACorpCardDENoop = X,
-        tabledata EACorpCardProvider = R,
-        tabledata EACorpCard = R,
-        tabledata EACorpCardTrans = R,
-        tabledata EACorpCardTransDetail = R,
-        tabledata EACorpCardBatch = R,
-        tabledata EACorpCardException = R,
-        tabledata EACorpCardMCCMap = R,
-        tabledata EACorpCardMerchantRule = R,
+        page "EA Corp Card Details" = X,
+        page "EA Corp Card JQ Schedule" = X,
+        page "EA Corp Card JQ Schedule Sub" = X,
+        codeunit "EA Create Corp Card Setup" = X,
+        codeunit "EA Create Corp Card L3 Demo" = X,
+        codeunit "EA Corp Card DE Noop" = X,
+        tabledata "EA Corp Card Provider" = R,
+        tabledata "EA Corp Card" = R,
+        tabledata "EA Corp Card Trans" = R,
+        tabledata "EA Corp Card Trans Detail" = R,
+        tabledata "EA Corp Card Batch" = R,
+        tabledata "EA Corp Card Exception" = R,
+        tabledata "EA Corp Card MCC Map" = R,
+        tabledata "EA Corp Card Merchant Rule" = R,
         tabledata "Expense Agent Setup" = R;
 }

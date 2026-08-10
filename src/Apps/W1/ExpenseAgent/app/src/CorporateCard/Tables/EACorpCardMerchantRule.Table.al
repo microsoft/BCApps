@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7215 EACorpCardMerchantRule
+table 7215 "EA Corp Card Merchant Rule"
 {
     Access = Internal;
     Caption = 'Corp Card Merchant Rule';

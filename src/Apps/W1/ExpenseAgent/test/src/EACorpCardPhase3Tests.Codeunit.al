@@ -22,7 +22,7 @@ codeunit 148342 EACorpCardPhase3Tests
     [Test]
     procedure XmlImportWithMalformedPayloadFailsBatch()
     var
-        CorpCardFeedMgt: Codeunit EACorpCardFeedMgt;
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         Initialize();
         SetProviderSourcePayload(CorpCardXmlProviderCodeTok, GetMalformedXmlPayload(), MalformedXmlFileNameTok);
@@ -34,7 +34,7 @@ codeunit 148342 EACorpCardPhase3Tests
     [Test]
     procedure Level3MissingProviderTransIdAddsException()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         Initialize();
         SetProviderSourcePayload(CorpCardL3ProviderCodeTok, GetL3PayloadMissingProviderTransId(), L3NegativeFileNameTok);
@@ -50,7 +50,7 @@ codeunit 148342 EACorpCardPhase3Tests
     [Test]
     procedure Level3MissingAmountAddsException()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         Initialize();
         SetProviderSourcePayload(CorpCardL3ProviderCodeTok, GetL3PayloadMissingAmount(), L3NegativeFileNameTok);
@@ -66,7 +66,7 @@ codeunit 148342 EACorpCardPhase3Tests
     [Test]
     procedure Level3MissingTransDateAddsException()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         Initialize();
         SetProviderSourcePayload(CorpCardL3ProviderCodeTok, GetL3PayloadMissingTransDate(), L3NegativeFileNameTok);
@@ -82,7 +82,7 @@ codeunit 148342 EACorpCardPhase3Tests
     [Test]
     procedure IsoImportMapsMandatoryFields()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         Initialize();
 
@@ -96,7 +96,7 @@ codeunit 148342 EACorpCardPhase3Tests
     [Test]
     procedure Camt053ImportMapsMandatoryFields()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         Initialize();
 
@@ -110,7 +110,7 @@ codeunit 148342 EACorpCardPhase3Tests
     [Test]
     procedure Camt054ImportMapsMandatoryFields()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         Initialize();
@@ -132,7 +132,7 @@ codeunit 148342 EACorpCardPhase3Tests
     [Test]
     procedure XmlImportMapsMandatoryFields()
     var
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         Initialize();
 
@@ -145,7 +145,7 @@ codeunit 148342 EACorpCardPhase3Tests
 
     local procedure AssertAnyTransactionHasMandatoryFields(BatchNo: Integer; ProviderCode: Code[20])
     var
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardTrans: Record "EA Corp Card Trans";
         FoundMapped: Boolean;
     begin
         CorpCardTrans.SetRange("Batch No.", BatchNo);
@@ -315,10 +315,10 @@ codeunit 148342 EACorpCardPhase3Tests
 
     local procedure DeleteCorpCardTransactionalData()
     var
-        CorpCardTransDetail: Record EACorpCardTransDetail;
-        CorpCardException: Record EACorpCardException;
-        CorpCardTrans: Record EACorpCardTrans;
-        CorpCardBatch: Record EACorpCardBatch;
+        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
+        CorpCardException: Record "EA Corp Card Exception";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardBatch: Record "EA Corp Card Batch";
     begin
         CorpCardTransDetail.DeleteAll();
         CorpCardException.DeleteAll();
@@ -326,9 +326,9 @@ codeunit 148342 EACorpCardPhase3Tests
         CorpCardBatch.DeleteAll();
     end;
 
-    local procedure RunImportAndGetLastBatch(ProviderCode: Code[20]; var CorpCardBatch: Record EACorpCardBatch)
+    local procedure RunImportAndGetLastBatch(ProviderCode: Code[20]; var CorpCardBatch: Record "EA Corp Card Batch")
     var
-        CorpCardFeedMgt: Codeunit EACorpCardFeedMgt;
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
     begin
         CorpCardFeedMgt.RunImport(ProviderCode);
 
@@ -339,7 +339,7 @@ codeunit 148342 EACorpCardPhase3Tests
 
     local procedure SetProviderSourcePayload(ProviderCode: Code[20]; SourcePayload: Text; SourceFileName: Text[250])
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
         PayloadOutStream: OutStream;
     begin
         Assert.IsTrue(CorpCardProvider.Get(ProviderCode), 'Provider ' + ProviderCode + ' was not found.');

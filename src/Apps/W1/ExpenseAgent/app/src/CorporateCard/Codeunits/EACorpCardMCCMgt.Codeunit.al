@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// MCC code mapping and validation for corporate card transactions.
 /// Maps Merchant Category Codes to Expense Categories.
 /// </summary>
-codeunit 7217 EACorpCardMCCMgt
+codeunit 7217 "EA Corp Card MCC Mgt"
 {
     Access = Internal;
 
@@ -17,7 +17,7 @@ codeunit 7217 EACorpCardMCCMgt
     /// </summary>
     internal procedure ValidateAndMapMCC(MCC: Code[4]; var ExpenseCategory: Code[20]): Boolean
     var
-        MCCMap: Record EACorpCardMCCMap;
+        MCCMap: Record "EA Corp Card MCC Map";
     begin
         if MCC = '' then
             exit(false);
@@ -57,7 +57,7 @@ codeunit 7217 EACorpCardMCCMgt
 
     local procedure EnsureMCCMapping(MCC: Code[4]; Description: Text[100]; CategoryCode: Code[20]; CategoryDescription: Text[100])
     var
-        MCCMap: Record EACorpCardMCCMap;
+        MCCMap: Record "EA Corp Card MCC Map";
     begin
         EnsureCategoryExists(CategoryCode, CategoryDescription);
 
@@ -77,7 +77,7 @@ codeunit 7217 EACorpCardMCCMgt
     /// </summary>
     internal procedure GetExpenseCategoryForMCC(MCC: Code[4]): Code[20]
     var
-        MCCMap: Record EACorpCardMCCMap;
+        MCCMap: Record "EA Corp Card MCC Map";
     begin
         if MCCMap.Get(MCC) then
             exit(MCCMap."Expense Category");

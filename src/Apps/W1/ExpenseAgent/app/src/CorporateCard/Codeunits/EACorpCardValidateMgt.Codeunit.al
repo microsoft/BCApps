@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7225 EACorpCardValidateMgt
+codeunit 7225 "EA Corp Card Validate Mgt"
 {
     Access = Internal;
 
@@ -14,14 +14,14 @@ codeunit 7225 EACorpCardValidateMgt
         MissingProviderTransIdErr: Label 'Provider Trans Id is missing.';
         MissingTransDateErr: Label 'Trans Date is missing.';
 
-    internal procedure ValidateTrans(var CorpCardTrans: Record EACorpCardTrans): Boolean
+    internal procedure ValidateTrans(var CorpCardTrans: Record "EA Corp Card Trans"): Boolean
     var
         ValidationReason: Text[250];
     begin
         exit(ValidateTrans(CorpCardTrans, ValidationReason));
     end;
 
-    internal procedure ValidateTrans(var CorpCardTrans: Record EACorpCardTrans; var ValidationReason: Text[250]): Boolean
+    internal procedure ValidateTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ValidationReason: Text[250]): Boolean
     begin
         if CorpCardTrans."Provider Code" = '' then begin
             ValidationReason := MissingProviderCodeErr;

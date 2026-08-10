@@ -79,13 +79,13 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA KPI Entry");
 
         // Corporate Card tables
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCard");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCardBatch");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCardException");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCardMCCMap");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCardMerchantRule");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCardProvider");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCardTrans");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCardTransDetail");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Batch");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Exception");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card MCC Map");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Merchant Rule");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Provider");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Trans");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Trans Detail");
     end;
 }

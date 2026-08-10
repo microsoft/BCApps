@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 7223 EACorpCardMatchType
+enum 7223 "EA Corp Card Match Type"
 {
     Caption = 'Corp Card Match Type';
 

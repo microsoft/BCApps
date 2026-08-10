@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Creates draft Expense records from corporate card transactions.
 /// Implements EACorpCardExpWriterInterface to populate expense fields from transaction data.
 /// </summary>
-codeunit 7212 EACorpCardExpWriter implements EACorpCardExpWriterInterface
+codeunit 7212 "EA Corp Card Exp Writer" implements "EA Corp Card Exp Writer"
 {
     Access = Internal;
     Permissions = tabledata "Expense VAT Specification" = rimd;
@@ -17,10 +17,10 @@ codeunit 7212 EACorpCardExpWriter implements EACorpCardExpWriterInterface
         ExpenseUserNotFoundErr: Label 'Expense User not found for card %1.', Comment = '%1 is the card id.';
         Level3ReconcileWarnLbl: Label 'Level 3 detail total %1 does not match transaction amount %2.', Comment = '%1 = detail total, %2 = transaction amount';
 
-    procedure CreateDraftFromTrans(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20])
+    procedure CreateDraftFromTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20])
     var
         Expense: Record Expense;
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
         ExpenseUserNo: Code[20];
         ExpenseCategory: Code[20];
     begin
@@ -54,7 +54,7 @@ codeunit 7212 EACorpCardExpWriter implements EACorpCardExpWriterInterface
         CorpCardTrans.Status := CorpCardTrans.Status::DraftCreated;
     end;
 
-    procedure LinkPosted(var CorpCardTrans: Record EACorpCardTrans; PostedDocNo: Code[20])
+    procedure LinkPosted(var CorpCardTrans: Record "EA Corp Card Trans"; PostedDocNo: Code[20])
     begin
         CorpCardTrans."Expense No." := PostedDocNo;
         CorpCardTrans.Status := CorpCardTrans.Status::Posted;
@@ -63,15 +63,15 @@ codeunit 7212 EACorpCardExpWriter implements EACorpCardExpWriterInterface
 
     local procedure GetExpenseCategoryFromMCC(MCC: Code[4]): Code[20]
     var
-        MCCMgt: Codeunit EACorpCardMCCMgt;
+        MCCMgt: Codeunit "EA Corp Card MCC Mgt";
     begin
         exit(MCCMgt.GetExpenseCategoryForMCC(MCC));
     end;
 
-    local procedure CreateVatSpecificationsFromTransDetails(CorpCardTrans: Record EACorpCardTrans; ExpenseNo: Code[20])
+    local procedure CreateVatSpecificationsFromTransDetails(CorpCardTrans: Record "EA Corp Card Trans"; ExpenseNo: Code[20])
     var
-        CorpCardTransDetail: Record EACorpCardTransDetail;
-        CorpCardTransForUpdate: Record EACorpCardTrans;
+        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
+        CorpCardTransForUpdate: Record "EA Corp Card Trans";
         ExpenseVATSpecification: Record "Expense VAT Specification";
         BaseAmount: Decimal;
         VatAmount: Decimal;
