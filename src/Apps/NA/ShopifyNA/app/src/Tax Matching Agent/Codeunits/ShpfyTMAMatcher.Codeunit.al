@@ -29,6 +29,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         RateConflictReasonTok: Label 'Shopify charged %1%, but Business Central has a Tax Detail rate of %2% for tax group %3. Business Central will post at its own rate unless you correct the Tax Detail.', Comment = '%1 = Shopify rate, %2 = existing BC rate, %3 = tax group code';
         SecurityPromptSecretNameTok: Label 'ShopifyTaxMatchingAgentSecurityPrompt', Locked = true;
         KeyVaultPromptErr: Label 'There was an error preparing the Shopify tax matching request. Log a Business Central support request about this.';
+        AuditJurisdictionCreatedLbl: Label 'Shopify Tax Matching Agent (AI) auto-created Tax Jurisdiction %1 from Shopify order %2; the tax setup is held for human review before a sales document is created.', Comment = '%1 = Tax Jurisdiction code, %2 = Shopify order id';
 
     procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
     var
@@ -404,6 +405,28 @@ codeunit 30471 "Shpfy TMA Matcher"
         TaxJurisdiction.Description := CopyStr(JurisdictionCode, 1, MaxStrLen(TaxJurisdiction.Description));
         Evaluate(TaxJurisdiction."Country/Region", OrderHeader."Ship-to Country/Region Code");
         TaxJurisdiction.Insert(true);
+
+        LogJurisdictionAuditEntry(TaxJurisdiction, OrderHeader);
+    end;
+
+    /// <summary>
+    /// Writes a security audit-log entry whenever the AI auto-creates a Tax Jurisdiction. The
+    /// suggested code originates from an LLM acting on buyer-controlled Shopify data, so each
+    /// AI-driven creation of tax master data is recorded for compliance (surfaced in the customer's
+    /// Microsoft Purview audit log on Business Central SaaS). Only metadata is logged — no prompt,
+    /// response, or customer content.
+    /// </summary>
+    local procedure LogJurisdictionAuditEntry(TaxJurisdiction: Record "Tax Jurisdiction"; OrderHeader: Record "Shpfy Order Header")
+    var
+        AuditLog: Codeunit "Audit Log";
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('JurisdictionCode', TaxJurisdiction.Code);
+        Dimensions.Add('CountryRegion', Format(TaxJurisdiction."Country/Region"));
+        Dimensions.Add('ShopifyOrderId', Format(OrderHeader."Shopify Order Id"));
+        AuditLog.LogAuditMessage(
+            StrSubstNo(AuditJurisdictionCreatedLbl, TaxJurisdiction.Code, OrderHeader."Shopify Order Id"),
+            SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0, Dimensions);
     end;
 
     local procedure FixReportToJurisdictions(MatchedJurisdictions: List of [Code[10]])
