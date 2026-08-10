@@ -55,7 +55,6 @@ codeunit 6442 "SignUp Authentication"
         if this.SignUpConnectionSetup.Get() then
             exit;
 
-        this.SignUpConnectionSetup."Authentication URL" := this.AuthURLTxt;
         this.SignUpConnectionSetup."Service URL" := this.GetServiceApi();
         this.StorageSet(this.SignUpConnectionSetup."Marketplace Tenant", this.GetMarketplaceTenant());
         this.StorageSet(this.SignUpConnectionSetup."Client Tenant", this.GetClientTenant());
