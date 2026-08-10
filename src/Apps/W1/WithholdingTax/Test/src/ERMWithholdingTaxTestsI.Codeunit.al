@@ -1897,6 +1897,69 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         UnapplyVendorLedgerEntryAmount('');  // Currency as blank.
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VendorLiabilityReducedByCumulativeWHTWhenMultipleWHTRatesOnInvoice()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        WHTPostingSetup1: Record "Withholding Tax Posting Setup";
+        WHTPostingSetup2: Record "Withholding Tax Posting Setup";
+        DocumentNo: Code[20];
+        VendorNo: Code[20];
+        ExpectedWHTAmount: Decimal;
+        LineAmount1: Decimal;
+        LineAmount2: Decimal;
+    begin
+        // [SCENARIO 646139] Vendor liability is reduced by the cumulative Withholding Tax of all invoice lines when the lines use different Withholding Tax Product Posting Groups.
+        Initialize();
+
+        // [GIVEN] Withholding Tax enabled and two WHT Posting Setups sharing the WHT Bus. Posting Group but with different WHT Prod. Posting Groups and percentages.
+        UpdateGeneralLedgerSetup(true, false); // Round Amount for WHT Calc and True as Enable WHT.
+        LibraryERM.FindZeroVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        CreateWHTPostingSetup(WHTPostingSetup1, LibraryRandom.RandIntInRange(10, 15));
+        CreateSecondWHTPostingSetupForSameBusGroup(WHTPostingSetup2, WHTPostingSetup1, LibraryRandom.RandIntInRange(20, 25));
+
+        // [GIVEN] Vendor liable for WHT with the shared WHT Bus. Posting Group.
+        VendorNo := CreateVendorWithPostingGroup(VATPostingSetup."VAT Bus. Posting Group", WHTPostingSetup1."Wthldg. Tax Bus. Post. Group");
+
+        // [GIVEN] Purchase Invoice with one line per WHT Prod. Posting Group.
+        CreatePurchaseHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo, ''); // Blank Currency Code.
+        LineAmount1 := CreatePurchaseLineWithFixedAmount(
+            PurchaseLine, PurchaseHeader, WHTPostingSetup1,
+            CreateGLAccount(VATPostingSetup."VAT Prod. Posting Group", WHTPostingSetup1."Wthldg. Tax Prod. Post. Group"));
+        LineAmount2 := CreatePurchaseLineWithFixedAmount(
+            PurchaseLine, PurchaseHeader, WHTPostingSetup2,
+            CreateGLAccount(VATPostingSetup."VAT Prod. Posting Group", WHTPostingSetup2."Wthldg. Tax Prod. Post. Group"));
+
+        ExpectedWHTAmount :=
+            Round(LineAmount1 * WHTPostingSetup1."Withholding Tax %" / 100) +
+            Round(LineAmount2 * WHTPostingSetup2."Withholding Tax %" / 100);
+
+        // [GIVEN] Unblock the General Posting Setup for the combination of Gen. Bus. Posting Group and Gen. Prod. Posting Group used by the Purchase Lines.
+        GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        if GeneralPostingSetup.Blocked then begin
+            GeneralPostingSetup.Blocked := false;
+            GeneralPostingSetup.Modify(true);
+        end;
+
+        // [WHEN] Post the Purchase Invoice.
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The posting balances and the Vendor Ledger Entry is reduced by the cumulative WHT of both lines.
+        VendorLedgerEntry.SetRange("Document No.", DocumentNo);
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.FindFirst();
+        VendorLedgerEntry.CalcFields(Amount);
+        Assert.AreEqual(
+            -(LineAmount1 + LineAmount2 - ExpectedWHTAmount), VendorLedgerEntry.Amount,
+            StrSubstNo(
+                AmountErr, VendorLedgerEntry.FieldCaption(Amount), -(LineAmount1 + LineAmount2 - ExpectedWHTAmount)));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2830,6 +2893,34 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         Vendor.Validate("Wthldg. Tax Bus. Post. Group", WHTBusPostingGroup);
         Vendor.Modify(true);
         exit(Vendor."No.");
+    end;
+
+    local procedure CreatePurchaseLineWithFixedAmount(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; WHTPostingSetup: Record "Withholding Tax Posting Setup"; GLAccountNo: Code[20]) LineAmount: Decimal
+    begin
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1); // Quantity 1.
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(1000, 2000)); // Well above WHT Min. Inv. Amount.
+        PurchaseLine.Validate("Wthldg. Tax Bus. Post. Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        PurchaseLine.Validate("Wthldg. Tax Prod. Post. Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group");
+        PurchaseLine.Modify(true);
+        LineAmount := PurchaseLine."Line Amount";
+    end;
+
+    local procedure CreateSecondWHTPostingSetupForSameBusGroup(var WHTPostingSetup2: Record "Withholding Tax Posting Setup"; WHTPostingSetup1: Record "Withholding Tax Posting Setup"; WHTPct: Decimal)
+    var
+        WHTProductPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+        WHTRevenueTypes: Record "Withholding Tax Revenue Types";
+    begin
+        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProductPostingGroup);
+        LibraryWithholdingTax.CreateWHTRevenueTypes(WHTRevenueTypes);
+        CreateWHTPostingSetupWithRealizedWHTType(
+            WHTPostingSetup2, WHTPostingSetup1."Wthldg. Tax Bus. Post. Group", WHTProductPostingGroup.Code,
+            WHTPostingSetup2."Realized Withholding Tax Type"::Invoice, WHTPct, WHTRevenueTypes.Code);
+
+        // The WHT Min. Inv. Amount must be identical across setups that share a WHT Bus. Posting Group, otherwise posting is blocked.
+        WHTPostingSetup1."Wthldg. Tax Min. Inv. Amount" := 0;
+        WHTPostingSetup1.Modify(true);
+        WHTPostingSetup2."Wthldg. Tax Min. Inv. Amount" := 0;
+        WHTPostingSetup2.Modify(true);
     end;
 
     [ModalPageHandler]
