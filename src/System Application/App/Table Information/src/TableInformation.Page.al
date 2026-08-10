@@ -58,11 +58,8 @@ page 8700 "Table Information"
                     ToolTip = 'Specifies the ID of the table.';
 
                     trigger OnDrillDown()
-                    var
-                        TableMetadata: Record "Table Metadata";
                     begin
-                        TableMetadata.SetRange(ID, Rec."Table No.");
-                        Page.Run(Page::"Table Information Card", TableMetadata);
+                        OpenTableDataManagement();
                     end;
                 }
 
@@ -116,6 +113,26 @@ page 8700 "Table Information"
 
     actions
     {
+        area(Processing)
+        {
+            action("Table Data Management")
+            {
+                ApplicationArea = All;
+                Caption = 'Table Data Management';
+                Image = "Table";
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                Scope = Repeater;
+                ToolTip = 'Open data management information for the selected table.';
+
+                trigger OnAction()
+                begin
+                    OpenTableDataManagement();
+                end;
+            }
+        }
         area(Navigation)
         {
             action("View Table Permissions")
@@ -146,5 +163,13 @@ page 8700 "Table Information"
         else
             Rec.SetFilter("Company Name", '%1|%2', '', CompanyName);
         Rec.FilterGroup(0);
+    end;
+
+    local procedure OpenTableDataManagement()
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        TableMetadata.SetRange(ID, Rec."Table No.");
+        Page.Run(Page::"Table Information Card", TableMetadata);
     end;
 }
