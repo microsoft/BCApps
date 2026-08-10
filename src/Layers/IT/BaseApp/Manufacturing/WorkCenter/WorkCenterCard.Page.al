@@ -362,7 +362,7 @@ page 99000754 "Work Center Card"
             action("Subcontractor - Dispatch List")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Subcontractor - Dispatch List';
+                Caption = 'Subcontractor - Dispatch List (Obsolete)';
                 Image = "Report";
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
