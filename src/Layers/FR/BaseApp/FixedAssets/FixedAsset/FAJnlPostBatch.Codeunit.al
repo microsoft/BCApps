@@ -326,17 +326,12 @@ codeunit 5633 "FA Jnl.-Post Batch"
 
     procedure MakeDerogatoryFAJnlLine(var NewFAJnlLine: Record "FA Journal Line"; FAJnlLine: Record "FA Journal Line"): Boolean
     var
-        DeprBook: Record "Depreciation Book";
-        FADeprBook: Record "FA Depreciation Book";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
     begin
         NewFAJnlLine.Copy(FAJnlLine);
-        DeprBook.SetRange("Derogatory Calc.", FAJnlLine."Depreciation Book Code");
-        if DeprBook.FindFirst() then
-            if FADeprBook.Get(NewFAJnlLine."FA No.", DeprBook.Code) then begin
-                NewFAJnlLine.Validate("Depreciation Book Code", DeprBook.Code);
-                exit(true);
-            end;
-        exit(false);
+        exit(
+            DerogatoryPostingMgt.MakeDerogatoryJournalLine(
+                NewFAJnlLine, FAJnlLine, Enum::"Derogatory Posting Role"::Source));
     end;
 
     local procedure CreateAndPostDerogEntry(SourceFAJournalLine: Record "FA Journal Line")
