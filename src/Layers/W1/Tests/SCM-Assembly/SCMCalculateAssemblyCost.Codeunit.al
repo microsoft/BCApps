@@ -727,6 +727,9 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         if not GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then
             LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProdPostingGroup);
         LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
     end;
 
     local procedure SetCheckDocTotalAmounts(CheckDocTotalAmounts: Boolean)
