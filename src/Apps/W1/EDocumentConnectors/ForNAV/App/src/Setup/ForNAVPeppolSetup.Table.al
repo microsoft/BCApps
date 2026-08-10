@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
@@ -445,6 +446,9 @@ table 6414 "ForNAV Peppol Setup"
         EDocumentService."Service Integration V2" := EDocumentService.ForNAVServiceIntegration();
         EDocumentService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
         EDocumentService."Use Batch Processing" := false;
+        // ForNAV inbound import is not migrated to the v2 draft pipeline, so keep the service on Version 1.0
+        // instead of inheriting the new default of the "Import Process" field.
+        EDocumentService."Import Process" := "E-Document Import Process"::"Version 1.0";
         EDocumentService.Insert();
 
         EDocServiceSupportedType.SetRange(EDocServiceSupportedType."E-Document Service Code", EDocumentService.Code);

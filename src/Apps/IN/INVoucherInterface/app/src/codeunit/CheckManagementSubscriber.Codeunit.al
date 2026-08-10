@@ -22,6 +22,11 @@ using Microsoft.Sales.Receivables;
 
 codeunit 18970 "Check Management Subscriber"
 {
+    Permissions = tabledata "Bank Account Ledger Entry" = rm,
+                  tabledata "Check Ledger Entry" = rm,
+                  tabledata "Cust. Ledger Entry" = rm,
+                  tabledata "Vendor Ledger Entry" = rm;
+
     var
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         CannotVoidNonBalanceTransErr: Label 'You cannot Financially Void checks posted in a non-balancing transaction.';

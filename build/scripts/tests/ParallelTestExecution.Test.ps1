@@ -98,3 +98,44 @@ Describe "ParallelTestExecution app-name resolution" {
         }
     }
 }
+
+Describe "ParallelTestExecution transient retry scheduling" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    It "re-dispatches a transient platform-race victim ahead of the apps still queued" {
+        # The dispatch order is what decides the critical path: a platform race normally kills a
+        # job within a minute of dispatch, so the victim is one of the first (longest) apps. If the
+        # retry went to the back of the queue, the longest app would restart only after every other
+        # app had been dispatched, adding its whole duration to the tail of the run.
+        InModuleScope ParallelTestExecution {
+            $script:dispatched = [System.Collections.Generic.List[string]]::new()
+            $script:raced = $false
+
+            Mock Get-AvailableBcTenants { @('default') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Medium', 'Small') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults { }
+            Mock Start-TestAppDispatch {
+                $script:dispatched.Add($AppName)
+                # 'Big' loses the platform race on its very first dispatch, exactly once.
+                if ($AppName -eq 'Big' -and -not $script:raced) {
+                    $script:raced = $true
+                    $State.transient = @($State.transient) + @($AppName)
+                }
+            }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $null = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Medium', 'Small')
+
+            $script:dispatched | Should -Be @('Big', 'Big', 'Medium', 'Small')
+        }
+    }
+}
