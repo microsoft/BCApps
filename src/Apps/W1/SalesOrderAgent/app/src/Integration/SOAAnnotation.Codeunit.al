@@ -301,7 +301,7 @@ codeunit 4399 "SOA Annotation"
         TelemetryDimensions.Add('TaskId', Format(AgentTaskMessage."Task ID"));
         TelemetryDimensions.Add('MessageId', Format(AgentTaskMessage.ID));
         TelemetryDimensions.Add('FileId', Format(AgentTaskMessageAttachment."File ID"));
-        FeatureTelemetry.LogError('', SOASetupCU.GetFeatureName(), 'Attachment content extraction failed.', FailureReason, GetLastErrorCallStack(), TelemetryDimensions);
+        FeatureTelemetry.LogError('0000V03', SOASetupCU.GetFeatureName(), 'Attachment content extraction failed.', FailureReason, GetLastErrorCallStack(), TelemetryDimensions);
         Clear(TelemetryDimensions);
         Error(AttachmentExtractionFailedErr, FailureReason);
     end;
