@@ -377,6 +377,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                             EDocHistoricalLinesList: Page "E-Doc. Historical Lines List";
                         begin
                             EnsureEDocumentPurchaseHeader();
+                            EDocumentPurchaseHeader.TestField("[BC] Vendor No.");
                             EDocHistLineDataLoader.LoadHistoricalLines(TempPurchInvLine, EDocumentPurchaseHeader."[BC] Vendor No.", Rec."Product Code", Rec.Description);
                             EDocHistoricalLinesList.SetRecords(TempPurchInvLine);
                             EDocHistoricalLinesList.Run();

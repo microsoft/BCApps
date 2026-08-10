@@ -284,6 +284,17 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     /// <summary>
+    /// Non-throwing wrapper around EnsureAgentInstructionsMatchConfiguration for callers on a critical path
+    /// (e.g. the e-document import event subscriber) where an instruction-refresh failure must not abort the
+    /// host operation. Returns false on failure so the caller can log and continue with existing instructions.
+    /// </summary>
+    [TryFunction]
+    internal procedure TryEnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
+    begin
+        EnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId);
+    end;
+
+    /// <summary>
     /// Fingerprint of every tenant-level experiment configuration that influences the agent's instructions.
     /// Generic on purpose: a future prompt-affecting experiment only needs its key added to
     /// GetInstructionsExperimentKeys (and its value consumed in prompt selection) — no new setup field required.

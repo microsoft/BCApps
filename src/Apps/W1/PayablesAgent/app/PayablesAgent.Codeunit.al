@@ -190,7 +190,10 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 
         // Reconcile the agent's instructions with the current line-matching configuration before the task runs,
         // so an ECS flag change since the agent was configured/upgraded takes effect (matches the PrepareDraft gate).
-        PayablesAgentSetup.EnsureAgentInstructionsMatchConfiguration(Agent."User Security ID");
+        // Best-effort: a refresh failure (e.g. Key Vault unavailable) must not abort e-document import, since the
+        // agent still has previously stored, working instructions.
+        if not PayablesAgentSetup.TryEnsureAgentInstructionsMatchConfiguration(Agent."User Security ID") then
+            Telemetry.LogMessage('0000SEL', 'Payables Agent instruction reconciliation failed; continuing with existing instructions.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
 
         BuildAgentTask(EDocument, Agent);
 

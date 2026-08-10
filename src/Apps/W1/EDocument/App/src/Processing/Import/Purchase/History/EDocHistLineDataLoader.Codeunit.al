@@ -51,7 +51,8 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
         // Resolve LLM-based similar terms once for this invoice line and reuse across the matching passes.
         foreach DescriptionEntry in Descriptions do
             foreach SimilarTerm in EDocSimilarDescriptions.GetSimilarDescriptions(DescriptionEntry) do begin
-                SimilarTerm := SimilarTerm.Trim();
+                // AI-generated text is untrusted: strip filter metacharacters before it is used in SetFilter.
+                SimilarTerm := SanitizeFilterValue(SimilarTerm.Trim());
                 if (StrLen(SimilarTerm) > 3) and (not SimilarDescriptions.Contains(SimilarTerm)) then
                     SimilarDescriptions.Add(SimilarTerm);
             end;
@@ -130,6 +131,13 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
     begin
         if VendorNo <> '' then
             PurchInvLine.SetRange("Buy-from Vendor No.", VendorNo);
+    end;
+
+    local procedure SanitizeFilterValue(Value: Text): Text
+    begin
+        // Remove AL filter metacharacters so untrusted text (AI output/invoice content) cannot alter the
+        // filter expression or trigger a filter-parse error when embedded in SetFilter.
+        exit(DelChr(Value, '=', '&|()<>=?@*.''"%'));
     end;
 
     local procedure InsertLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; var PurchInvLine: Record "Purch. Inv. Line")
