@@ -1082,6 +1082,51 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
     end;
 
     [Test]
+    [HandlerFunctions('GLAccSheetForeignCurrReqPageHandler')]
+    [Scope('OnPrem')]
+    procedure GLSheetForeignCurrMultipleCurrenciesIncludesRegisteredCurrency()
+    var
+        GLAccount: Record "G/L Account";
+        BalGLAccount: Record "G/L Account";
+        GLAccountSourceCurrency: Record "G/L Account Source Currency";
+        GenJournalLine: Record "Gen. Journal Line";
+        AmountFCY: Decimal;
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO] Report 11564 includes FCY amount for multiple-currencies account when currency is registered.
+        Initialize();
+
+        // [GIVEN] Multiple-currency G/L account with registered source currency.
+        AmountFCY := LibraryRandom.RandIntInRange(1000, 2000);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
+
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Account Type", GLAccount."Account Type"::Posting);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Validate("Source Currency Posting", GLAccount."Source Currency Posting"::"Multiple Currencies");
+        GLAccount.Modify(true);
+
+        GLAccountSourceCurrency.InsertRecord(GLAccount."No.", CurrencyCode);
+
+        LibraryERM.CreateGLAccount(BalGLAccount);
+        CreateGenJournalLine(
+            GenJournalLine, GLAccount, GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.", AmountFCY, CurrencyCode);
+
+        // [WHEN] Run report.
+        LibraryVariableStorage.Enqueue(GLAccount."No.");
+        RunSRGLAccSheetForeignCurrReport(GLAccount);
+
+        // [THEN] Temporary entry keeps FCY values.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_GLAccount', GLAccount."No.");
+        LibraryReportDataset.SetRange('DocumentNo_GenJournalLine', GenJournalLine."Document No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('GenJournalLineFcyAcyAmt', Abs(GenJournalLine.Amount));
+        LibraryReportDataset.AssertCurrentRowValueNotEquals('GenJournalLineExrate', 0);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('GLAccSheetFCYWithDateFilterRPH')]
     procedure GLSheetForeignCurrNoErrorWhenSourceCurrCodeBlank()
     var
