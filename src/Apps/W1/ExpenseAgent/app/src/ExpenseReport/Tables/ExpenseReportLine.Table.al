@@ -1181,19 +1181,23 @@ table 6907 "Expense Report Line"
 
     procedure GetPolicyStatus(): Enum "Expense Policy Status"
     begin
-        if Rec."Policies Evaluated At" = 0DT then begin
-            // A line that has never been evaluated but has no policy targeting its category is
-            // already compliant - there is nothing to run against it, so report it Cleared rather
-            // than "Not Evaluated". This avoids a Pending badge on lines that will never produce a
-            // flag. Only the never-evaluated branch is short-circuited; a stale line keeps its
-            // existing status until it is re-evaluated.
-            if not HasApplicablePolicies() then
-                exit("Expense Policy Status"::Cleared);
-            exit("Expense Policy Status"::"Not Evaluated");
-        end;
-
-        if Rec."Evaluated Policy Version" < Rec."Policy Eval Version" then
+        // A change made after the line was evaluated always needs a recheck - even a change that
+        // removed the last applicable policy (deleting a policy must surface as Needs Recheck, not
+        // silently drop to No Policies). Evaluate staleness before applicability so that signal wins.
+        if (Rec."Policies Evaluated At" <> 0DT) and (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
             exit("Expense Policy Status"::Stale);
+
+        // No enabled policy targets this line's category, so there is nothing to run against it. This
+        // is a distinct, stable signal from an evaluated-and-passed line (Cleared): it holds whether
+        // or not a policy check has run, so the frontend can render "no policy" immediately instead
+        // of waiting for an evaluation pass that only marks the empty line evaluated and would then
+        // make it indistinguishable from a line that was checked against real policies and passed.
+        if not HasApplicablePolicies() then
+            exit("Expense Policy Status"::"No Policies");
+
+        // A policy applies but no evaluation has been recorded yet.
+        if Rec."Policies Evaluated At" = 0DT then
+            exit("Expense Policy Status"::"Not Evaluated");
 
         if Rec.HasCurrentPolicyViolation() then
             exit("Expense Policy Status"::Flagged);

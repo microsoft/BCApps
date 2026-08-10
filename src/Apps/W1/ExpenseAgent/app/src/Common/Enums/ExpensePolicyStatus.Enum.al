@@ -25,4 +25,8 @@ enum 6989 "Expense Policy Status"
     {
         Caption = 'Needs Recheck';
     }
+    value(4; "No Policies")
+    {
+        Caption = 'No Policies';
+    }
 }

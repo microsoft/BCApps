@@ -43,21 +43,22 @@ codeunit 148338 "Expense Policy Flag Test"
     end;
 
     [Test]
-    procedure MarkPoliciesEvaluatedClearsWhenNoFlags()
+    procedure MarkPoliciesEvaluatedNoPoliciesWhenNoApplicablePolicy()
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] MarkPoliciesEvaluated advances Evaluated to Current, stamps the timestamp, and (no flags) yields Cleared.
+        // [SCENARIO] MarkPoliciesEvaluated advances Evaluated to Current and stamps the timestamp; with no
+        //            applicable policy the line reports No Policies (a stable "nothing to check" signal), not Cleared.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
 
         // [WHEN] The report line is marked evaluated.
         ExpenseReportLine.MarkPoliciesEvaluated();
 
-        // [THEN] Evaluated equals Current, the timestamp is set, and the status is Cleared.
+        // [THEN] Evaluated equals Current, the timestamp is set, and the status is No Policies.
         Assert.AreEqual(ExpenseReportLine."Policy Eval Version", ExpenseReportLine."Evaluated Policy Version", 'Evaluated must catch up to Policy Eval Version after MarkPoliciesEvaluated.');
         Assert.AreNotEqual(0DT, ExpenseReportLine."Policies Evaluated At", 'Policies Evaluated At must be stamped.');
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'An evaluated report line with no flags must report Cleared.');
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'An evaluated line with no applicable policy must report No Policies.');
     end;
 
     [Test]
@@ -82,11 +83,12 @@ codeunit 148338 "Expense Policy Flag Test"
     end;
 
     [Test]
-    procedure NeutralFieldChangeStaysCleared()
+    procedure NeutralFieldChangeDoesNotStale()
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] Changing only a policy-neutral field after evaluation must NOT bump Current; status stays Cleared.
+        // [SCENARIO] Changing only a policy-neutral field after evaluation must NOT bump Current; the line
+        //            does not go Stale (with no applicable policy it stays at the stable No Policies signal).
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
         ExpenseReportLine.MarkPoliciesEvaluated();
@@ -95,10 +97,10 @@ codeunit 148338 "Expense Policy Flag Test"
         ExpenseReportLine."Applied Rule Id" := CreateGuid();
         ExpenseReportLine.Modify(true);
 
-        // [THEN] Current is unchanged and the status remains Cleared.
+        // [THEN] Current is unchanged and the status has not gone Stale.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual(0, ExpenseReportLine."Policy Eval Version", 'A neutral field change must not bump Policy Eval Version.');
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A neutral change must leave the evaluation Cleared.');
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'A neutral change must not stale the line.');
     end;
 
     [Test]
@@ -372,7 +374,7 @@ codeunit 148338 "Expense Policy Flag Test"
         CreateTestReportLine(ExpenseReportLine);
         ExpenseReportLine.MarkPoliciesEvaluated();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line should be Cleared.');
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'Precondition: with no policy yet the line reports No Policies.');
 
         // [WHEN] A policy is added for the line's category.
         CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'No alcohol on company expenses.');
@@ -456,9 +458,9 @@ codeunit 148338 "Expense Policy Flag Test"
         // [WHEN] A policy is added for a different category than the line's.
         CreateTestPolicy(ExpensePolicy, CopyStr(ExpenseReportLine."Expense Category" + 'X', 1, 20), 'Unrelated policy.');
 
-        // [THEN] The line for the original category stays Cleared.
+        // [THEN] The line for the original category has no applicable policy, so it reports No Policies (not staled).
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A policy for another category must not invalidate this line.');
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'A policy for another category must not invalidate this line.');
     end;
 
     [Test]
@@ -642,7 +644,7 @@ codeunit 148338 "Expense Policy Flag Test"
         CreateTestReportLine(ExpenseReportLine);
         ExpenseReportLine.MarkPoliciesEvaluated();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line should be Cleared.');
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'Precondition: with no policy the line reports No Policies.');
 
         // [WHEN] A participant is added to the line.
         CreateReportLineParticipant(ExpenseReportLineParticip, ExpenseReportLine);
@@ -821,19 +823,19 @@ codeunit 148338 "Expense Policy Flag Test"
     end;
 
     [Test]
-    procedure UnevaluatedLineWithNoApplicablePoliciesIsCleared()
+    procedure UnevaluatedLineWithNoApplicablePoliciesIsNoPolicies()
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] A never-evaluated line whose category has no policy is Cleared, not "Not Evaluated".
+        // [SCENARIO] A never-evaluated line whose category has no policy reports No Policies, not "Not Evaluated".
         Initialize();
 
         // [GIVEN] A fresh report line and no policies at all.
         CreateTestReportLine(ExpenseReportLine);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
-        // [THEN] The line reports Cleared because nothing needs to be evaluated against it.
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with no applicable policy must be Cleared.');
+        // [THEN] The line reports No Policies because nothing needs to be evaluated against it.
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with no applicable policy must be No Policies.');
     end;
 
     [Test]
@@ -873,13 +875,13 @@ codeunit 148338 "Expense Policy Flag Test"
     end;
 
     [Test]
-    procedure UnevaluatedLineWithOnlyOtherCategoryPolicyIsCleared()
+    procedure UnevaluatedLineWithOnlyOtherCategoryPolicyIsNoPolicies()
     var
         ExpenseReportLine: Record "Expense Report Line";
         OtherCategoryPolicy: Record "Expense Policy";
         OtherCategory: Record "Expense Category";
     begin
-        // [SCENARIO] A policy for a different category does not apply, so a never-evaluated line is Cleared.
+        // [SCENARIO] A policy for a different category does not apply, so a never-evaluated line reports No Policies.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
 
@@ -887,18 +889,18 @@ codeunit 148338 "Expense Policy Flag Test"
         LibraryExpense.CreateExpenseCategory(OtherCategory, OtherCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ", '');
         CreateTestPolicy(OtherCategoryPolicy, OtherCategory.Code, 'Belongs to another category');
 
-        // [THEN] The line is Cleared because no policy targets its category.
+        // [THEN] The line reports No Policies because no policy targets its category.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with only a different-category policy must be Cleared.');
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with only a different-category policy must be No Policies.');
     end;
 
     [Test]
-    procedure UnevaluatedLineWithDisabledPolicyIsCleared()
+    procedure UnevaluatedLineWithDisabledPolicyIsNoPolicies()
     var
         ExpenseReportLine: Record "Expense Report Line";
         DisabledPolicy: Record "Expense Policy";
     begin
-        // [SCENARIO] A disabled policy is not applicable, so a never-evaluated line is Cleared.
+        // [SCENARIO] A disabled policy is not applicable, so a never-evaluated line reports No Policies.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
 
@@ -908,9 +910,51 @@ codeunit 148338 "Expense Policy Flag Test"
         DisabledPolicy.Enabled := false;
         DisabledPolicy.Modify(true);
 
-        // [THEN] The line is Cleared because the only matching policy is disabled.
+        // [THEN] The line reports No Policies because the only matching policy is disabled.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line whose only matching policy is disabled must be Cleared.');
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line whose only matching policy is disabled must be No Policies.');
+    end;
+
+    [Test]
+    procedure NoPoliciesIsDistinctFromClearedAcrossLifecycle()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+    begin
+        // [SCENARIO] The frontend must be able to tell "no policy to evaluate" apart from "evaluated and
+        //            cleared". A line with no applicable policy reports No Policies (stable, even after a
+        //            check run); the same line, once a policy applies and is evaluated with no violation,
+        //            reports Cleared.
+        Initialize();
+
+        // [GIVEN] A line with no applicable policy.
+        CreateTestReportLine(ExpenseReportLine);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'With no applicable policy the line must report No Policies.');
+
+        // [WHEN] The line is marked evaluated even though nothing applies (the check run marks every line).
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+
+        // [THEN] The signal is stable: an evaluated line with no applicable policy still reports No Policies,
+        //        never masquerading as Cleared.
+        Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'An evaluated line with no applicable policy must stay No Policies, not flip to Cleared.');
+
+        // [WHEN] A policy now targets the line's category.
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'No alcohol on company expenses.');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+
+        // [THEN] The line needs a recheck (a policy appeared after evaluation).
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'A newly applicable policy after evaluation must make the line Stale.');
+
+        // [WHEN] The applicable policy is evaluated with a compliant verdict.
+        AddCompliantFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'No alcohol found - compliant.');
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+
+        // [THEN] Now the line is genuinely evaluated-and-passed: Cleared, distinct from No Policies.
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'An applicable policy evaluated with no violation must report Cleared.');
     end;
 
     // --- Fixtures ----------------------------------------------------------------------------
