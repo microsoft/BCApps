@@ -1209,6 +1209,7 @@ table 472 "Job Queue Entry"
     var
         InStr: InStream;
     begin
+        ReadIsolation(IsolationLevel::ReadCommitted);
         CalcFields(XML);
         if XML.HasValue() then begin
             XML.CreateInStream(InStr, TEXTENCODING::UTF8);

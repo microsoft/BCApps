@@ -14,5 +14,6 @@ permissionset 6912 "G/L Registers - Read"
                   tabledata "G/L Entry - VAT Entry Link" = R,
                   tabledata "G/L Entry" = R,
                   tabledata "G/L Register" = R,
+                  tabledata "G/L Transaction" = R,
                   tabledata "VAT Entry" = R;
 }

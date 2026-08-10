@@ -54,6 +54,16 @@
       "id": "8238f78b-cbe5-4b9c-b247-7771145b7470",
       "name": "E-Document Format for Factura-E Tests",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "4022897d-41ca-4ae2-a766-a429d0b19273",
+      "name": "E-Document for Germany Tests",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "f78b9487-b911-4db1-893b-5a5c310919b8",
+      "name": "E-Document Format for OIOUBL Tests",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
@@ -81,7 +91,7 @@
     },
     {
       "from": 6427,
-      "to": 6430
+      "to": 6436
     }
   ],
   "resourceExposurePolicy": {
