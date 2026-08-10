@@ -226,6 +226,10 @@ page 8352 "MCP Config Tool List"
     var
         PageMetadata: Record "Page Metadata";
     begin
+        AllowCreateEditable := false;
+        AllowModifyEditable := false;
+        AllowDeleteEditable := false;
+
         if not PageMetadata.Get(Rec."Object Id") then
             exit;
 
