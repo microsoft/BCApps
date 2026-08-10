@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-interface "EA Corp Card Exp Writer"
+interface "EA Corp Card Expense Writer"
 {
     procedure CreateDraftFromTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]);
     procedure LinkPosted(var CorpCardTrans: Record "EA Corp Card Trans"; PostedDocNo: Code[20]);

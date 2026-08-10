@@ -41,7 +41,7 @@ codeunit 148341 EACorpCardL3VATTests
         CorpCardBatch: Record "EA Corp Card Batch";
         CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseVATSpecification: Record "Expense VAT Specification";
-        CorpCardExpWriter: Codeunit "EA Corp Card Exp Writer";
+        CorpCardExpWriter: Codeunit "EA Corp Card Expense Writer";
         ExpenseNo: Code[20];
         VatSpecCount: Integer;
         VatSpecAmountTotal: Decimal;
