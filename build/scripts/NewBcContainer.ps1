@@ -42,7 +42,7 @@ finally {
 
 Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -argumentList $apiTestPasswordFile -scriptblock {
     param(
-        [string]$PasswordFile
+        [string]$CredentialFilePath
     )
 
     $fileSecurity = [System.Security.AccessControl.FileSecurity]::new()
@@ -59,7 +59,7 @@ Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -argumentLis
             [System.Security.AccessControl.AccessControlType]::Allow)
         $fileSecurity.AddAccessRule($accessRule)
     }
-    Set-Acl -LiteralPath $PasswordFile -AclObject $fileSecurity
+    Set-Acl -LiteralPath $CredentialFilePath -AclObject $fileSecurity
 }
 
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "EnforceUserPathForAlFileOperations" -keyValue "false"
