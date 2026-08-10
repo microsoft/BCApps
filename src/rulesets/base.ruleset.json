@@ -260,11 +260,6 @@
       "action": "Warning"
     },
     {
-      "id": "AA0194",
-      "action": "Warning",
-      "justification": "Remember to specify either the 'OnAction' trigger or the 'RunObject' property on an action."
-    },
-    {
       "id": "AA0198",
       "action": "Warning",
       "justification": "The name of the local variable is identical to a global variable."
