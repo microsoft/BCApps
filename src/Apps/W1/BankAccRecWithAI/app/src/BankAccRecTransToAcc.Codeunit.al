@@ -194,11 +194,12 @@ codeunit 7251 "Bank Acc. Rec. Trans. to Acc."
     var
         BankRecAIMatchingImpl: Codeunit "Bank Rec. AI Matching Impl.";
         CompletionTaskTxt: SecretText;
-        CompletionTaskPartTxt: SecretText;
+        SafetyClauseTxt: SecretText;
         CompletionTaskBuildingFromKeyVaultFailed: Boolean;
+        ConcatSubstrTok: Label '%1%2', Locked = true;
     begin
-        if BankRecAIMatchingImpl.GetAzureKeyVaultSecret(CompletionTaskPartTxt, 'BankAccRecAITransToGLAccount1') then
-            CompletionTaskTxt := CompletionTaskPartTxt
+        if BankRecAIMatchingImpl.GetAzureKeyVaultSecret(SafetyClauseTxt, 'BankAccRecAITransToGLAccountSft') then
+            CompletionTaskTxt := SafetyClauseTxt
         else
             CompletionTaskBuildingFromKeyVaultFailed := true;
 
@@ -206,6 +207,8 @@ codeunit 7251 "Bank Acc. Rec. Trans. to Acc."
             Session.LogMessage('0000LFI', TelemetryConstructingPromptFailedErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', BankRecAIMatchingImpl.FeatureName());
             Error(ConstructingPromptFailedErr);
         end;
+
+        CompletionTaskTxt := SecretStrSubstNo(ConcatSubstrTok, CompletionTaskTxt, NavApp.GetResourceAsText('BankAccRecAITransToGLAccountTask.md', TextEncoding::UTF8));
 
         exit(CompletionTaskTxt);
     end;

@@ -16,11 +16,11 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
     procedure BuildBankRecCompletionTask(IncludeFewShotExample: Boolean): SecretText
     var
         CompletionTaskTxt: SecretText;
-        CompletionTaskPartTxt: SecretText;
+        SafetyClauseTxt: SecretText;
         CompletionTaskBuildingFromKeyVaultFailed: Boolean;
     begin
-        if GetAzureKeyVaultSecret(CompletionTaskPartTxt, 'BankAccRecAIMatching1') then
-            CompletionTaskTxt := CompletionTaskPartTxt
+        if GetAzureKeyVaultSecret(SafetyClauseTxt, 'BankAccRecAIMatchingSft') then
+            CompletionTaskTxt := SafetyClauseTxt
         else
             CompletionTaskBuildingFromKeyVaultFailed := true;
 
@@ -28,6 +28,8 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
             Session.LogMessage('0000LFJ', TelemetryConstructingPromptFailedErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureName());
             Error(ConstructingPromptFailedErr);
         end;
+
+        CompletionTaskTxt := AddCompletionPromptLine(CompletionTaskTxt, NavApp.GetResourceAsText('BankAccRecAIMatchingTask.md', TextEncoding::UTF8));
 
         if (IncludeFewShotExample) then begin
             CompletionTaskTxt := AddCompletionPromptLine(CompletionTaskTxt, '\n**Example 1**:\n');
