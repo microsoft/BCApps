@@ -14,6 +14,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Journal;
 
 codeunit 99001572 "Subc. Invt. Put-away Ext"
 {
@@ -61,12 +62,33 @@ codeunit 99001572 "Subc. Invt. Put-away Ext"
             PostWhseJnlLine := false;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnAfterCreateWhseJnlLine, '', false, false)]
+    local procedure SetSubcOutputSourceOnAfterCreateWhseJnlLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; WarehouseActivityLine: Record "Warehouse Activity Line")
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        if WarehouseActivityLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::LastOperation then
+            exit;
+        if WarehouseActivityLine."Source Type" <> Database::"Purchase Line" then
+            exit;
+        if WarehouseActivityLine."Source Subtype" <> "Purchase Document Type"::Order.AsInteger() then
+            exit;
+        if not PurchaseLine.Get("Purchase Document Type"::Order, WarehouseActivityLine."Source No.", WarehouseActivityLine."Source Line No.") then
+            exit;
+
+        WarehouseJournalLine."Source Type" := Database::"Item Journal Line";
+        WarehouseJournalLine."Source Subtype" := 5;
+        WarehouseJournalLine."Source No." := PurchaseLine."Prod. Order No.";
+        WarehouseJournalLine."Source Line No." := PurchaseLine."Prod. Order Line No.";
+    end;
+
     // Non-last-operation and WIP transfer lines intentionally retain zero base quantities.
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", OnBeforeCalcQty, '', false, false)]
     local procedure SuppressCalcQtyTestFieldForNotLastOp_OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal; var NewQtyBase: Decimal; var IsHandled: Boolean)
     begin
         if WarehouseActivityLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation then
             IsHandled := true;
+
         if WarehouseActivityLine."Transfer WIP Item" then
             IsHandled := true;
     end;
@@ -149,6 +171,42 @@ codeunit 99001572 "Subc. Invt. Put-away Ext"
             exit;
 
         IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnBeforeCheckItemTracking, '', false, false)]
+    local procedure SkipTrackingSyncForNonPhysicalLine_OnBeforeCheckItemTracking(var WarehouseActivityLine: Record "Warehouse Activity Line"; var Result: Boolean; var IsHandled: Boolean; WhseActivHeader: Record "Warehouse Activity Header")
+    begin
+        if (WarehouseActivityLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::NotLastOperation) and
+           not WarehouseActivityLine."Transfer WIP Item"
+        then
+            exit;
+
+        Result := false;
+        IsHandled := true;
+    end;
+
+    // Use the production order line as the source for direct last-operation tracking.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", OnSynchronizeWhseActivItemTrkgOnAfterSetToRowID, '', false, false)]
+    local procedure RedirectSubcLastOperationTrackingToProdOrderLine_OnSynchronizeWhseActivItemTrkgOnAfterSetToRowID(var WarehouseActivityLine: Record "Warehouse Activity Line"; var ToRowID: Text[250])
+    var
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLine: Record "Prod. Order Line";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+    begin
+        if WarehouseActivityLine."Activity Type" <> WarehouseActivityLine."Activity Type"::"Invt. Put-away" then
+            exit;
+        if WarehouseActivityLine."Source Type" <> Database::"Purchase Line" then
+            exit;
+        if WarehouseActivityLine."Source Subtype" <> "Purchase Document Type"::Order.AsInteger() then
+            exit;
+        if not PurchaseLine.Get("Purchase Document Type"::Order, WarehouseActivityLine."Source No.", WarehouseActivityLine."Source Line No.") then
+            exit;
+        if not PurchaseLine.IsSubcontractingLineWithLastOperation(ProdOrderLine) then
+            exit;
+
+        ToRowID :=
+            ItemTrackingMgt.ComposeRowID(
+                Database::"Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.", '', ProdOrderLine."Line No.", 0);
     end;
 
     // Non-last-operation lines do not require bin or capacity validation.

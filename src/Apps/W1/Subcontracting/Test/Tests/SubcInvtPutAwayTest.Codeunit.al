@@ -9,6 +9,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
@@ -16,6 +17,7 @@ using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Ledger;
@@ -65,9 +67,12 @@ codeunit 149918 "Subc. Invt. Put-away Test"
 
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         SubcontractingMgmtLibrary.SetupInventorySetup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
+        LibrarySetupStorage.Save(Database::"Purchases & Payables Setup");
 
         IsInitialized := true;
         Commit();
@@ -101,7 +106,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         Quantity := LibraryRandom.RandIntInRange(5, 10);
 
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
-        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
         // [GIVEN] Location for single-step logistics (Require Receive = false, Require Put-away = true)
@@ -283,6 +288,13 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         WarehouseEntry.CalcSums(Quantity);
         Assert.AreEqual(Quantity, WarehouseEntry.Quantity, 'Warehouse Entry total Quantity must equal the posted quantity exactly once (regression: must not be doubled)');
 
+        // [THEN] Warehouse Entry is linked to the production order output
+        WarehouseEntry.SetRange("Source Type", Database::"Item Journal Line");
+        WarehouseEntry.SetRange("Source Subtype", 5);
+        WarehouseEntry.SetRange("Source No.", ProductionOrder."No.");
+        WarehouseEntry.SetRange("Source Line No.", PurchaseLine."Prod. Order Line No.");
+        Assert.RecordCount(WarehouseEntry, 1);
+
         // [THEN] Capacity Ledger Entry created for the subcontracting work center
         SubcWarehouseLibrary.VerifyCapacityLedgerEntry(WorkCenter[2]."No.", Quantity);
 
@@ -293,7 +305,114 @@ codeunit 149918 "Subc. Invt. Put-away Test"
 
     [HandlerFunctions('MessageHandler')]
     [Test]
-    procedure PostNotLastOperation_BinMandatoryLocation_NoWarehouseEntryCreated()
+    procedure PostLastOperation_WithLotAssignedInInventoryPutAway_CreatesTrackedOutput()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ReservationEntry: Record "Reservation Entry";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseEntry: Record "Warehouse Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        LotNo: Code[50];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] Post a LastOperation Inventory Put-away with a lot assigned directly on the
+        // inventory put-away line, without presetting tracking on the production order line.
+        // [FEATURE] Subcontracting Inventory Put-Away - Direct lot assignment on Last Operation
+
+        // [GIVEN] Complete Manufacturing Setup with a single-operation subcontracting routing
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] Location for single-step logistics with Bin Mandatory = true
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetupAndBin(Location, Bin);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Subcontracting Purchase Order for the last operation, without production-order tracking
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [GIVEN] Inventory Put-away created from the purchase order
+        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        LotNo := 'DIRECT-LOT';
+        WarehouseActivityLine.Validate("Lot No.", LotNo);
+        WarehouseActivityLine.Modify(true);
+        Assert.AreEqual(LotNo, WarehouseActivityLine."Lot No.", 'Lot should be assigned directly on the Inventory Put-away line');
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        WarehouseActivityLine.FindFirst();
+        ItemTrackingMgt.SynchronizeWhseActivItemTrkg(WarehouseActivityLine);
+        Assert.IsTrue(PurchaseLine.IsSubcontractingLineWithLastOperation(ProdOrderLine), 'Purchase line should be linked to the production order line');
+
+        ReservationEntry.SetSourceFilter(Database::"Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.", 0, true);
+        ReservationEntry.SetSourceFilter('', ProdOrderLine."Line No.");
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        Assert.RecordIsNotEmpty(ReservationEntry);
+
+        ReservationEntry.Reset();
+        ReservationEntry.SetSourceFilter(Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.", true);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        Assert.RecordIsEmpty(ReservationEntry);
+
+        // [WHEN] Post the Inventory Put-away
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        // [THEN] Purch. Rcpt. Line created for the purchase line
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        Assert.RecordIsNotEmpty(PurchRcptLine);
+
+        // [THEN] Output Item Ledger Entry contains the lot and the exact posted quantity
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Location Code", Location.Code);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Lot No.", LotNo);
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'Tracked Item Ledger Entry quantity must equal the posted quantity');
+
+        // [THEN] Warehouse Entry contains the lot and the exact posted quantity once
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Lot No.", LotNo);
+        Assert.RecordIsNotEmpty(WarehouseEntry);
+        WarehouseEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, WarehouseEntry.Quantity, 'Tracked Warehouse Entry quantity must equal the posted quantity');
+
+        // [THEN] Capacity Ledger Entry created for the subcontracting work center
+        SubcWarehouseLibrary.VerifyCapacityLedgerEntry(WorkCenter[2]."No.", Quantity);
+    end;
+
+    [HandlerFunctions('MessageHandler')]
+    [Test]
+    procedure PostNotLastOperation_WithLotAssignedInInventoryPutAway_NoWarehouseEntryCreated()
     var
         Bin: Record Bin;
         Item: Record Item;
@@ -306,20 +425,23 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         PurchRcptLine: Record "Purch. Rcpt. Line";
         Vendor: Record Vendor;
         WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
         WarehouseEmployee: Record "Warehouse Employee";
         WarehouseEntry: Record "Warehouse Entry";
         WorkCenter: array[2] of Record "Work Center";
+        LotNo: Code[50];
         Quantity: Decimal;
     begin
-        // [SCENARIO] Post a NotLastOperation Inventory Put-away at a Bin Mandatory location without Warehouse Entries.
-        // [FEATURE] Subcontracting Inventory Put-Away - Not Last Operation posting
+        // [SCENARIO] Post a NotLastOperation Inventory Put-away with a lot assigned directly on the
+        // inventory put-away line, without creating Warehouse Entries or dividing by zero.
+        // [FEATURE] Subcontracting Inventory Put-Away - Direct lot assignment on Not Last Operation
 
         // [GIVEN] Complete Manufacturing Setup with a two-operation subcontracting routing
         Initialize();
         Quantity := LibraryRandom.RandIntInRange(10, 20);
 
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
-        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[1]."No.");
 
         // [GIVEN] Location for single-step logistics with Bin Mandatory = true
@@ -341,6 +463,13 @@ codeunit 149918 "Subc. Invt. Put-away Test"
 
         // [GIVEN] Inventory Put-away created from the purchase order
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        LotNo := 'DIRECT-LOT';
+        WarehouseActivityLine.Validate("Lot No.", LotNo);
+        WarehouseActivityLine.Modify(true);
+        Assert.AreEqual(LotNo, WarehouseActivityLine."Lot No.", 'Lot should be assigned directly on the Inventory Put-away line');
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
 
         // [WHEN] Post the Inventory Put-away
