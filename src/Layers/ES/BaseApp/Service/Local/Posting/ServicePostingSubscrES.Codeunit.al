@@ -155,6 +155,7 @@ codeunit 10789 "Service Posting Subscr. ES"
         if ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo" then
             exit;
 
+        // Without a customer the posting cannot succeed, so there is nothing to settle and the check is skipped.
         if not Customer.Get(ServiceHeader."Bill-to Customer No.") then
             exit;
 
