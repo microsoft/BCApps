@@ -2553,10 +2553,10 @@ codeunit 147524 "SII Documents No Taxable"
         // [WHEN] Create xml for sales credit memo
         Assert.IsTrue(SIIXMLCreator.GenerateXml(CustLedgerEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
 
-        // [THEN] XML file has a sii:ImporteTAIReglasLocalizacion node with the VAT amount
+        // [THEN] XML file has a sii:ImporteTAIReglasLocalizacion node with the negative VAT amount
         LibrarySII.VerifyOneNodeWithValueByXPath(
           XMLDoc, XPathSalesNoTaxLocalTok, '',
-          SIIXMLCreator.FormatNumber(GetVATBaseAmountFromCustLedgEntry(CustLedgerEntry)));
+          SIIXMLCreator.FormatNumber(-GetVATBaseAmountFromCustLedgEntry(CustLedgerEntry)));
     end;
 
     [Test]
@@ -3338,7 +3338,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATEntry.SetRange("Document No.", CustLedgEntry."Document No.");
         VATEntry.SetRange("Posting Date", CustLedgEntry."Posting Date");
         VATEntry.SetRange("One Stop Shop Reporting", true);
-        VATEntry.FindFirst();
+        VATEntry.CalcSums(Base);
         exit(Abs(VATEntry.Base));
     end;
 
