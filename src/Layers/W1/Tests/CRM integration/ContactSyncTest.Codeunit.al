@@ -13,7 +13,6 @@ codeunit 130481 "Contact Sync Test"
         MessageHandlerCalled: Boolean;
         ContactsSyncedMsg: Label '%1 contacts have been synchronized successfully.', Comment = '%1 = Number of synced contacts';
         CannotModifyOtherUsersSyncErr: Label 'You can only modify Contact Sync settings for your own user.';
-        CannotChangeRecordOwnerErr: Label 'You cannot change the owner of an existing Contact Sync record.';
         InvalidDeltaUrlErr: Label 'The Delta URL must be an HTTPS Microsoft Graph URL.';
 
     [Test]
