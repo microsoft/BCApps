@@ -53,6 +53,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         SourceUntilDateDepreciationEntryNo: Integer;
         SourceAcqCostCustom1EntryNo: Integer;
         SourceAcqCostDepreciationEntryNo: Integer;
+        SourceSalvageEntryNo: Integer;
         FANo: Code[20];
         BudgetNo: Code[20];
         DeprBookCode: Code[10];
@@ -95,11 +96,17 @@ codeunit 5632 "FA Jnl.-Post Line"
             FAInsertLedgEntry.SetGLRegisterNo(0);
             if FAJnlLine."FA No." = '' then
                 exit;
+            if PostingRole = PostingRole::"Generated Mirror" then begin
+                Clear(FAJnlLine."Duplicate in Depreciation Book");
+                FAJnlLine."Use Duplication List" := false;
+                Clear(FAJnlLine."Insurance No.");
+            end;
             if FAJnlLine."Posting Date" = 0D then
                 FAJnlLine."Posting Date" := FAJnlLine."FA Posting Date";
             if CheckLine then
                 FAJnlCheckLine.CheckFAJnlLine(FAJnlLine);
-            DuplicateDeprBook.DuplicateFAJnlLine(FAJnlLine);
+            if PostingRole <> PostingRole::"Generated Mirror" then
+                DuplicateDeprBook.DuplicateFAJnlLine(FAJnlLine);
             FANo := FAJnlLine."FA No.";
             BudgetNo := FAJnlLine."Budgeted FA No.";
             DeprBookCode := FAJnlLine."Depreciation Book Code";
@@ -153,7 +160,8 @@ codeunit 5632 "FA Jnl.-Post Line"
             GenJnlLine."FA Posting Date" := GenJnlLine."Posting Date";
         if GenJnlLine."Journal Template Name" = '' then
             GenJnlLine.Quantity := 0;
-        DuplicateDeprBook.DuplicateGenJnlLine(GenJnlLine, FAAmount);
+        if CurrentPostingRole <> CurrentPostingRole::"Generated Mirror" then
+            DuplicateDeprBook.DuplicateGenJnlLine(GenJnlLine, FAAmount);
         FANo := GenJnlLine."Account No.";
         BudgetNo := GenJnlLine."Budgeted FA No.";
         DeprBookCode := GenJnlLine."Depreciation Book Code";
@@ -298,7 +306,7 @@ codeunit 5632 "FA Jnl.-Post Line"
             SourceEntryNo := InsertedMaintenanceLedgEntry."Entry No."
         else
             SourceEntryNo := InsertedFALedgEntry."Entry No.";
-        if SourceEntryNo = 0 then
+        if (SourceEntryNo = 0) and not HasSourceAutomaticEntries() then
             exit;
         if not DerogatoryPostingMgt.MakeDerogatoryJournalLine(DerogatoryFAJournalLine, SourceFAJournalLine, CurrentPostingRole::Source) then
             exit;
@@ -322,7 +330,7 @@ codeunit 5632 "FA Jnl.-Post Line"
             SourceEntryNo := InsertedMaintenanceLedgEntry."Entry No."
         else
             SourceEntryNo := InsertedFALedgEntry."Entry No.";
-        if SourceEntryNo = 0 then
+        if (SourceEntryNo = 0) and not HasSourceAutomaticEntries() then
             exit;
         if not DerogatoryPostingMgt.MakeDerogatoryJournalLine(DerogatoryFAJournalLine, SourceGenJournalLine, CurrentPostingRole::Source) then
             exit;
@@ -554,9 +562,22 @@ codeunit 5632 "FA Jnl.-Post Line"
         Clear(SourceUntilDateDepreciationEntryNo);
         Clear(SourceAcqCostCustom1EntryNo);
         Clear(SourceAcqCostDepreciationEntryNo);
+        Clear(SourceSalvageEntryNo);
+    end;
+
+    local procedure HasSourceAutomaticEntries(): Boolean
+    begin
+        exit(
+            (SourceUntilDateCustom1EntryNo <> 0) or
+            (SourceUntilDateDepreciationEntryNo <> 0) or
+            (SourceAcqCostCustom1EntryNo <> 0) or
+            (SourceAcqCostDepreciationEntryNo <> 0) or
+            (SourceSalvageEntryNo <> 0));
     end;
 
     local procedure PostSalvageValue(FALedgEntry: Record "FA Ledger Entry")
+    var
+        InsertedSalvageFALedgerEntry: Record "FA Ledger Entry";
     begin
         if (SalvageValue = 0) or (FAPostingType <> FAPostingType::"Acquisition Cost") then
             exit;
@@ -564,8 +585,12 @@ codeunit 5632 "FA Jnl.-Post Line"
         FALedgEntry."Automatic Entry" := true;
         FALedgEntry.Amount := SalvageValue;
         FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Salvage Value";
+        if CurrentPostingRole = CurrentPostingRole::"Generated Mirror" then
+            FALedgEntry."Derogatory Source Entry No." := SourceSalvageEntryNo;
         OnPostSalvageValueOnBeforeInsertEntry(FALedgEntry);
-        FAInsertLedgEntry.InsertFA(FALedgEntry);
+        FAInsertLedgEntry.InsertFA(FALedgEntry, InsertedSalvageFALedgerEntry);
+        if CurrentPostingRole = CurrentPostingRole::Source then
+            SourceSalvageEntryNo := InsertedSalvageFALedgerEntry."Entry No.";
     end;
 
     local procedure PostBudget(): Boolean
