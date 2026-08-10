@@ -559,6 +559,7 @@ codeunit 6501 "Item Tracking Data Collection"
         WhseActivLine.SetRange("Variant Code", TrackingSpecification."Variant Code");
         WhseActivLine.SetRange("Location Code", TrackingSpecification."Location Code");
         WhseActivLine.SetRange("Activity Type", WhseActivLine."Activity Type"::Pick);
+        // Blank Action Type covers Inventory Pick lines (single-step pick with no Take/Place split).
         WhseActivLine.SetFilter("Action Type", '%1|%2', WhseActivLine."Action Type"::Take, WhseActivLine."Action Type"::" ");
         WhseActivLine.SetRange("Breakbulk No.", 0);
         WhseActivLine.SetFilter("Qty. Outstanding (Base)", '>%1', 0);
