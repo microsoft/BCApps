@@ -12,6 +12,9 @@ codeunit 130481 "Contact Sync Test"
         ActualMessageText: Text;
         MessageHandlerCalled: Boolean;
         ContactsSyncedMsg: Label '%1 contacts have been synchronized successfully.', Comment = '%1 = Number of synced contacts';
+        CannotModifyOtherUsersSyncErr: Label 'You can only modify Contact Sync settings for your own user.';
+        CannotChangeRecordOwnerErr: Label 'You cannot change the owner of an existing Contact Sync record.';
+        InvalidDeltaUrlErr: Label 'The Delta URL must be an HTTPS Microsoft Graph URL.';
 
     [Test]
     [HandlerFunctions('SyncSuccessMessageHandler')]
@@ -497,6 +500,113 @@ codeunit 130481 "Contact Sync Test"
         AssertAreEqual('+1-555-0102', TempSyncQueue."Home Phone", 'Home Phone should match');
     end;
 
+    [Test]
+    procedure TestContactSyncUserInsertFailsForDifferentUser()
+    var
+        ContactSyncUser: Record "Contact Sync User";
+    begin
+        // [SCENARIO] Inserting a Contact Sync User record for another user should fail.
+        Initialize();
+
+        // [GIVEN] A Contact Sync User record owned by another user
+        ContactSyncUser.Init();
+        ContactSyncUser."User ID" := 'ANOTHERUSER';
+        ContactSyncUser."Folder ID" := 'folder-insert-owner';
+
+        // [WHEN] Insert is executed
+        asserterror ContactSyncUser.Insert(true);
+
+        // [THEN] Ownership validation should reject the insert
+        AssertIsTrue(StrPos(GetLastErrorText(), CannotModifyOtherUsersSyncErr) > 0, 'Expected ownership error. Actual: ' + GetLastErrorText());
+    end;
+
+    [Test]
+    procedure TestContactSyncUserModifyFailsWhenChangingOwner()
+    var
+        ContactSyncUser: Record "Contact Sync User";
+        ContactSyncUserToModify: Record "Contact Sync User";
+    begin
+        // [SCENARIO] Changing owner on an existing Contact Sync User record should fail.
+        Initialize();
+
+        // [GIVEN] A Contact Sync User record owned by the current user
+        CreateContactSyncUserForCurrentUser(ContactSyncUser, 'folder-owner-change', '');
+        ContactSyncUserToModify.Get(ContactSyncUser."ID");
+        ContactSyncUserToModify."User ID" := 'ANOTHERUSER';
+
+        // [WHEN] Modify is executed with a changed owner
+        asserterror ContactSyncUserToModify.Modify(true);
+
+        // [THEN] Owner change should be blocked
+        AssertIsTrue(StrPos(GetLastErrorText(), CannotChangeRecordOwnerErr) > 0, 'Expected owner-change error. Actual: ' + GetLastErrorText());
+
+        ContactSyncUser.Delete();
+    end;
+
+    [Test]
+    procedure TestContactSyncUserInsertFailsWithInvalidDeltaUrl()
+    var
+        ContactSyncUser: Record "Contact Sync User";
+    begin
+        // [SCENARIO] Inserting Contact Sync User with non-Graph Delta URL should fail.
+        Initialize();
+
+        // [GIVEN] A Contact Sync User record with invalid Delta URL
+        ContactSyncUser.Init();
+        ContactSyncUser."User ID" := CopyStr(UserId(), 1, MaxStrLen(ContactSyncUser."User ID"));
+        ContactSyncUser."Folder ID" := 'folder-invalid-insert-url';
+        ContactSyncUser."Delta Url" := 'https://contoso.example.com/v1.0/me/contactFolders/folder-invalid-insert-url/contacts/delta';
+
+        // [WHEN] Insert is executed
+        asserterror ContactSyncUser.Insert(true);
+
+        // [THEN] Delta URL validation should reject the insert
+        AssertIsTrue(StrPos(GetLastErrorText(), InvalidDeltaUrlErr) > 0, 'Expected invalid delta URL error. Actual: ' + GetLastErrorText());
+    end;
+
+    [Test]
+    procedure TestContactSyncUserSetDeltaUrlFailsWithInvalidUrl()
+    var
+        ContactSyncUser: Record "Contact Sync User";
+    begin
+        // [SCENARIO] Setting Delta URL to a non-Graph URL should fail.
+        Initialize();
+
+        // [GIVEN] An existing Contact Sync User record
+        CreateContactSyncUserForCurrentUser(ContactSyncUser, 'folder-set-invalid-url', '');
+
+        // [WHEN] SetDeltaUrl is called with invalid URL
+        asserterror ContactSyncUser.SetDeltaUrl('https://contoso.example.com/v1.0/me/contactFolders/folder-set-invalid-url/contacts/delta');
+
+        // [THEN] Delta URL validation should reject the value
+        AssertIsTrue(StrPos(GetLastErrorText(), InvalidDeltaUrlErr) > 0, 'Expected invalid delta URL error. Actual: ' + GetLastErrorText());
+
+        ContactSyncUser.Delete();
+    end;
+
+    [Test]
+    procedure TestContactSyncUserSetDeltaUrlAcceptsGraphUrl()
+    var
+        ContactSyncUser: Record "Contact Sync User";
+        DeltaUrl: Text;
+    begin
+        // [SCENARIO] Setting Delta URL to a valid Graph URL should succeed.
+        Initialize();
+
+        // [GIVEN] An existing Contact Sync User record
+        CreateContactSyncUserForCurrentUser(ContactSyncUser, 'folder-set-valid-url', '');
+        DeltaUrl := 'https://graph.microsoft.com/v1.0/me/contactFolders/folder-set-valid-url/contacts/delta?$deltatoken=abc';
+
+        // [WHEN] SetDeltaUrl is called with valid Graph URL
+        ContactSyncUser.SetDeltaUrl(DeltaUrl);
+
+        // [THEN] The URL should be persisted
+        ContactSyncUser.Get(ContactSyncUser."ID");
+        AssertAreEqual(DeltaUrl, ContactSyncUser.GetDeltaUrl(), 'Delta URL should persist when valid.');
+
+        ContactSyncUser.Delete();
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
@@ -605,6 +715,16 @@ codeunit 130481 "Contact Sync Test"
         Contact."Middle Name" := 'C';
         Contact.Initials := 'BC';
         Contact.Insert(true);
+    end;
+
+    local procedure CreateContactSyncUserForCurrentUser(var ContactSyncUser: Record "Contact Sync User"; FolderId: Text; DeltaUrl: Text)
+    begin
+        ContactSyncUser.Init();
+        ContactSyncUser."User ID" := CopyStr(UserId(), 1, MaxStrLen(ContactSyncUser."User ID"));
+        ContactSyncUser."Folder ID" := CopyStr(FolderId, 1, MaxStrLen(ContactSyncUser."Folder ID"));
+        ContactSyncUser."Folder Name" := CopyStr('Test Folder', 1, MaxStrLen(ContactSyncUser."Folder Name"));
+        ContactSyncUser."Delta Url" := CopyStr(DeltaUrl, 1, MaxStrLen(ContactSyncUser."Delta Url"));
+        ContactSyncUser.Insert(true);
     end;
 
     // Assert helper procedures - replace external Assert codeunit

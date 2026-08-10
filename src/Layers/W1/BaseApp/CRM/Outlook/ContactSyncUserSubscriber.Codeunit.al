@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CRM.Outlook;
 
-codeunit 7100 "Contact Sync UserSubscriber"
+codeunit 7100 "Contact Sync User Subscriber"
 {
     Access = Internal;
 
