@@ -213,6 +213,7 @@ page 321 "ECSL Report"
                         Message(CancelReportSentMsg);
                     end;
                 }
+#if not CLEAN29
 #pragma warning disable AA0194
                 action("Log Entries")
                 {
@@ -221,6 +222,9 @@ page 321 "ECSL Report"
                     Image = ErrorLog;
                     ToolTip = 'View a history of communications with the tax authority.';
                     Visible = false;
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     trigger OnAction()
                     begin
@@ -234,6 +238,9 @@ page 321 "ECSL Report"
                     Image = ReleaseDoc;
                     ToolTip = 'Verify that the report includes all of the required information, and prepare it for submission.';
                     Visible = false;
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     trigger OnAction()
                     begin
@@ -247,6 +254,9 @@ page 321 "ECSL Report"
                     Image = ReOpen;
                     ToolTip = 'Open the report again to make changes.';
                     Visible = false;
+                    ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     trigger OnAction()
                     begin
@@ -254,6 +264,7 @@ page 321 "ECSL Report"
                     end;
                 }
 #pragma warning restore AA0194
+#endif
             }
             action(Print)
             {
@@ -286,6 +297,7 @@ page 321 "ECSL Report"
                 actionref(SuggestLines_Promoted; SuggestLines)
                 {
                 }
+#if not CLEAN29
                 group(Category_Release)
                 {
                     Caption = 'Release';
@@ -298,12 +310,15 @@ page 321 "ECSL Report"
                     {
                     }
                 }
+#endif
                 actionref(Submit_Promoted; Submit)
                 {
                 }
+#if not CLEAN29
                 actionref("Log Entries_Promoted"; "Log Entries")
                 {
                 }
+#endif
                 actionref("Mark as Submitted_Promoted"; "Mark as Submitted")
                 {
                 }
