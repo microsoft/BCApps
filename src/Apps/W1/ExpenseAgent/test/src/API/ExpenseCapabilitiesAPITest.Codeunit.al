@@ -16,7 +16,6 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert: Codeunit Assert;
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ProjectsCapabilityNameTok: Label '"capabilityname":"projects"', Locked = true;
@@ -126,7 +125,6 @@ codeunit 148318 "Expense Capabilities API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Capabilities API Test");
         IsInitialized := true;
         Commit();

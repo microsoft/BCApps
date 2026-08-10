@@ -17,7 +17,6 @@ codeunit 148349 "Expense PerDiem Locations Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
 
     [Test]
@@ -86,7 +85,6 @@ codeunit 148349 "Expense PerDiem Locations Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense PerDiem Locations Test");
         IsInitialized := true;
         Commit();
