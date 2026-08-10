@@ -292,7 +292,7 @@ report 18049 "GSTR-1 File Format"
         HSNNatureOfSupplyOption: Option " ",B2B,B2C;
         NatureofSupply: Enum "Nature of Supply";
 
-    local procedure MakeExcelHeaderB2B()
+    procedure MakeExcelHeaderB2B()
     begin
         TempExcelBuffer.NewRow();
         AddTextColumn(GSTINUINTxt);
