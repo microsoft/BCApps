@@ -980,4 +980,3 @@ codeunit 5632 "FA Jnl.-Post Line"
     begin
     end;
 }
-
