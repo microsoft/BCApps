@@ -186,7 +186,7 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
 
                     FcyAcyAmt := "Source Currency Amount";
                     FcyAcyBalance := FcyAcyBalance + "Source Currency Amount";
-                    Exrate := CalcExrate("Source Currency Amount", Amount, "G/L Account"."Source Currency Code");
+                    Exrate := CalcExrate("Source Currency Amount", Amount, "G/L Entry"."Source Currency Code");
                     OnAfterOnAfterGetRecord("G/L Account", "G/L Entry", FcyAcyAmt, FcyAcyBalance, Exrate);
                 end;
 
@@ -328,7 +328,7 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
                     else
                         BalAccType := '';
 
-                    if ("Currency Code" <> '') and ("Currency Code" = "G/L Account"."Source Currency Code") then begin
+                    if IsAccountSourceCurrency("G/L Account", "Currency Code") then begin
                         FcyAcyAmt := Amount;
                         FcyAcyBalance := FcyAcyBalance + Amount;
                         Exrate := CalcExrate(Amount, "Amount (LCY)", "Gen. Journal Line"."Currency Code");
@@ -570,6 +570,17 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
                 exit(Round(LcyAmt * CurrExchRate."Exchange Rate Amount" / FcyAmt, 0.001))
         end;
         exit(0);
+    end;
+
+    local procedure IsAccountSourceCurrency(GLAccount2: Record "G/L Account"; CurrencyCode: Code[10]): Boolean
+    var
+        GLAccountSourceCurrency: Record "G/L Account Source Currency";
+    begin
+        if CurrencyCode = '' then
+            exit(false);
+        if CurrencyCode = GLAccount2."Source Currency Code" then
+            exit(true);
+        exit(GLAccountSourceCurrency.Get(GLAccount2."No.", CurrencyCode));
     end;
 
     [Scope('OnPrem')]
