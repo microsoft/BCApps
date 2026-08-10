@@ -21,6 +21,18 @@ codeunit 9762 "SFTP Client"
     end;
 
     /// <summary>
+    /// Adds an MD5 fingerprint to the list of accepted host key fingerprints.
+    /// </summary>
+    /// <param name="Fingerprint"></param>
+    [Obsolete('MD5 host key fingerprints are cryptographically insecure and are no longer supported. Use AddFingerprintSHA256 instead.', '29.0')]
+    procedure AddFingerprintMD5(Fingerprint: Text)
+    var
+        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported because MD5 is cryptographically broken. Use AddFingerprintSHA256 with a SHA256 fingerprint instead.';
+    begin
+        Error(MD5NotSupportedErr);
+    end;
+
+    /// <summary>
     /// Initializes the SFTP client with the specified parameters. The client is connected to the server.
     /// </summary>
     /// <param name="Hostname">Hostname of the SFTP server</param>
