@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -196,6 +196,10 @@ table 27 Item
                     "Sales Unit of Measure" := "Base Unit of Measure";
                     "Purch. Unit of Measure" := "Base Unit of Measure";
                 end;
+
+                if CurrFieldNo <> 0 then
+                    if CurrFieldNo <> FieldNo("Base Unit of Measure") then
+                        Modify(true);
             end;
         }
         field(9; "Price Unit Conversion"; Integer)
@@ -2247,6 +2251,42 @@ table 27 Item
             FieldClass = FlowField;
             AutoFormatType = 0;
         }
+#if not CLEANSCHEMA25
+        field(11500; "No Stockkeeping"; Boolean)
+        {
+            Caption = 'No Stockkeeping';
+            ObsoleteReason = 'Removing local functionality and adding Non-Inventory Item Type';
+            ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+        }
+#endif
+        field(11501; "Location Code"; Code[10])
+        {
+            Caption = 'Location Code';
+            TableRelation = Location;
+        }
+#if not CLEANSCHEMA25
+        field(11503; "Sale blocked"; Boolean)
+        {
+            Caption = 'Sale blocked';
+            ObsoleteReason = 'The field has been reproduced in W1 and will now have a new ID and be called Blocked for sale.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+        }
+        field(11504; "Purchase blocked"; Boolean)
+        {
+            Caption = 'Purchase blocked';
+            ObsoleteReason = 'The field has been reproduced in W1 and will now have a new ID and be called Blocked for purchase.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+        }
+#endif
+        field(11505; "Inventory Price"; Decimal)
+        {
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
+            Caption = 'Inventory Price';
+        }
         field(99000752; "Single-Level Material Cost"; Decimal)
         {
             AutoFormatType = 2;
@@ -4201,7 +4241,7 @@ table 27 Item
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"My Item", 'rm')]
-    local procedure UpdateMyItem(CallingFieldNo: Integer)
+    procedure UpdateMyItem(CallingFieldNo: Integer)
     var
         MyItem: Record "My Item";
     begin
