@@ -529,35 +529,37 @@ codeunit 10978 "CII XML Builder"
         if SourceDocumentLines.FindSet() then
             repeat
                 if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT %', VATPercentFieldRef) then begin
-                    VATPercent := VATPercentFieldRef.Value();
                     BaseAmount := GetLineAmountBeforeInvoiceDiscount(SourceDocumentLines);
+                    if not IsNonFinancialTextLine(SourceDocumentLines, BaseAmount) then begin
+                        VATPercent := VATPercentFieldRef.Value();
 
-                    if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Tax Category', TaxCategoryFieldRef) then
-                        TaxCategory := TaxCategoryFieldRef.Value()
-                    else
-                        Clear(TaxCategory);
+                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Tax Category', TaxCategoryFieldRef) then
+                            TaxCategory := TaxCategoryFieldRef.Value()
+                        else
+                            Clear(TaxCategory);
 
-                    if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Bus. Posting Group', VATBusPostingGroupFieldRef) then
-                        VATBusPostingGroup := VATBusPostingGroupFieldRef.Value()
-                    else
-                        Clear(VATBusPostingGroup);
+                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Bus. Posting Group', VATBusPostingGroupFieldRef) then
+                            VATBusPostingGroup := VATBusPostingGroupFieldRef.Value()
+                        else
+                            Clear(VATBusPostingGroup);
 
-                    if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Prod. Posting Group', VATProdPostingGroupFieldRef) then
-                        VATProdPostingGroup := VATProdPostingGroupFieldRef.Value()
-                    else
-                        Clear(VATProdPostingGroup);
+                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Prod. Posting Group', VATProdPostingGroupFieldRef) then
+                            VATProdPostingGroup := VATProdPostingGroupFieldRef.Value()
+                        else
+                            Clear(VATProdPostingGroup);
 
-                    VATCategoryCode := GetVATCategoryCode(TaxCategory, VATBusPostingGroup, VATProdPostingGroup);
-                    VATAggregationKey := GetVATAggregationKey(VATPercent, VATCategoryCode);
-                    VATAmount := Round(BaseAmount * VATPercent / 100, 0.01);
+                        VATCategoryCode := GetVATCategoryCode(TaxCategory, VATBusPostingGroup, VATProdPostingGroup);
+                        VATAggregationKey := GetVATAggregationKey(VATPercent, VATCategoryCode);
+                        VATAmount := Round(BaseAmount * VATPercent / 100, 0.01);
 
-                    AddAmountForVATKey(VATAggregationKey, BaseAmount, LineBaseAmounts);
-                    AddAmountForVATKey(VATAggregationKey, VATAmount, LineVATAmounts);
+                        AddAmountForVATKey(VATAggregationKey, BaseAmount, LineBaseAmounts);
+                        AddAmountForVATKey(VATAggregationKey, VATAmount, LineVATAmounts);
 
-                    if not VATRateByKey.ContainsKey(VATAggregationKey) then
-                        VATRateByKey.Add(VATAggregationKey, VATPercent);
-                    if not VATCategoryByKey.ContainsKey(VATAggregationKey) then
-                        VATCategoryByKey.Add(VATAggregationKey, VATCategoryCode);
+                        if not VATRateByKey.ContainsKey(VATAggregationKey) then
+                            VATRateByKey.Add(VATAggregationKey, VATPercent);
+                        if not VATCategoryByKey.ContainsKey(VATAggregationKey) then
+                            VATCategoryByKey.Add(VATAggregationKey, VATCategoryCode);
+                    end;
                 end;
             until SourceDocumentLines.Next() = 0;
     end;

@@ -601,6 +601,28 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
+    procedure FacturXSalesInvoiceCommentLineDoesNotCreateEmptyVATCategory()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        EmptyVATCategoryXPath: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A comment line does not create a VAT breakdown with an empty category
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI" with a financial line and a comment line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithComment());
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] The header VAT breakdown does not contain an empty category code
+        EmptyVATCategoryXPath := '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:CategoryCode[not(normalize-space())]';
+        Assert.AreEqual(0, GetCIINodeCount(TempBlob, EmptyVATCategoryXPath), StrSubstNo(IncorrectValueErr, EmptyVATCategoryXPath));
+    end;
+
+    [Test]
     procedure FacturXSalesInvoiceXMLHasMonetarySummation()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1041,6 +1063,18 @@ codeunit 148148 "Factur-X CII XML Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesInvoiceWithComment(): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, ''));
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::" ", '', 0);
+        SalesLine.Validate(Description, 'Comment');
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostSalesInvoiceWithElecAddress(FRElecAddress: Text[250]): Code[20]
     var
         SalesHeader: Record "Sales Header";
@@ -1224,6 +1258,21 @@ codeunit 148148 "Factur-X CII XML Tests"
         if XmlDoc.SelectSingleNode(XPath, NamespaceMgr, Node) then
             exit(Node.AsXmlAttribute().Value());
         exit('');
+    end;
+
+    local procedure GetCIINodeCount(var TempBlob: Codeunit "Temp Blob"; XPath: Text): Integer
+    var
+        XmlDoc: XmlDocument;
+        NamespaceMgr: XmlNamespaceManager;
+        Nodes: XmlNodeList;
+        InStr: InStream;
+    begin
+        TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
+        XmlDocument.ReadFrom(InStr, XmlDoc);
+        BuildNamespaceManager(XmlDoc, NamespaceMgr);
+
+        XmlDoc.SelectNodes(XPath, NamespaceMgr, Nodes);
+        exit(Nodes.Count());
     end;
 
     local procedure BuildNamespaceManager(XmlDoc: XmlDocument; var NamespaceMgr: XmlNamespaceManager)
