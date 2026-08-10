@@ -29,26 +29,34 @@ codeunit 7414 "Excise Tax Upgrade"
     var
         Item: Record Item;
         ItemExciseTax: Record "Item Excise Tax";
-        ExciseTaxType: Record "Excise Tax Type";
     begin
 #pragma warning disable AL0432
         Item.SetLoadFields("Excise Tax Type", "Quantity for Excise Tax", "Excise Unit of Measure Code");
         Item.SetFilter("Excise Tax Type", '<>%1', '');
         if Item.FindSet() then
             repeat
-                if not ItemExciseTax.Get(Item."No.", Item."Excise Tax Type") then begin
-                    ItemExciseTax.Init();
-                    ItemExciseTax."Item No." := Item."No.";
-                    ItemExciseTax."Excise Tax Type Code" := Item."Excise Tax Type";
-
-                    if ExciseTaxType.Get(Item."Excise Tax Type") then
-                        ItemExciseTax."Excise Tax Type Description" := ExciseTaxType.Description;
-
-                    ItemExciseTax."Quantity for Excise Tax" := Item."Quantity for Excise Tax";
-                    ItemExciseTax."Excise Unit of Measure Code" := Item."Excise Unit of Measure Code";
-                    ItemExciseTax.Insert();
-                end;
+                if not ItemExciseTax.Get(Item."No.", Item."Excise Tax Type") then
+                    CreateItemExciseTaxFromItem(Item);
             until Item.Next() = 0;
+#pragma warning restore AL0432
+    end;
+
+    local procedure CreateItemExciseTaxFromItem(Item: Record Item)
+    var
+        ItemExciseTax: Record "Item Excise Tax";
+        ExciseTaxType: Record "Excise Tax Type";
+    begin
+#pragma warning disable AL0432
+        ItemExciseTax.Init();
+        ItemExciseTax."Item No." := Item."No.";
+        ItemExciseTax."Excise Tax Type Code" := Item."Excise Tax Type";
+
+        if ExciseTaxType.Get(Item."Excise Tax Type") then
+            ItemExciseTax."Excise Tax Type Description" := ExciseTaxType.Description;
+
+        ItemExciseTax."Quantity for Excise Tax" := Item."Quantity for Excise Tax";
+        ItemExciseTax."Excise Unit of Measure Code" := Item."Excise Unit of Measure Code";
+        ItemExciseTax.Insert();
 #pragma warning restore AL0432
     end;
 
