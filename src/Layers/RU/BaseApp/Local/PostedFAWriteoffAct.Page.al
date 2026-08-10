@@ -148,6 +148,7 @@ page 12472 "Posted FA Writeoff Act"
             {
                 Caption = '&Line';
                 Image = Line;
+#pragma warning disable AA0194
                 action(Action1210035)
                 {
                     ApplicationArea = Suite;
@@ -171,6 +172,7 @@ page 12472 "Posted FA Writeoff Act"
                         // CurrPage.WriteoffLines.PAGE.ShowComments;
                     end;
                 }
+#pragma warning restore AA0194
             }
         }
         area(processing)

@@ -213,6 +213,7 @@ page 321 "ECSL Report"
                         Message(CancelReportSentMsg);
                     end;
                 }
+#pragma warning disable AA0194
                 action("Log Entries")
                 {
                     ApplicationArea = BasicEU;
@@ -252,6 +253,7 @@ page 321 "ECSL Report"
                         // MESSAGE('Reopen');
                     end;
                 }
+#pragma warning restore AA0194
             }
             action(Print)
             {

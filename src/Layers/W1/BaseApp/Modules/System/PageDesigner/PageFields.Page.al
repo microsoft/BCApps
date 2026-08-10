@@ -86,6 +86,7 @@ page 9620 "Page Fields"
     {
         area(processing)
         {
+#pragma warning disable AA0194
             action(View)
             {
                 ApplicationArea = Basic, Suite;
@@ -100,6 +101,7 @@ page 9620 "Page Fields"
                     // which is not desired in this case.
                 end;
             }
+#pragma warning restore AA0194
         }
 
         area(Promoted)
