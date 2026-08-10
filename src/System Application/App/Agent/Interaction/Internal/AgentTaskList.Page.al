@@ -288,7 +288,7 @@ page 4300 "Agent Task List"
     trigger OnOpenPage()
     begin
         Rec.SetRange(Archived, false);
-        ShouldShowAllAgents := false;
+        ShouldShowAllAgents := Rec.GetFilter("Agent User Security ID") <> '';
         SetAgentSubstateFilter();
     end;
 
@@ -329,11 +329,12 @@ page 4300 "Agent Task List"
 
     local procedure SetAgentSubstateFilter()
     begin
+        Rec.FilterGroup(2);
         if ShouldShowAllAgents then
             Rec.SetRange("Agent Substate")
         else
-            // "Agent Substate" is a FlowField of the agent, filtered in-memory to hide archived tasks by default.
             Rec.SetRange("Agent Substate", Rec."Agent Substate"::None);
+        Rec.FilterGroup(0);
         CurrPage.Update(false);
     end;
 
