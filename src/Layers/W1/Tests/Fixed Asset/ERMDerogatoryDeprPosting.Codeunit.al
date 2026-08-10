@@ -1737,13 +1737,10 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     local procedure UpdateFAPostingGroup(var FAPostingGroup: Record "FA Posting Group")
     begin
-        // The FA posting group is already fully populated with valid direct-posting accounts by
-        // LibraryFixedAsset.CreateFAPostingGroup; only the derogatory accounts are missing. Reuse the
-        // existing accounts so the setup is deterministic and independent of country demo data.
-        FAPostingGroup.Validate("Derogatory Acc.", FAPostingGroup."Accum. Depreciation Account");
-        FAPostingGroup.Validate("Derogatory Account (Decrease)", FAPostingGroup."Accum. Depreciation Account");
-        FAPostingGroup.Validate("Derogatory Expense Acc.", FAPostingGroup."Depreciation Expense Acc.");
-        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", FAPostingGroup."Depreciation Expense Acc.");
+        FAPostingGroup.Validate("Derogatory Acc.", CreateGLAccount());
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", CreateGLAccount());
+        FAPostingGroup.Validate("Derogatory Expense Acc.", CreateGLAccount());
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", CreateGLAccount());
         FAPostingGroup.Modify(true);
     end;
 
