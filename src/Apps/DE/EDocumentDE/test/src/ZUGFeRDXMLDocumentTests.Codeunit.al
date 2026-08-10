@@ -189,7 +189,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [GIVEN] Create and post sales invoice with external document no.
         CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithoutRoutingNo());
-        ExternalDocumentNo := LibraryRandom.RandText(MaxStrLen(ExternalDocumentNo));
+        ExternalDocumentNo := CopyStr(LibraryRandom.RandText(MaxStrLen(ExternalDocumentNo)), 1, MaxStrLen(ExternalDocumentNo));
         SalesHeader.Validate("External Document No.", ExternalDocumentNo);
         CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
