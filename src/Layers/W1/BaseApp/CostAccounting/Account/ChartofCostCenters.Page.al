@@ -216,7 +216,6 @@ page 1122 "Chart of Cost Centers"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Cost Acctg. Balance/Budget";
-                ToolTip = 'View a comparison of the balance to the budget figures and calculates the variance and the percent variance in the current accounting period, the accumulated accounting period, and the fiscal year.';
             }
         }
         area(Promoted)
