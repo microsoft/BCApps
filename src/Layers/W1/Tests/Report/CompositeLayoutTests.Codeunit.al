@@ -16,12 +16,15 @@ codeunit 134619 "Composite Layout Tests"
     var
         Assert: Codeunit Assert;
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         NoneTok: Label 'None', Locked = true;
         ThisLayoutSourceTok: Label 'This layout', Locked = true;
         ReportDefaultSourceTok: Label 'Report default', Locked = true;
         CompanySourceTok: Label 'Company', Locked = true;
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
+        DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
         TestReportID: Integer;
+        DocReportExpWasEnabled: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -211,10 +214,110 @@ codeunit 134619 "Composite Layout Tests"
         Assert.AreEqual(ThisLayoutSourceTok, HeaderSource, 'Header source should be the layout level.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PageShowsDecodedPartNamesNotComposite()
+    var
+        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
+        HeaderComposite: Text;
+    begin
+        // [SCENARIO 645022] The Tenant Report Layout Configuration page displays the plain header/footer and theme part
+        // names, not the raw <guid>::<name> composite reference stored in the Header/Theme Part Name columns.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A configuration row whose parts are stored as composite references (<guid>::<name>).
+        HeaderComposite := CreatePart('PageHF', Enum::"Report Layout Subtype"::HeaderFooter);
+        InsertCfg(TestReportID, 'Body', '', HeaderComposite, CreatePart('PageTheme', Enum::"Report Layout Subtype"::Theme));
+
+        // [WHEN] Opening the page on that row.
+        TenantReportLayoutCfgPage.OpenView();
+        TenantReportLayoutCfgPage.Filter.SetFilter("Report ID", Format(TestReportID));
+        Assert.IsTrue(TenantReportLayoutCfgPage.First(), 'The configured row should be shown on the page.');
+
+        // [THEN] The columns show the decoded part names, not the stored composite value.
+        Assert.AreEqual('PageHF', TenantReportLayoutCfgPage.HeaderPartDisplay.Value(), 'Header column should show the decoded part name.');
+        Assert.AreEqual('PageTheme', TenantReportLayoutCfgPage.ThemePartDisplay.Value(), 'Theme column should show the decoded part name.');
+
+        // [THEN] The stored value is still the composite reference, but the displayed value must not carry the '::' separator.
+        Assert.IsTrue(StrPos(HeaderComposite, '::') > 0, 'The stored value should be a composite reference.');
+        Assert.AreEqual(0, StrPos(TenantReportLayoutCfgPage.HeaderPartDisplay.Value(), '::'), 'The displayed value should not contain the composite separator.');
+
+        TenantReportLayoutCfgPage.Close();
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PartDescriptionShowsOnThemeHeaderFooterList()
+    var
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        PartName: Text;
+    begin
+        // [SCENARIO 645022] Report themes and header-footer setup shows the part's description in the list.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A tenant part created with a description (CreatePart stores Description = name).
+        PartName := 'HFWithDesc';
+        CreatePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter);
+
+        // [WHEN] Opening the page on that part.
+        ReportThemePage.OpenView();
+        ReportThemePage.Filter.SetFilter(Name, PartName);
+        Assert.IsTrue(ReportThemePage.First(), 'The created part should be shown on the page.');
+
+        // [THEN] The Description column shows the part's description.
+        Assert.AreEqual(PartName, ReportThemePage.Description.Value(), 'The Description column should show the part description.');
+
+        ReportThemePage.Close();
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('PartInfoMessageHandler')]
+    [Scope('OnPrem')]
+    procedure ShowInfoReportsPartDetailsAndUsage()
+    var
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        Composite: Text;
+        ActualMessage: Text;
+    begin
+        // [SCENARIO 645022] Show info reports the part details and how many report configurations use it.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A tenant theme part assigned in exactly one report configuration.
+        Composite := CreatePart('ThemeInfo', Enum::"Report Layout Subtype"::Theme);
+        InsertCfg(TestReportID, 'Body', '', '', Composite);
+
+        // [WHEN] Invoking Show info on that part.
+        ReportThemePage.OpenView();
+        ReportThemePage.Filter.SetFilter(Name, 'ThemeInfo');
+        Assert.IsTrue(ReportThemePage.First(), 'The created part should be shown on the page.');
+        ReportThemePage.ShowInfo.Invoke();
+        ReportThemePage.Close();
+
+        // [THEN] Exactly one info message fired, naming the part, its type, and the used-in count.
+        ActualMessage := LibraryVariableStorage.DequeueText();
+        Assert.ExpectedMessage('ThemeInfo', ActualMessage);
+        Assert.ExpectedMessage('Theme', ActualMessage);
+        Assert.ExpectedMessage('Used in 1 report configuration', ActualMessage);
+        LibraryVariableStorage.AssertEmpty();
+        RestoreDocumentReportExperience();
+    end;
+
+    [MessageHandler]
+    procedure PartInfoMessageHandler(Message: Text[1024])
+    begin
+        LibraryVariableStorage.Enqueue(Message);
+    end;
+
     local procedure Initialize()
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
     begin
+        LibraryVariableStorage.Clear();
         TestReportID := 50000;
 
         // These tests run in a non-isolated (Legacy) bucket against a shared company, so rows are not rolled back
@@ -236,6 +339,33 @@ codeunit 134619 "Composite Layout Tests"
         // that exact key so the suite cleans up after itself without touching any unrelated configuration.
         if TenantReportLayoutCfg.Get(0, '', CopyStr(CompanyFilter, 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))) then
             TenantReportLayoutCfg.Delete(true);
+    end;
+
+    local procedure EnableDocumentReportExperience()
+    var
+        FeatureKey: Record "Feature Key";
+    begin
+        // Page 9663 gates its OnOpenPage on the Document Report Experience preview; enable it so the page can be opened.
+        // Capture the original state so RestoreDocumentReportExperience can put it back and not contaminate other tests.
+        if FeatureKey.Get(DocumentReportExperienceTok) then begin
+            DocReportExpWasEnabled := FeatureKey.Enabled = FeatureKey.Enabled::"All Users";
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+            FeatureKey.Modify();
+        end;
+    end;
+
+    local procedure RestoreDocumentReportExperience()
+    var
+        FeatureKey: Record "Feature Key";
+    begin
+        // Restore the feature key to its pre-test state (the suite runs in a non-isolated bucket).
+        if not FeatureKey.Get(DocumentReportExperienceTok) then
+            exit;
+        if DocReportExpWasEnabled then
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+        else
+            FeatureKey.Enabled := FeatureKey.Enabled::None;
+        FeatureKey.Modify();
     end;
 
     local procedure CreatePart(PartName: Text; Subtype: Enum "Report Layout Subtype"): Text
