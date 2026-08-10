@@ -550,6 +550,36 @@ codeunit 144108 "ERM Service Invoice ES"
         VerifyServiceCreditMemoPosted(Customer."No.");
     end;
 
+    [Test]
+    procedure ServiceCreditMemoApplyToOldestWithBillInBillGroupIsBlocked()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+        BillInBillGroupNo: Code[20];
+        CarteraDoc: Record "Cartera Doc.";
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        Item: Record Item;
+        ServiceLine: Record "Service Line";
+    begin
+        // [SCENARIO 644547] A Service Credit Memo for an Apply to Oldest customer is still blocked from posting when a Bill is in an open Bill Group.
+        Initialize();
+        CompanyInformation.Get();
+        // [GIVEN] Create a Cartera customer using Apply to Oldest Application Method and a Create Bills payment method.
+        CreateCarteraCustomerWithApplyToOldest(Customer, CompanyInformation."Country/Region Code");
+        // [GIVEN] Create a posted Service Invoice generates an open Bill that is placed in an open Bill Group.
+        BillInBillGroupNo := CreateAndPostServiceInvoiceGetBillNo(Customer."No.");
+        CreateBillGroupWithBill(BankAccount, BillGroup, CarteraDoc, Customer."No.", BillInBillGroupNo);
+        // [GIVEN] Create a Service Credit Memo for the customer.
+        CreateServiceDocument(
+          ServiceLine, ServiceLine."Document Type"::"Credit Memo", ServiceLine.Type::Item, Customer."No.", LibraryInventory.CreateItem(Item));
+        UpdateServiceHeaderCorrectedInvoiceNo(ServiceLine."Document No.", FindServiceInvoiceHeader(Customer."No."));
+        // [WHEN] The Service Credit Memo is posted.
+        asserterror PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
+        // [THEN] Verify posting is blocked because a Bill is in an open Bill Group and the customer uses Apply to Oldest Application Method.
+        Assert.ExpectedError('cannot be applied, since it is included in a bill group');
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -717,6 +747,13 @@ codeunit 144108 "ERM Service Invoice ES"
         ServiceInvoiceHeader.SetRange("Customer No.", CustomerNo);
         ServiceInvoiceHeader.FindLast();
         exit(ServiceInvoiceHeader."No.");
+    end;
+
+    local procedure CreateCarteraCustomerWithApplyToOldest(var Customer: Record Customer; CountryRegionCode: Code[10])
+    begin
+        CreateCustomer(Customer, CountryRegionCode);  // Uses a Create Bills payment method.
+        Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
+        Customer.Modify(true);
     end;
 
     local procedure CreateBillGroupWithBill(var BankAccount: Record "Bank Account"; var BillGroup: Record "Bill Group"; var CarteraDoc: Record "Cartera Doc."; CustomerNo: Code[20]; BillNo: Code[20])
