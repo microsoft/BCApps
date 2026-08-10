@@ -26,7 +26,8 @@ codeunit 6984 "Release Exp. Report Document"
         ApprovalProcessMustBeCancelledErr: Label 'The approval process must be cancelled or completed to reopen this document.';
         RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
         CannotReleaseDocumentWithNothingToRefundErr: Label 'Cannot release the Expense Report No. %1 because there is nothing to refund for this Line No. %2.', Comment = '%1 - Expense No. , %2 - Line No.';
-        PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and submit again. (PolicyEvaluationNotCurrent)', Comment = 'Keep the (PolicyEvaluationNotCurrent) token unchanged - it is a stable machine-detectable marker used by the submitting client to distinguish a stale-policy rejection from other errors and retry after re-evaluating.';
+        PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and submit again.';
+        PolicyEvaluationNotCurrentCodeTok: Label ' (PolicyEvaluationNotCurrent)', Locked = true;
 
     local procedure ReleaseExpenseReport()
     var
@@ -197,7 +198,7 @@ codeunit 6984 "Release Exp. Report Document"
                 if ExpenseReportLine.GetPolicyStatus() in
                     ["Expense Policy Status"::Stale, "Expense Policy Status"::"Not Evaluated"]
                 then
-                    Error(PolicyEvaluationNotCurrentErr);
+                    Error(PolicyEvaluationNotCurrentErr + PolicyEvaluationNotCurrentCodeTok);
             until ExpenseReportLine.Next() = 0;
     end;
 
