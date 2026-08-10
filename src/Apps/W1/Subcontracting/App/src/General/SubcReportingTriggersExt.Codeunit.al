@@ -9,7 +9,6 @@ using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20512 "Subc. Reporting Triggers Ext"
 {
     [EventSubscriber(ObjectType::Report, Report::"Detailed Calculation", OnAfterGetRecordRoutingLineOnBeforeCalcRoutingCostPerUnit, '', false, false)]
@@ -62,4 +61,3 @@ codeunit 20512 "Subc. Reporting Triggers Ext"
         IsHandled := true;
     end;
 }
-#pragma warning restore AS0072, AS0136

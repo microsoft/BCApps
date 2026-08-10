@@ -22,7 +22,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Utilities;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20557 "Subc. Purchase Order Creator"
 {
     var
@@ -669,4 +668,3 @@ codeunit 20557 "Subc. Purchase Order Creator"
     begin
     end;
 }
-#pragma warning restore AS0072, AS0136

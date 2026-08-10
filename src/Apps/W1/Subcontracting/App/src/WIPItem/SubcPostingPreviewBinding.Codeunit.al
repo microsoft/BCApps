@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Finance.GeneralLedger.Preview;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20565 "Subc. Posting Preview Binding"
 {
 #if not CLEAN28
@@ -55,4 +54,3 @@ codeunit 20565 "Subc. Posting Preview Binding"
         exit(UnbindSubscription(SubcPostingPreviewHandler));
     end;
 }
-#pragma warning restore AS0072, AS0136

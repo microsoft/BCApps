@@ -10,7 +10,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 
-#pragma warning disable AS0072, AS0136
 table 20500 "Subcontractor Price"
 {
     AllowInCustomizations = AsReadOnly;
@@ -260,4 +259,3 @@ table 20500 "Subcontractor Price"
     end;
 
 }
-#pragma warning restore AS0072, AS0136

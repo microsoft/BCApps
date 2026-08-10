@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Document;
 
-#pragma warning disable AS0072, AS0136
 page 20518 "Subc. Purchase Line Factbox"
 {
     ApplicationArea = Subcontracting;
@@ -140,4 +139,3 @@ page 20518 "Subc. Purchase Line Factbox"
     var
         PlaceholderLbl: Label '%1', Locked = true;
 }
-#pragma warning restore AS0072, AS0136
