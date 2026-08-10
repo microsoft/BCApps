@@ -19,26 +19,12 @@
       "action": "Warning"
     },
     {
-      "id": "AL0269",
-      "action": "Warning",
-      "justification": "Bug 472119"
-    },
-    {
-      "id": "AL0424",
-      "action": "Warning",
-      "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."
-    },
-    {
       "id": "AL0432",
       "action": "None",
       "justification": "Use pragma to remove obsolete warning."
     },
     {
       "id": "AL0457",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0482",
       "action": "Warning"
     },
     {
@@ -50,23 +36,11 @@
       "action": "Warning"
     },
     {
-      "id": "AL0551",
-      "action": "Warning"
-    },
-    {
       "id": "AL0589",
       "action": "Warning"
     },
     {
-      "id": "AL0602",
-      "action": "Warning"
-    },
-    {
       "id": "AA0247",
-      "action": "Warning"
-    },
-    {
-      "id": "AA0604",
       "action": "Warning"
     },
     {
@@ -116,10 +90,6 @@
     },
     {
       "id": "AL0749",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0775",
       "action": "Warning"
     },
     {
@@ -210,11 +180,6 @@
       "id": "AA0087",
       "action": "Warning",
       "justification": "Do only lower permissions inside procedures of type test."
-    },
-    {
-      "id": "AL0842",
-      "action": "Warning",
-      "justification": "Bug 498357. Blocking platform uptake"
     },
     {
       "id": "AA0100",
@@ -514,10 +479,6 @@
       "action": "Warning"
     },
     {
-      "id": "AL1026",
-      "action": "Warning"
-    },
-    {
       "id": "AS0011",
       "action": "Warning"
     },
@@ -526,56 +487,15 @@
       "action": "Warning"
     },
     {
-      "id": "AS0079",
-      "action": "Warning"
-    },
-    {
-      "id": "AS0094",
-      "action": "Warning"
-    },
-    {
       "id": "AS0104",
       "action": "Warning"
-    },
-    {
-      "id": "AS0111",
-      "action": "Warning"
-    },
-    {
-      "id": "AS0113",
-      "action": "Warning"
-    },
-    {
-      "id": "AS0126",
-      "action": "Warning",
-      "justification": "Tracked by #501904"
     },
     {
       "id": "PTE0010",
       "action": "Warning"
     },
     {
-      "id": "PTE0014",
-      "action": "Warning"
-    },
-    {
       "id": "PTE0015",
-      "action": "Warning"
-    },
-    {
-      "id": "PTE0017",
-      "action": "Warning"
-    },
-    {
-      "id": "AS0075",
-      "action": "Warning"
-    },
-    {
-      "id": "AA0230",
-      "action": "Warning"
-    },
-    {
-      "id": "AA0213",
       "action": "Warning"
     },
     {
