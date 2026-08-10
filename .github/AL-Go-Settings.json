@@ -6,6 +6,8 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
+  "usePsSessionForBc28": true,
+  "debugMode": true,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
   "artifact": "bcinsider/Sandbox/29.0.53396.0//latest",
