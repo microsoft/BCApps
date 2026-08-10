@@ -3537,6 +3537,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
+        ExpenseReportNo: Code[20];
     begin
         // [SCENARIO] With AI policy evaluation on, releasing and submitting a report whose line went
         //            stale after it was evaluated is rejected in-transaction with a machine-detectable
@@ -3545,6 +3546,7 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [GIVEN] AI policy evaluation on and an expense report line with an applicable policy.
         SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
+        ExpenseReportNo := ExpenseReportHeader."No.";
 
         // [GIVEN] The line is evaluated then invalidated so it is now Stale.
         ExpenseReportLine.MarkPoliciesEvaluated();
@@ -3557,7 +3559,7 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [THEN] Submit is rejected with the stable machine-detectable token and the report is not submitted.
         Assert.ExpectedError('(PolicyEvaluationNotCurrent)');
-        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.Get(ExpenseReportNo);
         Assert.AreNotEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'A stale report must not reach Pending Approval.');
     end;
 

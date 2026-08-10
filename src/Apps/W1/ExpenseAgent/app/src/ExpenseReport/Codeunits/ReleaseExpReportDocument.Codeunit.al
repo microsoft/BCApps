@@ -193,6 +193,7 @@ codeunit 6984 "Release Exp. Report Document"
             exit;
 
         ExpenseReportLine.SetRange("Document No.", ExpReportHeader."No.");
+        ExpenseReportLine.SetLoadFields("Expense Category", "Policies Evaluated At", "Policy Eval Version", "Evaluated Policy Version");
         if ExpenseReportLine.FindSet() then
             repeat
                 if ExpenseReportLine.GetPolicyStatus() in

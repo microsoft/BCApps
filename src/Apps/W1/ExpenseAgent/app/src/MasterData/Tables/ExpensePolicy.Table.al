@@ -65,17 +65,26 @@ table 7092 "Expense Policy"
     end;
 
     trigger OnModify()
+    var
+        StoredExpensePolicy: Record "Expense Policy";
     begin
         // Bump the policy version on every change so flags evaluated against an earlier
         // version can be detected as no longer current (see the flag's Is Current FlowField).
         "Version" += 1;
 
         // Invalidate the previous scope as well as the new one. Moving a policy to a different
-        // category or subject type - or disabling it - changes which lines it affects, so lines in
-        // the old scope must be re-checked too; otherwise they keep a verdict from a policy that no
-        // longer applies to them and stay incorrectly Current.
-        InvalidateAffectedReportLines(xRec."Subject Type", xRec."Expense Category Code");
-        if (xRec."Subject Type" <> "Subject Type") or (xRec."Expense Category Code" <> "Expense Category Code") then
+        // category - or disabling it - changes which lines it affects, so lines in the old scope
+        // must be re-checked too; otherwise they keep a verdict from a policy that no longer
+        // applies to them and stay incorrectly Current.
+        // xRec is unreliable here (it has been observed to compare equal to Rec at runtime, see
+        // Expense Report Line.PolicyRelevantFieldChanged), so read the committed pre-modify image
+        // by primary key to get the old category. Subject Type is part of the primary key and
+        // cannot change on modify, so only the category can move.
+        if StoredExpensePolicy.Get("Subject Type", "Line No.") then begin
+            InvalidateAffectedReportLines("Subject Type", StoredExpensePolicy."Expense Category Code");
+            if StoredExpensePolicy."Expense Category Code" <> "Expense Category Code" then
+                InvalidateAffectedReportLines("Subject Type", "Expense Category Code");
+        end else
             InvalidateAffectedReportLines("Subject Type", "Expense Category Code");
     end;
 

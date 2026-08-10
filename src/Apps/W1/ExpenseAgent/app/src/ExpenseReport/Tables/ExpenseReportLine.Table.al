@@ -1266,9 +1266,9 @@ table 6907 "Expense Report Line"
         ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
         ExpensePolicyFlag.SetRange("Subject Version", Rec."Evaluated Policy Version");
         ExpensePolicyFlag.SetRange(Compliant, false);
+        ExpensePolicyFlag.SetAutoCalcFields("Is Current");
         if ExpensePolicyFlag.FindSet() then
             repeat
-                ExpensePolicyFlag.CalcFields("Is Current");
                 if ExpensePolicyFlag."Is Current" then
                     exit(true);
             until ExpensePolicyFlag.Next() = 0;
