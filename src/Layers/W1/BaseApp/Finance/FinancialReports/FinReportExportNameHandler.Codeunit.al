@@ -21,12 +21,13 @@ codeunit 8362 FinReportExportNameHandler
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReportManagement, OnGetFilename, '', false, false)]
-    local procedure ReportManagement_OnGetFilename(ReportID: Integer; var Filename: Text)
+    local procedure ReportManagement_OnGetFilename(ReportID: Integer; var Filename: Text; var Success: Boolean)
     var
         FileMgt: Codeunit "File Management";
     begin
-        if ReportID = Report::"Account Schedule" then
+        if ReportID = Report::"Account Schedule" then begin
             Filename := FileMgt.CreateFileNameWithExtension(OutputFilename, FileMgt.GetExtension(Filename));
-
+            Success := true;
+        end;
     end;
 }
