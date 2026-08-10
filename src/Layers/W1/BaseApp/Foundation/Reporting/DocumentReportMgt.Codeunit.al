@@ -5,7 +5,9 @@
 namespace Microsoft.Foundation.Reporting;
 
 using System;
+#if not CLEAN29
 using System.Environment;
+#endif
 using System.Reflection;
 using System.Utilities;
 using System.Xml;
@@ -18,8 +20,10 @@ codeunit 9651 "Document Report Mgt."
     end;
 
     var
+#if not CLEAN29
         ClientTypeMgt: Codeunit "Client Type Management";
 
+#endif
         UpgradeNotSupportedErr: Label 'Upgrade is not supported after version 20.';
 #pragma warning disable AA0470
         TemplateValidationQst: Label 'The Word layout does not comply with the current report design (for example, fields are missing or the report ID is wrong).\The following errors were detected during the layout validation:\%1\Do you want to continue?';
@@ -28,7 +32,9 @@ codeunit 9651 "Document Report Mgt."
         AbortWithValidationErr: Label 'The Word layout action has been canceled because of validation errors.';
 #pragma warning disable AA0470
         TemplateAfterUpdateValidationErr: Label 'The automatic update could not resolve all the conflicts in the current Word layout. For example, the layout uses fields that are missing in the report design or the report ID is wrong.\The following errors were detected:\%1\You must manually update the layout to match the current report design.';
+#if not CLEAN29
         UpgradeMessageMsg: Label 'The report upgrade process returned the following log messages:\%1.';
+#endif
 #pragma warning restore AA0470
 #if not CLEAN29
         NoReportLayoutUpgradeRequiredMsg: Label 'The layout upgrade process completed without detecting any required changes in the current application.';
