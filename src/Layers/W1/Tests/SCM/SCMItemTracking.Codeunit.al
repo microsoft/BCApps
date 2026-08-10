@@ -5735,7 +5735,7 @@ codeunit 137405 "SCM Item Tracking"
     var
         ItemTrackingCodeCode: Code[10];
     begin
-        LibraryWarehouse.CreateLocation(Location);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Location.Validate("Require Pick", true);
         Location.Validate("Require Shipment", true);
         Location.Modify(true);
