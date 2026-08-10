@@ -232,7 +232,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "EA Corp Card DE Noop" = X,
         codeunit "EA Corp Card Dedup Mgt" = X,
         codeunit "EA Corp Card Enh. Match Mgt" = X,
-        codeunit "EA Corp Card Exp Writer" = X,
+        codeunit "EA Corp Card Expense Writer" = X,
         codeunit "EA Corp Card Feed Mgt" = X,
         codeunit "EA Corp Card Import Orch" = X,
         codeunit "EA Corp Card JQ Mgt" = X,
