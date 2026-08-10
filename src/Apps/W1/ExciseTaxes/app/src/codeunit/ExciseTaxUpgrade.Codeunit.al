@@ -51,6 +51,7 @@ codeunit 7414 "Excise Tax Upgrade"
         ItemExciseTax."Item No." := Item."No.";
         ItemExciseTax."Excise Tax Type Code" := Item."Excise Tax Type";
 
+        ExciseTaxType.SetLoadFields(Description);
         if ExciseTaxType.Get(Item."Excise Tax Type") then
             ItemExciseTax."Excise Tax Type Description" := ExciseTaxType.Description;
 

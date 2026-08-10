@@ -35,11 +35,7 @@ table 7415 "Item Excise Tax"
                 ExciseTaxType: Record "Excise Tax Type";
             begin
                 if "Excise Tax Type Code" <> '' then begin
-
                     ExciseTaxType.Get("Excise Tax Type Code");
-                    if not ExciseTaxType.Enabled then
-                        Error(ExciseTaxTypeNotEnabledErr, "Excise Tax Type Code");
-
                     "Excise Tax Type Description" := ExciseTaxType.Description;
                 end else
                     "Excise Tax Type Description" := '';
@@ -88,9 +84,6 @@ table 7415 "Item Excise Tax"
         Rec.TestField("Item No.");
         Rec.TestField("Excise Tax Type Code");
     end;
-
-    var
-        ExciseTaxTypeNotEnabledErr: Label 'Excise tax type %1 is not enabled.', Comment = '%1 = Excise Tax Type Code';
 
     procedure CopyExciseTaxesFromItem(FromItemNo: Code[20]; ToItemNo: Code[20]) CopiedCount: Integer
     var
