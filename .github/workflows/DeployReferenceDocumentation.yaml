@@ -30,24 +30,24 @@ jobs:
 
       - name: Initialize the workflow
         id: init
-        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@spetersen-microsoft-separate-test-action-bcapps
+        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@spetersen/separateTestAction
         with:
           shell: powershell
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen-microsoft-separate-test-action-bcapps
+        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen/separateTestAction
         with:
           shell: powershell
 
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
-        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@spetersen-microsoft-separate-test-action-bcapps
+        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@spetersen/separateTestAction
         with:
           shell: powershell
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: spetersenms/AL-Go/Actions/DetermineDeploymentEnvironments@spetersen-microsoft-separate-test-action-bcapps
+        uses: spetersenms/AL-Go/Actions/DetermineDeploymentEnvironments@spetersen/separateTestAction
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -60,7 +60,7 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Build Reference Documentation
-        uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@spetersen-microsoft-separate-test-action-bcapps
+        uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@spetersen/separateTestAction
         with:
           shell: powershell
           artifacts: 'latest'
@@ -78,7 +78,7 @@ jobs:
 
       - name: Finalize the workflow
         if: always()
-        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@spetersen-microsoft-separate-test-action-bcapps
+        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@spetersen/separateTestAction
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

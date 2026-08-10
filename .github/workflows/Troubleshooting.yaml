@@ -30,7 +30,7 @@ jobs:
           lfs: true
 
       - name: Troubleshooting
-        uses: spetersenms/AL-Go/Actions/Troubleshooting@spetersen-microsoft-separate-test-action-bcapps
+        uses: spetersenms/AL-Go/Actions/Troubleshooting@spetersen/separateTestAction
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}

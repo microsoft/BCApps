@@ -1,7 +1,7 @@
 {
-  "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/spetersen-microsoft-separate-test-action-bcapps/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/spetersen/separateTestAction/Actions/.Modules/settings.schema.json",
   "type": "PTE",
-  "templateUrl": "https://github.com/spetersenms/AL-Go@spetersen-microsoft-separate-test-action-bcapps",
+  "templateUrl": "https://github.com/spetersenms/AL-Go@spetersen/separateTestAction",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
