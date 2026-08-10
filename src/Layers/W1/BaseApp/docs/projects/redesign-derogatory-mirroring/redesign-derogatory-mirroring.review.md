@@ -7,7 +7,7 @@ compliance_status: REMEDIATED
 completion_percentage: 100%
 remediated: 2026-08-10
 remediated_by: SddCoder
-remediation_status: All actionable EPIC-003 findings resolved and re-verified; see Remediation Record.
+remediation_status: All actionable EPIC-003 findings resolved and re-verified; the two medium findings of the independent review of 78759d0..b7b53617 are resolved in the second pass. See Remediation Record.
 ---
 
 # PRD Implementation Review Report
@@ -486,12 +486,22 @@ All actionable EPIC-003 findings were fixed test-first and re-verified with the 
 | Critical 6 - Workspace containment | Only traced EPIC-003 product/test/doc files were committed. The report layouts, `.github/lsp.json`, `src/Layers/W1/.view/**`, the Octane scaffolding and the requirements artifact were left untouched in the workspace and are not part of any commit | `git show --stat` for each `EPIC-003:` commit |
 | Minor 1 - Shim lifetime comment | `Upgrade Derogatory Linkage` documents retention beyond CLEAN29 | Codeunit summary |
 | Minor 2 - FILE-024 not deliverable | Formal resolution recorded in the PRD Files section: `openspec/` is excluded by `.git/modules/BCApps/info/exclude`, so the tracked PRD carries the authoritative compatibility statement | PRD FILE-024 |
-| Minor 3 - Persistent test transactions | Rollback isolation is impossible for the posting tests: the framework rejects Commit under `AutoRollback`. They keep `AutoCommit` and now capture and restore the French feature state deterministically | Pre-fix run failed all posting tests with "Tests cannot call the Commit function if TransactionModel property is set to AutoRollback." |
+| Minor 3 - Persistent test transactions | Rollback isolation is impossible for the posting tests: the framework rejects Commit under `AutoRollback`. They keep `AutoCommit` and now capture and restore the French feature state deterministically; the failure path of that restore is completed in the second pass below | Pre-fix run failed all posting tests with "Tests cannot call the Commit function if TransactionModel property is set to AutoRollback." |
 | Priority 3 - Formatting-only diffs | The final-blank-line deletions in the six French AL files were reverted | `git show` of the dedicated commit |
 
 Additional defects found and fixed while re-validating: `AA0005` in `FAInsertGLAccount.Codeunit.al` and `AA0215` for the relocated test file blocked every French build; the cumulative `CLEAN25`-`CLEAN29` compile reported three `AL0792` and four `AA0137` errors for declarations that only the excluded legacy implementation uses; and an independent review of the remediation commits found that the French salvage reversal path inserted a blank `Source Code` whenever the FA register was already open, now fixed and covered by `SalvageCounterpartReversalKeepsReversalSourceCode`.
 
-Reviewed and deliberately not changed: the marker-gated legacy reversal fallback searches every depreciation book other than the source book so that it still resolves after the relationship is removed (AC-014/AC-019). That makes the following `TestField("Depreciation Book Code", ...)` vacuous, but the French code is at parity with the EPIC-002 W1 implementation and is out of EPIC-003 scope.
+Corrected on 2026-08-10 (second pass): the marker-gated legacy reversal fallback was **changed** in this range, not left untouched. `FindLegacyFADerogatoryEntry` and `FindLegacyMaintenanceDerogatoryEntry` lost their resolved-book parameter and now search every depreciation book other than the source book (`FR/.../FAInsertLedgerEntry.Codeunit.al:1025-1049`), while the callers take the counterpart book from the entry they find (`:919,:999`). That is the EPIC-002 W1 behaviour (`W1/.../FAInsertLedgerEntry.Codeunit.al:877-900`) which EPIC-003 compatibility relies on so a legacy reversal still resolves after the relationship is removed (AC-014/AC-019). It is traced parity work, not an untraced redesign. It does leave the following `TestField("Depreciation Book Code", ...)` vacuous; that assertion is deliberately kept identical to W1 instead of diverging in the French layer.
+
+Also carried by the reviewed and remediated range, and previously untraced in this report: the PRD-required automatic-only and salvage identity capture with linked salvage reversal (FR-009/FR-010 through the EPIC-001 ITEM-005 dependency that EPIC-003 needs for French parity).
+
+| Behaviour | French evidence | W1 counterpart (unchanged in this range) |
+|-----------|-----------------|------------------------------------------|
+| Automatic salvage source identity captured through the returning insertion overload and stamped on the generated mirror | `FR/.../FAJnlPostLine.Codeunit.al:56,565,580-593` | `W1/.../FAJnlPostLine.Codeunit.al:53,550,566-578` |
+| Counterpart gate relaxed so automatic identities alone still produce counterparts (`if (SourceEntryNo = 0) and not HasSourceAutomaticEntries() then exit`) | `FR/.../FAJnlPostLine.Codeunit.al:309,333,568-575` | `W1/.../FAJnlPostLine.Codeunit.al:298,318,553-560` |
+| Linked salvage reversal: the automatic companion is resolved by deterministic ledger sequence after full identity validation, and its reversal is inserted with the reversal source code and the counterpart link | `FR/.../FAInsertLedgerEntry.Codeunit.al:537-545,671-706,707-737,738-752` | `W1/.../FAInsertLedgerEntry.Codeunit.al:527,741-786` |
+
+Runtime coverage for the French side is `SalvageCounterpartReversalKeepsReversalSourceCode` in codeunit 134194.
 
 Validation summary:
 
@@ -500,3 +510,21 @@ Validation summary:
 - Runtime: codeunit 134194 17/17 on the French service; codeunits 134149 (42/42) and 134166 (24/24) on the W1 service.
 - Open limitation: `al_build` of the FR base application under CLEAN25-CLEAN29 fails during package generation and exposes no diagnostic through the AL MCP tools; no direct `altool`/dispatch build was substituted. The packaged Clean build stays an ITEM-023 AL-Go gate.
 - Open gap outside EPIC-003: W1 codeunit 134149 still fails inside the composed French test app while the French feature is disabled, because the W1 suite configures the central `Integration G/L - Derogatory` field. Tracked under EPIC-008 (ITEM-019/ITEM-021); the equivalent French invariant is covered by codeunit 134194.
+
+## Second-Pass Remediation (2026-08-10)
+
+An independent review of commit range `78759d0..b7b53617` raised two medium findings. Both are resolved.
+
+| Finding | Resolution | Evidence |
+|---------|-----------|----------|
+| Medium 1 - AutoCommit failure-path contamination | The nine `AutoCommit` tests of codeunit 134194 now run their body inside `asserterror`, and `RestoreFeatureStateAfterTestBody` restores the captured French feature state, commits it, and only then rethrows the body failure. `TryFunction` is rejected by the runtime for these bodies ("Call to the function 'MODIFY' is not allowed inside the call to 'RootMethodScope' when it is used as a TryFunction.") and `Codeunit.Run` of the test codeunit is rejected as well ("You cannot nest the execution of test codeunits."), both measured on `navagent2_FR` before `asserterror` was chosen | `FailedTestBodyRestoresFeatureState` fails with "Assert.IsFalse failed. The failed test body must not leave the toggled French feature state committed." while the guard does not commit the restore (the pre-fix failure path), and passes with it; suite goes from 16 passed / 2 failed to 18 passed / 0 failed |
+| Medium 2 - Inaccurate/incomplete traceability | The report and the PRD now record the automatic-only/salvage identity capture, the linked salvage reversal and the counterpart gate relaxation carried by this range (FR-009/FR-010 through EPIC-001 ITEM-005), and the "not changed" statement about the marker-gated legacy fallback is corrected to the EPIC-002 parity change it actually is | The table above and the corresponding PRD notes, with file and line evidence |
+
+Diff hygiene: the two `new blank line at EOF` warnings that this range introduced (`FR/.../FAJnlPostBatch.Codeunit.al`, `FR/.../FAJnlPostLine.Codeunit.al`) are removed, restoring the single trailing newline each file had at `78759d0`. `git diff --check` reports no warning for `src/Layers/FR` afterwards. The Markdown two-space hard breaks in this report were deliberately left in place.
+
+Second-pass validation (AL MCP only, no direct `altool`/dispatch):
+
+- `al_compile` over the four projects: zero diagnostics; per-file `al_getdiagnostics` on the three changed AL files returns nothing at any severity.
+- `al_build` FR Tests-Fixed Asset and FR BaseApp: succeeded; `al_publish` of the test app to `navagent2_FR`: succeeded.
+- `al_build` FR Tests-Fixed Asset with the cumulative `CLEAN25`-`CLEAN29` symbols temporarily declared in the test `app.json`: succeeded, and the package differs from the default build (165,318 against 165,386 bytes), confirming the symbols took effect; `app.json` was restored afterwards.
+- `al_run_tests` codeunit 134194 on `navagent2_FR`: 18 passed, 0 failed (17 test methods including the new `FailedTestBodyRestoresFeatureState`, plus the runner aggregate entry).
