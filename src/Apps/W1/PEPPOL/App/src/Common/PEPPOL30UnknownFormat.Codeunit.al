@@ -56,6 +56,7 @@ codeunit 37223 "PEPPOL30 Unknown Format" implements "PEPPOL30 Validation", "PEPP
     begin
         UnknownFormatErrorInfo.Title := UnknownFormatTitleErr;
         UnknownFormatErrorInfo.Message := UnknownFormatErr;
+        UnknownFormatErrorInfo.DataClassification := DataClassification::SystemMetadata;
         UnknownFormatErrorInfo.PageNo := Page::"PEPPOL 3.0 Setup";
         UnknownFormatErrorInfo.AddNavigationAction(OpenPEPPOLSetupLbl);
         Error(UnknownFormatErrorInfo);
