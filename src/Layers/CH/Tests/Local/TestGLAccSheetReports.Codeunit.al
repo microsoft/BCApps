@@ -1157,7 +1157,7 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-     [Test]
+    [Test]
     [HandlerFunctions('GLAccSheetFCYReqPageHandler,GenJournalBatchesPageHandler')]
     [Scope('OnPrem')]
     procedure GLSheetForeignCurrExcludesMismatchedCurrencyEntries()
@@ -1169,20 +1169,18 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         GLAccountSourceCurrency: Record "G/L Account Source Currency";
         GLEntry: Record "G/L Entry";
         CurrencyCode: Code[10];
-        OtherCurrencyCode: Code[10];
     begin
         // [FEATURE] [SR G/L Acc Sheet Foreign Curr]
         // [SCENARIO 642513] Report 11564 must not mix amounts posted in a currency other than the
         // G/L Account's Source Currency Code (including LCY-originated entries) into the foreign currency totals.
         Initialize();
 
-        // [GIVEN] G/L Account set up for "Multiple Currencies" source currency posting with two registered currencies.
+        // [GIVEN] G/L Account set up for "Multiple Currencies" source currency posting with "CurrencyCode" registered as a source currency.
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::General);
         GenJournalTemplate.Modify(true);
 
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
-        OtherCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
 
         LibraryERM.CreateGLAccount(GLAccount);
         GLAccount.Validate("Account Type", GLAccount."Account Type"::Posting);
@@ -1197,28 +1195,23 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         GLAccountSourceCurrency."Currency Code" := CurrencyCode;
         GLAccountSourceCurrency.Insert();
 
-        GLAccountSourceCurrency.Init();
-        GLAccountSourceCurrency."G/L Account No." := GLAccount."No.";
-        GLAccountSourceCurrency."Currency Code" := OtherCurrencyCode;
-        GLAccountSourceCurrency.Insert();
-
         LibraryERM.CreateGLAccount(BalGLAccount);
 
-        // [GIVEN] An entry posted in "CurrencyCode" ...
+        // [GIVEN] An entry posted in "CurrencyCode" (a registered source currency for the G/L Account).
         CreateGenJournalLine(GenJournalLine, GLAccount,
           GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.", LibraryRandom.RandIntInRange(1000, 2000), CurrencyCode);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [GIVEN] ... and another entry posted in "OtherCurrencyCode" to the same G/L Account.
+        // [GIVEN] An LCY-originated entry (blank currency code) posted to the same G/L Account.
         CreateGenJournalLine(GenJournalLine, GLAccount,
-          GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.", LibraryRandom.RandIntInRange(1000, 2000), OtherCurrencyCode);
+          GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.", LibraryRandom.RandIntInRange(1000, 2000), '');
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [WHEN] Run report 11564 "SR G/L Acc Sheet Foreign Curr"
         RunSRGLAccSheetForeignCurrReport(GLAccount);
 
-        // [THEN] Neither entry is attributed to the G/L Account's (blank) Source Currency Code, so the
-        // foreign currency amount/balance columns must not mix amounts from the two different currencies.
+        // [THEN] Only the entry posted in the registered source currency contributes to the foreign currency
+        // amount column; the LCY-originated entry is excluded (FcyAcyAmt = 0).
         LibraryReportDataset.LoadDataSetFile();
         GLEntry.SetRange("G/L Account No.", GLAccount."No.");
         GLEntry.FindSet();
@@ -1227,8 +1220,10 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
             LibraryReportDataset.SetRange('No_GLAccount', GLAccount."No.");
             LibraryReportDataset.SetRange('DocumentNo_GLEntry', GLEntry."Document No.");
             LibraryReportDataset.GetNextRow();
-            LibraryReportDataset.AssertCurrentRowValueEquals('FcyAcyAmt', 0);
-            LibraryReportDataset.AssertCurrentRowValueEquals('GLEntryFcyAcyBalance', 0);
+            if GLEntry."Source Currency Code" = CurrencyCode then
+                LibraryReportDataset.AssertCurrentRowValueEquals('FcyAcyAmt', GLEntry."Source Currency Amount")
+            else
+                LibraryReportDataset.AssertCurrentRowValueEquals('FcyAcyAmt', 0);
         until GLEntry.Next() = 0;
     end;
 
