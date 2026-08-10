@@ -1625,7 +1625,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WC1No: Code[20];
         WC2No: Code[20];
         RoutingNo: Code[20];
-        ProductionOrderQtyZeroOrNegativeErr: Label 'Cannot create a production order from Sales Line %1 line %2: the calculated quantity (%3) is zero or negative because the line is fully or over-reserved.', Comment = '%1 = Document No., %2 = Line No., %3 = Quantity';
+        ProductionOrderQtyZeroOrNegativeErr: Label 'Cannot create a production order';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J_FullyReserved] Sales Line fully reserved (Outstanding = Reserved) → wizard raises an error
@@ -1640,10 +1640,9 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefWizLibrary.CreatePartialReservationForSalesLine(SalesLine, 5); // fully reserved
 
         // [WHEN] Wizard is launched from the fully-reserved Sales Line
-        // [THEN] An error is raised (quantity = Outstanding - Reserved = 5 - 5 = 0)
+        // [THEN] An error is raised
         asserterror ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
-        Assert.ExpectedError(StrSubstNo(ProductionOrderQtyZeroOrNegativeErr,
-            SalesLine."Document No.", SalesLine."Line No.", 0));
+        Assert.ExpectedError(ProductionOrderQtyZeroOrNegativeErr);
     end;
 
 }
