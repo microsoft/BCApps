@@ -6,7 +6,9 @@ namespace Microsoft.FixedAssets.Posting;
 
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.GeneralLedger.Preview;
+#if not CLEAN29
 using Microsoft.FixedAssets.Depreciation;
+#endif
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.NoSeries;
@@ -46,7 +48,9 @@ codeunit 5633 "FA Jnl.-Post Batch"
         LastPostedDocNo: Code[20];
         PreviewMode: Boolean;
         SuppressCommit: Boolean;
+#if not CLEAN29
         SetupCombErr: Label 'must not be specified when %1 = %2 in %3', Comment = 'must not be specified when G/L Integration - Derogatory = TRUE in Depreciation Book';
+#endif
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text001: Label 'Journal Batch Name    #1##########\\';
@@ -358,8 +362,8 @@ codeunit 5633 "FA Jnl.-Post Batch"
 
     local procedure PostLines()
     var
-        DerogFAJnlLine: Record "FA Journal Line";
 #if not CLEAN29
+        DerogFAJnlLine: Record "FA Journal Line";
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         IsHandled: Boolean;
