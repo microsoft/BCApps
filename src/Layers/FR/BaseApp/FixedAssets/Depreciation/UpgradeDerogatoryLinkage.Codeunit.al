@@ -15,7 +15,9 @@ using System.Upgrade;
 /// the new "Derogatory Source Entry No." relationship introduced by the redesign-derogatory-mirroring change.
 /// Only uniquely identifiable historical pairs are linked; ambiguous normal-book sources are marked so the deterministic
 /// reversal logic can fall back to the legacy heuristic for them only. No link is fabricated for missing counterparts.
-/// This upgrade shim must be retained until the FR CLEAN29 cleanup version removes the historical derogatory data model.
+/// This upgrade shim survives CLEAN29. The superseded French legacy posting implementation is removed by CLEAN29, but
+/// sources that stay marked as ambiguous can still require the legacy reversal fallback, so the shim MUST be retained
+/// beyond CLEAN29 until a separately approved cleanup version removes the need for that fallback.
 /// </summary>
 codeunit 104103 "Upgrade Derogatory Linkage"
 {
