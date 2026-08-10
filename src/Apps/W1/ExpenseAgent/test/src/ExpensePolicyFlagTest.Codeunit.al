@@ -6,7 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 
-codeunit 148338 "Expense Policy Flag Test"
+codeunit 148339 "Expense Policy Flag Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7103 "Expense Policies"
+page 7126 "Expense Policies"
 {
     PageType = List;
     SourceTable = "Expense Policy";
