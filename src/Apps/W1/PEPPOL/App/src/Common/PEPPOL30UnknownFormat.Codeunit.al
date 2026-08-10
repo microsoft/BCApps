@@ -11,40 +11,53 @@ codeunit 37223 "PEPPOL30 Unknown Format" implements "PEPPOL30 Validation", "PEPP
     Access = Internal;
 
     var
-        UnknownFormatErr: Label 'The selected PEPPOL 3.0 format is no longer available. Open the PEPPOL 3.0 Setup page and select an available format.';
+        UnknownFormatErr: Label 'The selected PEPPOL 3.0 format is no longer available. Select an available format.';
+        UnknownFormatTitleErr: Label 'PEPPOL 3.0 format unavailable';
+        OpenPEPPOLSetupLbl: Label 'Open PEPPOL 3.0 Setup';
 
     procedure ValidateDocument(RecordVariant: Variant)
     begin
-        Error(UnknownFormatErr);
+        RaiseUnknownFormatError();
     end;
 
     procedure ValidateDocumentLines(RecordVariant: Variant)
     begin
-        Error(UnknownFormatErr);
+        RaiseUnknownFormatError();
     end;
 
     procedure ValidateDocumentLine(RecordVariant: Variant)
     begin
-        Error(UnknownFormatErr);
+        RaiseUnknownFormatError();
     end;
 
     procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
     begin
-        Error(UnknownFormatErr);
+        RaiseUnknownFormatError();
     end;
 
     procedure ValidatePostedDocument(RecordVariant: Variant)
     begin
-        Error(UnknownFormatErr);
+        RaiseUnknownFormatError();
     end;
 
     procedure GetNextPostedHeaderAsSalesHeader(var PostedRecRef: RecordRef; var SalesHeader: Record "Sales Header") Found: Boolean
     begin
-        Error(UnknownFormatErr);
+        RaiseUnknownFormatError();
     end;
 
     procedure GetNextPostedLineAsSalesLine(var PostedLineRecRef: RecordRef; var SalesLine: Record "Sales Line") Found: Boolean
     begin
-        Error(UnknownFormatErr);
+        RaiseUnknownFormatError();
+    end;
+
+    local procedure RaiseUnknownFormatError()
+    var
+        UnknownFormatErrorInfo: ErrorInfo;
+    begin
+        UnknownFormatErrorInfo.Title := UnknownFormatTitleErr;
+        UnknownFormatErrorInfo.Message := UnknownFormatErr;
+        UnknownFormatErrorInfo.PageNo := Page::"PEPPOL 3.0 Setup";
+        UnknownFormatErrorInfo.AddNavigationAction(OpenPEPPOLSetupLbl);
+        Error(UnknownFormatErrorInfo);
     end;
 }
