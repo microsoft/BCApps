@@ -401,10 +401,15 @@ page 108 "Financial Reports"
         }
         area(Promoted)
         {
-            actionref(ViewFinancialReport_Promoted; ViewFinancialReport) { }
-            actionref(Print_Promoted; Print) { }
-            actionref(Packages_Promoted; Packages) { }
-
+            group(RunReport)
+            {
+                Caption = 'Run Report';
+                ShowAs = SplitButton;
+                actionref(ViewFinancialReport_Promoted; ViewFinancialReport) { }
+                actionref(Print_Promoted; Print) { }
+                actionref(Packages_Promoted; Packages) { }
+                actionref(Schedules_Promoted; Schedules) { }
+            }
             group(Category_Edit)
             {
                 Caption = 'Definitions';
@@ -416,7 +421,6 @@ page 108 "Financial Reports"
                 actionref(ShowAllRowDefinitions_Promoted; ShowAllRowDefinitions) { }
                 actionref(ShowAllColumnDefinitions_Promoted; ShowAllColumnDefinitions) { }
                 actionref(ShowAllCategories_Promoted; ShowAllCategories) { }
-                actionref(Schedules_Promoted; Schedules) { }
             }
             group(CopyExportImport)
             {
