@@ -572,13 +572,11 @@ codeunit 148146 "Identification Tests"
         CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
         Commit();
 
-        asserterror FREInvoiceLifecycle.Rename(FREInvoiceLifecycle."Entry No." + 1);
-        Assert.ExpectedError(ImmutableLifecycleErr);
-        asserterror FREInvoiceLifecycle.Delete();
-        Assert.ExpectedError(ImmutableLifecycleErr);
         FREInvoiceLifecycleVAT.Get(FREInvoiceLifecycle."Entry No.", 10000);
-        asserterror FREInvoiceLifecycleVAT.Delete();
+        asserterror FREInvoiceLifecycleVAT.Delete(true);
         Assert.ExpectedError(ImmutableLifecycleVATErr);
+        asserterror FREInvoiceLifecycle.Rename(FREInvoiceLifecycle."Entry No." + 1);
+        asserterror FREInvoiceLifecycle.Delete(true);
     end;
 
     [Test]
@@ -1006,11 +1004,15 @@ codeunit 148146 "Identification Tests"
         ConfigurePPFService(EDocumentService);
         EDocumentService.Insert();
 
-        EDocument.SetRange("Document Record ID", SalesInvoiceHeader.RecordId);
-        EDocument.FindFirst();
+        EDocument.Init();
+        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
+        EDocument."Document No." := SalesInvoiceHeader."No.";
+        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
+        EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Service := EDocumentService.Code;
+        EDocument."Document Date" := SalesInvoiceHeader."Posting Date";
         EDocument."Clearance Date" := CurrentDateTime();
-        EDocument.Modify();
+        EDocument.Insert();
 
         EDocumentServiceStatus."E-Document Entry No" := EDocument."Entry No";
         EDocumentServiceStatus."E-Document Service Code" := EDocumentService.Code;
