@@ -25,7 +25,9 @@ using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
+#if not CLEAN29
 using Microsoft.FixedAssets.Depreciation;
+#endif
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
@@ -199,9 +201,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DescriptionMustNotBeBlankErr: Label 'When %1 is selected for %2, %3 must have a value.', Comment = '%1: Field Omit Default Descr. in Jnl., %2 G/L Account No, %3 Description';
         NoDeferralScheduleErr: Label 'You must create a deferral schedule if a deferral template is selected. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
         ZeroDeferralAmtErr: Label 'Deferral amounts cannot be 0. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
+#if not CLEAN29
 #pragma warning disable AA0074
         Text10800: Label 'Not a derogatory line.';
 #pragma warning restore AA0074
+#endif
 
     /// <summary>
     /// Returns the G/L Register that has been created during the posting process.
@@ -1734,9 +1738,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempFAGLPostBuf: Record "FA G/L Posting Buffer" temporary;
         FAGLPostBuf: Record "FA G/L Posting Buffer";
         VATPostingSetup: Record "VAT Posting Setup";
-        FAJnlLine: Record "FA Journal Line";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
 #if not CLEAN29
+        FAJnlLine: Record "FA Journal Line";
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         ShortcutDim1Code: Code[20];
