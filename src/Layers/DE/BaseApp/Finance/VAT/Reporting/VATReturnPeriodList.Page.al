@@ -63,6 +63,8 @@ page 737 "VAT Return Period List"
     {
         area(processing)
         {
+#if not CLEAN29
+#pragma warning disable AA0194
             action("Get VAT Return Periods")
             {
                 ApplicationArea = Basic, Suite;
@@ -70,6 +72,9 @@ page 737 "VAT Return Period List"
                 Image = GetLines;
                 ToolTip = 'Load the VAT return periods that are set up in the system.';
                 Visible = false;
+                ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
             action("Create VAT Return")
             {
@@ -79,10 +84,17 @@ page 737 "VAT Return Period List"
                 Image = RefreshLines;
                 ToolTip = 'Create a new VAT return from the selected VAT return period.';
                 Visible = false;
+                ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
+#pragma warning restore AA0194
+#endif
         }
         area(navigation)
         {
+#if not CLEAN29
+#pragma warning disable AA0194
             action("Open VAT Return Card")
             {
                 ApplicationArea = Basic, Suite;
@@ -91,7 +103,12 @@ page 737 "VAT Return Period List"
                 Image = ShowList;
                 ToolTip = 'Open the VAT return card for the selected VAT return period.';
                 Visible = false;
+                ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
+#pragma warning restore AA0194
+#endif
         }
         area(Promoted)
         {
@@ -99,6 +116,7 @@ page 737 "VAT Return Period List"
             {
                 Caption = 'Process';
 
+#if not CLEAN29
                 actionref("Get VAT Return Periods_Promoted"; "Get VAT Return Periods")
                 {
                     Visible = false;
@@ -107,6 +125,7 @@ page 737 "VAT Return Period List"
                 {
                     Visible = false;
                 }
+#endif
             }
         }
     }

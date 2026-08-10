@@ -48,6 +48,8 @@ page 738 "VAT Return Period Card"
     {
         area(processing)
         {
+#if not CLEAN29
+#pragma warning disable AA0194
             action("Receive Submitted VAT Returns")
             {
                 ApplicationArea = Basic, Suite;
@@ -55,6 +57,9 @@ page 738 "VAT Return Period Card"
                 Image = RefreshLines;
                 ToolTip = 'Receive the VAT returns that have been submitted.';
                 Visible = false;
+                ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
             action("Create VAT Return")
             {
@@ -64,10 +69,17 @@ page 738 "VAT Return Period Card"
                 Image = RefreshLines;
                 ToolTip = 'Create a new VAT return from this VAT return period.';
                 Visible = false;
+                ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
+#pragma warning restore AA0194
+#endif
         }
         area(navigation)
         {
+#if not CLEAN29
+#pragma warning disable AA0194
             action("Open VAT Return Card")
             {
                 ApplicationArea = Basic, Suite;
@@ -76,7 +88,12 @@ page 738 "VAT Return Period Card"
                 Image = ShowList;
                 ToolTip = 'Open the VAT return card for this VAT return period.';
                 Visible = false;
+                ObsoleteReason = 'This action is not used in this localization and is pending removal.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
+#pragma warning restore AA0194
+#endif
         }
         area(Promoted)
         {
@@ -84,6 +101,7 @@ page 738 "VAT Return Period Card"
             {
                 Caption = 'Process';
 
+#if not CLEAN29
                 actionref("Receive Submitted VAT Returns_Promoted"; "Receive Submitted VAT Returns")
                 {
                     Visible = false;
@@ -92,6 +110,7 @@ page 738 "VAT Return Period Card"
                 {
                     Visible = false;
                 }
+#endif
             }
         }
     }
