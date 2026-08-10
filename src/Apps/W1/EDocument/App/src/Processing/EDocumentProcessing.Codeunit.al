@@ -6,6 +6,8 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Reporting;
@@ -755,6 +757,24 @@ codeunit 6108 "E-Document Processing"
                 end;
         end;
         exit(false);
+    end;
+
+    procedure SendOrderRejection(EDocument: Record "E-Document")
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        ResponseBlob: Codeunit "Temp Blob";
+        IResponseProvider: Interface IEDocResponseProvider;
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        MessageType: Enum "E-Document Message Type";
+    begin
+        EDocument.TestField(Direction, EDocument.Direction::Incoming);
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType = "E-Document Message Type"::Unknown then
+            exit;
+        IMessageBuilder := MessageType;
+        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Rejected, ResponseBlob);
+        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Rejected, ResponseBlob);
     end;
 
     [IntegrationEvent(false, false)]

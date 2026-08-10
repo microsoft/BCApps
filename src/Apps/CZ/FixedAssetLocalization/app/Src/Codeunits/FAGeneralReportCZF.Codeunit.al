@@ -24,7 +24,9 @@ codeunit 31246 "FA General Report CZF"
         if FixedAsset.FindSet() then
             repeat
                 if FADepreciationBook.Get(FixedAsset."No.", DeprBookCode) then
-                    if FixedAsset."Tax Deprec. Group Code CZF" <> FADepreciationBook."Tax Deprec. Group Code CZF" then begin
+                    if (FixedAsset."Tax Deprec. Group Code CZF" <> FADepreciationBook."Tax Deprec. Group Code CZF") and
+                       (FADepreciationBook."Tax Deprec. Group Code CZF" <> '')
+                    then begin
                         FixedAsset."Tax Deprec. Group Code CZF" := FADepreciationBook."Tax Deprec. Group Code CZF";
                         FixedAsset.Modify();
                     end;
