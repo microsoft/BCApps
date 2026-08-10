@@ -24,6 +24,7 @@ codeunit 6442 "SignUp Authentication"
         EnvironmentInformation: Codeunit "Environment Information";
         BearerTxt: Label 'Bearer %1', Comment = '%1 = text value', Locked = true;
         AuthURLTxt: Label 'https://login.microsoftonline.com/%1/oauth2/token', Comment = '%1 Entra Tenant Id', Locked = true;
+        SandboxAuthURLTxt: Label 'https://login.microsoftonline.com/%1/oauth2/token', Comment = '%1 Entra Tenant Id', Locked = true;
         AuthTemplateTxt: Label 'grant_type=client_credentials&client_id=%1&client_secret=%2&resource=%3', Locked = true;
         ProdMarketplaceTenantIdTxt: Label '0d725623-dc26-484f-a090-b09d2003d092', Locked = true;
         ProdClientTenantIdTxt: Label 'eef4ab2c-2b10-4380-bf4b-214157971162', Locked = true;
@@ -166,6 +167,24 @@ codeunit 6442 "SignUp Authentication"
     end;
 
     /// <summary>
+    /// The method returns the production authentication URL.
+    /// </summary>
+    /// <returns>Authentication URL, where %1 is the Entra tenant ID.</returns>
+    procedure GetAuthUrl(): Text
+    begin
+        exit(this.AuthURLTxt);
+    end;
+
+    /// <summary>
+    /// The method returns the sandbox authentication URL.
+    /// </summary>
+    /// <returns>Authentication URL, where %1 is the Entra tenant ID.</returns>
+    procedure GetSandboxAuthUrl(): Text
+    begin
+        exit(this.SandboxAuthURLTxt);
+    end;
+
+    /// <summary>
     /// The method returns the Marketplace URL.
     /// </summary>
     /// <returns></returns>
@@ -280,11 +299,9 @@ codeunit 6442 "SignUp Authentication"
         Response: Text;
     begin
         Clear(AccessToken);
-        this.SignUpConnectionSetup.Get();
-        this.SignUpConnectionSetup.TestField("Authentication URL");
 
         HttpRequestMessage := this.PrepareRequest(SecretStrSubstNo(this.AuthTemplateTxt, TypeHelper.UriEscapeDataString(ClientId), ClientSecret, TypeHelper.UriEscapeDataString(ClientId)),
-                                                  StrSubstNo(this.SignUpConnectionSetup."Authentication URL", ClientTenant));
+                                                  StrSubstNo(this.GetAuthUrl(), ClientTenant));
 
         if not this.SendRequest(HttpRequestMessage, Response) then
             exit;
