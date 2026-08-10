@@ -148,8 +148,8 @@ codeunit 144708 "ERM Act Items Receipt M-7"
         ActItemsReceiptM7.UseRequestPage(false);
         ActItemsReceiptM7.Run();
 
-        exit(InvtDocumentHeader."No.");
         UnbindSubscription(RUReportDownloadHandler);
+        exit(InvtDocumentHeader."No.");
     end;
 
     local procedure PrintM7ItemReceipt(LineQty: Integer) DocumentNo: Code[20]

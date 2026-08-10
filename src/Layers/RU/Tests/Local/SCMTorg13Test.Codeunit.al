@@ -261,8 +261,8 @@ codeunit 144720 "SCM Torg-13 Test"
         TransferReceiptTORG13.Run();
 
         TransferReceiptHeader.FindFirst();
-        exit(TransferReceiptHeader."No.");
         UnbindSubscription(RUReportDownloadHandler);
+        exit(TransferReceiptHeader."No.");
     end;
 
     local procedure PostTransferAndPrintTorg13ForTransferShipment(HeaderNo: Code[20]): Code[20]
@@ -284,8 +284,8 @@ codeunit 144720 "SCM Torg-13 Test"
         TransferShipmentTORG13.Run();
 
         TransferShipmentHeader.FindFirst();
-        exit(TransferShipmentHeader."No.");
         UnbindSubscription(RUReportDownloadHandler);
+        exit(TransferShipmentHeader."No.");
     end;
 
     local procedure CreateTransferOrder(): Code[20]

@@ -281,8 +281,8 @@ codeunit 144705 "ERM Shipment Request M-11"
         ShipmentRequestM11.UseRequestPage(false);
         ShipmentRequestM11.Run();
 
-        exit(TransferHeader."No.");
         UnbindSubscription(RUReportDownloadHandler);
+        exit(TransferHeader."No.");
     end;
 
     local procedure PrintM11TransferShipment(LineQty: Integer): Code[20]
@@ -311,8 +311,8 @@ codeunit 144705 "ERM Shipment Request M-11"
         ShipmentRequestM11.UseRequestPage(false);
         ShipmentRequestM11.Run();
 
-        exit(TransferShipmentHeader."No.");
         UnbindSubscription(RUReportDownloadHandler);
+        exit(TransferShipmentHeader."No.");
     end;
 
     local procedure PrintM11TransferReceipt(LineQty: Integer): Code[20]
@@ -341,8 +341,8 @@ codeunit 144705 "ERM Shipment Request M-11"
         ShipmentRequestM11.UseRequestPage(false);
         ShipmentRequestM11.Run();
 
-        exit(TransferReceiptHeader."No.");
         UnbindSubscription(RUReportDownloadHandler);
+        exit(TransferReceiptHeader."No.");
     end;
 
     local procedure PrintM11ItemReclassJnl(LineQty: Integer): Code[20]

@@ -279,8 +279,8 @@ codeunit 144703 "ERM Purchase Receipt M-4"
         PurchaseReceiptM4.UseRequestPage(false);
         PurchaseReceiptM4.Run();
 
-        exit(PurchaseHeader."No.");
         UnbindSubscription(RUReportDownloadHandler);
+        exit(PurchaseHeader."No.");
     end;
 
     local procedure PrintM4PostedPurchaseInvoice(var LineQty: Integer) DocumentNo: Code[20]
