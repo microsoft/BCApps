@@ -18,11 +18,11 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
         TotalLoaded: Integer;
 
     /// <summary>
-    /// Loads up to 5000 historical posted purchase invoice lines into a temporary table,
-    /// prioritized by relevance to the selected draft line.
-    /// Priority: same-vendor matching lines first, then cross-vendor matching lines,
-    /// then remaining same-vendor lines, then remaining cross-vendor lines.
-    /// Matching considers product code (exact), description (exact), and LLM-based similar descriptions.
+    /// Loads up to 5000 historical posted purchase invoice lines for the draft line's vendor
+    /// into a temporary table, prioritized by relevance to the selected draft line.
+    /// Priority: vendor matching lines first (product code exact, description exact, and LLM-based
+    /// similar descriptions), then any remaining lines for the same vendor.
+    /// The search is scoped to the draft's vendor; no cross-vendor history is loaded.
     /// </summary>
     procedure LoadHistoricalLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; ProductCode: Text[100]; Description: Text[100])
     var
@@ -39,13 +39,16 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
         if not PurchInvLine.ReadPermission() then
             exit;
 
+        // History is scoped to the draft's vendor; without a vendor there is nothing to match.
+        if VendorNo = '' then
+            exit;
+
         if ProductCode <> '' then
             ProductCodes.Add(ProductCode);
         if Description <> '' then
             Descriptions.Add(Description);
 
-        // Resolve LLM-based similar terms once and reuse across vendor scopes to avoid
-        // duplicating the AI round-trip on the same-vendor and cross-vendor passes.
+        // Resolve LLM-based similar terms once for this invoice line and reuse across the matching passes.
         foreach DescriptionEntry in Descriptions do
             foreach SimilarTerm in EDocSimilarDescriptions.GetSimilarDescriptions(DescriptionEntry) do begin
                 SimilarTerm := SimilarTerm.Trim();
@@ -53,20 +56,10 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
                     SimilarDescriptions.Add(SimilarTerm);
             end;
 
-        // Priority tiers — same vendor matching, then cross vendor matching, then fill
-        if VendorNo <> '' then begin
-            // Tier 1-3: Same vendor, matched by product code / exact desc / similar desc
-            LoadMatchingLines(TempPurchInvLine, VendorNo, ProductCodes, Descriptions, SimilarDescriptions);
-            // Tier 4-6: Cross vendor, matched by product code / exact desc / similar desc
-            LoadMatchingLines(TempPurchInvLine, '', ProductCodes, Descriptions, SimilarDescriptions);
-            // Tier 7: Same vendor, any remaining
-            LoadRemainingLines(TempPurchInvLine, VendorNo);
-            // Tier 8: Cross vendor, any remaining
-            LoadRemainingLines(TempPurchInvLine, '');
-        end else begin
-            LoadMatchingLines(TempPurchInvLine, '', ProductCodes, Descriptions, SimilarDescriptions);
-            LoadRemainingLines(TempPurchInvLine, '');
-        end;
+        // Tier 1-3: same vendor, matched by product code / exact desc / similar desc
+        LoadMatchingLines(TempPurchInvLine, VendorNo, ProductCodes, Descriptions, SimilarDescriptions);
+        // Tier 4: same vendor, any remaining
+        LoadRemainingLines(TempPurchInvLine, VendorNo);
     end;
 
     local procedure LoadMatchingLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; ProductCodes: List of [Text]; Descriptions: List of [Text]; SimilarDescriptions: List of [Text])
