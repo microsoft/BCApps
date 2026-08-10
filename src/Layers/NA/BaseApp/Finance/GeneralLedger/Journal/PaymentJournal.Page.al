@@ -176,6 +176,8 @@ page 256 "Payment Journal"
                     begin
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
+                        if Rec."Account Type" = Rec."Account Type"::"G/L Account" then
+                            GenJnlManagement.ShowNotificationIfSpendRequestIsRequired(Rec."Account No.", Rec."Spend Request No.", SpendRequestNotificationID);
                         CurrPage.SaveRecord();
                         OnAfterValidateAccountNo(Rec, xRec, Balance, TotalBalance, ShowBalance, ShowTotalBalance, BalanceVisible, TotalBalanceVisible, NumberOfRecords);
                     end;
@@ -366,6 +368,8 @@ page 256 "Payment Journal"
                     begin
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
+                        if Rec."Account Type" = Rec."Account Type"::"G/L Account" then
+                            GenJnlManagement.ShowNotificationIfSpendRequestIsRequired(Rec."Account No.", Rec."Spend Request No.", SpendRequestNotificationID);
                         CurrPage.SaveRecord();
                     end;
                 }
@@ -2014,6 +2018,7 @@ page 256 "Payment Journal"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         ClientTypeManagement: Codeunit "Client Type Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        SpendRequestNotificationID: Guid;
         GenJnlBatchApprovalStatus: Text[20];
         GenJnlLineApprovalStatus: Text[20];
         Balance: Decimal;

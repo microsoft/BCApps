@@ -172,19 +172,28 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
     end;
 
     local procedure PopulateEDocumentPurchaseLine(FieldsJsonObject: JsonObject; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+    var
+        DerivedDiscount: Decimal;
+        QuantityProvided: Boolean;
     begin
         EDocumentJsonHelper.SetCurrencyValueInField('amount', FieldsJsonObject, TempEDocPurchaseLine."Sub Total", TempEDocPurchaseLine."Currency Code");
         EDocumentJsonHelper.SetStringValueInField('description', MaxStrLen(TempEDocPurchaseLine.Description), FieldsJsonObject, TempEDocPurchaseLine.Description);
         EDocumentJsonHelper.SetCurrencyValueInField('unitPrice', FieldsJsonObject, TempEDocPurchaseLine."Unit Price", TempEDocPurchaseLine."Currency Code");
-        EDocumentJsonHelper.SetNumberValueInField('quantity', FieldsJsonObject, TempEDocPurchaseLine.Quantity);
-        if TempEDocPurchaseLine.Quantity <= 0 then
-            TempEDocPurchaseLine.Quantity := 1;
+        QuantityProvided := EDocumentJsonHelper.SetNumberValueInField('quantity', FieldsJsonObject, TempEDocPurchaseLine.Quantity);
+        if not QuantityProvided then
+            TempEDocPurchaseLine.Quantity := 1
+        else
+            if TempEDocPurchaseLine.Quantity < 0 then
+                TempEDocPurchaseLine.Quantity := 0;
         EDocumentJsonHelper.SetStringValueInField('productCode', MaxStrLen(TempEDocPurchaseLine."Product Code"), FieldsJsonObject, TempEDocPurchaseLine."Product Code");
         EDocumentJsonHelper.SetStringValueInField('unit', MaxStrLen(TempEDocPurchaseLine."Unit of Measure"), FieldsJsonObject, TempEDocPurchaseLine."Unit of Measure");
         EDocumentJsonHelper.SetDateValueInField('date', FieldsJsonObject, TempEDocPurchaseLine.Date);
         ResolveVATRateFromADI(FieldsJsonObject, TempEDocPurchaseLine);
-        if TempEDocPurchaseLine."Unit Price" <> 0 then
-            TempEDocPurchaseLine."Total Discount" := (TempEDocPurchaseLine."Unit Price" * TempEDocPurchaseLine.Quantity) - TempEDocPurchaseLine."Sub Total";
+        if (TempEDocPurchaseLine."Unit Price" <> 0) and (TempEDocPurchaseLine.Quantity <> 0) then begin
+            DerivedDiscount := (TempEDocPurchaseLine."Unit Price" * TempEDocPurchaseLine.Quantity) - TempEDocPurchaseLine."Sub Total";
+            if DerivedDiscount > 0 then
+                TempEDocPurchaseLine."Total Discount" := DerivedDiscount;
+        end;
     end;
 
     local procedure ResolveVATRateFromADI(FieldsJsonObject: JsonObject; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
