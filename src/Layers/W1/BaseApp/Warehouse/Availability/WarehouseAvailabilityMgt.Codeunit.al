@@ -988,7 +988,7 @@ codeunit 7314 "Warehouse Availability Mgt."
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcQtyOnBlockedITOrOnBlockedOutbndBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; var QtyBlocked: Decimal)
     begin
-    end;-
+    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcReservQtyOnPicksShipsWithItemTracking(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; var Result: Decimal; var IsHandled: Boolean)
