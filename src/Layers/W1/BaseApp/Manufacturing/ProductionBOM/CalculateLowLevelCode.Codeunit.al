@@ -71,7 +71,7 @@ codeunit 99000793 "Calculate Low-Level Code"
                             if ActLevel > TotalLevels then
                                 TotalLevels := ActLevel;
                         until Item2.Next() = 0;
-                    
+
                     SKU.SetCurrentKey("Production BOM No.");
                     SKU.SetRange("Production BOM No.", No);
                     SKU.SetLoadFields("Item No.");
@@ -173,6 +173,7 @@ codeunit 99000793 "Calculate Low-Level Code"
     begin
         if LowLevelCode > 50 then
             Error(ProdBomErr, 50, Item."No.", ItemNo, LowLevelCode);
+        SKU.SetCurrentKey("Item No.");
         SKU.SetRange("Item No.", ItemNo);
         SKU.SetFilter("Production BOM No.", '<>%1', '');
         SKU.SetLoadFields("Production BOM No.");
@@ -228,7 +229,7 @@ codeunit 99000793 "Calculate Low-Level Code"
                 if EntityPresent or (not IgnoreMissingItemsOrBOMs) then
                     SetRecursiveLevelsOnBOM(CompBOM, CompItem."Low-Level Code" + 1, IgnoreMissingItemsOrBOMs);
             end;
-            // calc low level code for BOMs set on the item's Stockkeeping Units
+
             RecalcSKULowerLevels(CompItem."No.", CompItem."Low-Level Code" + 1, IgnoreMissingItemsOrBOMs);
             OnSetRecursiveLevelsOnItemOnBeforeCompItemModify(CompItem, IgnoreMissingItemsOrBOMs);
             CompItem.Modify();

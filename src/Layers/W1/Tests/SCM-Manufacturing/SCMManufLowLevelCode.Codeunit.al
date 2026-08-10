@@ -232,6 +232,64 @@ codeunit 137039 "SCM Manuf Low Level Code"
         RestoreManufacturingSetup(TempManufacturingSetup);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure RecalculateLowLevelCodeWithExistingSKULevelProductionBOM()
+    var
+        CompItem: Record Item;
+        SemiItem: Record Item;
+        FinishedItem: Record Item;
+        TempManufacturingSetup: Record "Manufacturing Setup" temporary;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        LocationCode: Code[10];
+        SemiBOMNo: Code[20];
+        FinishedBOMNo: Code[20];
+    begin
+        // [SCENARIO 635868] Recalculating an item through Calculate Low-Level Code must resolve the full multi-level chain when the BOMs already exist on Stockkeeping Units.
+        // [GIVEN] Dynamic Low-Level Code enabled and a 3-level SKU-only BOM structure (Finished -> Semi -> Component).
+        Initialize();
+        UpdateManufacturingSetup(TempManufacturingSetup, true);
+        LocationCode := CreateLocation();
+
+        LibraryInventory.CreateItem(CompItem);
+        LibraryInventory.CreateItem(SemiItem);
+        LibraryInventory.CreateItem(FinishedItem);
+
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, CompItem."No.", '', SemiItem."Base Unit of Measure", false);
+        SemiBOMNo := ProductionBOMHeader."No.";
+        CreateSKUWithProdBOM(SemiItem."No.", LocationCode, SemiBOMNo);
+
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, SemiItem."No.", '', FinishedItem."Base Unit of Measure", false);
+        FinishedBOMNo := ProductionBOMHeader."No.";
+        CreateSKUWithProdBOM(FinishedItem."No.", LocationCode, FinishedBOMNo);
+
+        // [GIVEN] All low-level codes are reset, simulating a recalculation over pre-existing data.
+        ResetItemLowLevelCode(CompItem."No.");
+        ResetItemLowLevelCode(SemiItem."No.");
+        ResetItemLowLevelCode(FinishedItem."No.");
+        ResetProdBOMLowLevelCode(SemiBOMNo);
+        ResetProdBOMLowLevelCode(FinishedBOMNo);
+
+        // [WHEN] Calculate Low-Level Code is run for the finished item (OnRun -> RecalcSKULowerLevels cascades down through SKU-level BOMs).
+        RunCalculateLowLevelCode(FinishedItem."No.");
+
+        // [THEN] The whole chain is recalculated through the SKU-level BOMs in a single pass.
+        VerifyLowLevelCode(FinishedItem."No.", '', 0);
+        VerifyLowLevelCode(SemiItem."No.", '', 1);
+        VerifyLowLevelCode(CompItem."No.", '', 2);
+
+        // [WHEN] Only the component is reset and recalculated (CalcLevels walks up through the SKU-level parents).
+        ResetItemLowLevelCode(CompItem."No.");
+        RunCalculateLowLevelCode(CompItem."No.");
+
+        // [THEN] The component still resolves to level 2 by traversing its SKU-level BOM parents.
+        VerifyLowLevelCode(CompItem."No.", '', 2);
+
+        // Tear Down: Dynamic Low-Level Code set to Default in Manufacturing setup.
+        RestoreManufacturingSetup(TempManufacturingSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -315,6 +373,33 @@ codeunit 137039 "SCM Manuf Low Level Code"
         LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, LocationCode, ItemNo, '');
         StockkeepingUnit.Validate("Production BOM No.", ProductionBOMNo);
         StockkeepingUnit.Modify(true);
+    end;
+
+    local procedure ResetItemLowLevelCode(ItemNo: Code[20])
+    var
+        Item: Record Item;
+    begin
+        Item.Get(ItemNo);
+        Item."Low-Level Code" := 0;
+        Item.Modify();
+    end;
+
+    local procedure ResetProdBOMLowLevelCode(ProductionBOMNo: Code[20])
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        ProductionBOMHeader.Get(ProductionBOMNo);
+        ProductionBOMHeader."Low-Level Code" := 0;
+        ProductionBOMHeader.Modify();
+    end;
+
+    local procedure RunCalculateLowLevelCode(ItemNo: Code[20])
+    var
+        Item: Record Item;
+        CalculateLowLevelCode: Codeunit "Calculate Low-Level Code";
+    begin
+        Item.Get(ItemNo);
+        CalculateLowLevelCode.Run(Item);
     end;
 
     local procedure UpdateProductionBom(var ProductionBOMHeader: Record "Production BOM Header"; ItemNo: Code[20])
