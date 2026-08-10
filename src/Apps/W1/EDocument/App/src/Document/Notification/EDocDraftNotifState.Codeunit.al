@@ -23,7 +23,7 @@ codeunit 6436 "E-Doc. Draft Notif. State"
         VendorMatchedByNameNotAddressMsg: Label 'Vendor matched by name but not by address.';
         SubTotalMismatchMsg: Label 'The document total does not match the sum of the lines. Review the amounts before finalizing the draft.';
         SubTotalMismatchNoToleranceTxt: Label 'E-Document purchase draft header Sub Total differs from the sum of the lines.';
-        SubTotalMismatchNotificationShownTxt: Label 'E-Document purchase draft Sub Total mismatch notification shown.';
+        SubTotalMismatchNotificationCreatedTxt: Label 'E-Document purchase draft Sub Total mismatch notification state created.';
 
     /// <summary>
     /// Re-evaluates the Sub Total mismatch from the persisted lines and updates the persisted
@@ -286,7 +286,7 @@ codeunit 6436 "E-Doc. Draft Notif. State"
             exit;
         AddSubTotalMismatch(EDocumentEntryNo);
         if not NotificationExisted then
-            Telemetry.LogMessage('0000UVM', SubTotalMismatchNotificationShownTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            Telemetry.LogMessage('0000UVM', SubTotalMismatchNotificationCreatedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     local procedure GetHeaderForLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"): Boolean
