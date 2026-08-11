@@ -842,7 +842,11 @@ report 94 "Close Income Statement"
 
     local procedure MakeGroupKey(BusinessUnitCode: Code[20]; DimensionPart: Text; SourceCurrencyCode: Code[10]): Text
     begin
-        exit(BusinessUnitCode + '|' + DimensionPart + '|' + SourceCurrencyCode);
+        // The parts are length-prefixed so that a separator character inside one of the code fields cannot make
+        // two different groups collapse onto the same key.
+        exit(Format(StrLen(BusinessUnitCode)) + '|' + BusinessUnitCode +
+             '|' + Format(StrLen(DimensionPart)) + '|' + DimensionPart +
+             '|' + SourceCurrencyCode);
     end;
 
     local procedure ResetEntryNoGrouping()
