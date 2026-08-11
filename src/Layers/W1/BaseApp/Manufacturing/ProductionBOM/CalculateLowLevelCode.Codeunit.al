@@ -72,9 +72,7 @@ codeunit 99000793 "Calculate Low-Level Code"
                                 TotalLevels := ActLevel;
                         until Item2.Next() = 0;
 
-                    SKU.SetCurrentKey("Production BOM No.");
                     SKU.SetRange("Production BOM No.", No);
-                    SKU.SetLoadFields("Item No.");
                     if SKU.FindSet() then
                         repeat
                             ActLevel := CalcLevels(Type::Item, SKU."Item No.", Level + 1, LevelDepth + 1);
@@ -177,7 +175,6 @@ codeunit 99000793 "Calculate Low-Level Code"
         SKU.SetCurrentKey("Item No.");
         SKU.SetRange("Item No.", ItemNo);
         SKU.SetFilter("Production BOM No.", '<>%1', '');
-        SKU.SetLoadFields("Production BOM No.");
         if SKU.FindSet() then
             repeat
                 if not TempCompBOM.Get(SKU."Production BOM No.") then begin
@@ -342,4 +339,3 @@ codeunit 99000793 "Calculate Low-Level Code"
     begin
     end;
 }
-
