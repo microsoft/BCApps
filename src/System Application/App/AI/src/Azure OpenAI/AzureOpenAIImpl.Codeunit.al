@@ -122,13 +122,13 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 ErrorText := FastPromptResponseRetrievalErr;
             FastPromptResponse.Set(false, EmptySecretText, ErrorCode, ErrorText);
             CustomDimensions.Add('ErrorCode', ErrorCode);
-            FeatureTelemetry.LogError('0000UZD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::Publisher, CustomDimensions);
+            FeatureTelemetry.LogError('0000UZD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::ExtensionPublisher, CustomDimensions);
             exit(false);
         end;
 
         FastPromptResponse.Set(ALCopilotFastPromptResponse.IsFastPrompt(), ALCopilotFastPromptResponse.Template(), ALCopilotFastPromptResponse.ErrorCode(), ALCopilotFastPromptResponse.ErrorText());
         CustomDimensions.Add('IsFastPrompt', Format(ALCopilotFastPromptResponse.IsFastPrompt()));
-        FeatureTelemetry.LogUsage('0000MTD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, Enum::"AL Telemetry Scope"::Publisher, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000MTD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, Enum::"AL Telemetry Scope"::ExtensionPublisher, CustomDimensions);
         exit(ALCopilotFastPromptResponse.IsFastPrompt() and (ALCopilotFastPromptResponse.Template() <> ''));
     end;
 
