@@ -11,56 +11,56 @@ enum 8221 "Expense Agent Country" implements "Expense Agent Country Data"
     value(0; Default)
     {
         Caption = 'Default';
-        Implementation = "Expense Agent Country Data" = "W1 Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data W1";
     }
     value(1; US)
     {
         Caption = 'US';
-        Implementation = "Expense Agent Country Data" = "US Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data US";
     }
     value(2; GB)
     {
         Caption = 'GB';
-        Implementation = "Expense Agent Country Data" = "GB Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data GB";
     }
     value(3; CA)
     {
         Caption = 'CA';
-        Implementation = "Expense Agent Country Data" = "CA Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data CA";
     }
     value(4; NZ)
     {
         Caption = 'NZ';
-        Implementation = "Expense Agent Country Data" = "NZ Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data NZ";
     }
     value(5; AU)
     {
         Caption = 'AU';
-        Implementation = "Expense Agent Country Data" = "AU Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data AU";
     }
     value(6; ES)
     {
         Caption = 'ES';
-        Implementation = "Expense Agent Country Data" = "ES Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data ES";
     }
     value(7; DK)
     {
         Caption = 'DK';
-        Implementation = "Expense Agent Country Data" = "DK Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data DK";
     }
     value(8; FR)
     {
         Caption = 'FR';
-        Implementation = "Expense Agent Country Data" = "FR Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data FR";
     }
     value(9; DE)
     {
         Caption = 'DE';
-        Implementation = "Expense Agent Country Data" = "DE Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data DE";
     }
     value(10; AT)
     {
         Caption = 'AT';
-        Implementation = "Expense Agent Country Data" = "AT Country Data";
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data AT";
     }
 }
