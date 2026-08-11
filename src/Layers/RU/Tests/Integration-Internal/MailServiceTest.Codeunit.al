@@ -22,20 +22,26 @@ codeunit 139111 "Mail Service Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryService: Codeunit "Library - Service";
+#if not CLEAN29
         LibraryJob: Codeunit "Library - Job";
+#endif
         ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
         IsInitialized: Boolean;
         EmailSubjectCapMsg: Label '%1 - %2 %3';
         AttachmentNameTok: Label '%1 %2.pdf';
         SalesInvoiceTxt: Label 'Sales Invoice';
+#if not CLEAN29
         SalesQuoteTxt: Label 'Sales Quote';
+#endif
         SalesShipmentTxt: Label 'Sales Shipment';
         SalesReceiptTxt: Label 'Sales Receipt';
         PurchaseQuoteTxt: Label 'Purchase Quote';
         PurchaseOrderTxt: Label 'Purchase Order';
         ServiceInvoiceTxt: Label 'Service Invoice';
         ServiceCrMemoTxt: Label 'Service Credit Memo';
+#if not CLEAN29
         JobQuoteTxt: Label 'Project Quote';
+#endif
         IncorrectSubjectErr: Label 'Subject is not correct';
         IncorrectAttachNameErr: Label 'Attachment Name is not correct';
 
@@ -111,6 +117,7 @@ codeunit 139111 "Mail Service Test"
         // [THEN] Send dialog appeared (handler has been invoked)
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ValidateMailDialog')]
     [Scope('OnPrem')]
@@ -178,6 +185,7 @@ codeunit 139111 "Mail Service Test"
 
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ValidateMailDialog')]
@@ -208,6 +216,7 @@ codeunit 139111 "Mail Service Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ValidateMailDialog')]
     [Scope('OnPrem')]
@@ -237,6 +246,7 @@ codeunit 139111 "Mail Service Test"
 
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SelectSendingOptionsOKModalPageHandler,ValidateMailDialog')]
@@ -384,6 +394,7 @@ codeunit 139111 "Mail Service Test"
         end;
     end;
 
+#if not CLEAN29
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -400,6 +411,7 @@ codeunit 139111 "Mail Service Test"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#endif
 
     local procedure CreateEmailPdfDefaultDocumentSendingProfile();
     var

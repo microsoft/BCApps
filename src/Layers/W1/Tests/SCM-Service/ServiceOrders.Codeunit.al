@@ -5816,6 +5816,7 @@ codeunit 136101 "Service Orders"
         Assert.AreEqual(Customer[2]."Country/Region Code", ServiceHeader."VAT Country/Region Code", VATCountryRegionLbl);
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ServiceOrderReportRequestPageHandler')]
     procedure PrintServiceOrderWithWorkDescription()
@@ -5848,6 +5849,7 @@ codeunit 136101 "Service Orders"
 
         // [THEN] Verify no transaction error should occur.
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -8245,6 +8247,7 @@ codeunit 136101 "Service Orders"
             exit(ServiceInvoiceHeader."No.");
     end;
 
+#if not CLEAN29
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -8261,6 +8264,7 @@ codeunit 136101 "Service Orders"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#endif
 
     local procedure CreateShipmentMethod(var ShipmentMethod: Record "Shipment Method")
     begin

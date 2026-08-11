@@ -54,7 +54,9 @@ codeunit 139515 "Digital Vouchers Tests"
         LibraryRandom: Codeunit "Library - Random";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         Assert: Codeunit Assert;
+#if not CLEAN29
         LibraryEmail: Codeunit "Library - Email";
+#endif
         ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryService: Codeunit "Library - Service";
@@ -495,6 +497,7 @@ codeunit 139515 "Digital Vouchers Tests"
         UnbindSubscription(DigVouchersDisableEnforce);
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('StrMenuHandler,VerifyNoAttachmentsInEmailEditorModalPageHandler')]
     procedure PostSalesDocAndSendEmailWithDigitalVoucherAutomaticallyGenerated()
@@ -535,6 +538,7 @@ codeunit 139515 "Digital Vouchers Tests"
 
         UnbindSubscription(DigVouchersDisableEnforce);
     end;
+#endif
 
     [Test]
     procedure PostMultipleGeneralJournalLinesWithGenerateAutomaticallyOption()
@@ -1959,6 +1963,7 @@ codeunit 139515 "Digital Vouchers Tests"
         ReportSelections.ModifyAll("Use for Email Attachment", false);
     end;
 
+#if not CLEAN29
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -1976,6 +1981,7 @@ codeunit 139515 "Digital Vouchers Tests"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#endif
 
     local procedure BindActiveDirectoryMockEvents()
     begin

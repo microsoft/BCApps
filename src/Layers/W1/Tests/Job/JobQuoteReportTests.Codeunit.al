@@ -139,6 +139,7 @@ codeunit 136314 "Job Quote Report Tests"
         TearDown();
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,MessageHandler,PostandSendPageHandlerNo')]
     [Scope('OnPrem')]
@@ -190,6 +191,7 @@ codeunit 136314 "Job Quote Report Tests"
         RemoveReportLayout();
         TearDown();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,MessageHandler,PostandSendPageHandlerYes,EmailEditorHandler,CloseEmailEditorHandler')]
@@ -419,6 +421,7 @@ codeunit 136314 "Job Quote Report Tests"
         SetReportLayout(ReportLayoutSelection.Type::"RDLC (built-in)", '');
     end;
 
+#if not CLEAN29
     local procedure SetReportLayoutForCustomWord()
     var
         CustomReportLayout: Record "Custom Report Layout";
@@ -433,6 +436,7 @@ codeunit 136314 "Job Quote Report Tests"
 
         SetReportLayout(ReportLayoutSelection.Type::"Custom Layout", CustomReportLayoutCode);
     end;
+#endif
 
     local procedure SetReportLayout(LayoutSelection: Integer; CustomReportLayoutCode: Code[20])
     begin
