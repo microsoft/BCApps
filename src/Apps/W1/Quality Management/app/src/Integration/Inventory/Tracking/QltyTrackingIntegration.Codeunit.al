@@ -26,6 +26,8 @@ codeunit 20415 "Qlty. Tracking Integration"
         EntryTypeBlockedErr: Label '"%1" transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
         WarehouseEntryTypeBlockedErr: Label '"%1" warehouse transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
         NavigatePageSearchFiltersTok: Label 'NAVIGATEFILTERS', Locked = true;
+        BlockedByQualityInspectionTitleLbl: Label 'Blocked by quality inspection', Comment = 'Title for the error message when a transaction is blocked by a quality inspection';
+        ShowInspectionActionLbl: Label 'Show Quality Inspection %1', Comment = '%1 = Quality Inspection identifier';
 
     [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Setup."Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
@@ -98,17 +100,11 @@ codeunit 20415 "Qlty. Tracking Integration"
                 end;
         end;
 
+        SetLoadFieldsByEntryType(QltyInspectionResult, ItemJnlLine2."Entry Type");
+
         repeat
             if QltyInspectionHeader."Result Code" <> '' then begin
                 IsFinished := QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished;
-                QltyInspectionResult.SetLoadFields(
-                    "Item Tracking Allow Asm. Cons.",
-                    "Item Tracking Allow Asm. Out.",
-                    "Item Tracking Allow Consump.",
-                    "Item Tracking Allow Output",
-                    "Item Tracking Allow Purchase",
-                    "Item Tracking Allow Sales",
-                    "Item Tracking Allow Transfer");
                 if QltyInspectionResult.Get(QltyInspectionHeader."Result Code") then begin
                     case ItemJnlLine2."Entry Type" of
                         ItemJnlLine2."Entry Type"::"Assembly Consumption":
@@ -245,16 +241,11 @@ codeunit 20415 "Qlty. Tracking Integration"
                 end;
         end;
 
+        SetLoadFieldsByActivityType(QltyInspectionResult, WarehouseActivityLine."Activity Type");
+
         repeat
             if QltyInspectionHeader."Result Code" <> '' then begin
                 IsFinished := QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished;
-                QltyInspectionResult.SetLoadFields(
-                    "Item Tracking Allow Invt. Mov.",
-                    "Item Tracking Allow Invt. Pick",
-                    "Item Tracking Allow Invt. PA",
-                    "Item Tracking Allow Movement",
-                    "Item Tracking Allow Pick",
-                    "Item Tracking Allow Put-Away");
                 if QltyInspectionResult.Get(QltyInspectionHeader."Result Code") then begin
                     case WarehouseActivityLine."Activity Type" of
                         WarehouseActivityLine."Activity Type"::"Invt. Movement":
@@ -370,6 +361,50 @@ codeunit 20415 "Qlty. Tracking Integration"
         end;
     end;
 
+    /// <summary>
+    /// Loads only the result field that the given entry type is evaluated against.
+    /// </summary>
+    local procedure SetLoadFieldsByEntryType(var QltyInspectionResult: Record "Qlty. Inspection Result"; EntryType: Enum "Item Ledger Entry Type")
+    begin
+        case EntryType of
+            EntryType::"Assembly Consumption":
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Asm. Cons.");
+            EntryType::"Assembly Output":
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Asm. Out.");
+            EntryType::Consumption:
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Consump.");
+            EntryType::Output:
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Output");
+            EntryType::Purchase:
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Purchase");
+            EntryType::Sale:
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Sales");
+            EntryType::Transfer:
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Transfer");
+        end;
+    end;
+
+    /// <summary>
+    /// Loads only the result field that the given warehouse activity type is evaluated against.
+    /// </summary>
+    local procedure SetLoadFieldsByActivityType(var QltyInspectionResult: Record "Qlty. Inspection Result"; ActivityType: Enum "Warehouse Activity Type")
+    begin
+        case ActivityType of
+            ActivityType::"Invt. Movement":
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Invt. Mov.");
+            ActivityType::"Invt. Pick":
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Invt. Pick");
+            ActivityType::"Invt. Put-away":
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Invt. PA");
+            ActivityType::Movement:
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Movement");
+            ActivityType::Pick:
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Pick");
+            ActivityType::"Put-away":
+                QltyInspectionResult.SetLoadFields("Item Tracking Allow Put-Away");
+        end;
+    end;
+
     local procedure GetItemTrackingDetails(LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]): Text
     var
         TrackingDetails: Text;
@@ -392,8 +427,6 @@ codeunit 20415 "Qlty. Tracking Integration"
     var
         ErrorMessageManagement: Codeunit "Error Message Management";
         BlockedErrorInfo: ErrorInfo;
-        BlockedByQualityInspectionTitleLbl: Label 'Blocked by quality inspection', Comment = 'Title for the error message when a transaction is blocked by a quality inspection';
-        ShowInspectionActionLbl: Label 'Show Quality Inspection %1', Comment = '%1 = Quality Inspection identifier';
     begin
         if ErrorMessageManagement.IsActive() then begin
             ErrorMessageManagement.LogContextFieldError(
@@ -410,6 +443,8 @@ codeunit 20415 "Qlty. Tracking Integration"
         BlockedErrorInfo.RecordId := QltyInspectionHeader.RecordId();
         BlockedErrorInfo.FieldNo := QltyInspectionHeader.FieldNo("Result Code");
         BlockedErrorInfo.PageNo := Page::"Qlty. Inspection";
+        BlockedErrorInfo.DataClassification := DataClassification::CustomerContent;
+        BlockedErrorInfo.ErrorType := ErrorType::Client;
         BlockedErrorInfo.AddNavigationAction(StrSubstNo(ShowInspectionActionLbl, QltyInspectionHeader.GetFriendlyIdentifier()));
         Error(BlockedErrorInfo);
     end;
