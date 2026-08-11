@@ -449,7 +449,7 @@ codeunit 134333 "ERM Purchase Prepayments"
         // [GIVEN] A Purchase Order with a Payment Reference specified.
         CreatePurchOrder(PurchaseHeader, Vendor, Item, LCYCode);
 
-        PurchaseHeader.Validate("Payment Reference", LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Payment Reference"), Database::"Purchase Header"));
+        PurchaseHeader."Payment Reference" := LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Payment Reference"), Database::"Purchase Header");
         PurchaseHeader.Modify(true);
 
         // [WHEN] Post the prepayment invoice via Purchase order page.
