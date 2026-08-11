@@ -11,8 +11,8 @@ page 37063 "Manufacturing Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Manufacturing Report';
-    AboutTitle = 'About Manufacturing Report';
+    Caption = 'Manufacturing Report (Power BI)';
+    AboutTitle = 'About Manufacturing Report (Power BI)';
     AboutText = 'The Manufacturing Report offers a consolidated view of all manufacturing report pages, conveniently embedded into a single page for easy access.';
 
     layout

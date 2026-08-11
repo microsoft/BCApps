@@ -215,7 +215,7 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
     begin
         // From name/email address
         GetFrom(FromName, FromAddress);
-        SMTPMessage.AddFrom(FromName, FromAddress);
+        SMTPMessage.AddFrom(FromName, FromAddress, EmailMessage.GetId());
 
         // To, Cc and Bcc Recipients
         EmailMessage.GetRecipients("Email Recipient Type"::"To", Recipients);

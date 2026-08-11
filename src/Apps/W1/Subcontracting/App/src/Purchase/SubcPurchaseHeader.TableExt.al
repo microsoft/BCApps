@@ -34,8 +34,7 @@ tableextension 99001509 "Subc. Purchase Header" extends "Purchase Header"
         {
             CalcFormula = exist("Purchase Line" where("Document Type" = const(Order),
                                                        "Document No." = field("No."),
-                                                       "Prod. Order No." = filter(<> ''),
-                                                       "Prod. Order Line No." = filter(<> 0)));
+                                                       "Subc. Purchase Line Type" = filter(<> None)));
             Caption = 'Subcontracting Order';
             Editable = false;
             FieldClass = FlowField;
