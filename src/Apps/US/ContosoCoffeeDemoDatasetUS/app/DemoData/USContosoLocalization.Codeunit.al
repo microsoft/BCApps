@@ -175,6 +175,8 @@ codeunit 11465 "US Contoso Localization"
 
             Enum::"Contoso Demo Data Module"::Finance:
                 begin
+                    if ContosoDemoDataLevel = Enum::"Contoso Demo Data Level"::"Master Data" then
+                        Codeunit.Run(Codeunit::"Create Allocation Account US");
                     if BindSubscription(CreateAccScheduleLineUS) then;
                     if BindSubscription(CreateCurrencyUS) then;
                     if BindSubscription(CreateGenJnlTemplateUS) then;
