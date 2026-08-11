@@ -122,7 +122,7 @@ codeunit 137420 "Prod. Def. Wiz. Library"
         ShopCalendarCode: Code[10];
     begin
         LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
-        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarFullWorkingWeekCustomTime(080000T, 160000T);
         LibraryManufacturing.CreateWorkCenter(WorkCenter);
         WorkCenter.Validate("Unit of Measure Code", CapacityUnitOfMeasure.Code);
         WorkCenter.Validate("Shop Calendar Code", ShopCalendarCode);

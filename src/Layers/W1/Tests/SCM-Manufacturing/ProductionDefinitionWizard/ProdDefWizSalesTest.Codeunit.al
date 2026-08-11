@@ -1640,7 +1640,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefWizLibrary.CreatePartialReservationForSalesLine(SalesLine, 5); // fully reserved
 
         // [WHEN] Wizard is launched from the fully-reserved Sales Line
-        // [THEN] An error is raised (quantity = Outstanding - Reserved = 5 - 5 = 0)
+        // [THEN] An error is raised
         asserterror ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
         Assert.ExpectedError(ProductionOrderQtyZeroOrNegativeErr);
     end;
