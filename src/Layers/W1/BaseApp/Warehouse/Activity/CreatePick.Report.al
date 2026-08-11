@@ -301,12 +301,10 @@ report 5754 "Create Pick"
         PickWhseActivHeader: Record "Warehouse Activity Header";
         TempWhseItemTrkgLine: Record "Whse. Item Tracking Line" temporary;
         ItemTrackingMgt: Codeunit "Item Tracking Management";
-        WarehouseDocumentPrint: Codeunit "Warehouse Document-Print";
         PickQty: Decimal;
         PickQtyBase: Decimal;
         OldFirstSetPickNo: Code[20];
         TotalQtyPickedBase: Decimal;
-        PickListReportID: Integer;
         IsHandled: Boolean;
     begin
         PickWhseWkshLine.LockTable();
@@ -438,6 +436,18 @@ report 5754 "Create Pick"
 
         PickWhseActivHeader.SetRange(Type, PickWhseActivHeader.Type::Pick);
         PickWhseActivHeader.SetRange("No.", FirstSetPickNo, LastPickNo);
+        IsHandled := false;
+        OnCreateTempLineOnBeforeFindAndPrintPickHeaders(PickWhseActivHeader, PrintPick, IsHandled);
+        if not IsHandled then
+            FindAndPrintPickHeaders(PickWhseActivHeader, PrintPick, SortActivity);
+    end;
+
+    local procedure FindAndPrintPickHeaders(var PickWhseActivHeader: Record "Warehouse Activity Header"; PrintPick: Boolean; SortActivity: Enum "Whse. Activity Sorting Method")
+    var
+        WarehouseDocumentPrint: Codeunit "Warehouse Document-Print";
+        PickListReportID: Integer;
+        IsHandled: Boolean;
+    begin
         PickWhseActivHeader.Find('-');
         repeat
             if SortActivity <> SortActivity::None then
@@ -670,6 +680,11 @@ report 5754 "Create Pick"
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateTempLineOnBeforeFindAndPrintPickHeaders(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PrintPick: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
     [IntegrationEvent(true, false)]
     local procedure OnCreateTempLineOnBeforeSetTempWhseItemTrackingLine(var PickWhseWorksheetLine: Record "Whse. Worksheet Line"; var PickQty: Decimal; var PickQtyBase: Decimal; var IsHandled: Boolean)
     begin
@@ -685,4 +700,3 @@ report 5754 "Create Pick"
     begin
     end;
 }
-
