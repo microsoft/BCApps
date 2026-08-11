@@ -18,7 +18,6 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
     var
         TotalLoaded: Integer;
         HistoricalDataLoadEventTok: Label 'Historical Data Load', Locked = true;
-        HistoricalDataLoadFailedErr: Label 'Failed to load historical data for vendor %1. Error: %2', Comment = '%1 = Vendor No., %2 = Error message', Locked = true;
 
     /// <summary>
     /// Loads up to 5000 historical posted purchase invoice lines for the draft line's vendor
@@ -46,16 +45,17 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
 
         StartTime := CurrentDateTime();
         if not TryLoadHistoricalLines(TempPurchInvLine, VendorNo, ProductCode, Description) then begin
-            FeatureTelemetry.LogError('0000SEO', FeatureName(), HistoricalDataLoadEventTok, StrSubstNo(HistoricalDataLoadFailedErr, VendorNo, GetLastErrorText()), GetLastErrorCallStack());
+            // Redacted error text only: avoid emitting vendor-identifying data or unsanitized customer content to telemetry.
+            FeatureTelemetry.LogError('0000SEO', FeatureName(), HistoricalDataLoadEventTok, GetLastErrorText(true), GetLastErrorCallStack());
             exit;
         end;
 
         ElapsedTime := CurrentDateTime() - StartTime;
-        TelemetryDimensions.Add('Records loaded', Format(TotalLoaded));
+        TelemetryDimensions.Add('RecordsLoaded', Format(TotalLoaded));
         TelemetryDimensions.Add('Duration', Format(ElapsedTime));
-        TelemetryDimensions.Add('Vendor matching scope', 'Same Vendor');
-        TelemetryDimensions.Add('Max records limit', Format(MaxHistoricalRecords()));
-        TelemetryDimensions.Add('Limit reached', Format(TotalLoaded >= MaxHistoricalRecords()));
+        TelemetryDimensions.Add('VendorMatchingScope', 'Same Vendor');
+        TelemetryDimensions.Add('MaxRecordsLimit', Format(MaxHistoricalRecords()));
+        TelemetryDimensions.Add('LimitReached', Format(TotalLoaded >= MaxHistoricalRecords()));
         FeatureTelemetry.LogUsage('0000SEN', FeatureName(), HistoricalDataLoadEventTok, TelemetryDimensions);
     end;
 
