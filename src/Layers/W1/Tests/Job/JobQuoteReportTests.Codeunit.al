@@ -330,6 +330,7 @@ codeunit 136314 "Job Quote Report Tests"
         LibraryReportValidation.DownloadFile();
     end;
 
+#if not CLEAN29
     local procedure CreateJobQueueReportSelection()
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -345,6 +346,7 @@ codeunit 136314 "Job Quote Report Tests"
 
         CustomReportSelection.Init();
     end;
+#endif
 
     local procedure VerifyJobQuoteReport(JobPlanningLine: Record "Job Planning Line"; Column: Text[250]; Column2: Text[250]; Column3: Text[250]; Column4: Text[250])
     begin
