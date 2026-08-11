@@ -226,7 +226,6 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
-        SpendRequestToGLLink: Record "Spend Request To G/L Link";
         TaxDiffRegister: Record "Tax Diff. Register";
         GLItemLedgerRelation: Record "G/L - Item Ledger Relation";
         ValueEntry: Record "Value Entry";
@@ -356,7 +355,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                             ReverseBankAccLedgEntry(TempBankAccountLedgerEntry, GLEntry."Entry No.", GenJournalLine."Source Code");
                             TempBankAccountLedgerEntry.Delete();
                         end;
-                    SpendRequestToGLLink.Get(GLEntry2."Entry No."):
+                    SpendRequestLinkedToGLEntry(GLEntry2."Entry No."):
                         ReverseSpendRequest(GLEntry2."Entry No.", GLEntry."Entry No.");
                     TempTaxDiffLedgerEntry.Find('-'):
                         begin
@@ -729,6 +728,14 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         SpendRequestToGLLink."G/L Entry No." := NewGLEntryNo;
         SpendRequestToGLLink.Amount := -SpendRequestToGLLink.Amount;
         if SpendRequestToGLLink.Insert() then;
+    end;
+
+    local procedure SpendRequestLinkedToGLEntry(GLEntryNo: Integer): Boolean
+    var
+        SpendRequestToGLLink: Record "Spend Request To G/L Link";
+    begin
+        SpendRequestToGLLink.SetRange("G/L Entry No.", GLEntryNo);
+        exit(not SpendRequestToGLLink.IsEmpty());
     end;
 
     local procedure ApplyCustLedgEntryByReversal(CustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry2: Record "Cust. Ledger Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; AppliedEntryNo: Integer; var NextDtldCustLedgEntryEntryNo: Integer)
