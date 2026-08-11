@@ -23,6 +23,7 @@ codeunit 4421 "SOA Attachment MLLM"
         ExtractionSchemaTok: Label 'Prompts/AttachmentExtraction/soa-attachment-extraction-example.json', Locked = true;
         SecurityPromptTok: Label 'SalesOrderAgent-Irrelevance-SecurityPromptV28', Locked = true;
         SchemaNameTok: Label 'soa-attachment-content', Locked = true;
+        SchemaPlaceholderTok: Label '%1', Locked = true;
         ProvenanceTok: Label 'soa_source_file_id', Locked = true;
         FileDataTok: Label 'data:%1;base64,%2', Comment = '%1 = MIME type, %2 = base64 file content', Locked = true;
         AttachmentFileNotFoundErr: Label 'The attachment file could not be found.', Locked = true;
@@ -77,11 +78,11 @@ codeunit 4421 "SOA Attachment MLLM"
         AOAIUserMessage: Codeunit "AOAI User Message";
         Base64Convert: Codeunit "Base64 Convert";
         FileInStream: InStream;
-        FileData: Text;
         Prompt: SecretText;
+        SecurityPrompt: SecretText;
+        FileData: Text;
         PromptTemplate: Text;
         SchemaTemplate: Text;
-        SecurityPrompt: SecretText;
         UserPromptTemplate: Text;
     begin
         // Set FailureReason before each Error so the caught failure keeps a specific, sanitized reason for telemetry.
@@ -127,7 +128,8 @@ codeunit 4421 "SOA Attachment MLLM"
 
         AOAIUserMessage.AddFilePart(FileData);
         // The attachment file name is sender-controlled, so it is never placed in the prompt.
-        AOAIUserMessage.AddTextPart(StrSubstNo(UserPromptTemplate, SchemaTemplate));
+        // The template comes from a resource, so the schema is substituted with Replace rather than StrSubstNo.
+        AOAIUserMessage.AddTextPart(UserPromptTemplate.Replace(SchemaPlaceholderTok, SchemaTemplate));
         AOAIChatMessages.AddUserMessage(AOAIUserMessage);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
