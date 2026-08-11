@@ -512,6 +512,12 @@ table 5601 "FA Ledger Entry"
             Caption = 'Exclude Derogatory';
             Editable = false;
         }
+        field(5866; "Derogatory Source Entry No."; Integer)
+        {
+            Caption = 'Derogatory Source Entry No.';
+            Editable = false;
+            TableRelation = "FA Ledger Entry"."Entry No.";
+        }
         field(6210; "Non-Ded. VAT FA Cost"; Boolean)
         {
             Caption = 'Non-Deductible VAT FA Cost';
@@ -689,6 +695,9 @@ table 5601 "FA Ledger Entry"
         key(Key16; "Depreciation Book Code", "FA Posting Date", "FA Posting Category", "FA Posting Type", "Belonging to Manufacturing", "FA Type", "Depreciation Group", "Depr. Bonus", "Depr. Group Elimination", "Tax Difference Code", Quantity, "Reclassification Entry", "Depr. Bonus Recovery Date", "Depr. Bonus %", "FA No.")
         {
             SumIndexFields = Amount, "Sales Gain Amount", "Sales Loss Amount";
+        }
+        key(Key17; "Derogatory Source Entry No.", "Depreciation Book Code")
+        {
         }
     }
 

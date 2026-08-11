@@ -29,6 +29,7 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         GLBudgetEntriesMustExistMsg: Label 'G/L Budget Entries must exist.';
         GLBudgetEntriesMustNotExistMsg: Label 'G/L Budget Entries must not exist.';
         WrongAmountErr: Label 'Wrong amount.';
+        NumberFAEntryErr: Label 'Number of FA entries did not match the expected.';
         PeriodTxt: Label '12';
         OnlyOneDefaultDeprBookErr: Label 'Default FA Depreciation Book Only one fixed asset depreciation book can be marked as the default book';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
@@ -1368,6 +1369,47 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         // Clean up.
         FixedAssetCard.Close();
         LibraryApplicationArea.DisableApplicationAreaSetup();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AcquisitionCostWithDerogatoryBookCreatesSingleCounterpart()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        TaxFADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FALedgerEntry: Record "FA Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GLAccount: Record "G/L Account";
+    begin
+        // [SCENARIO] An acquisition cost with a derogatory book creates one total linked counterpart (IT).
+        Initialize();
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateJournalSetupDepreciation(TaxDepreciationBook);
+        TaxDepreciationBook.Validate("Derogatory Calc.", DepreciationBook.Code);
+        TaxDepreciationBook.Modify(true);
+        CreateFADepreciationBook(
+            FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
+        CreateFADepreciationBook(
+            TaxFADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", TaxDepreciationBook.Code);
+        CreateGenJournalBatch(GenJournalBatch);
+        SetupGLIntegrationInBook(DepreciationBook, true);
+        LibraryERM.CreateGLAccount(GLAccount);
+
+        CreateGenJournalLine(
+            GenJournalLine, FADepreciationBook, GenJournalBatch,
+            GenJournalLine."FA Posting Type"::"Acquisition Cost", LibraryRandom.RandDec(10000, 2), GLAccount);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBook.Code);
+        Assert.AreEqual(1, FALedgerEntry.Count(), NumberFAEntryErr);
+        FALedgerEntry.SetFilter("Derogatory Source Entry No.", '<>0');
+        Assert.AreEqual(1, FALedgerEntry.Count(), NumberFAEntryErr);
     end;
 
     local procedure Initialize()

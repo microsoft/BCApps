@@ -381,6 +381,12 @@ table 5625 "Maintenance Ledger Entry"
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
         }
+        field(5865; "Derogatory Source Entry No."; Integer)
+        {
+            Caption = 'Derogatory Source Entry No.';
+            Editable = false;
+            TableRelation = "Maintenance Ledger Entry"."Entry No.";
+        }
         field(12405; "Employee No."; Code[20])
         {
             Caption = 'Employee No.';
@@ -420,6 +426,9 @@ table 5625 "Maintenance Ledger Entry"
         {
         }
         key(Key9; "FA No.", "Depreciation Book Code", "Document No.")
+        {
+        }
+        key(Key10; "Derogatory Source Entry No.", "Depreciation Book Code")
         {
         }
     }
