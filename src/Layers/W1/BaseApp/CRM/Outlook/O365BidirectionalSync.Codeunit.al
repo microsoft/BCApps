@@ -1,5 +1,6 @@
 namespace Microsoft.CRM.Outlook;
 using Microsoft.CRM.Contact;
+using System.Utilities;
 
 codeunit 7106 "O365 Bidirectional Sync"
 {
@@ -96,6 +97,9 @@ codeunit 7106 "O365 Bidirectional Sync"
         AccessTokenEmptyTeleTxt: Label 'Access token is empty', Locked = true;
         InvalidJsonTeleTxt: Label 'Invalid JSON response received from Microsoft Graph', Locked = true;
         NetworkErrorTeleTxt: Label 'Network error occurred: %1', Locked = true, Comment = '%1 = error description';
+        InvalidGraphDeltaUrlResetTxt: Label 'Invalid Contact Sync delta URL detected for folder %1. Falling back to full sync.', Locked = true, Comment = '%1 = folder id';
+        InvalidGraphEndpointErr: Label 'The contact sync endpoint is invalid. Please run a full synchronization to continue.';
+        GraphUrlPrefixLbl: Label 'https://graph.microsoft.com/v1.0/', Locked = true;
 #if not CLEAN29
     [Obsolete('Removed due to Contact Sync redesign, will be deleted in future release.', '29.0')]
     procedure GetContacts(AccessToken: SecretText; var OutSyncQueue: Record "Contact Sync Queue" temporary; ContactFilterText: Text; FolderId: Text)
@@ -140,6 +144,13 @@ codeunit 7106 "O365 Bidirectional Sync"
         end;
         Uri := '';
         DeltaUrl := GetDeltaUrl(FolderId);
+        if not IsApprovedGraphRequestUri(DeltaUrl) then begin
+            if DeltaUrl <> '' then
+                Session.LogMessage('0000UX8', StrSubstNo(InvalidGraphDeltaUrlResetTxt), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat(), DeltaUrl);
+            DeltaUrl := '';
+            UpdateDeltaUrl(FolderId, '');
+        end;
+
         if not FullSync then begin
             if DeltaUrl = '' then begin
                 if not Confirm(CustomSyncMsg) then
@@ -168,6 +179,9 @@ codeunit 7106 "O365 Bidirectional Sync"
                     ExistingEmails.Add(NormalizeEmail(O365Records."Email Address"), true);
             until O365Records.Next() = 0;
         repeat
+            if not IsApprovedGraphRequestUri(Uri) then
+                Error(InvalidGraphEndpointErr);
+
             if not HttpClient.Get(Uri, HttpResponse) then begin
                 Session.LogMessage('0000QTA', StrSubstNo(NetworkErrorTeleTxt, HttpGetRequestFailedTxt), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
                 Error(NetworkErrorMsg);
@@ -191,6 +205,8 @@ codeunit 7106 "O365 Bidirectional Sync"
                 if JsonObj.Contains(ODataNextLinkPropertyTxt) then begin
                     JsonObj.Get(ODataNextLinkPropertyTxt, JsonValue);
                     NextLink := JsonValue.AsValue().AsText();
+                    if not IsApprovedGraphRequestUri(NextLink) then
+                        Error(InvalidGraphEndpointErr);
                     Session.LogMessage('0000QTG', StrSubstNo(PaginationNextLinkTxt, NextLink), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
                 end else begin
                     NextLink := '';
@@ -199,6 +215,8 @@ codeunit 7106 "O365 Bidirectional Sync"
                 if JsonObj.Contains(ODataDeltaPropertyTxt) then begin
                     JsonObj.Get(ODataDeltaPropertyTxt, JsonValue);
                     DeltaLink := JsonValue.AsValue().AsText();
+                    if not IsApprovedGraphRequestUri(DeltaLink) then
+                        Error(InvalidGraphEndpointErr);
                 end;
             end;
 
@@ -459,6 +477,16 @@ codeunit 7106 "O365 Bidirectional Sync"
         if ContactSyncUserRec.FindFirst() then
             exit(ContactSyncUserRec.GetDeltaUrl());
         exit('');
+    end;
+
+    local procedure IsApprovedGraphRequestUri(UriToValidate: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        if UriToValidate = '' then
+            exit(false);
+
+        exit(Uri.ValidateIntegrationURL(UriToValidate, GraphUrlPrefixLbl) = UriToValidate);
     end;
 
     local procedure GetSecondaryEmailAddress(JsonObject: JsonObject): Text
