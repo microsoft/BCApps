@@ -48,7 +48,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Registration No." = '' then
-            Error(SIRENRequiredErr);
+            Error(GetSIRENRequiredError());
     end;
 
     procedure CheckSIRETNotEmpty()
@@ -57,7 +57,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."SIRET No." = '' then
-            Error(SIRETRequiredErr);
+            Error(GetSIRETRequiredError());
     end;
 
     procedure CheckSellerElectronicAddress(EDocumentServiceCode: Code[20])
@@ -75,7 +75,7 @@ codeunit 10991 "EDoc. Helpers"
         if CompanyInformation.GetVATRegistrationNumber() <> '' then
             exit;
 
-        Error(SellerElectronicAddressRequiredErr);
+        Error(GetSellerElectronicAddressRequiredError());
     end;
 
     procedure CheckSellerCountryCode()
@@ -84,7 +84,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Country/Region Code" = '' then
-            Error(SellerCountryCodeRequiredErr);
+            Error(GetSellerCountryCodeRequiredError());
     end;
 
     procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef)
@@ -115,13 +115,13 @@ codeunit 10991 "EDoc. Helpers"
 
         if Customer."FR Electronic Address" <> '' then begin
             if Customer."FR Elec. Address Scheme" = Customer."FR Elec. Address Scheme"::" " then
-                Error(BuyerElectronicAddressSchemeRequiredErr, Customer."No.");
+                Error(GetBuyerElectronicAddressSchemeRequiredError(Customer."No."));
             exit;
         end;
         if IsFrenchCustomer(Customer) and (Customer."VAT Registration No." <> '') then
             exit;
 
-        Error(BuyerElectronicAddressRequiredErr, Customer."No.");
+        Error(GetBuyerElectronicAddressRequiredError(Customer."No."));
     end;
 
     procedure IsFrenchCustomer(Customer: Record Customer): Boolean
@@ -168,28 +168,47 @@ codeunit 10991 "EDoc. Helpers"
     end;
 
     internal procedure GetSIRENRequiredError(): Text
+    var
+        CompanyInformation: Record "Company Information";
     begin
-        exit(SIRENRequiredErr);
+        exit(StrSubstNo(SIRENRequiredErr, CompanyInformation.FieldCaption("Registration No."), CompanyInformation.TableCaption()));
     end;
 
     internal procedure GetSIRETRequiredError(): Text
+    var
+        CompanyInformation: Record "Company Information";
     begin
-        exit(SIRETRequiredErr);
+        exit(StrSubstNo(SIRETRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.TableCaption()));
+    end;
+
+    internal procedure GetSellerElectronicAddressRequiredError(): Text
+    var
+        CompanyInformation: Record "Company Information";
+        ServiceParticipant: Record "Service Participant";
+    begin
+        exit(StrSubstNo(SellerElectronicAddressRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.FieldCaption("Registration No."), CompanyInformation.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), CompanyInformation.TableCaption()));
     end;
 
     internal procedure GetSellerCountryCodeRequiredError(): Text
+    var
+        CompanyInformation: Record "Company Information";
     begin
-        exit(SellerCountryCodeRequiredErr);
+        exit(StrSubstNo(SellerCountryCodeRequiredErr, CompanyInformation.FieldCaption("Country/Region Code"), CompanyInformation.TableCaption()));
     end;
 
     internal procedure GetBuyerElectronicAddressRequiredError(CustomerNo: Code[20]): Text
+    var
+        Customer: Record Customer;
+        ServiceParticipant: Record "Service Participant";
     begin
-        exit(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
+        exit(StrSubstNo(BuyerElectronicAddressRequiredErr, Customer.FieldCaption("FR Electronic Address"), Customer.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), Customer.TableCaption(), CustomerNo));
     end;
 
     internal procedure GetBuyerElectronicAddressSchemeRequiredError(CustomerNo: Code[20]): Text
+    var
+        Customer: Record Customer;
     begin
-        exit(StrSubstNo(BuyerElectronicAddressSchemeRequiredErr, CustomerNo));
+        exit(StrSubstNo(BuyerElectronicAddressSchemeRequiredErr, Customer.FieldCaption("FR Elec. Address Scheme"), Customer.TableCaption(), CustomerNo));
     end;
 
     internal procedure GetServiceParticipantAddressIncompleteError(): Text
@@ -200,12 +219,12 @@ codeunit 10991 "EDoc. Helpers"
     end;
 
     var
-        SIRENRequiredErr: Label 'Registration No. must be specified in Company Information for French e-invoicing.';
-        SIRETRequiredErr: Label 'SIRET No. must be specified in Company Information for French e-invoicing.';
-        SellerElectronicAddressRequiredErr: Label 'SIRET No., Registration No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.';
-        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, French VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
-        BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
-        SellerCountryCodeRequiredErr: Label 'Country/Region Code must be specified in Company Information for French e-invoicing.';
+        SIRENRequiredErr: Label '%1 must be specified in %2 for French e-invoicing.', Comment = '%1 = Registration No. field caption, %2 = Company Information table caption';
+        SIRETRequiredErr: Label '%1 must be specified in %2 for French e-invoicing.', Comment = '%1 = SIRET No. field caption, %2 = Company Information table caption';
+        SellerElectronicAddressRequiredErr: Label '%1, %2, %3, or a %4 identifier must be specified for the %5 for French e-invoicing.', Comment = '%1 = SIRET No. field caption, %2 = Registration No. field caption, %3 = VAT Registration No. field caption, %4 = Service Participant table caption, %5 = Company Information table caption';
+        BuyerElectronicAddressRequiredErr: Label '%1, French %2, or a %3 identifier must be specified for %4 %5 for French e-invoicing.', Comment = '%1 = Electronic Address field caption, %2 = VAT Registration No. field caption, %3 = Service Participant table caption, %4 = Customer table caption, %5 = Customer No.';
+        BuyerElectronicAddressSchemeRequiredErr: Label '%1 must be specified for %2 %3 for French e-invoicing.', Comment = '%1 = Electronic Address Scheme field caption, %2 = Customer table caption, %3 = Customer No.';
+        SellerCountryCodeRequiredErr: Label '%1 must be specified in %2 for French e-invoicing.', Comment = '%1 = Country/Region Code field caption, %2 = Company Information table caption';
         ServiceParticipantAddressIncompleteErr: Label '%1 and %2 must both be specified for French electronic invoicing.', Comment = '%1 = Participant Identifier field caption, %2 = French Identifier Scheme field caption';
         ShowServiceParticipantLbl: Label 'Show Service Participant';
 }
