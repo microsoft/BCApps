@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace Microsoft.TestLibraries.ERP;
+
 codeunit 131022 "Library - Graph Auth Mgt."
 {
     Access = Internal;

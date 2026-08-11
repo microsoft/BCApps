@@ -1,3 +1,5 @@
+using Microsoft.TestLibraries.ERP;
+
 codeunit 130618 "Library - Graph Mgt"
 {
 

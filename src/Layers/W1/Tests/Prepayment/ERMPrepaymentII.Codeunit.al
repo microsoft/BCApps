@@ -2564,6 +2564,7 @@ codeunit 134101 "ERM Prepayment II"
           "Gen. Journal Account Type"::Vendor, AccountNo, PrepmtInvoiceNo, -GetPurchaseInvAmount(PrepmtInvoiceNo));
     end;
 
+#pragma warning disable AA0021
     local procedure PostPaymentToInvoice(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DocumentNo: Code[20]; Amount: Decimal)
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -2575,6 +2576,7 @@ codeunit 134101 "ERM Prepayment II"
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
+#pragma warning restore AA0021
 
     local procedure SelectGenJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     begin
@@ -3145,4 +3147,3 @@ codeunit 134101 "ERM Prepayment II"
         PurchaseHeader.TestField(Status, ExpectedStatus);
     end;
 }
-
