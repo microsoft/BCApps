@@ -433,10 +433,10 @@ report 5754 "Create Pick"
             Commit();
         end;
 
-        FindAndPrintPickHeaders();
+        FindSortAndPrintPickHeaders();
     end;
 
-    local procedure FindAndPrintPickHeaders()
+    local procedure FindSortAndPrintPickHeaders()
     var
         PickWhseActivHeader: Record "Warehouse Activity Header";
         WarehouseDocumentPrint: Codeunit "Warehouse Document-Print";
@@ -445,7 +445,8 @@ report 5754 "Create Pick"
     begin
         PickWhseActivHeader.SetRange(Type, PickWhseActivHeader.Type::Pick);
         PickWhseActivHeader.SetRange("No.", FirstSetPickNo, LastPickNo);
-        OnBeforeFindAndPrintPickHeaders(PickWhseActivHeader, PrintPick, IsHandled);
+        IsHandled := false;
+        OnBeforeFindSortAndPrintPickHeaders(PickWhseActivHeader, PrintPick, IsHandled);
         if IsHandled then
             exit;
 
@@ -682,7 +683,7 @@ report 5754 "Create Pick"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindAndPrintPickHeaders(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PrintPick: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeFindSortAndPrintPickHeaders(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PrintPick: Boolean; var IsHandled: Boolean)
     begin
     end;
 
