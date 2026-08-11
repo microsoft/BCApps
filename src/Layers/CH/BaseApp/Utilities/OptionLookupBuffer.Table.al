@@ -59,7 +59,7 @@ table 1670 "Option Lookup Buffer"
     var
         UnsupportedTypeErr: Label 'Unsupported Lookup Type.';
         InvalidTypeErr: Label '''%1'' is not a valid type for this document.', Comment = '%1 = Type caption. Fx. Item';
-        CurrentTypeID: Integer;
+        CurrentType: Text[30];
 
     procedure FillLookupBuffer(LookupType: Enum "Option Lookup Type")
     var
@@ -112,7 +112,6 @@ table 1670 "Option Lookup Buffer"
                 end;
             end;
 
-        SetRange(ID);
         SetRange("Option Caption");
         if IsEmpty() then
             FillLookupBuffer(LookupType);
@@ -133,14 +132,12 @@ table 1670 "Option Lookup Buffer"
             exit(true);
         end;
 
-        SetRange("Option Caption");
-        SetRange(ID, CurrentTypeID);
+        SetRange("Option Caption", CurrentType);
         if FindFirst() then begin
             OptionType := "Option Caption";
             exit(true);
         end;
 
-        SetRange(ID);
         exit(false);
     end;
 
@@ -271,19 +268,11 @@ table 1670 "Option Lookup Buffer"
     end;
 
     procedure SetCurrentType(LineType: Option " ","G/L Account",Item,Resource,"Fixed Asset","Charge (Item)")
-    var
-        LineTypeAsInteger: Integer;
     begin
-        LineTypeAsInteger := LineType;
-        SetCurrentType(LineTypeAsInteger);
-    end;
-
-    internal procedure SetCurrentType(LineType: Integer)
-    begin
-        CurrentTypeID := Enum::"Sales Line Type"::Item.AsInteger(); // Default value
-        if LineType = Enum::"Sales Line Type"::" ".AsInteger() then
+        CurrentType := Format(LineType::Item); // Default value
+        if LineType = LineType::" " then
             exit;
-        CurrentTypeID := LineType;
+        CurrentType := Format(LineType);
     end;
 
     [IntegrationEvent(false, false)]
