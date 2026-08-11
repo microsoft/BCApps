@@ -15,6 +15,7 @@ pageextension 7058 "WHT General Journal" extends "General Journal"
             field("Expense Category"; Rec."Expense Category")
             {
                 ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the expense category for the journal line.';
             }
         }
     }
