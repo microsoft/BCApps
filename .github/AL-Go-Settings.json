@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/b57bbcc7f3234fcf83699f463d9334c0605ef4a0/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/38f971084e949653850a8bba31c7a94ab31a0a7c/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
@@ -8,12 +8,13 @@
   "UsePsSession": false,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/29.0.53163.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.53396.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "29.0",
   "memoryLimit": "16G",
-  "numberOfTenantsForTesting": 3,
+  "numberOfTenantsForTesting": 4,
+  "failOn": "newWarning",
   "workspaceCompilation": {
     "enabled": true,
     "parallelism": -1
@@ -154,7 +155,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "7472f4228dbec6e5a3d789396272d4fe247317e2",
+  "templateSha": "f0b3e36b40220903835e71ffd358b4f68d216999",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,

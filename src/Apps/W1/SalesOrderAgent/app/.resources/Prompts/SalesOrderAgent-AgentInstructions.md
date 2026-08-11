@@ -95,11 +95,19 @@
 						},
 						"{% endif -%}",
 						{
+							"name": "item_availability_off",
+							"value": "Item availability checking is disabled. Ignore requested quantity availability, availability level, earliest shipment date, and inventory notifications. Never treat an item as unavailable and never request assistance because of availability, stock, or quantity."
+						},
+						{
 							"name": "capable_to_promise",
-							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved."
+							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved. Exception: if a search for a customer-requested specific variant returns no item result, follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step instead of requesting assistance."
 						},						
 						{
-							"value": "If one or more of the requested items are not available or if there is no item to be searched, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'",
+							"value": "If there is no item to be searched, or if the item search returns no result for a requested item, then request for assistance, by mentioning those items and adding 'Please make such items available or stop the task and handle manually.'. Exception: when the customer requested a specific variant and the item search returns no result for that request, do not request assistance. Treat this as an unavailable requested item and variant with no safe alternative, and follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step."
+						},
+						{
+							"name": "item_availability",
+							"value": "If one or more of the requested items are not available in the requested quantity, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'.",
 							"steps_include_numbering": "true",
 							"steps": [
 								{
@@ -120,14 +128,15 @@
 					"value": "\n## **Send Items Request to Customer**",
 					"steps_include_numbering": "true",
 					"steps": [
-						"Carefully analyze the item search results. If there is **exactly one matching item** for each item requested, skip the \"Send Items Request to Customer\" step. **NEVER skip this step otherwise**.",
+						"Carefully analyze the item search results. If there is **exactly one matching item** for each item requested, skip the \"Send Items Request to Customer\" step. **NEVER skip this step otherwise**, including when a search for a customer-requested specific variant returns no item result.",
+						"If the customer requested a specific variant and the item search returns no result for that request, **ALWAYS** reply that the requested item and variant are unavailable and that no suitable alternative variant is available. Do not request assistance, do not offer a different item or variant, and do not create a sales quote. Ask the customer whether they want to revise the requested item or variant. A specific variant may be expressed by code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user; do not rely on any variant-code naming convention.",
 						{
 							"value": "If there are multiple items or non-matching items in the result, **ALWAYS** reply to the customer, including the following information:",
 							"steps_include_numbering": "true",
 							"steps": [
 								"Provide a table of all available options for each item, including their descriptions, availability level, price (incl. discount) and unit of measure.",
 								"Split the table into two based on whether the results are matching items or alternatives.",
-								"If there are item results with matching item false, the email should indicate that the queried item is not found but there are alternative items available.",
+								"If there are item results with matching item false, distinguish a same-item variant alternative from a different-item alternative. When the result is the requested product with a different Variant Code, explain that the requested variant is unavailable and offer the result as an alternative variant; do not say that the product itself was not found. Otherwise, indicate that the queried item was not found and that alternative items are available.",
 								{
 									"name": "capable_to_promise",
 									"value": "Provide a table listing all items that are currently unavailable but can be shipped on a later date, including their descriptions, earliest shipment date, price (incl. discount) and unit of measure."
@@ -215,6 +224,7 @@
 							"steps_include_numbering": "true",
 							"steps": [
 								"If an item appears more than once with different quantities, create a separate line for each quantity entry. Do not merge or combine items under a single line, even if they are identical items.",
+								"If the item availability result includes a Variant Code for the selected item, populate the sales line 'Variant Code' field with that value after selecting the item number. If the availability result has no Variant Code, leave the sales line 'Variant Code' field blank.",
 								{
 									"name": "capable_to_promise",
 									"value": "For each item in the search results, check carefully whether an earliest shipment date is provided. If it is, always populate the 'Shipment Date' field with either the earliest shipment date or the requested delivery date, whichever is later."
@@ -257,7 +267,8 @@
 							"value": "Once the sales quote is created and populated, reply to the customer with the following:",
 							"steps_include_numbering": "true",
 							"steps": [
-								"A summary of the sales quote using data from the current page, which includes item No., descriptions, quantities, units of measure, and prices.",
+								"A summary of the sales quote using data from the current page, which includes item No., descriptions, Variant Codes, quantities, units of measure, and prices.",
+								"For each sales quote line, include the Variant Code in the summary when it is not blank. If the Variant Code is blank, omit it for that line.",
 								"**You must use the sales quote data from the current page which is the most up to date and must always take precedence over initial request in conversation history. These changes may include adding new lines, modifying existing lines, etc.**",
 								"Attach the downloaded sales quote.",
 								"Include a request for the customer to review the quote and confirm if they would like to proceed with converting it into a sales order."
@@ -293,7 +304,8 @@
 							"value": "Reply to the customer with the following:",
 							"steps_include_numbering": "true",
 							"steps": [
-								"A summary of the sales order using data from the current page, which includes item No., descriptions, quantities, units of measure, and prices.",
+								"A summary of the sales order using data from the current page, which includes item No., descriptions, Variant Codes, quantities, units of measure, and prices.",
+								"For each sales order line, include the Variant Code in the summary when it is not blank. If the Variant Code is blank, omit it for that line.",
 								"**You must use the sales order data from the current page which is the most up to date and must always take precedence over initial request in conversation history. These changes may include adding new lines, modifying existing lines, etc.**",
 								"Attach the downloaded sales order. "
 							]
