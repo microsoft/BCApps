@@ -15,7 +15,6 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
-using System.Config;
 
 page 6183 "E-Doc. Purchase Draft Subform"
 {
@@ -446,8 +445,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
         AgentDrivenLineMatchingEnabled: Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
         EDocumentPurchaseHeaderNotFoundErr: Label 'The purchase header for this e-document could not be found.';
-        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
-        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 
     trigger OnOpenPage()
     begin
@@ -500,10 +497,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
     end;
 
     local procedure SetAgentDrivenLineMatchingVisibility()
-    var
-        FeatureConfiguration: Codeunit "Feature Configuration";
     begin
-        AgentDrivenLineMatchingEnabled := FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok;
+        // Control branch: hide agent-driven line matching lookups regardless of ECS config.
+        AgentDrivenLineMatchingEnabled := false;
     end;
 
     local procedure SetDimensionsVisibility()
