@@ -399,6 +399,7 @@ codeunit 10978 "CII XML Builder"
         TaxTotalAmountElement: XmlElement;
         LineVATAmounts: Dictionary of [Text, Decimal];
         LineBaseAmounts: Dictionary of [Text, Decimal];
+        LineNetBaseAmounts: Dictionary of [Text, Decimal];
         VATRateByKey: Dictionary of [Text, Decimal];
         VATCategoryByKey: Dictionary of [Text, Text];
         CompanyBankAccountCode: Code[20];
@@ -429,9 +430,9 @@ codeunit 10978 "CII XML Builder"
             CompanyBankAccountCode := FieldRefVar.Value();
         InsertPaymentMeans(SettlementElement, CompanyBankAccountCode);
 
-        BuildVATAggregationData(SourceDocumentLines, LineBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey);
-        AddTaxBreakdown(SettlementElement, LineBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey, InvoiceDiscountAmount);
-        AddDocumentLevelAllowances(SettlementElement, LineBaseAmounts, VATRateByKey, VATCategoryByKey, InvoiceDiscountAmount);
+        BuildVATAggregationData(SourceDocumentLines, LineBaseAmounts, LineNetBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey);
+        AddTaxBreakdown(SettlementElement, LineNetBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey);
+        AddDocumentLevelAllowances(SettlementElement, LineBaseAmounts, LineNetBaseAmounts, VATRateByKey, VATCategoryByKey, InvoiceDiscountAmount);
 
         // BG-20 Payment terms (BT-20 Description + BT-9 Due date)
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Payment Terms Code', FieldRefVar) then
@@ -512,46 +513,42 @@ codeunit 10978 "CII XML Builder"
         SettlementElement.Add(ReferenceElement);
     end;
 
-    local procedure AddTaxBreakdown(var SettlementElement: XmlElement; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; InvoiceDiscountAmount: Decimal)
+    local procedure AddTaxBreakdown(var SettlementElement: XmlElement; var LineNetBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text])
     var
         VATAggregationKeys: List of [Text];
-        AllocatedDiscountByKey: Dictionary of [Text, Decimal];
         VATKey: Text;
-        DiscountedBaseAmount: Decimal;
-        DiscountedVATAmount: Decimal;
     begin
-        AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount, LineBaseAmounts, AllocatedDiscountByKey);
-
-        VATAggregationKeys := LineBaseAmounts.Keys();
-
+        VATAggregationKeys := LineNetBaseAmounts.Keys();
         foreach VATKey in VATAggregationKeys do
-            if AllocatedDiscountByKey.ContainsKey(VATKey) then begin
-                DiscountedBaseAmount := LineBaseAmounts.Get(VATKey) - AllocatedDiscountByKey.Get(VATKey);
-                DiscountedVATAmount := LineVATAmounts.Get(VATKey) - Round(AllocatedDiscountByKey.Get(VATKey) * VATRateByKey.Get(VATKey) / 100, 0.01);
-
-                InsertTaxElement(
-                  SettlementElement, FormatDecimalValue(DiscountedVATAmount),
-                  FormatDecimalValue(DiscountedBaseAmount), VATCategoryByKey.Get(VATKey), FormatVATRate(VATRateByKey.Get(VATKey)),
-                  VATRateByKey.Get(VATKey) = 0);
-            end else
-                InsertTaxElement(
-                  SettlementElement, FormatDecimalValue(LineVATAmounts.Get(VATKey)),
-                  FormatDecimalValue(LineBaseAmounts.Get(VATKey)), VATCategoryByKey.Get(VATKey), FormatVATRate(VATRateByKey.Get(VATKey)),
-                  VATRateByKey.Get(VATKey) = 0);
+            InsertTaxElement(
+              SettlementElement, FormatDecimalValue(LineVATAmounts.Get(VATKey)),
+              FormatDecimalValue(LineNetBaseAmounts.Get(VATKey)), VATCategoryByKey.Get(VATKey), FormatVATRate(VATRateByKey.Get(VATKey)),
+              VATRateByKey.Get(VATKey) = 0);
     end;
 
-    local procedure AddDocumentLevelAllowances(var SettlementElement: XmlElement; var LineBaseAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; InvoiceDiscountAmount: Decimal)
+    local procedure AddDocumentLevelAllowances(var SettlementElement: XmlElement; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineNetBaseAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; InvoiceDiscountAmount: Decimal)
     var
         AllocatedDiscountByKey: Dictionary of [Text, Decimal];
         VATAggregationKeys: List of [Text];
         VATKey: Text;
+        AllocatedDiscountTotal: Decimal;
+        DiscountAmount: Decimal;
     begin
         if InvoiceDiscountAmount = 0 then
             exit;
 
-        AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount, LineBaseAmounts, AllocatedDiscountByKey);
-
         VATAggregationKeys := LineBaseAmounts.Keys();
+        foreach VATKey in VATAggregationKeys do begin
+            DiscountAmount := LineBaseAmounts.Get(VATKey) - LineNetBaseAmounts.Get(VATKey);
+            AllocatedDiscountByKey.Add(VATKey, DiscountAmount);
+            AllocatedDiscountTotal += DiscountAmount;
+        end;
+
+        if Round(AllocatedDiscountTotal - InvoiceDiscountAmount, 0.01) <> 0 then begin
+            Clear(AllocatedDiscountByKey);
+            AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount, LineBaseAmounts, AllocatedDiscountByKey);
+        end;
+
         foreach VATKey in VATAggregationKeys do
             if AllocatedDiscountByKey.ContainsKey(VATKey) then
                 if AllocatedDiscountByKey.Get(VATKey) <> 0 then
@@ -562,10 +559,12 @@ codeunit 10978 "CII XML Builder"
                       FormatVATRate(VATRateByKey.Get(VATKey)));
     end;
 
-    local procedure BuildVATAggregationData(var SourceDocumentLines: RecordRef; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text])
+    local procedure BuildVATAggregationData(var SourceDocumentLines: RecordRef; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineNetBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text])
     var
         FREDocHelpers: Codeunit "EDoc. Helpers";
         VATPercentFieldRef: FieldRef;
+        AmountFieldRef: FieldRef;
+        AmountIncludingVATFieldRef: FieldRef;
         TaxCategoryFieldRef: FieldRef;
         VATBusPostingGroupFieldRef: FieldRef;
         VATProdPostingGroupFieldRef: FieldRef;
@@ -577,6 +576,8 @@ codeunit 10978 "CII XML Builder"
         VATPercent: Decimal;
         VATAmount: Decimal;
         BaseAmount: Decimal;
+        NetBaseAmount: Decimal;
+        AmountIncludingVAT: Decimal;
     begin
         if SourceDocumentLines.FindSet() then
             repeat
@@ -602,9 +603,20 @@ codeunit 10978 "CII XML Builder"
 
                         VATCategoryCode := GetVATCategoryCode(TaxCategory, VATBusPostingGroup, VATProdPostingGroup);
                         VATAggregationKey := GetVATAggregationKey(VATPercent, VATCategoryCode);
-                        VATAmount := Round(BaseAmount * VATPercent / 100, 0.01);
+
+                        NetBaseAmount := BaseAmount;
+                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Amount', AmountFieldRef) then
+                            NetBaseAmount := AmountFieldRef.Value();
+
+                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Amount Including VAT', AmountIncludingVATFieldRef) then begin
+                            AmountIncludingVAT := AmountIncludingVATFieldRef.Value();
+                            VATAmount := AmountIncludingVAT - NetBaseAmount;
+                        end
+                        else
+                            VATAmount := Round(NetBaseAmount * VATPercent / 100, 0.01);
 
                         AddAmountForVATKey(VATAggregationKey, BaseAmount, LineBaseAmounts);
+                        AddAmountForVATKey(VATAggregationKey, NetBaseAmount, LineNetBaseAmounts);
                         AddAmountForVATKey(VATAggregationKey, VATAmount, LineVATAmounts);
 
                         if not VATRateByKey.ContainsKey(VATAggregationKey) then
