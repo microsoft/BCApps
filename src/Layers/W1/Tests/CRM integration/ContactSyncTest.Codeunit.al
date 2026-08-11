@@ -539,7 +539,8 @@ codeunit 130481 "Contact Sync Test"
         // [THEN] Owner change is blocked — event subscriber sees xRec."User ID" as already-changed value, triggering the modify-other-user guard first.
         AssertIsTrue(StrPos(GetLastErrorText(), CannotModifyOtherUsersSyncErr) > 0, 'Expected ownership error. Actual: ' + GetLastErrorText());
 
-        ContactSyncUser.Delete();
+        if ContactSyncUser.Get(ContactSyncUser."ID") then
+            ContactSyncUser.Delete();
     end;
 
     [Test]
@@ -580,7 +581,8 @@ codeunit 130481 "Contact Sync Test"
         // [THEN] Delta URL validation should reject the value
         AssertIsTrue(StrPos(GetLastErrorText(), InvalidDeltaUrlErr) > 0, 'Expected invalid delta URL error. Actual: ' + GetLastErrorText());
 
-        ContactSyncUser.Delete();
+        if ContactSyncUser.Get(ContactSyncUser."ID") then
+            ContactSyncUser.Delete();
     end;
 
     [Test]

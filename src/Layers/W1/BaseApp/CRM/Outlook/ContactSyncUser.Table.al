@@ -103,14 +103,22 @@ table 7121 "Contact Sync User"
     end;
 
     internal procedure ValidateApprovedGraphDeltaUrl(DeltaUrlToValidate: Text)
-    var
-        Uri: Codeunit Uri;
     begin
         if DeltaUrlToValidate = '' then
             exit;
 
-        if Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) <> LowerCase(DeltaUrlToValidate) then
+        if not IsApprovedGraphDeltaUrl(DeltaUrlToValidate) then
             Error(InvalidDeltaUrlErr);
+    end;
+
+    internal procedure IsApprovedGraphDeltaUrl(DeltaUrlToValidate: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        if DeltaUrlToValidate = '' then
+            exit(false);
+
+        exit(Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) = LowerCase(DeltaUrlToValidate));
     end;
 
     var

@@ -1,6 +1,5 @@
 namespace Microsoft.CRM.Outlook;
 using Microsoft.CRM.Contact;
-using System.Utilities;
 
 codeunit 7106 "O365 Bidirectional Sync"
 {
@@ -99,7 +98,6 @@ codeunit 7106 "O365 Bidirectional Sync"
         NetworkErrorTeleTxt: Label 'Network error occurred: %1', Locked = true, Comment = '%1 = error description';
         InvalidGraphDeltaUrlResetTxt: Label 'Invalid Contact Sync delta URL detected for folder %1. Falling back to full sync.', Locked = true, Comment = '%1 = folder id';
         InvalidGraphEndpointErr: Label 'The contact sync endpoint is invalid. Please run a full synchronization to continue.';
-        GraphUrlPrefixLbl: Label 'https://graph.microsoft.com/v1.0/', Locked = true;
 #if not CLEAN29
     [Obsolete('Removed due to Contact Sync redesign, will be deleted in future release.', '29.0')]
     procedure GetContacts(AccessToken: SecretText; var OutSyncQueue: Record "Contact Sync Queue" temporary; ContactFilterText: Text; FolderId: Text)
@@ -481,12 +479,9 @@ codeunit 7106 "O365 Bidirectional Sync"
 
     local procedure IsApprovedGraphRequestUri(UriToValidate: Text): Boolean
     var
-        Uri: Codeunit Uri;
+        ContactSyncUser: Record "Contact Sync User";
     begin
-        if UriToValidate = '' then
-            exit(false);
-
-        exit(Uri.ValidateIntegrationURL(UriToValidate, GraphUrlPrefixLbl) = UriToValidate);
+        exit(ContactSyncUser.IsApprovedGraphDeltaUrl(UriToValidate));
     end;
 
     local procedure GetSecondaryEmailAddress(JsonObject: JsonObject): Text
