@@ -536,8 +536,10 @@ table 288 "Vendor Bank Account"
         DomesticIBAN := CHMgt.IsDomesticIBAN(IBAN);
 
         // Payment Type 2.2
+        // The bank clearing number is derived from the domestic IBAN when the Clearing No. field is left blank.
         if ("Payment Form" = "Payment Form"::"Bank Payment Domestic") and
-           ("Clearing No." <> '') and DomesticCurrency and DomesticIBAN and
+           (("Clearing No." <> '') or (CHMgt.GetClearingNoFromIBAN(IBAN) <> '')) and
+           DomesticCurrency and DomesticIBAN and
            (IBAN <> '')
         then begin
             PaymentType := DummyPaymentExportData."Swiss Payment Type"::"2.2";

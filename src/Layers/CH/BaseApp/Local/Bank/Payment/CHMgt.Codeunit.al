@@ -239,6 +239,23 @@ codeunit 11503 CHMgt
         exit(CopyStr(DtaMgt.IBANDELCHR(IBAN), 1, 2) in ['CH', 'LI']);
     end;
 
+    procedure GetClearingNoFromIBAN(IBAN: Code[50]) ClearingNo: Code[5]
+    var
+        DtaMgt: Codeunit DtaMgt;
+        PureIBAN: Text;
+    begin
+        // Swiss/Liechtenstein IBANs carry the 5-digit bank clearing number (IID) in positions 5-9,
+        // so it can be derived from the IBAN without a separately maintained Clearing No.
+        if not IsDomesticIBAN(IBAN) then
+            exit('');
+
+        PureIBAN := DtaMgt.IBANDELCHR(IBAN);
+        if StrLen(PureIBAN) < 9 then
+            exit('');
+
+        exit(CopyStr(DelChr(CopyStr(PureIBAN, 5, 5), '<', '0'), 1, 5));
+    end;
+
     procedure IsDomesticCurrency(CurrencyCode: Code[10]): Boolean
     var
         DtaMgt: Codeunit DtaMgt;
