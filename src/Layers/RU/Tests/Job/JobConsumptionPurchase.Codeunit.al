@@ -48,6 +48,7 @@ codeunit 136302 "Job Consumption Purchase"
         JobPlanningLineQuantityErr: Label 'The Project Planning Line Quantity should not change.';
         MustNotBeChangedErr: Label '%1 must not be changed', Comment = '%1 = Field caption';
         RequisitionLineErr: Label 'Expected Requisition Line for Item No. %1 is %2.';
+        InvoiceDiscountUnchangedErr: Label 'Invoice discount did not change the expected Unit Cost.';
 
     [Test]
     [Scope('OnPrem')]
@@ -4605,6 +4606,56 @@ codeunit 136302 "Job Consumption Purchase"
         PurchCredMemoLine.TestField("Job Line Amount", PurchaseLine."Job Line Amount");
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostJobPurchaseGLAccountLineWithInvoiceDiscount()
+    var
+        JobTask: Record "Job Task";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchCalcDiscount: Codeunit "Purch.-Calc.Discount";
+        DocumentNo: Code[20];
+        UndiscountedUnitCost: Decimal;
+        ExpectedUnitCost: Decimal;
+    begin
+        // [FEATURE] [Job Ledger Entry] [Invoice Discount]
+        // [SCENARIO 642385] Posting a Purchase Order with a G/L Account line linked to a Project and an invoice discount
+        // [SCENARIO 642385] populates the Project Ledger Entry "Unit Cost" / "Unit Cost (LCY)" with the discounted amount.
+        Initialize();
+
+        // [GIVEN] A Project with a Project Task
+        CreateJobWithCurrecy(JobTask, '');
+
+        // [GIVEN] A Purchase Order with a G/L Account line (random Quantity and Direct Unit Cost) linked to the Project
+        CreatePurchaseOrderWithCurrency(PurchaseHeader, '');
+        CreateGLPurchaseLineWithInvDisc(PurchaseHeader, LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(100, 2));
+        AttachJobTaskToPurchaseDoc(JobTask, PurchaseHeader);
+
+        // [GIVEN] The undiscounted Unit Cost on the Project Purchase line
+        GetPurchaseLines(PurchaseHeader, PurchaseLine);
+        UndiscountedUnitCost := PurchaseLine."Unit Cost";
+
+        // [GIVEN] An invoice discount is applied to the document (as done from the Purchase Order Statistics page)
+        CreateInvoiceDiscForVendor(PurchaseHeader."Buy-from Vendor No.", LibraryRandom.RandIntInRange(10, 50));
+        PurchCalcDiscount.CalculateInvoiceDiscount(PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] The discounted Unit Cost expected on the Project Ledger Entry, recomputed from the net Amount of the line
+        GetPurchaseLines(PurchaseHeader, PurchaseLine);
+        ExpectedUnitCost :=
+            Round(
+                PurchaseLine.Amount * PurchaseLine."Qty. per Unit of Measure" / PurchaseLine."Qty. to Invoice",
+                LibraryERM.GetUnitAmountRoundingPrecision());
+
+        // [WHEN] Post the Purchase Order as Receive and Invoice
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The invoice discount actually reduced the expected Unit Cost (guards against a no-op scenario)
+        Assert.AreNotEqual(UndiscountedUnitCost, ExpectedUnitCost, InvoiceDiscountUnchangedErr);
+
+        // [THEN] The Project Ledger Entry "Unit Cost" and "Unit Cost (LCY)" reflect the discounted amount
+        VerifyJobLedgerEntryUnitCost(DocumentNo, JobTask."Job No.", ExpectedUnitCost, ExpectedUnitCost);
+    end;
+
     local procedure Initialize()
     var
         WarehouseEmployee: Record "Warehouse Employee";
@@ -5385,6 +5436,33 @@ codeunit 136302 "Job Consumption Purchase"
           CreateGLAccountWithVAT(GeneralPostingSetup, VATPostingSetup), LibraryRandom.RandDec(15, 2));
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(15, 2));
         PurchaseLine.Modify(true);
+    end;
+
+    local procedure CreateGLPurchaseLineWithInvDisc(PurchaseHeader: Record "Purchase Header"; Quantity: Decimal; DirectUnitCost: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
+        FindVATPostingSetup(VATPostingSetup);
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account",
+          CreateGLAccountWithVAT(GeneralPostingSetup, VATPostingSetup), Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Validate("Allow Invoice Disc.", true);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure CreateInvoiceDiscForVendor(VendorNo: Code[20]; DiscountPct: Decimal)
+    var
+        VendorInvoiceDisc: Record "Vendor Invoice Disc.";
+    begin
+        LibraryERM.CreateInvDiscForVendor(VendorInvoiceDisc, VendorNo, '', 0);
+        VendorInvoiceDisc.Validate("Discount %", DiscountPct);
+        VendorInvoiceDisc.Modify(true);
     end;
 
     local procedure CreateItemPurchaseLine(PurchaseHeader: Record "Purchase Header")
@@ -6617,6 +6695,15 @@ codeunit 136302 "Job Consumption Purchase"
         GLEntry.SetRange("G/L Account No.", GLAccountNo);
         FindGLEntry(GLEntry, DocumentNo, GLEntry."Document Type"::Invoice);
         GLEntry.TestField(Amount, Amount);
+    end;
+
+    local procedure VerifyJobLedgerEntryUnitCost(DocumentNo: Code[20]; JobNo: Code[20]; ExpectedUnitCost: Decimal; ExpectedUnitCostLCY: Decimal)
+    var
+        JobLedgerEntry: Record "Job Ledger Entry";
+    begin
+        FindJobLedgerEntry(JobLedgerEntry, DocumentNo, JobNo);
+        JobLedgerEntry.TestField("Unit Cost", ExpectedUnitCost);
+        JobLedgerEntry.TestField("Unit Cost (LCY)", ExpectedUnitCostLCY);
     end;
 
     local procedure VerifyUndoLedgerEntrySource(DocumentType: Enum "Item Ledger Document Type"; DocumentNo: Code[20];
