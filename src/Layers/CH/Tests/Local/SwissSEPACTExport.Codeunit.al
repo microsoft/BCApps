@@ -2089,6 +2089,38 @@ codeunit 144352 "Swiss SEPA CT Export"
 
     [Test]
     [Scope('OnPrem')]
+    procedure VendorBankAccountGetPaymentTypeType22WhenClearingNoDerivedFromIBAN()
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO] "Vendor Bank Account".GetPaymentType returns Swiss Payment Type 2.2 when "Clearing No." and "SWIFT Code" are blank but the clearing number can be derived from a domestic IBAN
+        VendorBankAccount.Init();
+        VendorBankAccount."Payment Form" := VendorBankAccount."Payment Form"::"Bank Payment Domestic";
+        VendorBankAccount."SWIFT Code" := '';
+        VendorBankAccount.IBAN := GetIBAN(true);
+        Assert.IsTrue(VendorBankAccount.GetPaymentType(PaymentTypeGbl, GetCurrencyCode('')), GetPaymentTypeErr);
+        Assert.AreEqual(PaymentTypeGbl::"2.2", PaymentTypeGbl, GetPaymentTypeErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorBankAccountGetPaymentTypeType3WhenBlankClearingNoAndSWIFTSet()
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO] "Vendor Bank Account".GetPaymentType keeps Swiss Payment Type 3 (not 2.2) when "Clearing No." is blank but a "SWIFT Code" is provided, so the IBAN-derived clearing does not reclassify SWIFT-routed accounts
+        VendorBankAccount.Init();
+        VendorBankAccount."Payment Form" := VendorBankAccount."Payment Form"::"Bank Payment Domestic";
+        VendorBankAccount."SWIFT Code" := GetSWIFT(true);
+        VendorBankAccount.IBAN := GetIBAN(true);
+        Assert.IsTrue(VendorBankAccount.GetPaymentType(PaymentTypeGbl, GetCurrencyCode('')), GetPaymentTypeErr);
+        Assert.AreEqual(PaymentTypeGbl::"3", PaymentTypeGbl, GetPaymentTypeErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure XMLExport_PaymentType6_Negative_BlankedSWIFTCode()
     var
         GenJournalLine: Record "Gen. Journal Line";
