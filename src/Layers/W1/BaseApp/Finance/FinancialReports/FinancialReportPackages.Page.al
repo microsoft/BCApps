@@ -8,7 +8,7 @@ using System.Threading;
 
 page 8371 "Financial Report Packages"
 {
-    AboutText = 'Financial Report Packages let''s you export and schedule multiple financial reports in a single file. This allows you to easily share a complete financial report package with your stakeholders.';
+    AboutText = 'Financial Report Packages lets you export and schedule multiple financial reports in a single file. This allows you to easily share a complete financial report package with your stakeholders.';
     AboutTitle = 'About Financial Report Packages';
     AnalysisModeEnabled = false;
     ApplicationArea = Basic, Suite;
