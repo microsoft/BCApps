@@ -11,6 +11,9 @@
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "logo": "ExtensionLogo.png",
   "dependencies": [],
+  "resourceFolders": [
+    ".resources"
+  ],
   "internalsVisibleTo": [
     {
       "id": "2932b2a8-7399-4f8c-b1c0-1acfc2014ffb",

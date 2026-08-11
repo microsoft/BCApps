@@ -38,6 +38,7 @@ permissionset 6906 "Expense Mgmt. Edit"
         tabledata "Tenant Feedback Setting" = IMD,
         tabledata "EA KPI" = IMD,
         tabledata "EA KPI Entry" = IMD,
+        tabledata Traveler = IMD,
         tabledata "Expense VAT Specification" = IMD,
         tabledata "Expense Report Line VAT Spec." = IMD,
         tabledata "Expense Vendor" = RIMD;
