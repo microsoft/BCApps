@@ -138,6 +138,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         InjectSupplierIdentification(XmlDoc, NamespaceMgr, CompanyInformation);
         InjectSupplierEndpoint(XmlDoc, NamespaceMgr, CompanyInformation, EDocumentService.Code);
         InjectRegulatoryComments(XmlDoc, NamespaceMgr, SourceDocumentHeader);
+        InjectBillingReference(XmlDoc, NamespaceMgr, SourceDocumentHeader);
         InjectExtendedCTCFranceElements(XmlDoc, NamespaceMgr, SourceDocumentHeader);
 
         HasElecAddress := GetCustomerElecAddress(SourceDocumentHeader, EDocumentService.Code, ElecAddress, ElecAddressScheme);
@@ -351,9 +352,9 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     var
         SalesCommentLine: Record "Sales Comment Line";
         AnchorNode: XmlNode;
-        NoteElement: XmlElement;
         DocumentNo: Code[20];
         DocumentType: Enum "Sales Comment Document Type";
+        RegulatoryCommentTypeCode: Text;
     begin
         case SourceDocumentHeader.Number of
             Database::"Sales Invoice Header":
@@ -370,20 +371,84 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                     if not XmlDoc.SelectSingleNode('/*/cbc:CreditNoteTypeCode', NamespaceMgr, AnchorNode) then
                         exit;
                 end;
+            Database::"Service Invoice Header":
+                if not XmlDoc.SelectSingleNode('/*/cbc:InvoiceTypeCode', NamespaceMgr, AnchorNode) then
+                    exit;
+            Database::"Service Cr.Memo Header":
+                if not XmlDoc.SelectSingleNode('/*/cbc:CreditNoteTypeCode', NamespaceMgr, AnchorNode) then
+                    exit;
             else
                 exit;
         end;
 
-        SalesCommentLine.SetRange("Document Type", DocumentType);
-        SalesCommentLine.SetRange("No.", DocumentNo);
-        SalesCommentLine.SetFilter("FR Regulatory Comment Type", '<>%1', SalesCommentLine."FR Regulatory Comment Type"::None);
-        SalesCommentLine.SetLoadFields("FR Regulatory Comment Type", Comment);
-        if SalesCommentLine.FindSet() then
-            repeat
-                NoteElement := XmlElement.Create('Note', CbcNamespaceTok, StrSubstNo(RegulatoryCommentFormatTok, GetRegulatoryCommentTypeCode(SalesCommentLine."FR Regulatory Comment Type"), SalesCommentLine.Comment));
-                AnchorNode.AddAfterSelf(NoteElement);
-                AnchorNode := NoteElement.AsXmlNode();
-            until SalesCommentLine.Next() = 0;
+        if DocumentNo <> '' then begin
+            SalesCommentLine.SetRange("Document Type", DocumentType);
+            SalesCommentLine.SetRange("No.", DocumentNo);
+            SalesCommentLine.SetFilter("FR Regulatory Comment Type", '<>%1', SalesCommentLine."FR Regulatory Comment Type"::None);
+            SalesCommentLine.SetLoadFields("FR Regulatory Comment Type", Comment);
+            if SalesCommentLine.FindSet() then
+                repeat
+                    RegulatoryCommentTypeCode := GetRegulatoryCommentTypeCode(SalesCommentLine."FR Regulatory Comment Type");
+                    AddRegulatoryComment(AnchorNode, RegulatoryCommentTypeCode, SalesCommentLine.Comment);
+                until SalesCommentLine.Next() = 0;
+        end;
+    end;
+
+    local procedure AddRegulatoryComment(var AnchorNode: XmlNode; RegulatoryCommentTypeCode: Text; Comment: Text)
+    var
+        NoteElement: XmlElement;
+    begin
+        NoteElement := XmlElement.Create('Note', CbcNamespaceTok, StrSubstNo(RegulatoryCommentFormatTok, RegulatoryCommentTypeCode, Comment));
+        AnchorNode.AddAfterSelf(NoteElement);
+        AnchorNode := NoteElement.AsXmlNode();
+    end;
+
+    local procedure InjectBillingReference(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef)
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        AnchorNode: XmlNode;
+        BillingReferenceElement: XmlElement;
+        InvoiceDocumentReferenceElement: XmlElement;
+        ReferencedDocumentNo: Code[20];
+        ReferencedDocumentDate: Date;
+    begin
+        case SourceDocumentHeader.Number of
+            Database::"Sales Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesCrMemoHeader);
+                    ReferencedDocumentNo := SalesCrMemoHeader."Applies-to Doc. No.";
+                    if SalesInvoiceHeader.Get(ReferencedDocumentNo) then
+                        ReferencedDocumentDate := SalesInvoiceHeader."Document Date";
+                end;
+            Database::"Service Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
+                    ReferencedDocumentNo := ServiceCrMemoHeader."Applies-to Doc. No.";
+                    if ServiceInvoiceHeader.Get(ReferencedDocumentNo) then
+                        ReferencedDocumentDate := ServiceInvoiceHeader."Document Date";
+                end;
+            else
+                exit;
+        end;
+
+        if (ReferencedDocumentNo = '') or (ReferencedDocumentDate = 0D) then
+            exit;
+
+        BillingReferenceElement := XmlElement.Create('BillingReference', CacNamespaceTok);
+        InvoiceDocumentReferenceElement := XmlElement.Create('InvoiceDocumentReference', CacNamespaceTok);
+        InvoiceDocumentReferenceElement.Add(XmlElement.Create('ID', CbcNamespaceTok, ReferencedDocumentNo));
+        InvoiceDocumentReferenceElement.Add(XmlElement.Create('IssueDate', CbcNamespaceTok, Format(ReferencedDocumentDate, 0, '<Year4>-<Month,2>-<Day,2>')));
+        BillingReferenceElement.Add(InvoiceDocumentReferenceElement);
+
+        if XmlDoc.SelectSingleNode('/*/cac:ContractDocumentReference[1]', NamespaceMgr, AnchorNode) then begin
+            AnchorNode.AddBeforeSelf(BillingReferenceElement);
+            exit;
+        end;
+        if XmlDoc.SelectSingleNode('/*/cac:AccountingSupplierParty[1]', NamespaceMgr, AnchorNode) then
+            AnchorNode.AddBeforeSelf(BillingReferenceElement);
     end;
 
     local procedure GetRegulatoryCommentTypeCode(RegulatoryCommentType: Enum "FR Regulatory Comment Type"): Text

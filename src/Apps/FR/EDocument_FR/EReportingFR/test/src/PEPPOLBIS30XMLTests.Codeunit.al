@@ -326,6 +326,27 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure ExportSalesInvDoesNotIncludeBillingReference()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Exporting a sales invoice does not add a credit note billing reference
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
+
+        // [WHEN] Sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] The XML does not contain a BillingReference
+        Assert.AreEqual('', GetNodeByPath(XmlDoc, '/Invoice/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'BillingReference should be empty'));
+    end;
+
+    [Test]
     procedure ExportSalesInvSetsS1ForServiceLines()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -451,6 +472,96 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ExportCrMemo(SalesCrMemoHeader, XmlDoc);
 
         Assert.AreEqual('#AAB#' + CommentText, GetNodeByPath(XmlDoc, '/CreditNote/cbc:Note'), StrSubstNo(IncorrectValueErr, 'Note'));
+    end;
+
+    [Test]
+    procedure ExportSalesCrMemoIncludesBillingReference()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A sales credit memo applied to an invoice exports the invoice number and issue date
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI" and posted credit memo "SCM" applied to "SI"
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemo(CustomerNo, SalesInvoiceHeader."No."));
+
+        // [WHEN] Sales credit memo "SCM" is exported in PEPPOL BIS 3.0 FR
+        ExportCrMemo(SalesCrMemoHeader, XmlDoc);
+
+        // [THEN] BillingReference contains the number of "SI"
+        Assert.AreEqual(SalesInvoiceHeader."No.",
+            GetNodeByPath(XmlDoc, '/CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'BillingReference InvoiceDocumentReference ID'));
+
+        // [THEN] BillingReference contains the document date of "SI"
+        Assert.AreEqual(Format(SalesInvoiceHeader."Document Date", 0, '<Year4>-<Month,2>-<Day,2>'),
+            GetNodeByPath(XmlDoc, '/CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:IssueDate'),
+            StrSubstNo(IncorrectValueErr, 'BillingReference InvoiceDocumentReference IssueDate'));
+    end;
+
+    [Test]
+    procedure ExportSalesCrMemoWithoutReferenceDoesNotIncludeBillingReference()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A sales credit memo without an applied invoice does not export an incomplete billing reference
+        Initialize();
+
+        // [GIVEN] Posted sales credit memo "SCM" without an applied invoice
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemo(CreateCustomer('', "Electronic Address Scheme"::"EM")));
+
+        // [WHEN] Sales credit memo "SCM" is exported in PEPPOL BIS 3.0 FR
+        ExportCrMemo(SalesCrMemoHeader, XmlDoc);
+
+        // [THEN] The XML does not contain a BillingReference
+        Assert.AreEqual('', GetNodeByPath(XmlDoc, '/CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'BillingReference should be empty'));
+    end;
+
+    [Test]
+    procedure ExportSalesCrMemoDoesNotSynthesizeRegulatoryComments()
+    var
+        SalesCommentLine: Record "Sales Comment Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        XmlDoc: XmlDocument;
+        CommentText: Text[80];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Export includes an explicit regulatory note without synthesizing PMT, PMD, or AAB notes
+        Initialize();
+
+        // [GIVEN] Posted sales credit memo "SCM" with one explicit PAI regulatory comment
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemo(CreateCustomer('', "Electronic Address Scheme"::"EM")));
+        CommentText := 'Payment instructions.';
+        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::"Posted Credit Memo";
+        SalesCommentLine."No." := SalesCrMemoHeader."No.";
+        SalesCommentLine."Line No." := 10000;
+        SalesCommentLine."FR Regulatory Comment Type" := SalesCommentLine."FR Regulatory Comment Type"::PAI;
+        SalesCommentLine.Comment := CommentText;
+        SalesCommentLine.Insert();
+
+        // [WHEN] Sales credit memo "SCM" is exported in PEPPOL BIS 3.0 FR
+        ExportCrMemo(SalesCrMemoHeader, XmlDoc);
+
+        // [THEN] The explicit PAI comment is exported
+        Assert.AreEqual('#PAI#' + CommentText, GetNodeByPath(XmlDoc, '/CreditNote/cbc:Note'),
+            StrSubstNo(IncorrectValueErr, 'Explicit regulatory note'));
+
+        // [THEN] Mandatory regulatory comments are not synthesized
+        Assert.AreEqual('', GetNodeByPath(XmlDoc, '/CreditNote/cbc:Note[contains(., ''#PMT#'')]'),
+            StrSubstNo(IncorrectValueErr, 'PMT note should be empty'));
+        Assert.AreEqual('', GetNodeByPath(XmlDoc, '/CreditNote/cbc:Note[contains(., ''#PMD#'')]'),
+            StrSubstNo(IncorrectValueErr, 'PMD note should be empty'));
+        Assert.AreEqual('', GetNodeByPath(XmlDoc, '/CreditNote/cbc:Note[contains(., ''#AAB#'')]'),
+            StrSubstNo(IncorrectValueErr, 'AAB note should be empty'));
     end;
 
     [Test]
@@ -1179,6 +1290,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     local procedure CreateAndPostSalesCrMemo(CustomerNo: Code[20]): Code[20]
+    begin
+        exit(CreateAndPostSalesCrMemo(CustomerNo, ''));
+    end;
+
+    local procedure CreateAndPostSalesCrMemo(CustomerNo: Code[20]; AppliesToInvoiceNo: Code[20]): Code[20]
     var
         Customer: Record Customer;
         GLAccount: Record "G/L Account";
@@ -1203,6 +1319,10 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         if SalesHeader."Ship-to Country/Region Code" = '' then
             SalesHeader.Validate("Ship-to Country/Region Code", CompanyInformation."Country/Region Code");
         SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        if AppliesToInvoiceNo <> '' then begin
+            SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+            SalesHeader.Validate("Applies-to Doc. No.", AppliesToInvoiceNo);
+        end;
         SalesHeader.Modify(true);
 
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
