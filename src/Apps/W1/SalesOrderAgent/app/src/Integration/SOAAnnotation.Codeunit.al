@@ -227,20 +227,13 @@ codeunit 4399 "SOA Annotation"
     internal procedure CheckIfAttachmentRelevant(var AgentTaskMessage: Record "Agent Task Message"): Boolean
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
-        SOAAttachmentMLLM: Codeunit "SOA Attachment MLLM";
-        SOABilling: Codeunit "SOA Billing";
-        TelemetryDimensions: Dictionary of [Text, Text];
-        ExtractionFailureReason: Text;
-        IrrelevanceReason: Text;
-        AttachmentContentTxt: Text;
-        IndividualTok: Label 'Individual', Locked = true;
-        CumulativeTok: Label 'Cumulative', Locked = true;
+        AttachmentSystemIds: List of [Guid];
+        AttachmentSystemId: Guid;
         TotalContentLength: Integer;
-        AttachmentContentLength: Integer;
         IsAttachmentRelevant: Boolean;
     begin
-        // Keep the read isolation low. Rows are scoped to a single message, so lock upgrades are not contended,
-        // and an update lock taken here would be held across the AI calls made inside the loop.
+        // Snapshot the attachments first. Each one is then processed and committed on its own, so no cursor stays
+        // open and no record lock from an earlier attachment is held across a later attachment's AI calls.
         AgentTaskMessageAttachment.ReadIsolation(IsolationLevel::ReadCommitted);
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskMessage."Task ID");
         AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
@@ -249,36 +242,67 @@ codeunit 4399 "SOA Annotation"
             exit(false);
 
         repeat
-            if not SOAAttachmentMLLM.EnsureCanonicalTextContent(AgentTaskMessageAttachment, AttachmentContentTxt, ExtractionFailureReason) then
-                // Ignore only the attachment that could not be analyzed and continue with the remaining attachments
-                HandleAttachmentExtractionFailed(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, ExtractionFailureReason)
-            else begin
-                // Check if attachment content exceeds maximum token limit
-                AttachmentContentLength := StrLen(AttachmentContentTxt);
-                if AttachmentContentLength > GetMaxAttachmentContentLength() then
-                    IgnoreAttachmentExceedsContentLength(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, AttachmentContentLength, IndividualTok)
-                else
-                    // Check each attachment for relevance
-                    if not CheckIfAttachmentRelevant(AgentTaskMessage, AgentTaskMessageAttachment, AttachmentContentTxt, IrrelevanceReason) then begin
-                        AgentTaskMessageAttachment.Ignored := true;
-                        AgentTaskMessageAttachment."Ignored Reason" := Format(Enum::"SOA Email Attachment Status"::NoRelevantContent);
-                        AgentTaskMessageAttachment.Modify();
-                        SOABilling.LogIrrelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
-                    end else begin
-                        // Check if adding this relevant attachment would exceed the cumulative content length limit
-                        TotalContentLength += AttachmentContentLength;
-                        if TotalContentLength > GetMaxAttachmentContentLength() then begin
-                            TotalContentLength -= AttachmentContentLength;
-                            IgnoreAttachmentExceedsContentLength(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, AttachmentContentLength, CumulativeTok);
-                        end else begin
-                            IsAttachmentRelevant := true;
-                            SOABilling.LogRelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
-                        end;
-                    end;
-            end;
+            AttachmentSystemIds.Add(AgentTaskMessageAttachment.SystemId);
         until AgentTaskMessageAttachment.Next() = 0;
-        Commit();
+
+        foreach AttachmentSystemId in AttachmentSystemIds do begin
+            if ProcessAttachmentForRelevance(AgentTaskMessage, AttachmentSystemId, TotalContentLength) then
+                IsAttachmentRelevant := true;
+            // Persist this attachment's outcome before the next attachment's AI calls. A later failure no longer
+            // discards the canonical content already extracted for the attachments processed before it.
+            Commit();
+        end;
+
         exit(IsAttachmentRelevant);
+    end;
+
+    local procedure ProcessAttachmentForRelevance(var AgentTaskMessage: Record "Agent Task Message"; AttachmentSystemId: Guid; var TotalContentLength: Integer): Boolean
+    var
+        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
+        SOAAttachmentMLLM: Codeunit "SOA Attachment MLLM";
+        SOABilling: Codeunit "SOA Billing";
+        TelemetryDimensions: Dictionary of [Text, Text];
+        ExtractionFailureReason: Text;
+        IrrelevanceReason: Text;
+        AttachmentContentTxt: Text;
+        IndividualTok: Label 'Individual', Locked = true;
+        CumulativeTok: Label 'Cumulative', Locked = true;
+        AttachmentContentLength: Integer;
+    begin
+        if not AgentTaskMessageAttachment.GetBySystemId(AttachmentSystemId) then
+            exit(false);
+
+        if not SOAAttachmentMLLM.EnsureCanonicalTextContent(AgentTaskMessageAttachment, AttachmentContentTxt, ExtractionFailureReason) then begin
+            // Ignore only the attachment that could not be analyzed and continue with the remaining attachments
+            HandleAttachmentExtractionFailed(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, ExtractionFailureReason);
+            exit(false);
+        end;
+
+        // Check if attachment content exceeds maximum token limit
+        AttachmentContentLength := StrLen(AttachmentContentTxt);
+        if AttachmentContentLength > GetMaxAttachmentContentLength() then begin
+            IgnoreAttachmentExceedsContentLength(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, AttachmentContentLength, IndividualTok);
+            exit(false);
+        end;
+
+        // Check each attachment for relevance
+        if not CheckIfAttachmentRelevant(AgentTaskMessage, AgentTaskMessageAttachment, AttachmentContentTxt, IrrelevanceReason) then begin
+            AgentTaskMessageAttachment.Ignored := true;
+            AgentTaskMessageAttachment."Ignored Reason" := Format(Enum::"SOA Email Attachment Status"::NoRelevantContent);
+            AgentTaskMessageAttachment.Modify();
+            SOABilling.LogIrrelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
+            exit(false);
+        end;
+
+        // Check if adding this relevant attachment would exceed the cumulative content length limit
+        if TotalContentLength + AttachmentContentLength > GetMaxAttachmentContentLength() then begin
+            IgnoreAttachmentExceedsContentLength(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, AttachmentContentLength, CumulativeTok);
+            exit(false);
+        end;
+
+        TotalContentLength += AttachmentContentLength;
+        SOABilling.LogRelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
+        exit(true);
     end;
 
     local procedure IgnoreAttachmentExceedsContentLength(var AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; AgentTaskMessage: Record "Agent Task Message"; SOABilling: Codeunit "SOA Billing"; var TelemetryDimensions: Dictionary of [Text, Text]; ContentLength: Integer; ExceedsReason: Text)
