@@ -93,12 +93,12 @@ codeunit 7771 "Azure OpenAI"
     /// <param name="Response">Contains the resolved template and any error information.</param>
     /// <returns>True when a fast prompt template was resolved successfully.</returns>
     [NonDebuggable]
-    procedure GetFastPrompt(EcsConfigKey: Text; var Response: Codeunit "AOAI Fast Prompt Response"): Boolean
+    procedure GetFastPrompt(ConfigKey: Text; var Response: Codeunit "AOAI Fast Prompt Response"): Boolean
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(AzureOpenAIImpl.GetFastPrompt(EcsConfigKey, CallerModuleInfo, Response));
+        exit(AzureOpenAIImpl.GetFastPrompt(ConfigKey, CallerModuleInfo, Response));
     end;
 
 #if not CLEAN26

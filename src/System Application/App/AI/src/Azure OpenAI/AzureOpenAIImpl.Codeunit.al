@@ -49,7 +49,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
         FastPromptUnsupportedAuthorizationErr: Label 'Fast prompt is only supported with First Party resource utilization.';
-        TelemetryGetFastPromptLbl: Label 'Fast prompt', Locked = true;
+        FastPromptResponseRetrievalErr: Label 'Unable to retrieve fast prompt response.';
+        TelemetryGetFastPromptLbl: Label 'Fast prompt resolved.', Locked = true;
         FastPromptFailedErr: Label 'Fast prompt failed to be resolved.';
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
@@ -87,7 +88,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
     [NonDebuggable]
-    procedure GetFastPrompt(ConfigKey: Text; CallerModuleInfo: ModuleInfo; var FastPromptResponse: Codeunit "AOAI Fast Prompt Response"): Boolean
+    procedure GetFastPrompt(EcsConfigKey: Text; CallerModuleInfo: ModuleInfo; var FastPromptResponse: Codeunit "AOAI Fast Prompt Response"): Boolean
     var
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
         ALCopilotCapability: DotNet ALCopilotCapability;
@@ -112,22 +113,22 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         end;
 
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.GetCapabilityName());
-        ALCopilotFastPromptResponse := ALCopilotFunctions.GetFastPrompt(ConfigKey, ALCopilotAuthorization, ALCopilotCapability, CallerModuleInfo.Publisher());
+        ALCopilotFastPromptResponse := ALCopilotFunctions.GetFastPrompt(EcsConfigKey, ALCopilotAuthorization, ALCopilotCapability, CallerModuleInfo.Publisher());
 
         if IsNull(ALCopilotFastPromptResponse) then begin
             ErrorCode := GetLastErrorCode();
             ErrorText := GetLastErrorText();
             if ErrorText = '' then
-                ErrorText := 'Unable to retrieve fast prompt response.';
+                ErrorText := FastPromptResponseRetrievalErr;
             FastPromptResponse.Set(false, EmptySecretText, ErrorCode, ErrorText);
             CustomDimensions.Add('ErrorCode', ErrorCode);
-            FeatureTelemetry.LogError('0000UZD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000UZD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::Publisher, CustomDimensions);
             exit(false);
         end;
 
         FastPromptResponse.Set(ALCopilotFastPromptResponse.IsFastPrompt(), ALCopilotFastPromptResponse.Template(), ALCopilotFastPromptResponse.ErrorCode(), ALCopilotFastPromptResponse.ErrorText());
         CustomDimensions.Add('IsFastPrompt', Format(ALCopilotFastPromptResponse.IsFastPrompt()));
-        FeatureTelemetry.LogUsage('0000MTD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000MTD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, Enum::"AL Telemetry Scope"::Publisher, CustomDimensions);
         exit(ALCopilotFastPromptResponse.IsFastPrompt() and (ALCopilotFastPromptResponse.Template() <> ''));
     end;
 
