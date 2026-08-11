@@ -464,11 +464,11 @@ codeunit 148150 "FI Company Field Report Test"
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        FinanceChargeMemoReport: Report "Finance Charge Memo";
+        FinanceChargeMemo: Report "Finance Charge Memo";
         CreateFinanceChargeMemos: Report "Create Finance Charge Memos";
         IssueFinanceChargeMemos: Report "Issue Finance Charge Memos";
         LibraryFinanceChargeMemo: Codeunit "Library - Finance Charge Memo";
-        PostedDocumentNo: Variant;
+        PostedDocumentNo: Code[20];
     begin
         Initialize();
 
@@ -485,8 +485,8 @@ codeunit 148150 "FI Company Field Report Test"
         CreateFinanceChargeMemos.Run();
         IssueFinanceChargeMemos.UseRequestPage(false);
         IssueFinanceChargeMemos.Run();
-        FinanceChargeMemoReport.UseRequestPage(true);
-        FinanceChargeMemoReport.Run();
+        FinanceChargeMemo.UseRequestPage(true);
+        FinanceChargeMemo.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -530,13 +530,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure SalesShipmentReport()
     var
         SalesHeader: Record "Sales Header";
-        SalesShipmentReport: Report "Sales - Shipment";
+        SalesShipment: Report "Sales - Shipment";
     begin
         Initialize();
 
         CreateSalesDocument(SalesHeader."Document Type"::Order, true);
-        SalesShipmentReport.UseRequestPage(true);
-        SalesShipmentReport.Run();
+        SalesShipment.UseRequestPage(true);
+        SalesShipment.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -548,7 +548,7 @@ codeunit 148150 "FI Company Field Report Test"
         DocumentNumber: Variant;
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
-        SalesInvoiceHeader.Get(DocumentNumber);
+        SalesInvoiceHeader.Get(Format(DocumentNumber));
         SalesShipmentReport."Sales Shipment Header".SetFilter("Order No.", SalesInvoiceHeader."Order No.");
         SalesShipmentReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
@@ -559,13 +559,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure BlanketSalesOrderReport()
     var
         SalesHeader: Record "Sales Header";
-        BlanketSalesOrderReport: Report "Blanket Sales Order";
+        BlanketSalesOrder: Report "Blanket Sales Order";
     begin
         Initialize();
 
         CreateSalesDocument(SalesHeader."Document Type"::"Blanket Order", false);
-        BlanketSalesOrderReport.UseRequestPage(true);
-        BlanketSalesOrderReport.Run();
+        BlanketSalesOrder.UseRequestPage(true);
+        BlanketSalesOrder.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -586,13 +586,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseQuoteReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseQuoteReport: Report "Purchase - Quote";
+        PurchaseQuote: Report "Purchase - Quote";
     begin
         Initialize();
 
         CreatePurchaseDocument(PurchaseHeader."Document Type"::Quote, false);
-        PurchaseQuoteReport.UseRequestPage(true);
-        PurchaseQuoteReport.Run();
+        PurchaseQuote.UseRequestPage(true);
+        PurchaseQuote.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -613,13 +613,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseOrderReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseOrderReport: Report Order;
+        PurchaseOrder: Report Order;
     begin
         Initialize();
 
         CreatePurchaseDocument(PurchaseHeader."Document Type"::Order, false);
-        PurchaseOrderReport.UseRequestPage(true);
-        PurchaseOrderReport.Run();
+        PurchaseOrder.UseRequestPage(true);
+        PurchaseOrder.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -640,13 +640,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseInvoiceReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseInvoiceReport: Report "Purchase - Invoice";
+        PurchaseInvoice: Report "Purchase - Invoice";
     begin
         Initialize();
 
         CreatePurchaseDocument(PurchaseHeader."Document Type"::Invoice, true);
-        PurchaseInvoiceReport.UseRequestPage(true);
-        PurchaseInvoiceReport.Run();
+        PurchaseInvoice.UseRequestPage(true);
+        PurchaseInvoice.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -667,13 +667,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseCreditMemoReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseCreditMemoReport: Report "Purchase - Credit Memo";
+        PurchaseCreditMemo: Report "Purchase - Credit Memo";
     begin
         Initialize();
 
         CreatePurchaseDocument(PurchaseHeader."Document Type"::"Credit Memo", true);
-        PurchaseCreditMemoReport.UseRequestPage(true);
-        PurchaseCreditMemoReport.Run();
+        PurchaseCreditMemo.UseRequestPage(true);
+        PurchaseCreditMemo.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -694,13 +694,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseReceiptReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseReceiptReport: Report "Purchase - Receipt";
+        PurchaseReceipt: Report "Purchase - Receipt";
     begin
         Initialize();
 
         CreatePurchaseDocument(PurchaseHeader."Document Type"::Order, true);
-        PurchaseReceiptReport.UseRequestPage(true);
-        PurchaseReceiptReport.Run();
+        PurchaseReceipt.UseRequestPage(true);
+        PurchaseReceipt.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -712,7 +712,7 @@ codeunit 148150 "FI Company Field Report Test"
         DocumentNumber: Variant;
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
-        PurchInvHeader.Get(DocumentNumber);
+        PurchInvHeader.Get(Format(DocumentNumber));
         PurchaseReceiptReport."Purch. Rcpt. Header".SetFilter("Order No.", PurchInvHeader."Order No.");
         PurchaseReceiptReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
@@ -723,13 +723,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure BlanketPurchaseOrderReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        BlanketPurchaseOrderReport: Report "Blanket Purchase Order";
+        BlanketPurchaseOrder: Report "Blanket Purchase Order";
     begin
         Initialize();
 
         CreatePurchaseDocument(PurchaseHeader."Document Type"::"Blanket Order", false);
-        BlanketPurchaseOrderReport.UseRequestPage(true);
-        BlanketPurchaseOrderReport.Run();
+        BlanketPurchaseOrder.UseRequestPage(true);
+        BlanketPurchaseOrder.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -750,14 +750,14 @@ codeunit 148150 "FI Company Field Report Test"
     procedure ServiceOrderReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceOrderReport: Report "Service Order (FI)";
+        ServiceOrder: Report "Service Order (FI)";
     begin
         Initialize();
 
         CreateServiceDocument(ServiceHeader."Document Type"::Order, false);
-        ServiceOrderReport.UseRequestPage(true);
-        ServiceOrderReport.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoegHomeCity');
+        ServiceOrder.UseRequestPage(true);
+        ServiceOrder.Run();
+        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -777,13 +777,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure ServiceQuoteReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceQuoteReport: Report "Service Quote (FI)";
+        ServiceQuote: Report "Service Quote (FI)";
     begin
         Initialize();
 
         CreateServiceDocument(ServiceHeader."Document Type"::Quote, false);
-        ServiceQuoteReport.UseRequestPage(true);
-        ServiceQuoteReport.Run();
+        ServiceQuote.UseRequestPage(true);
+        ServiceQuote.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -804,14 +804,14 @@ codeunit 148150 "FI Company Field Report Test"
     procedure ServiceInvoiceReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceInvoiceReport: Report "Service - Invoice (FI)";
+        ServiceInvoice: Report "Service - Invoice (FI)";
     begin
         Initialize();
 
         CreateServiceDocument(ServiceHeader."Document Type"::Invoice, true);
-        ServiceInvoiceReport.UseRequestPage(true);
-        ServiceInvoiceReport.Run();
-        AssertCompanyFields('CompanyInfoBusinessIDCode', 'CompanyInfoRegHomeCity');
+        ServiceInvoice.UseRequestPage(true);
+        ServiceInvoice.Run();
+        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -831,13 +831,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure ServiceContractReport()
     var
         FiledServiceContractHeader: Record "Filed Service Contract Header";
-        ServiceContractReport: Report "Service Contract (FI)";
+        ServiceContract: Report "Service Contract (FI)";
     begin
         Initialize();
 
         CreateServiceContract(FiledServiceContractHeader."Contract Type"::Contract);
-        ServiceContractReport.UseRequestPage(true);
-        ServiceContractReport.Run();
+        ServiceContract.UseRequestPage(true);
+        ServiceContract.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
@@ -858,13 +858,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure ServiceContractQuoteReport()
     var
         FiledServiceContractHeader: Record "Filed Service Contract Header";
-        ServiceContractQuoteReport: Report "Service Contract Quote (FI)";
+        ServiceContractQuote: Report "Service Contract Quote (FI)";
     begin
         Initialize();
 
         CreateServiceContract(FiledServiceContractHeader."Contract Type"::Quote);
-        ServiceContractQuoteReport.UseRequestPage(true);
-        ServiceContractQuoteReport.Run();
+        ServiceContractQuote.UseRequestPage(true);
+        ServiceContractQuote.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
