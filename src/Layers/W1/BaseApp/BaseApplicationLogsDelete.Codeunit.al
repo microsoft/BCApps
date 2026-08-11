@@ -156,7 +156,7 @@ codeunit 3995 "Base Application Logs Delete"
                         LocationExistsForCode := LocationExists.Get(LocationCode);
 
                     if not LocationExistsForCode then
-                        RetentionPolicyLog.LogError(LogCategory(), LocationNotFoundErr, false);
+                        RetentionPolicyLog.LogError(LogCategory(), LocationNotFoundErr, false)
                     else
                         if not LocationBinMandatory.Get(LocationCode) then
                             RecordsToDelete.Add(RecRef.RecordId);
