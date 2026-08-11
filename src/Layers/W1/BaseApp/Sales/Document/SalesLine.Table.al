@@ -10161,13 +10161,13 @@ table 37 "Sales Line"
     /// Blank line type is represented by the comment label.
     /// </remarks>
     /// <returns>The text representation of the line type.</returns>
-    #if not CLEAN29
+#if not CLEAN29
     [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
     procedure FormatType(): Text[20]
     begin
         exit(CopyStr(FormatTypeAsText(), 1, 20));
     end;
-    #endif
+#endif
 
     /// <summary>
     /// Gets the text representation of the line type for the sales line.
@@ -10181,6 +10181,9 @@ table 37 "Sales Line"
         IsHandled: Boolean;
     begin
         IsHandled := false;
+#if not CLEAN29
+        OnBeforeFormatType(Rec, FormattedType, IsHandled);
+#endif
         OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
             exit(FormattedType);
@@ -10557,7 +10560,7 @@ table 37 "Sales Line"
     /// <returns>The quantity in the base unit of measure.</returns>
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
-        IsHandled: Boolean;        
+        IsHandled: Boolean;
     begin
         OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName);
 
@@ -11932,13 +11935,13 @@ table 37 "Sales Line"
     /// <param name="SalesLine">The sales line being processed.</param>
     /// <param name="FormattedType">The formatted type text.</param>
     /// <param name="IsHandled">Set to true to skip the default processing.</param>
-    #if not CLEAN29
+#if not CLEAN29
     [Obsolete('Use OnBeforeFormatTypeAsText instead.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
     begin
     end;
-    #endif
+#endif
 
     /// <summary>
     /// Raised before the sales line type is formatted as text.
