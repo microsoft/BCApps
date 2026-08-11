@@ -123,22 +123,8 @@ codeunit 4419 "SOA Send Reply"
     begin
         if AgentTaskMessage."Agent User Security ID" <> SOASetup."User Security ID" then
             Error(ReplyNotAuthorizedErr);
-        if not IsAuthorizedUserSecurityID(UserSecurityId(), SOASetup) then
+        if not SOASetup.IsAuthorizedUserSecurityID(UserSecurityId()) then
             Error(ReplyNotAuthorizedErr);
-    end;
-
-    /// <summary>
-    /// Determines whether a user is the configured SOA owner or agent, including the fallback for setups created before an explicit owner was stored.
-    /// </summary>
-    local procedure IsAuthorizedUserSecurityID(UserSecurityID: Guid; SOASetup: Record "SOA Setup"): Boolean
-    var
-        OwnerUserSecurityID: Guid;
-    begin
-        OwnerUserSecurityID := SOASetup."Owner User Security ID";
-        if IsNullGuid(OwnerUserSecurityID) then
-            OwnerUserSecurityID := SOASetup."User Security ID";
-
-        exit((UserSecurityID = OwnerUserSecurityID) or (UserSecurityID = SOASetup."User Security ID"));
     end;
 
     local procedure ErrorMappedContact(ErrorMessage: Text; InputAgentTaskMessage: Record "Agent Task Message")

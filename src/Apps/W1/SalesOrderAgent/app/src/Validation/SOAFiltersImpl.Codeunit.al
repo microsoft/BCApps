@@ -129,7 +129,6 @@ codeunit 4305 "SOA Filters Impl."
     var
         AgentTaskMessage: Record "Agent Task Message";
         SOASetup: Record "SOA Setup";
-        OwnerUserSecurityID: Guid;
     begin
         if not AgentTaskMessage.Get(SOATaskContactOverride."Task ID", SOATaskContactOverride."Task Message ID") then
             exit(false);
@@ -138,13 +137,9 @@ codeunit 4305 "SOA Filters Impl."
         if not SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", false) then
             exit(false);
 
-        OwnerUserSecurityID := SOASetup."Owner User Security ID";
-        if IsNullGuid(OwnerUserSecurityID) then
-            OwnerUserSecurityID := SOASetup."User Security ID";
-
         exit(
-            ((SOATaskContactOverride.SystemCreatedBy = OwnerUserSecurityID) or (SOATaskContactOverride.SystemCreatedBy = SOASetup."User Security ID")) and
-            ((SOATaskContactOverride.SystemModifiedBy = OwnerUserSecurityID) or (SOATaskContactOverride.SystemModifiedBy = SOASetup."User Security ID")));
+            SOASetup.IsAuthorizedUserSecurityID(SOATaskContactOverride.SystemCreatedBy) and
+            SOASetup.IsAuthorizedUserSecurityID(SOATaskContactOverride.SystemModifiedBy));
     end;
 
     internal procedure GetExcludeAllFilter(): Text
@@ -222,6 +217,7 @@ codeunit 4305 "SOA Filters Impl."
 
     local procedure DispatchContactLinkChoice(Choice: Integer; ContactEmail: Text; ContactName: Text; TaskID: BigInteger; TaskMessageID: Guid)
     begin
+        LogContactLinkChoice(Choice);
         case Choice of
             1:
                 CreateContact(ContactEmail, ContactName);
@@ -230,6 +226,29 @@ codeunit 4305 "SOA Filters Impl."
             3:
                 SelectContactAndUpdateEmail(ContactEmail, TaskID, TaskMessageID);
         end;
+    end;
+
+    local procedure LogContactLinkChoice(Choice: Integer)
+    var
+        SOASetup: Codeunit "SOA Setup";
+        TelemetryDimensions: Dictionary of [Text, Text];
+        ContactLinkAction: Text;
+    begin
+        case Choice of
+            0:
+                ContactLinkAction := ContactLinkActionCancelledLbl;
+            1:
+                ContactLinkAction := ContactLinkActionCreateContactLbl;
+            2:
+                ContactLinkAction := ContactLinkActionUseOnceLbl;
+            3:
+                ContactLinkAction := ContactLinkActionUseAlwaysLbl;
+            else
+                ContactLinkAction := ContactLinkActionUnknownLbl;
+        end;
+
+        TelemetryDimensions.Add(ContactLinkActionDimensionLbl, ContactLinkAction);
+        FeatureTelemetry.LogUsage('', SOASetup.GetFeatureName(), ContactLinkActionSelectedTelemetryLbl, TelemetryDimensions);
     end;
 
     internal procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid)
@@ -308,7 +327,6 @@ codeunit 4305 "SOA Filters Impl."
     var
         AgentTaskMessage: Record "Agent Task Message";
         SOASetup: Record "SOA Setup";
-        OwnerUserSecurityID: Guid;
     begin
         if not AgentTaskMessage.Get(TaskID, TaskMessageID) then
             Error(ContactMappingNotAuthorizedErr);
@@ -316,11 +334,7 @@ codeunit 4305 "SOA Filters Impl."
             Error(ContactMappingNotAuthorizedErr);
 
         SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", true);
-        OwnerUserSecurityID := SOASetup."Owner User Security ID";
-        if IsNullGuid(OwnerUserSecurityID) then
-            OwnerUserSecurityID := SOASetup."User Security ID";
-
-        if (UserSecurityId() <> OwnerUserSecurityID) and (UserSecurityId() <> SOASetup."User Security ID") then
+        if not SOASetup.IsAuthorizedUserSecurityID(UserSecurityId()) then
             Error(ContactMappingNotAuthorizedErr);
     end;
 
@@ -438,4 +452,11 @@ codeunit 4305 "SOA Filters Impl."
         ContactAlreadyExistQst: Label 'A contact with the same email already exists. Contact number is %1. Do you want to open it?', Comment = '%1 = Contact number';
         DuplicateContactNotificationLbl: Label 'There are %1 contacts with the same email address <%2>. The first matching contact will be used.', Comment = '%1 - number of contacts, %2 - email address';
         ContactMappingNotAuthorizedErr: Label 'You are not authorized to change the contact mapping for this message.';
+        ContactLinkActionDimensionLbl: Label 'ContactLinkAction', Locked = true;
+        ContactLinkActionCancelledLbl: Label 'Cancelled', Locked = true;
+        ContactLinkActionCreateContactLbl: Label 'CreateContact', Locked = true;
+        ContactLinkActionUseOnceLbl: Label 'UseOnce', Locked = true;
+        ContactLinkActionUseAlwaysLbl: Label 'UseAlways', Locked = true;
+        ContactLinkActionUnknownLbl: Label 'Unknown', Locked = true;
+        ContactLinkActionSelectedTelemetryLbl: Label 'Unknown sender contact action selected.', Locked = true;
 }
