@@ -313,7 +313,7 @@ report 1016 "Job Quote"
         {
             Type = Word;
             //Subtype = Body;
-            LayoutFile = './Projects/Project/JobQuoteBody.docx';
+            LayoutFile = './Projects/Project/Reports/JobQuoteBody.docx';
             Caption = 'Body-only: Project Quote (Word)';
             Summary = 'Body-only: The Project Quote (Word) provides a basic layout.';
         }
