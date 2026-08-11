@@ -629,9 +629,25 @@ codeunit 5813 "Undo Purchase Receipt Line"
                 if (OutboundItemLedgerEntry."Lot No." = '') and (OutboundItemLedgerEntry."Serial No." = '') then
                     SalesShipmentLine.SetRange("Item Shpt. Entry No.", OutboundItemLedgerEntry."Entry No.");
 
-                SalesShipmentLine.FindFirst();
+                if SalesShipmentLine.FindFirst() then
+                    exit;
             end;
         end;
+
+        FindSalesShipmentLineByDropShipmentLink(SalesShipmentLine, PurchRcptLine);
+    end;
+
+    local procedure FindSalesShipmentLineByDropShipmentLink(var SalesShipmentLine: Record "Sales Shipment Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    begin
+        SalesShipmentLine.Reset();
+        SalesShipmentLine.SetRange("Order No.", PurchRcptLine."Sales Order No.");
+        SalesShipmentLine.SetRange("Order Line No.", PurchRcptLine."Sales Order Line No.");
+        SalesShipmentLine.SetRange("Purchase Order No.", PurchRcptLine."Order No.");
+        SalesShipmentLine.SetRange("Purch. Order Line No.", PurchRcptLine."Order Line No.");
+        SalesShipmentLine.SetRange("Drop Shipment", true);
+        SalesShipmentLine.SetRange(Correction, false);
+        SalesShipmentLine.SetRange(Quantity, PurchRcptLine.Quantity);
+        SalesShipmentLine.FindFirst();
     end;
 
     procedure IsUndoSalesShipmentLineForDropShipment(NewUndoSalesShptLineExists: Boolean)
