@@ -4340,7 +4340,6 @@ codeunit 137407 "SCM Warehouse IV"
         WarehouseSetup.Modify();
         LibrarySetupStorage.Save(DATABASE::"Service Mgt. Setup");
         LibrarySetupStorage.Save(DATABASE::"Sales & Receivables Setup");
-        LibrarySetupStorage.Save(DATABASE::"Retention Policy Setup");
         NoSeriesSetup();
         isInitialized := true;
         Commit();
@@ -5024,7 +5023,6 @@ codeunit 137407 "SCM Warehouse IV"
         RetentionPolicySetup.Get(TableId);
         RetentionPolicySetup.Validate("Retention Period", RetentionPolicy.FindOrCreateRetentionPeriod(Enum::"Retention Period Enum"::"1 Year"));
         RetentionPolicySetup.Validate(Enabled, true);
-        RetentionPolicySetup.Modify(true);
     end;
 
     local procedure NoSeriesSetup()
