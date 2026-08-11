@@ -26,38 +26,38 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
     procedure CreateSetupData()
     var
         ExpenseAgentModuleSetup: Record "Expense Agent Module Setup";
-        Resolver: Codeunit "Exp. Agent Country Resolver";
-        CountryData: Interface "Expense Agent Country Data";
+        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
+        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
     begin
         ExpenseAgentModuleSetup.InitRecord();
-        CountryData := Resolver.Resolve();
-        CountryData.CreateSetupData();
+        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
+        ExpenseAgentCountryData.CreateSetupData();
     end;
 
     procedure CreateMasterData()
     var
-        Resolver: Codeunit "Exp. Agent Country Resolver";
-        CountryData: Interface "Expense Agent Country Data";
+        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
+        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
     begin
-        CountryData := Resolver.Resolve();
-        CountryData.CreateMasterData();
+        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
+        ExpenseAgentCountryData.CreateMasterData();
     end;
 
     procedure CreateTransactionalData()
     var
-        Resolver: Codeunit "Exp. Agent Country Resolver";
-        CountryData: Interface "Expense Agent Country Data";
+        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
+        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
     begin
-        CountryData := Resolver.Resolve();
-        CountryData.CreateTransactionalData();
+        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
+        ExpenseAgentCountryData.CreateTransactionalData();
     end;
 
     procedure CreateHistoricalData()
     var
-        Resolver: Codeunit "Exp. Agent Country Resolver";
-        CountryData: Interface "Expense Agent Country Data";
+        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
+        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
     begin
-        CountryData := Resolver.Resolve();
-        CountryData.CreateHistoricalData();
+        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
+        ExpenseAgentCountryData.CreateHistoricalData();
     end;
 }
