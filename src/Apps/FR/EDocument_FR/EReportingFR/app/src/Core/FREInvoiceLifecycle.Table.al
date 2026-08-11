@@ -98,7 +98,6 @@ table 10970 "FR E-Invoice Lifecycle"
         {
             Caption = 'E-Document Message Entry No.';
             DataClassification = SystemMetadata;
-            TableRelation = "E-Document Message"."Entry No.";
             ToolTip = 'Specifies the related E-Document message entry.';
         }
         field(13; "Processing Status"; Enum "FR E-Invoice Lifecycle Proc.")

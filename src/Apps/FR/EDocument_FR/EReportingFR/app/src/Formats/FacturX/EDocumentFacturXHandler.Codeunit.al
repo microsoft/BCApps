@@ -190,9 +190,9 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
 
     local procedure IsPdf(PdfInStream: InStream): Boolean
     var
-        Signature: Text[4];
+        Signature: Text;
     begin
-        PdfInStream.ReadText(Signature, MaxStrLen(Signature));
+        PdfInStream.Read(Signature, 4);
         exit(Signature = '%PDF');
     end;
 
