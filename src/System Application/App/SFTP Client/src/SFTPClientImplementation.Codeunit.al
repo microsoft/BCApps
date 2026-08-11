@@ -195,7 +195,7 @@ codeunit 9763 "SFTP Client Implementation"
             TelemetryVerbosity := Verbosity::Normal
         else
             TelemetryVerbosity := Verbosity::Warning;
-        Session.LogMessage('', FileSizeTelemetryMsg, TelemetryVerbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
+        Session.LogMessage('0000V0D', FileSizeTelemetryMsg, TelemetryVerbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     procedure DeleteFile(Path: Text): Codeunit "SFTP Operation Response"
