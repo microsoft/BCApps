@@ -1099,7 +1099,7 @@ table 7326 "Whse. Worksheet Line"
                 begin
                     WhseWkshTemplate.Init();
                     WhseWkshTemplate.Validate(Type, PageTemplate);
-                    WhseWkshTemplate.Validate("Page ID");
+                    WhseWkshTemplate.Validate("Page ID", PageID);
                     WhseWkshTemplate.Name :=
                       Format(WhseWkshTemplate.Type, MaxStrLen(WhseWkshTemplate.Name));
                     WhseWkshTemplate.Description := StrSubstNo(Text008, WhseWkshTemplate.Type);
