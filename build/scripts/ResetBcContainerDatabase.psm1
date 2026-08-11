@@ -99,8 +99,9 @@ function Clear-BcApplicationDatabase {
         [Parameter(Mandatory)] $CustomConfig
     )
 
-    # -usePwsh $false forces Windows PowerShell 5.1: this block calls Invoke-Sqlcmd, which fails to
-    # load the SQL SMO assemblies under the container's pwsh7.
+    # -usePwsh $false forces Windows PowerShell 5.1: under the container's pwsh7 the NAV management
+    # cmdlets (New-NAVApplicationDatabase) and Invoke-Sqlcmd hit .NET assembly-load conflicts
+    # (e.g. Microsoft.Extensions.Logging.Abstractions), verified on BC 28.
     Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -usePwsh $false -scriptblock {
         Param($databaseName, $databaseServer, $databaseInstance)
 
@@ -144,8 +145,10 @@ function Restore-BcMultitenancy {
         [Parameter(Mandatory)] $CustomConfig
     )
 
-    # -usePwsh $false forces Windows PowerShell 5.1: this block calls Invoke-Sqlcmd and
-    # Export-NAVApplication, which fail to load the SQL SMO assemblies under the container's pwsh7.
+    # -usePwsh $false forces Windows PowerShell 5.1: under the container's pwsh7 the NAV management
+    # cmdlets (Export-NAVApplication) and Invoke-Sqlcmd hit .NET assembly-load conflicts, verified on
+    # BC 28. Note Copy-NavDatabase is no longer SMO-based (it copies the SQL files), but the block as
+    # a whole still requires WinPS.
     Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -usePwsh $false -scriptblock { Param($databaseName, $databaseServer, $databaseInstance)
         $databaseServerInstance = $databaseServer
         if ($databaseInstance) { $databaseServerInstance += "\$databaseInstance" }
