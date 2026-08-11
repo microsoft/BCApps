@@ -28,6 +28,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         FieldBlankErr: Label 'The %1 field must be filled.', Comment = '%1= field name. Example: The Name field must be filled.';
         FieldKeyBlankErr: Label '%1 %2 must have a value in %3.', Comment = '%1=table name, %2=key field value, %3=field name. Example: Customer 10000 must have a value in Name.';
         FieldKeyBlank2Err: Label '%1 %2 must have a value in %3 or in %4', Comment = '%1=table name, %2=key field value, %3=field name,%4=field name 2. Example: Customer 10000 must have a value in Name.';
+        CustomerIBANNoClearingErr: Label 'The IBAN on customer bank account %1 does not contain a valid Swiss bank clearing number, which is required for a domestic (payment type 2.2) transfer.', Comment = '%1 - customer bank account code';
         UnknownSwissPaymentTypeErr: Label 'Unknown Swiss SEPA CT export payment type.';
         ReferenceNumberIsDefinedErr: Label 'For vendor %1 and document %2, a reference number is defined. \The document type must be "Invoice".';
         MessageToRecipientMsg: Label 'Payment of %1 %2 to vendor %3', Comment = '%1 document type, %2 Document No., %3 Vendor No.';
@@ -2010,6 +2011,33 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAgt', 'Cd', 'CHBCC');
         LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAgt', 'MmbId', ExpectedMmbId);
         LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAcct', 'IBAN', GetIBAN(true));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure Customer_XMLExport_PaymentType22_Negative_NoClearingInIBAN()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3] [XML] [Export] [Customer]
+        // [SCENARIO] Swiss SEPA CT (pain.001.001.09) export of a customer refund fails with a clear error when the domestic IBAN does not contain a derivable bank clearing number (payment type 2.2)
+        Initialize();
+
+        // [GIVEN] Customer with a bank account whose domestic IBAN is too short to contain a bank clearing number
+        CustomerNo := CreateCustomerWithBankAccount('', '', 'CH12345');
+
+        // [GIVEN] Customer refund journal line with "Currency Code" = ""
+        CreatePaymentJournalLine(GenJournalLine, CustomerNo, '', '',
+          GenJournalLine."Account Type"::Customer, GenJournalLine."Document Type"::Refund);
+
+        // [WHEN] Export payments to file
+        asserterror GenJournalLine_XMLExport(GenJournalLine);
+
+        // [THEN] The export fails with a clear error that the IBAN contains no valid Swiss bank clearing number
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(ExportHasErrorsErr);
+        VerifyPaymentJnlExportErrorText(GenJournalLine, StrSubstNo(CustomerIBANNoClearingErr, GenJournalLine."Recipient Bank Account"));
     end;
 
     [Test]
