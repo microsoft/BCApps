@@ -883,7 +883,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         VendorNo: Code[20];
         ExpectedMmbId: Code[5];
     begin
-        // [FEATURE] [XML] [Export]
+        // [FEATURE] [AI test 0.3] [XML] [Export]
         // [SCENARIO] Swiss SEPA CT (pain.001.001.09) export for "Payment Type" = "2.2" derives the clearing member id (MmbId) from the domestic IBAN when "Clearing No." is blank
         Initialize();
 
@@ -1987,7 +1987,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         CustomerNo: Code[20];
         ExpectedMmbId: Code[5];
     begin
-        // [FEATURE] [XML] [Export] [Customer]
+        // [FEATURE] [AI test 0.3] [XML] [Export] [Customer]
         // [SCENARIO] Swiss SEPA CT (pain.001.001.09) export for a customer refund of "Payment Type" = "2.2" derives the clearing member id (MmbId) from the domestic IBAN, not the IBAN itself
         Initialize();
 
@@ -2090,7 +2090,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
     var
         VendorBankAccount: Record "Vendor Bank Account";
     begin
-        // [FEATURE] [UT]
+        // [FEATURE] [AI test 0.3] [UT]
         // [SCENARIO] "Vendor Bank Account".GetPaymentType returns Swiss Payment Type 2.2 when "Clearing No." and "SWIFT Code" are blank but the clearing number can be derived from a domestic IBAN
         VendorBankAccount.Init();
         VendorBankAccount."Payment Form" := VendorBankAccount."Payment Form"::"Bank Payment Domestic";
@@ -2106,7 +2106,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
     var
         VendorBankAccount: Record "Vendor Bank Account";
     begin
-        // [FEATURE] [UT]
+        // [FEATURE] [AI test 0.3] [UT]
         // [SCENARIO] "Vendor Bank Account".GetPaymentType keeps Swiss Payment Type 3 (not 2.2) when "Clearing No." is blank but a "SWIFT Code" is provided, so the IBAN-derived clearing does not reclassify SWIFT-routed accounts
         VendorBankAccount.Init();
         VendorBankAccount."Payment Form" := VendorBankAccount."Payment Form"::"Bank Payment Domestic";
