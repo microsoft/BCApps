@@ -7432,7 +7432,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
     },
     "Payment Management FR": {
