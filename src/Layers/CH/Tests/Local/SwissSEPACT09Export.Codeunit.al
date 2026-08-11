@@ -74,6 +74,27 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CHMgt_GetClearingNoFromIBAN()
+    var
+        CHMgt: Codeunit CHMgt;
+    begin
+        // [FEATURE] [AI test 0.3] [UT]
+        // [SCENARIO] COD 11503 "CHMgt".GetClearingNoFromIBAN() extracts the bank clearing number (IID) from positions 5-9 of a domestic IBAN, strips leading zeros, and returns blank when it cannot be derived
+        // [THEN] Domestic CH IBAN: clearing number from positions 5-9 with leading zeros stripped
+        Assert.AreEqual('8888', CHMgt.GetClearingNoFromIBAN('CH3808888123456789012'), 'CH IBAN with a leading zero in the clearing slice');
+        Assert.AreEqual('12345', CHMgt.GetClearingNoFromIBAN('CH9312345678901234567'), 'CH IBAN with a full 5-digit clearing number');
+        // [THEN] Domestic LI IBAN is also supported
+        Assert.AreEqual('8800', CHMgt.GetClearingNoFromIBAN('LI2108800123456789012'), 'LI IBAN clearing slice');
+        // [THEN] Non-domestic IBAN returns blank
+        Assert.AreEqual('', CHMgt.GetClearingNoFromIBAN('DE62007620110623852957'), 'Non-domestic IBAN');
+        // [THEN] Domestic IBAN too short to contain positions 5-9 returns blank
+        Assert.AreEqual('', CHMgt.GetClearingNoFromIBAN('CH1234'), 'Too-short domestic IBAN');
+        // [THEN] Domestic IBAN with all-zero clearing digits returns blank
+        Assert.AreEqual('', CHMgt.GetClearingNoFromIBAN('CH9300000123456789012'), 'All-zero clearing slice');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure CHMgt_IsSwissSEPACTExport_Negative()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -2026,6 +2047,33 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
 
         // [GIVEN] Customer with a bank account whose domestic IBAN is too short to contain a bank clearing number
         CustomerNo := CreateCustomerWithBankAccount('', '', 'CH12345');
+
+        // [GIVEN] Customer refund journal line with "Currency Code" = ""
+        CreatePaymentJournalLine(GenJournalLine, CustomerNo, '', '',
+          GenJournalLine."Account Type"::Customer, GenJournalLine."Document Type"::Refund);
+
+        // [WHEN] Export payments to file
+        asserterror GenJournalLine_XMLExport(GenJournalLine);
+
+        // [THEN] The export fails with a clear error that the IBAN contains no valid Swiss bank clearing number
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(ExportHasErrorsErr);
+        VerifyPaymentJnlExportErrorText(GenJournalLine, StrSubstNo(CustomerIBANNoClearingErr, GenJournalLine."Recipient Bank Account"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure Customer_XMLExport_PaymentType22_Negative_AllZeroClearingInIBAN()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3] [XML] [Export] [Customer]
+        // [SCENARIO] Swiss SEPA CT (pain.001.001.09) export of a customer refund fails with a clear error when the domestic IBAN's clearing-number digits (positions 5-9) are all zero (payment type 2.2)
+        Initialize();
+
+        // [GIVEN] Customer with a bank account whose domestic IBAN has all-zero clearing digits in positions 5-9
+        CustomerNo := CreateCustomerWithBankAccount('', '', 'CH9300000123456789012');
 
         // [GIVEN] Customer refund journal line with "Currency Code" = ""
         CreatePaymentJournalLine(GenJournalLine, CustomerNo, '', '',
