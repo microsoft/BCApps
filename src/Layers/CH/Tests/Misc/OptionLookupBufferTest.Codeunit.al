@@ -166,6 +166,88 @@
         Assert.AreEqual(ExpectedTypeCaption, StandardPurchaseLine.FormatTypeAsText(), 'The formatted standard purchase line type was truncated.');
     end;
 
+#if not CLEAN29
+    [Test]
+    procedure LegacyFormatSalesLineTypeTruncatesTo20Characters()
+    var
+        SalesLine: Record "Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] The legacy sales line formatter preserves its Text[20] contract
+        Initialize();
+
+        // [GIVEN] A sales line type with a caption longer than 20 characters
+        SalesLine.Type := SalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(SalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The sales line type is formatted through the legacy procedure
+        // [THEN] The caption is truncated to 20 characters
+        Assert.AreEqual(CopyStr(ExpectedTypeCaption, 1, 20), SalesLine.FormatType(), 'The legacy sales line type was not truncated.');
+    end;
+
+    [Test]
+    procedure LegacyFormatPurchaseLineTypeTruncatesTo20Characters()
+    var
+        PurchaseLine: Record "Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] The legacy purchase line formatter preserves its Text[20] contract
+        Initialize();
+
+        // [GIVEN] A purchase line type with a caption longer than 20 characters
+        PurchaseLine.Type := PurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(PurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The purchase line type is formatted through the legacy procedure
+        // [THEN] The caption is truncated to 20 characters
+        Assert.AreEqual(CopyStr(ExpectedTypeCaption, 1, 20), PurchaseLine.FormatType(), 'The legacy purchase line type was not truncated.');
+    end;
+
+    [Test]
+    procedure LegacyFormatStandardSalesLineTypeTruncatesTo20Characters()
+    var
+        StandardSalesLine: Record "Standard Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] The legacy standard sales line formatter preserves its Text[20] contract
+        Initialize();
+
+        // [GIVEN] A standard sales line type with a caption longer than 20 characters
+        StandardSalesLine.Type := StandardSalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(StandardSalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard sales line type is formatted through the legacy procedure
+        // [THEN] The caption is truncated to 20 characters
+        Assert.AreEqual(CopyStr(ExpectedTypeCaption, 1, 20), StandardSalesLine.FormatType(), 'The legacy standard sales line type was not truncated.');
+    end;
+
+    [Test]
+    procedure LegacyFormatStandardPurchaseLineTypeTruncatesTo20Characters()
+    var
+        StandardPurchaseLine: Record "Standard Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] The legacy standard purchase line formatter preserves its Text[20] contract
+        Initialize();
+
+        // [GIVEN] A standard purchase line type with a caption longer than 20 characters
+        StandardPurchaseLine.Type := StandardPurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(StandardPurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard purchase line type is formatted through the legacy procedure
+        // [THEN] The caption is truncated to 20 characters
+        Assert.AreEqual(CopyStr(ExpectedTypeCaption, 1, 20), StandardPurchaseLine.FormatType(), 'The legacy standard purchase line type was not truncated.');
+    end;
+#endif
+
     [Test]
     procedure FormatSalesLineTypeFromSubscriberLongerThan20Characters()
     var
