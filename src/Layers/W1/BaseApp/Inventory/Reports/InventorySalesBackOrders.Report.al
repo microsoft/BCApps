@@ -16,6 +16,8 @@ report 718 "Inventory - Sales Back Orders"
     Caption = 'Inventory - Sales Back Orders';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -246,13 +248,18 @@ report 718 "Inventory - Sales Back Orders"
             Type = Excel;
             Summary = 'Built in layout for the Inventory - Sales Back Orders report.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Inventory - Sales Back Orders Word';
             LayoutFile = '.\Inventory\Reports\InventorySalesBackOrders.docx';
             Type = Word;
             Summary = 'Built in layout for the Inventory - Sales Back Orders word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -268,6 +275,7 @@ report 718 "Inventory - Sales Back Orders"
         layout(WordBody)
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = '.\Inventory\Reports\InventorySalesBackOrdersBody.docx';
             Caption = 'Body-only: Inventory - Sales Back Orders Word';
             Summary = 'Body-only: Built in layout for the Inventory - Sales Back Orders word report.';

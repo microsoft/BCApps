@@ -23,6 +23,7 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
 
     rendering
     {
+#if not CLEAN32
         layout("StandardSalesInvoice.docx")
         {
             Type = Word;
@@ -31,11 +32,13 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
             Summary = 'The Standard Sales - Credit Memo - E-Document (Word) provides the layout including E-Document QR code support.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("StandardSalesInvoiceBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './.resources/Template/StandardSalesCreditMemowithQRBody.docx';
             Caption = 'Body-only: Standard Sales - Credit Memo - E-Document (Word)';
             Summary = 'Body-only: The Standard Sales - Credit Memo - E-Document (Word) provides the layout including E-Document QR code support.';

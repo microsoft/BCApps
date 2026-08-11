@@ -16,6 +16,8 @@ using System.Utilities;
 report 1017 "Job Task Quote"
 {
     DefaultRenderingLayout = "JobTaskQuote.rdlc";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     Caption = 'Project Task Quote';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Job Task";
@@ -245,6 +247,7 @@ report 1017 "Job Task Quote"
             Caption = 'Project Task Quote (RDLC)';
             Summary = 'The Project Task Quote (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("JobTaskQuote.docx")
         {
             Type = Word;
@@ -253,11 +256,13 @@ report 1017 "Job Task Quote"
             Summary = 'The Project Task Quote (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("JobTaskQuoteBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Projects/Project/JobTaskQuoteBody.docx';
             Caption = 'Body-only: Project Task Quote (Word)';
             Summary = 'Body-only: The Project Task Quote (Word) provides a basic layout.';

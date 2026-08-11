@@ -15,6 +15,8 @@ report 6626 "Reference No Label"
     Caption = 'Reference No. Label';
     WordMergeDataItem = ItemReference;
     DefaultRenderingLayout = Word;
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -78,15 +80,22 @@ report 6626 "Reference No Label"
     }
     rendering
     {
+#if not CLEAN32
         layout(Word)
         {
             Type = Word;
             LayoutFile = './Inventory/Reports/ReferenceNoLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+    }
+        #endif
         layout(WordBody)
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Inventory/Reports/ReferenceNoLabelBody.docx';
             Caption = 'Body-only: Reference No. Label (Word)';
             Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
@@ -95,9 +104,9 @@ report 6626 "Reference No Label"
 
     var
         BarcodeSymbology: Enum "Barcode Symbology";
-        BarcodeSymbology2D: Enum "Barcode Symbology 2D";
-        ReferenceNoCode: Text;
-        ReferenceNoQRCode: Text;
+                              BarcodeSymbology2D: Enum "Barcode Symbology 2D";
+                              ReferenceNoCode: Text;
+                              ReferenceNoQRCode: Text;
 
 
     trigger OnInitReport()

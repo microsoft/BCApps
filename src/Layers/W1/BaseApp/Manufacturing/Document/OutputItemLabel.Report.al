@@ -15,6 +15,8 @@ report 99000769 "Output Item Label"
     ApplicationArea = Manufacturing;
     WordMergeDataItem = ItemLedgerEntry;
     DefaultRenderingLayout = Word;
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     Caption = 'Production Output Item Label';
 
     dataset
@@ -103,15 +105,21 @@ report 99000769 "Output Item Label"
 
     rendering
     {
+#if not CLEAN32
         layout(Word)
         {
             Type = Word;
             LayoutFile = './Manufacturing/Document/OutputItemLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout(WordBody)
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Manufacturing/Document/OutputItemLabelBody.docx';
             Caption = 'Body-only: Production Output Item Label (Word)';
             Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';

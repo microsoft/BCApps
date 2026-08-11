@@ -18,6 +18,8 @@ report 115 "Salesperson - Commission"
     ApplicationArea = Suite;
     Caption = 'Salesperson - Commission';
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -449,13 +451,18 @@ report 115 "Salesperson - Commission"
             LayoutFile = './Sales/Reports/SalespersonCommission.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Salesperson Commission Word';
             Type = Word;
             LayoutFile = './Sales/Reports/SalespersonCommission.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -471,6 +478,7 @@ report 115 "Salesperson - Commission"
         layout(WordBody)
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Sales/Reports/SalespersonCommissionBody.docx';
             Caption = 'Body-only: Salesperson Commission Word';
             Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';

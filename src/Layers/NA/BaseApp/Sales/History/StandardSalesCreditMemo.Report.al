@@ -39,6 +39,8 @@ report 1307 "Standard Sales - Credit Memo"
 {
     Caption = 'Sales - Credit Memo';
     DefaultRenderingLayout = "StandardSalesCreditMemo.docx";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     Permissions = TableData "Sales Shipment Buffer" = rimd;
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
@@ -1105,12 +1107,13 @@ report 1307 "Standard Sales - Credit Memo"
             Caption = 'Standard Sales Credit Memo Blue (Word)';
             Summary = 'The Standard Sales Credit Memo Blue (Word) provides a layout with a blue theme.';
         }
-        layout("StandardSalesCreditMemoBlueBody.docx")
+        layout("StandardSalesCreditMemoNABody.docx")
         {
             Type = Word;
-            LayoutFile = './Sales/History/StandardSalesCreditMemoBlueBody.docx';
-            Caption = 'Body-only: Standard Sales Credit Memo Blue (Word)';
-            Summary = 'Body-only: The Standard Sales Credit Memo Blue (Word) provides a layout with a blue theme.';
+            //Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoNABody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo NA (Word)';
+            Summary = 'The Standard Sales Credit Memo NA (Word) provides a layout with a neutral theme.';
         }
     }
 

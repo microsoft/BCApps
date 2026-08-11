@@ -29,6 +29,8 @@ report 1322 "Standard Purchase - Order"
 {
     Caption = 'Purchase - Order';
     DefaultRenderingLayout = "StandardPurchaseOrder.docx";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purchase Header";
@@ -1019,6 +1021,7 @@ report 1322 "Standard Purchase - Order"
 
     rendering
     {
+#if not CLEAN32
         layout("StandardPurchaseOrder.docx")
         {
             Type = Word;
@@ -1027,8 +1030,10 @@ report 1322 "Standard Purchase - Order"
             Summary = 'The Standard Purchase Order (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardPurchaseOrderThemable.docx")
         {
             Type = Word;
@@ -1037,8 +1042,10 @@ report 1322 "Standard Purchase - Order"
             Summary = 'The Standard Purchase Order (Word) provides a Themable layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardPurchaseOrderEmail.docx")
         {
             Type = Word;
@@ -1047,11 +1054,13 @@ report 1322 "Standard Purchase - Order"
             Summary = 'The Standard Purchase Order Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("StandardPurchaseOrderBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Purchases/Document/StandardPurchaseOrderBody.docx';
             Caption = 'Body-only: Standard Purchase Order (Word)';
             Summary = 'Body-only: The Standard Purchase Order (Word) provides a basic layout.';
@@ -1059,6 +1068,7 @@ report 1322 "Standard Purchase - Order"
         layout("StandardPurchaseOrderEmailBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Purchases/Document/StandardPurchaseOrderEmailBody.docx';
             Caption = 'Body-only: Standard Purchase Order Email (Word)';
             Summary = 'Body-only: The Standard Purchase Order Email (Word) provides an email body layout.';

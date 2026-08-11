@@ -20,6 +20,8 @@ report 1320 "Notification Email"
 {
     Caption = 'Notification Email';
     DefaultRenderingLayout = "NotificationEmail.docx";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -131,17 +133,20 @@ report 1320 "Notification Email"
 
     rendering
     {
+#if not CLEAN32
         layout("NotificationEmail.docx")
         {
             Type = Word;
             LayoutFile = './System/Notifications/NotificationEmail.docx';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("NotificationEmailBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './System/Notifications/NotificationEmailBody.docx';
             Caption = 'Body-only: Notification Email (Word)';
             Summary = 'Body-only: The Notification Email (Word) provides a basic layout.';

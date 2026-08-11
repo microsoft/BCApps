@@ -36,6 +36,8 @@ report 1303 "Standard Sales - Draft Invoice"
 {
     Caption = 'Draft Invoice';
     DefaultRenderingLayout = "StandardSalesDraftInvoice.docx";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 
@@ -1016,6 +1018,7 @@ report 1303 "Standard Sales - Draft Invoice"
             Caption = 'Standard Sales Draft Invoice (RDLC)';
             Summary = 'The Standard Sales Draft Invoice (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("StandardSalesDraftInvoice.docx")
         {
             Type = Word;
@@ -1024,8 +1027,10 @@ report 1303 "Standard Sales - Draft Invoice"
             Summary = 'The Standard Sales Draft Invoice (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardDraftSalesInvoiceBlue.docx")
         {
             Type = Word;
@@ -1034,8 +1039,10 @@ report 1303 "Standard Sales - Draft Invoice"
             Summary = 'The Standard Sales Draft Invoice -Blue (Word) provides a basic layout with a blue theme.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardDraftSalesInvoiceBlueThemable.docx")
         {
             Type = Word;
@@ -1044,8 +1051,10 @@ report 1303 "Standard Sales - Draft Invoice"
             Summary = 'The Standard Sales Draft Invoice -Themable (Word) provides a Themable layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardDraftSalesInvoiceEmail.docx")
         {
             Type = Word;
@@ -1054,11 +1063,13 @@ report 1303 "Standard Sales - Draft Invoice"
             Summary = 'The Standard Sales Draft Invoice Email (Word) provides a email body layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("StandardSalesDraftInvoiceBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesDraftInvoiceBody.docx';
             Caption = 'Body-only: Standard Sales Draft Invoice (Word)';
             Summary = 'Body-only: The Standard Sales Draft Invoice (Word) provides a basic layout.';
@@ -1066,6 +1077,7 @@ report 1303 "Standard Sales - Draft Invoice"
         layout("StandardDraftSalesInvoiceEmailBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Sales/Document/StandardDraftSalesInvoiceEmailBody.docx';
             Caption = 'Body-only: Standard Sales Draft Invoice Email (Word)';
             Summary = 'Body-only: The Standard Sales Draft Invoice Email (Word) provides a email body layout.';

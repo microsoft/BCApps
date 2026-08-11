@@ -1043,6 +1043,7 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation (RDLC)';
             Summary = 'Detailed layout with all fields.';
         }
+#if not CLEAN32
         layout("StandardSalesOrderConf.docx")
         {
             Type = Word;
@@ -1051,8 +1052,10 @@ report 1305 "Standard Sales - Order Conf."
             Summary = 'Simple layout with most necessary fields.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesOrderConfThemable.docx")
         {
             Type = Word;
@@ -1061,8 +1064,10 @@ report 1305 "Standard Sales - Order Conf."
             Summary = 'Simple themable layout with most necessary fields.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardOrderConfirmationEmail.docx")
         {
             Type = Word;
@@ -1071,13 +1076,13 @@ report 1305 "Standard Sales - Order Conf."
             Summary = 'Layout intended for an email body.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("StandardSalesOrderConfBody.docx")
         {
             Type = Word;
             //Subtype = Body;
-            //HeaderFooterPart = 'External Default';
             LayoutFile = './Sales/Document/StandardSalesOrderConfBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Body (Word)';
             Summary = 'Simple layout with most necessary fields.';
@@ -1086,7 +1091,7 @@ report 1305 "Standard Sales - Order Conf."
         {
             Type = Word;
             //Subtype = Body;
-            //HeaderFooterPart = 'External Default';
+            //HeaderFooterPart = 'External Minimalistic';
             LayoutFile = './Sales/Document/StandardOrderConfirmationEmailBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Email (Word)';
             Summary = 'Layout intended for an email body.';

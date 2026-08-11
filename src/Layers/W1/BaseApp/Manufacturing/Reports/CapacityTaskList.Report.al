@@ -11,6 +11,8 @@ using Microsoft.Manufacturing.WorkCenter;
 report 99000780 "Capacity Task List"
 {
     DefaultRenderingLayout = ExcelLayout;
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     ApplicationArea = Manufacturing;
     Caption = 'Capacity Task List';
     UsageCategory = ReportsAndAnalysis;
@@ -230,12 +232,17 @@ report 99000780 "Capacity Task List"
 
     rendering
     {
+#if not CLEAN32
         layout(WordLayout)
         {
             Type = Word;
             LayoutFile = './Manufacturing/Reports/CapacityTaskList.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout(ExcelLayout)
         {
             Type = Excel;
@@ -256,6 +263,7 @@ report 99000780 "Capacity Task List"
         layout(WordLayoutBody)
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Manufacturing/Reports/CapacityTaskListBody.docx';
             Caption = 'Body-only: Capacity Task List (Word)';
             Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';

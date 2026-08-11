@@ -14,6 +14,8 @@ report 6628 "Lot No Label"
     Caption = 'Lot No Label';
     WordMergeDataItem = "Lot No. Information";
     DefaultRenderingLayout = Word;
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -75,15 +77,21 @@ report 6628 "Lot No Label"
     }
     rendering
     {
+#if not CLEAN32
         layout(Word)
         {
             Type = Word;
             LayoutFile = './Inventory/Tracking/LotNoLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout(WordBody)
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Inventory/Tracking/LotNoLabelBody.docx';
             Caption = 'Body-only: Lot No Label (Word)';
             Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';

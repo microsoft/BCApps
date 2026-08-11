@@ -16,6 +16,8 @@ using System.Utilities;
 report 1016 "Job Quote"
 {
     DefaultRenderingLayout = "JobQuote.rdlc";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     Caption = 'Project Quote';
     PreviewMode = PrintLayout;
 
@@ -295,6 +297,7 @@ report 1016 "Job Quote"
             Caption = 'Project Quote (RDLC)';
             Summary = 'The Project Quote (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("JobQuote.docx")
         {
             Type = Word;
@@ -303,11 +306,13 @@ report 1016 "Job Quote"
             Summary = 'The Project Quote (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("JobQuoteBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Projects/Project/JobQuoteBody.docx';
             Caption = 'Body-only: Project Quote (Word)';
             Summary = 'Body-only: The Project Quote (Word) provides a basic layout.';

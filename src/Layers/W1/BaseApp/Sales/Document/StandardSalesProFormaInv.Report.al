@@ -28,6 +28,8 @@ report 1302 "Standard Sales - Pro Forma Inv"
 {
     Caption = 'Pro Forma Invoice';
     DefaultRenderingLayout = "StandardSalesProFormaInv.rdlc";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     WordMergeDataItem = Header;
 
     dataset
@@ -438,6 +440,7 @@ report 1302 "Standard Sales - Pro Forma Inv"
             Caption = 'Standard Sales Proforma Invoice (RDLC)';
             Summary = 'The Standard Sales Proforma Invoice (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("StandardSalesProFormaInv.docx")
         {
             Type = Word;
@@ -446,11 +449,13 @@ report 1302 "Standard Sales - Pro Forma Inv"
             Summary = 'The Standard Sales Proforma Invoice (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("StandardSalesProFormaInvBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesProFormaInvBody.docx';
             Caption = 'Body-only: Standard Sales Proforma Invoice (Word)';
             Summary = 'Body-only: The Standard Sales Proforma Invoice (Word) provides a basic layout.';

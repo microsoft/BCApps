@@ -14,6 +14,8 @@ using System.Utilities;
 report 5084 "Email Merge"
 {
     DefaultRenderingLayout = "EmailMerge.rdlc";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     Caption = 'Email Merge';
 
     dataset
@@ -84,6 +86,7 @@ report 5084 "Email Merge"
             Caption = 'EMail Merge (RDLC)';
             Summary = 'The EMail Merge (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("DefaultEmailMergeDoc.docx")
         {
             Type = Word;
@@ -92,11 +95,13 @@ report 5084 "Email Merge"
             Summary = 'The EMail Merge (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("DefaultEmailMergeDocBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './CRM/DefaultEmailMergeDocBody.docx';
             Caption = 'Body-only: EMail Merge (Word)';
             Summary = 'Body-only: The EMail Merge (Word) provides a basic layout.';

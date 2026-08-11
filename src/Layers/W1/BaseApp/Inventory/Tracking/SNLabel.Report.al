@@ -14,6 +14,8 @@ report 6627 "SN Label"
     Caption = 'SN Label';
     WordMergeDataItem = "Serial No. Information";
     DefaultRenderingLayout = Word;
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -75,15 +77,21 @@ report 6627 "SN Label"
     }
     rendering
     {
+#if not CLEAN32
         layout(Word)
         {
             Type = Word;
             LayoutFile = './Inventory/Tracking/SNLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout(WordBody)
         {
             Type = Word;
+            SUBTYPE = Body;
             LayoutFile = './Inventory/Tracking/SNLabelBody.docx';
             Caption = 'Body-only: SN Label (Word)';
             Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';

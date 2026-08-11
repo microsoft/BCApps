@@ -19,6 +19,8 @@ report 1701 "Deferral Summary - Sales"
     ApplicationArea = Suite;
     Caption = 'Deferral Summary - Sales';
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -344,13 +346,18 @@ report 1701 "Deferral Summary - Sales"
             LayoutFile = './Finance/Deferral/DeferralSummarySales.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Deferral Summary Sales Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummarySales.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#ENDIF
 #if not CLEAN27
         layout(RDLC)
         {
@@ -366,6 +373,7 @@ report 1701 "Deferral Summary - Sales"
         layout(WordBody)
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Finance/Deferral/DeferralSummarySalesBody.docx';
             Caption = 'Body-only: Deferral Summary Sales Word';
             Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';

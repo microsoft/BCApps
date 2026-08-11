@@ -24,6 +24,8 @@ report 1316 "Standard Statement"
 {
     Caption = 'Customer Statement';
     DefaultRenderingLayout = "StandardStatement.docx";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     WordMergeDataItem = Customer;
 
     dataset
@@ -977,6 +979,7 @@ report 1316 "Standard Statement"
             Caption = 'Standard Customer Statement (RDLC)';
             Summary = 'The Standard Customer Statement (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("StandardStatement.docx")
         {
             Type = Word;
@@ -985,8 +988,10 @@ report 1316 "Standard Statement"
             Summary = 'The Standard Customer Statement (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardCustomerStatementEmail.docx")
         {
             Type = Word;
@@ -995,11 +1000,13 @@ report 1316 "Standard Statement"
             Summary = 'The Standard Customer Statement Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("StandardStatementBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Sales/Customer/StandardStatementBody.docx';
             Caption = 'Body-only: Standard Customer Statement (Word)';
             Summary = 'Body-only: The Standard Customer Statement (Word) provides a basic layout.';
@@ -1007,6 +1014,7 @@ report 1316 "Standard Statement"
         layout("StandardCustomerStatementEmailBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Sales/Customer/StandardCustomerStatementEmailBody.docx';
             Caption = 'Body-only: Standard Customer Statement Email (Word)';
             Summary = 'Body-only: The Standard Customer Statement Email (Word) provides an email body layout.';
