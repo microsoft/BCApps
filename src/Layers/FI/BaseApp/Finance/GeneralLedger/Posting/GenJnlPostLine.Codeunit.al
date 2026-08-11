@@ -7904,6 +7904,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         IsHandled: Boolean;
     begin
         HandleDtldAdjustment(GenJnlLine, GLEntry, AdjAmountBuf, Amount, AmountACY, GLAccNo);
+        // The aggregated customer/vendor balancing G/L entry must always carry its Additional-Currency Amount.
+        // When a document is posted in local currency (blank Currency Code) while an Additional Reporting Currency
+        // is set up, the balancing entry could be created with a zero Additional-Currency Amount (the reporting-currency
+        // amount ended up only on the Source Currency Amount). That left the additional reporting currency out of balance
+        // and pushed the full amount into a separate residual entry on the Realized Exchange Gain/Loss account.
+        // Recompute the reporting-currency amount from the local-currency amount so it stays on this balancing entry.
+        if (AddCurrencyCode <> '') and (GLEntry."Additional-Currency Amount" = 0) and (GLEntry.Amount <> 0) then
+            GLEntry."Additional-Currency Amount" := ExchangeAmtLCYToFCY2(GLEntry.Amount);
         GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
         GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
         UpdateGLEntryNo(GLEntry."Entry No.", SavedEntryNo);

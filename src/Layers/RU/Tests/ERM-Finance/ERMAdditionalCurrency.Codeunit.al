@@ -65,6 +65,131 @@ codeunit 134043 "ERM Additional Currency"
 
     [Test]
     [Scope('OnPrem')]
+    procedure PurchaseInvoiceBlankCurrencyKeepsACYOnPayablesEntry()
+    var
+        Currency: Record Currency;
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLEntry: Record "G/L Entry";
+        CurrencyCode: Code[10];
+        PayablesAccountNo: Code[20];
+        PostedInvoiceNo: Code[20];
+        ExpectedPayablesACY: Decimal;
+    begin
+        // [SCENARIO 641829] Posting a purchase invoice in local currency (blank Currency Code) while an
+        // Additional Reporting Currency is set up must keep the reporting-currency amount on the vendor
+        // payables G/L entry, instead of splitting the full amount into a separate residual entry on the
+        // realized exchange gain/loss account.
+        Initialize();
+
+        // [GIVEN] An Additional Reporting Currency is set up.
+        CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+        Currency.Get(CurrencyCode);
+
+        // [GIVEN] A purchase invoice for a vendor posted in local currency (blank Currency Code).
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader.Validate("Currency Code", '');
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, CreateItem(), LibraryRandom.RandInt(10));
+
+        // [WHEN] The purchase invoice is posted.
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The payables (balancing) G/L entry carries the reporting-currency amount converted from LCY.
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        PayablesAccountNo := VendorPostingGroup."Payables Account";
+        GLEntry.SetRange("Document No.", PostedInvoiceNo);
+        GLEntry.SetRange("G/L Account No.", PayablesAccountNo);
+        GLEntry.FindFirst();
+        ExpectedPayablesACY :=
+          Round(LibraryERM.ConvertCurrency(GLEntry.Amount, '', CurrencyCode, WorkDate()), Currency."Amount Rounding Precision");
+        Assert.AreNotEqual(
+          0, GLEntry."Additional-Currency Amount",
+          'The payables balancing entry must carry the additional reporting currency amount.');
+        Assert.AreNearlyEqual(
+          ExpectedPayablesACY, GLEntry."Additional-Currency Amount", Currency."Amount Rounding Precision",
+          'The payables Additional-Currency Amount must equal the reporting-currency conversion of the local amount.');
+
+        // [THEN] The reporting-currency amount is not split off into a separate residual entry.
+        GLEntry.Reset();
+        GLEntry.SetRange("Document No.", PostedInvoiceNo);
+        GLEntry.SetFilter("G/L Account No.", '%1|%2', Currency."Residual Gains Account", Currency."Residual Losses Account");
+        GLEntry.CalcSums("Additional-Currency Amount");
+        Assert.IsTrue(
+          Abs(GLEntry."Additional-Currency Amount") <= Currency."Amount Rounding Precision",
+          'The additional reporting currency amount must not be posted as a separate residual entry.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesInvoiceBlankCurrencyKeepsACYOnReceivablesEntry()
+    var
+        Currency: Record Currency;
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GLEntry: Record "G/L Entry";
+        CurrencyCode: Code[10];
+        ReceivablesAccountNo: Code[20];
+        PostedInvoiceNo: Code[20];
+        ExpectedReceivablesACY: Decimal;
+    begin
+        // [SCENARIO 641829] Posting a sales invoice in local currency (blank Currency Code) while an
+        // Additional Reporting Currency is set up must keep the reporting-currency amount on the customer
+        // receivables G/L entry, instead of splitting the full amount into a separate residual entry on the
+        // realized exchange gain/loss account.
+        Initialize();
+
+        // [GIVEN] An Additional Reporting Currency is set up.
+        CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+        Currency.Get(CurrencyCode);
+
+        // [GIVEN] A sales invoice for a customer posted in local currency (blank Currency Code).
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Currency Code", '');
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(), LibraryRandom.RandInt(10));
+
+        // [WHEN] The sales invoice is posted.
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The receivables (balancing) G/L entry carries the reporting-currency amount converted from LCY.
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        ReceivablesAccountNo := CustomerPostingGroup."Receivables Account";
+        GLEntry.SetRange("Document No.", PostedInvoiceNo);
+        GLEntry.SetRange("G/L Account No.", ReceivablesAccountNo);
+        GLEntry.FindFirst();
+        ExpectedReceivablesACY :=
+          Round(LibraryERM.ConvertCurrency(GLEntry.Amount, '', CurrencyCode, WorkDate()), Currency."Amount Rounding Precision");
+        Assert.AreNotEqual(
+          0, GLEntry."Additional-Currency Amount",
+          'The receivables balancing entry must carry the additional reporting currency amount.');
+        Assert.AreNearlyEqual(
+          ExpectedReceivablesACY, GLEntry."Additional-Currency Amount", Currency."Amount Rounding Precision",
+          'The receivables Additional-Currency Amount must equal the reporting-currency conversion of the local amount.');
+
+        // [THEN] The reporting-currency amount is not split off into a separate residual entry.
+        GLEntry.Reset();
+        GLEntry.SetRange("Document No.", PostedInvoiceNo);
+        GLEntry.SetFilter("G/L Account No.", '%1|%2', Currency."Residual Gains Account", Currency."Residual Losses Account");
+        GLEntry.CalcSums("Additional-Currency Amount");
+        Assert.IsTrue(
+          Abs(GLEntry."Additional-Currency Amount") <= Currency."Amount Rounding Precision",
+          'The additional reporting currency amount must not be posted as a separate residual entry.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SalesAdditionalCurrencyAmt()
     var
         SalesHeader: Record "Sales Header";
