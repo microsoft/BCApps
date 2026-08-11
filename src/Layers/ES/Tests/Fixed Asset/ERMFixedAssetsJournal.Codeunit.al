@@ -427,6 +427,69 @@
     end;
 
     [Test]
+    [HandlerFunctions('DepreciationCalcFAJnlConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure DecliningBalanceDeprBasisExcludesDeprPostedBeforeStartingDate()
+    var
+        FixedAsset: Record "Fixed Asset";
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalSetup: Record "FA Journal Setup";
+        DeprStartingDate: Date;
+        UntilDate: Date;
+        ExpectedDeprAmount: Decimal;
+    begin
+        // [FEATURE] [Depreciation] [Declining-Balance]
+        // [SCENARIO 640832] Declining-Balance depreciation basis excludes depreciation posted before the "Depreciation Starting Date".
+        Initialize();
+
+        DeprStartingDate := DMY2Date(1, 3, 2026);
+        UntilDate := DMY2Date(31, 3, 2026);
+
+        // [GIVEN] Depreciation Book without G/L integration and a related FA Journal Setup.
+        LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
+        DepreciationBook.Validate("G/L Integration - Depreciation", false);
+        DepreciationBook.Modify(true);
+        CreateFAJournalSetupForDepreciationBook(DepreciationBook.Code);
+
+        // [GIVEN] Fixed Asset using "Declining-Balance 1" 20% with "Depreciation Starting Date" = 01-03-2026.
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
+        FADepreciationBook.Validate("Depreciation Method", FADepreciationBook."Depreciation Method"::"Declining-Balance 1");
+        FADepreciationBook.Validate("Declining-Balance %", 20);
+        FADepreciationBook.Validate("Depreciation Ending Date", 0D);
+        FADepreciationBook.Validate("Depreciation Starting Date", DeprStartingDate);
+        FADepreciationBook.Modify(true);
+
+        // [GIVEN] Acquisition of 1270 and prior-year depreciation, plus a depreciation of 149.01 posted on 28-02-2026 (before the "Depreciation Starting Date"). Book Value = 663.79.
+        CreateAndPostFAJournalLineWithAmountAndDate(
+            FixedAsset."No.", DepreciationBook.Code, "FA Journal Line FA Posting Type"::"Acquisition Cost", 1270, DMY2Date(20, 4, 2023));
+        CreateAndPostFAJournalLineWithAmountAndDate(
+            FixedAsset."No.", DepreciationBook.Code, "FA Journal Line FA Posting Type"::Depreciation, -254, DMY2Date(19, 4, 2024));
+        CreateAndPostFAJournalLineWithAmountAndDate(
+            FixedAsset."No.", DepreciationBook.Code, "FA Journal Line FA Posting Type"::Depreciation, -203.20, DMY2Date(19, 4, 2025));
+        CreateAndPostFAJournalLineWithAmountAndDate(
+            FixedAsset."No.", DepreciationBook.Code, "FA Journal Line FA Posting Type"::Depreciation, -149.01, DMY2Date(28, 2, 2026));
+
+        // [WHEN] Calculate Depreciation until 31-03-2026.
+        RunCalculateDepreciationWithDate(FixedAsset."No.", DepreciationBook.Code, UntilDate);
+
+        // [THEN] Depreciation is based on the 663.79 book value at the "Depreciation Starting Date" (not the 812.80 book value at the beginning of the calendar year): -(20% * 30/360 * 663.79) = -11.06.
+        ExpectedDeprAmount := -Round(0.2 * 30 / 360 * 663.79);
+        FAJournalSetup.Get(DepreciationBook.Code, '');
+        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."FA Jnl. Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."FA Jnl. Batch Name");
+        FAJournalLine.SetRange("FA Posting Type", FAJournalLine."FA Posting Type"::Depreciation);
+        FAJournalLine.SetRange("FA No.", FixedAsset."No.");
+        FAJournalLine.FindFirst();
+        Assert.AreEqual(
+            ExpectedDeprAmount, FAJournalLine.Amount,
+            'Declining-Balance depreciation basis must exclude depreciation posted before the Depreciation Starting Date.');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure FAAllocation()
     var
@@ -3134,6 +3197,26 @@
         CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
     end;
 
+    local procedure CreateAndPostFAJournalLineWithAmountAndDate(FANo: Code[20]; DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Journal Line FA Posting Type"; Amount: Decimal; FAPostingDate: Date)
+    var
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalSetup: Record "FA Journal Setup";
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalBatch.Get(FAJournalSetup."FA Jnl. Template Name", FAJournalSetup."FA Jnl. Batch Name");
+        LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalBatch."Journal Template Name", FAJournalBatch.Name);
+        FAJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        FAJournalLine.Validate("Posting Date", FAPostingDate);
+        FAJournalLine.Validate("FA Posting Date", FAPostingDate);
+        FAJournalLine.Validate("FA Posting Type", FAPostingType);
+        FAJournalLine.Validate("FA No.", FANo);
+        FAJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
+        FAJournalLine.Validate(Amount, Amount);
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+    end;
+
     local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; FANo: Code[20]; FAPostingGroupCode: Code[20]; DepreciationBookCode: Code[10])
     begin
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FANo, DepreciationBookCode);
@@ -3592,6 +3675,20 @@
         CalculateDepreciation.SetTableView(FixedAsset);
         CalculateDepreciation.InitializeRequest(
           DepreciationBookCode, NewPostingDate, false, 0, NewPostingDate, No, FixedAsset.Description, BalAccount);
+        CalculateDepreciation.UseRequestPage(false);
+        CalculateDepreciation.Run();
+    end;
+
+    local procedure RunCalculateDepreciationWithDate(No: Code[20]; DepreciationBookCode: Code[10]; UntilDate: Date)
+    var
+        FixedAsset: Record "Fixed Asset";
+        CalculateDepreciation: Report "Calculate Depreciation";
+    begin
+        Clear(CalculateDepreciation);
+        FixedAsset.SetRange("No.", No);
+        CalculateDepreciation.SetTableView(FixedAsset);
+        CalculateDepreciation.InitializeRequest(
+          DepreciationBookCode, UntilDate, false, 0, UntilDate, No, FixedAsset.Description, false);
         CalculateDepreciation.UseRequestPage(false);
         CalculateDepreciation.Run();
     end;
@@ -4429,6 +4526,13 @@
     procedure DepreciationCalcConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Assert.ExpectedMessage(CompletionStatsGenJnlQst, Question);
+        Reply := false;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure DepreciationCalcFAJnlConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
         Reply := false;
     end;
 

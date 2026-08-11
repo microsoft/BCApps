@@ -45,15 +45,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     trigger OnRun()
     var
         GenJnlLine: Record "Gen. Journal Line";
-        StartDateTime: DateTime;
-        FinishDateTime: DateTime;
     begin
-        StartDateTime := CurrentDateTime();
         GenJnlLine.Copy(Rec);
         GenJnlLine.SetAutoCalcFields();
         Code(GenJnlLine);
         Rec := GenJnlLine;
-        FinishDateTime := CurrentDateTime();
     end;
 
     var

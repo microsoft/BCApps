@@ -12,6 +12,7 @@ using Microsoft.Sales.Document;
 report 5190 "Delete Interaction Log Entries"
 {
     Caption = 'Delete Interaction Log Entries';
+    ToolTip = 'Find and delete canceled interaction log entries.';
     ProcessingOnly = true;
 
     dataset
