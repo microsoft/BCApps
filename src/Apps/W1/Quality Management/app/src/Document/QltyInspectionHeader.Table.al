@@ -27,6 +27,7 @@ using System.Device;
 using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 
 table 20405 "Qlty. Inspection Header"
@@ -184,8 +185,11 @@ table 20405 "Qlty. Inspection Header"
 
             trigger OnValidate()
             var
+                UserSelection: Codeunit "User Selection";
                 CanChangeAssignmentWithoutPermission: Boolean;
             begin
+                UserSelection.ValidateUserName("Assigned User ID");
+
                 CanChangeAssignmentWithoutPermission := false;
 
                 if ((xRec."Assigned User ID" = UserId()) and (Rec."Assigned User ID" = '')) or (((xRec."Assigned User ID" = '') and (Rec."Assigned User ID" = UserId()))) then

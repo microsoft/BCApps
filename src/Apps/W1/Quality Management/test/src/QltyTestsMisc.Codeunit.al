@@ -50,12 +50,11 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Any: Codeunit Any;
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
-        CapturedAssignToSelfNotificationMessage: Text;
-        AssignToSelfNotificationReceived: Boolean;
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
@@ -2921,14 +2920,12 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Precondition: the inspection must start unassigned');
 
         // [WHEN] A user-modifiable field is changed and the inspection is modified (which runs OnModify)
-        AssignToSelfNotificationReceived := false;
-        CapturedAssignToSelfNotificationMessage := '';
         QltyInspectionHeader.Validate(Description, 'x');
         QltyInspectionHeader.Modify(true);
 
-        // [THEN] The "assign to yourself" notification was sent instead of the current user being silently assigned
-        LibraryAssert.IsTrue(AssignToSelfNotificationReceived, 'The AssignToSelf notification should have been sent when modifying an unassigned inspection');
-        LibraryAssert.IsTrue(StrPos(CapturedAssignToSelfNotificationMessage, QltyInspectionHeader."No.") > 0, 'The notification message should reference the inspection number');
+        // [THEN] Exactly one "assign to yourself" notification was sent instead of the current user being silently assigned
+        LibraryAssert.IsTrue(StrPos(LibraryVariableStorage.DequeueText(), QltyInspectionHeader."No.") > 0, 'The notification message should reference the inspection number');
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] The Assigned User ID remained blank because the user was prompted (not silently auto-assigned)
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
@@ -2937,6 +2934,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
     local procedure Initialize()
     begin
+        LibraryVariableStorage.Clear();
+
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
@@ -2971,8 +2970,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [SendNotificationHandler]
     procedure AssignToSelfNotificationHandler(var NotificationToShow: Notification): Boolean
     begin
-        AssignToSelfNotificationReceived := true;
-        CapturedAssignToSelfNotificationMessage := NotificationToShow.Message();
+        LibraryVariableStorage.Enqueue(NotificationToShow.Message());
     end;
 
     [ModalPageHandler]
