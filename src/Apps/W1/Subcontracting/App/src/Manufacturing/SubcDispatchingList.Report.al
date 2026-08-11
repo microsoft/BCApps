@@ -30,7 +30,6 @@ using System.Email;
 using System.Globalization;
 using System.Utilities;
 
-#pragma warning disable AS0072, AS0136
 report 20504 "Subc. Dispatching List"
 {
     ApplicationArea = Subcontracting;
@@ -2023,4 +2022,3 @@ report 20504 "Subc. Dispatching List"
             ShptMethodDescTxt := ShptMethodDescLbl;
     end;
 }
-#pragma warning restore AS0072, AS0136

@@ -9,7 +9,6 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20540 "Subc. TransOrderPostRcpt Ext"
 {
 #if not CLEAN28
@@ -80,4 +79,3 @@ codeunit 20540 "Subc. TransOrderPostRcpt Ext"
         end;
     end;
 }
-#pragma warning restore AS0072, AS0136

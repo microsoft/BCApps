@@ -9,7 +9,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20518 "Subc. Transfer Rcpt. Line Ext" extends "Transfer Receipt Line"
 {
     AllowInCustomizations = AsReadOnly;
@@ -86,4 +85,3 @@ tableextension 20518 "Subc. Transfer Rcpt. Line Ext" extends "Transfer Receipt L
         }
     }
 }
-#pragma warning restore AS0072, AS0136

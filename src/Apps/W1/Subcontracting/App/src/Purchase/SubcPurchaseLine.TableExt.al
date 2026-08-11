@@ -13,7 +13,6 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Document;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
 {
     fields
@@ -251,4 +250,3 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
         end;
     end;
 }
-#pragma warning restore AS0072, AS0136
