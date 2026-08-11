@@ -27,6 +27,8 @@ report 1309 "Standard Sales - Return Rcpt."
 {
     Caption = 'Return Receipt';
     DefaultRenderingLayout = "StandardSalesReturnRcpt.docx";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
@@ -607,47 +609,49 @@ report 1309 "Standard Sales - Return Rcpt."
             Caption = 'Standard Sales Return Receipt (RDLC)';
             Summary = 'The Standard Sales Return Receipt (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("StandardSalesReturnRcpt.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesReturnRcpt.docx';
             Caption = 'Standard Sales Return Receipt (Word)';
             Summary = 'The Standard Sales Return Receipt (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesReturnRcptBlue.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesReturnRcptBlue.docx';
             Caption = 'Standard Sales Return Receipt - Blue (Word)';
             Summary = 'The Standard Sales Return Receipt - Blue (Word) provides a simple layout with a blue theme.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesReturnRcptBlueThemable.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesReturnRcptBlueThemable.docx';
             Caption = 'Standard Sales Return Receipt - themable Word layout';
             Summary = 'The Standard Sales Return Receipt - Themable (Word) provides a Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout("StandardSalesReturnRcptBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesReturnRcptBody.docx';
             Caption = 'Body-only: Standard Sales Return Receipt (Word)';
             Summary = 'Body-only: The Standard Sales Return Receipt (Word) provides a basic layout.';
-        }
-        layout("StandardSalesReturnRcptBlueBody.docx")
-        {
-            Type = Word;
-            LayoutFile = './Sales/History/StandardSalesReturnRcptBlueBody.docx';
-            Caption = 'Body-only: Standard Sales Return Receipt - Blue (Word)';
-            Summary = 'Body-only: The Standard Sales Return Receipt - Blue (Word) provides a simple layout with a blue theme.';
-        }
-        layout("StandardSalesReturnRcptBlueThemableBody.docx")
-        {
-            Type = Word;
-            LayoutFile = './Sales/History/StandardSalesReturnRcptBlueThemableBody.docx';
-            Caption = 'Body-only: Standard Sales Return Receipt - themable Word layout';
-            Summary = 'Body-only: The Standard Sales Return Receipt - Themable (Word) provides a Themable layout.';
         }
     }
 
