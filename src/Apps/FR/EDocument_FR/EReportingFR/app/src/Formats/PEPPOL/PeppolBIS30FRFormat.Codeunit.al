@@ -293,12 +293,15 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     end;
 
     local procedure ReplaceString(Value: Text; FindWhat: Text; ReplaceWith: Text) NewValue: Text
+    var
+        NewValueBuilder: TextBuilder;
     begin
         while StrPos(Value, FindWhat) > 0 do begin
-            NewValue += DelStr(Value, StrPos(Value, FindWhat)) + ReplaceWith;
+            NewValueBuilder.Append(DelStr(Value, StrPos(Value, FindWhat)) + ReplaceWith);
             Value := CopyStr(Value, StrPos(Value, FindWhat) + StrLen(FindWhat));
         end;
-        NewValue += Value;
+        NewValueBuilder.Append(Value);
+        NewValue := NewValueBuilder.ToText();
     end;
 
     local procedure AddDistinctValue(var Values: Dictionary of [Text, Boolean]; Value: Text)

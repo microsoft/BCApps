@@ -160,6 +160,7 @@ codeunit 10991 "EDoc. Helpers"
             ParticipantAddressErrorInfo.Message(GetServiceParticipantAddressIncompleteError());
             ParticipantAddressErrorInfo.RecordId(ServiceParticipant.RecordId());
             ParticipantAddressErrorInfo.PageNo(Page::"Service Participants");
+            ParticipantAddressErrorInfo.AddNavigationAction(ShowServiceParticipantLbl);
             Error(ParticipantAddressErrorInfo);
         end;
 
@@ -206,4 +207,5 @@ codeunit 10991 "EDoc. Helpers"
         BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         SellerCountryCodeRequiredErr: Label 'Country/Region Code must be specified in Company Information for French e-invoicing.';
         ServiceParticipantAddressIncompleteErr: Label '%1 and %2 must both be specified for French electronic invoicing.', Comment = '%1 = Participant Identifier field caption, %2 = French Identifier Scheme field caption';
+        ShowServiceParticipantLbl: Label 'Show Service Participant';
 }
