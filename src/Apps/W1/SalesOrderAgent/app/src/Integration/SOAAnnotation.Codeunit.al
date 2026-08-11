@@ -239,6 +239,8 @@ codeunit 4399 "SOA Annotation"
         AttachmentContentLength: Integer;
         IsAttachmentRelevant: Boolean;
     begin
+        // Keep the read isolation low. Rows are scoped to a single message, so lock upgrades are not contended,
+        // and an update lock taken here would be held across the AI calls made inside the loop.
         AgentTaskMessageAttachment.ReadIsolation(IsolationLevel::ReadCommitted);
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskMessage."Task ID");
         AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
