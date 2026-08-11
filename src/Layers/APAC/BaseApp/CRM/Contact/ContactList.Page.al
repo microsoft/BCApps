@@ -1247,7 +1247,7 @@ page 5052 "Contact List"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindRecord(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeFindRecord(var Contact: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
     begin
     end;
 }
