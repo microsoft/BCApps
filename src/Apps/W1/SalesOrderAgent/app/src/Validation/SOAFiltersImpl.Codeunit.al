@@ -248,7 +248,7 @@ codeunit 4305 "SOA Filters Impl."
         end;
 
         TelemetryDimensions.Add(ContactLinkActionDimensionLbl, ContactLinkAction);
-        FeatureTelemetry.LogUsage('', SOASetup.GetFeatureName(), ContactLinkActionSelectedTelemetryLbl, TelemetryDimensions);
+        FeatureTelemetry.LogUsage('0000V0N', SOASetup.GetFeatureName(), ContactLinkActionSelectedTelemetryLbl, TelemetryDimensions);
     end;
 
     internal procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid)
