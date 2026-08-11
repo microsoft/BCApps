@@ -42,10 +42,11 @@ page 46859 "BC14 Company Upgrade Status"
                         Page.Run(Page::"BC14 Company Migration Status", BC14CompanySettings);
                     end;
                 }
-                field("Upgrade Status"; Rec."Upgrade Status")
+                field("Upgrade Status"; UpgradeStatusText)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the per-company upgrade phase status (Pending, Started, Completed, Failed).';
+                    Caption = 'Upgrade Status';
+                    ToolTip = 'Specifies the per-company upgrade phase status. A company actively running a migration phase shows In Progress.';
                     StyleExpr = StatusStyle;
                 }
                 field(CurrentPhase; CurrentPhaseText)
@@ -80,10 +81,94 @@ page 46859 "BC14 Company Upgrade Status"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(ShowErrors)
+            {
+                ApplicationArea = All;
+                Caption = 'Show Errors';
+                ToolTip = 'Opens the migration errors captured for the selected company.';
+                Image = ErrorLog;
+
+                trigger OnAction()
+                var
+                    BC14MigrationErrorOverview: Page "BC14 Migration Error Overview";
+                begin
+                    if Rec.Name = '' then
+                        exit;
+                    BC14MigrationErrorOverview.SetCompanyFilter(CopyStr(Rec.Name, 1, 30));
+                    BC14MigrationErrorOverview.Run();
+                end;
+            }
+            action(ContinueMigration)
+            {
+                ApplicationArea = All;
+                Caption = 'Continue Migration';
+                ToolTip = 'Continues (reruns) the migration for the selected company from where it stopped. Available only for companies whose migration has failed.';
+                Image = Continue;
+                Enabled = CanContinueMigration;
+
+                trigger OnAction()
+                var
+                    BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+                begin
+                    if Rec.Name = '' then
+                        exit;
+                    if Rec."Upgrade Status" <> Rec."Upgrade Status"::Failed then
+                        exit;
+                    if not Confirm(StrSubstNo(ContinueMigrationQst, Rec.Name), false) then
+                        exit;
+
+                    BC14MigrationRunner.ContinueMigrationForCompany(CopyStr(Rec.Name, 1, 30));
+                    Message(ContinueMigrationScheduledMsg, Rec.Name);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(RerunHistorical)
+            {
+                ApplicationArea = All;
+                Caption = 'Rerun Historical Migration';
+                ToolTip = 'Starts the move of the historical data again for the selected company, without re-running the other migration phases. Available for companies whose migration has completed and that have historical record migration enabled.';
+                Image = Restore;
+                Visible = CanRerunHistorical;
+
+                trigger OnAction()
+                var
+                    BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+                begin
+                    if Rec.Name = '' then
+                        exit;
+                    if not CanRerunHistorical then
+                        exit;
+                    if not Confirm(StrSubstNo(RerunHistoricalQst, Rec.Name), false) then
+                        exit;
+
+                    BC14MigrationRunner.RerunHistoricalForCompany(CopyStr(Rec.Name, 1, 30));
+                    Message(RerunHistoricalScheduledMsg, Rec.Name);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(ShowErrors_Promoted; ShowErrors) { }
+                actionref(ContinueMigration_Promoted; ContinueMigration) { }
+                actionref(RerunHistorical_Promoted; RerunHistorical) { }
+            }
+        }
+    }
+
     trigger OnAfterGetRecord()
     var
         BC14CompanySettings: Record BC14CompanyMigrationInfo;
         StatusMessageInStream: InStream;
+        HasCompanySettings: Boolean;
     begin
         StatusMessageText := '';
         Rec.CalcFields("Upgrade Failure Message");
@@ -92,32 +177,61 @@ page 46859 "BC14 Company Upgrade Status"
             StatusMessageInStream.Read(StatusMessageText);
         end;
 
+        CurrentPhaseText := '';
+        PhaseProgressText := '';
+        LastCompletedMigratorText := '';
+        HasCompanySettings := BC14CompanySettings.Get(Rec.Name);
+        if HasCompanySettings then begin
+            CurrentPhaseText := Format(BC14CompanySettings."Current Migration Step");
+            PhaseProgressText := StrSubstNo(ProgressFmtTxt, BC14CompanySettings."Phase Migrators Completed", BC14CompanySettings."Phase Migrators Total");
+            LastCompletedMigratorText := BC14CompanySettings."Last Completed Migrator";
+        end;
+
+        UpgradeStatusText := Format(Rec."Upgrade Status");
+        CanContinueMigration := Rec."Upgrade Status" = Rec."Upgrade Status"::Failed;
+        CanRerunHistorical :=
+            HasCompanySettings and
+            BC14CompanySettings."Migrate Historical Records" and
+            (Rec."Upgrade Status" = Rec."Upgrade Status"::Completed);
         case Rec."Upgrade Status" of
             Rec."Upgrade Status"::Failed:
                 StatusStyle := 'Unfavorable';
             Rec."Upgrade Status"::Completed:
                 StatusStyle := 'Favorable';
             Rec."Upgrade Status"::Started:
-                StatusStyle := 'Attention';
+                if HasCompanySettings and IsActivelyMigrating(BC14CompanySettings."Current Migration Step") then begin
+                    UpgradeStatusText := InProgressLbl;
+                    StatusStyle := 'Strong';
+                end else
+                    StatusStyle := 'Standard';
             else
                 StatusStyle := 'Standard';
         end;
+    end;
 
-        CurrentPhaseText := '';
-        PhaseProgressText := '';
-        LastCompletedMigratorText := '';
-        if BC14CompanySettings.Get(Rec.Name) then begin
-            CurrentPhaseText := Format(BC14CompanySettings."Current Migration Step");
-            PhaseProgressText := StrSubstNo(ProgressFmtTxt, BC14CompanySettings."Phase Migrators Completed", BC14CompanySettings."Phase Migrators Total");
-            LastCompletedMigratorText := BC14CompanySettings."Last Completed Migrator";
-        end;
+    local procedure IsActivelyMigrating(MigrationStep: Enum "BC14 Migration Step"): Boolean
+    begin
+        // A company whose status is Started is actively migrating during every phase except the
+        // NotStarted bookend (status just flipped, no phase entered yet) and the Completed bookend
+        // (all phases done, about to flip to the Completed status).
+        exit(not (MigrationStep in [
+            MigrationStep::NotStarted,
+            MigrationStep::Completed]));
     end;
 
     var
         StatusStyle: Text;
         StatusMessageText: Text;
+        UpgradeStatusText: Text;
         CurrentPhaseText: Text;
         PhaseProgressText: Text;
         LastCompletedMigratorText: Text;
+        CanContinueMigration: Boolean;
+        CanRerunHistorical: Boolean;
         ProgressFmtTxt: Label '%1 / %2', Comment = '%1 = completed count, %2 = total count';
+        InProgressLbl: Label 'In Progress';
+        ContinueMigrationQst: Label 'Continue migration for company %1?', Comment = '%1 = Company Name';
+        ContinueMigrationScheduledMsg: Label 'Migration continuation has been scheduled for company %1.', Comment = '%1 = Company Name';
+        RerunHistoricalQst: Label 'Start the move of the historical data again for company %1?', Comment = '%1 = Company Name';
+        RerunHistoricalScheduledMsg: Label 'Historical data migration has been scheduled again for company %1.', Comment = '%1 = Company Name';
 }
