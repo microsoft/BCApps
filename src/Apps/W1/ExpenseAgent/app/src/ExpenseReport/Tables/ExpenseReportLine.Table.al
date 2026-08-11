@@ -1282,6 +1282,7 @@ table 6907 "Expense Report Line"
         // Mirrors the applicability rule used by the policies-to-evaluate endpoint: an enabled
         // report-line policy whose category matches the line or is blank (blank applies to every
         // category).
+        ExpensePolicy.SetCurrentKey("Subject Type", Enabled, "Expense Category Code");
         ExpensePolicy.SetRange("Subject Type", ExpensePolicy."Subject Type"::"Expense Report Line");
         ExpensePolicy.SetRange(Enabled, true);
         ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', Rec."Expense Category", '');

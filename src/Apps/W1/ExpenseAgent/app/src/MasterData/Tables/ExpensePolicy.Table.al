@@ -120,6 +120,7 @@ table 7092 "Expense Policy"
         if SubjectType <> SubjectType::"Expense Report Line" then
             exit;
 
+        ExpenseReportLine.SetCurrentKey("Expense Category", "Policies Evaluated At");
         if CategoryCode <> '' then
             ExpenseReportLine.SetRange("Expense Category", CategoryCode);
         ExpenseReportLine.SetFilter("Policies Evaluated At", '<>%1', 0DT);

@@ -74,6 +74,7 @@ codeunit 7107 "Exp. Policies To Eval Builder"
         // Applicable policies are the enabled report-line policies whose category matches the line
         // or is blank (a blank category applies to every category). The category-or-blank rule is
         // pushed into the query filter so unrelated categories are never loaded.
+        ExpensePolicy.SetCurrentKey("Subject Type", Enabled, "Expense Category Code");
         ExpensePolicy.SetRange("Subject Type", ExpensePolicy."Subject Type"::"Expense Report Line");
         ExpensePolicy.SetRange(Enabled, true);
         ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', ExpenseReportLine."Expense Category", '');
