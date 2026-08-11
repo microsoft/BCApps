@@ -87,9 +87,9 @@ codeunit 7771 "Azure OpenAI"
     end;
 
     /// <summary>
-    /// Resolves fast prompt settings using an ECS configuration key.
+    /// Resolves fast prompt settings using a configuration key.
     /// </summary>
-    /// <param name="EcsConfigKey">The ECS configuration key to resolve.</param>
+    /// <param name="ConfigKey">The configuration key to resolve.</param>
     /// <param name="Response">Contains the resolved template and any error information.</param>
     /// <returns>True when a fast prompt template was resolved successfully.</returns>
     [NonDebuggable]
