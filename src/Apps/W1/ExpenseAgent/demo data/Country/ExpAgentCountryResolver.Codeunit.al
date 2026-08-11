@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.Foundation.Company;
+using Microsoft.DemoTool;
 
 codeunit 8221 "Exp. Agent Country Resolver"
 {
@@ -19,10 +19,10 @@ codeunit 8221 "Exp. Agent Country Resolver"
 
     procedure ResolveCountry() Country: Enum "Expense Agent Country"
     var
-        CompanyInformation: Record "Company Information";
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
     begin
-        if CompanyInformation.Get() then
-            case CompanyInformation."Country/Region Code" of
+        if ContosoCoffeeDemoDataSetup.Get() then
+            case ContosoCoffeeDemoDataSetup."Country/Region Code" of
                 'US':
                     exit(Country::US);
                 'GB':
