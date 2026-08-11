@@ -826,20 +826,6 @@
     ]
   },
   {
-    "name": "Tests-Performance-Internal",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
     "name": "TestRunner-Internal",
     "groups": [
       {
