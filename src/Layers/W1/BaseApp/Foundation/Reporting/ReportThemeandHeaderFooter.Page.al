@@ -276,6 +276,16 @@ page 9666 "Report Theme and Header/Footer"
             Subtype,
             ReturnReportID,
             ReturnLayoutName);
+
+        SetFocusedRecord(ReturnReportID, ReturnLayoutName);
+    end;
+
+    local procedure SetFocusedRecord(ReportID: Integer; LayoutName: Text)
+    var
+        NewPart: Record "Report Layout List";
+    begin
+        if (ReportID <> 0) and (LayoutName <> '') and NewPart.Get(ReportID, LayoutName, EmptyGuid) then
+            CurrPage.SetRecord(NewPart);
         CurrPage.Update(false);
     end;
 
