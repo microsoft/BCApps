@@ -19,6 +19,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.eServices.EDocument.RemittanceAdvice;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.eServices.EDocument.Service.Participant;
 
@@ -173,5 +174,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Send Runner" = X,
         codeunit SendContext = X,
         codeunit "Sent Document Approval" = X,
-        codeunit "Sent Document Cancellation" = X;
+        codeunit "Sent Document Cancellation" = X,
+        codeunit "E-Doc. Remittance Advice Mgt." = X,
+        codeunit "E-Doc. Remit. Advice Export" = X;
 }
