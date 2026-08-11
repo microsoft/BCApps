@@ -25,6 +25,7 @@ codeunit 134975 "ERM Dimension Report"
         LibraryCashFlow: Codeunit "Library - Cash Flow";
         LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         isInitialized: Boolean;
         CheckValuePostingError: Label 'Dimension Value Code %1 must be %2.';
         CheckItemJnlLineDimIDError: Label 'Dimension Set ID is incorrect in Line No. = %1.';
@@ -38,6 +39,8 @@ codeunit 134975 "ERM Dimension Report"
         FailureDimValCodeMsg: Label 'Dimension Value Code should match Shortcut Dimension 1 Code';
         DimensionsCantBeUsedConcurrentlyErr: Label 'Dimensions %1 and %2 can''t be used concurrently.';
         DimensionIsBlockedErr: Label 'Dimension %1 is blocked.';
+        Dim1FilterErr: Label 'Incorrect Dimension 1 Filter was created.';
+        Dim2FilterErr: Label 'Incorrect Dimension 2 Filter was created.';
 
     [Test]
     [HandlerFunctions('RPHandlerCheckValuePosting2')]
@@ -647,6 +650,55 @@ codeunit 134975 "ERM Dimension Report"
           'ErrorText_Number__Control97', StrSubstNo(DimensionIsBlockedErr, Dimension[3].Code));
     end;
 
+    [Test]
+    procedure RecalculateRetainsDimensionFilter()
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+        ColumnLayout: Record "Column Layout";
+        DimensionValue: Record "Dimension Value";
+        Dimension1Value: Code[20];
+        Dimension2Value: Code[20];
+        FinancialReports: TestPage "Financial Reports";
+        GLAccountNo: Code[20];
+    begin
+        // [SCENARIO 646172] Recalculating a financial report retains the current Global Dimension 1 and 2 filters.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+
+        // [GIVEN] Create a financial report and values for global dimensions 1 and 2.
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        CreateFinReportColumnLayout(ColumnLayout);
+        CreateAndUpdateAccountSchedule(
+          AccScheduleLine, ColumnLayout."Column Layout Name",
+          GLAccountNo, AccScheduleLine."Totaling Type"::"Posting Accounts");
+        LibraryDimension.CreateDimensionValue(DimensionValue, LibraryERM.GetGlobalDimensionCode(1));
+        Dimension1Value := DimensionValue.Code;
+        LibraryDimension.CreateDimensionValue(DimensionValue, LibraryERM.GetGlobalDimensionCode(2));
+        Dimension2Value := DimensionValue.Code;
+
+        // [GIVEN] The overview is filtered to the dimension 1 and dimension 2 values.
+        AccScheduleOverview.Trap();
+        FinancialReports.OpenEdit();
+        FinancialReports.Filter.SetFilter(Name, AccScheduleLine."Schedule Name");
+        FinancialReports.First();
+        FinancialReports.Overview.Invoke();
+        AccScheduleOverview.CurrentColumnName.SetValue(ColumnLayout."Column Layout Name");
+        AccScheduleOverview.Dim1Filter.SetValue(Dimension1Value);
+        AccScheduleOverview.Dim2Filter.SetValue(Dimension2Value);
+
+        // [WHEN] The report is recalculated.
+        AccScheduleOverview.Recalculate.Invoke();
+
+        // [THEN] Verify both dimension filters are retained.
+        AccScheduleOverview.Dim1Filter.AssertEquals(Dimension1Value);
+        AccScheduleOverview.Dim2Filter.AssertEquals(Dimension2Value);
+        Assert.AreEqual(
+          Dimension1Value, AccScheduleOverview.Filter.GetFilter("Dimension 1 Filter"), Dim1FilterErr);
+        Assert.AreEqual(
+          Dimension2Value, AccScheduleOverview.Filter.GetFilter("Dimension 2 Filter"), Dim2FilterErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1132,6 +1184,79 @@ codeunit 134975 "ERM Dimension Report"
         Assert.AreEqual(DefaultDimension[1]."Dimension Value Code", ItemJournalLine."Shortcut Dimension 1 Code", FailureDimValCodeMsg);
         ItemJournalLine.Next();
         Assert.AreEqual(DefaultDimension[2]."Dimension Value Code", ItemJournalLine."Shortcut Dimension 1 Code", FailureDimValCodeMsg);
+    end;
+
+    local procedure CreateFinReportColumnLayout(var ColumnLayout: Record "Column Layout")
+    var
+        ColumnLayoutName: Record "Column Layout Name";
+    begin
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        LibraryERM.CreateColumnLayout(ColumnLayout, ColumnLayoutName.Name);
+    end;
+
+    local procedure CreateAndUpdateAccountSchedule(var AccScheduleLine: Record "Acc. Schedule Line"; ColumnLayoutName: Code[10]; GLAccountNo: Code[20]; TotalingType: Enum "Acc. Schedule Line Totaling Type")
+    begin
+        CreateAccountScheduleAndLine(AccScheduleLine, ColumnLayoutName);
+        UpdateAccScheduleLine(AccScheduleLine, GLAccountNo, TotalingType, Format(LibraryRandom.RandInt(5)));
+    end;
+
+    local procedure CreateAccountScheduleAndLine(var AccScheduleLine: Record "Acc. Schedule Line"; RowNo: Code[10])
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+    begin
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
+        AccScheduleLine.Validate("Row No.", RowNo);
+        AccScheduleLine.Validate(Description, AccScheduleLine."Row No.");
+        AccScheduleLine.Validate("Totaling Type", AccScheduleLine."Totaling Type"::Formula);
+        AccScheduleLine.Validate(Totaling, AccScheduleName.Name);
+        AccScheduleLine.Modify(true);
+    end;
+
+    local procedure UpdateAccScheduleLine(var AccScheduleLine: Record "Acc. Schedule Line"; Totalling: Text[250]; TotalingType: Enum "Acc. Schedule Line Totaling Type"; RowNo: Code[10])
+    begin
+        AccScheduleLine.Validate("Row No.", RowNo);
+        AccScheduleLine.Validate("Totaling Type", TotalingType);
+        AccScheduleLine.Validate(Totaling, Totalling);
+        AccScheduleLine.Modify(true);
+    end;
+
+    local procedure CreateAndPostJournalWithDimensions(CustomerNo: Code[20]; GLAccountNo: Code[20]; Amount: Decimal; var Dimension1Value: Code[20]; var Dimension2Value: Code[20])
+    begin
+        Dimension1Value := UpdateGLAccountWithDefaultDimensions(GLAccountNo, Dimension2Value);
+        CreateAndPostJournal(CustomerNo, GLAccountNo, Amount);
+    end;
+
+    local procedure CreateAndPostJournal(AccountNo: Code[20]; BalanceAccountNo: Code[20]; Amount: Decimal)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
+          GenJournalLine."Account Type"::Customer, AccountNo, Amount);
+        GenJournalLine.Validate("Bal. Account No.", BalanceAccountNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure UpdateGLAccountWithDefaultDimensions(GLAccountNo: Code[20]; var Dimension2Value: Code[20]): Code[20]
+    var
+        DimensionValue1: Record "Dimension Value";
+        DimensionValue2: Record "Dimension Value";
+        DefaultDimension: Record "Default Dimension";
+    begin
+        LibraryDimension.ResetDefaultDimensions(DATABASE::"G/L Account", GLAccountNo);
+        LibraryDimension.CreateDimensionValue(DimensionValue1, LibraryERM.GetGlobalDimensionCode(1));
+        LibraryDimension.CreateDefaultDimensionGLAcc(
+          DefaultDimension, GLAccountNo, LibraryERM.GetGlobalDimensionCode(1), DimensionValue1.Code);
+        LibraryDimension.CreateDimensionValue(DimensionValue2, LibraryERM.GetGlobalDimensionCode(2));
+        LibraryDimension.CreateDefaultDimensionGLAcc(
+          DefaultDimension, GLAccountNo, LibraryERM.GetGlobalDimensionCode(2), DimensionValue2.Code);
+        Dimension2Value := DimensionValue2.Code;
+        exit(DimensionValue1.Code);
     end;
 
     [ConfirmHandler]
