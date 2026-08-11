@@ -91,7 +91,7 @@ report 6627 "SN Label"
         layout(WordBody)
         {
             Type = Word;
-            SUBTYPE = Body;
+            //Subtype = Body;
             LayoutFile = './Inventory/Tracking/SNLabelBody.docx';
             Caption = 'Body-only: SN Label (Word)';
             Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';

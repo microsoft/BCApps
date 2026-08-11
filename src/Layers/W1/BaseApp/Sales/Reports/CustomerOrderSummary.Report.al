@@ -489,7 +489,7 @@ report 107 "Customer - Order Summary"
         layout(WordBody)
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = '.\Sales\Reports\CustomerOrderSummaryBody.docx';
             Caption = 'Body-only: Customer Order Summary Word';
             Summary = 'Body-only: Built in layout for the Customer Order Summary word report.';

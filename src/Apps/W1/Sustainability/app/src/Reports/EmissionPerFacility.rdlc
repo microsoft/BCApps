@@ -1962,15 +1962,6 @@
       </DefaultValue>
       <Prompt>DocumentationLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="TimezoneLabel">
-      <DataType>String</DataType>
-      <DefaultValue>
-        <Values>
-          <Value>TimezoneLabel</Value>
-        </Values>
-      </DefaultValue>
-      <Prompt>TimezoneLabel</Prompt>
-    </ReportParameter>
     <ReportParameter Name="Responsibility_CenterCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -2065,7 +2056,7 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>37</NumberOfRows>
+      <NumberOfRows>36</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
@@ -2200,56 +2191,51 @@
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>26</RowIndex>
-          <ParameterName>TimezoneLabel</ParameterName>
-        </CellDefinition>
-        <CellDefinition>
-          <ColumnIndex>0</ColumnIndex>
-          <RowIndex>27</RowIndex>
           <ParameterName>Responsibility_CenterCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>28</RowIndex>
+          <RowIndex>27</RowIndex>
           <ParameterName>Responsibility_Center_NameCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>29</RowIndex>
+          <RowIndex>28</RowIndex>
           <ParameterName>Account_No_Caption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>30</RowIndex>
+          <RowIndex>29</RowIndex>
           <ParameterName>Account_NameCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>31</RowIndex>
+          <RowIndex>30</RowIndex>
           <ParameterName>DescriptionCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>32</RowIndex>
+          <RowIndex>31</RowIndex>
           <ParameterName>Emission_ScopeCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>33</RowIndex>
+          <RowIndex>32</RowIndex>
           <ParameterName>Country_Region_CodeCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>34</RowIndex>
+          <RowIndex>33</RowIndex>
           <ParameterName>Emission_CO2Caption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>35</RowIndex>
+          <RowIndex>34</RowIndex>
           <ParameterName>Emission_CH4Caption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>36</RowIndex>
+          <RowIndex>35</RowIndex>
           <ParameterName>Emission_N2OCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
