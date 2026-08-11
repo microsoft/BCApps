@@ -263,7 +263,7 @@ report 1017 "Job Task Quote"
         {
             Type = Word;
             //Subtype = Body;
-            LayoutFile = './Projects/Project/JobTaskQuoteBody.docx';
+            LayoutFile = './Projects/Project/Reports/JobTaskQuoteBody.docx';
             Caption = 'Body-only: Project Task Quote (Word)';
             Summary = 'Body-only: The Project Task Quote (Word) provides a basic layout.';
         }

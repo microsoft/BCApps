@@ -102,7 +102,7 @@ report 5084 "Email Merge"
         {
             Type = Word;
             //Subtype = Body;
-            LayoutFile = './CRM/DefaultEmailMergeDocBody.docx';
+            LayoutFile = './CRM/Interaction/DefaultEmailMergeDocBody.docx';
             Caption = 'Body-only: EMail Merge (Word)';
             Summary = 'Body-only: The EMail Merge (Word) provides a basic layout.';
         }
