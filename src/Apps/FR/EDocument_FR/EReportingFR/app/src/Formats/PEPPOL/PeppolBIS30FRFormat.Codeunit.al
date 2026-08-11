@@ -407,6 +407,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         PartyNode: XmlNode;
         PartyIdElement: XmlElement;
         IdElement: XmlElement;
+        SIRENNo: Text;
     begin
         if not XmlDoc.SelectSingleNode('//cac:AccountingSupplierParty/cac:Party', NamespaceMgr, SupplierPartyNode) then
             exit;
@@ -422,9 +423,24 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             InsertPartyIdentification(PartyNode, PartyIdElement, NamespaceMgr);
         end;
 
-        // Add SIREN (BT-30, schemeID=0002) as PartyLegalEntity/CompanyID
-        if CompanyInformation."Registration No." <> '' then
-            InjectLegalEntitySIREN(PartyNode, NamespaceMgr, CompanyInformation."Registration No.");
+        // Add SIREN (BT-30, schemeID=0002) as PartyLegalEntity/CompanyID.
+        // A valid SIRET always carries its coherent SIREN in the first nine digits.
+        SIRENNo := GetSIRENNo(CompanyInformation."Registration No.", CompanyInformation."SIRET No.");
+        if SIRENNo <> '' then
+            InjectLegalEntitySIREN(PartyNode, NamespaceMgr, CopyStr(SIRENNo, 1, 20));
+    end;
+
+    local procedure GetSIRENNo(RegistrationNo: Text; SIRETNo: Text): Text
+    begin
+        if IsNumericIdentifier(SIRETNo, 14) then
+            exit(CopyStr(SIRETNo, 1, 9));
+        if IsNumericIdentifier(RegistrationNo, 9) then
+            exit(RegistrationNo);
+    end;
+
+    local procedure IsNumericIdentifier(Identifier: Text; RequiredLength: Integer): Boolean
+    begin
+        exit((StrLen(Identifier) = RequiredLength) and (DelChr(Identifier, '=', '0123456789') = ''));
     end;
 
     local procedure InjectLegalEntitySIREN(PartyNode: XmlNode; NamespaceMgr: XmlNamespaceManager; SIRENNo: Text[20])
