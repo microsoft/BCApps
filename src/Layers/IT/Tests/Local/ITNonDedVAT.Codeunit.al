@@ -595,6 +595,7 @@ codeunit 144001 "IT - Non Ded. VAT"
 
         // [THEN] There are several VAT entries having in total: Base = 670.28, Amount = 147.46, Nondeductible Base = 1005.43, Nondeductible Amount = 221.20
         FindVATEntry(VATEntry, PostedInvoiceNo);
+        VATEntry.SetRange(Type, VATEntry.Type::Purchase);
         VATEntry.CalcSums(Base, Amount, "Nondeductible Base", "Nondeductible Amount");
         VATEntry.TestField(Base, 670.28);
         VATEntry.TestField(Amount, 147.46);
@@ -651,6 +652,7 @@ codeunit 144001 "IT - Non Ded. VAT"
 
         // [THEN] There are several VAT entries having in total: Base = 363.67, Amount = 80.01, Nondeductible Base = 545.51, Nondeductible Amount = 120.01
         FindVATEntry(VATEntry, PostedInvoiceNo);
+        VATEntry.SetRange(Type, VATEntry.Type::Purchase);
         Assert.RecordCount(VATEntry, 6);
         VATEntry.CalcSums(Base, Amount, "Nondeductible Base", "Nondeductible Amount");
         VATEntry.TestField(Base, 363.67);
@@ -1174,6 +1176,8 @@ codeunit 144001 "IT - Non Ded. VAT"
         VATEntry: Record "VAT Entry";
     begin
         FindVATEntry(VATEntry, DocumentNo);
+        VATEntry.SetRange(Type, VATEntry.Type::Purchase);
+        VATEntry.FindLast();
         VATEntry.TestField("Nondeductible Base", NonDeductibleBase);
         VATEntry.TestField("Nondeductible Amount", NonDeductibleAmount);
     end;

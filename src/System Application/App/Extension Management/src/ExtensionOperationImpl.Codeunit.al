@@ -442,11 +442,17 @@ codeunit 2503 "Extension Operation Impl"
     end;
 
     procedure MarkOrphanedDataAsReviewed(Notif: Notification)
+    begin
+        MarkAllOrphanedExtensionDataAsReviewed();
+        Notif.Recall();
+    end;
+
+    internal procedure MarkAllOrphanedExtensionDataAsReviewed()
     var
         ExtensionDatabaseManagement: Codeunit "Extension Database Management";
     begin
+        CheckPermissions();
         ExtensionDatabaseManagement.MarkAllOrphanedExtensionDataAsReviewed();
-        Notif.Recall();
     end;
 
     internal procedure GetAppName(AppId: Guid; OperationId: Guid) AppName: Text
@@ -457,4 +463,3 @@ codeunit 2503 "Extension Operation Impl"
             AppName := GetDeployOperationAppName(OperationId);
     end;
 }
-
