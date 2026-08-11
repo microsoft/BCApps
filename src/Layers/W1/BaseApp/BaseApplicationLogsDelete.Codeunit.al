@@ -8,7 +8,6 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.SyncEngine;
-using Microsoft.Inventory.Location;
 using Microsoft.Projects.Project.Archive;
 using Microsoft.Purchases.Archive;
 using Microsoft.Sales.Archive;
@@ -38,7 +37,6 @@ codeunit 3995 "Base Application Logs Delete"
                 tabledata "Integration Synch. Job" = rd,
                 tabledata "Integration Synch. Job Errors" = rd,
                 tabledata "Job Queue Log Entry" = rd,
-                tabledata Location = r,
                 tabledata "Posted Invt. Pick Header" = rd,
                 tabledata "Posted Invt. Put-away Header" = rd,
                 tabledata "Posted Whse. Receipt Header" = rd,
@@ -54,8 +52,6 @@ codeunit 3995 "Base Application Logs Delete"
 
     var
         NoFiltersErr: Label 'No filters were set on table %1, %2. Please contact your Microsoft Partner for assistance.', Comment = '%1 = a id of a table (integer), %2 = the caption of the table.';
-        LocationNotFoundErr: Label 'A location referenced by a posted inventory document was not found. The record was excluded from retention policy cleanup.';
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Apply Retention Policy", 'OnApplyRetentionPolicyIndirectPermissionRequired', '', true, true)]
     local procedure DeleteRecordsWithIndirectPermissionsOnApplyRetentionPolicyIndirectPermissionRequired(var RecRef: RecordRef; var Handled: Boolean)
     var
@@ -95,79 +91,11 @@ codeunit 3995 "Base Application Logs Delete"
         if (RecRef.GetFilters() = '') or (not RecRef.MarkedOnly()) then
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(NoFiltersErr, RecRef.Number, RecRef.Name));
 
-        if RecRef.Number in [Database::"Posted Invt. Pick Header", Database::"Posted Invt. Put-away Header"] then
-            DeletePostedInventoryRecords(RecRef)
-        else
-            // delete all remaining records
-            RecRef.DeleteAll(true);
+        // delete all remaining records
+        RecRef.DeleteAll(true);
 
         // set handled
         Handled := true;
-    end;
-
-    local procedure DeletePostedInventoryRecords(var RecRef: RecordRef)
-    var
-        Location: Record Location;
-        PostedInvtPickHeader: Record "Posted Invt. Pick Header";
-        PostedInvtPutawayHeader: Record "Posted Invt. Put-away Header";
-        RetentionPolicyLog: Codeunit "Retention Policy Log";
-        LocationCodeFieldRef: FieldRef;
-        RecordId: RecordId;
-        RecordsToDelete: List of [RecordId];
-        LocationBinMandatory: Dictionary of [Code[10], Boolean];
-        LocationExists: Dictionary of [Code[10], Boolean];
-        LocationCode: Code[10];
-        LocationExistsForCode: Boolean;
-    begin
-        case RecRef.Number of
-            Database::"Posted Invt. Pick Header":
-                begin
-                    RecRef.SetLoadFields(PostedInvtPickHeader.FieldNo("Location Code"));
-                    LocationCodeFieldRef := RecRef.Field(PostedInvtPickHeader.FieldNo("Location Code"));
-                end;
-            Database::"Posted Invt. Put-away Header":
-                begin
-                    RecRef.SetLoadFields(PostedInvtPutawayHeader.FieldNo("Location Code"));
-                    LocationCodeFieldRef := RecRef.Field(PostedInvtPutawayHeader.FieldNo("Location Code"));
-                end;
-            else
-                exit;
-        end;
-
-        if not RecRef.MarkedOnly() then begin
-            if RecRef.FindSet() then
-                repeat
-                    RecRef.Mark(true);
-                until RecRef.Next() = 0;
-            RecRef.MarkedOnly(true);
-        end;
-
-        Location.SetLoadFields("Bin Mandatory");
-        if RecRef.FindSet() then
-            repeat
-                LocationCode := LocationCodeFieldRef.Value;
-                if LocationCode <> '' then begin
-                    if not LocationExists.ContainsKey(LocationCode) then begin
-                        LocationExistsForCode := Location.Get(LocationCode);
-                        LocationExists.Add(LocationCode, LocationExistsForCode);
-                        if LocationExistsForCode then
-                            LocationBinMandatory.Add(LocationCode, Location."Bin Mandatory");
-                    end else
-                        LocationExistsForCode := LocationExists.Get(LocationCode);
-
-                    if not LocationExistsForCode then
-                        RetentionPolicyLog.LogError(LogCategory(), LocationNotFoundErr, false)
-                    else
-                        if not LocationBinMandatory.Get(LocationCode) then
-                            RecordsToDelete.Add(RecRef.RecordId);
-                end else
-                    RetentionPolicyLog.LogError(LogCategory(), LocationNotFoundErr, false);
-            until RecRef.Next() = 0;
-
-        foreach RecordId in RecordsToDelete do begin
-            RecRef.Get(RecordId);
-            RecRef.Delete(true);
-        end;
     end;
 
     local procedure LogCategory(): Enum "Retention Policy Log Category"

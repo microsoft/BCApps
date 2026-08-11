@@ -117,6 +117,14 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
                 UpgradeTag.SetUpgradeTag(GetRetenPolInventoryTablesUpgradeTag());
         end;
 
+        IsInitialSetup := not UpgradeTag.HasUpgradeTag(GetRetenPolPostedInvtFilteringUpgradeTag());
+        if IsInitialSetup or ForceUpdate then begin
+            AddPostedInvtPickHeaderToAllowedTables(false);
+            AddPostedInvtPutawayHeaderToAllowedTables(false);
+            if IsInitialSetup then
+                UpgradeTag.SetUpgradeTag(GetRetenPolPostedInvtFilteringUpgradeTag());
+        end;
+
         IsInitialSetup := not UpgradeTag.HasUpgradeTag(GetRetenPolDataExchUpgradeTag());
         if IsInitialSetup or ForceUpdate then begin
             AddDataExchangeToAllowedTables();
@@ -271,8 +279,11 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
     var
         PostedInvtPickHeader: Record "Posted Invt. Pick Header";
         RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+        TableFilters: JsonArray;
     begin
-        RetenPolAllowedTables.AddAllowedTable(Database::"Posted Invt. Pick Header", PostedInvtPickHeader.FieldNo("Registering Date"));
+        RetenPolAllowedTables.AddAllowedTable(
+            Database::"Posted Invt. Pick Header", PostedInvtPickHeader.FieldNo("Registering Date"), 0,
+            "Reten. Pol. Filtering"::"Posted Inventory Filtering", "Reten. Pol. Deleting"::Default, TableFilters);
 
         if not IsInitialSetup then
             exit;
@@ -284,8 +295,11 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
     var
         PostedInvtPutawayHeader: Record "Posted Invt. Put-away Header";
         RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+        TableFilters: JsonArray;
     begin
-        RetenPolAllowedTables.AddAllowedTable(Database::"Posted Invt. Put-away Header", PostedInvtPutawayHeader.FieldNo("Registering Date"));
+        RetenPolAllowedTables.AddAllowedTable(
+            Database::"Posted Invt. Put-away Header", PostedInvtPutawayHeader.FieldNo("Registering Date"), 0,
+            "Reten. Pol. Filtering"::"Posted Inventory Filtering", "Reten. Pol. Deleting"::Default, TableFilters);
 
         if not IsInitialSetup then
             exit;
@@ -454,6 +468,11 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
         exit('MS-GIT-1268-RetenPolInventoryTables-20250608');
     end;
 
+    local procedure GetRetenPolPostedInvtFilteringUpgradeTag(): Code[250]
+    begin
+        exit('MS-592028-RetenPolPostedInvtFiltering-20260811');
+    end;
+
     local procedure GetRetenPolDataExchUpgradeTag(): Code[250]
     begin
         exit('MS-GIT-704-RetenPolDataExch-20250713');
@@ -473,6 +492,7 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
     local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetRetenPolFinancialReportExportLogUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetRetenPolPostedInvtFilteringUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRetenPolTruncateAllowedUpgradeTag());
     end;
 
