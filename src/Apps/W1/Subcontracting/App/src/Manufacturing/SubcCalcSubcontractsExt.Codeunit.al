@@ -8,7 +8,6 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20529 "Subc. Calc Subcontracts Ext."
 {
     [EventSubscriber(ObjectType::Report, Report::"Subc. Calculate Subcontracts", OnAfterTransferProdOrderRoutingLine, '', false, false)]
@@ -36,4 +35,3 @@ codeunit 20529 "Subc. Calc Subcontracts Ext."
         RequisitionLine.Validate("Subc. Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
     end;
 }
-#pragma warning restore AS0072, AS0136

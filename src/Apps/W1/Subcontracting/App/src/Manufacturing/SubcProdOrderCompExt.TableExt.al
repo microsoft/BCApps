@@ -12,7 +12,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Structure;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20502 "Subc. Prod Order Comp Ext." extends "Prod. Order Component"
 {
     AllowInCustomizations = AsReadOnly;
@@ -143,4 +142,3 @@ tableextension 20502 "Subc. Prod Order Comp Ext." extends "Prod. Order Component
         }
     }
 }
-#pragma warning restore AS0072, AS0136

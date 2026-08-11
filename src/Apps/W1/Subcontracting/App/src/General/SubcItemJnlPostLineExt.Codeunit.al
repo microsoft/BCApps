@@ -11,7 +11,6 @@ using Microsoft.Inventory.Posting;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20515 "Subc. ItemJnlPostLine Ext"
 {
 #if not CLEAN28
@@ -135,4 +134,3 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
             ValueEntry."Item Charge No." := ItemJournalLine."Item Charge No.";
     end;
 }
-#pragma warning restore AS0072, AS0136

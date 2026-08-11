@@ -12,7 +12,6 @@ using Microsoft.Purchases.History;
 using Microsoft.Utilities;
 using System.Reflection;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20559 "Subc. ProdO. Factbox Mgmt."
 {
 #if not CLEAN28
@@ -299,4 +298,3 @@ codeunit 20559 "Subc. ProdO. Factbox Mgmt."
             exit(ProdOrderRoutingLine."Routing No.");
     end;
 }
-#pragma warning restore AS0072, AS0136
