@@ -124,6 +124,7 @@ codeunit 5866 "Accelerated Depr. Feature" implements "Feature Data Update"
         FALedgEntry: Record "FA Ledger Entry";
         FAPostingGr: Record "FA Posting Group";
         FAReclassJnlLine: Record "FA Reclass. Journal Line";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         // "Gen. Journal Line"/"Posted Gen. Journal Line"."Is Derogatory" was introduced only by an unshipped W1
         // feature commit and removed by the redesign-derogatory-mirroring change; no data transfer is required.
@@ -133,6 +134,8 @@ codeunit 5866 "Accelerated Depr. Feature" implements "Feature Data Update"
                 DeprBook."Integration G/L - Derogatory" := DeprBook."G/L Integration - Derogatory";
                 DeprBook.Modify();
             until DeprBook.Next() = 0;
+
+        UpgradeDerogatoryLinkage.RunAfterRelationshipTransfer(false); // ITEM-015: sequence relationship transfer before linkage/tagging in the same transaction.
 
         if FADeprBook.FindSet() then
             repeat

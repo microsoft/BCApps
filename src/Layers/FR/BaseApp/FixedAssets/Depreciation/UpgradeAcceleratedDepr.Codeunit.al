@@ -17,6 +17,7 @@ codeunit 5868 "Upgrade Accelerated Depr."
 
     var
         UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
         UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
 
     trigger OnUpgradePerCompany()
@@ -38,6 +39,7 @@ codeunit 5868 "Upgrade Accelerated Depr."
         // "Gen. Journal Line"/"Posted Gen. Journal Line"."Is Derogatory" (field 5865) was introduced only by an
         // unshipped W1 feature commit and removed by the redesign-derogatory-mirroring change; no data transfer is required.
         TransferFields(Database::"Depreciation Book", 10800, 5865); //  10800 - the existing field "Derogatory Calculation", 5865 - the new field "Derogatory Calc.";
+        UpgradeDerogatoryLinkage.RunAfterRelationshipTransfer(false); // ITEM-015: sequence relationship transfer before linkage/tagging in the same transaction.
         TransferFields(Database::"Depreciation Book", 10802, 5867); //  10802 - the existing field "G/L Integration - Derogatory", 5867 - the new field "Integration G/L - Derogatory";
         TransferFields(Database::"FA Depreciation Book", 10801, 5865); //  10801 - the existing field "Last Derogatory Date", 5865 - the new field "Derogatory Amount";
         TransferFields(Database::"FA Ledger Entry", 10800, 5865); //  10800 - the existing field "Derogatory Excluded", 5865 - the new field "Exclude Derogatory";

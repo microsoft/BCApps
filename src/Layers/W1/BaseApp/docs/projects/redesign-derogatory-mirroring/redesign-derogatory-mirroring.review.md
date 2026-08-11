@@ -528,3 +528,23 @@ Second-pass validation (AL MCP only, no direct `altool`/dispatch):
 - `al_build` FR Tests-Fixed Asset and FR BaseApp: succeeded; `al_publish` of the test app to `navagent2_FR`: succeeded.
 - `al_build` FR Tests-Fixed Asset with the cumulative `CLEAN25`-`CLEAN29` symbols temporarily declared in the test `app.json`: succeeded, and the package differs from the default build (165,318 against 165,386 bytes), confirming the symbols took effect; `app.json` was restored afterwards.
 - `al_run_tests` codeunit 134194 on `navagent2_FR`: 18 passed, 0 failed (17 test methods including the new `FailedTestBodyRestoresFeatureState`, plus the runner aggregate entry).
+
+---
+
+# EPIC-007 Review Addendum — 2026-08-11
+
+**Scope:** ITEM-015, ITEM-016, ITEM-017, ITEM-018, and ITEM-025 only.
+**Verdict:** ✅ **COMPLIANT** after remediation.
+
+| Item | Result | Evidence |
+|---|---|---|
+| ITEM-015 | ✅ | `RunAfterRelationshipTransfer(false)` follows both French relationship transfers, checks for a configured relationship, and tags only after successful matching and telemetry. |
+| ITEM-016 / ITEM-017 | ✅ | Complete FA and maintenance candidate graphs apply only mutual one-to-one links; established links are retained, contested sources marked, and missing sources counted. |
+| ITEM-018 | ✅ | `Feature Telemetry.LogUsage` records exactly six aggregate outcome dimensions: FA and maintenance linked, ambiguous, and missing. |
+| ITEM-025 | ✅ | Corrective tag and atomic `Derog. Linkage Corrective Run` wrapper clear only link/ambiguity fields in configured pairs before rebuild; regression coverage includes rebuild, idempotence, and rollback. |
+
+**Scope containment:** All code/test changes map to EPIC-007. The otherwise unlisted wrapper is now recorded as FILE-030 and in ITEM-025. Pre-existing EPIC-006, tooling, and requirements-document worktree changes remain unstaged and unmodified.
+
+**Review remediation:** Removed the unrequested `CorrectiveRun` telemetry dimension, leaving the required six outcome dimensions only.
+
+**Validation:** AL LSP resolved `RunAfterRelationshipTransfer` in codeunit 104103 and its three focused test symbols. AL MCP compilation of FR BaseApp and Tests-Fixed Asset completed with zero diagnostics. After publishing the existing final-check test package through AL MCP to `navagent2_FR`, codeunit 134194 passed **29/29**. The AL MCP build endpoint returned `CompilationFailed` without diagnostics despite the successful compile; it was treated as a local tool limitation, not a source diagnostic.
