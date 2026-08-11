@@ -24,7 +24,6 @@ codeunit 148318 "Expense Capabilities API Test"
         IsEnabledTrueTok: Label '"isenabled":true', Locked = true;
         IsEnabledFalseTok: Label '"isenabled":false', Locked = true;
         PolicyEvalEnabledRowTok: Label '"capabilityname":"aiassistedpolicyevaluation","isenabled":true', Locked = true;
-        PolicyEvalDisabledRowTok: Label '"capabilityname":"aiassistedpolicyevaluation","isenabled":false', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -124,17 +123,23 @@ codeunit 148318 "Expense Capabilities API Test"
             'Response must contain a consolidatedAssignedProjects capability row.');
         Assert.AreEqual(0, StrPos(ResponseText, IsEnabledFalseTok),
             'No capability must be reported disabled when project fields are enabled.');
+        // [THEN] The 'aiAssistedPolicyEvaluation' row is exposed through the API with isEnabled = true.
+        Assert.AreNotEqual(0, StrPos(ResponseText, PolicyEvalEnabledRowTok),
+            'aiAssistedPolicyEvaluation row must be exposed through the API as isEnabled = true when Evaluate Policies is true.');
     end;
 
     [Test]
-    procedure CapabilitiesPolicyEvaluationEnabledViaAPI()
+    procedure CapabilitiesPolicyEvaluationEnabled()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        TargetURL: Text;
-        ResponseText: Text;
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
     begin
         // [SCENARIO] When Expense Agent Setup has "Evaluate Policies" = true,
-        //            the capabilities API exposes a 'aiAssistedPolicyEvaluation' row with isEnabled = true.
+        //            the aiAssistedPolicyEvaluation capability is reported enabled.
+        // The web-service serialization of this row is covered by
+        // CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI; this test targets the
+        // derivation directly to keep the codeunit's web-service round-trips within the
+        // container auth limit (see ExpenseProjectsAPITest for the same provider-level pattern).
         Initialize();
 
         // [GIVEN] Expense Agent Setup exists with Evaluate Policies = true.
@@ -144,27 +149,20 @@ codeunit 148318 "Expense Capabilities API Test"
         end;
         ExpenseAgentSetup."Evaluate Policies" := true;
         ExpenseAgentSetup.Modify();
-        Commit();
 
-        // [WHEN] The expenseCapabilities collection is fetched through the API.
-        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := StripWhitespace(LowerCase(ResponseText));
-
-        // [THEN] The 'aiAssistedPolicyEvaluation' row is present with isEnabled = true.
-        Assert.AreNotEqual(0, StrPos(ResponseText, PolicyEvalEnabledRowTok),
-            'aiAssistedPolicyEvaluation row must be reported as isEnabled = true when Evaluate Policies is true.');
+        // [THEN] The provider reports aiAssistedPolicyEvaluation as enabled.
+        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation),
+            'aiAssistedPolicyEvaluation must be enabled when Evaluate Policies is true.');
     end;
 
     [Test]
-    procedure CapabilitiesPolicyEvaluationDisabledViaAPI()
+    procedure CapabilitiesPolicyEvaluationDisabled()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        TargetURL: Text;
-        ResponseText: Text;
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
     begin
         // [SCENARIO] When Expense Agent Setup has "Evaluate Policies" = false,
-        //            the capabilities API exposes a 'aiAssistedPolicyEvaluation' row with isEnabled = false.
+        //            the aiAssistedPolicyEvaluation capability is reported disabled.
         Initialize();
 
         // [GIVEN] Expense Agent Setup exists with Evaluate Policies = false.
@@ -174,16 +172,10 @@ codeunit 148318 "Expense Capabilities API Test"
         end;
         ExpenseAgentSetup."Evaluate Policies" := false;
         ExpenseAgentSetup.Modify();
-        Commit();
 
-        // [WHEN] The expenseCapabilities collection is fetched through the API.
-        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := StripWhitespace(LowerCase(ResponseText));
-
-        // [THEN] The 'aiAssistedPolicyEvaluation' row is present and isEnabled = false.
-        Assert.AreNotEqual(0, StrPos(ResponseText, PolicyEvalDisabledRowTok),
-            'aiAssistedPolicyEvaluation row must be reported as isEnabled = false when Evaluate Policies is false.');
+        // [THEN] The provider reports aiAssistedPolicyEvaluation as disabled.
+        Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation),
+            'aiAssistedPolicyEvaluation must be disabled when Evaluate Policies is false.');
     end;
 
     local procedure Initialize()

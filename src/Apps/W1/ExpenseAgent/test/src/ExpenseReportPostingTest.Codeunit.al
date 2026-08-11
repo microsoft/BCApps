@@ -3555,6 +3555,10 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line must be Stale.');
 
+        // [GIVEN] Save the committed stale state so the rejected submit rolls back only its own
+        //         changes and the report can still be read back afterwards.
+        Commit();
+
         // [WHEN] The report is released and marked Pending Approval.
         asserterror ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
 
