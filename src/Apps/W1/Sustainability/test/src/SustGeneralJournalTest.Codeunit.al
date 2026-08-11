@@ -1,6 +1,7 @@
 namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Preview;
@@ -878,6 +879,7 @@ codeunit 148188 "Sust. General Journal Test"
         BaselineGenJournalLine: Record "Gen. Journal Line";
         GenJournalLine: Record "Gen. Journal Line";
         BankAccount: Record "Bank Account";
+        GLAccount: Record "G/L Account";
         Vendor: Record Vendor;
         GenJnlPost: Codeunit "Gen. Jnl.-Post";
         CategoryCode: Code[20];
@@ -901,8 +903,9 @@ codeunit 148188 "Sust. General Journal Test"
         EmissionCH4 := LibraryRandom.RandInt(5);
         EmissionN2O := LibraryRandom.RandInt(5);
 
-        // [GIVEN] Create a Bank Account.
-        LibraryERM.CreateBankAccount(BankAccount);
+        // [GIVEN] Create a Bank Account whose posting group has a G/L account so the line can post.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
 
         // [GIVEN] Create a Vendor.
         LibraryPurchase.CreateVendor(Vendor);
@@ -963,6 +966,7 @@ codeunit 148188 "Sust. General Journal Test"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: array[2] of Record "Gen. Journal Line";
         BankAccount: Record "Bank Account";
+        GLAccount: Record "G/L Account";
         Vendor: Record Vendor;
         GenJnlPost: Codeunit "Gen. Jnl.-Post";
         CategoryCode: Code[20];
@@ -985,8 +989,9 @@ codeunit 148188 "Sust. General Journal Test"
         EmissionCH4 := LibraryRandom.RandInt(5);
         EmissionN2O := LibraryRandom.RandInt(5);
 
-        // [GIVEN] Create a Bank Account.
-        LibraryERM.CreateBankAccount(BankAccount);
+        // [GIVEN] Create a Bank Account whose posting group has a G/L account so the line can post.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
 
         // [GIVEN] Create a Vendor.
         LibraryPurchase.CreateVendor(Vendor);
