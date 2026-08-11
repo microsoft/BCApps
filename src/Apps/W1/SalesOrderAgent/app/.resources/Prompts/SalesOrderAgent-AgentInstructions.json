@@ -95,11 +95,19 @@
 						},
 						"{% endif -%}",
 						{
+							"name": "item_availability_off",
+							"value": "Item availability checking is disabled. Ignore requested quantity availability, availability level, earliest shipment date, and inventory notifications. Never treat an item as unavailable and never request assistance because of availability, stock, or quantity."
+						},
+						{
 							"name": "capable_to_promise",
 							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved. Exception: if a search for a customer-requested specific variant returns no item result, follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step instead of requesting assistance."
 						},						
 						{
-							"value": "If one or more of the requested items are not available or if there is no item to be searched, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'. Exception: when the customer requested a specific variant and the item search returns no result for that request, do not request assistance. Treat this as an unavailable requested item and variant with no safe alternative, and follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step.",
+							"value": "If there is no item to be searched, or if the item search returns no result for a requested item, then request for assistance, by mentioning those items and adding 'Please make such items available or stop the task and handle manually.'. Exception: when the customer requested a specific variant and the item search returns no result for that request, do not request assistance. Treat this as an unavailable requested item and variant with no safe alternative, and follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step."
+						},
+						{
+							"name": "item_availability",
+							"value": "If one or more of the requested items are not available in the requested quantity, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'.",
 							"steps_include_numbering": "true",
 							"steps": [
 								{

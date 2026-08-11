@@ -40,6 +40,12 @@ page 9666 "Report Theme and Header/Footer"
                     Caption = 'Name';
                     ToolTip = 'Specifies the name of the theme or header/footer part.';
                 }
+                field(Description; Rec.Description)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Description';
+                    ToolTip = 'Specifies the description of the theme or header/footer part.';
+                }
                 field(Type; Rec."Layout Subtype")
                 {
                     ApplicationArea = Basic, Suite;
@@ -71,6 +77,7 @@ page 9666 "Report Theme and Header/Footer"
                 ApplicationArea = Basic, Suite;
                 Caption = 'New theme';
                 Image = New;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
                 ToolTip = 'Upload a new theme part.';
 
                 trigger OnAction()
@@ -83,6 +90,7 @@ page 9666 "Report Theme and Header/Footer"
                 ApplicationArea = Basic, Suite;
                 Caption = 'New header/footer';
                 Image = New;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
                 ToolTip = 'Upload a new header/footer part.';
 
                 trigger OnAction()
@@ -102,11 +110,52 @@ page 9666 "Report Theme and Header/Footer"
                     ReportLayoutsImpl.ExportReportLayout(Rec, false);
                 end;
             }
+            action(ShowInfo)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Show info';
+                Image = Info;
+                ToolTip = 'Show details of the selected theme or header/footer part, including how many report configurations currently use it.';
+
+                trigger OnAction()
+                begin
+                    ShowPartInfo();
+                end;
+            }
+            action(EditDescription)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Edit description';
+                Image = Edit;
+                Scope = Repeater;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
+                ToolTip = 'Edit the description of the selected tenant-defined theme or header/footer part. Out-of-box parts cannot be edited.';
+
+                trigger OnAction()
+                begin
+                    EditPartDescription();
+                end;
+            }
+            action(ReplaceArtifact)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Replace';
+                Image = Import;
+                Scope = Repeater;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
+                ToolTip = 'Replace the layout file of the selected tenant-defined theme or header/footer part. Out-of-box parts cannot be replaced.';
+
+                trigger OnAction()
+                begin
+                    ReplaceSelectedArtifact();
+                end;
+            }
             action(DeleteArtifact)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Delete';
                 Image = Delete;
+                AccessByPermission = tabledata "Tenant Report Layout" = M;
                 ToolTip = 'Delete the selected tenant-defined artifact. Out-of-box parts cannot be deleted.';
 
                 trigger OnAction()
@@ -116,7 +165,7 @@ page 9666 "Report Theme and Header/Footer"
             }
             group(StatusActions)
             {
-                Caption = 'Status';
+                Caption = 'Part Status';
                 Image = Status;
 
                 action(SetApproved)
@@ -124,6 +173,7 @@ page 9666 "Report Theme and Header/Footer"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Set Approved';
                     Image = Approve;
+                    Scope = Repeater;
                     ToolTip = 'Approve the selected parts so they can be assigned as report defaults.';
 
                     trigger OnAction()
@@ -136,6 +186,7 @@ page 9666 "Report Theme and Header/Footer"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Set Draft';
                     Image = OpenWorksheet;
+                    Scope = Repeater;
                     ToolTip = 'Move the selected parts back to Draft. Draft parts cannot be assigned as report defaults.';
 
                     trigger OnAction()
@@ -148,6 +199,7 @@ page 9666 "Report Theme and Header/Footer"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Set Pending Approval';
                     Image = AddWatch;
+                    Scope = Repeater;
                     ToolTip = 'Mark the selected parts as pending approval.';
 
                     trigger OnAction()
@@ -160,6 +212,7 @@ page 9666 "Report Theme and Header/Footer"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Set Retired';
                     Image = Archive;
+                    Scope = Repeater;
                     ToolTip = 'Retire the selected parts so they are no longer offered for assignment.';
 
                     trigger OnAction()
@@ -177,6 +230,9 @@ page 9666 "Report Theme and Header/Footer"
 
                 actionref(NewTheme_Promoted; NewTheme) { }
                 actionref(NewHeaderFooter_Promoted; NewHeaderFooter) { }
+                actionref(ReplaceArtifact_Promoted; ReplaceArtifact) { }
+                actionref(ShowInfo_Promoted; ShowInfo) { }
+                actionref(EditDescription_Promoted; EditDescription) { }
                 actionref(SetApproved_Promoted; SetApproved) { }
                 actionref(SetDraft_Promoted; SetDraft) { }
             }
@@ -212,7 +268,7 @@ page 9666 "Report Theme and Header/Footer"
         ReportLayoutsImpl.InsertNewLayout(
             LookupHelper.GetTenantReportDefaultsReportID(),
             NewPartDialog.GetPartName(),
-            '',
+            NewPartDialog.GetPartDescription(),
             Rec."Layout Format"::Word,
             true,
             false,
@@ -259,6 +315,68 @@ page 9666 "Report Theme and Header/Footer"
         exit(Total);
     end;
 
+    local procedure ReplaceSelectedArtifact()
+    var
+        ReturnReportID: Integer;
+        ReturnLayoutName: Text;
+        TypeText: Text;
+    begin
+        if not Rec."User Defined" then
+            Error(CannotReplaceOobErr);
+
+        if Rec."Layout Subtype" = Rec."Layout Subtype"::Theme then
+            TypeText := ThemeTypeTxt
+        else
+            TypeText := HeaderFooterTypeTxt;
+
+        if not Confirm(ReplaceArtifactQst, false, TypeText, Rec.Name) then
+            exit;
+
+        ReportLayoutsImpl.ReplaceLayout(Rec."Report ID", Rec.Name, Rec.Description, Rec."Layout Format", ReturnReportID, ReturnLayoutName);
+        CurrPage.Update(false);
+    end;
+
+    local procedure EditPartDescription()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        EditDescriptionDialog: Page "New Report Theme Header/Footer";
+    begin
+        if not Rec."User Defined" then
+            Error(CannotEditOobErr);
+
+        if not TenantReportLayout.Get(Rec."Report ID", Rec.Name, EmptyGuid) then
+            exit;
+
+        EditDescriptionDialog.SetEditDescriptionMode(TenantReportLayout.Description);
+        if EditDescriptionDialog.RunModal() <> Action::OK then
+            exit;
+
+        ReportLayoutsImpl.UpdateReportLayoutDescription(Rec."Report ID", Rec.Name, EditDescriptionDialog.GetPartDescription());
+        CurrPage.Update(false);
+    end;
+
+    local procedure ShowPartInfo()
+    var
+        TypeText: Text;
+        PublisherText: Text;
+        AssignedCount: Integer;
+    begin
+        if Rec."Layout Subtype" = Rec."Layout Subtype"::Theme then
+            TypeText := ThemeTypeTxt
+        else
+            TypeText := HeaderFooterTypeTxt;
+
+        if Rec."User Defined" then
+            PublisherText := TenantDefinedTxt
+        else
+            PublisherText := Rec."Layout Publisher";
+
+        AssignedCount := LookupHelper.CountPartAssignments(Rec);
+
+        // Pass values as parameters so any backslashes in the data are not turned into line breaks.
+        Message(PartInfoLbl, Rec.Name, Rec.Description, TypeText, Format(Rec."Layout Status"), PublisherText, AssignedCount);
+    end;
+
     local procedure DeleteSelectedArtifact()
     var
         TenantReportLayout: Record "Tenant Report Layout";
@@ -289,6 +407,13 @@ page 9666 "Report Theme and Header/Footer"
         EmptyGuid: Guid;
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
         CannotDeleteOobErr: Label 'Out-of-box themes and header/footer parts cannot be deleted.';
+        CannotReplaceOobErr: Label 'Out-of-box themes and header/footer parts cannot be replaced.';
+        CannotEditOobErr: Label 'Out-of-box themes and header/footer parts cannot be edited.';
+        ReplaceArtifactQst: Label 'Replace the %1 layout file for "%2"?', Comment = '%1 = layout type (Theme or Header/Footer); %2 = artifact name';
+        ThemeTypeTxt: Label 'Theme';
+        HeaderFooterTypeTxt: Label 'Header/Footer';
+        TenantDefinedTxt: Label 'Tenant-defined';
+        PartInfoLbl: Label 'Name: %1\Description: %2\Type: %3\Status: %4\Publisher: %5\Used in %6 report configuration(s).', Comment = '%1 = part name; %2 = description; %3 = type (Theme or Header/Footer); %4 = status; %5 = publisher; %6 = number of report configurations that reference the part';
         DeleteArtifactQst: Label 'Delete the artifact %1?', Comment = '%1 = artifact name';
         DeletePartWithReferencesQst: Label 'The part "%1" is assigned in %2 report configuration(s). Deleting it will clear those assignments and the affected reports will render without this part. Do you want to continue?', Comment = '%1 = artifact name; %2 = number of configurations';
         StatusChangedMsg: Label 'The status of %1 part(s) was changed to %2.', Comment = '%1 = number of parts; %2 = new status';
