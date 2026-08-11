@@ -62,6 +62,7 @@ Do not place irrelevant content in document_summary, additional_relevant_informa
 - Preserve the requested quantity exactly. Do not convert, round, or combine it.
 - Preserve the requested unit of measure exactly.
 - Add a requested date only when the attachment explicitly identifies it as requested, required, promised, ship-by, or delivery.
+- Extract every requested date the attachment shows. Do not deduplicate, merge, or pick between them, and do not drop a date because it is in the past. The Sales Order Agent decides which one to use.
 - Keep document dates, order dates, issue dates, and creation dates as references. Do not classify them as requested delivery dates.
 
 # Output
