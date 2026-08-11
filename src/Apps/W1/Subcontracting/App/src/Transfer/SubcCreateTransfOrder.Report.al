@@ -85,43 +85,39 @@ report 99001501 "Subc. Create Transf. Order"
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
-        DirectTransferNotAllowedErr: Label 'A direct transfer cannot be created from location %1 to location %2 because location %1 requires a pick or shipment. Set up an in-transit transfer route between the two locations, or set Direct Transfer Posting to Direct Transfer in Inventory Setup.', Comment = '%1=Transfer-from location code, %2=Transfer-to location code';
+        CannotCreateTransferErr: Label 'Cannot create a transfer from location %1 to location %2 because location %1 requires warehousing. Set up an in-transit transfer route between the locations, or set Direct Transfer Posting to Direct Transfer on the transfer route or in Inventory Setup.', Comment = '%1=Transfer-from location code, %2=Transfer-to location code';
 
-    local procedure CheckDirectTransferAllowed(TransferFromLocation: Code[10]; TransferToLocation: Code[10])
+    local procedure CheckDirectTransferAllowed(var TransferRoute: Record "Transfer Route"; TransferRouteExists: Boolean; TransferFromLocation: Code[10]; TransferToLocation: Code[10])
     var
         Location: Record Location;
     begin
-        // Mirror TransferHeader."Direct Transfer" OnValidate: a Direct Transfer posting type skips the
-        // outbound warehouse-handling check, so it must be allowed even from Require Pick/Shipment locations.
-        if GetEffectiveDirectTransferPosting(TransferFromLocation, TransferToLocation) = "Direct Transfer Posting Type"::"Direct Transfer" then
+        if IsOneStepDirectTransfer(TransferRoute, TransferRouteExists) then
             exit;
-        if not Location.Get(TransferFromLocation) then
-            exit;
-        if Location."Require Pick" or Location."Require Shipment" then
-            Error(DirectTransferNotAllowedErr, TransferFromLocation, TransferToLocation);
+
+        if Location.RequirePicking(TransferFromLocation) or Location.RequireShipment(TransferFromLocation) then
+            Error(CannotCreateTransferErr, TransferFromLocation, TransferToLocation);
     end;
 
-    local procedure GetEffectiveDirectTransferPosting(TransferFromLocation: Code[10]; TransferToLocation: Code[10]): Enum "Direct Transfer Posting Type"
+    local procedure IsOneStepDirectTransfer(var TransferRoute: Record "Transfer Route"; TransferRouteExists: Boolean): Boolean
     var
         InventorySetup: Record "Inventory Setup";
-        TransferRoute: Record "Transfer Route";
+        DirectTransferPostingType: Enum "Direct Transfer Posting Type";
     begin
-        TransferRoute.SetLoadFields("Direct Transfer", "Direct Transfer Posting");
-        if TransferRoute.Get(TransferFromLocation, TransferToLocation) then
-            if TransferRoute."Direct Transfer" then
-                exit(TransferRoute."Direct Transfer Posting");
-
-        InventorySetup.SetLoadFields("Direct Transfer Posting Type");
-        InventorySetup.GetRecordOnce();
-        if InventorySetup."Direct Transfer Posting Type" = InventorySetup."Direct Transfer Posting Type"::" " then
-            exit(InventorySetup."Direct Transfer Posting Type"::"Shipment and Receipt");
-        exit(InventorySetup."Direct Transfer Posting Type");
+        if TransferRouteExists and TransferRoute."Direct Transfer" then
+            DirectTransferPostingType := TransferRoute."Direct Transfer Posting"
+        else begin
+            InventorySetup.SetLoadFields("Direct Transfer Posting Type");
+            InventorySetup.GetRecordOnce();
+            DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
+        end;
+        exit(DirectTransferPostingType = DirectTransferPostingType::"Direct Transfer");
     end;
 
     local procedure InsertTransferHeader(TransferFromLocation: Code[10])
     var
         TransferRoute: Record "Transfer Route";
         TransferToLocationCode: Code[10];
+        TransferRouteExists: Boolean;
     begin
         GetTransferToLocationCode(TransferToLocationCode);
 
@@ -140,10 +136,13 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", TransferFromLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
-            if not TransferRoute.Get(TransferFromLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then begin
-                CheckDirectTransferAllowed(TransferFromLocation, TransferToLocationCode);
+            TransferRouteExists := TransferRoute.Get(TransferFromLocation, TransferToLocationCode);
+            if not TransferRouteExists or (TransferRoute."In-Transit Code" = '') then begin
+                CheckDirectTransferAllowed(TransferRoute, TransferRouteExists, TransferFromLocation, TransferToLocationCode);
                 TransferHeader.Validate("Direct Transfer", true);
-            end;
+            end else
+                if not IsOneStepDirectTransfer(TransferRoute, TransferRouteExists) then
+                    TransferHeader.Validate("In-Transit Code", TransferRoute."In-Transit Code");
 
             TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";

@@ -241,7 +241,7 @@ codeunit 139981 "Subc. Location Handler Test"
 
         // [THEN] A guided error is raised instead of a raw TestField error on the location
         asserterror CreateSubCTransfOrder.Run();
-        Assert.ExpectedError('requires a pick or shipment');
+        Assert.ExpectedError('requires warehousing');
     end;
 
     [Test]
@@ -291,6 +291,64 @@ codeunit 139981 "Subc. Location Handler Test"
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         Assert.IsTrue(TransferHeader.FindFirst(), 'A transfer order should be created when Inventory Setup uses Direct Transfer posting.');
         Assert.IsTrue(TransferHeader."Direct Transfer", 'The created transfer order should be a direct transfer.');
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder')]
+    procedure InTransitRouteWithDirectTransferUsesInTransitCode()
+    var
+        Item: Record Item;
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
+        TransitLocation: Record Location;
+        Vendor: Record Vendor;
+        CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
+    begin
+        // [SCENARIO 640958] A transfer route flagged Direct Transfer with Shipment and Receipt posting and an In-Transit
+        //                 Code creates a transfer order that keeps the Direct Transfer flag, the posting type, and the In-Transit Code.
+        Initialize();
+
+        // [GIVEN] Subcontractor and Original locations and an in-transit location
+        LibraryWarehouse.CreateLocation(LocationSub);
+        LibraryWarehouse.CreateLocation(LocationOrig);
+        LibraryWarehouse.CreateInTransitLocation(TransitLocation);
+
+        // [GIVEN] Inventory Setup posts direct transfers via Shipment and Receipt
+        SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Shipment and Receipt");
+
+        // [GIVEN] A transfer route from Original to Subcontractor with an In-Transit Code, flagged Direct Transfer (Shipment and Receipt posting)
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
+        TransferRoute.Validate("Direct Transfer", true);
+        TransferRoute.Modify(true);
+
+        // [GIVEN] Subcontracting Scenario Setup
+        CreateSubcontractingSetup(
+            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
+
+        // [WHEN] Running the Create Subcontracting Transfer Order report
+        Commit(); // Report requires commit
+        PurchaseHeader.SetRecFilter();
+        CreateSubCTransfOrder.SetTableView(PurchaseHeader);
+        CreateSubCTransfOrder.UseRequestPage(false);
+        CreateSubCTransfOrder.Run();
+
+        // [THEN] The transfer order keeps the route's Direct Transfer flag, Shipment and Receipt posting, and In-Transit Code
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        Assert.IsTrue(TransferHeader.FindFirst(), 'A transfer order should be created.');
+        Assert.IsTrue(TransferHeader."Direct Transfer", 'The created transfer order should keep the route''s Direct Transfer flag.');
+        Assert.AreEqual(
+            "Direct Transfer Posting Type"::"Shipment and Receipt", TransferHeader."Direct Transfer Posting",
+            'The transfer order should keep the route''s Direct Transfer Posting.');
+        Assert.AreEqual(TransitLocation.Code, TransferHeader."In-Transit Code", 'The transfer order should keep the route''s In-Transit Code.');
     end;
 
     [Test]
