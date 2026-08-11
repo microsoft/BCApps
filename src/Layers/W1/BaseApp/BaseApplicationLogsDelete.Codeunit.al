@@ -95,16 +95,17 @@ codeunit 3995 "Base Application Logs Delete"
         if (RecRef.GetFilters() = '') or (not RecRef.MarkedOnly()) then
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(NoFiltersErr, RecRef.Number, RecRef.Name));
 
-        ExcludeBinMandatoryLocationRecords(RecRef);
-
-        // delete all remaining records
-        RecRef.DeleteAll(true);
+        if RecRef.Number in [Database::"Posted Invt. Pick Header", Database::"Posted Invt. Put-away Header"] then
+            DeletePostedInventoryRecords(RecRef)
+        else
+            // delete all remaining records
+            RecRef.DeleteAll(true);
 
         // set handled
         Handled := true;
     end;
 
-    local procedure ExcludeBinMandatoryLocationRecords(var RecRef: RecordRef)
+    local procedure DeletePostedInventoryRecords(var RecRef: RecordRef)
     var
         Location: Record Location;
         PostedInvtPickHeader: Record "Posted Invt. Pick Header";
@@ -112,7 +113,7 @@ codeunit 3995 "Base Application Logs Delete"
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         LocationCodeFieldRef: FieldRef;
         RecordId: RecordId;
-        RecordsToExclude: List of [RecordId];
+        RecordsToDelete: List of [RecordId];
         LocationBinMandatory: Dictionary of [Code[10], Boolean];
         LocationExists: Dictionary of [Code[10], Boolean];
         LocationCode: Code[10];
@@ -154,18 +155,18 @@ codeunit 3995 "Base Application Logs Delete"
                     end else
                         LocationExistsForCode := LocationExists.Get(LocationCode);
 
-                    if not LocationExistsForCode then begin
-                        RecordsToExclude.Add(RecRef.RecordId);
+                    if not LocationExistsForCode then
                         RetentionPolicyLog.LogError(LogCategory(), LocationNotFoundErr, false);
-                    end else
-                        if LocationBinMandatory.Get(LocationCode) then
-                            RecordsToExclude.Add(RecRef.RecordId);
-                end;
+                    else
+                        if not LocationBinMandatory.Get(LocationCode) then
+                            RecordsToDelete.Add(RecRef.RecordId);
+                end else
+                    RetentionPolicyLog.LogError(LogCategory(), LocationNotFoundErr, false);
             until RecRef.Next() = 0;
 
-        foreach RecordId in RecordsToExclude do begin
+        foreach RecordId in RecordsToDelete do begin
             RecRef.Get(RecordId);
-            RecRef.Mark(false);
+            RecRef.Delete(true);
         end;
     end;
 
