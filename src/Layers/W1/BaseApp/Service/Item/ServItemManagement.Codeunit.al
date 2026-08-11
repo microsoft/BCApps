@@ -432,8 +432,9 @@ codeunit 5920 ServItemManagement
         if IsHandled then
             exit;
 
-        if (not SkipConfirm) and (not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text000), true)) then
-            exit;
+        if not SkipConfirm then
+            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text000), true) then
+                exit;
 
         Clear(ServItem);
         ServItem.Init();
