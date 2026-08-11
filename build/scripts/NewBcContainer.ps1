@@ -34,9 +34,9 @@ if ($parameters.auth -in @('UserPassword', 'NavUserPassword')) {
     $hostPasswordFile = Join-Path ([System.IO.Path]::GetTempPath()) "BCAppsApiTestPassword-$([Guid]::NewGuid().ToString('N'))"
     try {
         [System.IO.File]::WriteAllText($hostPasswordFile, $apiTestPassword)
-        Copy-FileToBcContainer -containerName $parameters.ContainerName -localPath $hostPasswordFile -containerPath $apiTestPasswordFile
 
         try {
+            Copy-FileToBcContainer -containerName $parameters.ContainerName -localPath $hostPasswordFile -containerPath $apiTestPasswordFile
             Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -argumentList $apiTestPasswordFile -scriptblock {
                 param(
                     [string]$FilePath
@@ -60,14 +60,20 @@ if ($parameters.auth -in @('UserPassword', 'NavUserPassword')) {
             }
         }
         catch {
-            Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -argumentList $apiTestPasswordFile -scriptblock {
-                param(
-                    [string]$FilePath
-                )
+            $originalError = $_
+            try {
+                Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -argumentList $apiTestPasswordFile -scriptblock {
+                    param(
+                        [string]$FilePath
+                    )
 
-                Remove-Item -LiteralPath $FilePath -Force -ErrorAction SilentlyContinue
+                    Remove-Item -LiteralPath $FilePath -Force -ErrorAction SilentlyContinue
+                }
             }
-            throw
+            catch {
+                Write-Warning "Could not remove the API test credential file after setup failed."
+            }
+            throw $originalError
         }
     }
     finally {
