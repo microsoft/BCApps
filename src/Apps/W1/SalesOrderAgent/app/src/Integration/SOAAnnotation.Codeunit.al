@@ -248,7 +248,8 @@ codeunit 4399 "SOA Annotation"
 
         repeat
             if not SOAAttachmentMLLM.EnsureCanonicalTextContent(AgentTaskMessageAttachment, AttachmentContentTxt, ExtractionFailureReason) then
-                HandleAttachmentExtractionFailed(AgentTaskMessageAttachment, AgentTaskMessage, TelemetryDimensions, ExtractionFailureReason)
+                // Ignore only the attachment that could not be analyzed and continue with the remaining attachments
+                HandleAttachmentExtractionFailed(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, ExtractionFailureReason)
             else begin
                 // Check if attachment content exceeds maximum token limit
                 AttachmentContentLength := StrLen(AttachmentContentTxt);
@@ -294,16 +295,18 @@ codeunit 4399 "SOA Annotation"
         Clear(TelemetryDimensions);
     end;
 
-    local procedure HandleAttachmentExtractionFailed(AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; AgentTaskMessage: Record "Agent Task Message"; var TelemetryDimensions: Dictionary of [Text, Text]; FailureReason: Text)
-    var
-        AttachmentExtractionFailedErr: Label 'The attachment could not be analyzed. %1', Comment = '%1 = extraction failure reason';
+    local procedure HandleAttachmentExtractionFailed(var AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; AgentTaskMessage: Record "Agent Task Message"; SOABilling: Codeunit "SOA Billing"; var TelemetryDimensions: Dictionary of [Text, Text]; FailureReason: Text)
     begin
+        AgentTaskMessageAttachment.Ignored := true;
+        AgentTaskMessageAttachment."Ignored Reason" := Format(Enum::"SOA Email Attachment Status"::ExtractionFailed);
+        AgentTaskMessageAttachment.Modify();
+        SOABilling.LogIrrelevantAttachment(AgentTaskMessageAttachment.SystemId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentTaskMessageAttachment."File ID");
+
         TelemetryDimensions.Add('TaskId', Format(AgentTaskMessage."Task ID"));
         TelemetryDimensions.Add('MessageId', Format(AgentTaskMessage.ID));
         TelemetryDimensions.Add('FileId', Format(AgentTaskMessageAttachment."File ID"));
         FeatureTelemetry.LogError('0000V03', SOASetupCU.GetFeatureName(), 'Attachment content extraction failed.', FailureReason, GetLastErrorCallStack(), TelemetryDimensions);
         Clear(TelemetryDimensions);
-        Error(AttachmentExtractionFailedErr, FailureReason);
     end;
 
     local procedure CheckIfAttachmentRelevant(AgentTaskMessage: Record "Agent Task Message"; AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; AgentAttachmentTxt: Text; var IrrelevanceReason: Text): Boolean
