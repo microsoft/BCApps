@@ -1,5 +1,3 @@
-using Microsoft.TestLibraries.ERP;
-
 codeunit 130618 "Library - Graph Mgt"
 {
 
@@ -9,7 +7,7 @@ codeunit 130618 "Library - Graph Mgt"
 
     var
         Assert: Codeunit Assert;
-        LibraryGraphAuthMgt: Codeunit "Library - Graph Auth Mgt.";
+        LibraryGraphAuthMgt: Codeunit Microsoft.TestLibraries.ERP."Library - Graph Auth Mgt.";
         IsAuthenticationBound: Boolean;
         IncorrectValueErr: Label 'Incorrect value found in JSON for %1 property.', Comment = '%1 - Name of property';
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
