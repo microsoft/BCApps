@@ -10181,6 +10181,13 @@ table 37 "Sales Line"
     end;
 #endif
 
+    /// <summary>
+    /// Gets the text representation of the line type for the sales line.
+    /// </summary>
+    /// <remarks>
+    /// Blank line type is represented by the comment label.
+    /// </remarks>
+    /// <returns>The text representation of the line type.</returns>
     procedure FormatTypeAsText() FormattedType: Text[30]
     var
 #if not CLEAN29
@@ -10195,7 +10202,7 @@ table 37 "Sales Line"
         if IsHandled then
             exit(FormattedType);
 #endif
-    IsHandled := false;
+        IsHandled := false;
         OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
             exit(FormattedType);
@@ -11955,6 +11962,12 @@ table 37 "Sales Line"
     end;
 #endif
 
+    /// <summary>
+    /// Raised before the sales line type is formatted as text.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the type is being formatted.</param>
+    /// <param name="FormattedType">The formatted line type.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatTypeAsText(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin

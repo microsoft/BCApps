@@ -15,10 +15,10 @@
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryTemplates: Codeunit "Library - Templates";
-        UnexpectedShowMandatoryValueTxt: Label 'Unexpected value of ShowMandatory property.';
-        UnexpectedVisibleValueTxt: Label 'Unexpected value of Visible property.';
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryApplicationArea: Codeunit "Library - Application Area";
+        UnexpectedShowMandatoryValueTxt: Label 'Unexpected value of ShowMandatory property.';
+        UnexpectedVisibleValueTxt: Label 'Unexpected value of Visible property.';
         IsInitialized: Boolean;
 
     local procedure Initialize()

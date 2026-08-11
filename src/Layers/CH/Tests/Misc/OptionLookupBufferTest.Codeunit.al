@@ -414,7 +414,7 @@
     var
         TempReferenceOptionLookupBuffer: Record "Option Lookup Buffer" temporary;
         TempOptionLookupBuffer: Record "Option Lookup Buffer" temporary;
-        InputText: Text[20];
+        InputText: Text[30];
         ExpectedText: Text[30];
     begin
         // [SCENARIO] Autocompleting a partial Option Caption

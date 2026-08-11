@@ -15,8 +15,8 @@
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryTemplates: Codeunit "Library - Templates";
-        UnexpectedShowMandatoryValueTxt: Label 'Unexpected value of ShowMandatory property.';
         LibraryInventory: Codeunit "Library - Inventory";
+        UnexpectedShowMandatoryValueTxt: Label 'Unexpected value of ShowMandatory property.';
         IsInitialized: Boolean;
 
     local procedure Initialize()

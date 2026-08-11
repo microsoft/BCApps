@@ -1,3 +1,5 @@
+namespace Microsoft.Test.Utilities;
+
 enumextension 134645 "Mock Sales Line Type - Custom" extends "Sales Line Type"
 {
     value(134645; Test_Custom1)
