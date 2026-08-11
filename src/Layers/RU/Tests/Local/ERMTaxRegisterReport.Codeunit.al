@@ -107,8 +107,10 @@ codeunit 144721 "ERM Tax Register Report"
 
     local procedure RunTaxRegisterReport(var TaxRegister: Record "Tax Register")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TaxRegisterRep: Report "Tax Register";
     begin
+        BindSubscription(RUReportDownloadHandler);
         TaxRegister.SetRecFilter();
         TaxRegister.SetFilter(
           "Date Filter", '%1..%2', CalcDate('<-CM>', WorkDate()), CalcDate('<CM>', WorkDate()));
@@ -119,6 +121,7 @@ codeunit 144721 "ERM Tax Register Report"
         TaxRegisterRep.SetTableView(TaxRegister);
         TaxRegisterRep.UseRequestPage(false);
         TaxRegisterRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyReportValues(var TaxRegister: Record "Tax Register"; TaxRegisterEntry: Record "Tax Register Item Entry")
