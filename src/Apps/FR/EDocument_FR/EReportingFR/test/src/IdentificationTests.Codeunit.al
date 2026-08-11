@@ -22,6 +22,7 @@ codeunit 148146 "Identification Tests"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
         EDocHelpers: Codeunit "EDoc. Helpers";
+        DialogErrorCodeTok: Label 'Dialog', Locked = true;
         IsInitialized: Boolean;
 
     [Test]
@@ -42,8 +43,7 @@ codeunit 148146 "Identification Tests"
         asserterror EDocHelpers.CheckSIRENNotEmpty();
 
         // [THEN] Error is raised
-        Assert.ExpectedError('Registration No. must be specified in Company Information for French e-invoicing.');
-        Assert.ExpectedErrorCode('Dialog');
+        AssertExpectedDialogError(EDocHelpers.GetSIRENRequiredError());
     end;
 
     [Test]
@@ -64,8 +64,7 @@ codeunit 148146 "Identification Tests"
         asserterror EDocHelpers.CheckSIRETNotEmpty();
 
         // [THEN] Error is raised
-        Assert.ExpectedError('SIRET No. must be specified in Company Information for French e-invoicing.');
-        Assert.ExpectedErrorCode('Dialog');
+        AssertExpectedDialogError(EDocHelpers.GetSIRETRequiredError());
     end;
 
     [Test]
@@ -104,6 +103,12 @@ codeunit 148146 "Identification Tests"
         // [WHEN] CheckSIRETNotEmpty is called
         // [THEN] No error is raised
         EDocHelpers.CheckSIRETNotEmpty();
+    end;
+
+    local procedure AssertExpectedDialogError(ExpectedErrorText: Text)
+    begin
+        Assert.ExpectedError(ExpectedErrorText);
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
     end;
 
     local procedure Initialize()

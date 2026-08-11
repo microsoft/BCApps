@@ -157,14 +157,45 @@ codeunit 10991 "EDoc. Helpers"
         HasIdentifier := ServiceParticipant."Participant Identifier" <> '';
         HasScheme := ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" ";
         if HasIdentifier <> HasScheme then begin
-            ParticipantAddressErrorInfo.Message(
-                StrSubstNo(ServiceParticipantAddressIncompleteErr, ServiceParticipant.FieldCaption("Participant Identifier"), ServiceParticipant.FieldCaption("FR Identifier Scheme")));
+            ParticipantAddressErrorInfo.Message(GetServiceParticipantAddressIncompleteError());
             ParticipantAddressErrorInfo.RecordId(ServiceParticipant.RecordId());
             ParticipantAddressErrorInfo.PageNo(Page::"Service Participants");
             Error(ParticipantAddressErrorInfo);
         end;
 
         exit(HasIdentifier);
+    end;
+
+    internal procedure GetSIRENRequiredError(): Text
+    begin
+        exit(SIRENRequiredErr);
+    end;
+
+    internal procedure GetSIRETRequiredError(): Text
+    begin
+        exit(SIRETRequiredErr);
+    end;
+
+    internal procedure GetSellerCountryCodeRequiredError(): Text
+    begin
+        exit(SellerCountryCodeRequiredErr);
+    end;
+
+    internal procedure GetBuyerElectronicAddressRequiredError(CustomerNo: Code[20]): Text
+    begin
+        exit(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
+    end;
+
+    internal procedure GetBuyerElectronicAddressSchemeRequiredError(CustomerNo: Code[20]): Text
+    begin
+        exit(StrSubstNo(BuyerElectronicAddressSchemeRequiredErr, CustomerNo));
+    end;
+
+    internal procedure GetServiceParticipantAddressIncompleteError(): Text
+    var
+        ServiceParticipant: Record "Service Participant";
+    begin
+        exit(StrSubstNo(ServiceParticipantAddressIncompleteErr, ServiceParticipant.FieldCaption("Participant Identifier"), ServiceParticipant.FieldCaption("FR Identifier Scheme")));
     end;
 
     var

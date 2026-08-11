@@ -42,11 +42,11 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         CIIXMLBuilder: Codeunit "CII XML Builder";
+        EDocHelpers: Codeunit "EDoc. Helpers";
         FacturXFormat: Codeunit "Factur-X Format";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
-        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, French VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
-        BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
+        DialogErrorCodeTok: Label 'Dialog', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -1205,8 +1205,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
-        Assert.ExpectedErrorCode('Dialog');
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
     end;
 
     [Test]
@@ -1237,8 +1236,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about missing scheme is raised
-        Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressSchemeRequiredErr, CustomerNo));
-        Assert.ExpectedErrorCode('Dialog');
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressSchemeRequiredError(CustomerNo));
     end;
 
     [Test]
@@ -1273,8 +1271,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
-        Assert.ExpectedErrorCode('Dialog');
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
     end;
     #endregion
 
@@ -1340,6 +1337,12 @@ codeunit 148148 "Factur-X CII XML Tests"
             StrSubstNo(IncorrectValueErr, 'ApplicableTradeTax count'));
     end;
     #endregion
+
+    local procedure AssertExpectedDialogError(ExpectedErrorText: Text)
+    begin
+        Assert.ExpectedError(ExpectedErrorText);
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+    end;
 
     local procedure Initialize()
     begin

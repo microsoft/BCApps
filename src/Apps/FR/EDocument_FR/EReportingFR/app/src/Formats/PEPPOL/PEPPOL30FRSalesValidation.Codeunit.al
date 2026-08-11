@@ -119,11 +119,9 @@ codeunit 10992 "PEPPOL30 FR Sales Validation" implements "PEPPOL30 Validation"
     local procedure CheckSalesDocumentFR(SalesHeader: Record "Sales Header")
     var
         CompanyInfo: Record "Company Information";
-        GLSetup: Record "General Ledger Setup";
         ResponsibilityCenter: Record "Responsibility Center";
     begin
         CompanyInfo.Get();
-        GLSetup.Get();
 
         PEPPOL30SalesValidation.CheckCurrencyCode(SalesHeader."Currency Code");
 
