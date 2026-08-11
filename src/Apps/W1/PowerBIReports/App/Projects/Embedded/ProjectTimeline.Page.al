@@ -11,8 +11,8 @@ page 37106 "Project Timeline"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Timeline';
-    AboutTitle = 'About Project Timeline';
+    Caption = 'Project Timeline (Power BI)';
+    AboutTitle = 'About Project Timeline (Power BI)';
     AboutText = 'The Project Timeline report monitors project timelines to ensure timely delivery, with insights into task durations, start and end dates, and critical paths.';
 
     layout
