@@ -6302,6 +6302,7 @@ codeunit 90 "Purch.-Post"
     local procedure UpdateJobPurchLineUnitCostForInvDisc(PurchHeader: Record "Purchase Header"; var JobPurchLine2: Record "Purchase Line")
     var
         UnitCostLCY: Decimal;
+        QtyPerUOM: Decimal;
     begin
         if JobPurchLine2.Type <> JobPurchLine2.Type::"G/L Account" then
             exit;
@@ -6322,13 +6323,17 @@ codeunit 90 "Purch.-Post"
                         PurchHeader.GetUseDate(), PurchHeader."Currency Code", JobPurchLine2.Amount, PurchHeader."Currency Factor"),
                     GLSetup."Amount Rounding Precision");
 
+        QtyPerUOM := JobPurchLine2."Qty. per Unit of Measure";
+        if QtyPerUOM = 0 then
+            QtyPerUOM := 1;
+
         JobPurchLine2."Unit Cost (LCY)" :=
             Round(
-                UnitCostLCY * JobPurchLine2."Qty. per Unit of Measure" / JobPurchLine2."Qty. to Invoice",
+                UnitCostLCY * QtyPerUOM / JobPurchLine2."Qty. to Invoice",
                 GLSetup."Unit-Amount Rounding Precision");
         JobPurchLine2."Unit Cost" :=
             Round(
-                JobPurchLine2.Amount * JobPurchLine2."Qty. per Unit of Measure" / JobPurchLine2."Qty. to Invoice",
+                JobPurchLine2.Amount * QtyPerUOM / JobPurchLine2."Qty. to Invoice",
                 GLSetup."Unit-Amount Rounding Precision");
     end;
 
