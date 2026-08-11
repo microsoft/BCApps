@@ -1,10 +1,11 @@
 codeunit 139858 "APIV2 Currency Exch. Rate E2E"
 {
+    Subtype = Test;
+
     trigger OnRun()
     begin
         LibraryGraphMgt.BindAuthentication();
     end;
-    Subtype = Test;
 
     var
         LibraryERM: Codeunit "Library - ERM";

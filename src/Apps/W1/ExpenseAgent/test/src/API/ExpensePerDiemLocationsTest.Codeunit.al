@@ -8,13 +8,14 @@ using Microsoft.ExpenseAgent;
 
 codeunit 148349 "Expense PerDiem Locations Test"
 {
+    Subtype = Test;
+    TestType = IntegrationTest;
+    TestPermissions = Disabled;
+
     trigger OnRun()
     begin
         LibraryGraphMgt.BindAuthentication();
     end;
-    Subtype = Test;
-    TestType = IntegrationTest;
-    TestPermissions = Disabled;
 
     var
         Assert: Codeunit Assert;

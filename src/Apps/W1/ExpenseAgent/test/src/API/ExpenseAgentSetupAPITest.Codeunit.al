@@ -8,13 +8,14 @@ using Microsoft.ExpenseAgent;
 
 codeunit 148333 "Expense Agent Setup API Test"
 {
+    Subtype = Test;
+    TestType = IntegrationTest;
+    TestPermissions = Disabled;
+
     trigger OnRun()
     begin
         LibraryGraphMgt.BindAuthentication();
     end;
-    Subtype = Test;
-    TestType = IntegrationTest;
-    TestPermissions = Disabled;
 
     var
         Assert: Codeunit Assert;

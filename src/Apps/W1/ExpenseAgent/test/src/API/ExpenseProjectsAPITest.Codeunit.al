@@ -12,13 +12,14 @@ using Microsoft.Projects.Resources.Resource;
 
 codeunit 148331 "Expense Projects API Test"
 {
+    Subtype = Test;
+    TestType = IntegrationTest;
+    TestPermissions = Disabled;
+
     trigger OnRun()
     begin
         LibraryGraphMgt.BindAuthentication();
     end;
-    Subtype = Test;
-    TestType = IntegrationTest;
-    TestPermissions = Disabled;
 
     var
         Assert: Codeunit Assert;

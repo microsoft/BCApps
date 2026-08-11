@@ -1,12 +1,13 @@
 codeunit 139917 "APIV2 - Approval Entries E2E"
 {
+    Subtype = Test;
+    TestType = IntegrationTest;
+    TestPermissions = Disabled;
+
     trigger OnRun()
     begin
         LibraryGraphMgt.BindAuthentication();
     end;
-    Subtype = Test;
-    TestType = IntegrationTest;
-    TestPermissions = Disabled;
 
     var
         Assert: Codeunit Assert;

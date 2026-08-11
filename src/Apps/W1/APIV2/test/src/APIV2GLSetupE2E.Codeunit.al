@@ -1,10 +1,11 @@
 codeunit 139860 "APIV2 - G/L Setup E2E"
 {
+    Subtype = Test;
+
     trigger OnRun()
     begin
         LibraryGraphMgt.BindAuthentication();
     end;
-    Subtype = Test;
 
     var
         Assert: Codeunit "Assert";
