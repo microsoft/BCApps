@@ -110,9 +110,11 @@ page 7085 "Expense VAT Spec. API"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
-        ExpenseAgentSetup.Get();
-        ExpenseAgentSetup.TestField("Default VAT Bus. Posting Group");
-        Rec."VAT Bus. Posting Group" := ExpenseAgentSetup."Default VAT Bus. Posting Group";
+        if Rec."VAT Bus. Posting Group" <> '' then begin
+            ExpenseAgentSetup.GetRecordOnce();
+            ExpenseAgentSetup.TestField("Default VAT Bus. Posting Group");
+            Rec."VAT Bus. Posting Group" := ExpenseAgentSetup."Default VAT Bus. Posting Group";
+        end;
         exit(true);
     end;
 }
