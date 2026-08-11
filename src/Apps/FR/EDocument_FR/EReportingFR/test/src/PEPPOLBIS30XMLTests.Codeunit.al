@@ -583,10 +583,12 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
         SalesInvoiceLine.FindFirst();
-        Assert.AreEqual(SalesInvoiceLine."Order No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
+        Assert.AreEqual(SalesInvoiceLine."Order No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference[following-sibling::cac:AllowanceCharge]/cac:OrderReference/cbc:ID'),
             StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
         Assert.AreEqual(Format(SalesInvoiceLine."Order Line No.", 0, 9), GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cbc:LineID'),
             StrSubstNo(IncorrectValueErr, 'OrderLineReference LineID'));
+        Assert.AreEqual(SalesInvoiceLine."Shipment No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:Delivery[following-sibling::cac:AllowanceCharge]/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'Delivery ID'));
     end;
 
     [Test]
@@ -1049,8 +1051,8 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         FirstShipmentNo: Code[20];
         SecondShipmentNo: Code[20];
     begin
-        FirstShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1);
-        SecondShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1);
+        FirstShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        SecondShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
         exit(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
     end;
 
@@ -1086,15 +1088,23 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     var
         ShipmentNo: Code[20];
     begin
-        ShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 2, 1);
+        ShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 2, 1, 0);
         exit(CreateAndPostSalesInvoiceFromShipments(CustomerNo, ShipmentNo));
     end;
 
-    local procedure CreateAndPostSalesOrderShipment(CustomerNo: Code[20]; NumberOfLines: Integer; Quantity: Decimal): Code[20]
+    local procedure CreateAndPostSalesOrderShipment(CustomerNo: Code[20]; NumberOfLines: Integer; Quantity: Decimal; LineDiscountPct: Decimal): Code[20]
     var
         SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
     begin
         CreateSalesOrderWithLines(SalesHeader, CustomerNo, NumberOfLines, Quantity);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindSet(true);
+        repeat
+            SalesLine.Validate("Line Discount %", LineDiscountPct);
+            SalesLine.Modify(true);
+        until SalesLine.Next() = 0;
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));
     end;
 

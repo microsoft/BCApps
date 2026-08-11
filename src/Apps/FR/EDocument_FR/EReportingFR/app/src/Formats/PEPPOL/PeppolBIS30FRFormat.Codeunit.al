@@ -314,7 +314,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure InjectExtendedLineReferences(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SalesInvoiceLine: Record "Sales Invoice Line"; ShipmentPostingDates: Dictionary of [Code[20], Date])
     var
         InvoiceLineNode: XmlNode;
-        ItemNode: XmlNode;
+        LineContentAnchorNode: XmlNode;
         OrderLineReferenceElement: XmlElement;
         OrderReferenceElement: XmlElement;
         DeliveryElement: XmlElement;
@@ -324,7 +324,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         LineXPath := StrSubstNo(InvoiceLineXPathTok, Format(SalesInvoiceLine."Line No.", 0, 9));
         if not XmlDoc.SelectSingleNode(LineXPath, NamespaceMgr, InvoiceLineNode) then
             exit;
-        if not InvoiceLineNode.SelectSingleNode('cac:Item', NamespaceMgr, ItemNode) then
+        if not InvoiceLineNode.SelectSingleNode('cac:AllowanceCharge | cac:TaxTotal | cac:WithholdingTaxTotal | cac:Item', NamespaceMgr, LineContentAnchorNode) then
             exit;
 
         if SalesInvoiceLine."Order No." <> '' then begin
@@ -333,7 +333,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             OrderReferenceElement := XmlElement.Create('OrderReference', CacNamespaceTok);
             OrderReferenceElement.Add(XmlElement.Create('ID', CbcNamespaceTok, SalesInvoiceLine."Order No."));
             OrderLineReferenceElement.Add(OrderReferenceElement);
-            ItemNode.AddBeforeSelf(OrderLineReferenceElement);
+            LineContentAnchorNode.AddBeforeSelf(OrderLineReferenceElement);
         end;
 
         if SalesInvoiceLine."Shipment No." = '' then
@@ -345,7 +345,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         DeliveryElement := XmlElement.Create('Delivery', CacNamespaceTok);
         DeliveryElement.Add(XmlElement.Create('ID', CbcNamespaceTok, SalesInvoiceLine."Shipment No."));
         DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', CbcNamespaceTok, Format(ShipmentPostingDate, 0, 9)));
-        ItemNode.AddBeforeSelf(DeliveryElement);
+        LineContentAnchorNode.AddBeforeSelf(DeliveryElement);
     end;
 
     local procedure InjectRegulatoryComments(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef)
