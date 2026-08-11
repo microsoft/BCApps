@@ -181,6 +181,7 @@ codeunit 6984 "Release Exp. Report Document"
     local procedure CheckPoliciesUpToDate(ExpReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLine: Record "Expense Report Line";
+        PolicyEvaluationNotCurrentMsg: Text;
     begin
         // Re-check policy currency in the submit transaction. The client decides whether to run
         // evaluation from a snapshot read of the report's policy state; between that read and this
@@ -192,6 +193,11 @@ codeunit 6984 "Release Exp. Report Document"
         if not ExpenseAgentSetup."Evaluate Policies" then
             exit;
 
+        // Build the message before raising it: the human-readable label stays translatable while the
+        // machine-detectable marker stays locked, and Error receives a single value (no inline
+        // concatenation in the Error call).
+        PolicyEvaluationNotCurrentMsg := PolicyEvaluationNotCurrentErr + PolicyEvaluationNotCurrentCodeTok;
+
         ExpenseReportLine.SetRange("Document No.", ExpReportHeader."No.");
         ExpenseReportLine.SetLoadFields("Expense Category", "Policies Evaluated At", "Policy Eval Version", "Evaluated Policy Version");
         if ExpenseReportLine.FindSet() then
@@ -199,7 +205,7 @@ codeunit 6984 "Release Exp. Report Document"
                 if ExpenseReportLine.GetPolicyStatus() in
                     ["Expense Policy Status"::Stale, "Expense Policy Status"::"Not Evaluated"]
                 then
-                    Error(PolicyEvaluationNotCurrentErr + PolicyEvaluationNotCurrentCodeTok);
+                    Error(PolicyEvaluationNotCurrentMsg);
             until ExpenseReportLine.Next() = 0;
     end;
 
