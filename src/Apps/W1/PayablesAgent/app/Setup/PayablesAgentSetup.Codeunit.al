@@ -282,10 +282,9 @@ codeunit 3307 "Payables Agent Setup"
     /// Feature-specific resolver for the agent-driven line-matching experiment, used to select the prompt variant.
     /// </summary>
     internal procedure IsAgentDrivenLineMatchingEnabled(): Boolean
-    var
-        FeatureConfiguration: Codeunit "Feature Configuration";
     begin
-        exit(FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok);
+        // Treatment branch: force agent-driven line matching regardless of ECS config.
+        exit(true);
     end;
 
     /// <summary>
@@ -834,5 +833,4 @@ codeunit 3307 "Payables Agent Setup"
         SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
         UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
         AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
-        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 }
