@@ -8,6 +8,7 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Sales] [Quote]
     end;
 

@@ -6,6 +6,7 @@ codeunit 139841 "APIV2 - PDF Document E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [PDF]
     end;
 

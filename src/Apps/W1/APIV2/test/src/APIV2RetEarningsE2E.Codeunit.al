@@ -8,6 +8,7 @@ codeunit 139821 "APIV2 - Ret. Earnings E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Retained Earnings]
     end;
 

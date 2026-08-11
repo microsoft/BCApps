@@ -8,6 +8,7 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Sales] [Order] [Archive]
     end;
 

@@ -7,6 +7,7 @@ codeunit 139805 "APIV2 - Shipment Methods E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Shipment Method]
     end;
 

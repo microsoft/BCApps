@@ -7,6 +7,7 @@ codeunit 139801 "APIV2 - Accounts E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Account]
     end;
 

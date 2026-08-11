@@ -9,6 +9,7 @@ codeunit 139700 "APIV1 - Items E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Item]
     end;
 

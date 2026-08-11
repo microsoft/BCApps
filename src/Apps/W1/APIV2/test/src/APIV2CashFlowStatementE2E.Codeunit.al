@@ -8,6 +8,7 @@ codeunit 139817 "APIV2 - CashFlow Statement E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Cash Flow Statement]
     end;
 

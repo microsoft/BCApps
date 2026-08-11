@@ -7,6 +7,7 @@ codeunit 139704 "APIV1 - Payment Terms E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Payment Terms]
     end;
 

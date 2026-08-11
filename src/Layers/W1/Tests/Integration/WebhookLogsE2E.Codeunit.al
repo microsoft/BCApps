@@ -5,6 +5,7 @@ codeunit 135547 "Webhook Logs E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [API] [Webhook]
     end;
 

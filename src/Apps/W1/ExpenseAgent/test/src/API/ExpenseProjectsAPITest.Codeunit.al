@@ -12,6 +12,10 @@ using Microsoft.Projects.Resources.Resource;
 
 codeunit 148331 "Expense Projects API Test"
 {
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;

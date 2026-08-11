@@ -6,6 +6,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Image]
     end;
 

@@ -1,5 +1,9 @@
 codeunit 139882 "APIV2 - Salesperson/Purch E2E"
 {
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
     Subtype = Test;
     RequiredTestIsolation = Disabled;
 

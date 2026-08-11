@@ -9,6 +9,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Vendor]
     end;
 

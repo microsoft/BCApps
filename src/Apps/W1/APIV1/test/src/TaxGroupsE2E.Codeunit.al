@@ -8,6 +8,7 @@ codeunit 139708 "Tax Groups E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Tax Group]
     end;
 

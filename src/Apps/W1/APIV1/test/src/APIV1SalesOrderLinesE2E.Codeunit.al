@@ -8,6 +8,7 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Sales] [Order]
     end;
 

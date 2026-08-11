@@ -8,6 +8,7 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Sales] [Shipment]
     end;
 

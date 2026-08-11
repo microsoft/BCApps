@@ -6,6 +6,7 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [JournalLines]
     end;
 

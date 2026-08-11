@@ -9,6 +9,7 @@ codeunit 139802 "APIV2 - Customers E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Customer]
     end;
 

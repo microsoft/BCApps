@@ -7,6 +7,7 @@ codeunit 139718 "APIV1 - Trial Balance E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Trial Balance]
     end;
 

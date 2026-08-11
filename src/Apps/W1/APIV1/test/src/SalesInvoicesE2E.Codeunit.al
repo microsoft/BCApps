@@ -8,6 +8,7 @@ codeunit 139709 "Sales Invoices E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 

@@ -8,6 +8,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Purchase] [Credit Memo]
     end;
 

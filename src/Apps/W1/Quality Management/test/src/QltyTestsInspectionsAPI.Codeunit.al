@@ -22,6 +22,7 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Quality Management] [API]
     end;
 

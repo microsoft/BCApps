@@ -8,6 +8,7 @@ codeunit 139830 "APIV2 - GLEntries E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [G/L Entry]
     end;
 

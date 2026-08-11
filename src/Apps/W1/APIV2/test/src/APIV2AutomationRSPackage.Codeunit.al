@@ -8,6 +8,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Config. Package]
     end;
 

@@ -8,6 +8,7 @@ codeunit 139813 "APIV2 - Currencies E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Currency]
     end;
 

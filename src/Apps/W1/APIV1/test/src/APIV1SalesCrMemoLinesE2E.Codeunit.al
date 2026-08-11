@@ -8,6 +8,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 

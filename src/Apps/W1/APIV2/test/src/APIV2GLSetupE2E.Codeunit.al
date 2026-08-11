@@ -1,5 +1,9 @@
 codeunit 139860 "APIV2 - G/L Setup E2E"
 {
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
     Subtype = Test;
 
     var

@@ -5,6 +5,7 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
     end;
 
     var

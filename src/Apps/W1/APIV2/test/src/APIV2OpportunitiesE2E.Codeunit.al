@@ -8,6 +8,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Opportunity]
     end;
 

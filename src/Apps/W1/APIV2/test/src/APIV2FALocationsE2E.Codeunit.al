@@ -8,6 +8,7 @@ codeunit 139906 "APIV2 - FA Locations E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Api] [Location]
     end;
 

@@ -8,6 +8,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Dimension Line]
     end;
 

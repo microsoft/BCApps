@@ -8,6 +8,10 @@ using Microsoft.ExpenseAgent;
 
 codeunit 148315 "Expense Users API Test"
 {
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;

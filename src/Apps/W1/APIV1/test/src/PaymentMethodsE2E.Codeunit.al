@@ -8,6 +8,7 @@ codeunit 139714 "Payment Methods E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Payment Method]
     end;
 

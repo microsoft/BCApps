@@ -5,12 +5,15 @@
 
 codeunit 131022 "Library - Graph Auth Mgt."
 {
+    Access = Internal;
+    EventSubscriberInstance = Manual;
+
     var
         ApiTestPasswordFileTok: Label 'C:\Run\my\ApiTestPassword', Locked = true;
         NavServerUserPasswordKeyTok: Label 'NavServerUserPassword', Locked = true;
         CurrentUserNotFoundErr: Label 'The current test user could not be found.';
-        MissingContainerPasswordFileErr: Label 'The API test password file is not available.', Locked = true;
-        MissingPasswordErr: Label 'API tests require a password when the server uses NavUserPassword authentication. Configure the BCApps container credential bridge or the NavServerUserPassword secret.';
+        ContainerPasswordReadErr: Label 'The API test password could not be read from %1.', Comment = '%1 - Password file path';
+        KeyVaultPasswordReadErr: Label 'The API test password could not be retrieved from the %1 secret.', Comment = '%1 - Azure Key Vault secret name';
         PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.', Locked = true;
 
     [NonDebuggable]
@@ -22,29 +25,42 @@ codeunit 131022 "Library - Graph Auth Mgt."
     begin
         if not User.Get(UserSecurityId()) then
             Error(CurrentUserNotFoundErr);
+
+        if ContainerPasswordFileExists() then begin
+            if not TryGetContainerPassword(Password) then
+                Error(ContainerPasswordReadErr, ApiTestPasswordFileTok);
+            HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
+            exit;
+        end;
+
         if User."Windows Security ID" <> '' then
             exit;
 
-        if not TryGetContainerPassword(Password) then
-            if not TryGetNavEnlistmentPassword(Password) then
-                Error(MissingPasswordErr);
+        if not TryGetNavEnlistmentPassword(Password) then
+            Error(KeyVaultPasswordReadErr, NavServerUserPasswordKeyTok);
 
         HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
+    end;
+
+    local procedure ContainerPasswordFileExists(): Boolean
+    var
+        File: DotNet File;
+    begin
+        exit(File.Exists(ApiTestPasswordFileTok));
     end;
 
     [NonDebuggable]
     [TryFunction]
     local procedure TryGetContainerPassword(var Password: SecretText)
     var
-        File: DotNet File;
-        PasswordText: Text;
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        LibraryAzureKVMockMgmt: Codeunit "Library - Azure KV Mock Mgmt.";
     begin
-        if not File.Exists(ApiTestPasswordFileTok) then
-            Error(MissingContainerPasswordFileErr);
-
-        PasswordText := File.ReadAllText(ApiTestPasswordFileTok);
-        Password := PasswordText;
-        Clear(PasswordText);
+        LibraryAzureKVMockMgmt.InitMockAzureKeyvaultSecretProvider();
+        LibraryAzureKVMockMgmt.AddMockAzureKeyvaultSecretProviderMappingFromFile(NavServerUserPasswordKeyTok, ApiTestPasswordFileTok);
+        LibraryAzureKVMockMgmt.UseAzureKeyvaultSecretProvider();
+        if not AzureKeyVault.GetAzureKeyVaultSecret(NavServerUserPasswordKeyTok, Password) then
+            Error(PasswordRetrievalFailedErr);
         if Password.IsEmpty() then
             Error(PasswordRetrievalFailedErr);
     end;

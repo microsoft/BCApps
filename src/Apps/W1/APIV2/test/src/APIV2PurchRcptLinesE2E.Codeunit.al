@@ -8,6 +8,7 @@ codeunit 139850 "APIV2 - Purch. Rcpt. Lines E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Purchase] [Receipt]
     end;
 

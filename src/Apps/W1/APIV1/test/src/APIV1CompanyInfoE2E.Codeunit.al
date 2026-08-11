@@ -8,6 +8,7 @@ codeunit 139706 "APIV1 - Company Info. E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Company Information]
     end;
 

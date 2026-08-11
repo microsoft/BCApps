@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 codeunit 148018 "IRS 1099 API Tests"
 {
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
     Subtype = Test;
     TestType = Uncategorized;
     TestPermissions = Disabled;

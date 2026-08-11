@@ -8,6 +8,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 

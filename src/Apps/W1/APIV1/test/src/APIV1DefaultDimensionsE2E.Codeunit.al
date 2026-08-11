@@ -9,6 +9,7 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Default Dimension]
     end;
 

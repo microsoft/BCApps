@@ -7,6 +7,7 @@ codeunit 139819 "APIV2 - Aged AP E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Purchase] [Aged Report]
     end;
 

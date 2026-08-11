@@ -8,6 +8,7 @@ codeunit 139810 "APIV2 - Countries/Regions E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Country/Region]
     end;
 

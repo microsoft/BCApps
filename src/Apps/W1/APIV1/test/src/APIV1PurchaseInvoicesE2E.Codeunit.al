@@ -8,6 +8,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Purchase] [Invoice]
     end;
 

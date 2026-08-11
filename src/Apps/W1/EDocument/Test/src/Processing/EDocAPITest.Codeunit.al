@@ -12,6 +12,10 @@ using System.TestLibraries.Utilities;
 
 codeunit 135575 "E-Doc. API Test"
 {
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;

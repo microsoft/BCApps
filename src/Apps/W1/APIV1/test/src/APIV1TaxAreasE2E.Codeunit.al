@@ -9,6 +9,7 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Tax Area]
     end;
 
