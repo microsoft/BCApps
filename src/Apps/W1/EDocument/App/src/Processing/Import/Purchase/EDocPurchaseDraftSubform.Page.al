@@ -468,7 +468,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
     trigger OnAfterGetRecord()
     begin
-        if EDocumentPurchaseLine.Get(Rec."E-Document Entry No.", Rec."Line No.") then;
+        // Reuse the row already loaded into Rec instead of re-reading it from the database on every displayed line.
+        EDocumentPurchaseLine := Rec;
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
         MatchedEntityName := Rec.GetMatchedEntityName();
         SetHasAdditionalColumns();
