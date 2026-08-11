@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Purchases.History;
+using System.Telemetry;
 
 codeunit 6244 "E-Doc. Hist. Line Data Loader"
 {
@@ -16,6 +17,8 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
 
     var
         TotalLoaded: Integer;
+        HistoricalDataLoadEventTok: Label 'Historical Data Load', Locked = true;
+        HistoricalDataLoadFailedErr: Label 'Failed to load historical data for vendor %1. Error: %2', Comment = '%1 = Vendor No., %2 = Error message', Locked = true;
 
     /// <summary>
     /// Loads up to 5000 historical posted purchase invoice lines for the draft line's vendor
@@ -27,12 +30,10 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
     procedure LoadHistoricalLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; ProductCode: Text[100]; Description: Text[100])
     var
         PurchInvLine: Record "Purch. Inv. Line";
-        EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
-        ProductCodes: List of [Text];
-        Descriptions: List of [Text];
-        SimilarDescriptions: List of [Text];
-        DescriptionEntry: Text;
-        SimilarTerm: Text;
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        StartTime: DateTime;
+        ElapsedTime: Duration;
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         TotalLoaded := 0;
 
@@ -43,6 +44,31 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
         if VendorNo = '' then
             exit;
 
+        StartTime := CurrentDateTime();
+        if not TryLoadHistoricalLines(TempPurchInvLine, VendorNo, ProductCode, Description) then begin
+            FeatureTelemetry.LogError('0000SEO', FeatureName(), HistoricalDataLoadEventTok, StrSubstNo(HistoricalDataLoadFailedErr, VendorNo, GetLastErrorText()), GetLastErrorCallStack());
+            exit;
+        end;
+
+        ElapsedTime := CurrentDateTime() - StartTime;
+        TelemetryDimensions.Add('Records loaded', Format(TotalLoaded));
+        TelemetryDimensions.Add('Duration', Format(ElapsedTime));
+        TelemetryDimensions.Add('Vendor matching scope', 'Same Vendor');
+        TelemetryDimensions.Add('Max records limit', Format(MaxHistoricalRecords()));
+        TelemetryDimensions.Add('Limit reached', Format(TotalLoaded >= MaxHistoricalRecords()));
+        FeatureTelemetry.LogUsage('0000SEN', FeatureName(), HistoricalDataLoadEventTok, TelemetryDimensions);
+    end;
+
+    [TryFunction]
+    local procedure TryLoadHistoricalLines(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; ProductCode: Text[100]; Description: Text[100])
+    var
+        EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
+        ProductCodes: List of [Text];
+        Descriptions: List of [Text];
+        SimilarDescriptions: List of [Text];
+        DescriptionEntry: Text;
+        SimilarTerm: Text;
+    begin
         if ProductCode <> '' then
             ProductCodes.Add(ProductCode);
         if Description <> '' then
@@ -161,5 +187,10 @@ codeunit 6244 "E-Doc. Hist. Line Data Loader"
     procedure MaxHistoricalRecords(): Integer
     begin
         exit(5000);
+    end;
+
+    local procedure FeatureName(): Text
+    begin
+        exit('EDocument Historical Matching');
     end;
 }
