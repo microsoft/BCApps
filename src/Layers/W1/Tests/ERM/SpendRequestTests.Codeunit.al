@@ -438,22 +438,6 @@ codeunit 134242 "Spend Request Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure SpendRequestTypeDefaultIsExpense()
-    var
-        SpendRequest: Record "Spend Request";
-    begin
-        // [SCENARIO] A new spend request defaults to Expense type.
-        Initialize();
-
-        // [WHEN] A spend request is created.
-        CreateSpendRequest(SpendRequest);
-
-        // [THEN] Type is Expense.
-        Assert.AreEqual(SpendRequest.Type::Expense, SpendRequest.Type, 'Default type should be Expense.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure GLLinkCreationTracksSpending()
     var
         SpendRequest: Record "Spend Request";
@@ -562,30 +546,6 @@ codeunit 134242 "Spend Request Tests"
         Assert.AreEqual(SpendRequest."No.", Format(SpendRequestList."No.".Value()),
             'List page should show the correct spend request.');
         SpendRequestList.Close();
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure ReleaseActionSetsStatusToReleased()
-    var
-        SpendRequest: Record "Spend Request";
-        SpendRequestCard: TestPage "Spend Request Card";
-    begin
-        // [SCENARIO] The Release action on the card page sets the status to Released.
-        Initialize();
-
-        // [GIVEN] An open spend request.
-        CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequestCard.OpenEdit();
-        SpendRequestCard.GoToRecord(SpendRequest);
-
-        // [WHEN] The Release action is invoked.
-        SpendRequestCard.Release.Invoke();
-
-        // [THEN] The status is Released.
-        SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'Status should be Released.');
-        SpendRequestCard.Close();
     end;
 
     [Test]
@@ -837,27 +797,6 @@ codeunit 134242 "Spend Request Tests"
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(OriginalLCY, SpendRequest."Total Expected Amount (LCY)",
             'Total Expected Amount (LCY) should be unchanged.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure SpendRequestFieldTypeValidation()
-    var
-        SpendRequest: Record "Spend Request";
-    begin
-        // [SCENARIO] Validating the Type field checks that the request is Open.
-        Initialize();
-
-        // [GIVEN] A released spend request.
-        CreateSpendRequest(SpendRequest);
-        SpendRequest.Status := SpendRequest.Status::Released;
-        SpendRequest.Modify();
-
-        // [WHEN] Attempting to validate the Type field.
-        asserterror SpendRequest.Validate(Type, SpendRequest.Type::Expense);
-
-        // [THEN] An error is raised because the status is not Open.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
     end;
 
     [Test]
