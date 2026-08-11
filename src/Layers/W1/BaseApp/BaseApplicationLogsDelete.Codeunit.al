@@ -54,7 +54,7 @@ codeunit 3995 "Base Application Logs Delete"
 
     var
         NoFiltersErr: Label 'No filters were set on table %1, %2. Please contact your Microsoft Partner for assistance.', Comment = '%1 = a id of a table (integer), %2 = the caption of the table.';
-        LocationNotFoundErr: Label 'Location %1 referenced by %2 was not found. The record was excluded from retention policy cleanup.', Comment = '%1 = location code, %2 = record ID.';
+        LocationNotFoundErr: Label 'A location referenced by a posted inventory document was not found. The record was excluded from retention policy cleanup.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Apply Retention Policy", 'OnApplyRetentionPolicyIndirectPermissionRequired', '', true, true)]
     local procedure DeleteRecordsWithIndirectPermissionsOnApplyRetentionPolicyIndirectPermissionRequired(var RecRef: RecordRef; var Handled: Boolean)
@@ -120,9 +120,15 @@ codeunit 3995 "Base Application Logs Delete"
     begin
         case RecRef.Number of
             Database::"Posted Invt. Pick Header":
-                LocationCodeFieldRef := RecRef.Field(PostedInvtPickHeader.FieldNo("Location Code"));
+                begin
+                    RecRef.SetLoadFields(PostedInvtPickHeader.FieldNo("Location Code"));
+                    LocationCodeFieldRef := RecRef.Field(PostedInvtPickHeader.FieldNo("Location Code"));
+                end;
             Database::"Posted Invt. Put-away Header":
-                LocationCodeFieldRef := RecRef.Field(PostedInvtPutawayHeader.FieldNo("Location Code"));
+                begin
+                    RecRef.SetLoadFields(PostedInvtPutawayHeader.FieldNo("Location Code"));
+                    LocationCodeFieldRef := RecRef.Field(PostedInvtPutawayHeader.FieldNo("Location Code"));
+                end;
             else
                 exit;
         end;
@@ -150,7 +156,7 @@ codeunit 3995 "Base Application Logs Delete"
 
                     if not LocationExistsForCode then begin
                         RecordsToExclude.Add(RecRef.RecordId);
-                        RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(LocationNotFoundErr, LocationCode, RecRef.RecordId), false);
+                        RetentionPolicyLog.LogError(LogCategory(), LocationNotFoundErr, false);
                     end else
                         if LocationBinMandatory.Get(LocationCode) then
                             RecordsToExclude.Add(RecRef.RecordId);
