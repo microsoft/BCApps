@@ -1746,13 +1746,14 @@ codeunit 137212 "SCM Copy Document Mgt."
         // line has an assemble-to-order link, and the copy reproduces the ATO link on the target line.
         Initialize();
 
-        // [GIVEN] Assemble-to-order item with an assembly component
+        // [GIVEN] Assemble-to-order item with a resource component (resource-only BOM avoids the
+        // component availability engine that would read Prod. Order tables outside the fix under test)
         LibraryInventory.CreateItem(Item);
         Item.Validate("Replenishment System", Item."Replenishment System"::Assembly);
         Item.Validate("Assembly Policy", Item."Assembly Policy"::"Assemble-to-Order");
         Item.Modify(true);
         LibraryAssembly.CreateAssemblyList(
-            AssemblyItem."Costing Method"::Standard, Item."No.", true, 1, 0, 0, LibraryRandom.RandInt(5), '', '');
+            AssemblyItem."Costing Method"::Standard, Item."No.", true, 0, 1, 0, LibraryRandom.RandInt(5), '', '');
 
         // [GIVEN] Source sales quote with the ATO item; validating the item auto-creates the ATO link
         Qty := LibraryRandom.RandIntInRange(2, 10);
