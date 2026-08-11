@@ -5,6 +5,11 @@
 
 namespace Microsoft.TestLibraries.ERP;
 
+using System.Azure.KeyVault;
+using System.Integration;
+using System.IO;
+using System.Security.AccessControl;
+
 codeunit 131022 "Library - Graph Auth Mgt."
 {
     Access = Internal;
