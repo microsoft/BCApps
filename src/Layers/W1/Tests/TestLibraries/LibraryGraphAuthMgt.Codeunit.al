@@ -5,6 +5,7 @@
 
 namespace Microsoft.TestLibraries.ERP;
 
+using System;
 using System.Azure.KeyVault;
 using System.Integration;
 using System.IO;
