@@ -967,6 +967,55 @@ codeunit 141026 "ERM GST On Prepayments"
           GeneralLedgerSetup."Enable GST (Australia)", GeneralLedgerSetup."GST Report", GeneralLedgerSetup."Full GST on Prepayment");
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure NoSecondPrepmtInvoiceAfterQtyReducedToInvoicedQtyWithFullGST()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [GST] [Prepayment]
+        // [SCENARIO 643225] No second Prepayment Invoice is generated when a Full GST on Prepayment order line is reduced to the already shipped and invoiced quantity after a Prepayment Credit Memo.
+
+        // [GIVEN] Full GST on Prepayment enabled and a Sales Order with 100% Prepayment, Quantity 10.
+        Initialize();
+        CreateGeneralPostingSetup(GeneralPostingSetup);
+        LibrarySales.CreateSalesHeader(
+          SalesHeader, SalesHeader."Document Type"::Order, CreateCustomer('', GeneralPostingSetup."Gen. Bus. Posting Group", 0));
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(GeneralPostingSetup."Gen. Prod. Posting Group"), 10);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Validate("Prepayment %", 100);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Prepayment Invoice is posted for the full quantity.
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [GIVEN] Only part of the order (6 out of 10) is shipped and invoiced.
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.Validate("Qty. to Ship", 6);
+        SalesLine.Validate("Qty. to Invoice", 6);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Prepayment Credit Memo is posted, reversing the un-deducted prepayment.
+        LibrarySales.PostSalesPrepaymentCreditMemo(SalesHeader);
+
+        // [WHEN] The order is reopened and the quantity is reduced to the shipped and invoiced quantity (6).
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.Validate(Quantity, 6);
+        SalesLine.Modify(true);
+
+        // [THEN] The stored prepayment base is reduced to the current line amount, so no phantom prepayment remains.
+        SalesLine.TestField("Prepmt. Line Amount", SalesLine."Line Amount");
+
+        // [THEN] Posting another Prepayment Invoice reports there is nothing to post.
+        asserterror LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        Assert.ExpectedError(DocumentErrorsMgt.GetNothingToPostErrorMsg());
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();

@@ -5793,8 +5793,10 @@ table 37 "Sales Line"
             exit;
 
         if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Shipped Not Invoiced" = 0) then
-            if SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice then
+            if SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice then begin
+                CapPrepmtAmountsToLineAmountForFullGST();
                 exit;
+            end;
 
         if SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice then begin
             OutstandingAmountExclTax := CalculateOutstandingAmountExclTax();
@@ -5829,6 +5831,24 @@ table 37 "Sales Line"
         QuantityNotInvoiced := (Rec.Quantity - Rec."Quantity Invoiced");
         OutstandingAmount := (Rec."Line Amount" - Rec."Inv. Discount Amount") * QuantityNotInvoiced / Rec.Quantity;
         exit(OutstandingAmount);
+    end;
+
+    local procedure CapPrepmtAmountsToLineAmountForFullGST()
+    var
+        LineAmountAfterInvDisc: Decimal;
+    begin
+        if not (GetFullGST() and (not PrePaymentLineAmountEntered)) then
+            exit;
+
+        LineAmountAfterInvDisc := "Line Amount" - "Inv. Discount Amount";
+        if "Prepmt. Line Amount" <= LineAmountAfterInvDisc then
+            exit;
+
+        "Prepmt. Line Amount" := LineAmountAfterInvDisc;
+        if "Prepmt. Line Amount" < "Prepmt. Amt. Inv." then
+            "Prepmt. Line Amount" := "Prepmt. Amt. Inv.";
+        if "Prepmt. VAT Base Amt." > "Prepmt. Line Amount" then
+            "Prepmt. VAT Base Amt." := "Prepmt. Line Amount";
     end;
 
     local procedure CheckLineAmount(MaxLineAmount: Decimal)
