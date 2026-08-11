@@ -29,11 +29,8 @@ Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -key
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "UsePermissionSetsFromExtensions" -keyValue "true"
 Restart-BcContainer -containerName $parameters.ContainerName
 
-# Reset the container's application database in one bulk operation instead of uninstalling every
-# pre-installed app one by one (~19 min). Dropping and recreating the application database removes
-# all apps at once (~4 min). Resolve the developer license from the artifact this container was
-# built from (via the manifest, so a machine with several cached versions cannot pick the wrong
-# one); recreating the database drops the license that was imported at container creation.
+# Bulk-reset the application database (drop+recreate) instead of uninstalling every pre-installed app
+# one by one. Resolve the license from the artifact manifest; the reset drops the container's license.
 $appArtifactPath = Download-Artifacts -artifactUrl $parameters.artifactUrl
 $artifactManifest = Get-Content (Join-Path $appArtifactPath 'manifest.json') -Raw | ConvertFrom-Json
 $licenseFile = Join-Path $appArtifactPath $artifactManifest.licenseFile
