@@ -248,19 +248,19 @@ page 4410 "SOA Multi Items Availability"
                 {
                     Caption = 'Requested Quantity Available';
                     ToolTip = 'Specifies if the requested quantity is available in requested unit of measure.';
-                    Visible = (not IsAgentSession) or (IsAgentSession and IncludeCapableToPromiseItems);
+                    Visible = (not IsAgentSession) or (ItemAvailabilityEnabled and IncludeCapableToPromiseItems);
                 }
                 field(EarliestShipmentDate; EarliestShipmentDate)
                 {
                     Caption = 'Earliest Shipment Date';
                     ToolTip = 'Specifies the earliest date the requested quantity will be available for shipment if ordered today.';
-                    Visible = (not IsAgentSession) or (IsAgentSession and IncludeCapableToPromiseItems);
+                    Visible = (not IsAgentSession) or (ItemAvailabilityEnabled and IncludeCapableToPromiseItems);
                 }
                 field(AvailabilityLevel; AvailabilityLevel)
                 {
                     Caption = 'Availability Level';
                     ToolTip = 'Specifies the level of item availability.';
-                    Visible = (not IsAgentSession) or (IsAgentSession and OptionsVisible and not IncludeCapableToPromiseItems);
+                    Visible = (not IsAgentSession) or (ItemAvailabilityEnabled and not IncludeCapableToPromiseItems);
                 }
                 field(UnitCost; UnitCost)
                 {
@@ -704,7 +704,8 @@ page 4410 "SOA Multi Items Availability"
 
         if IsAgentSession then
             if SOASetup.FindLast() then begin
-                OptionsVisible := SOASetup."Search Only Available Items";
+                ItemAvailabilityEnabled := SOASetup."Search Only Available Items";
+                OptionsVisible := ItemAvailabilityEnabled;
                 IncludeCapableToPromiseItems := SOASetup."Incl. Capable to Promise";
             end;
 
@@ -764,7 +765,12 @@ page 4410 "SOA Multi Items Availability"
         EarliestShipmentDate := 0D;
         ResolvedVariantCode := GetResolvedVariantCode();
 
-        CalcAvailQuantities(GrossRequirement, PlannedOrderRcpt, ScheduledRcpt, PlannedOrderReleases, ProjAvailableBalance, ProjAvailableBalanceInUOM, ExpectedInventory, QtyAvailable, ResolvedVariantCode);
+        if IsAgentSession and not ItemAvailabilityEnabled then begin
+            Available := true;
+            AvailabilityLevel := AvailabilityLevel::Available;
+        end else
+            CalcAvailQuantities(GrossRequirement, PlannedOrderRcpt, ScheduledRcpt, PlannedOrderReleases, ProjAvailableBalance, ProjAvailableBalanceInUOM, ExpectedInventory, QtyAvailable, ResolvedVariantCode);
+
         if not CalcPrice(ResolvedVariantCode) then
             if not PriceCalcNotificationSent then
                 if SOAPriceCalcNotification.IsEnabled() then begin
@@ -821,7 +827,7 @@ page 4410 "SOA Multi Items Availability"
         TranslatedDescription: Text[100];
         TranslatedDescription2: Text[50];
         EarliestShipmentDate: Date;
-        Available, CalculateEarliestShipmentDate, OptionsVisible, IsAgentSession, IncludeCapableToPromiseItems, MatchingItem : Boolean;
+        Available, CalculateEarliestShipmentDate, OptionsVisible, IsAgentSession, ItemAvailabilityEnabled, IncludeCapableToPromiseItems, MatchingItem : Boolean;
         PriceCalcNotificationSent: Boolean;
         PreviewDisclaimerLbl: Label 'Item Availability page (preview). Learn more';
         PreviewDisclaimerURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2303848', Locked = true;

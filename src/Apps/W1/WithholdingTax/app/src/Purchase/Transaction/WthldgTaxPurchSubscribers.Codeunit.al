@@ -422,6 +422,8 @@ codeunit 6784 "Wthldg Tax Purch. Subscribers"
         if TempPurchLineGlobal.Type <> TempPurchLineGlobal.Type::" " then
             WithholdingPostingSetup.Get(TempPurchLineGlobal."Wthldg. Tax Bus. Post. Group", TempPurchLineGlobal."Wthldg. Tax Prod. Post. Group");
 
+        PurchHeader."Withholding Tax Amount" := 0;
+
         if PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::Invoice] then begin
             PurchInvHeader.Get(GenJnlLineDocNo);
 
@@ -438,7 +440,7 @@ codeunit 6784 "Wthldg Tax Purch. Subscribers"
                        (WithholdingPostingSetup."Realized Withholding Tax Type" <> WithholdingPostingSetup."Realized Withholding Tax Type"::" ")
                     then
                         if WithholdingTaxEntry.Amount <> 0 then begin
-                            PurchHeader."Withholding Tax Amount" := WithholdingTaxEntry.Amount;
+                            PurchHeader."Withholding Tax Amount" += WithholdingTaxEntry.Amount;
                             InsertGenJournalWithholding(PurchHeader, GenJnlLine, WithholdingPostingSetup.GetPayableWithholdingTaxAccount(), SrcCode, GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo, WithholdingTaxEntry.Amount, TotalPurchLineLCY);
                             GenJnlPostLine.IncreaseTaxEntryNo();
                             GenJnlPostLine.Run(GenJnlLine);
@@ -463,7 +465,7 @@ codeunit 6784 "Wthldg Tax Purch. Subscribers"
                        (WithholdingPostingSetup."Realized Withholding Tax Type" <> WithholdingPostingSetup."Realized Withholding Tax Type"::" ")
                     then
                         if WithholdingTaxEntry.Amount <> 0 then begin
-                            PurchHeader."Withholding Tax Amount" := WithholdingTaxEntry.Amount;
+                            PurchHeader."Withholding Tax Amount" += WithholdingTaxEntry.Amount;
                             InsertGenJournalWithholding(PurchHeader, GenJnlLine, WithholdingPostingSetup.GetPayableWithholdingTaxAccount(), SrcCode, GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo, WithholdingTaxEntry.Amount, TotalPurchLineLCY);
                             GenJnlPostLine.RunWithCheck(GenJnlLine);
                         end;
