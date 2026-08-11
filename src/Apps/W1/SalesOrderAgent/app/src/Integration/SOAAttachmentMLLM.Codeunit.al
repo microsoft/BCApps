@@ -23,15 +23,18 @@ codeunit 4421 "SOA Attachment MLLM"
         ExtractionSchemaTok: Label 'Prompts/AttachmentExtraction/soa-attachment-extraction-example.json', Locked = true;
         SecurityPromptTok: Label 'SalesOrderAgent-Irrelevance-SecurityPromptV28', Locked = true;
         SchemaNameTok: Label 'soa-attachment-content', Locked = true;
+        ProvenanceTok: Label 'soa_source_file_id', Locked = true;
         FileDataTok: Label 'data:%1;base64,%2', Comment = '%1 = MIME type, %2 = base64 file content', Locked = true;
-        AttachmentFileNotFoundErr: Label 'The attachment file could not be found.';
-        AttachmentFileEmptyErr: Label 'The attachment file is empty.';
-        AttachmentMimeTypeMissingErr: Label 'The attachment MIME type is missing.';
-        ExtractionPromptNotFoundErr: Label 'The attachment extraction prompt could not be loaded.';
-        ExtractionCallFailedErr: Label 'The attachment extraction AI call failed. Status: %1. Error: %2', Comment = '%1 = status code, %2 = error';
-        ExtractionResponseEmptyErr: Label 'The attachment extraction AI response is empty.';
-        ExtractionResponseInvalidJsonErr: Label 'The attachment extraction AI response is not valid JSON.';
-        ExtractionResponseInvalidSchemaErr: Label 'The attachment extraction AI response does not contain the supported schema.';
+        AttachmentFileNotFoundErr: Label 'The attachment file could not be found.', Locked = true;
+        AttachmentFileEmptyErr: Label 'The attachment file is empty.', Locked = true;
+        AttachmentMimeTypeMissingErr: Label 'The attachment MIME type is missing.', Locked = true;
+        ExtractionPromptNotFoundErr: Label 'The attachment extraction prompt could not be loaded.', Locked = true;
+        ExtractionSecurityPromptNotFoundErr: Label 'The attachment extraction security prompt could not be retrieved from Azure Key Vault.', Locked = true;
+        ExtractionCallFailedErr: Label 'The attachment extraction AI call failed. Status: %1', Comment = '%1 = status code', Locked = true;
+        ExtractionUnexpectedErr: Label 'The attachment extraction failed with an unexpected error.', Locked = true;
+        ExtractionResponseEmptyErr: Label 'The attachment extraction AI response is empty.', Locked = true;
+        ExtractionResponseInvalidJsonErr: Label 'The attachment extraction AI response is not valid JSON.', Locked = true;
+        ExtractionResponseInvalidSchemaErr: Label 'The attachment extraction AI response does not contain the supported schema.', Locked = true;
 
     internal procedure EnsureCanonicalTextContent(var AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; var CanonicalContent: Text; var FailureReason: Text): Boolean
     var
@@ -40,17 +43,22 @@ codeunit 4421 "SOA Attachment MLLM"
         Clear(CanonicalContent);
         Clear(FailureReason);
         ExistingContent := GetTextContent(AgentTaskMessageAttachment);
-        if IsCanonicalContent(ExistingContent) then begin
+        // Only content this codeunit produced for this exact attachment record is trusted. The system ID is assigned
+        // by the platform after the attachment is stored, so a crafted attachment cannot embed a matching marker
+        // in advance to skip the guarded extraction.
+        if IsCanonicalContent(ExistingContent, AgentTaskMessageAttachment.SystemId) then begin
             CanonicalContent := ExistingContent;
             exit(true);
         end;
 
         if not TryExtractAttachmentContent(AgentTaskMessageAttachment, CanonicalContent, FailureReason) then begin
+            // Never propagate raw runtime error text. It can contain attachment or record data, and the reason is written to telemetry.
             if FailureReason = '' then
-                FailureReason := GetLastErrorText();
+                FailureReason := ExtractionUnexpectedErr;
             exit(false);
         end;
 
+        StampProvenance(CanonicalContent, AgentTaskMessageAttachment.SystemId);
         ReplaceTextContent(AgentTaskMessageAttachment, CanonicalContent);
         exit(true);
     end;
@@ -94,7 +102,7 @@ codeunit 4421 "SOA Attachment MLLM"
         if (PromptTemplate = '') or (UserPromptTemplate = '') or (SchemaTemplate = '') then
             Error(ExtractionPromptNotFoundErr);
         if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPrompt) then
-            Error(ExtractionPromptNotFoundErr);
+            Error(ExtractionSecurityPromptNotFoundErr);
         Prompt := SecretText.SecretStrSubstNo(PromptTemplate, SecurityPrompt);
 
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
@@ -112,7 +120,7 @@ codeunit 4421 "SOA Attachment MLLM"
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
         if not AOAIOperationResponse.IsSuccess() then
-            Error(ExtractionCallFailedErr, AOAIOperationResponse.GetStatusCode(), AOAIOperationResponse.GetError());
+            Error(ExtractionCallFailedErr, AOAIOperationResponse.GetStatusCode());
 
         ExtractedContent := AOAIOperationResponse.GetResult();
         if not ValidateAndNormalizeResponse(ExtractedContent, FailureReason) then
@@ -152,17 +160,17 @@ codeunit 4421 "SOA Attachment MLLM"
         exit(true);
     end;
 
-    local procedure IsCanonicalContent(Content: Text): Boolean
+    local procedure IsCanonicalContent(Content: Text; AttachmentSystemId: Guid): Boolean
     var
         IsCanonical: Boolean;
     begin
-        if not TryValidateCanonicalContent(Content, IsCanonical) then
+        if not TryValidateCanonicalContent(Content, AttachmentSystemId, IsCanonical) then
             exit(false);
         exit(IsCanonical);
     end;
 
     [TryFunction]
-    local procedure TryValidateCanonicalContent(Content: Text; var IsCanonical: Boolean)
+    local procedure TryValidateCanonicalContent(Content: Text; AttachmentSystemId: Guid; var IsCanonical: Boolean)
     var
         ResponseJson: JsonObject;
     begin
@@ -170,7 +178,31 @@ codeunit 4421 "SOA Attachment MLLM"
             exit;
         if not ResponseJson.ReadFrom(Content) then
             exit;
-        IsCanonical := HasExpectedSchema(ResponseJson);
+        if not HasExpectedSchema(ResponseJson) then
+            exit;
+        IsCanonical := HasMatchingProvenance(ResponseJson, AttachmentSystemId);
+    end;
+
+    local procedure HasMatchingProvenance(ResponseJson: JsonObject; AttachmentSystemId: Guid): Boolean
+    var
+        ProvenanceToken: JsonToken;
+    begin
+        if not ResponseJson.Get(ProvenanceTok, ProvenanceToken) or not ProvenanceToken.IsValue() or ProvenanceToken.AsValue().IsNull() then
+            exit(false);
+        exit(ProvenanceToken.AsValue().AsText() = Format(AttachmentSystemId));
+    end;
+
+    // Binds the extraction to the attachment record it came from so stored content cannot be impersonated by attachment text.
+    local procedure StampProvenance(var Content: Text; AttachmentSystemId: Guid)
+    var
+        ResponseJson: JsonObject;
+    begin
+        if not ResponseJson.ReadFrom(Content) then
+            exit;
+        if ResponseJson.Contains(ProvenanceTok) then
+            ResponseJson.Remove(ProvenanceTok);
+        ResponseJson.Add(ProvenanceTok, Format(AttachmentSystemId));
+        ResponseJson.WriteTo(Content);
     end;
 
     local procedure HasExpectedSchema(ResponseJson: JsonObject): Boolean
