@@ -49,6 +49,7 @@ codeunit 131022 "Library - Graph Auth Mgt."
         HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
     end;
 
+    [Scope('OnPrem')]
     local procedure ContainerPasswordFileExists(): Boolean
     var
         File: DotNet File;
