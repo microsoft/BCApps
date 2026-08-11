@@ -11,7 +11,9 @@ using Microsoft.Manufacturing.Comment;
 #if not CLEAN27
 using Microsoft.Manufacturing.Document;
 #endif
+#if not CLEAN29
 using Microsoft.Manufacturing.Reports;
+#endif
 
 page 99000754 "Work Center Card"
 {
