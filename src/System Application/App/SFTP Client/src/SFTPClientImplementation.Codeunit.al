@@ -194,8 +194,8 @@ codeunit 9763 "SFTP Client Implementation"
         if WithinLimit then
             TelemetryVerbosity := Verbosity::Normal
         else
-            TelemetryVerbosity := Verbosity::Warning;
-        Session.LogMessage('0000V0D', FileSizeTelemetryMsg, TelemetryVerbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
+            TelemetryVerbosity := Verbosity::Error;
+        Session.LogMessage('0000V0D', FileSizeTelemetryTxt, TelemetryVerbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     procedure DeleteFile(Path: Text): Codeunit "SFTP Operation Response"
@@ -257,7 +257,7 @@ codeunit 9763 "SFTP Client Implementation"
         MaxFileSizeOverrideSet: Boolean;
         GenericExceptionLbl: Label 'An unexpected error occurred during the SFTP operation.';
         FileTooLargeErr: Label 'The file size of %1 bytes exceeds the maximum allowed size of %2 bytes.', Comment = '%1 is the actual file size in bytes, %2 is the maximum allowed size in bytes';
-        FileSizeTelemetryMsg: Label 'SFTP file transfer size measured.', Locked = true;
+        FileSizeTelemetryTxt: Label 'SFTP file transfer size measured.', Locked = true;
         CategoryTok: Label 'SFTP Client', Locked = true;
         DownloadTok: Label 'Download', Locked = true;
         UploadTok: Label 'Upload', Locked = true;
