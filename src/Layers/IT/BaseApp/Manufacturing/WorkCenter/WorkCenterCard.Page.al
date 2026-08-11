@@ -357,6 +357,7 @@ page 99000754 "Work Center Card"
             }
 #endif
         }
+#if not CLEAN29
         area(reporting)
         {
             action("Subcontractor - Dispatch List")
@@ -367,8 +368,12 @@ page 99000754 "Work Center Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete. Use the "Subcontractor - Dispatch List (New)" report instead from Subcontracting app.';
+                ObsoleteTag = '29.0';
             }
         }
+#endif
         area(Promoted)
         {
             group(Category_Process)
