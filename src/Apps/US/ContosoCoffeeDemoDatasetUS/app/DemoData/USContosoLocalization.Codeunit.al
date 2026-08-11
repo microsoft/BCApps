@@ -171,56 +171,54 @@ codeunit 11465 "US Contoso Localization"
     begin
         case Module of
             Enum::"Contoso Demo Data Module"::Foundation:
-                BindSubscription(CreateNoSeriesUS);
+                if BindSubscription(CreateNoSeriesUS) then;
 
             Enum::"Contoso Demo Data Module"::Finance:
                 begin
-                    if ContosoDemoDataLevel = Enum::"Contoso Demo Data Level"::"Master Data" then
-                        Codeunit.Run(Codeunit::"Create Allocation Account US");
-                    BindSubscription(CreateAccScheduleLineUS);
-                    BindSubscription(CreateCurrencyUS);
-                    BindSubscription(CreateGenJnlTemplateUS);
-                    BindSubscription(CreateGenJnlBatchUS);
-                    BindSubscription(CreateColumnLayoutUS);
-                    BindSubscription(CreateCurrExchangeRateUS);
-                    BindSubscription(CreateResourceUS);
+                    if BindSubscription(CreateAccScheduleLineUS) then;
+                    if BindSubscription(CreateCurrencyUS) then;
+                    if BindSubscription(CreateGenJnlTemplateUS) then;
+                    if BindSubscription(CreateGenJnlBatchUS) then;
+                    if BindSubscription(CreateColumnLayoutUS) then;
+                    if BindSubscription(CreateCurrExchangeRateUS) then;
+                    if BindSubscription(CreateResourceUS) then;
                 end;
             Enum::"Contoso Demo Data Module"::Sales:
                 begin
-                    BindSubscription(CreateCustomerPostingGroupUS);
-                    BindSubscription(CreateReminderLevelUS);
-                    BindSubscription(CreateCustomerTemplateUS);
-                    BindSubscription(CreateCustomerUS);
-                    BindSubscription(CreateSalesDimensionValueUS);
-                    BindSubscription(CreateCustBankAccountUS);
+                    if BindSubscription(CreateCustomerPostingGroupUS) then;
+                    if BindSubscription(CreateReminderLevelUS) then;
+                    if BindSubscription(CreateCustomerTemplateUS) then;
+                    if BindSubscription(CreateCustomerUS) then;
+                    if BindSubscription(CreateSalesDimensionValueUS) then;
+                    if BindSubscription(CreateCustBankAccountUS) then;
                 end;
             Enum::"Contoso Demo Data Module"::Bank:
                 begin
-                    BindSubscription(CreateBankAccPostingGrpUS);
-                    BindSubscription(CreateBankAccountUS);
+                    if BindSubscription(CreateBankAccPostingGrpUS) then;
+                    if BindSubscription(CreateBankAccountUS) then;
                 end;
             Enum::"Contoso Demo Data Module"::Inventory:
                 begin
-                    BindSubscription(CreateItemJournalTemplateUS);
+                    if BindSubscription(CreateItemJournalTemplateUS) then;
                     if ContosoDemoDataLevel = Enum::"Contoso Demo Data Level"::"Master Data" then
-                        BindSubscription(CreateItemUS);
-                    BindSubscription(CreateItemChargeUS);
-                    BindSubscription(CreateLocationUS);
+                        if BindSubscription(CreateItemUS) then;
+                    if BindSubscription(CreateItemChargeUS) then;
+                    if BindSubscription(CreateLocationUS) then;
                 end;
             Enum::"Contoso Demo Data Module"::Purchase:
                 begin
-                    BindSubscription(CreateVendorPostingGroupUS);
-                    BindSubscription(CreateVendorUS);
-                    BindSubscription(CreatePurchDimValueUS);
-                    BindSubscription(CreateVendorTemplateUS);
-                    BindSubscription(CreateVendorBankAccountUS);
+                    if BindSubscription(CreateVendorPostingGroupUS) then;
+                    if BindSubscription(CreateVendorUS) then;
+                    if BindSubscription(CreatePurchDimValueUS) then;
+                    if BindSubscription(CreateVendorTemplateUS) then;
+                    if BindSubscription(CreateVendorBankAccountUS) then;
                 end;
             Enum::"Contoso Demo Data Module"::"Human Resources Module":
-                BindSubscription(CreateEmployeePostingGroupUS);
+                if BindSubscription(CreateEmployeePostingGroupUS) then;
             Enum::"Contoso Demo Data Module"::"Fixed Asset Module":
                 begin
-                    BindSubscription(CreateFADepreciationBookUS);
-                    BindSubscription(CreateFAPostingGrpUS);
+                    if BindSubscription(CreateFADepreciationBookUS) then;
+                    if BindSubscription(CreateFAPostingGrpUS) then;
                 end;
         end;
     end;
