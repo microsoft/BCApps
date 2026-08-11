@@ -90,6 +90,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
     end;
 
     var
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -97,5 +98,4 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
         SubcontractingEnabled: Boolean;
 #endif
         IsSubcontractingWorkCenter: Boolean;
-        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
 }
