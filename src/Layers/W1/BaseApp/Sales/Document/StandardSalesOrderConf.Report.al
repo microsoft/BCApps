@@ -38,6 +38,8 @@ report 1305 "Standard Sales - Order Conf."
 {
     Caption = 'Sales - Confirmation';
     DefaultRenderingLayout = "StandardSalesOrderConf.docx";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 
@@ -1074,16 +1076,20 @@ report 1305 "Standard Sales - Order Conf."
         layout("StandardSalesOrderConfBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
+            //HeaderFooterPart = 'External Default';
             LayoutFile = './Sales/Document/StandardSalesOrderConfBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Body (Word)';
-            Summary = 'Body-only: Simple layout with most necessary fields.';
+            Summary = 'Simple layout with most necessary fields.';
         }
         layout("StandardOrderConfirmationEmailBody.docx")
         {
             Type = Word;
+            //Subtype = Body;
+            //HeaderFooterPart = 'External Default';
             LayoutFile = './Sales/Document/StandardOrderConfirmationEmailBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Email (Word)';
-            Summary = 'Body-only: Layout intended for an email body.';
+            Summary = 'Layout intended for an email body.';
         }
     }
 
