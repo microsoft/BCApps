@@ -105,4 +105,14 @@ page 7085 "Expense VAT Spec. API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Default VAT Bus. Posting Group");
+        Rec."VAT Bus. Posting Group" := ExpenseAgentSetup."Default VAT Bus. Posting Group";
+        exit(true);
+    end;
 }
