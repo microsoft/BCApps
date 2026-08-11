@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Document;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20550 "Subc. WhsePurchRelease Ext"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Purch. Release", OnAfterReleaseSetFilters, '', false, false)]
@@ -29,4 +28,3 @@ codeunit 20550 "Subc. WhsePurchRelease Ext"
             PurchaseLine.SetRange("Work Center No.");
     end;
 }
-#pragma warning restore AS0072, AS0136

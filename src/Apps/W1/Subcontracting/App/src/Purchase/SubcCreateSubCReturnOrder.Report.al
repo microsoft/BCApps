@@ -12,7 +12,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-#pragma warning disable AS0072, AS0136
 report 20502 "Subc. Create SubCReturnOrder"
 {
     ApplicationArea = Subcontracting;
@@ -418,4 +417,3 @@ report 20502 "Subc. Create SubCReturnOrder"
         exit(not TransferLineToCheck.IsEmpty());
     end;
 }
-#pragma warning restore AS0072, AS0136

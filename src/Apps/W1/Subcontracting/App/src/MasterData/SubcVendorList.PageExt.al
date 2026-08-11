@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Vendor;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20517 "Subc. Vendor List" extends "Vendor List"
 {
     actions
@@ -26,4 +25,3 @@ pageextension 20517 "Subc. Vendor List" extends "Vendor List"
         }
     }
 }
-#pragma warning restore AS0072, AS0136
