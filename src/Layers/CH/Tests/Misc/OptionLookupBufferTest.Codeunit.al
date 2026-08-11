@@ -19,6 +19,13 @@
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         InvalidTypeErr: Label 'is not a valid type for this document';
         LongFormattedTypeTxt: Label 'Formatted Type Longer Than 20';
+#if not CLEAN29
+        LegacyFormattedTypeTxt: Label 'Legacy Format Type';
+        HandleLegacySalesLineFormatType: Boolean;
+        HandleLegacyPurchaseLineFormatType: Boolean;
+#endif
+        HandleSalesLineFormatTypeAsText: Boolean;
+        HandlePurchaseLineFormatTypeAsText: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -52,7 +59,6 @@
     procedure FillOptionBufferWithCustomValuesForSalesTest()
     var
         TempOptionLookupBuffer: Record "Option Lookup Buffer" temporary;
-        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
         SalesLine: Record "Sales Line";
     begin
         // [SCENARIO 412825] Fill OptionLookupBuffer with custom values for Sales
@@ -60,7 +66,7 @@
 
         // [GIVEN] Empty Option Lookup Buffer table
         // [GIVEN] Extend "Sales Line Type" enum and add handler for Test_Custom1 value
-        BindSubscription(OptionLookupBufferTest); // to add handling of custom value
+        BindSubscription(this); // to add handling of custom value
         // [WHEN] FillLookupBuffer is called for LookupType::Sales
         TempOptionLookupBuffer.FillLookupBuffer(TempOptionLookupBuffer."Lookup Type"::Sales);
 
@@ -164,13 +170,13 @@
     procedure FormatSalesLineTypeFromSubscriberLongerThan20Characters()
     var
         SalesLine: Record "Sales Line";
-        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
     begin
         // [SCENARIO] A subscriber can format a sales line type with text longer than 20 characters
         Initialize();
 
         // [GIVEN] A subscriber that handles sales line type formatting with text longer than 20 characters
-        BindSubscription(OptionLookupBufferTest);
+        HandleSalesLineFormatTypeAsText := true;
+        BindSubscription(this);
         Assert.IsTrue(StrLen(LongFormattedTypeTxt) > 20, 'The test text must be longer than 20 characters.');
 
         // [WHEN] The sales line type is formatted
@@ -182,13 +188,13 @@
     procedure FormatPurchaseLineTypeFromSubscriberLongerThan20Characters()
     var
         PurchaseLine: Record "Purchase Line";
-        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
     begin
         // [SCENARIO] A subscriber can format a purchase line type with text longer than 20 characters
         Initialize();
 
         // [GIVEN] A subscriber that handles purchase line type formatting with text longer than 20 characters
-        BindSubscription(OptionLookupBufferTest);
+        HandlePurchaseLineFormatTypeAsText := true;
+        BindSubscription(this);
         Assert.IsTrue(StrLen(LongFormattedTypeTxt) > 20, 'The test text must be longer than 20 characters.');
 
         // [WHEN] The purchase line type is formatted
@@ -196,9 +202,52 @@
         Assert.AreEqual(LongFormattedTypeTxt, PurchaseLine.FormatTypeAsText(), 'The subscriber-provided purchase line type was truncated.');
     end;
 
+#if not CLEAN29
+    [Test]
+    procedure FormatSalesLineTypeFromLegacySubscriber()
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] A handled legacy sales line formatting event takes precedence over the replacement event
+        Initialize();
+
+        // [GIVEN] Both legacy and replacement sales line formatting subscribers are enabled
+        HandleLegacySalesLineFormatType := true;
+        HandleSalesLineFormatTypeAsText := true;
+        BindSubscription(this);
+
+        // [WHEN] The sales line type is formatted
+        // [THEN] The legacy subscriber-provided text is returned
+        Assert.AreEqual(LegacyFormattedTypeTxt, SalesLine.FormatTypeAsText(), 'The handled legacy sales line type was not returned.');
+    end;
+
+    [Test]
+    procedure FormatPurchaseLineTypeFromLegacySubscriber()
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] A handled legacy purchase line formatting event takes precedence over the replacement event
+        Initialize();
+
+        // [GIVEN] Both legacy and replacement purchase line formatting subscribers are enabled
+        HandleLegacyPurchaseLineFormatType := true;
+        HandlePurchaseLineFormatTypeAsText := true;
+        BindSubscription(this);
+
+        // [WHEN] The purchase line type is formatted
+        // [THEN] The legacy subscriber-provided text is returned
+        Assert.AreEqual(LegacyFormattedTypeTxt, PurchaseLine.FormatTypeAsText(), 'The handled legacy purchase line type was not returned.');
+    end;
+#endif
+
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeFormatTypeAsText', '', false, false)]
     local procedure OnBeforeSalesLineFormatTypeAsText(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
+        if not HandleSalesLineFormatTypeAsText then
+            exit;
+
         FormattedType := LongFormattedTypeTxt;
         IsHandled := true;
     end;
@@ -206,9 +255,34 @@
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeFormatTypeAsText', '', false, false)]
     local procedure OnBeforePurchaseLineFormatTypeAsText(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
+        if not HandlePurchaseLineFormatTypeAsText then
+            exit;
+
         FormattedType := LongFormattedTypeTxt;
         IsHandled := true;
     end;
+
+#if not CLEAN29
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeFormatType', '', false, false)]
+    local procedure OnBeforeSalesLineFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    begin
+        if not HandleLegacySalesLineFormatType then
+            exit;
+
+        FormattedType := LegacyFormattedTypeTxt;
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeFormatType', '', false, false)]
+    local procedure OnBeforePurchaseLineFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    begin
+        if not HandleLegacyPurchaseLineFormatType then
+            exit;
+
+        FormattedType := LegacyFormattedTypeTxt;
+        IsHandled := true;
+    end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Option Lookup Buffer", 'OnBeforeIncludeOption', '', false, false)]
     local procedure OnBeforeIncludeOption(OptionLookupBuffer: Record "Option Lookup Buffer"; LookupType: Option; Option: Integer; var Handled: Boolean; var Result: Boolean);
@@ -714,6 +788,12 @@
         ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(ExperienceTierSetup.FieldCaption(Essential));
         LibraryVariableStorage.Clear();
         LibrarySales.DisableWarningOnCloseUnpostedDoc();
+#if not CLEAN29
+        HandleLegacySalesLineFormatType := false;
+        HandleLegacyPurchaseLineFormatType := false;
+#endif
+        HandleSalesLineFormatTypeAsText := false;
+        HandlePurchaseLineFormatTypeAsText := false;
     end;
 }
 

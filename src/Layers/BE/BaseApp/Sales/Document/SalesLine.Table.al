@@ -10195,11 +10195,17 @@ table 37 "Sales Line"
 
     procedure FormatTypeAsText() FormattedType: Text[30]
     var
+#if not CLEAN29
+        LegacyFormattedType: Text[20];
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
 #if not CLEAN29
-        OnBeforeFormatType(Rec, FormattedType, IsHandled);
+        OnBeforeFormatType(Rec, LegacyFormattedType, IsHandled);
+        FormattedType := LegacyFormattedType;
+        if IsHandled then
+            exit(FormattedType);
 #endif
         OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
