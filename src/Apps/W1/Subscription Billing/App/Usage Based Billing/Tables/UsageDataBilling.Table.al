@@ -205,6 +205,9 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Billing Line Entry No.';
             TableRelation =
+            if (Partner = const(Customer), "Document Type" = filter(None)) "Billing Line"."Entry No."
+                                                                                     where(Partner = const(Customer))
+            else
             if (Partner = const(Customer), "Document Type" = filter(Invoice)) "Billing Line"."Entry No."
                                                                                      where(Partner = const(Customer), "Document Type" = const(Invoice), "Document No." = field("Document No."))
             else
@@ -216,6 +219,9 @@ table 8006 "Usage Data Billing"
             else
             if (Partner = const(Customer), "Document Type" = filter("Posted Credit Memo")) "Billing Line Archive"."Entry No."
                                                                                      where(Partner = const(Customer), "Document Type" = const("Credit Memo"), "Document No." = field("Document No."))
+            else
+            if (Partner = const(Vendor), "Document Type" = filter(None)) "Billing Line"."Entry No."
+                                                                                     where(Partner = const(Vendor))
             else
             if (Partner = const(Vendor), "Document Type" = filter(Invoice)) "Billing Line"."Entry No."
                                                                                      where(Partner = const(Vendor), "Document Type" = const(Invoice), "Document No." = field("Document No."))
@@ -299,6 +305,19 @@ table 8006 "Usage Data Billing"
         {
             SumIndexFields = Quantity, Amount;
             MaintainSiftIndex = true;
+        }
+        key(key2; "Subscription Contract No.", "Subscription Contract Line No.")
+        {
+        }
+        key(key3; "Subscription Line Entry No.", "Document Type", "Charge End Date")
+        {
+            SumIndexFields = Quantity, Amount, "Cost Amount";
+        }
+        key(key4; "Document No.", "Document Type")
+        {
+        }
+        key(key5; "Billing Line Entry No.")
+        {
         }
 
     }
@@ -790,7 +809,7 @@ table 8006 "Usage Data Billing"
         exit((Rec."Document Type" <> "Usage Based Billing Doc. Type"::None) and (Rec."Document No." <> ''));
     end;
 
-    internal procedure GetPrintoutDescription() Description: Text[100]
+    procedure GetPrintoutDescription() Description: Text[100]
     begin
         if ShouldPrintProductName() then
             Description := "Product Name"
@@ -799,7 +818,7 @@ table 8006 "Usage Data Billing"
         OnAfterGetPrintoutDescription(Rec, Description);
     end;
 
-    internal procedure ShouldPrintProductName() Result: Boolean
+    procedure ShouldPrintProductName() Result: Boolean
     var
         ServiceContractSetup: Record "Subscription Contract Setup";
     begin

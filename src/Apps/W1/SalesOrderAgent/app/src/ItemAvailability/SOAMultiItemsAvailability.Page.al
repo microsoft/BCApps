@@ -227,6 +227,12 @@ page 4410 "SOA Multi Items Availability"
                 {
                     ToolTip = 'Specifies a number of the item.';
                 }
+                field(ResolvedVariantCode; ResolvedVariantCode)
+                {
+                    Caption = 'Variant Code';
+                    ToolTip = 'Specifies the resolved variant code for the item.';
+                    Visible = IsAgentSession;
+                }
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies a description of the item.';
@@ -242,19 +248,19 @@ page 4410 "SOA Multi Items Availability"
                 {
                     Caption = 'Requested Quantity Available';
                     ToolTip = 'Specifies if the requested quantity is available in requested unit of measure.';
-                    Visible = (not IsAgentSession) or (IsAgentSession and IncludeCapableToPromiseItems);
+                    Visible = (not IsAgentSession) or (ItemAvailabilityEnabled and IncludeCapableToPromiseItems);
                 }
                 field(EarliestShipmentDate; EarliestShipmentDate)
                 {
                     Caption = 'Earliest Shipment Date';
                     ToolTip = 'Specifies the earliest date the requested quantity will be available for shipment if ordered today.';
-                    Visible = (not IsAgentSession) or (IsAgentSession and IncludeCapableToPromiseItems);
+                    Visible = (not IsAgentSession) or (ItemAvailabilityEnabled and IncludeCapableToPromiseItems);
                 }
                 field(AvailabilityLevel; AvailabilityLevel)
                 {
                     Caption = 'Availability Level';
                     ToolTip = 'Specifies the level of item availability.';
-                    Visible = (not IsAgentSession) or (IsAgentSession and OptionsVisible and not IncludeCapableToPromiseItems);
+                    Visible = (not IsAgentSession) or (ItemAvailabilityEnabled and not IncludeCapableToPromiseItems);
                 }
                 field(UnitCost; UnitCost)
                 {
@@ -698,7 +704,8 @@ page 4410 "SOA Multi Items Availability"
 
         if IsAgentSession then
             if SOASetup.FindLast() then begin
-                OptionsVisible := SOASetup."Search Only Available Items";
+                ItemAvailabilityEnabled := SOASetup."Search Only Available Items";
+                OptionsVisible := ItemAvailabilityEnabled;
                 IncludeCapableToPromiseItems := SOASetup."Incl. Capable to Promise";
             end;
 
@@ -756,9 +763,15 @@ page 4410 "SOA Multi Items Availability"
         DiscountPct := 0;
         UnitPriceInclDiscount := 0;
         EarliestShipmentDate := 0D;
+        ResolvedVariantCode := GetResolvedVariantCode();
 
-        CalcAvailQuantities(GrossRequirement, PlannedOrderRcpt, ScheduledRcpt, PlannedOrderReleases, ProjAvailableBalance, ProjAvailableBalanceInUOM, ExpectedInventory, QtyAvailable);
-        if not CalcPrice() then
+        if IsAgentSession and not ItemAvailabilityEnabled then begin
+            Available := true;
+            AvailabilityLevel := AvailabilityLevel::Available;
+        end else
+            CalcAvailQuantities(GrossRequirement, PlannedOrderRcpt, ScheduledRcpt, PlannedOrderReleases, ProjAvailableBalance, ProjAvailableBalanceInUOM, ExpectedInventory, QtyAvailable, ResolvedVariantCode);
+
+        if not CalcPrice(ResolvedVariantCode) then
             if not PriceCalcNotificationSent then
                 if SOAPriceCalcNotification.IsEnabled() then begin
                     PriceCalcErrorNotification.Id := SOAPriceCalcNotification.GetNotificationId();
@@ -774,7 +787,7 @@ page 4410 "SOA Multi Items Availability"
             LocationCode := Location.Code;
 
         if not Available and CalculateEarliestShipmentDate then begin
-            SOAShipmentDateMgt.SetParamenters(Rec."No.", '', LocationCode, InUOMCode, WorkDate(), QuantityFilter);
+            SOAShipmentDateMgt.SetParamenters(Rec."No.", ResolvedVariantCode, LocationCode, InUOMCode, WorkDate(), QuantityFilter);
             if SOAShipmentDateMgt.Run() then
                 EarliestShipmentDate := SOAShipmentDateMgt.GetEarliestShipmentDate();
 
@@ -788,7 +801,7 @@ page 4410 "SOA Multi Items Availability"
         TranslatedDescription := Rec.Description;
         TranslatedDescription2 := Rec."Description 2";
         if LanguageCode <> '' then
-            if ItemTranslation.Get(Rec."No.", '', LanguageCode) then begin
+            if ItemTranslation.Get(Rec."No.", ResolvedVariantCode, LanguageCode) then begin
                 TranslatedDescription := ItemTranslation.Description;
                 TranslatedDescription2 := ItemTranslation."Description 2";
             end;
@@ -807,14 +820,14 @@ page 4410 "SOA Multi Items Availability"
         AnalysisPeriodType: Enum "Analysis Period Type";
         AvailabilityLevel: Enum "SOA Availability Level";
         CustomerNo, ContactNo : Code[20];
-        InUOMCode, LineUOM, CurrencyCode, LanguageCode : Code[10];
+        InUOMCode, LineUOM, CurrencyCode, LanguageCode, ResolvedVariantCode : Code[10];
         QuantityFilter, ExpectedInventory, QtyAvailable, PlannedOrderReleases, GrossRequirement, PlannedOrderRcpt, ScheduledRcpt, ProjAvailableBalance, ProjAvailableBalanceInUOM : Decimal;
         UnitCost, UnitPrice, UnitPriceInclDiscount, DiscountPct : Decimal;
         DateFilter, LocationFilter, CrossColumnSearchFilter, LineUOMDescription : Text;
         TranslatedDescription: Text[100];
         TranslatedDescription2: Text[50];
         EarliestShipmentDate: Date;
-        Available, CalculateEarliestShipmentDate, OptionsVisible, IsAgentSession, IncludeCapableToPromiseItems, MatchingItem : Boolean;
+        Available, CalculateEarliestShipmentDate, OptionsVisible, IsAgentSession, ItemAvailabilityEnabled, IncludeCapableToPromiseItems, MatchingItem : Boolean;
         PriceCalcNotificationSent: Boolean;
         PreviewDisclaimerLbl: Label 'Item Availability page (preview). Learn more';
         PreviewDisclaimerURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2303848', Locked = true;
@@ -852,7 +865,7 @@ page 4410 "SOA Multi Items Availability"
         CurrPage.Update(false);
     end;
 
-    local procedure CalcAvailQuantities(var GrossRequirement2: Decimal; var PlannedOrderRcpt2: Decimal; var ScheduledRcpt2: Decimal; var PlannedOrderReleases2: Decimal; var ProjAvailableBalance2: Decimal; var ProjAvailableBalanceInUOM2: Decimal; var ExpectedInventory2: Decimal; var AvailableInventory: Decimal)
+    local procedure CalcAvailQuantities(var GrossRequirement2: Decimal; var PlannedOrderRcpt2: Decimal; var ScheduledRcpt2: Decimal; var PlannedOrderReleases2: Decimal; var ProjAvailableBalance2: Decimal; var ProjAvailableBalanceInUOM2: Decimal; var ExpectedInventory2: Decimal; var AvailableInventory: Decimal; VariantCode: Code[10])
     var
         Item: Record Item;
         SKU: Record "Stockkeeping Unit";
@@ -880,7 +893,7 @@ page 4410 "SOA Multi Items Availability"
         Item.SetFilter("Date Filter", DateFilter);
         Item.SetFilter("Location Filter", LocationFilter);
         Item.SetRange("Drop Shipment Filter", false);
-        Item.SetRange("Variant Filter", '');
+        Item.SetRange("Variant Filter", VariantCode);
 
         ItemAvailFormsMgt.CalcAvailQuantities(Item, AnalysisAmountType = AnalysisAmountType::"Balance at Date",
             GrossRequirement2, PlannedOrderRcpt2, ScheduledRcpt2,
@@ -898,7 +911,7 @@ page 4410 "SOA Multi Items Availability"
         if ProjAvailableBalance2 > 0 then begin
             AvailabilityLevel := AvailabilityLevel::Limited;
 
-            if SKU.Get(LocationFilter, Item."No.", '') then
+            if SKU.Get(LocationFilter, Item."No.", VariantCode) then
                 SafetyStockQty := SKU."Safety Stock Quantity"
             else
                 SafetyStockQty := Rec."Safety Stock Quantity";
@@ -909,7 +922,7 @@ page 4410 "SOA Multi Items Availability"
     end;
 
     [TryFunction]
-    local procedure CalcPrice()
+    local procedure CalcPrice(VariantCode: Code[10])
     var
         GLSetup: Record "General Ledger Setup";
         Contact: Record Contact;
@@ -979,6 +992,8 @@ page 4410 "SOA Multi Items Availability"
         TempSalesLine.SetSalesHeader(TempSalesHeader);
         TempSalesLine.Validate(Type, TempSalesLine.Type::Item);
         TempSalesLine.Validate("No.", Rec."No.");
+        if VariantCode <> '' then
+            TempSalesLine.Validate("Variant Code", VariantCode);
         TempSalesLine.Validate(Quantity, 1);
         if TempSalesLine."Unit of Measure Code" <> '' then
             TempSalesLine.Validate("Unit of Measure Code", Rec."Sales Unit of Measure");
@@ -1007,6 +1022,14 @@ page 4410 "SOA Multi Items Availability"
         exit('');
     end;
 
+    local procedure GetResolvedVariantCode(): Code[10]
+    var
+        VariantCode: Code[10];
+    begin
+        OnGetResolvedVariantCodeOnBeforeExit(Rec.SystemId, VariantCode);
+        exit(VariantCode);
+    end;
+
     [InternalEvent(false, false)]
     local procedure OnBeforeFindRecord(var Rec: Record Item; Which: Text; var CrossColumnSearchFilter: Text; var Found: Boolean; RequiredQuantity: Decimal; InUOMCode: Code[10]; var IsHandled: Boolean; var MatchingItem: Boolean)
     begin
@@ -1014,6 +1037,11 @@ page 4410 "SOA Multi Items Availability"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitPage(var CustomerNo: Code[20]; var ContactNo: Code[20]; var LocationFilter: Text; var CalculateEarliestShipmentDate: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnGetResolvedVariantCodeOnBeforeExit(ItemSystemId: Guid; var VariantCode: Code[10])
     begin
     end;
 }
