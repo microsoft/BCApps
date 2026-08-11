@@ -13,6 +13,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
@@ -37,6 +38,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
@@ -1139,6 +1141,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     [Test]
     procedure FacturXBillingModeB1ForItemOnlyInvoice()
     var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         SourceDocumentLines: RecordRef;
@@ -1147,27 +1150,21 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] GetFrenchBillingMode returns B1 for an invoice with only Item lines
         Initialize();
 
-        // [GIVEN] Sales invoice lines containing only Item type
-        SalesInvoiceLine.Init();
-        SalesInvoiceLine."Document No." := 'BILLING-B1';
-        SalesInvoiceLine."Line No." := 10000;
-        SalesInvoiceLine.Type := SalesInvoiceLine.Type::Item;
-        SalesInvoiceLine.Insert(false);
-        SalesInvoiceLine.SetRange("Document No.", 'BILLING-B1');
+        // [GIVEN] Posted sales invoice containing only an Item line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(false));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SourceDocumentLines.GetTable(SalesInvoiceLine);
 
         // [WHEN] GetFrenchBillingMode is called
         // [THEN] Result = 'B1'
         Assert.AreEqual('B1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
             StrSubstNo(IncorrectValueErr, 'BillingMode B1'));
-
-        // Cleanup
-        SalesInvoiceLine.Delete(false);
     end;
 
     [Test]
     procedure FacturXBillingModeM1ForMixedItemAndNonItemInvoice()
     var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         SourceDocumentLines: RecordRef;
@@ -1176,28 +1173,15 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] GetFrenchBillingMode returns M1 for an invoice with both Item and G/L Account lines
         Initialize();
 
-        // [GIVEN] Sales invoice lines containing Item and G/L Account types
-        SalesInvoiceLine.Init();
-        SalesInvoiceLine."Document No." := 'BILLING-M1';
-        SalesInvoiceLine."Line No." := 10000;
-        SalesInvoiceLine.Type := SalesInvoiceLine.Type::Item;
-        SalesInvoiceLine.Insert(false);
-        SalesInvoiceLine.Init();
-        SalesInvoiceLine."Document No." := 'BILLING-M1';
-        SalesInvoiceLine."Line No." := 20000;
-        SalesInvoiceLine.Type := SalesInvoiceLine.Type::"G/L Account";
-        SalesInvoiceLine.Insert(false);
-        SalesInvoiceLine.SetRange("Document No.", 'BILLING-M1');
+        // [GIVEN] Posted sales invoice containing Item and G/L Account lines
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(true));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SourceDocumentLines.GetTable(SalesInvoiceLine);
 
         // [WHEN] GetFrenchBillingMode is called
         // [THEN] Result = 'M1'
         Assert.AreEqual('M1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
             StrSubstNo(IncorrectValueErr, 'BillingMode M1'));
-
-        // Cleanup
-        SalesInvoiceLine.SetRange("Document No.", 'BILLING-M1');
-        SalesInvoiceLine.DeleteAll(false);
     end;
     #endregion
 
@@ -1419,6 +1403,40 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesInvoiceWithBillingModeLines(IncludeGLAccountLine: Boolean): Code[20]
+    var
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        CustomerNo: Code[20];
+        ItemNo: Code[20];
+    begin
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        CustomerNo := CreateCustomer('');
+        Customer.Get(CustomerNo);
+        Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        ItemNo := LibraryInventory.CreateItemNoWithPostingSetup(
+            GLAccount."Gen. Prod. Posting Group", GLAccount."VAT Prod. Posting Group");
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        if IncludeGLAccountLine then begin
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+            SalesLine.Validate("Unit Price", 100);
+            SalesLine.Modify(true);
+        end;
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
