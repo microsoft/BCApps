@@ -90,8 +90,7 @@ report 6626 "Reference No Label"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-    }
-        #endif
+#endif
         layout(WordBody)
         {
             Type = Word;
@@ -104,9 +103,9 @@ report 6626 "Reference No Label"
 
     var
         BarcodeSymbology: Enum "Barcode Symbology";
-                              BarcodeSymbology2D: Enum "Barcode Symbology 2D";
-                              ReferenceNoCode: Text;
-                              ReferenceNoQRCode: Text;
+        BarcodeSymbology2D: Enum "Barcode Symbology 2D";
+        ReferenceNoCode: Text;
+        ReferenceNoQRCode: Text;
 
 
     trigger OnInitReport()

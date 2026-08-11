@@ -263,7 +263,6 @@ report 99000789 "Subcontractor - Dispatch List"
             ObsoleteTag = '32.0';
         }
 #endif
-    }
         layout(ExcelLayout)
         {
             Type = Excel;
