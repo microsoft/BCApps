@@ -39,6 +39,8 @@ report 1305 "Standard Sales - Order Conf."
 {
     Caption = 'Sales - Confirmation';
     DefaultRenderingLayout = "StandardSalesOrderConf.docx";
+    //DefaultHeaderFooterPart = "External Default";
+    //DefaultThemePart = "BC Default Theme";
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 
@@ -1098,40 +1100,62 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation (RDLC)';
             Summary = 'Detailed layout with all fields.';
         }
+#if not CLEAN32
         layout("StandardSalesOrderConf.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Document/StandardSalesOrderConf.docx';
             Caption = 'Standard Sales Order Confirmation (Word)';
             Summary = 'Simple layout with most necessary fields.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif  
+#if not CLEAN32
         layout("StandardSalesOrderConfThemable.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Document/StandardSalesOrderConfThemable.docx';
             Caption = 'Standard Sales Order Confirmation - themable Word layout';
             Summary = 'Simple themable layout with most necessary fields.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif  
+#if not CLEAN32
         layout("StandardOrderConfirmationEmail.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Document/StandardOrderConfirmationEmail.docx';
             Caption = 'Standard Sales Order Confirmation Email (Word)';
             Summary = 'Layout intended for an email body.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+        #endif  
+#if not CLEAN32
         layout("StandardSalesOrderConfBlue.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Document/StandardSalesOrderConfBlue.docx';
             Caption = 'Standard Sales Order Confirmation Blue (Word)';
             Summary = 'Simple layout with most necessary fields with a blue theme.';
+             ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
-        layout("StandardSalesOrderConfBlueBody.docx")
+         #endif  
+#if not CLEAN32
+        layout("StandardSalesOrderConfBody.docx")
         {
             Type = Word;
-            LayoutFile = './Sales/Document/StandardSalesOrderConfBlueBody.docx';
-            Caption = 'Body-only: Standard Sales Order Confirmation Blue (Word)';
-            Summary = 'Body-only: Simple layout with most necessary fields with a blue theme.';
+            //Subtype = Body;
+            LayoutFile = './Sales/Document/StandardSalesOrderConfBody.docx';
+            Caption = 'Body-only: Standard Sales Order Confirmation (Word)';
+            Summary = 'Simple layout with most necessary fields.';
         }
     }
 
