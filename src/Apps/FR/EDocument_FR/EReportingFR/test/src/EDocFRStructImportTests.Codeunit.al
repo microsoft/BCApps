@@ -27,9 +27,9 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     begin
         // [FEATURE] [E-Document] [Factur-X] [Import]
         // [SCENARIO] A Factur-X invoice is read into a purchase invoice draft
+        Initialize();
 
         // [GIVEN] A Factur-X CII invoice
-        Initialize();
         CreateEDocument(EDocument);
 
         // [WHEN] The document is read into draft
@@ -76,9 +76,9 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     begin
         // [FEATURE] [E-Document] [Factur-X] [Import]
         // [SCENARIO] A Factur-X credit memo is read into a purchase credit memo draft
+        Initialize();
 
         // [GIVEN] A Factur-X CII credit memo
-        Initialize();
         CreateEDocument(EDocument);
 
         // [WHEN] The document is read into draft
@@ -99,9 +99,9 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     begin
         // [FEATURE] [E-Document] [Factur-X] [Import]
         // [SCENARIO] Reading a document that is not a Cross Industry Invoice fails with a clear error
+        Initialize();
 
         // [GIVEN] An XML document with an unsupported root element
-        Initialize();
         CreateEDocument(EDocument);
 
         // [WHEN] The document is read into draft
@@ -120,9 +120,9 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     begin
         // [FEATURE] [E-Document] [Factur-X] [Import]
         // [SCENARIO] Re-running Read into Draft replaces the previous draft instead of duplicating it
+        Initialize();
 
         // [GIVEN] A Factur-X invoice that has been read into draft
-        Initialize();
         CreateEDocument(EDocument);
         EDocumentFacturXHandler.ReadIntoDraft(EDocument, GetResourceBlob(FacturXInvoiceTok));
 
@@ -147,9 +147,9 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     begin
         // [FEATURE] [E-Document] [Peppol BIS 3.0 FR] [Import]
         // [SCENARIO] A Peppol BIS 3.0 FR invoice is read into a purchase invoice draft
+        Initialize();
 
         // [GIVEN] A Peppol BIS 3.0 FR UBL invoice
-        Initialize();
         CreateEDocument(EDocument);
 
         // [WHEN] The document is read into draft
@@ -191,9 +191,9 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     begin
         // [FEATURE] [E-Document] [Peppol BIS 3.0 FR] [Import]
         // [SCENARIO] Reading a document that is neither an Invoice nor a CreditNote fails with a clear error
+        Initialize();
 
         // [GIVEN] An XML document with an unsupported root element
-        Initialize();
         CreateEDocument(EDocument);
 
         // [WHEN] The document is read into draft

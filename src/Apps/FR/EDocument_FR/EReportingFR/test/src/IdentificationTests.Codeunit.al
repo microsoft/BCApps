@@ -67,6 +67,7 @@ codeunit 148146 "Identification Tests"
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] CheckSIRENNotEmpty raises error when Registration No. is blank
+        Initialize();
 
         // [GIVEN] Company Information with blank Registration No.
         CompanyInformation.Get();
@@ -79,7 +80,6 @@ codeunit 148146 "Identification Tests"
         asserterror EDocHelpers.CheckSIRENNotEmpty();
         Assert.ExpectedError('Registration No. must be specified in Company Information for French e-invoicing.');
 
-        // Cleanup
         CompanyInformation.Get();
         CompanyInformation."Registration No." := CopyStr(OriginalRegistrationNo, 1, MaxStrLen(CompanyInformation."Registration No."));
         CompanyInformation.Modify();
@@ -93,6 +93,7 @@ codeunit 148146 "Identification Tests"
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] CheckSIRETNotEmpty raises error when SIRET is blank
+        Initialize();
 
         // [GIVEN] Company Information with blank SIRET No.
         CompanyInformation.Get();
@@ -105,7 +106,6 @@ codeunit 148146 "Identification Tests"
         asserterror EDocHelpers.CheckSIRETNotEmpty();
         Assert.ExpectedError('SIRET No. must be specified in Company Information for French e-invoicing.');
 
-        // Cleanup
         CompanyInformation.Get();
         CompanyInformation."SIRET No." := OriginalSIRETNo;
         CompanyInformation.Modify();
@@ -115,50 +115,38 @@ codeunit 148146 "Identification Tests"
     procedure CheckSIRENNotEmptyDoesNotErrorWhenRegistrationNoPresent()
     var
         CompanyInformation: Record "Company Information";
-        OriginalRegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] CheckSIRENNotEmpty succeeds when Registration No. is set
+        Initialize();
 
         // [GIVEN] Company Information with Registration No. set
         CompanyInformation.Get();
-        OriginalRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation."Registration No." := '123456789';
         CompanyInformation.Modify();
 
         // [WHEN] CheckSIRENNotEmpty is called
         // [THEN] No error is raised
         EDocHelpers.CheckSIRENNotEmpty();
-
-        // Cleanup
-        CompanyInformation.Get();
-        CompanyInformation."Registration No." := CopyStr(OriginalRegistrationNo, 1, MaxStrLen(CompanyInformation."Registration No."));
-        CompanyInformation.Modify();
     end;
 
     [Test]
     procedure CheckSIRETNotEmptyDoesNotErrorWhenSIRETPresent()
     var
         CompanyInformation: Record "Company Information";
-        OriginalSIRETNo: Code[14];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] CheckSIRETNotEmpty succeeds when SIRET No. is set
+        Initialize();
 
         // [GIVEN] Company Information with SIRET No. set
         CompanyInformation.Get();
-        OriginalSIRETNo := CompanyInformation."SIRET No.";
         CompanyInformation."SIRET No." := '12345678901234';
         CompanyInformation.Modify();
 
         // [WHEN] CheckSIRETNotEmpty is called
         // [THEN] No error is raised
         EDocHelpers.CheckSIRETNotEmpty();
-
-        // Cleanup
-        CompanyInformation.Get();
-        CompanyInformation."SIRET No." := OriginalSIRETNo;
-        CompanyInformation.Modify();
     end;
 
     [Test]
@@ -169,14 +157,20 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         SourceOccurrenceID: Guid;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A payment application is captured as an immutable Collected lifecycle occurrence
+        Initialize();
+
+        // [GIVEN] An E-Document "ED" and a source occurrence ID
         CreateEDocument(EDocument);
         SourceOccurrenceID := CreateGuid();
 
+        // [WHEN] A Collected lifecycle occurrence is captured for "ED"
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, SourceOccurrenceID,
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
 
+        // [THEN] The lifecycle occurrence retains its regulatory values and is Captured
         Assert.AreEqual(EDocument."Entry No", FREInvoiceLifecycle."E-Document Entry No.", 'The e-document entry must be retained.');
         Assert.AreEqual(1250, FREInvoiceLifecycle."Reported Amount", 'The reported amount must be retained.');
         Assert.AreEqual('EUR', FREInvoiceLifecycle."Currency Code", 'A foreign currency code must be retained.');
@@ -189,21 +183,21 @@ codeunit 148146 "Identification Tests"
     var
         EDocument: Record "E-Document";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
-        GeneralLedgerSetup: Record "General Ledger Setup";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A local-currency payment occurrence keeps the Business Central blank currency representation
-        GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."LCY Code" = '' then begin
-            GeneralLedgerSetup."LCY Code" := 'EUR';
-            GeneralLedgerSetup.Modify(true);
-        end;
+        Initialize();
+
+        // [GIVEN] An E-Document "ED" in a company with LCY configured
         CreateEDocument(EDocument);
 
+        // [WHEN] A Collected lifecycle occurrence is captured with blank currency
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, '', WorkDate(), 0, 0, 0, 0);
 
+        // [THEN] The lifecycle currency remains blank
         Assert.AreEqual('', FREInvoiceLifecycle."Currency Code", 'Local currency must remain blank on the lifecycle record.');
     end;
 
@@ -216,17 +210,23 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         SourceOccurrenceID: Guid;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Replaying the same payment event does not create a duplicate occurrence
+        Initialize();
+
+        // [GIVEN] A Collected occurrence for E-Document "ED"
         CreateEDocument(EDocument);
         SourceOccurrenceID := CreateGuid();
         FirstLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, SourceOccurrenceID,
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
 
+        // [WHEN] The same source occurrence is captured again
         ReplayedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, SourceOccurrenceID,
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
 
+        // [THEN] The original lifecycle occurrence is returned
         Assert.AreEqual(FirstLifecycle."Entry No.", ReplayedLifecycle."Entry No.", 'An identical replay must return the existing occurrence.');
     end;
 
@@ -237,17 +237,23 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         SourceOccurrenceID: Guid;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A replay with the same identity but different regulatory values is rejected
+        Initialize();
+
+        // [GIVEN] A Collected occurrence for E-Document "ED"
         CreateEDocument(EDocument);
         SourceOccurrenceID := CreateGuid();
         FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, SourceOccurrenceID,
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
 
+        // [WHEN] The same source occurrence is captured with a different amount
         asserterror FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, SourceOccurrenceID,
             1200, 'EUR', WorkDate(), 0, 0, 0, 0);
 
+        // [THEN] A conflicting replay error is raised
         Assert.ExpectedError('The payment lifecycle occurrence was already captured with different values.');
     end;
 
@@ -259,16 +265,22 @@ codeunit 148146 "Identification Tests"
         NegativeCollectedLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Unapplication creates a separate Negative Collected occurrence linked to Collected
+        Initialize();
+
+        // [GIVEN] A Collected occurrence for E-Document "ED"
         CreateEDocument(EDocument);
         CollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
 
+        // [WHEN] A matching Negative Collected occurrence is captured
         NegativeCollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::"Negative Collected", CreateGuid(),
             -1250, 'EUR', WorkDate(), 0, 0, 0, CollectedLifecycle."Entry No.");
 
+        // [THEN] The reversal is linked and exactly negates the original amount
         Assert.AreEqual(CollectedLifecycle."Entry No.", NegativeCollectedLifecycle."Original Occurrence Entry No.", 'The reversal must reference the Collected occurrence.');
         Assert.AreEqual(-CollectedLifecycle."Reported Amount", NegativeCollectedLifecycle."Reported Amount", 'The reversal must negate the original amount.');
     end;
@@ -280,16 +292,22 @@ codeunit 148146 "Identification Tests"
         CollectedLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Negative Collected cannot reverse a different amount than its original occurrence
+        Initialize();
+
+        // [GIVEN] A Collected occurrence for E-Document "ED"
         CreateEDocument(EDocument);
         CollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
 
+        // [WHEN] A Negative Collected occurrence is captured with a different amount
         asserterror FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::"Negative Collected", CreateGuid(),
             -1200, 'EUR', WorkDate(), 0, 0, 0, CollectedLifecycle."Entry No.");
 
+        // [THEN] An exact reversal error is raised
         Assert.ExpectedError('A Negative Collected occurrence must exactly reverse the reported amount of the original Collected occurrence.');
     end;
 
@@ -301,22 +319,30 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Captured regulatory values cannot be changed in place
+        Initialize();
+
+        // [GIVEN] A committed Collected occurrence for E-Document "ED"
         CreateEDocument(EDocument);
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
         Commit();
 
+        // [WHEN] The reported amount is changed
         FREInvoiceLifecycle."Reported Amount" := 1200;
         asserterror FREInvoiceLifecycle.Modify(true);
 
+        // [THEN] The change is rejected
         Assert.ExpectedError('The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.');
 
+        // [WHEN] The sender platform ID is changed
         FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
         FREInvoiceLifecycle."Sender Platform ID" := 'CHANGED';
         asserterror FREInvoiceLifecycle.Modify(true);
 
+        // [THEN] The change is rejected
         Assert.ExpectedError('The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.');
     end;
 
@@ -328,11 +354,17 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Applying a payment to a French electronic invoice captures a Collected occurrence
+        Initialize();
+
+        // [GIVEN] A payment application for French E-Invoice "ED"
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
 
+        // [WHEN] The detailed ledger application is processed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] A Collected occurrence retains the source and invoice values
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.FindFirst();
         Assert.AreEqual(FREInvoiceLifecycle."Lifecycle Status"::Collected, FREInvoiceLifecycle."Lifecycle Status", 'A payment application must create a Collected occurrence.');
@@ -359,14 +391,20 @@ codeunit 148146 "Identification Tests"
         XmlDoc: XmlDocument;
         XmlNode: XmlNode;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A real French invoice occurrence creates the PPF einvoicingF2 lifecycle envelope
+        Initialize();
+
+        // [GIVEN] A captured occurrence for French E-Invoice "ED"
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.FindFirst();
 
+        // [WHEN] The lifecycle message is created
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
 
+        // [THEN] The payload contains the PPF einvoicingF2 envelope values
         EDocumentMessageAPI.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
         TempBlob.CreateInStream(InStream);
         XmlDocument.ReadFrom(InStream, XmlDoc);
@@ -403,12 +441,18 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Multiple invoice VAT entries with the same rate create one lifecycle amount
+        Initialize();
+
+        // [GIVEN] A French E-Invoice "ED" with multiple VAT entries at 20 percent
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         SetInvoiceVATRate(EDocument."Document No.", 20, false);
 
+        // [WHEN] The detailed ledger application is processed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] One aggregated VAT breakdown line is captured
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.FindFirst();
         FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
@@ -427,12 +471,18 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A zero-rated invoice retains VAT rate zero in the lifecycle breakdown
+        Initialize();
+
+        // [GIVEN] A French E-Invoice "ED" with zero-rated VAT
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         SetInvoiceVATRate(EDocument."Document No.", 0, true);
 
+        // [WHEN] The detailed ledger application is processed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] One zero-rated VAT breakdown line is captured
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.FindFirst();
         FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
@@ -453,7 +503,11 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         CurrencyCode: Code[10];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Foreign-currency VAT allocation uses that currency's rounding precision and preserves the remainder
+        Initialize();
+
+        // [GIVEN] A French E-Invoice "ED" paid in a currency with 0.05 rounding precision
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         CurrencyCode := CopyStr(CreateGuid(), 1, MaxStrLen(CurrencyCode));
         Currency.Code := CurrencyCode;
@@ -464,8 +518,10 @@ codeunit 148146 "Identification Tests"
         DetailedCustLedgEntry.Modify();
         SetInvoiceVATCurrency(EDocument."Document No.", CurrencyCode);
 
+        // [WHEN] The detailed ledger application is processed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] VAT is rounded by currency and the final line retains the remainder
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.FindFirst();
         FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
@@ -486,13 +542,19 @@ codeunit 148146 "Identification Tests"
         VATEntry: Record "VAT Entry";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A French lifecycle occurrence is not retained when its posted invoice has no VAT breakdown
+        Initialize();
+
+        // [GIVEN] A French E-Invoice "ED" whose VAT entries were deleted
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         VATEntry.SetRange("Document No.", EDocument."Document No.");
         VATEntry.DeleteAll();
 
+        // [WHEN] The detailed ledger application is processed
         asserterror FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] A missing VAT breakdown error is raised and no occurrence remains
         Assert.ExpectedError('A VAT breakdown could not be determined for posted sales invoice');
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         Assert.RecordIsEmpty(FREInvoiceLifecycle);
@@ -511,7 +573,11 @@ codeunit 148146 "Identification Tests"
         InStream: InStream;
         XmlDoc: XmlDocument;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A production payment flow without a configured sender platform creates the general CDV profile
+        Initialize();
+
+        // [GIVEN] A captured French E-Invoice occurrence without a sender platform ID
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         EDocumentService.Get(EDocument.Service);
         Clear(EDocumentService."FR Sender Platform ID");
@@ -523,8 +589,10 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle.FindFirst();
         Assert.AreEqual('', FREInvoiceLifecycle."Sender Platform ID", 'The general CDV profile must not retain PPF sender information.');
 
+        // [WHEN] The lifecycle message is created
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
 
+        // [THEN] The payload uses the general CDV invoice profile
         EDocumentMessageAPI.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
         TempBlob.CreateInStream(InStream);
         XmlDocument.ReadFrom(InStream, XmlDoc);
@@ -541,15 +609,21 @@ codeunit 148146 "Identification Tests"
         VATPostingSetup: Record "VAT Posting Setup";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A lifecycle occurrence is not retained when a posted VAT entry has no matching setup
+        Initialize();
+
+        // [GIVEN] A French E-Invoice "ED" whose VAT Posting Setup was deleted
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         VATEntry.SetRange("Document No.", EDocument."Document No.");
         VATEntry.FindFirst();
         VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
         VATPostingSetup.Delete();
 
+        // [WHEN] The detailed ledger application is processed
         asserterror FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] A missing setup error is raised and no occurrence remains
         Assert.ExpectedError('VAT Posting Setup does not exist');
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         Assert.RecordIsEmpty(FREInvoiceLifecycle);
@@ -564,7 +638,11 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Captured lifecycle occurrences and their VAT rows cannot be deleted
+        Initialize();
+
+        // [GIVEN] A committed lifecycle occurrence with a VAT breakdown
         CreateEDocument(EDocument);
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
@@ -572,9 +650,14 @@ codeunit 148146 "Identification Tests"
         CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
         Commit();
 
+        // [WHEN] The VAT breakdown line is deleted
         FREInvoiceLifecycleVAT.Get(FREInvoiceLifecycle."Entry No.", 10000);
         asserterror FREInvoiceLifecycleVAT.Delete(true);
+
+        // [THEN] The deletion is rejected
         Assert.ExpectedError(ImmutableLifecycleVATErr);
+
+        // [WHEN] The lifecycle occurrence is renamed or deleted
         asserterror FREInvoiceLifecycle.Rename(FREInvoiceLifecycle."Entry No." + 1);
         asserterror FREInvoiceLifecycle.Delete(true);
     end;
@@ -587,11 +670,17 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Applying a payment to an electronic invoice in a non-French format creates no French lifecycle occurrence
+        Initialize();
+
+        // [GIVEN] A payment application for non-French E-Invoice "ED"
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"PEPPOL BIS 3.0");
 
+        // [WHEN] The detailed ledger application is processed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] No French lifecycle occurrence is created
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         Assert.RecordIsEmpty(FREInvoiceLifecycle);
     end;
@@ -605,7 +694,11 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         MessageEntryNo: Integer;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Replaying an application whose lifecycle message exists does not requeue the occurrence
+        Initialize();
+
+        // [GIVEN] A processed application with an existing lifecycle message
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -613,8 +706,10 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
         MessageEntryNo := FREInvoiceLifecycle."E-Document Message Entry No.";
 
+        // [WHEN] The detailed ledger application is replayed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] The occurrence remains Message Created and retains its message link
         FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
         Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Created", FREInvoiceLifecycle."Processing Status", 'A replay must not requeue an occurrence whose message exists.');
         Assert.AreEqual(MessageEntryNo, FREInvoiceLifecycle."E-Document Message Entry No.", 'A replay must retain the existing message link.');
@@ -628,12 +723,18 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Replaying an application while message creation is queued does not duplicate the occurrence
+        Initialize();
+
+        // [GIVEN] A processed application with a queued lifecycle occurrence
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [WHEN] The detailed ledger application is replayed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] One queued occurrence remains
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         Assert.RecordCount(FREInvoiceLifecycle, 1);
         FREInvoiceLifecycle.FindFirst();
@@ -649,12 +750,18 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Applying a payment creates an occurrence for every eligible E-Document of the invoice
+        Initialize();
+
+        // [GIVEN] A payment application with two eligible French E-Documents
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
         CreateAdditionalEDocument(AdditionalEDocument, EDocument);
 
+        // [WHEN] The detailed ledger application is processed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
 
+        // [THEN] One occurrence is captured for each E-Document
         FREInvoiceLifecycle.SetRange("Source Occurrence ID", DetailedCustLedgEntry.SystemId);
         Assert.RecordCount(FREInvoiceLifecycle, 2);
     end;
@@ -671,15 +778,21 @@ codeunit 148146 "Identification Tests"
         NegativeCollectedLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Unapplying a captured payment creates an exact linked Negative Collected occurrence
+        Initialize();
+
+        // [GIVEN] A captured payment application with a corresponding unapplication detail
         CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Peppol BIS 3.0 FR");
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
         CollectedLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         CollectedLifecycle.FindFirst();
         CreateUnapplicationDetail(NewDetailedCustLedgEntry, DetailedCustLedgEntry);
 
+        // [WHEN] The detailed ledger unapplication is processed
         FREInvoiceLifecycleMgt.ProcessDetailedLedgerUnapplication(DetailedCustLedgEntry, NewDetailedCustLedgEntry);
 
+        // [THEN] A linked Negative Collected occurrence exactly reverses the amount and VAT breakdown
         NegativeCollectedLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         NegativeCollectedLifecycle.SetRange("Lifecycle Status", NegativeCollectedLifecycle."Lifecycle Status"::"Negative Collected");
         NegativeCollectedLifecycle.FindFirst();
@@ -718,7 +831,11 @@ codeunit 148146 "Identification Tests"
         StatusNode: XmlNode;
         VATPercentNode: XmlNode;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A captured occurrence creates and links a PR 8698 E-Document Message payload
+        Initialize();
+
+        // [GIVEN] A Collected occurrence with a VAT breakdown
         CreateEDocument(EDocument);
         CreatePaymentCustLedgerEntry(PaymentCustLedgerEntry, 'EUR');
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
@@ -726,8 +843,10 @@ codeunit 148146 "Identification Tests"
             1250, 'EUR', WorkDate(), 0, PaymentCustLedgerEntry."Entry No.", 0, 0);
         CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
 
+        // [WHEN] The lifecycle message is created
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
 
+        // [THEN] The linked E-Document Message contains the expected lifecycle payload
         Assert.IsTrue(FREInvoiceLifecycle."E-Document Message Entry No." <> 0, 'The lifecycle occurrence must link to the created E-Document Message.');
         Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Created", FREInvoiceLifecycle."Processing Status", 'The occurrence must record successful message creation.');
         EDocumentMessageAPI.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
@@ -756,7 +875,11 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         MessageEntryNo: Integer;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Retrying message creation does not create or link a second message
+        Initialize();
+
+        // [GIVEN] A Collected occurrence with an existing lifecycle message
         CreateEDocument(EDocument);
         CreatePaymentCustLedgerEntry(PaymentCustLedgerEntry, 'EUR');
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
@@ -766,8 +889,10 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
         MessageEntryNo := FREInvoiceLifecycle."E-Document Message Entry No.";
 
+        // [WHEN] Lifecycle message creation is retried
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
 
+        // [THEN] The original message link is retained
         Assert.AreEqual(MessageEntryNo, FREInvoiceLifecycle."E-Document Message Entry No.", 'A retry must retain the existing message link.');
     end;
 
@@ -786,7 +911,11 @@ codeunit 148146 "Identification Tests"
         AmountNode: XmlNode;
         StatusNode: XmlNode;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A Negative Collected occurrence uses status 212 with a negative collected amount
+        Initialize();
+
+        // [GIVEN] A Negative Collected occurrence with a VAT breakdown
         CreateEDocument(EDocument);
         CreatePaymentCustLedgerEntry(PaymentCustLedgerEntry, 'EUR');
         CollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
@@ -798,8 +927,10 @@ codeunit 148146 "Identification Tests"
             -1250, 'EUR', WorkDate() + 1, 0, PaymentCustLedgerEntry."Entry No.", 0, CollectedLifecycle."Entry No.");
         CreateLifecycleVATBreakdown(NegativeCollectedLifecycle, 20, -1250);
 
+        // [WHEN] The Negative Collected lifecycle message is created
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(NegativeCollectedLifecycle);
 
+        // [THEN] The payload uses status 212 and reports a negative amount
         EDocumentMessageAPI.GetMessageBlob(NegativeCollectedLifecycle."E-Document Message Entry No.", TempBlob);
         TempBlob.CreateInStream(InStream);
         XmlDocument.ReadFrom(InStream, XmlDoc);
@@ -818,7 +949,11 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] Retrying failed message creation queues the occurrence and clears its error
+        Initialize();
+
+        // [GIVEN] A failed lifecycle occurrence with a stored error
         CreateEDocument(EDocument);
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
@@ -827,8 +962,10 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle."Last Error" := 'Message creation failed.';
         FREInvoiceLifecycle.Modify();
 
+        // [WHEN] The lifecycle message is retried
         FREInvoiceLifecycleMgt.RetryLifecycleMessage(FREInvoiceLifecycle);
 
+        // [THEN] The occurrence is queued and its previous error is cleared
         Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::Queued, FREInvoiceLifecycle."Processing Status", 'A retry must queue the occurrence.');
         Assert.AreEqual('', FREInvoiceLifecycle."Last Error", 'A retry must clear the previous error.');
     end;
@@ -841,7 +978,11 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         FREInvoiceLifecycleWorker: Codeunit "FR E-Invoice Lifecycle Worker";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] The background worker creates a message for a queued lifecycle occurrence
+        Initialize();
+
+        // [GIVEN] A queued lifecycle occurrence with a VAT breakdown
         CreateEDocument(EDocument);
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
@@ -850,8 +991,10 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
         FREInvoiceLifecycle.Modify();
 
+        // [WHEN] The lifecycle worker runs
         FREInvoiceLifecycleWorker.Run(FREInvoiceLifecycle);
 
+        // [THEN] The occurrence is linked to a created E-Document Message
         FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
         Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Created", FREInvoiceLifecycle."Processing Status", 'The worker must create the queued lifecycle message.');
         Assert.IsTrue(FREInvoiceLifecycle."E-Document Message Entry No." <> 0, 'The worker must link the created E-Document message.');
@@ -866,7 +1009,11 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleError: Codeunit "FR E-Invoice Lifecycle Error";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] The background error handler marks a queued occurrence failed and stores the task error
+        Initialize();
+
+        // [GIVEN] A committed queued lifecycle occurrence and a task error
         CreateEDocument(EDocument);
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
@@ -876,8 +1023,10 @@ codeunit 148146 "Identification Tests"
         Commit();
         asserterror Error(WorkerFailureErr);
 
+        // [WHEN] The lifecycle error handler runs
         FREInvoiceLifecycleError.Run(FREInvoiceLifecycle);
 
+        // [THEN] The occurrence is Failed and retains the task error
         FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
         Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::Failed, FREInvoiceLifecycle."Processing Status", 'The error handler must mark the queued lifecycle occurrence as failed.');
         Assert.ExpectedMessage(WorkerFailureErr, FREInvoiceLifecycle."Last Error");
@@ -906,6 +1055,8 @@ codeunit 148146 "Identification Tests"
         // [FEATURE] [AI test]
         // [SCENARIO] Posting a payment applied to a Factur-X FR sales invoice creates a Collected lifecycle occurrence
         Initialize();
+
+        // [GIVEN] Clean customer ledger and VAT entries
         DetailedCustLedgEntry.DeleteAll();
         CustLedgerEntry.DeleteAll();
         VATEntry.DeleteAll();
@@ -969,10 +1120,15 @@ codeunit 148146 "Identification Tests"
 
     local procedure Initialize()
     var
+        CompanyInformation: Record "Company Information";
         GeneralLedgerSetup: Record "General Ledger Setup";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Identification Tests");
+        CompanyInformation.Get();
+        CompanyInformation.Validate("Registration No.", '123456789');
+        CompanyInformation.Validate("SIRET No.", '12345678901234');
+        CompanyInformation.Modify(true);
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Identification Tests");
