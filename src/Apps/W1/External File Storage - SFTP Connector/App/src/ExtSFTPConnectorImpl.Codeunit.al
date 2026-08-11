@@ -21,7 +21,7 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         ConnectorDescriptionTxt: Label 'Use SFTP Server to store and retrieve files.', MaxLength = 250;
         NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
         InvalidFingerprintErr: Label 'Fingerprint must start with "sha256:".';
-        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported because MD5 is cryptographically broken. Reconfigure this account with a "sha256:" fingerprint.';
+        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported. Reconfigure this account with a SHA256 fingerprint.';
         PathSeparatorTok: Label '/', Locked = true;
 
     /// <summary>
