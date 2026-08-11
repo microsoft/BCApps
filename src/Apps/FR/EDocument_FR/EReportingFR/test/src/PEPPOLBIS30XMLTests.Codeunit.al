@@ -791,6 +791,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     [Test]
     procedure ExportSalesInvUsesBuyerVATFallbackWhenElectronicAddressIsEmpty()
     var
+        Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
     begin
@@ -799,6 +800,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         // [GIVEN] Posted sales invoice for a customer with blank electronic address and a VAT number
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer."Country/Region Code" := '';
+        Customer."FR Electronic Address" := '';
+        Customer."VAT Registration No." := 'FR12345678901';
+        Customer.Modify(true);
 
         // [WHEN] The invoice is checked and exported
         CheckInvoice(SalesInvoiceHeader);
@@ -1196,18 +1202,20 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
     local procedure CreateCustomer(FRElectronicAddress: Text[250]; AddressScheme: Enum "Electronic Address Scheme"): Code[20]
     var
+        CurrentCompanyInformation: Record "Company Information";
         Customer: Record Customer;
         CustomerPostingGroup: Record "Customer Posting Group";
     begin
+        CurrentCompanyInformation.Get();
         LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
-        Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        Customer.Validate("Country/Region Code", CurrentCompanyInformation."Country/Region Code");
         if Customer.Address = '' then
             Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
         if Customer."Post Code" = '' then
             Customer.Validate("Post Code", '75001');
-        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
+        Customer."VAT Registration No." := 'FR12345678901';
 
         Customer.Validate("FR Electronic Address", FRElectronicAddress);
         Customer.Validate("FR Elec. Address Scheme", AddressScheme);
@@ -1374,10 +1382,18 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     local procedure CreateDirectPostingGLAccountWithSalesSetup(var GLAccount: Record "G/L Account")
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
     begin
         GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
         GLAccount.Validate("Direct Posting", true);
         GLAccount.Modify(true);
+
+        GeneralPostingSetup.Get(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        if GeneralPostingSetup."Sales Line Disc. Account" = '' then begin
+            GeneralPostingSetup.Validate("Sales Line Disc. Account", LibraryERM.CreateGLAccountNo());
+            GeneralPostingSetup.Modify(true);
+        end;
     end;
 
 }

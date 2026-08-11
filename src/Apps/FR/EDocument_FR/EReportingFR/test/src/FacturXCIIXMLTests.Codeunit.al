@@ -14,6 +14,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
@@ -25,6 +26,7 @@ codeunit 148148 "Factur-X CII XML Tests"
 {
     Subtype = Test;
     Permissions = tabledata "Company Information" = rimd,
+                  tabledata "Sales Invoice Header" = m,
                   tabledata Customer = rimd;
 
     trigger OnRun()
@@ -358,9 +360,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [GIVEN] Sales invoice with a foreign Currency Code
         LibraryERM.CreateCurrency(Currency);
         LibraryERM.CreateRandomExchangeRate(Currency.Code);
-        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, ''));
-        SalesHeader.Validate("Currency Code", Currency.Code);
-        SalesHeader.Modify(true);
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, '', Currency.Code));
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
         // [WHEN] Create CII XML
@@ -777,8 +777,8 @@ codeunit 148148 "Factur-X CII XML Tests"
             StrSubstNo(IncorrectValueErr, '//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:Name'));
 
         // [THEN] Line has net price = unit price
-        Assert.AreEqual(Format(SalesInvoiceLine."Unit Price", 0, '<Precision,2:2><Standard Format,9>'),
-            GetCIINodeValue(TempBlob, '//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount'),
+        Assert.AreEqual(SalesInvoiceLine."Unit Price",
+            GetCIINodeDecimalValue(TempBlob, '//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount'),
             StrSubstNo(IncorrectValueErr, '//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount'));
 
         // [THEN] Line has billed quantity
@@ -985,9 +985,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [GIVEN] Sales credit memo with a foreign Currency Code
         LibraryERM.CreateCurrency(Currency);
         LibraryERM.CreateRandomExchangeRate(Currency.Code);
-        SalesHeader.Get("Sales Document Type"::"Credit Memo", CreateSalesDocumentWithLine("Sales Document Type"::"Credit Memo", ''));
-        SalesHeader.Validate("Currency Code", Currency.Code);
-        SalesHeader.Modify(true);
+        SalesHeader.Get("Sales Document Type"::"Credit Memo", CreateSalesDocumentWithLine("Sales Document Type"::"Credit Memo", '', Currency.Code));
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
         // [WHEN] Create credit memo CII XML
@@ -1301,6 +1299,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryUtility.UpdateSetupNoSeriesCode(
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
         GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        EnsureSalesInvoiceDiscountAccount(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
         LibraryERM.CreateVATPostingSetupWithAccounts(FirstVATPostingSetup, FirstVATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
         GLAccount.Validate("VAT Prod. Posting Group", FirstVATPostingSetup."VAT Prod. Posting Group");
         GLAccount.Modify(true);
@@ -1311,6 +1310,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 200);
+        SalesLine.Validate("Allow Invoice Disc.", true);
         SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
         SalesLine.Modify(true);
         LibraryERM.CreateVATPostingSetupWithAccounts(SecondVATPostingSetup, SecondVATPostingSetup."VAT Calculation Type"::"Normal VAT", 10);
@@ -1318,6 +1318,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("VAT Prod. Posting Group", SecondVATPostingSetup."VAT Prod. Posting Group");
         SalesLine.Validate("Unit Price", 300);
+        SalesLine.Validate("Allow Invoice Disc.", true);
         SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
         SalesLine.Modify(true);
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
@@ -1335,6 +1336,177 @@ codeunit 148148 "Factur-X CII XML Tests"
         Assert.AreEqual(2, GetCIINodeCount(TempBlob,
             '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax'),
             StrSubstNo(IncorrectValueErr, 'ApplicableTradeTax count'));
+    end;
+
+    [Test]
+    procedure FacturXMixedVATWithInvDiscountTaxTotalEqualsBreakdownSum()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempBlob: Codeunit "Temp Blob";
+        TaxTotalAmount: Decimal;
+        Calculated20: Decimal;
+        Calculated10: Decimal;
+        Basis20: Decimal;
+        Basis10: Decimal;
+        ExpectedBasis20: Decimal;
+        ExpectedBasis10: Decimal;
+        ExpectedCalculated20: Decimal;
+        ExpectedCalculated10: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Mixed VAT rates with invoice discount: TaxTotalAmount = sum of CalculatedAmounts and each breakdown matches posted line amounts
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI" with two lines at 20% and 10% VAT and invoice discount applied
+        SalesInvoiceHeader.Get(CreateAndPostMultiVATInvoiceWithDiscount(true));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
+        SalesInvoiceLine.SetRange("VAT %", 20);
+        SalesInvoiceLine.FindFirst();
+        ExpectedBasis20 := SalesInvoiceLine.Amount;
+        ExpectedCalculated20 := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+        SalesInvoiceLine.SetRange("VAT %", 10);
+        SalesInvoiceLine.FindFirst();
+        ExpectedBasis10 := SalesInvoiceLine.Amount;
+        ExpectedCalculated10 := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Each breakdown BasisAmount equals the posted line Amount grouped by VAT rate
+        Basis20 := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:RateApplicablePercent="20"]/ram:BasisAmount');
+        Assert.AreEqual(ExpectedBasis20, Basis20, StrSubstNo(IncorrectValueErr, 'BasisAmount 20%'));
+        Basis10 := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:RateApplicablePercent="10"]/ram:BasisAmount');
+        Assert.AreEqual(ExpectedBasis10, Basis10, StrSubstNo(IncorrectValueErr, 'BasisAmount 10%'));
+
+        // [THEN] Each breakdown CalculatedAmount equals AmountIncludingVAT - Amount per rate
+        Calculated20 := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:RateApplicablePercent="20"]/ram:CalculatedAmount');
+        Assert.AreEqual(ExpectedCalculated20, Calculated20, StrSubstNo(IncorrectValueErr, 'CalculatedAmount 20%'));
+        Calculated10 := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:RateApplicablePercent="10"]/ram:CalculatedAmount');
+        Assert.AreEqual(ExpectedCalculated10, Calculated10, StrSubstNo(IncorrectValueErr, 'CalculatedAmount 10%'));
+
+        // [THEN] Header TaxTotalAmount equals sum of all CalculatedAmounts
+        TaxTotalAmount := GetCIINodeDecimalValue(TempBlob, '//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxTotalAmount');
+        Assert.AreEqual(Calculated20 + Calculated10, TaxTotalAmount, StrSubstNo(IncorrectValueErr, 'TaxTotalAmount'));
+    end;
+
+    [Test]
+    procedure FacturXSingleVATWithInvDiscountAllowanceAndReconciliation()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempBlob: Codeunit "Temp Blob";
+        LineTotalAmount: Decimal;
+        AllowanceTotalAmount: Decimal;
+        AllowanceAmount: Decimal;
+        TaxBasisTotalAmount: Decimal;
+        TaxTotalAmount: Decimal;
+        BreakdownBasis: Decimal;
+        BreakdownCalculated: Decimal;
+        ExpectedAllowanceAmount: Decimal;
+        ExpectedBasis: Decimal;
+        ExpectedCalculated: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Single VAT rate with invoice discount: document allowance, breakdown basis/VAT, and BR-CO-14 reconciliation
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI" with one line at 20% VAT and invoice discount applied
+        SalesInvoiceHeader.Get(CreateAndPostSingleVATInvoiceWithDiscount());
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
+        SalesInvoiceLine.FindFirst();
+        ExpectedAllowanceAmount := SalesInvoiceLine."Line Amount" - SalesInvoiceLine.Amount;
+        ExpectedBasis := SalesInvoiceLine.Amount;
+        ExpectedCalculated := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Document-level allowance equals the discount recorded on the posted line
+        AllowanceAmount := GetCIINodeDecimalValue(
+            TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeAllowanceCharge/ram:ActualAmount');
+        Assert.AreEqual(ExpectedAllowanceAmount, AllowanceAmount, StrSubstNo(IncorrectValueErr, 'ActualAmount'));
+
+        // [THEN] Breakdown BasisAmount equals posted line Amount
+        BreakdownBasis := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:BasisAmount');
+        Assert.AreEqual(ExpectedBasis, BreakdownBasis, StrSubstNo(IncorrectValueErr, 'BasisAmount'));
+
+        // [THEN] Breakdown CalculatedAmount equals posted VAT
+        BreakdownCalculated := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:CalculatedAmount');
+        Assert.AreEqual(ExpectedCalculated, BreakdownCalculated, StrSubstNo(IncorrectValueErr, 'CalculatedAmount'));
+
+        // [THEN] Monetary totals reconcile
+        LineTotalAmount := GetCIINodeDecimalValue(TempBlob, '//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:LineTotalAmount');
+        AllowanceTotalAmount := GetCIINodeDecimalValue(TempBlob, '//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:AllowanceTotalAmount');
+        TaxBasisTotalAmount := GetCIINodeDecimalValue(TempBlob, '//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxBasisTotalAmount');
+        Assert.AreEqual(LineTotalAmount, TaxBasisTotalAmount + AllowanceTotalAmount,
+            StrSubstNo(IncorrectValueErr, 'LineTotalAmount'));
+
+        // [THEN] BR-CO-14: TaxTotalAmount equals the VAT breakdown CalculatedAmount
+        TaxTotalAmount := GetCIINodeDecimalValue(TempBlob, '//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxTotalAmount');
+        Assert.AreEqual(BreakdownCalculated, TaxTotalAmount, StrSubstNo(IncorrectValueErr, 'TaxTotalAmount'));
+    end;
+
+    [Test]
+    procedure FacturXMixedVATNoDiscountBreakdownAndReconciliation()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempBlob: Codeunit "Temp Blob";
+        TaxTotalAmount: Decimal;
+        TaxBasisTotalAmount: Decimal;
+        Calculated20: Decimal;
+        Calculated10: Decimal;
+        Basis20: Decimal;
+        Basis10: Decimal;
+        ExpectedBasis20: Decimal;
+        ExpectedBasis10: Decimal;
+        ExpectedCalculated20: Decimal;
+        ExpectedCalculated10: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Mixed VAT rates without invoice discount: breakdown amounts match posted values and reconciliation holds
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI" with two lines at 20% and 10% VAT without invoice discount
+        SalesInvoiceHeader.Get(CreateAndPostMultiVATInvoiceWithDiscount(false));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
+        SalesInvoiceLine.SetRange("VAT %", 20);
+        SalesInvoiceLine.FindFirst();
+        ExpectedBasis20 := SalesInvoiceLine.Amount;
+        ExpectedCalculated20 := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+        SalesInvoiceLine.SetRange("VAT %", 10);
+        SalesInvoiceLine.FindFirst();
+        ExpectedBasis10 := SalesInvoiceLine.Amount;
+        ExpectedCalculated10 := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Each breakdown BasisAmount and CalculatedAmount match posted line amounts
+        Basis20 := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:RateApplicablePercent="20"]/ram:BasisAmount');
+        Assert.AreEqual(ExpectedBasis20, Basis20, StrSubstNo(IncorrectValueErr, 'BasisAmount 20%'));
+        Basis10 := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:RateApplicablePercent="10"]/ram:BasisAmount');
+        Assert.AreEqual(ExpectedBasis10, Basis10, StrSubstNo(IncorrectValueErr, 'BasisAmount 10%'));
+        Calculated20 := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:RateApplicablePercent="20"]/ram:CalculatedAmount');
+        Assert.AreEqual(ExpectedCalculated20, Calculated20, StrSubstNo(IncorrectValueErr, 'CalculatedAmount 20%'));
+        Calculated10 := GetCIINodeDecimalValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:RateApplicablePercent="10"]/ram:CalculatedAmount');
+        Assert.AreEqual(ExpectedCalculated10, Calculated10, StrSubstNo(IncorrectValueErr, 'CalculatedAmount 10%'));
+
+        // [THEN] TaxTotalAmount equals sum of all CalculatedAmounts
+        TaxTotalAmount := GetCIINodeDecimalValue(TempBlob, '//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxTotalAmount');
+        Assert.AreEqual(Calculated20 + Calculated10, TaxTotalAmount, StrSubstNo(IncorrectValueErr, 'TaxTotalAmount'));
+
+        // [THEN] TaxBasisTotalAmount equals sum of all BasisAmounts (no discount)
+        TaxBasisTotalAmount := GetCIINodeDecimalValue(TempBlob, '//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxBasisTotalAmount');
+        Assert.AreEqual(Basis20 + Basis10, TaxBasisTotalAmount, StrSubstNo(IncorrectValueErr, 'TaxBasisTotalAmount'));
+
+        // [THEN] No document-level allowance exists
+        Assert.AreEqual(0, GetCIINodeCount(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeAllowanceCharge'),
+            StrSubstNo(IncorrectValueErr, 'SpecifiedTradeAllowanceCharge count'));
     end;
     #endregion
 
@@ -1411,6 +1583,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     local procedure CreateAndPostSalesInvoiceWithBillingModeLines(IncludeGLAccountLine: Boolean): Code[20]
     var
         Customer: Record Customer;
+        GeneralPostingSetup: Record "General Posting Setup";
         GLAccount: Record "G/L Account";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -1423,6 +1596,12 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryUtility.UpdateSetupNoSeriesCode(
             Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
         GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        GeneralPostingSetup.Get(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
         CustomerNo := CreateCustomer('');
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
@@ -1481,6 +1660,11 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     local procedure CreateSalesDocumentWithLine(DocType: Enum "Sales Document Type"; FRElecAddress: Text[250]): Code[20]
+    begin
+        exit(CreateSalesDocumentWithLine(DocType, FRElecAddress, ''));
+    end;
+
+    local procedure CreateSalesDocumentWithLine(DocType: Enum "Sales Document Type"; FRElecAddress: Text[250]; CurrencyCode: Code[10]): Code[20]
     var
         Customer: Record Customer;
         GLAccount: Record "G/L Account";
@@ -1504,11 +1688,122 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
         Customer.Modify(true);
         LibrarySales.CreateSalesHeader(SalesHeader, DocType, CustomerNo);
+        if CurrencyCode <> '' then begin
+            SalesHeader.Validate("Currency Code", CurrencyCode);
+            SalesHeader.Modify(true);
+        end;
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
         SalesLine.Modify(true);
         exit(SalesHeader."No.");
+    end;
+
+    local procedure CreateAndPostMultiVATInvoiceWithDiscount(ApplyInvoiceDiscount: Boolean): Code[20]
+    var
+        Customer: Record Customer;
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        GLAccount: Record "G/L Account";
+        FirstVATPostingSetup: Record "VAT Posting Setup";
+        SecondVATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := CreateCustomer('');
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        LibraryERM.CreateVATPostingSetupWithAccounts(FirstVATPostingSetup, FirstVATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        GLAccount.Validate("VAT Prod. Posting Group", FirstVATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+        Customer.Get(CustomerNo);
+        Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", FirstVATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        if ApplyInvoiceDiscount then begin
+            LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, CustomerNo, '', 0);
+            CustInvoiceDisc.Validate("Discount %", 10);
+            CustInvoiceDisc.Modify(true);
+        end;
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", 200);
+        SalesLine.Validate("Allow Invoice Disc.", true);
+        SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
+        SalesLine.Modify(true);
+
+        LibraryERM.CreateVATPostingSetupWithAccounts(SecondVATPostingSetup, SecondVATPostingSetup."VAT Calculation Type"::"Normal VAT", 10);
+        SecondVATPostingSetup.Rename(Customer."VAT Bus. Posting Group", SecondVATPostingSetup."VAT Prod. Posting Group");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("VAT Prod. Posting Group", SecondVATPostingSetup."VAT Prod. Posting Group");
+        SalesLine.Validate("Unit Price", 300);
+        SalesLine.Validate("Allow Invoice Disc.", true);
+        SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
+        SalesLine.Modify(true);
+
+        if ApplyInvoiceDiscount then
+            LibrarySales.CalcSalesDiscount(SalesHeader);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSingleVATInvoiceWithDiscount(): Code[20]
+    var
+        Customer: Record Customer;
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := CreateCustomer('');
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        EnsureSalesInvoiceDiscountAccount(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+        Customer.Get(CustomerNo);
+        Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, CustomerNo, '', 0);
+        CustInvoiceDisc.Validate("Discount %", 10);
+        CustInvoiceDisc.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", 500);
+        SalesLine.Validate("Allow Invoice Disc.", true);
+        SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
+        SalesLine.Modify(true);
+
+        LibrarySales.CalcSalesDiscount(SalesHeader);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure EnsureSalesInvoiceDiscountAccount(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup);
+        if GeneralPostingSetup."Sales Inv. Disc. Account" <> '' then
+            exit;
+
+        GeneralPostingSetup.Validate("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
     end;
 
     local procedure CreateCustomer(FRElecAddress: Text[250]): Code[20]
@@ -1672,6 +1967,16 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         XmlDoc.SelectNodes(XPath, NamespaceMgr, Nodes);
         exit(Nodes.Count());
+    end;
+
+    local procedure GetCIINodeDecimalValue(var TempBlob: Codeunit "Temp Blob"; XPath: Text): Decimal
+    var
+        NodeText: Text;
+        Result: Decimal;
+    begin
+        NodeText := GetCIINodeValue(TempBlob, XPath);
+        Evaluate(Result, NodeText, 9);
+        exit(Result);
     end;
 
     local procedure BuildNamespaceManager(XmlDoc: XmlDocument; var NamespaceMgr: XmlNamespaceManager)
