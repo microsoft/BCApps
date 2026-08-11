@@ -1844,6 +1844,8 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure TestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; ItemTrackingCode: Record "Item Tracking Code");
     begin
+        OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry, OldItemLedgEntry, ItemTrackingCode);
+
         if ItemTrackingCode."SN Specific Tracking" then
             OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
         if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Serial No." <> '') then
@@ -5314,7 +5316,7 @@ codeunit 22 "Item Jnl.-Post Line"
         exit((ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::Revaluation) and (ItemJnlLine.Quantity <> 0));
     end;
 
-    local procedure InsertPostValueEntryToGL(ValueEntry: Record "Value Entry")
+    procedure InsertPostValueEntryToGL(ValueEntry: Record "Value Entry")
     var
         PostValueEntryToGL: Record "Post Value Entry to G/L";
     begin
@@ -7452,6 +7454,11 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemTrackingCode: Record "Item Tracking Code")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; ItemTrackingCode: Record "Item Tracking Code")
     begin
     end;
@@ -8998,4 +9005,3 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 }
-

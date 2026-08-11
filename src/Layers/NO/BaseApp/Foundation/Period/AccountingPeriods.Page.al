@@ -110,7 +110,6 @@ page 100 "Accounting Periods"
                 Ellipsis = true;
                 Image = CreateYear;
                 RunObject = Report "Create Fiscal Year";
-                ToolTip = 'Open a new fiscal year and define its accounting periods so you can start posting documents.';
             }
             action("C&lose Year")
             {
