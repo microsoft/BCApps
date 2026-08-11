@@ -87,17 +87,17 @@ codeunit 4421 "SOA Attachment MLLM"
         // Set FailureReason before each Error so the caught failure keeps a specific, sanitized reason for telemetry.
         if not AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
             FailureReason := AttachmentFileNotFoundErr;
-            Error(FailureReason);
+            Error(AttachmentFileNotFoundErr);
         end;
 
         AgentTaskFile.CalcFields(Content);
         if not AgentTaskFile.Content.HasValue() then begin
             FailureReason := AttachmentFileEmptyErr;
-            Error(FailureReason);
+            Error(AttachmentFileEmptyErr);
         end;
         if AgentTaskFile."File MIME Type" = '' then begin
             FailureReason := AttachmentMimeTypeMissingErr;
-            Error(FailureReason);
+            Error(AttachmentMimeTypeMissingErr);
         end;
 
         AgentTaskFile.Content.CreateInStream(FileInStream);
@@ -108,11 +108,11 @@ codeunit 4421 "SOA Attachment MLLM"
         SchemaTemplate := NavApp.GetResourceAsText(ExtractionSchemaTok, TextEncoding::UTF8);
         if (PromptTemplate = '') or (UserPromptTemplate = '') or (SchemaTemplate = '') then begin
             FailureReason := ExtractionPromptNotFoundErr;
-            Error(FailureReason);
+            Error(ExtractionPromptNotFoundErr);
         end;
         if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPrompt) then begin
             FailureReason := ExtractionSecurityPromptNotFoundErr;
-            Error(FailureReason);
+            Error(ExtractionSecurityPromptNotFoundErr);
         end;
         Prompt := SecretText.SecretStrSubstNo(PromptTemplate, SecurityPrompt);
 
@@ -133,7 +133,7 @@ codeunit 4421 "SOA Attachment MLLM"
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
         if not AOAIOperationResponse.IsSuccess() then begin
             FailureReason := StrSubstNo(ExtractionCallFailedErr, AOAIOperationResponse.GetStatusCode());
-            Error(FailureReason);
+            Error(ExtractionCallFailedErr, AOAIOperationResponse.GetStatusCode());
         end;
 
         ExtractedContent := AOAIOperationResponse.GetResult();
