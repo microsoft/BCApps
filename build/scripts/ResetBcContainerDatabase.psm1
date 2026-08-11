@@ -113,6 +113,9 @@ function Clear-BcApplicationDatabase {
 
         # Preserve applicationfamily (used by the platform); the recreated database must keep it.
         $dbproperties = Invoke-Sqlcmd -ServerInstance $databaseServerInstance -Query "SELECT [applicationfamily] FROM [$databaseName].[dbo].[`$ndo`$dbproperty]"
+        if (-not $dbproperties -or -not $dbproperties.applicationfamily) {
+            throw "Could not read applicationfamily from database '$databaseName'; aborting reset to avoid recreating the database without this platform-required value."
+        }
 
         Write-Host "Dropping application database '$databaseName' and tenant databases"
         Remove-NavDatabase -databasename $databaseName -databaseserver $databaseServer -databaseInstance $databaseInstance
