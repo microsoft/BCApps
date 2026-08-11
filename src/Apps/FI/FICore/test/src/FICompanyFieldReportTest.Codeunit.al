@@ -16,7 +16,8 @@ codeunit 148150 "FI Company Field Report Test"
         Assert: Codeunit Assert;
         BusinessIdentityCodeTxt: Text[20];
         RegisteredHomeCityTxt: Text[50];
-        VendorCrMemoNoTxt: Label '123';
+        VendorCrMemoNoTok: Label '123', Locked = true;
+        ServiceSuppliesCode4CaptionLbl: Label 'Total Value of Service Supplies(Code 4)';
         FeatureIdTok: Label 'FIVATVIESDeclaration', Locked = true;
         IsInitialized: Boolean;
 
@@ -91,7 +92,6 @@ codeunit 148150 "FI Company Field Report Test"
     [HandlerFunctions('StandardSalesQuoteReportRequestPageHandler')]
     procedure RegisteredHomeCityInStandardSalesQuote()
     var
-        CompanyInformation: Record "Company Information";
         SalesHeader: Record "Sales Header";
         DocumentNo: Code[20];
         RequestPageXML: Text;
@@ -116,7 +116,6 @@ codeunit 148150 "FI Company Field Report Test"
     [HandlerFunctions('VATVIESDeclarationTaxAuthReportRequestPageHandler')]
     procedure CompanyFieldsInVATVIESDeclaration()
     var
-        CompanyInformation: Record "Company Information";
         VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
     begin
         // [Scenario] Test FI Core extension subscriber for Finnish company fields in the VIES declaration.
@@ -134,7 +133,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryReportDataset.AssertElementWithValueExists('BusinessIdentityCodeCaption', CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code"));
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', RegisteredHomeCityTxt);
         LibraryReportDataset.AssertElementWithValueExists('RegHomeCityCaption', CompanyInformation.FieldCaption(CompanyInformation."Registered Home City"));
-        LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', 'Total Value of Service Supplies(Code 4)');
+        LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', ServiceSuppliesCode4CaptionLbl);
     end;
 
     [Test]
@@ -237,7 +236,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, Type, Vendor."No.");
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then
-            PurchaseHeader."Vendor Cr. Memo No." := VendorCrMemoNoTxt;
+            PurchaseHeader."Vendor Cr. Memo No." := VendorCrMemoNoTok;
         LibraryPurchase.CreatePurchaseLine(
             PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
             CreateItemNo(Vendor."Gen. Bus. Posting Group", Vendor."VAT Bus. Posting Group"), LibraryRandom.RandInt(1000));
@@ -827,7 +826,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServiceContractReportHandler')]
+    [HandlerFunctions('ServiceContractReportHandler,ConfirmUIHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractReport()
     var
@@ -854,7 +853,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServiceContractQuoteReportHandler')]
+    [HandlerFunctions('ServiceContractQuoteReportHandler,ConfirmUIHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractQuoteReport()
     var
@@ -878,6 +877,13 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceContractQuoteReport."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
         ServiceContractQuoteReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmUIHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     [RequestPageHandler]
