@@ -590,9 +590,9 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         MissingCount: Integer;
     begin
         InitializeLinkageTestData();
-        CreateFALedgerEntry(10, SourceDepreciationBookCode, false, 0, 0);
-        CreateFALedgerEntry(9, DerogatoryDepreciationBookCode, false, 0, 0);
-        CreateFALedgerEntry(11, DerogatoryDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(10, 'FA2', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(9, 'FA2', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(11, 'FA2', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
 
         UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
 
@@ -668,6 +668,329 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         Assert.AreEqual(0, LinkedCount, 'Repeated processing must not create another link.');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TwoSourcesCompetingForOneCandidateAreBothMarkedAmbiguous()
+    var
+        FirstSourceFALedgerEntry: Record "FA Ledger Entry";
+        SecondSourceFALedgerEntry: Record "FA Ledger Entry";
+        ContestedCandidateFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+    begin
+        // RISK-005 regression: two otherwise-identical sources both uniquely match the SAME single candidate.
+        // Entry-number-proximity tie-breaking must never let whichever source is processed first "win" the link.
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(3, DerogatoryDepreciationBookCode, false, 0, 0);
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        FirstSourceFALedgerEntry.Get(1);
+        FirstSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
+        SecondSourceFALedgerEntry.Get(2);
+        SecondSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
+        ContestedCandidateFALedgerEntry.Get(3);
+        ContestedCandidateFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        Assert.AreEqual(0, LinkedCount, 'A contested candidate must not create any link.');
+        Assert.AreEqual(2, AmbiguousCount, 'Both competing sources must be marked ambiguous.');
+        Assert.AreEqual(0, MissingCount, 'A contested source is ambiguous, not missing.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure MaintenanceCodeDistinguishesOtherwiseIdenticalCandidates()
+    var
+        RightMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        WrongMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+    begin
+        // The wrong-maintenance-code candidate is deliberately CLOSER in entry number than the right one, so any
+        // proximity-based tie-break would wrongly prefer it. Only an explicit "Maintenance Code" match may be used.
+        InitializeLinkageTestData();
+        CreateMaintenanceLedgerEntry(100, SourceDepreciationBookCode, 'MC1');
+        CreateMaintenanceLedgerEntry(102, DerogatoryDepreciationBookCode, 'MC2');
+        CreateMaintenanceLedgerEntry(250, DerogatoryDepreciationBookCode, 'MC1');
+
+        UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        RightMaintenanceLedgerEntry.Get(250);
+        RightMaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 100);
+        WrongMaintenanceLedgerEntry.Get(102);
+        WrongMaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        Assert.AreEqual(1, LinkedCount, 'Exactly one maintenance pair must be linked by matching maintenance code.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure AutomaticDepreciationSourceWithAcquisitionSiblingIsLinked()
+    var
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, 'FA', SourceDepreciationBookCode, true, 500, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(2, 'FA', SourceDepreciationBookCode, false, 500, Enum::"FA Ledger Entry FA Posting Type"::"Acquisition Cost", false, 0, 0);
+        CreateFALedgerEntry(3, 'FA', DerogatoryDepreciationBookCode, false, 500, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        DerogatoryFALedgerEntry.Get(3);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        Assert.AreEqual(1, LinkedCount, 'The automatic depreciation source with an Acquisition Cost sibling must be linked.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CanceledAssetIdentityLinksFAEntryToOriginalAssetCounterpart()
+    var
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, 'FA1', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateCanceledFALedgerEntry(2, DerogatoryDepreciationBookCode, 'FA1');
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        Assert.AreEqual(1, LinkedCount, 'A canceled-asset counterpart must resolve identity via "Canceled from FA No.".');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PartialRerunPreservesEstablishedLinksAndLinksNewPairs()
+    var
+        EstablishedCounterpartFALedgerEntry: Record "FA Ledger Entry";
+        NewCounterpartFALedgerEntry: Record "FA Ledger Entry";
+        FirstContestSourceFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(10, 'FA2', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(9, 'FA2', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(11, 'FA2', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+        Assert.AreEqual(1, LinkedCount, 'First pass must link the unique pair.');
+        Assert.AreEqual(1, AmbiguousCount, 'First pass must mark the equidistant source ambiguous.');
+
+        CreateFALedgerEntry(20, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(21, DerogatoryDepreciationBookCode, false, 0, 0);
+
+        LinkedCount := 0;
+        AmbiguousCount := 0;
+        MissingCount := 0;
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        EstablishedCounterpartFALedgerEntry.Get(2);
+        EstablishedCounterpartFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        NewCounterpartFALedgerEntry.Get(21);
+        NewCounterpartFALedgerEntry.TestField("Derogatory Source Entry No.", 20);
+        FirstContestSourceFALedgerEntry.Get(10);
+        FirstContestSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
+        Assert.AreEqual(1, LinkedCount, 'Second pass must link only the newly added unique pair.');
+        Assert.AreEqual(0, AmbiguousCount, 'Second pass must not re-flag an already-ambiguous source.');
+        Assert.AreEqual(0, MissingCount, 'Second pass must not miscount an already-resolved source.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RunAfterRelationshipTransferSkipsWhenUpgradeTagAlreadySet()
+    var
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
+        EnsureDerogatoryLinkageUpgradeTagIsSet();
+
+        UpgradeDerogatoryLinkage.RunAfterRelationshipTransfer(false);
+
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RunAfterRelationshipTransferLinksAndSetsTagWhenNotYetRun()
+    var
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
+        EnsureDerogatoryLinkageUpgradeTagIsCleared();
+
+        UpgradeDerogatoryLinkage.RunAfterRelationshipTransfer(false);
+
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        Assert.IsTrue(
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            'The linkage upgrade tag must be set after a successful run.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RunAfterRelationshipTransferSkipsWhenNoRelationshipIsConfigured()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+    begin
+        InitializeLinkageTestData();
+        DepreciationBook.ModifyAll("Derogatory Calc.", '');
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
+        EnsureDerogatoryLinkageUpgradeTagIsCleared();
+
+        UpgradeDerogatoryLinkage.RunAfterRelationshipTransfer(false);
+
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        Assert.IsFalse(
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()),
+            'The linkage upgrade tag must not be set when no relationship is configured yet, so a later run can still process it.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CorrectiveUpgradeRebuildsLinksFromConfiguredRelationshipPairs()
+    var
+        FirstSourceFALedgerEntry: Record "FA Ledger Entry";
+        SecondSourceFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+    begin
+        // Simulate a stale outcome left by the pre-fix greedy algorithm (RISK-005): source 2 falsely "won" a link to
+        // candidate 3 even though source 1 is an equally valid match, and source 1 was never flagged ambiguous.
+        InitializeLinkageTestData();
+        EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(3, DerogatoryDepreciationBookCode, false, 0, 0);
+        DerogatoryFALedgerEntry.Get(3);
+        DerogatoryFALedgerEntry."Derogatory Source Entry No." := 2;
+        DerogatoryFALedgerEntry.Modify();
+
+        UpgradeDerogatoryLinkage.RunCorrectiveUpgrade();
+
+        DerogatoryFALedgerEntry.Get(3);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        FirstSourceFALedgerEntry.Get(1);
+        FirstSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
+        SecondSourceFALedgerEntry.Get(2);
+        SecondSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CorrectiveUpgradeSecondRunMakesNoFurtherChanges()
+    var
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+    begin
+        InitializeLinkageTestData();
+        EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
+
+        UpgradeDerogatoryLinkage.RunCorrectiveUpgrade();
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+
+        // Simulate a manual correction made after the corrective run; a second run must not touch it again.
+        DerogatoryFALedgerEntry."Derogatory Source Entry No." := 0;
+        DerogatoryFALedgerEntry.Modify();
+
+        UpgradeDerogatoryLinkage.RunCorrectiveUpgrade();
+
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CorrectiveUpgradeFailureRollsBackClearedLinks()
+    var
+        SecondTaxDepreciationBook: Record "Depreciation Book";
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+    begin
+        InitializeLinkageTestData();
+        EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry."Derogatory Source Entry No." := 1;
+        DerogatoryFALedgerEntry.Modify();
+
+        // Corrupt the relationship setup so it becomes ambiguous: a second derogatory book also targets the source book.
+        LibraryFixedAsset.CreateDepreciationBook(SecondTaxDepreciationBook);
+        SecondTaxDepreciationBook."Derogatory Calc." := SourceDepreciationBookCode;
+        SecondTaxDepreciationBook.Modify();
+
+        asserterror UpgradeDerogatoryLinkage.RunCorrectiveUpgrade();
+
+        Assert.ExpectedError('More than one derogatory depreciation book is configured for depreciation book');
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+    end;
+
+    local procedure EnsureDerogatoryLinkageUpgradeTagIsSet()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
+    begin
+        if not UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()) then
+            UpgradeTag.SetUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag());
+    end;
+
+    local procedure EnsureDerogatoryLinkageUpgradeTagIsCleared()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+        UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag(), CompanyName());
+    end;
+
+    local procedure EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+        UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName());
+    end;
     local procedure InitializeLinkageTestData()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -976,5 +1299,58 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         MaintenanceLedgerEntry."Posting Date" := WorkDate();
         MaintenanceLedgerEntry."Document Date" := WorkDate();
         MaintenanceLedgerEntry.Insert();
+    end;
+    local procedure CreateMaintenanceLedgerEntry(EntryNo: Integer; DepreciationBookCode: Code[10]; MaintenanceCode: Code[10])
+    var
+        MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+    begin
+        MaintenanceLedgerEntry."Entry No." := EntryNo;
+        MaintenanceLedgerEntry."FA No." := 'FA';
+        MaintenanceLedgerEntry."Maintenance Code" := MaintenanceCode;
+        MaintenanceLedgerEntry."Depreciation Book Code" := DepreciationBookCode;
+        MaintenanceLedgerEntry.Amount := 100;
+        MaintenanceLedgerEntry."Document No." := 'DOC';
+        MaintenanceLedgerEntry."FA Posting Date" := WorkDate();
+        MaintenanceLedgerEntry."Posting Date" := WorkDate();
+        MaintenanceLedgerEntry."Document Date" := WorkDate();
+        MaintenanceLedgerEntry.Insert();
+    end;
+
+    local procedure CreateFALedgerEntry(EntryNo: Integer; FANo: Code[20]; DepreciationBookCode: Code[10]; AutomaticEntry: Boolean; TransactionNo: Integer; FAPostingType: Enum "FA Ledger Entry FA Posting Type"; Reversed: Boolean; ReversedByEntryNo: Integer; ReversedEntryNo: Integer)
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        FALedgerEntry."Entry No." := EntryNo;
+        FALedgerEntry."FA No." := FANo;
+        FALedgerEntry."Depreciation Book Code" := DepreciationBookCode;
+        FALedgerEntry."Automatic Entry" := AutomaticEntry;
+        FALedgerEntry."Transaction No." := TransactionNo;
+        FALedgerEntry."FA Posting Type" := FAPostingType;
+        FALedgerEntry.Amount := 100;
+        FALedgerEntry."Document No." := 'DOC';
+        FALedgerEntry."FA Posting Date" := WorkDate();
+        FALedgerEntry."Posting Date" := WorkDate();
+        FALedgerEntry."Document Date" := WorkDate();
+        FALedgerEntry.Reversed := Reversed;
+        FALedgerEntry."Reversed by Entry No." := ReversedByEntryNo;
+        FALedgerEntry."Reversed Entry No." := ReversedEntryNo;
+        FALedgerEntry.Insert();
+    end;
+
+    local procedure CreateCanceledFALedgerEntry(EntryNo: Integer; DepreciationBookCode: Code[10]; CanceledFromFANo: Code[20])
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        FALedgerEntry."Entry No." := EntryNo;
+        FALedgerEntry."FA No." := '';
+        FALedgerEntry."Canceled from FA No." := CanceledFromFANo;
+        FALedgerEntry."Depreciation Book Code" := DepreciationBookCode;
+        FALedgerEntry."FA Posting Type" := FALedgerEntry."FA Posting Type"::Depreciation;
+        FALedgerEntry.Amount := 100;
+        FALedgerEntry."Document No." := 'DOC';
+        FALedgerEntry."FA Posting Date" := WorkDate();
+        FALedgerEntry."Posting Date" := WorkDate();
+        FALedgerEntry."Document Date" := WorkDate();
+        FALedgerEntry.Insert();
     end;
 }
