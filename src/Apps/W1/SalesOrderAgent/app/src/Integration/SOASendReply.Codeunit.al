@@ -72,7 +72,7 @@ codeunit 4419 "SOA Send Reply"
         InvalidReplyMessageErr: Label 'Only reviewed output messages can be sent as replies.';
         ReplyNotAuthorizedErr: Label 'You are not authorized to send this reply.';
         InvalidMappedContactErr: Label 'The contact mapping for this message is no longer valid. Choose another contact before sending the reply.';
-        MappedContactEmailMissingErr: Label 'The mapped contact %1 does not have a primary email address. Add an email address to the contact or choose another contact before sending the reply.', Comment = '%1 = Contact No.';
+        MappedContactEmailMissingErr: Label 'The mapped contact does not have a primary email address. Add an email address to the contact or choose another contact before sending the reply.';
         MappedContactErrorTitleErr: Label 'Contact mapping requires attention';
         MappedContactErrorDetailedMessageErr: Label 'Open the source email message and correct its contact mapping or the mapped contact''s primary email address, then retry the reply.';
         ShowSourceEmailMessageLbl: Label 'Show source email message';
@@ -95,7 +95,7 @@ codeunit 4419 "SOA Send Reply"
             if not Contact.Get(SOATaskContactOverride."Contact No.") then
                 ErrorMappedContact(InvalidMappedContactErr, InputAgentTaskMessage);
             if Contact."E-Mail" = '' then
-                ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."), InputAgentTaskMessage);
+                ErrorMappedContact(MappedContactEmailMissingErr, InputAgentTaskMessage);
 
             exit(Contact."E-Mail");
         end;
@@ -103,7 +103,7 @@ codeunit 4419 "SOA Send Reply"
         // Only the alternate email represents a persistent mapping; primary email matches keep the existing Reply All behavior.
         if SOAFiltersImpl.FindContactByAlternateEmail(Contact, InputAgentTaskMessage.From, ContactCount) then begin
             if Contact."E-Mail" = '' then
-                ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."), InputAgentTaskMessage);
+                ErrorMappedContact(MappedContactEmailMissingErr, InputAgentTaskMessage);
 
             exit(Contact."E-Mail");
         end;
