@@ -8,7 +8,6 @@ codeunit 10976 "FR E-Invoice Lifecycle Worker"
 {
     Access = Internal;
     InherentEntitlements = X;
-    InherentPermissions = X;
     TableNo = "FR E-Invoice Lifecycle";
 
     trigger OnRun()

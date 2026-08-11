@@ -131,6 +131,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocHelpers: Codeunit "EDoc. Helpers";
     begin
+        EDocument.SetLoadFields(Service, "Document Date", "Clearance Date");
         EDocument.Get(FREInvoiceLifecycle."E-Document Entry No.");
         if not EDocHelpers.GetFrenchEDocumentService(EDocument, EDocumentService, EDocumentServiceStatus) then
             exit;

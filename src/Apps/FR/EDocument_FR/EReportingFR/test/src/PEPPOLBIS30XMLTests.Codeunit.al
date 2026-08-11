@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Item;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -41,12 +42,13 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         EDocumentService: Record "E-Document Service";
         LibrarySales: Codeunit "Library - Sales";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         Assert: Codeunit Assert;
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
-        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
-        BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
+        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for the customer for French e-invoicing.', Locked = true;
+        BuyerElectronicAddressSchemeRequiredErr: Label 'Electronic Address Scheme must be specified for the customer for French e-invoicing.', Locked = true;
         ParticipantAddressIncompleteErr: Label 'must both be specified for French electronic invoicing.', Locked = true;
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         IsInitialized: Boolean;
@@ -347,6 +349,46 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         // [THEN] The billing mode is S1
         Assert.AreEqual('S1', GetNodeByPath(XmlDoc, '/Invoice/cbc:ProfileID'), StrSubstNo(IncorrectValueErr, 'ProfileID'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvSetsB1ForItemLines()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] An invoice containing only item lines uses billing mode B1
+        Initialize();
+
+        // [GIVEN] A posted sales invoice containing only an item line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemLine(CreateCustomer('', "Electronic Address Scheme"::"EM"), false));
+
+        // [WHEN] The posted invoice is exported
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] The billing mode is B1
+        Assert.AreEqual('B1', GetNodeByPath(XmlDoc, '/Invoice/cbc:ProfileID'), StrSubstNo(IncorrectValueErr, 'ProfileID'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvSetsM1ForMixedLines()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] An invoice containing item and service lines uses billing mode M1
+        Initialize();
+
+        // [GIVEN] A posted sales invoice containing an item line and a service line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemLine(CreateCustomer('', "Electronic Address Scheme"::"EM"), true));
+
+        // [WHEN] The posted invoice is exported
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] The billing mode is M1
+        Assert.AreEqual('M1', GetNodeByPath(XmlDoc, '/Invoice/cbc:ProfileID'), StrSubstNo(IncorrectValueErr, 'ProfileID'));
     end;
 
     [Test]
@@ -784,7 +826,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         asserterror CheckInvoice(SalesInvoiceHeader);
 
         // [THEN] A buyer electronic address error is raised
-        Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
+        Assert.ExpectedError(BuyerElectronicAddressRequiredErr);
     end;
 
     [Test]
@@ -805,7 +847,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         asserterror CheckInvoice(SalesInvoiceHeader);
 
         // [THEN] A buyer electronic address scheme error is raised
-        Assert.ExpectedError(StrSubstNo(BuyerElectronicAddressSchemeRequiredErr, CustomerNo));
+        Assert.ExpectedError(BuyerElectronicAddressSchemeRequiredErr);
     end;
 
     [Test]
@@ -932,6 +974,28 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesHeader: Record "Sales Header";
     begin
         SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesInvoiceWithLine(CustomerNo));
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesInvoiceWithItemLine(CustomerNo: Code[20]; KeepServiceLine: Boolean): Code[20]
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesInvoiceWithLine(CustomerNo));
+        if not KeepServiceLine then begin
+            SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+            SalesLine.SetRange("Document No.", SalesHeader."No.");
+            SalesLine.DeleteAll(true);
+            SalesLine.Reset();
+        end;
+
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 

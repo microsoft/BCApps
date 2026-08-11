@@ -14,5 +14,7 @@ permissionset 10972 "E-Reporting FR Edit"
 
     Permissions = tabledata "FR E-Invoice Lifecycle" = im,
                   tabledata "FR E-Invoice Lifecycle VAT" = i,
+                  codeunit "FR E-Invoice Lifecycle Worker" = X,
+                  codeunit "FR E-Invoice Lifecycle Error" = X,
                   codeunit "FR E-Invoice Lifecycle Mgt." = X;
 }

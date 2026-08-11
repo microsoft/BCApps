@@ -835,6 +835,29 @@ codeunit 148145 "Export E-Reporting Tests"
         EDocument.Get(EDocument."Entry No");
         Assert.AreEqual(0DT, EDocument."Clearance Date", 'Clearance Date should remain 0DT for blank Service');
     end;
+
+    [Test]
+    procedure BlankServiceUsesFacturXStatusForClearanceDate()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A blank document service uses its Factur-X service status to set the clearance date
+        Initialize();
+
+        // [GIVEN] An E-Document with no direct service and an approved Factur-X service status
+        CreateEDocumentService('FACTURX-FALLBACK', "E-Document Format"::"Factur-X FR");
+        CreateEDocumentWithService(EDocument, '');
+        CreateEDocumentServiceStatus(EDocument."Entry No", 'FACTURX-FALLBACK', "E-Document Service Status"::Approved);
+
+        // [WHEN] The E-Document status changes
+        EDocument.Validate(Status, EDocument.Status::Processed);
+        EDocument.Modify(true);
+
+        // [THEN] The fallback service status sets the clearance date
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreNotEqual(0DT, EDocument."Clearance Date", 'The approved Factur-X fallback status must set the clearance date.');
+    end;
     #endregion
 
     local procedure Initialize()

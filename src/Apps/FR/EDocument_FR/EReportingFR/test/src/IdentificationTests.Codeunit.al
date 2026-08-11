@@ -52,6 +52,7 @@ codeunit 148146 "Identification Tests"
         EDocHelpers: Codeunit "EDoc. Helpers";
         ImmutableLifecycleErr: Label 'The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.', Locked = true;
         ImmutableLifecycleVATErr: Label 'A French electronic invoice lifecycle VAT breakdown cannot be changed.', Locked = true;
+        UnsupportedSenderPlatformSchemeErr: Label 'The sender platform scheme must be 0238.', Locked = true;
         WorkerFailureErr: Label 'Lifecycle worker test failure.', Locked = true;
         XmlNodeMissingErr: Label 'The payload must contain XML node %1.', Comment = '%1 = XML path', Locked = true;
         XmlNodeValueErr: Label 'The XML node %1 has an unexpected value.', Comment = '%1 = XML path', Locked = true;
@@ -312,6 +313,28 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    procedure CaptureNegativeCollectedRejectsMissingOriginalOccurrence()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Negative Collected cannot reference an original occurrence that does not exist
+        Initialize();
+
+        // [GIVEN] An E-Document without a Collected occurrence
+        CreateEDocument(EDocument);
+
+        // [WHEN] A Negative Collected occurrence references a nonexistent original occurrence
+        asserterror FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::"Negative Collected", CreateGuid(),
+            -1250, 'EUR', WorkDate(), 0, 0, 0, 999999);
+
+        // [THEN] The orphan reversal is rejected
+        Assert.ExpectedError('The original Collected occurrence does not exist.');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure CapturedOccurrenceRejectsRegulatoryValueChanges()
     var
@@ -344,6 +367,22 @@ codeunit 148146 "Identification Tests"
 
         // [THEN] The change is rejected
         Assert.ExpectedError('The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.');
+    end;
+
+    [Test]
+    procedure SenderPlatformSchemeRejectsUnsupportedValue()
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] French lifecycle setup accepts only the supported sender platform identifier scheme
+        Initialize();
+
+        // [WHEN] An unsupported sender platform scheme is entered
+        asserterror EDocumentService.Validate("FR Sender Platform Scheme", '0009');
+
+        // [THEN] The unsupported scheme is rejected
+        Assert.ExpectedError(UnsupportedSenderPlatformSchemeErr);
     end;
 
     [Test]
@@ -1030,6 +1069,7 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle.Modify();
         Commit();
         asserterror Error(WorkerFailureErr);
+        Assert.ExpectedError(WorkerFailureErr);
 
         // [WHEN] The lifecycle error handler runs
         FREInvoiceLifecycleError.Run(FREInvoiceLifecycle);

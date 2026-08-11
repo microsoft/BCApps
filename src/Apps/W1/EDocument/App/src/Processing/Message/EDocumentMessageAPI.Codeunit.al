@@ -14,7 +14,6 @@ codeunit 6436 "E-Document Message API"
 {
     Access = Public;
     InherentEntitlements = X;
-    InherentPermissions = X;
 
     /// <summary>
     /// Creates an E-Document message with an explicit direction and stores its payload.
