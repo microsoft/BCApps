@@ -46,6 +46,7 @@ codeunit 10978 "CII XML Builder"
 
         RootElement := XmlElement.Create('CrossIndustryInvoice', RsmNamespaceTok);
         RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('ram', RamNamespaceTok));
+        RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('qdt', QdtNamespaceTok));
         RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('udt', UdtNamespaceTok));
 
         AddExchangedDocumentContext(RootElement, SourceDocumentLines);
@@ -464,7 +465,51 @@ codeunit 10978 "CII XML Builder"
         AddAmountElement(MonetarySummationElement, 'DuePayableAmount', EDocument."Amount Incl. VAT");
         SettlementElement.Add(MonetarySummationElement);
 
+        AddInvoiceReference(SettlementElement, SourceDocumentHeader);
+
         TransactionElement.Add(SettlementElement);
+    end;
+
+    local procedure AddInvoiceReference(var SettlementElement: XmlElement; var SourceDocumentHeader: RecordRef)
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ReferenceElement: XmlElement;
+        IssueDateElement: XmlElement;
+        DateStringElement: XmlElement;
+        ReferencedDocumentNo: Code[20];
+        ReferencedDocumentDate: Date;
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Sales Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesCrMemoHeader);
+                    ReferencedDocumentNo := SalesCrMemoHeader."Applies-to Doc. No.";
+                    if SalesInvoiceHeader.Get(ReferencedDocumentNo) then
+                        ReferencedDocumentDate := SalesInvoiceHeader."Document Date";
+                end;
+            Database::"Service Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
+                    ReferencedDocumentNo := ServiceCrMemoHeader."Applies-to Doc. No.";
+                    if ServiceInvoiceHeader.Get(ReferencedDocumentNo) then
+                        ReferencedDocumentDate := ServiceInvoiceHeader."Document Date";
+                end;
+        end;
+
+        if (ReferencedDocumentNo = '') or (ReferencedDocumentDate = 0D) then
+            exit;
+
+        ReferenceElement := XmlElement.Create('InvoiceReferencedDocument', RamNamespaceTok);
+        ReferenceElement.Add(XmlElement.Create('IssuerAssignedID', RamNamespaceTok, ReferencedDocumentNo));
+        IssueDateElement := XmlElement.Create('FormattedIssueDateTime', RamNamespaceTok);
+        DateStringElement := XmlElement.Create('DateTimeString', QdtNamespaceTok, FormatDate(ReferencedDocumentDate));
+        DateStringElement.SetAttribute('format', '102');
+        IssueDateElement.Add(DateStringElement);
+        ReferenceElement.Add(IssueDateElement);
+        SettlementElement.Add(ReferenceElement);
     end;
 
     local procedure AddTaxBreakdown(var SettlementElement: XmlElement; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; InvoiceDiscountAmount: Decimal)
@@ -1060,6 +1105,7 @@ codeunit 10978 "CII XML Builder"
     var
         RsmNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100', Locked = true;
         RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;
+        QdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100', Locked = true;
         UdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
         RecoveryCostNoteTok: Label 'Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 €', Locked = true;
