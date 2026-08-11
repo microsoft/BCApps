@@ -17,6 +17,8 @@ codeunit 135575 "E-Doc. API Test"
     TestPermissions = Disabled;
 
     trigger OnRun()
+    var
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
         LibraryGraphMgt.BindAuthentication();
     end;
