@@ -4231,7 +4231,6 @@ table 39 "Purchase Line"
 #pragma warning restore AA0470
         Text029: Label 'must be positive.';
         Text030: Label 'must be negative.';
-        CorrectiveCreditMemoQtyIncreaseErr: Label 'must not be greater than %1 because a corrective credit memo can only reverse the original posted invoice, not add quantity.', Comment = '%1 - the quantity copied from the posted purchase invoice';
 #pragma warning disable AA0470
         Text032: Label '%1 must not be greater than the sum of %2 and %3.';
 #pragma warning restore AA0470
@@ -4286,6 +4285,7 @@ table 39 "Purchase Line"
         InvoiceOrOrderDocTypeErr: Label '%1 must be either %2 or %3.', Comment = '%1 - Document Type; %2, %3 - Purchase Document Type, Invoice or Order';
         CannotInsertPurchLineWithoutHeaderErr: Label 'You cannot insert a purchase line without a purchase header.';
         MustSpecifyErr: Label 'You must either specify %1 or %2.', Comment = '%1 = Field Caption; %2 = Field Caption';
+        CorrectiveCreditMemoQtyIncreaseErr: Label 'must not be greater than %1 because a corrective credit memo can only reverse the original posted invoice, not add quantity.', Comment = '%1 - the quantity copied from the posted purchase invoice';
 
     protected var
         Currency: Record Currency;
@@ -11657,7 +11657,6 @@ table 39 "Purchase Line"
     local procedure OnAfterIsCreditDocType(PurchaseLine: Record "Purchase Line"; var Result: Boolean)
     begin
     end;
-
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsInvoiceDocType(var PurchaseLine: Record "Purchase Line"; var Result: Boolean)
