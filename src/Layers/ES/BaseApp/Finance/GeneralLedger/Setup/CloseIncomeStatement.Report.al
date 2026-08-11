@@ -152,8 +152,6 @@ report 94 "Close Income Statement"
                                 GenJnlLine."System-Created Entry" := true;
                                 if not AddSourceCurrencyFields() then
                                     GenJnlLine."Source Currency Amount" := -TempEntryNoAmountBuffer.Amount2;
-                                if "Source Currency Code" <> '' then
-                                    GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
                                 GenJnlLine."Business Unit Code" := TempEntryNoAmountBuffer."Business Unit Code";
 
                                 TempDimBuf2.DeleteAll();
@@ -936,6 +934,9 @@ report 94 "Close Income Statement"
     /// </summary>
     /// <param name="GenJournalLine">General journal line being populated</param>
     /// <param name="RetainedEarningsGLAcc">Retained earnings G/L account used for closing</param>
+    /// <param name="TempEntryNoAmountBuffer">Temporary entry number amount buffer. The "Entry No." field is a logical grouping key
+    /// for business unit, dimension combination and source currency, and is not always a valid dimension buffer ID that can be
+    /// passed to Dimension Buffer Management.RetrieveDimensions.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDataItemOnAfterGenJnlLineDimUpdated(var GenJnlLine: Record "Gen. Journal Line"; ClosePerGlobalDim1: Boolean; ClosePerGlobalDim2: Boolean; var TempEntryNoAmountBuffer: Record "Entry No. Amount Buffer" temporary)
     begin
@@ -971,7 +972,9 @@ report 94 "Close Income Statement"
     /// <summary>
     /// Integration event fired after processing G/L entry into amount buffer during closing.
     /// </summary>
-    /// <param name="TempEntryNoAmountBuffer">Temporary entry number amount buffer</param>
+    /// <param name="TempEntryNoAmountBuffer">Temporary entry number amount buffer. The "Entry No." field is a logical grouping key
+    /// for business unit, dimension combination and source currency, and is not always a valid dimension buffer ID that can be
+    /// passed to Dimension Buffer Management.RetrieveDimensions.</param>
     /// <param name="GEntry">G/L entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLEntryOnAfterGetRecordOnAfterEntryNoAmountBuf(var TempEntryNoAmountBuffer: Record "Entry No. Amount Buffer" temporary; GEntry: Record "G/L Entry")
@@ -982,7 +985,9 @@ report 94 "Close Income Statement"
     /// Integration event fired after handling general journal line during G/L entry processing.
     /// </summary>
     /// <param name="GenJnlLine">General journal line being handled</param>
-    /// <param name="TempEntryNoAmountBuf">Temporary entry number amount buffer</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary entry number amount buffer. The "Entry No." field is a logical grouping key
+    /// for business unit, dimension combination and source currency, and is not always a valid dimension buffer ID that can be
+    /// passed to Dimension Buffer Management.RetrieveDimensions.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLEntryOnPostDataItemOnAfterHandleGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     begin

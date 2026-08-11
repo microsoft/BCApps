@@ -1588,10 +1588,6 @@ codeunit 134982 "ERM Financial Reports"
         ClosingGenJournalLine.FindFirst();
         Assert.AreEqual(
             -(Amount1 + Amount2 + Amount3), ClosingGenJournalLine.Amount, CloseIncomeLineAmountErr);
-
-        // Cleanup: restore Additional Reporting Currency
-        if OldAdditionalReportingCurrency <> '' then
-            UpdateCurOnGeneralLedgerSetup(OldAdditionalReportingCurrency);
     end;
 
     [Test]
@@ -1610,7 +1606,6 @@ codeunit 134982 "ERM Financial Reports"
         Amount1: Decimal;
         Amount2: Decimal;
         Amount3: Decimal;
-        OldAdditionalReportingCurrency: Code[10];
     begin
         // [SCENARIO 646077] Close Income Statement consolidates multiple G/L entries into one journal line per account when no dimensions are selected and ARC is enabled.
         Initialize();
@@ -1619,7 +1614,7 @@ codeunit 134982 "ERM Financial Reports"
         ClearSelectedDimensionsForCloseIncomeStatement();
 
         // [GIVEN] Additional Reporting Currency is enabled
-        OldAdditionalReportingCurrency := UpdateCurOnGeneralLedgerSetup(LibraryERM.CreateCurrencyWithRandomExchRates());
+        UpdateCurOnGeneralLedgerSetup(LibraryERM.CreateCurrencyWithRandomExchRates());
 
         // [GIVEN] Previous Fiscal Year Closed, New Fiscal Year Created and Closed
         LibraryFiscalYear.CloseFiscalYear();
@@ -1667,9 +1662,6 @@ codeunit 134982 "ERM Financial Reports"
         ClosingGLEntry.CalcSums(Amount);
         Assert.AreEqual(
             -(Amount1 + Amount2 + Amount3), ClosingGLEntry.Amount, CloseIncomeLineAmountErr);
-
-        // Cleanup: restore General Ledger Setup
-        UpdateCurOnGeneralLedgerSetup(OldAdditionalReportingCurrency);
     end;
 
     [Test]
