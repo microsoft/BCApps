@@ -84,14 +84,21 @@ codeunit 4421 "SOA Attachment MLLM"
         SecurityPrompt: SecretText;
         UserPromptTemplate: Text;
     begin
-        if not AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
-            Error(AttachmentFileNotFoundErr);
+        // Set FailureReason before each Error so the caught failure keeps a specific, sanitized reason for telemetry.
+        if not AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
+            FailureReason := AttachmentFileNotFoundErr;
+            Error(FailureReason);
+        end;
 
         AgentTaskFile.CalcFields(Content);
-        if not AgentTaskFile.Content.HasValue() then
-            Error(AttachmentFileEmptyErr);
-        if AgentTaskFile."File MIME Type" = '' then
-            Error(AttachmentMimeTypeMissingErr);
+        if not AgentTaskFile.Content.HasValue() then begin
+            FailureReason := AttachmentFileEmptyErr;
+            Error(FailureReason);
+        end;
+        if AgentTaskFile."File MIME Type" = '' then begin
+            FailureReason := AttachmentMimeTypeMissingErr;
+            Error(FailureReason);
+        end;
 
         AgentTaskFile.Content.CreateInStream(FileInStream);
         FileData := StrSubstNo(FileDataTok, AgentTaskFile."File MIME Type", Base64Convert.ToBase64(FileInStream));
@@ -99,10 +106,14 @@ codeunit 4421 "SOA Attachment MLLM"
         PromptTemplate := NavApp.GetResourceAsText(ExtractionSystemPromptTok, TextEncoding::UTF8);
         UserPromptTemplate := NavApp.GetResourceAsText(ExtractionUserPromptTok, TextEncoding::UTF8);
         SchemaTemplate := NavApp.GetResourceAsText(ExtractionSchemaTok, TextEncoding::UTF8);
-        if (PromptTemplate = '') or (UserPromptTemplate = '') or (SchemaTemplate = '') then
-            Error(ExtractionPromptNotFoundErr);
-        if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPrompt) then
-            Error(ExtractionSecurityPromptNotFoundErr);
+        if (PromptTemplate = '') or (UserPromptTemplate = '') or (SchemaTemplate = '') then begin
+            FailureReason := ExtractionPromptNotFoundErr;
+            Error(FailureReason);
+        end;
+        if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPrompt) then begin
+            FailureReason := ExtractionSecurityPromptNotFoundErr;
+            Error(FailureReason);
+        end;
         Prompt := SecretText.SecretStrSubstNo(PromptTemplate, SecurityPrompt);
 
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
@@ -115,12 +126,15 @@ codeunit 4421 "SOA Attachment MLLM"
         AOAIChatMessages.SetPrimarySystemMessage(Prompt);
 
         AOAIUserMessage.AddFilePart(FileData);
-        AOAIUserMessage.AddTextPart(StrSubstNo(UserPromptTemplate, AgentTaskFile."File Name", SchemaTemplate));
+        // The attachment file name is sender-controlled, so it is never placed in the prompt.
+        AOAIUserMessage.AddTextPart(StrSubstNo(UserPromptTemplate, SchemaTemplate));
         AOAIChatMessages.AddUserMessage(AOAIUserMessage);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-        if not AOAIOperationResponse.IsSuccess() then
-            Error(ExtractionCallFailedErr, AOAIOperationResponse.GetStatusCode());
+        if not AOAIOperationResponse.IsSuccess() then begin
+            FailureReason := StrSubstNo(ExtractionCallFailedErr, AOAIOperationResponse.GetStatusCode());
+            Error(FailureReason);
+        end;
 
         ExtractedContent := AOAIOperationResponse.GetResult();
         if not ValidateAndNormalizeResponse(ExtractedContent, FailureReason) then
