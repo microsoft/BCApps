@@ -5698,7 +5698,7 @@ codeunit 137405 "SCM Item Tracking"
     end;
 
     [Test]
-    [HandlerFunctions('ItemTrackingLinesLotSNQtyModalPageHandler,MessageHandler')]
+    [HandlerFunctions('ItemTrackingLinesLotSNQtyModalPageHandler')]
     [Scope('OnPrem')]
     procedure GetAvailableLotQtyExcludesUnregisteredWhsePickAllocation()
     var
