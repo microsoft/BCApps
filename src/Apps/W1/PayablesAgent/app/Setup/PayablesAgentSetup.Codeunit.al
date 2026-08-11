@@ -611,17 +611,30 @@ codeunit 3307 "Payables Agent Setup"
 
     /// <summary>
     /// Returns true when the sender of the e-document's source email can be trusted as authenticated:
-    /// either composite authentication passed (compauth=pass), or the message originated inside the
-    /// organization (see IsSenderInternal). Missing email or headers yields false.
+    /// either composite authentication passed (compauth=pass), or the message was stamped by Exchange as
+    /// originating inside the organization. Missing email or headers yields false.
     /// </summary>
-    procedure IsSenderAuthenticated(EDocument: Record "E-Document"): Boolean
+    local procedure IsSenderAuthenticated(EDocument: Record "E-Document"): Boolean
     var
         HeaderValue: Text;
     begin
         if TryGetSourceEmailHeader(EDocument, 'Authentication-Results', HeaderValue) then
             if CompAuthPassed(HeaderValue) then
                 exit(true);
-        exit(IsSenderInternal(EDocument));
+        exit(IsSenderStampedInternalByExchange(EDocument));
+    end;
+
+    local procedure IsSenderInternal(EDocument: Record "E-Document"): Boolean
+    begin
+        if IsSenderStampedInternalByExchange(EDocument) then begin
+            Session.LogMessage('0000V0J', SenderTrustedByExchangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
+            exit(true);
+        end;
+        if IsSenderInVerifiedTenantDomain(EDocument) then begin
+            Session.LogMessage('0000V0K', SenderTrustedByVerifiedDomainTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     /// <summary>
@@ -630,13 +643,103 @@ codeunit 3307 "Payables Agent Setup"
     /// same onmicrosoft.com domain), which is not stamped with compauth. Exchange re-stamps this header
     /// on inbound, so it cannot be spoofed by an external sender. Missing email or header yields false.
     /// </summary>
-    procedure IsSenderInternal(EDocument: Record "E-Document"): Boolean
+    local procedure IsSenderStampedInternalByExchange(EDocument: Record "E-Document"): Boolean
     var
         HeaderValue: Text;
     begin
         if TryGetSourceEmailHeader(EDocument, 'X-MS-Exchange-Organization-AuthAs', HeaderValue) then
             exit(LowerCase(HeaderValue).Trim() = 'internal');
         exit(false);
+    end;
+
+    local procedure IsSenderInVerifiedTenantDomain(EDocument: Record "E-Document"): Boolean
+    var
+        AuthenticationResults: Text;
+        SenderDomain, HeaderFromDomain, Reason : Text;
+        IsVerified: Boolean;
+    begin
+        // Used as fallback when the sender is not stamped internal by Exchange.
+        SenderDomain := GetSenderDomain(EDocument);
+        if SenderDomain = '' then
+            exit(false);
+
+        if not TryGetSourceEmailHeader(EDocument, 'Authentication-Results', AuthenticationResults) then
+            exit(false);
+
+        // We require a stricter compauth=pass
+        if not CompAuthPassed(AuthenticationResults) then
+            exit(false);
+
+        // Not only that it passed, but that the reason code indicates that the From domain was aligned or accepted
+        Reason := GetCompAuthReason(AuthenticationResults);
+        if not (Reason in ['100', '101', '102', '111', '115', '130']) then
+            exit(false);
+
+        HeaderFromDomain := GetHeaderTagValue(AuthenticationResults, 'header.from=');
+        if HeaderFromDomain <> SenderDomain then
+            exit(false);
+
+        if not TryIsVerifiedTenantDomain(SenderDomain, IsVerified) then begin
+            Session.LogMessage('0000V0L', VerifiedDomainLookupFailedTok, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
+            exit(false);
+        end;
+        exit(IsVerified);
+    end;
+
+    [TryFunction]
+    local procedure TryIsVerifiedTenantDomain(Domain: Text; var IsVerified: Boolean)
+    var
+        AzureADTenant: Codeunit "Azure AD Tenant";
+    begin
+        IsVerified := AzureADTenant.IsVerifiedDomain(Domain);
+    end;
+
+    local procedure GetSenderDomain(EDocument: Record "E-Document"): Text
+    var
+        SenderAddress: Text;
+        AtPosition: Integer;
+    begin
+        if EDocument."Outlook Mail Message Id" = '' then
+            exit('');
+        SenderAddress := DelChr(LowerCase(EDocument."Source Details"), '=', ' <>');
+        AtPosition := SenderAddress.LastIndexOf('@');
+        if AtPosition = 0 then
+            exit('');
+        exit(CopyStr(SenderAddress, AtPosition + 1));
+    end;
+
+    local procedure GetCompAuthReason(AuthenticationResults: Text): Text
+    var
+        CompAuthPart: Text;
+        CompAuthPosition: Integer;
+    begin
+        CompAuthPosition := StrPos(LowerCase(AuthenticationResults), 'compauth=');
+        if CompAuthPosition = 0 then
+            exit('');
+        CompAuthPart := CopyStr(AuthenticationResults, CompAuthPosition);
+        if StrPos(CompAuthPart, ';') > 0 then // there's another header tag
+            CompAuthPart := CopyStr(CompAuthPart, 1, StrPos(CompAuthPart, ';') - 1);
+        exit(GetHeaderTagValue(CompAuthPart, 'reason='));
+    end;
+
+    local procedure GetHeaderTagValue(HeaderValue: Text; Tag: Text): Text
+    var
+        Remainder: Text;
+        TagPosition: Integer;
+        Index: Integer;
+        LineFeed: Char;
+        CarriageReturn: Char;
+    begin
+        LineFeed := 10;
+        CarriageReturn := 13;
+        TagPosition := StrPos(LowerCase(HeaderValue), LowerCase(Tag));
+        if TagPosition = 0 then
+            exit('');
+        Remainder := CopyStr(LowerCase(HeaderValue), TagPosition + StrLen(Tag));
+        for Index := 1 to StrLen(Remainder) do
+            if Remainder[Index] in [' ', ';', ',', '(', ')', '"', LineFeed, CarriageReturn] then // separators for the tag value
+                exit(CopyStr(Remainder, 1, Index - 1));
+        exit(Remainder);
     end;
 
     local procedure TryGetSourceEmailHeader(EDocument: Record "E-Document"; HeaderName: Text; var HeaderValue: Text): Boolean
@@ -720,4 +823,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         TrialModeInitializedTok: Label 'Trial mode initialized for Payables Agent', Locked = true;
+        VerifiedDomainLookupFailedTok: Label 'Payables Agent could not check the tenant verified domains for the sender domain. The sender is not treated as internal.', Locked = true;
+        SenderTrustedByVerifiedDomainTok: Label 'Internal sender identified via verified domain.', Locked = true;
+        SenderTrustedByExchangeTok: Label 'Internal sender identified via Exchange internal header.', Locked = true;
 }
