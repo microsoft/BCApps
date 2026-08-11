@@ -43,10 +43,38 @@ function Reset-BcContainerApplicationDatabase {
         throw "Reset-BcContainerApplicationDatabase only supports multitenant containers."
     }
 
-    # The System Application provides the SUPER permission set (BCApps runs with
-    # UsePermissionSetsFromExtensions=true), without which no usable admin user can be created.
-    # Extract it from the container's currently-published copy BEFORE dropping the database - this
-    # is the only source that survives BCApps' platform override.
+    $sysAppFile = Export-SystemApplicationFromContainer -ContainerName $ContainerName -Credential $Credential
+
+    Clear-BcApplicationDatabase -ContainerName $ContainerName -CustomConfig $customConfig
+
+    Write-Host "Re-importing license"
+    Import-BcContainerLicense -containerName $ContainerName -licenseFile $LicenseFile
+
+    Write-Host "Publishing System Application"
+    Publish-BcContainerApp -containerName $ContainerName -appFile $sysAppFile -skipVerification -sync -install
+
+    Write-Host "Creating SUPER user"
+    New-BcContainerBcUser -containerName $ContainerName -Credential $Credential -PermissionSetId SUPER -ChangePasswordAtNextLogOn:$false
+
+    Restore-BcMultitenancy -ContainerName $ContainerName -CustomConfig $customConfig
+}
+
+<#
+.SYNOPSIS
+    Extracts the container's currently-published System Application to a temporary .app file and
+    returns its path.
+.DESCRIPTION
+    The System Application provides the SUPER permission set (BCApps runs with
+    UsePermissionSetsFromExtensions=true), without which no usable admin user can be created. This
+    must run BEFORE the database is dropped, and pulls from the container's published copy - the only
+    source that survives BCApps' platform override, which strips it from C:\Applications.
+#>
+function Export-SystemApplicationFromContainer {
+    param(
+        [Parameter(Mandatory)] [string] $ContainerName,
+        [Parameter(Mandatory)] [pscredential] $Credential
+    )
+
     $sysAppInfo = Get-BcContainerAppInfo -containerName $ContainerName | Where-Object { $_.Name -eq 'System Application' } | Select-Object -First 1
     if (-not $sysAppInfo) { throw "System Application is not published in container '$ContainerName'; cannot reset." }
     $sysAppFile = Join-Path ([System.IO.Path]::GetTempPath()) "sysapp_$ContainerName.app"
@@ -54,8 +82,25 @@ function Reset-BcContainerApplicationDatabase {
     Get-BcContainerApp -containerName $ContainerName -appName $sysAppInfo.Name -publisher $sysAppInfo.Publisher -appVersion $sysAppInfo.Version -appFile $sysAppFile -credential $Credential
     if (-not (Test-Path $sysAppFile)) { throw "Failed to extract System Application from container '$ContainerName'." }
     Write-Host "Extracted System Application to '$sysAppFile'"
+    return $sysAppFile
+}
 
-    # Bulk database rebuild in a single in-container session.
+<#
+.SYNOPSIS
+    Drops the application and tenant databases and recreates an empty single-tenant application
+    database, removing every published app in one bulk operation.
+.DESCRIPTION
+    Runs as a single in-container session. Restore-BcMultitenancy switches the container back to
+    multitenant afterwards.
+#>
+function Clear-BcApplicationDatabase {
+    param(
+        [Parameter(Mandatory)] [string] $ContainerName,
+        [Parameter(Mandatory)] $CustomConfig
+    )
+
+    # -usePwsh $false forces Windows PowerShell 5.1: this block calls Invoke-Sqlcmd, which fails to
+    # load the SQL SMO assemblies under the container's pwsh7.
     Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -usePwsh $false -scriptblock {
         Param($databaseName, $databaseServer, $databaseInstance)
 
@@ -85,20 +130,22 @@ function Reset-BcContainerApplicationDatabase {
         Set-NavServerInstance -ServerInstance $ServerInstance -start
         Sync-NavTenant -ServerInstance $ServerInstance -Force
 
-    } -argumentList $customConfig.DatabaseName, $customConfig.DatabaseServer, $customConfig.DatabaseInstance
+    } -argumentList $CustomConfig.DatabaseName, $CustomConfig.DatabaseServer, $CustomConfig.DatabaseInstance
+}
 
-    Write-Host "Re-importing license"
-    Import-BcContainerLicense -containerName $ContainerName -licenseFile $LicenseFile
+<#
+.SYNOPSIS
+    Switches the container back to multitenant: splits the application into its own database and
+    mounts a fresh, writable 'default' tenant.
+#>
+function Restore-BcMultitenancy {
+    param(
+        [Parameter(Mandatory)] [string] $ContainerName,
+        [Parameter(Mandatory)] $CustomConfig
+    )
 
-    Write-Host "Publishing System Application"
-    Publish-BcContainerApp -containerName $ContainerName -appFile $sysAppFile -skipVerification -sync -install
-
-    Write-Host "Creating SUPER user"
-    New-BcContainerBcUser -containerName $ContainerName -Credential $Credential -PermissionSetId SUPER -ChangePasswordAtNextLogOn:$false
-
-    # Switch back to multitenant: split the application from the tenant, copy to a fresh 'default' tenant.
-    # -usePwsh $false forces Windows PowerShell 5.1: this block calls Invoke-Sqlcmd and SMO-based
-    # Export-/Copy-NavDatabase, which fail to load the SQL SMO assemblies under the container's pwsh7.
+    # -usePwsh $false forces Windows PowerShell 5.1: this block calls Invoke-Sqlcmd and
+    # Export-NAVApplication, which fail to load the SQL SMO assemblies under the container's pwsh7.
     Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -usePwsh $false -scriptblock { Param($databaseName, $databaseServer, $databaseInstance)
         $databaseServerInstance = $databaseServer
         if ($databaseInstance) { $databaseServerInstance += "\$databaseInstance" }
@@ -118,7 +165,7 @@ function Reset-BcContainerApplicationDatabase {
         # -allowAppDatabaseWrite is required so demo-data generation (DemoTool) can insert records such
         # as Media into the application database; without it the tenant mounts read-only against the app DB.
         Mount-NavDatabase -ServerInstance $ServerInstance -TenantId "default" -DatabaseName "default" -allowAppDatabaseWrite
-    } -argumentList $customConfig.DatabaseName, $customConfig.DatabaseServer, $customConfig.DatabaseInstance
+    } -argumentList $CustomConfig.DatabaseName, $CustomConfig.DatabaseServer, $CustomConfig.DatabaseInstance
 }
 
 Export-ModuleMember -Function Reset-BcContainerApplicationDatabase
