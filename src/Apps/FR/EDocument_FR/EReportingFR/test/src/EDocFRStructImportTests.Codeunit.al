@@ -14,6 +14,7 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         FacturXCreditMemoTok: Label 'facturx/facturx-creditmemo-0.xml', Locked = true;
         PeppolBIS30FRInvoiceTok: Label 'peppolfr/peppol-bis-fr-invoice-0.xml', Locked = true;
         UnsupportedXmlTok: Label '<?xml version="1.0" encoding="UTF-8"?><SomethingElse xmlns="urn:test" />', Locked = true;
+        PdfWithoutEmbeddedInvoiceTok: Label '%PDF-1.7', Locked = true;
 
     #region Factur-X
     [Test]
@@ -109,6 +110,26 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
 
         // [THEN] The reader rejects the document
         Assert.ExpectedError('Unsupported XML root element');
+    end;
+
+    [Test]
+    procedure FacturXPdfWithoutEmbeddedInvoiceFails()
+    var
+        EDocument: Record "E-Document";
+        EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
+    begin
+        // [FEATURE] [E-Document] [Factur-X] [Import]
+        // [SCENARIO] Reading a PDF without an embedded Factur-X invoice fails with a clear error
+        Initialize();
+
+        // [GIVEN] A PDF document without an embedded invoice
+        CreateEDocument(EDocument);
+
+        // [WHEN] The document is read into draft
+        asserterror EDocumentFacturXHandler.ReadIntoDraft(EDocument, CreateBlob(PdfWithoutEmbeddedInvoiceTok));
+
+        // [THEN] The reader reports the missing embedded invoice
+        Assert.ExpectedError('The PDF file does not contain an embedded Factur-X invoice.');
     end;
 
     [Test]

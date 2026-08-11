@@ -171,17 +171,29 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     end;
 
     /// <summary>
-    /// Returns the embedded CII XML of a PDF/A-3 container. When the blob is not a PDF, or the PDF does
-    /// not embed an attachment, the blob is returned unchanged so that plain CII XML is supported too.
+    /// Returns the embedded CII XML of a PDF/A-3 container. Non-PDF blobs are returned unchanged so
+    /// that plain CII XML is supported; PDFs without an embedded invoice are rejected.
     /// </summary>
     local procedure ExtractCIIXml(TempBlob: Codeunit "Temp Blob"): Codeunit "Temp Blob"
     var
         PdfInStream: InStream;
     begin
         TempBlob.CreateInStream(PdfInStream);
-        if TryGetEmbeddedAttachment(PdfInStream) then
-            exit(GlobalEmbeddedBlob);
-        exit(TempBlob);
+        if not IsPdf(PdfInStream) then
+            exit(TempBlob);
+
+        TempBlob.CreateInStream(PdfInStream);
+        if not TryGetEmbeddedAttachment(PdfInStream) then
+            Error(NoEmbeddedInvoiceErr);
+        exit(GlobalEmbeddedBlob);
+    end;
+
+    local procedure IsPdf(PdfInStream: InStream): Boolean
+    var
+        Signature: Text[4];
+    begin
+        PdfInStream.ReadText(Signature, MaxStrLen(Signature));
+        exit(Signature = '%PDF');
     end;
 
     [TryFunction]

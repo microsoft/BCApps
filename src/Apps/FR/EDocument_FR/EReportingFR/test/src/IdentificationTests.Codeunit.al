@@ -657,9 +657,17 @@ codeunit 148146 "Identification Tests"
         // [THEN] The deletion is rejected
         Assert.ExpectedError(ImmutableLifecycleVATErr);
 
-        // [WHEN] The lifecycle occurrence is renamed or deleted
+        // [WHEN] The lifecycle occurrence is renamed
         asserterror FREInvoiceLifecycle.Rename(FREInvoiceLifecycle."Entry No." + 1);
+
+        // [THEN] The rename is rejected
+        Assert.ExpectedError(ImmutableLifecycleErr);
+
+        // [WHEN] The lifecycle occurrence is deleted
         asserterror FREInvoiceLifecycle.Delete(true);
+
+        // [THEN] The deletion is rejected
+        Assert.ExpectedError(ImmutableLifecycleErr);
     end;
 
     [Test]

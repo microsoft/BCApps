@@ -83,7 +83,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         CompanyInformation.Get();
 
         TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
-        XmlDocument.ReadFrom(InStr, XmlDoc);
+        if not XmlDocument.ReadFrom(InStr, XmlDoc) then
+            Error(FrenchPostProcessingXmlErr);
 
         InitNamespaceManager(NamespaceMgr, XmlDoc);
 
@@ -208,35 +209,28 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesShipmentHeader: Record "Sales Shipment Header";
-        ShipmentNos: Dictionary of [Text, Boolean];
+        ShipmentNos: Dictionary of [Code[20], Boolean];
         OrderNos: Dictionary of [Text, Boolean];
         DeliveryDates: Dictionary of [Text, Boolean];
-        ShipmentNoFilter: Text;
+        ShipmentNo: Code[20];
     begin
         SalesInvoiceLine.SetRange("Document No.", DocumentNo);
         SalesInvoiceLine.SetLoadFields("Shipment No.", "Order No.");
         if SalesInvoiceLine.FindSet() then
             repeat
                 if SalesInvoiceLine."Shipment No." <> '' then
-                    if not ShipmentNos.ContainsKey(SalesInvoiceLine."Shipment No.") then begin
+                    if not ShipmentNos.ContainsKey(SalesInvoiceLine."Shipment No.") then
                         ShipmentNos.Add(SalesInvoiceLine."Shipment No.", true);
-                        if ShipmentNoFilter <> '' then
-                            ShipmentNoFilter += '|';
-                        ShipmentNoFilter += SalesInvoiceLine."Shipment No.";
-                    end;
                 if SalesInvoiceLine."Order No." <> '' then
                     AddDistinctValue(OrderNos, SalesInvoiceLine."Order No.");
             until SalesInvoiceLine.Next() = 0;
 
-        if ShipmentNoFilter <> '' then begin
-            SalesShipmentHeader.SetFilter("No.", ShipmentNoFilter);
-            SalesShipmentHeader.SetLoadFields("No.", "Posting Date");
-            if SalesShipmentHeader.FindSet() then
-                repeat
-                    ShipmentPostingDates.Add(SalesShipmentHeader."No.", SalesShipmentHeader."Posting Date");
-                    AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
-                until SalesShipmentHeader.Next() = 0;
-        end;
+        SalesShipmentHeader.SetLoadFields("No.", "Posting Date");
+        foreach ShipmentNo in ShipmentNos.Keys() do
+            if SalesShipmentHeader.Get(ShipmentNo) then begin
+                ShipmentPostingDates.Add(SalesShipmentHeader."No.", SalesShipmentHeader."Posting Date");
+                AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
+            end;
 
         exit((ShipmentNos.Count() > 1) or (OrderNos.Count() > 1) or (DeliveryDates.Count() > 1));
     end;
@@ -614,4 +608,5 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         BillingModeS1Tok: Label 'S1', Locked = true;
         BillingModeM1Tok: Label 'M1', Locked = true;
         InvoiceLineXPathTok: Label '/*/cac:InvoiceLine[cbc:ID=''%1'']', Locked = true;
+        FrenchPostProcessingXmlErr: Label 'The PEPPOL document could not be read while applying the French electronic invoicing requirements.';
 }

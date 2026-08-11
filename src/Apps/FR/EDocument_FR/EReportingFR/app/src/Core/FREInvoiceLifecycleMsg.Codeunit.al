@@ -19,13 +19,18 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
     procedure BuildMessage(EDocument: Record "E-Document"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob")
     var
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        NoCapturedOccurrenceErrorInfo: ErrorInfo;
     begin
         FREInvoiceLifecycle.SetCurrentKey("E-Document Entry No.", "E-Document Message Entry No.", "Processing Status", "Created At");
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.SetRange("E-Document Message Entry No.", 0);
         FREInvoiceLifecycle.SetRange("Processing Status", FREInvoiceLifecycle."Processing Status"::Queued);
-        if not FREInvoiceLifecycle.FindFirst() then
-            Error(NoCapturedOccurrenceErr, EDocument."Entry No");
+        if not FREInvoiceLifecycle.FindFirst() then begin
+            NoCapturedOccurrenceErrorInfo.ErrorType(ErrorType::Internal);
+            NoCapturedOccurrenceErrorInfo.Message(InternalLifecycleStateErr);
+            NoCapturedOccurrenceErrorInfo.DetailedMessage(StrSubstNo(NoCapturedOccurrenceErr, EDocument."Entry No"));
+            Error(NoCapturedOccurrenceErrorInfo);
+        end;
 
         BuildLifecycleMessage(EDocument, FREInvoiceLifecycle, TempBlob);
     end;
@@ -260,6 +265,9 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         if LifecycleStatus in [LifecycleStatus::Collected, LifecycleStatus::"Negative Collected"] then
             exit;
 
+        Session.LogMessage(
+            '0000TDP', StrSubstNo(UnsupportedLifecycleStatusErr, LifecycleStatus), Verbosity::Error,
+            DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', LifecycleTelemetryCategoryTok);
         UnsupportedStatusErrorInfo.ErrorType(ErrorType::Internal);
         UnsupportedStatusErrorInfo.Message(InternalLifecycleStatusErr);
         UnsupportedStatusErrorInfo.DetailedMessage(StrSubstNo(UnsupportedLifecycleStatusErr, LifecycleStatus));
@@ -271,6 +279,8 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         VATBreakdownErr: Label 'Lifecycle occurrence %1 does not have the VAT breakdown required for a French collected status message.', Comment = '%1 = lifecycle occurrence entry number';
         UnsupportedLifecycleStatusErr: Label 'Lifecycle status %1 is not supported by the French collected status message builder.', Comment = '%1 = lifecycle status';
         InternalLifecycleStatusErr: Label 'An internal lifecycle status error occurred.';
+        InternalLifecycleStateErr: Label 'An internal lifecycle processing error occurred.';
+        LifecycleTelemetryCategoryTok: Label 'French E-Invoice Lifecycle', Locked = true;
         LifecycleMessageNameTok: Label 'Invoice lifecycle collected status', Locked = true;
         RsmNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:CrossDomainAcknowledgementAndResponse:100', Locked = true;
         RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;

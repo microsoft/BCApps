@@ -34,6 +34,8 @@ codeunit 6436 "E-Document Message API"
     /// <summary>
     /// Loads the payload for the specified E-Document message.
     /// </summary>
+    /// <param name="MessageEntryNo">The entry number of the E-Document message whose payload to load.</param>
+    /// <param name="TempBlob">The codeunit that receives the message payload.</param>
     procedure GetMessageBlob(MessageEntryNo: Integer; var TempBlob: Codeunit "Temp Blob")
     var
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
