@@ -38,11 +38,8 @@ pageextension 99000757 "Mfg. BOM Cost Shares" extends "BOM Cost Shares"
                 ToolTip = 'This report contains data on how the costs of underlying items in the BOM roll up to the parent item. The information is organized according to the BOM structure to reflect at which levels the individual costs apply. Varying item levels are shown across several worksheets to obtain an overview or detailed view.';
 
                 trigger OnAction()
-                var
-                    Item2: Record Item;
                 begin
-                    Item2.SetFilter("No.", ItemFilter);
-                    Report.Run(Report::"Production Cost Shares", true, true, Item2);
+                    ShowProductionCostShares();
                 end;
             }
         }
@@ -53,4 +50,19 @@ pageextension 99000757 "Mfg. BOM Cost Shares" extends "BOM Cost Shares"
             }
         }
     }
+
+    local procedure ShowProductionCostShares()
+    var
+        Item2: Record Item;
+    begin
+        Rec.TestField(Type, Rec.Type::Item);
+
+        Item2.Get(Rec."No.");
+        Item2.SetRange("No.", Rec."No.");
+        Item2.SetFilter("Variant Filter", Rec."Variant Code");
+        if ShowBy <> ShowBy::Item then
+            Item2.SetFilter("Location Filter", Rec."Location Code");
+
+        REPORT.Run(REPORT::"Production Cost Shares", true, true, Item2);
+    end;
 }
