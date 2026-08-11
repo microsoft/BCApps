@@ -18,21 +18,275 @@ codeunit 8208 "Create Expense Location"
     begin
         ContosoExpenseAgent.InsertExpenseLocation(CanadaAll(), CanadaAllLocationLbl, CreateCountryRegion.CA(), '', '');
         ContosoExpenseAgent.InsertExpenseLocation(DenmarkAll(), DenmarkLbl, CreateCountryRegion.DK(), '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(DenmarkCph(), DKCopenhagenLbl, CreateCountryRegion.DK(), CopenhagenLbl, '');
         ContosoExpenseAgent.InsertExpenseLocation(Domestic(), DomesticLbl, '', '', '');
         ContosoExpenseAgent.InsertExpenseLocation(FranceAll(), FranceLbl, CreateCountryRegion.FR(), '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(FranceParis(), FranceParisLbl, CreateCountryRegion.FR(), ParisLbl, '');
         ContosoExpenseAgent.InsertExpenseLocation(GermanyAll(), GermanyLbl, CreateCountryRegion.DE(), '', '');
         ContosoExpenseAgent.InsertExpenseLocation(UKLondon(), UKLondonAreaLbl, CreateCountryRegion.GB(), LondonLbl, '');
         ContosoExpenseAgent.InsertExpenseLocation(UKOther(), UKOtherLbl, CreateCountryRegion.GB(), '', '');
         ContosoExpenseAgent.InsertExpenseLocation(USAFlorida(), USAFloridaLbl, CreateCountryRegion.US(), '', FLLbl);
         ContosoExpenseAgent.InsertExpenseLocation(USANY(), USANYLbl, CreateCountryRegion.US(), NewYorkLbl, '');
         ContosoExpenseAgent.InsertExpenseLocation(USAOther(), USAOtherLbl, CreateCountryRegion.US(), '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(UnitedArabEmiratesAll(), UnitedArabEmiratesAllLocationLbl, 'AE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AustriaAll(), AustriaAllLocationLbl, 'AT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AustraliaAll(), AustraliaAllLocationLbl, 'AU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BelgiumAll(), BelgiumAllLocationLbl, 'BE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BulgariaAll(), BulgariaAllLocationLbl, 'BG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BruneiDarussalamAll(), BruneiDarussalamAllLocationLbl, 'BN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BrazilAll(), BrazilAllLocationLbl, 'BR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SwitzerlandAll(), SwitzerlandAllLocationLbl, 'CH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SwitzerlandGeneva(), SwitzerlandGenevaLbl, 'CH', GenevaLbl, '');
+        ContosoExpenseAgent.InsertExpenseLocation(SwitzerlandZurich(), SwitzerlandZurichLbl, 'CH', ZurichLbl, '');
+        ContosoExpenseAgent.InsertExpenseLocation(ChinaAll(), ChinaAllLocationLbl, 'CN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CostaRicaAll(), CostaRicaAllLocationLbl, 'CR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CyprusAll(), CyprusAllLocationLbl, 'CY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CzechiaAll(), CzechiaAllLocationLbl, 'CZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AlgeriaAll(), AlgeriaAllLocationLbl, 'DZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(EstoniaAll(), EstoniaAllLocationLbl, 'EE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GreeceAll(), GreeceAllLocationLbl, 'EL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SpainAll(), SpainAllLocationLbl, 'ES', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(FinlandAll(), FinlandAllLocationLbl, 'FI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(FijiIslandsAll(), FijiIslandsAllLocationLbl, 'FJ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GreatBritainAll(), GreatBritainAllLocationLbl, 'GB', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CroatiaAll(), CroatiaAllLocationLbl, 'HR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(HungaryAll(), HungaryAllLocationLbl, 'HU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(IndonesiaAll(), IndonesiaAllLocationLbl, 'ID', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(IrelandAll(), IrelandAllLocationLbl, 'IE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(IndiaAll(), IndiaAllLocationLbl, 'IN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(IcelandAll(), IcelandAllLocationLbl, 'IS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ItalyAll(), ItalyAllLocationLbl, 'IT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(JapanAll(), JapanAllLocationLbl, 'JP', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(JapanTokyo(), JapanTokyoLbl, 'JP', TokyoLbl, '');
+        ContosoExpenseAgent.InsertExpenseLocation(KenyaAll(), KenyaAllLocationLbl, 'KE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LithuaniaAll(), LithuaniaAllLocationLbl, 'LT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LuxembourgAll(), LuxembourgAllLocationLbl, 'LU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LatviaAll(), LatviaAllLocationLbl, 'LV', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MoroccoAll(), MoroccoAllLocationLbl, 'MA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MontenegroAll(), MontenegroAllLocationLbl, 'ME', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MaltaAll(), MaltaAllLocationLbl, 'MT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MexicoAll(), MexicoAllLocationLbl, 'MX', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MalaysiaAll(), MalaysiaAllLocationLbl, 'MY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MozambiqueAll(), MozambiqueAllLocationLbl, 'MZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NigeriaAll(), NigeriaAllLocationLbl, 'NG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NorthernIrelandAll(), NorthernIrelandAllLocationLbl, 'NI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NetherlandsAll(), NetherlandsAllLocationLbl, 'NL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NorwayAll(), NorwayAllLocationLbl, 'NO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NorwayOslo(), NorwayOsloLbl, 'NO', OsloLbl, '');
+        ContosoExpenseAgent.InsertExpenseLocation(NewZealandAll(), NewZealandAllLocationLbl, 'NZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PhilippinesAll(), PhilippinesAllLocationLbl, 'PH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PolandAll(), PolandAllLocationLbl, 'PL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PortugalAll(), PortugalAllLocationLbl, 'PT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(RomaniaAll(), RomaniaAllLocationLbl, 'RO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SerbiaAll(), SerbiaAllLocationLbl, 'RS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(RussiaAll(), RussiaAllLocationLbl, 'RU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaudiArabiaAll(), SaudiArabiaAllLocationLbl, 'SA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SolomonIslandsAll(), SolomonIslandsAllLocationLbl, 'SB', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SwedenAll(), SwedenAllLocationLbl, 'SE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SingaporeAll(), SingaporeAllLocationLbl, 'SG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SloveniaAll(), SloveniaAllLocationLbl, 'SI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SlovakiaAll(), SlovakiaAllLocationLbl, 'SK', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SwazilandAll(), SwazilandAllLocationLbl, 'SZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ThailandAll(), ThailandAllLocationLbl, 'TH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TunisiaAll(), TunisiaAllLocationLbl, 'TN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TurkiyeAll(), TurkiyeAllLocationLbl, 'TR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TanzaniaAll(), TanzaniaAllLocationLbl, 'TZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(UgandaAll(), UgandaAllLocationLbl, 'UG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(VanuatuAll(), VanuatuAllLocationLbl, 'VU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SamoaAll(), SamoaAllLocationLbl, 'WS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SouthAfricaAll(), SouthAfricaAllLocationLbl, 'ZA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AfghanistanAll(), AfghanistanAllLocationLbl, 'AF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AlbaniaAll(), AlbaniaAllLocationLbl, 'AL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AndorraAll(), AndorraAllLocationLbl, 'AD', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AngolaAll(), AngolaAllLocationLbl, 'AO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AnguillaAll(), AnguillaAllLocationLbl, 'AI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AntarcticaAll(), AntarcticaAllLocationLbl, 'AQ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AntiguaBarbudaAll(), AntiguaBarbudaAllLocationLbl, 'AG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ArgentinaAll(), ArgentinaAllLocationLbl, 'AR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ArmeniaAll(), ArmeniaAllLocationLbl, 'AM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ArubaAll(), ArubaAllLocationLbl, 'AW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AzerbaijanAll(), AzerbaijanAllLocationLbl, 'AZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BahamasAll(), BahamasAllLocationLbl, 'BS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BahrainAll(), BahrainAllLocationLbl, 'BH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BangladeshAll(), BangladeshAllLocationLbl, 'BD', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BarbadosAll(), BarbadosAllLocationLbl, 'BB', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BelarusAll(), BelarusAllLocationLbl, 'BY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BelizeAll(), BelizeAllLocationLbl, 'BZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BeninAll(), BeninAllLocationLbl, 'BJ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BermudaAll(), BermudaAllLocationLbl, 'BM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BhutanAll(), BhutanAllLocationLbl, 'BT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BoliviaAll(), BoliviaAllLocationLbl, 'BO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BonaireAll(), BonaireAllLocationLbl, 'BQ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BosniaHerzegovinaAll(), BosniaHerzegovinaAllLocationLbl, 'BA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BotswanaAll(), BotswanaAllLocationLbl, 'BW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BouvetIslandAll(), BouvetIslandAllLocationLbl, 'BV', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BritishIndianOceanAll(), BritishIndianOceanAllLocationLbl, 'IO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BurkinaFasoAll(), BurkinaFasoAllLocationLbl, 'BF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(BurundiAll(), BurundiAllLocationLbl, 'BI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CaboVerdeAll(), CaboVerdeAllLocationLbl, 'CV', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CambodiaAll(), CambodiaAllLocationLbl, 'KH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CameroonAll(), CameroonAllLocationLbl, 'CM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CaymanIslandsAll(), CaymanIslandsAllLocationLbl, 'KY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CentralAfricanAll(), CentralAfricanAllLocationLbl, 'CF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ChadAll(), ChadAllLocationLbl, 'TD', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ChileAll(), ChileAllLocationLbl, 'CL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ChristmasIslandAll(), ChristmasIslandAllLocationLbl, 'CX', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CocosIslandsAll(), CocosIslandsAllLocationLbl, 'CC', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ColombiaAll(), ColombiaAllLocationLbl, 'CO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ComorosAll(), ComorosAllLocationLbl, 'KM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CongoDRAll(), CongoDRAllLocationLbl, 'CD', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CongoAll(), CongoAllLocationLbl, 'CG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CookIslandsAll(), CookIslandsAllLocationLbl, 'CK', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CubaAll(), CubaAllLocationLbl, 'CU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CuracaoAll(), CuracaoAllLocationLbl, 'CW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(CotedIvoireAll(), CotedIvoireAllLocationLbl, 'CI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(DjiboutiAll(), DjiboutiAllLocationLbl, 'DJ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(DominicaAll(), DominicaAllLocationLbl, 'DM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(DominicanAll(), DominicanAllLocationLbl, 'DO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(EcuadorAll(), EcuadorAllLocationLbl, 'EC', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(EgyptAll(), EgyptAllLocationLbl, 'EG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ElSalvadorAll(), ElSalvadorAllLocationLbl, 'SV', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(EquatorialGuineaAll(), EquatorialGuineaAllLocationLbl, 'GQ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(EritreaAll(), EritreaAllLocationLbl, 'ER', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(EthiopiaAll(), EthiopiaAllLocationLbl, 'ET', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(FalklandIslandsAll(), FalklandIslandsAllLocationLbl, 'FK', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(FaroeIslandsAll(), FaroeIslandsAllLocationLbl, 'FO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(FrenchGuianaAll(), FrenchGuianaAllLocationLbl, 'GF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(FrenchPolynesiaAll(), FrenchPolynesiaAllLocationLbl, 'PF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(FrenchSouthernAll(), FrenchSouthernAllLocationLbl, 'TF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GabonAll(), GabonAllLocationLbl, 'GA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GambiaAll(), GambiaAllLocationLbl, 'GM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GeorgiaAll(), GeorgiaAllLocationLbl, 'GE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GhanaAll(), GhanaAllLocationLbl, 'GH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GibraltarAll(), GibraltarAllLocationLbl, 'GI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GreenlandAll(), GreenlandAllLocationLbl, 'GL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GrenadaAll(), GrenadaAllLocationLbl, 'GD', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GuadeloupeAll(), GuadeloupeAllLocationLbl, 'GP', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GuamAll(), GuamAllLocationLbl, 'GU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GuatemalaAll(), GuatemalaAllLocationLbl, 'GT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GuernseyAll(), GuernseyAllLocationLbl, 'GG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GuineaAll(), GuineaAllLocationLbl, 'GN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GuineaBissauAll(), GuineaBissauAllLocationLbl, 'GW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(GuyanaAll(), GuyanaAllLocationLbl, 'GY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(HaitiAll(), HaitiAllLocationLbl, 'HT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(HeardIslandAll(), HeardIslandAllLocationLbl, 'HM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(HolySeeAll(), HolySeeAllLocationLbl, 'VA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(HondurasAll(), HondurasAllLocationLbl, 'HN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(HongKongAll(), HongKongAllLocationLbl, 'HK', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(IsleManAll(), IsleManAllLocationLbl, 'IM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(IsraelAll(), IsraelAllLocationLbl, 'IL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(JamaicaAll(), JamaicaAllLocationLbl, 'JM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(JerseyAll(), JerseyAllLocationLbl, 'JE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(JordanAll(), JordanAllLocationLbl, 'JO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(KazakhstanAll(), KazakhstanAllLocationLbl, 'KZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(KiribatiAll(), KiribatiAllLocationLbl, 'KI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NorthKoreaAll(), NorthKoreaAllLocationLbl, 'KP', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SouthKoreaAll(), SouthKoreaAllLocationLbl, 'KR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(KuwaitAll(), KuwaitAllLocationLbl, 'KW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(KyrgyzstanAll(), KyrgyzstanAllLocationLbl, 'KG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LaosAll(), LaosAllLocationLbl, 'LA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LebanonAll(), LebanonAllLocationLbl, 'LB', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LesothoAll(), LesothoAllLocationLbl, 'LS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LiberiaAll(), LiberiaAllLocationLbl, 'LR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LibyaAll(), LibyaAllLocationLbl, 'LY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(LiechtensteinAll(), LiechtensteinAllLocationLbl, 'LI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MacaoAll(), MacaoAllLocationLbl, 'MO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MadagascarAll(), MadagascarAllLocationLbl, 'MG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MalawiAll(), MalawiAllLocationLbl, 'MW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MaldivesAll(), MaldivesAllLocationLbl, 'MV', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MaliAll(), MaliAllLocationLbl, 'ML', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MarshallIslandsAll(), MarshallIslandsAllLocationLbl, 'MH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MartiniqueAll(), MartiniqueAllLocationLbl, 'MQ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MauritaniaAll(), MauritaniaAllLocationLbl, 'MR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MauritiusAll(), MauritiusAllLocationLbl, 'MU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MayotteAll(), MayotteAllLocationLbl, 'YT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MicronesiaAll(), MicronesiaAllLocationLbl, 'FM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MoldovaAll(), MoldovaAllLocationLbl, 'MD', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MonacoAll(), MonacoAllLocationLbl, 'MC', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MongoliaAll(), MongoliaAllLocationLbl, 'MN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MontserratAll(), MontserratAllLocationLbl, 'MS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(MyanmarAll(), MyanmarAllLocationLbl, 'MM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NamibiaAll(), NamibiaAllLocationLbl, 'NA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NauruAll(), NauruAllLocationLbl, 'NR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NepalAll(), NepalAllLocationLbl, 'NP', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NewCaledoniaAll(), NewCaledoniaAllLocationLbl, 'NC', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NigerAll(), NigerAllLocationLbl, 'NE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NiueAll(), NiueAllLocationLbl, 'NU', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NorfolkIslandAll(), NorfolkIslandAllLocationLbl, 'NF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NorthMacedoniaAll(), NorthMacedoniaAllLocationLbl, 'MK', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(NorthernMarianaAll(), NorthernMarianaAllLocationLbl, 'MP', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(OmanAll(), OmanAllLocationLbl, 'OM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PakistanAll(), PakistanAllLocationLbl, 'PK', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PalauAll(), PalauAllLocationLbl, 'PW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PalestineAll(), PalestineAllLocationLbl, 'PS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PanamaAll(), PanamaAllLocationLbl, 'PA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PapuaNewGuineaAll(), PapuaNewGuineaAllLocationLbl, 'PG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ParaguayAll(), ParaguayAllLocationLbl, 'PY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PeruAll(), PeruAllLocationLbl, 'PE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PitcairnAll(), PitcairnAllLocationLbl, 'PN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(PuertoRicoAll(), PuertoRicoAllLocationLbl, 'PR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(QatarAll(), QatarAllLocationLbl, 'QA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(RwandaAll(), RwandaAllLocationLbl, 'RW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ReunionAll(), ReunionAllLocationLbl, 'RE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaintBarthelemyAll(), SaintBarthelemyAllLocationLbl, 'BL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaintHelenaAll(), SaintHelenaAllLocationLbl, 'SH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaintKittsNevisAll(), SaintKittsNevisAllLocationLbl, 'KN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaintLuciaAll(), SaintLuciaAllLocationLbl, 'LC', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaintMartinAll(), SaintMartinAllLocationLbl, 'MF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaintPierreQuelonAll(), SaintPierreQuelonAllLocationLbl, 'PM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaintVincentAll(), SaintVincentAllLocationLbl, 'VC', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SanMarinoAll(), SanMarinoAllLocationLbl, 'SM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SaoTomeAll(), SaoTomeAllLocationLbl, 'ST', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SenegalAll(), SenegalAllLocationLbl, 'SN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SeychellesAll(), SeychellesAllLocationLbl, 'SC', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SierraLeoneAll(), SierraLeoneAllLocationLbl, 'SL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SintMaartenAll(), SintMaartenAllLocationLbl, 'SX', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SomaliaAll(), SomaliaAllLocationLbl, 'SO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SouthGeorgiaAll(), SouthGeorgiaAllLocationLbl, 'GS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SouthSudanAll(), SouthSudanAllLocationLbl, 'SS', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SriLankaAll(), SriLankaAllLocationLbl, 'LK', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SudanAll(), SudanAllLocationLbl, 'SD', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SurinameAll(), SurinameAllLocationLbl, 'SR', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SvalbardJanMayenAll(), SvalbardJanMayenAllLocationLbl, 'SJ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(SyriaAll(), SyriaAllLocationLbl, 'SY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TaiwanAll(), TaiwanAllLocationLbl, 'TW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TajikistanAll(), TajikistanAllLocationLbl, 'TJ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TimorLesteAll(), TimorLesteAllLocationLbl, 'TL', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TogoAll(), TogoAllLocationLbl, 'TG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TokelauAll(), TokelauAllLocationLbl, 'TK', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TongaAll(), TongaAllLocationLbl, 'TO', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TrinidadTobagoAll(), TrinidadTobagoAllLocationLbl, 'TT', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TurkmenistanAll(), TurkmenistanAllLocationLbl, 'TM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TurksCalcosAll(), TurksCalcosAllLocationLbl, 'TC', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(TuvaluAll(), TuvaluAllLocationLbl, 'TV', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(UkraineAll(), UkraineAllLocationLbl, 'UA', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(USMinorOutlyingAll(), USMinorOutlyingAllLocationLbl, 'UM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(UruguayAll(), UruguayAllLocationLbl, 'UY', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(UzbekistanAll(), UzbekistanAllLocationLbl, 'UZ', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(VenezuelAll(), VenezuelAllLocationLbl, 'VE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(VietnamAll(), VietnamAllLocationLbl, 'VN', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(VirginIslandsBrAll(), VirginIslandsBrAllLocationLbl, 'VG', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(VirginIslandsUSAll(), VirginIslandsUSAllLocationLbl, 'VI', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(WallisatunaAll(), WallisatunaAllLocationLbl, 'WF', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(WesternSaharaAll(), WesternSaharaAllLocationLbl, 'EH', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(YemenAll(), YemenAllLocationLbl, 'YE', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ZambiaAll(), ZambiaAllLocationLbl, 'ZM', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(ZimbabweAll(), ZimbabweAllLocationLbl, 'ZW', '', '');
+        ContosoExpenseAgent.InsertExpenseLocation(AlandIslandsAll(), AlandIslandsAllLocationLbl, 'AX', '', '');
     end;
 
     var
+        UnitedArabEmiratesAllTok: Label 'UNITEDARABEMIR-ALL', MaxLength = 20, Locked = true;
+        UnitedArabEmiratesAllLocationLbl: Label 'United Arab Emirates - all location', MaxLength = 100;
         CanadaAllTok: Label 'CANADA-ALL', MaxLength = 20, Locked = true;
         DenmarkAllTok: Label 'DENMARK-ALL', MaxLength = 20, Locked = true;
+        DenmarkCphTok: Label 'DK-COPENHAGEN', MaxLength = 20, Locked = true;
+        DenmarkLbl: Label 'Denmark', MaxLength = 100;
+        DKCopenhagenLbl: Label 'Denmark - Copenhagen', MaxLength = 100;
+        CopenhagenLbl: Label 'Copenhagen', MaxLength = 100;
         DomesticTok: Label 'DOMESTIC', MaxLength = 20, Locked = true;
         FranceAllTok: Label 'FRANCE-ALL', MaxLength = 20, Locked = true;
+        FranceParisTok: Label 'FRANCE-PARIS', MaxLength = 20, Locked = true;
         GermanyAllTok: Label 'GERMANY-ALL', MaxLength = 20, Locked = true;
         UKLondonTok: Label 'UK-LONDON', MaxLength = 20, Locked = true;
         UKOtherTok: Label 'UK-OTHER', MaxLength = 20, Locked = true;
@@ -40,9 +294,10 @@ codeunit 8208 "Create Expense Location"
         USANYTok: Label 'USA-NY', MaxLength = 20, Locked = true;
         USAOtherTok: Label 'USA-OTHER', MaxLength = 20, Locked = true;
         CanadaAllLocationLbl: Label 'Canada - all location', MaxLength = 100;
-        DenmarkLbl: Label 'Denmark', MaxLength = 100;
         DomesticLbl: Label 'Domestic', MaxLength = 100;
         FranceLbl: Label 'France', MaxLength = 100;
+        FranceParisLbl: Label 'France - Paris', MaxLength = 100;
+        ParisLbl: Label 'Paris', MaxLength = 100;
         GermanyLbl: Label 'Germany', MaxLength = 100;
         UKLondonAreaLbl: Label 'United Kingdom - London area', MaxLength = 100;
         LondonLbl: Label 'London', MaxLength = 30;
@@ -52,6 +307,1723 @@ codeunit 8208 "Create Expense Location"
         USAOtherLbl: Label 'United States - Other', MaxLength = 100;
         NewYorkLbl: Label 'New York', MaxLength = 30;
         FLLbl: Label 'FL', MaxLength = 30;
+        AustriaAllTok: Label 'AUSTRIA-ALL', MaxLength = 20, Locked = true;
+        AustriaAllLocationLbl: Label 'Austria - all location', MaxLength = 100;
+        AustraliaAllTok: Label 'AUSTRALIA-ALL', MaxLength = 20, Locked = true;
+        AustraliaAllLocationLbl: Label 'Australia - all location', MaxLength = 100;
+        BelgiumAllTok: Label 'BELGIUM-ALL', MaxLength = 20, Locked = true;
+        BelgiumAllLocationLbl: Label 'Belgium - all location', MaxLength = 100;
+        BulgariaAllTok: Label 'BULGARIA-ALL', MaxLength = 20, Locked = true;
+        BulgariaAllLocationLbl: Label 'Bulgaria - all location', MaxLength = 100;
+        BruneiDarussalamAllTok: Label 'BRUNEIDARUSSALAM-ALL', MaxLength = 20, Locked = true;
+        BruneiDarussalamAllLocationLbl: Label 'Brunei Darussalam - all location', MaxLength = 100;
+        BrazilAllTok: Label 'BRAZIL-ALL', MaxLength = 20, Locked = true;
+        BrazilAllLocationLbl: Label 'Brazil - all location', MaxLength = 100;
+        SwitzerlandAllTok: Label 'SWITZERLAND-ALL', MaxLength = 20, Locked = true;
+        SwitzerlandAllLocationLbl: Label 'Switzerland - all location', MaxLength = 100;
+        SwitzerlandGenevaTok: Label 'SWITZERLAND-GENEVA', MaxLength = 20, Locked = true;
+        SwitzerlandGenevaLbl: Label 'Switzerland - Geneva', MaxLength = 100;
+        GenevaLbl: Label 'Geneva', MaxLength = 100;
+        SwitzerlandZurichTok: Label 'SWITZERLAND-ZURICH', MaxLength = 20, Locked = true;
+        SwitzerlandZurichLbl: Label 'Switzerland - Zurich', MaxLength = 100;
+        ZurichLbl: Label 'Zurich', MaxLength = 100;
+        ChinaAllTok: Label 'CHINA-ALL', MaxLength = 20, Locked = true;
+        ChinaAllLocationLbl: Label 'China - all location', MaxLength = 100;
+        CostaRicaAllTok: Label 'COSTARICA-ALL', MaxLength = 20, Locked = true;
+        CostaRicaAllLocationLbl: Label 'Costa Rica - all location', MaxLength = 100;
+        CyprusAllTok: Label 'CYPRUS-ALL', MaxLength = 20, Locked = true;
+        CyprusAllLocationLbl: Label 'Cyprus - all location', MaxLength = 100;
+        CzechiaAllTok: Label 'CZECHIA-ALL', MaxLength = 20, Locked = true;
+        CzechiaAllLocationLbl: Label 'Czechia - all location', MaxLength = 100;
+        AlgeriaAllTok: Label 'ALGERIA-ALL', MaxLength = 20, Locked = true;
+        AlgeriaAllLocationLbl: Label 'Algeria - all location', MaxLength = 100;
+        EstoniaAllTok: Label 'ESTONIA-ALL', MaxLength = 20, Locked = true;
+        EstoniaAllLocationLbl: Label 'Estonia - all location', MaxLength = 100;
+        GreeceAllTok: Label 'GREECE-ALL', MaxLength = 20, Locked = true;
+        GreeceAllLocationLbl: Label 'Greece - all location', MaxLength = 100;
+        SpainAllTok: Label 'SPAIN-ALL', MaxLength = 20, Locked = true;
+        SpainAllLocationLbl: Label 'Spain - all location', MaxLength = 100;
+        FinlandAllTok: Label 'FINLAND-ALL', MaxLength = 20, Locked = true;
+        FinlandAllLocationLbl: Label 'Finland - all location', MaxLength = 100;
+        FijiIslandsAllTok: Label 'FIJIISLANDS-ALL', MaxLength = 20, Locked = true;
+        FijiIslandsAllLocationLbl: Label 'Fiji Islands - all location', MaxLength = 100;
+        GreatBritainAllTok: Label 'GREATBRITAIN-ALL', MaxLength = 20, Locked = true;
+        GreatBritainAllLocationLbl: Label 'Great Britain - all location', MaxLength = 100;
+        CroatiaAllTok: Label 'CROATIA-ALL', MaxLength = 20, Locked = true;
+        CroatiaAllLocationLbl: Label 'Croatia - all location', MaxLength = 100;
+        HungaryAllTok: Label 'HUNGARY-ALL', MaxLength = 20, Locked = true;
+        HungaryAllLocationLbl: Label 'Hungary - all location', MaxLength = 100;
+        IndonesiaAllTok: Label 'INDONESIA-ALL', MaxLength = 20, Locked = true;
+        IndonesiaAllLocationLbl: Label 'Indonesia - all location', MaxLength = 100;
+        IrelandAllTok: Label 'IRELAND-ALL', MaxLength = 20, Locked = true;
+        IrelandAllLocationLbl: Label 'Ireland - all location', MaxLength = 100;
+        IndiaAllTok: Label 'INDIA-ALL', MaxLength = 20, Locked = true;
+        IndiaAllLocationLbl: Label 'India - all location', MaxLength = 100;
+        IcelandAllTok: Label 'ICELAND-ALL', MaxLength = 20, Locked = true;
+        IcelandAllLocationLbl: Label 'Iceland - all location', MaxLength = 100;
+        ItalyAllTok: Label 'ITALY-ALL', MaxLength = 20, Locked = true;
+        ItalyAllLocationLbl: Label 'Italy - all location', MaxLength = 100;
+        JapanAllTok: Label 'JAPAN-ALL', MaxLength = 20, Locked = true;
+        JapanAllLocationLbl: Label 'Japan - all location', MaxLength = 100;
+        JapanTokyoTok: Label 'JAPAN-TOKYO', MaxLength = 20, Locked = true;
+        JapanTokyoLbl: Label 'Japan - Tokyo', MaxLength = 100;
+        TokyoLbl: Label 'Tokyo', MaxLength = 100;
+        KenyaAllTok: Label 'KENYA-ALL', MaxLength = 20, Locked = true;
+        KenyaAllLocationLbl: Label 'Kenya - all location', MaxLength = 100;
+        LithuaniaAllTok: Label 'LITHUANIA-ALL', MaxLength = 20, Locked = true;
+        LithuaniaAllLocationLbl: Label 'Lithuania - all location', MaxLength = 100;
+        LuxembourgAllTok: Label 'LUXEMBOURG-ALL', MaxLength = 20, Locked = true;
+        LuxembourgAllLocationLbl: Label 'Luxembourg - all location', MaxLength = 100;
+        LatviaAllTok: Label 'LATVIA-ALL', MaxLength = 20, Locked = true;
+        LatviaAllLocationLbl: Label 'Latvia - all location', MaxLength = 100;
+        MoroccoAllTok: Label 'MOROCCO-ALL', MaxLength = 20, Locked = true;
+        MoroccoAllLocationLbl: Label 'Morocco - all location', MaxLength = 100;
+        MontenegroAllTok: Label 'MONTENEGRO-ALL', MaxLength = 20, Locked = true;
+        MontenegroAllLocationLbl: Label 'Montenegro - all location', MaxLength = 100;
+        MaltaAllTok: Label 'MALTA-ALL', MaxLength = 20, Locked = true;
+        MaltaAllLocationLbl: Label 'Malta - all location', MaxLength = 100;
+        MexicoAllTok: Label 'MEXICO-ALL', MaxLength = 20, Locked = true;
+        MexicoAllLocationLbl: Label 'Mexico - all location', MaxLength = 100;
+        MalaysiaAllTok: Label 'MALAYSIA-ALL', MaxLength = 20, Locked = true;
+        MalaysiaAllLocationLbl: Label 'Malaysia - all location', MaxLength = 100;
+        MozambiqueAllTok: Label 'MOZAMBIQUE-ALL', MaxLength = 20, Locked = true;
+        MozambiqueAllLocationLbl: Label 'Mozambique - all location', MaxLength = 100;
+        NigeriaAllTok: Label 'NIGERIA-ALL', MaxLength = 20, Locked = true;
+        NigeriaAllLocationLbl: Label 'Nigeria - all location', MaxLength = 100;
+        NorthernIrelandAllTok: Label 'NORTHERNIRELAND-ALL', MaxLength = 20, Locked = true;
+        NorthernIrelandAllLocationLbl: Label 'Northern Ireland - all location', MaxLength = 100;
+        NetherlandsAllTok: Label 'NETHERLANDS-ALL', MaxLength = 20, Locked = true;
+        NetherlandsAllLocationLbl: Label 'Netherlands - all location', MaxLength = 100;
+        NorwayAllTok: Label 'NORWAY-ALL', MaxLength = 20, Locked = true;
+        NorwayAllLocationLbl: Label 'Norway - all location', MaxLength = 100;
+        NorwayOsloTok: Label 'NORWAY-OSLO', MaxLength = 20, Locked = true;
+        NorwayOsloLbl: Label 'Norway - Oslo', MaxLength = 100;
+        OsloLbl: Label 'Norway - Oslo', MaxLength = 100;
+        NewZealandAllTok: Label 'NEWZEALAND-ALL', MaxLength = 20, Locked = true;
+        NewZealandAllLocationLbl: Label 'New Zealand - all location', MaxLength = 100;
+        PhilippinesAllTok: Label 'PHILIPPINES-ALL', MaxLength = 20, Locked = true;
+        PhilippinesAllLocationLbl: Label 'Philippines - all location', MaxLength = 100;
+        PolandAllTok: Label 'POLAND-ALL', MaxLength = 20, Locked = true;
+        PolandAllLocationLbl: Label 'Poland - all location', MaxLength = 100;
+        PortugalAllTok: Label 'PORTUGAL-ALL', MaxLength = 20, Locked = true;
+        PortugalAllLocationLbl: Label 'Portugal - all location', MaxLength = 100;
+        RomaniaAllTok: Label 'ROMANIA-ALL', MaxLength = 20, Locked = true;
+        RomaniaAllLocationLbl: Label 'Romania - all location', MaxLength = 100;
+        SerbiaAllTok: Label 'SERBIA-ALL', MaxLength = 20, Locked = true;
+        SerbiaAllLocationLbl: Label 'Serbia - all location', MaxLength = 100;
+        RussiaAllTok: Label 'RUSSIA-ALL', MaxLength = 20, Locked = true;
+        RussiaAllLocationLbl: Label 'Russia - all location', MaxLength = 100;
+        SaudiArabiaAllTok: Label 'SAUDIARABIA-ALL', MaxLength = 20, Locked = true;
+        SaudiArabiaAllLocationLbl: Label 'Saudi Arabia - all location', MaxLength = 100;
+        SolomonIslandsAllTok: Label 'SOLOMONISLANDS-ALL', MaxLength = 20, Locked = true;
+        SolomonIslandsAllLocationLbl: Label 'Solomon Islands - all location', MaxLength = 100;
+        SwedenAllTok: Label 'SWEDEN-ALL', MaxLength = 20, Locked = true;
+        SwedenAllLocationLbl: Label 'Sweden - all location', MaxLength = 100;
+        SingaporeAllTok: Label 'SINGAPORE-ALL', MaxLength = 20, Locked = true;
+        SingaporeAllLocationLbl: Label 'Singapore - all location', MaxLength = 100;
+        SloveniaAllTok: Label 'SLOVENIA-ALL', MaxLength = 20, Locked = true;
+        SloveniaAllLocationLbl: Label 'Slovenia - all location', MaxLength = 100;
+        SlovakiaAllTok: Label 'SLOVAKIA-ALL', MaxLength = 20, Locked = true;
+        SlovakiaAllLocationLbl: Label 'Slovakia - all location', MaxLength = 100;
+        SwazilandAllTok: Label 'SWAZILAND-ALL', MaxLength = 20, Locked = true;
+        SwazilandAllLocationLbl: Label 'Swaziland - all location', MaxLength = 100;
+        ThailandAllTok: Label 'THAILAND-ALL', MaxLength = 20, Locked = true;
+        ThailandAllLocationLbl: Label 'Thailand - all location', MaxLength = 100;
+        TunisiaAllTok: Label 'TUNISIA-ALL', MaxLength = 20, Locked = true;
+        TunisiaAllLocationLbl: Label 'Tunisia - all location', MaxLength = 100;
+        TurkiyeAllTok: Label 'TURKIYE-ALL', MaxLength = 20, Locked = true;
+        TurkiyeAllLocationLbl: Label 'Türkiye - all location', MaxLength = 100;
+        TanzaniaAllTok: Label 'TANZANIA-ALL', MaxLength = 20, Locked = true;
+        TanzaniaAllLocationLbl: Label 'Tanzania - all location', MaxLength = 100;
+        UgandaAllTok: Label 'UGANDA-ALL', MaxLength = 20, Locked = true;
+        UgandaAllLocationLbl: Label 'Uganda - all location', MaxLength = 100;
+        VanuatuAllTok: Label 'VANUATU-ALL', MaxLength = 20, Locked = true;
+        VanuatuAllLocationLbl: Label 'Vanuatu - all location', MaxLength = 100;
+        SamoaAllTok: Label 'SAMOA-ALL', MaxLength = 20, Locked = true;
+        SamoaAllLocationLbl: Label 'Samoa - all location', MaxLength = 100;
+        SouthAfricaAllTok: Label 'SOUTHAFRICA-ALL', MaxLength = 20, Locked = true;
+        SouthAfricaAllLocationLbl: Label 'South Africa - all location', MaxLength = 100;
+        AfghanistanAllTok: Label 'AFGHANISTAN-ALL', MaxLength = 20, Locked = true;
+        AfghanistanAllLocationLbl: Label 'Afghanistan - all location', MaxLength = 100;
+        AlbaniaAllTok: Label 'ALBANIA-ALL', MaxLength = 20, Locked = true;
+        AlbaniaAllLocationLbl: Label 'Albania - all location', MaxLength = 100;
+        AndorraAllTok: Label 'ANDORRA-ALL', MaxLength = 20, Locked = true;
+        AndorraAllLocationLbl: Label 'Andorra - all location', MaxLength = 100;
+        AngolaAllTok: Label 'ANGOLA-ALL', MaxLength = 20, Locked = true;
+        AngolaAllLocationLbl: Label 'Angola - all location', MaxLength = 100;
+        AnguillaAllTok: Label 'ANGUILLA-ALL', MaxLength = 20, Locked = true;
+        AnguillaAllLocationLbl: Label 'Anguilla - all location', MaxLength = 100;
+        AntarcticaAllTok: Label 'ANTARCTICA-ALL', MaxLength = 20, Locked = true;
+        AntarcticaAllLocationLbl: Label 'Antarctica - all location', MaxLength = 100;
+        AntiguaBarbudaAllTok: Label 'ANTIGUABARBUDA-ALL', MaxLength = 20, Locked = true;
+        AntiguaBarbudaAllLocationLbl: Label 'Antigua & Barbuda - all location', MaxLength = 100;
+        ArgentinaAllTok: Label 'ARGENTINA-ALL', MaxLength = 20, Locked = true;
+        ArgentinaAllLocationLbl: Label 'Argentina - all location', MaxLength = 100;
+        ArmeniaAllTok: Label 'ARMENIA-ALL', MaxLength = 20, Locked = true;
+        ArmeniaAllLocationLbl: Label 'Armenia - all location', MaxLength = 100;
+        ArubaAllTok: Label 'ARUBA-ALL', MaxLength = 20, Locked = true;
+        ArubaAllLocationLbl: Label 'Aruba - all location', MaxLength = 100;
+        AzerbaijanAllTok: Label 'AZERBAIJAN-ALL', MaxLength = 20, Locked = true;
+        AzerbaijanAllLocationLbl: Label 'Azerbaijan - all location', MaxLength = 100;
+        BahamasAllTok: Label 'BAHAMAS-ALL', MaxLength = 20, Locked = true;
+        BahamasAllLocationLbl: Label 'Bahamas - all location', MaxLength = 100;
+        BahrainAllTok: Label 'BAHRAIN-ALL', MaxLength = 20, Locked = true;
+        BahrainAllLocationLbl: Label 'Bahrain - all location', MaxLength = 100;
+        BangladeshAllTok: Label 'BANGLADESH-ALL', MaxLength = 20, Locked = true;
+        BangladeshAllLocationLbl: Label 'Bangladesh - all location', MaxLength = 100;
+        BarbadosAllTok: Label 'BARBADOS-ALL', MaxLength = 20, Locked = true;
+        BarbadosAllLocationLbl: Label 'Barbados - all location', MaxLength = 100;
+        BelarusAllTok: Label 'BELARUS-ALL', MaxLength = 20, Locked = true;
+        BelarusAllLocationLbl: Label 'Belarus - all location', MaxLength = 100;
+        BelizeAllTok: Label 'BELIZE-ALL', MaxLength = 20, Locked = true;
+        BelizeAllLocationLbl: Label 'Belize - all location', MaxLength = 100;
+        BeninAllTok: Label 'BENIN-ALL', MaxLength = 20, Locked = true;
+        BeninAllLocationLbl: Label 'Benin - all location', MaxLength = 100;
+        BermudaAllTok: Label 'BERMUDA-ALL', MaxLength = 20, Locked = true;
+        BermudaAllLocationLbl: Label 'Bermuda - all location', MaxLength = 100;
+        BhutanAllTok: Label 'BHUTAN-ALL', MaxLength = 20, Locked = true;
+        BhutanAllLocationLbl: Label 'Bhutan - all location', MaxLength = 100;
+        BoliviaAllTok: Label 'BOLIVIA-ALL', MaxLength = 20, Locked = true;
+        BoliviaAllLocationLbl: Label 'Bolivia - all location', MaxLength = 100;
+        BonaireAllTok: Label 'BONAIRE-ALL', MaxLength = 20, Locked = true;
+        BonaireAllLocationLbl: Label 'Bonaire, Sint Eustatius and Saba - all location', MaxLength = 100;
+        BosniaHerzegovinaAllTok: Label 'BOSNIAHERZEGOVIN-ALL', MaxLength = 20, Locked = true;
+        BosniaHerzegovinaAllLocationLbl: Label 'Bosnia & Herzegovina - all location', MaxLength = 100;
+        BotswanaAllTok: Label 'BOTSWANA-ALL', MaxLength = 20, Locked = true;
+        BotswanaAllLocationLbl: Label 'Botswana - all location', MaxLength = 100;
+        BouvetIslandAllTok: Label 'BOUVETISLAND-ALL', MaxLength = 20, Locked = true;
+        BouvetIslandAllLocationLbl: Label 'Bouvet Island - all location', MaxLength = 100;
+        BritishIndianOceanAllTok: Label 'BRITISHINDIANOCE-ALL', MaxLength = 20, Locked = true;
+        BritishIndianOceanAllLocationLbl: Label 'British Indian Ocean Territory - all location', MaxLength = 100;
+        BurkinaFasoAllTok: Label 'BURKINAFASO-ALL', MaxLength = 20, Locked = true;
+        BurkinaFasoAllLocationLbl: Label 'Burkina Faso - all location', MaxLength = 100;
+        BurundiAllTok: Label 'BURUNDI-ALL', MaxLength = 20, Locked = true;
+        BurundiAllLocationLbl: Label 'Burundi - all location', MaxLength = 100;
+        CaboVerdeAllTok: Label 'CABOVERDE-ALL', MaxLength = 20, Locked = true;
+        CaboVerdeAllLocationLbl: Label 'Cabo Verde - all location', MaxLength = 100;
+        CambodiaAllTok: Label 'CAMBODIA-ALL', MaxLength = 20, Locked = true;
+        CambodiaAllLocationLbl: Label 'Cambodia - all location', MaxLength = 100;
+        CameroonAllTok: Label 'CAMEROON-ALL', MaxLength = 20, Locked = true;
+        CameroonAllLocationLbl: Label 'Cameroon - all location', MaxLength = 100;
+        CaymanIslandsAllTok: Label 'CAYMANISLANDS-ALL', MaxLength = 20, Locked = true;
+        CaymanIslandsAllLocationLbl: Label 'Cayman Islands - all location', MaxLength = 100;
+        CentralAfricanAllTok: Label 'CENTRALAFRICAN-ALL', MaxLength = 20, Locked = true;
+        CentralAfricanAllLocationLbl: Label 'Central African Republic - all location', MaxLength = 100;
+        ChadAllTok: Label 'CHAD-ALL', MaxLength = 20, Locked = true;
+        ChadAllLocationLbl: Label 'Chad - all location', MaxLength = 100;
+        ChileAllTok: Label 'CHILE-ALL', MaxLength = 20, Locked = true;
+        ChileAllLocationLbl: Label 'Chile - all location', MaxLength = 100;
+        ChristmasIslandAllTok: Label 'CHRISTMASISLAND-ALL', MaxLength = 20, Locked = true;
+        ChristmasIslandAllLocationLbl: Label 'Christmas Island - all location', MaxLength = 100;
+        CocosIslandsAllTok: Label 'COCOSISLANDS-ALL', MaxLength = 20, Locked = true;
+        CocosIslandsAllLocationLbl: Label 'Cocos (Keeling) Islands - all location', MaxLength = 100;
+        ColombiaAllTok: Label 'COLOMBIA-ALL', MaxLength = 20, Locked = true;
+        ColombiaAllLocationLbl: Label 'Colombia - all location', MaxLength = 100;
+        ComorosAllTok: Label 'COMOROS-ALL', MaxLength = 20, Locked = true;
+        ComorosAllLocationLbl: Label 'Comoros - all location', MaxLength = 100;
+        CongoDRAllTok: Label 'CONGODR-ALL', MaxLength = 20, Locked = true;
+        CongoDRAllLocationLbl: Label 'Congo, Democratic Republic - all location', MaxLength = 100;
+        CongoAllTok: Label 'CONGO-ALL', MaxLength = 20, Locked = true;
+        CongoAllLocationLbl: Label 'Congo - all location', MaxLength = 100;
+        CookIslandsAllTok: Label 'COOKISLANDS-ALL', MaxLength = 20, Locked = true;
+        CookIslandsAllLocationLbl: Label 'Cook Islands - all location', MaxLength = 100;
+        CubaAllTok: Label 'CUBA-ALL', MaxLength = 20, Locked = true;
+        CubaAllLocationLbl: Label 'Cuba - all location', MaxLength = 100;
+        CuracaoAllTok: Label 'CURACAO-ALL', MaxLength = 20, Locked = true;
+        CuracaoAllLocationLbl: Label 'Curacao - all location', MaxLength = 100;
+        CotedIvoireAllTok: Label 'COTEDIVOIRE-ALL', MaxLength = 20, Locked = true;
+        CotedIvoireAllLocationLbl: Label 'Cote d''Ivoire - all location', MaxLength = 100;
+        DjiboutiAllTok: Label 'DJIBOUTI-ALL', MaxLength = 20, Locked = true;
+        DjiboutiAllLocationLbl: Label 'Djibouti - all location', MaxLength = 100;
+        DominicaAllTok: Label 'DOMINICA-ALL', MaxLength = 20, Locked = true;
+        DominicaAllLocationLbl: Label 'Dominica - all location', MaxLength = 100;
+        DominicanAllTok: Label 'DOMINICAN-ALL', MaxLength = 20, Locked = true;
+        DominicanAllLocationLbl: Label 'Dominican Republic - all location', MaxLength = 100;
+        EcuadorAllTok: Label 'ECUADOR-ALL', MaxLength = 20, Locked = true;
+        EcuadorAllLocationLbl: Label 'Ecuador - all location', MaxLength = 100;
+        EgyptAllTok: Label 'EGYPT-ALL', MaxLength = 20, Locked = true;
+        EgyptAllLocationLbl: Label 'Egypt - all location', MaxLength = 100;
+        ElSalvadorAllTok: Label 'ELSALVADOR-ALL', MaxLength = 20, Locked = true;
+        ElSalvadorAllLocationLbl: Label 'El Salvador - all location', MaxLength = 100;
+        EquatorialGuineaAllTok: Label 'EQUATORIALGUINEA-ALL', MaxLength = 20, Locked = true;
+        EquatorialGuineaAllLocationLbl: Label 'Equatorial Guinea - all location', MaxLength = 100;
+        EritreaAllTok: Label 'ERITREA-ALL', MaxLength = 20, Locked = true;
+        EritreaAllLocationLbl: Label 'Eritrea - all location', MaxLength = 100;
+        EthiopiaAllTok: Label 'ETHIOPIA-ALL', MaxLength = 20, Locked = true;
+        EthiopiaAllLocationLbl: Label 'Ethiopia - all location', MaxLength = 100;
+        FalklandIslandsAllTok: Label 'FALKLANDISLANDS-ALL', MaxLength = 20, Locked = true;
+        FalklandIslandsAllLocationLbl: Label 'Falkland Islands - all location', MaxLength = 100;
+        FaroeIslandsAllTok: Label 'FAROEISLANDS-ALL', MaxLength = 20, Locked = true;
+        FaroeIslandsAllLocationLbl: Label 'Faroe Islands - all location', MaxLength = 100;
+        FrenchGuianaAllTok: Label 'FRENCHGUIANA-ALL', MaxLength = 20, Locked = true;
+        FrenchGuianaAllLocationLbl: Label 'French Guiana - all location', MaxLength = 100;
+        FrenchPolynesiaAllTok: Label 'FRENCHPOLYNESIA-ALL', MaxLength = 20, Locked = true;
+        FrenchPolynesiaAllLocationLbl: Label 'French Polynesia - all location', MaxLength = 100;
+        FrenchSouthernAllTok: Label 'FRENCHSOUTHERN-ALL', MaxLength = 20, Locked = true;
+        FrenchSouthernAllLocationLbl: Label 'French Southern Territories - all location', MaxLength = 100;
+        GabonAllTok: Label 'GABON-ALL', MaxLength = 20, Locked = true;
+        GabonAllLocationLbl: Label 'Gabon - all location', MaxLength = 100;
+        GambiaAllTok: Label 'GAMBIA-ALL', MaxLength = 20, Locked = true;
+        GambiaAllLocationLbl: Label 'Gambia - all location', MaxLength = 100;
+        GeorgiaAllTok: Label 'GEORGIA-ALL', MaxLength = 20, Locked = true;
+        GeorgiaAllLocationLbl: Label 'Georgia - all location', MaxLength = 100;
+        GhanaAllTok: Label 'GHANA-ALL', MaxLength = 20, Locked = true;
+        GhanaAllLocationLbl: Label 'Ghana - all location', MaxLength = 100;
+        GibraltarAllTok: Label 'GIBRALTAR-ALL', MaxLength = 20, Locked = true;
+        GibraltarAllLocationLbl: Label 'Gibraltar - all location', MaxLength = 100;
+        GreenlandAllTok: Label 'GREENLAND-ALL', MaxLength = 20, Locked = true;
+        GreenlandAllLocationLbl: Label 'Greenland - all location', MaxLength = 100;
+        GrenadaAllTok: Label 'GRENADA-ALL', MaxLength = 20, Locked = true;
+        GrenadaAllLocationLbl: Label 'Grenada - all location', MaxLength = 100;
+        GuadeloupeAllTok: Label 'GUADELOUPE-ALL', MaxLength = 20, Locked = true;
+        GuadeloupeAllLocationLbl: Label 'Guadeloupe - all location', MaxLength = 100;
+        GuamAllTok: Label 'GUAM-ALL', MaxLength = 20, Locked = true;
+        GuamAllLocationLbl: Label 'Guam - all location', MaxLength = 100;
+        GuatemalaAllTok: Label 'GUATEMALA-ALL', MaxLength = 20, Locked = true;
+        GuatemalaAllLocationLbl: Label 'Guatemala - all location', MaxLength = 100;
+        GuernseyAllTok: Label 'GUERNSEY-ALL', MaxLength = 20, Locked = true;
+        GuernseyAllLocationLbl: Label 'Guernsey - all location', MaxLength = 100;
+        GuineaAllTok: Label 'GUINEA-ALL', MaxLength = 20, Locked = true;
+        GuineaAllLocationLbl: Label 'Guinea - all location', MaxLength = 100;
+        GuineaBissauAllTok: Label 'GUINEABISSAU-ALL', MaxLength = 20, Locked = true;
+        GuineaBissauAllLocationLbl: Label 'Guinea-Bissau - all location', MaxLength = 100;
+        GuyanaAllTok: Label 'GUYANA-ALL', MaxLength = 20, Locked = true;
+        GuyanaAllLocationLbl: Label 'Guyana - all location', MaxLength = 100;
+        HaitiAllTok: Label 'HAITI-ALL', MaxLength = 20, Locked = true;
+        HaitiAllLocationLbl: Label 'Haiti - all location', MaxLength = 100;
+        HeardIslandAllTok: Label 'HEARDISLAND-ALL', MaxLength = 20, Locked = true;
+        HeardIslandAllLocationLbl: Label 'Heard Island and McDonald Islands - all location', MaxLength = 100;
+        HolySeeAllTok: Label 'HOLYSEE-ALL', MaxLength = 20, Locked = true;
+        HolySeeAllLocationLbl: Label 'Vatican City - all location', MaxLength = 100;
+        HondurasAllTok: Label 'HONDURAS-ALL', MaxLength = 20, Locked = true;
+        HondurasAllLocationLbl: Label 'Honduras - all location', MaxLength = 100;
+        HongKongAllTok: Label 'HONGKONG-ALL', MaxLength = 20, Locked = true;
+        HongKongAllLocationLbl: Label 'Hong Kong SAR - all location', MaxLength = 100;
+        IsleManAllTok: Label 'ISLEMAN-ALL', MaxLength = 20, Locked = true;
+        IsleManAllLocationLbl: Label 'Isle of Man - all location', MaxLength = 100;
+        IsraelAllTok: Label 'ISRAEL-ALL', MaxLength = 20, Locked = true;
+        IsraelAllLocationLbl: Label 'Israel - all location', MaxLength = 100;
+        JamaicaAllTok: Label 'JAMAICA-ALL', MaxLength = 20, Locked = true;
+        JamaicaAllLocationLbl: Label 'Jamaica - all location', MaxLength = 100;
+        JerseyAllTok: Label 'JERSEY-ALL', MaxLength = 20, Locked = true;
+        JerseyAllLocationLbl: Label 'Jersey - all location', MaxLength = 100;
+        JordanAllTok: Label 'JORDAN-ALL', MaxLength = 20, Locked = true;
+        JordanAllLocationLbl: Label 'Jordan - all location', MaxLength = 100;
+        KazakhstanAllTok: Label 'KAZAKHSTAN-ALL', MaxLength = 20, Locked = true;
+        KazakhstanAllLocationLbl: Label 'Kazakhstan - all location', MaxLength = 100;
+        KiribatiAllTok: Label 'KIRIBATI-ALL', MaxLength = 20, Locked = true;
+        KiribatiAllLocationLbl: Label 'Kiribati - all location', MaxLength = 100;
+        NorthKoreaAllTok: Label 'NORTHKOREA-ALL', MaxLength = 20, Locked = true;
+        NorthKoreaAllLocationLbl: Label 'North Korea - all location', MaxLength = 100;
+        SouthKoreaAllTok: Label 'SOUTHKOREA-ALL', MaxLength = 20, Locked = true;
+        SouthKoreaAllLocationLbl: Label 'Korea - all location', MaxLength = 100;
+        KuwaitAllTok: Label 'KUWAIT-ALL', MaxLength = 20, Locked = true;
+        KuwaitAllLocationLbl: Label 'Kuwait - all location', MaxLength = 100;
+        KyrgyzstanAllTok: Label 'KYRGYZSTAN-ALL', MaxLength = 20, Locked = true;
+        KyrgyzstanAllLocationLbl: Label 'Kyrgyzstan - all location', MaxLength = 100;
+        LaosAllTok: Label 'LAOS-ALL', MaxLength = 20, Locked = true;
+        LaosAllLocationLbl: Label 'Laos - all location', MaxLength = 100;
+        LebanonAllTok: Label 'LEBANON-ALL', MaxLength = 20, Locked = true;
+        LebanonAllLocationLbl: Label 'Lebanon - all location', MaxLength = 100;
+        LesothoAllTok: Label 'LESOTHO-ALL', MaxLength = 20, Locked = true;
+        LesothoAllLocationLbl: Label 'Lesotho - all location', MaxLength = 100;
+        LiberiaAllTok: Label 'LIBERIA-ALL', MaxLength = 20, Locked = true;
+        LiberiaAllLocationLbl: Label 'Liberia - all location', MaxLength = 100;
+        LibyaAllTok: Label 'LIBYA-ALL', MaxLength = 20, Locked = true;
+        LibyaAllLocationLbl: Label 'Libya - all location', MaxLength = 100;
+        LiechtensteinAllTok: Label 'LIECHTENSTEIN-ALL', MaxLength = 20, Locked = true;
+        LiechtensteinAllLocationLbl: Label 'Liechtenstein - all location', MaxLength = 100;
+        MacaoAllTok: Label 'MACAO-ALL', MaxLength = 20, Locked = true;
+        MacaoAllLocationLbl: Label 'Macao - all location', MaxLength = 100;
+        MadagascarAllTok: Label 'MADAGASCAR-ALL', MaxLength = 20, Locked = true;
+        MadagascarAllLocationLbl: Label 'Madagascar - all location', MaxLength = 100;
+        MalawiAllTok: Label 'MALAWI-ALL', MaxLength = 20, Locked = true;
+        MalawiAllLocationLbl: Label 'Malawi - all location', MaxLength = 100;
+        MaldivesAllTok: Label 'MALDIVES-ALL', MaxLength = 20, Locked = true;
+        MaldivesAllLocationLbl: Label 'Maldives - all location', MaxLength = 100;
+        MaliAllTok: Label 'MALI-ALL', MaxLength = 20, Locked = true;
+        MaliAllLocationLbl: Label 'Mali - all location', MaxLength = 100;
+        MarshallIslandsAllTok: Label 'MARSHALLISLANDS-ALL', MaxLength = 20, Locked = true;
+        MarshallIslandsAllLocationLbl: Label 'Marshall Islands - all location', MaxLength = 100;
+        MartiniqueAllTok: Label 'MARTINIQUE-ALL', MaxLength = 20, Locked = true;
+        MartiniqueAllLocationLbl: Label 'Martinique - all location', MaxLength = 100;
+        MauritaniaAllTok: Label 'MAURITANIA-ALL', MaxLength = 20, Locked = true;
+        MauritaniaAllLocationLbl: Label 'Mauritania - all location', MaxLength = 100;
+        MauritiusAllTok: Label 'MAURITIUS-ALL', MaxLength = 20, Locked = true;
+        MauritiusAllLocationLbl: Label 'Mauritius - all location', MaxLength = 100;
+        MayotteAllTok: Label 'MAYOTTE-ALL', MaxLength = 20, Locked = true;
+        MayotteAllLocationLbl: Label 'Mayotte - all location', MaxLength = 100;
+        MicronesiaAllTok: Label 'MICRONESIA-ALL', MaxLength = 20, Locked = true;
+        MicronesiaAllLocationLbl: Label 'Micronesia - all location', MaxLength = 100;
+        MoldovaAllTok: Label 'MOLDOVA-ALL', MaxLength = 20, Locked = true;
+        MoldovaAllLocationLbl: Label 'Moldova - all location', MaxLength = 100;
+        MonacoAllTok: Label 'MONACO-ALL', MaxLength = 20, Locked = true;
+        MonacoAllLocationLbl: Label 'Monaco - all location', MaxLength = 100;
+        MongoliaAllTok: Label 'MONGOLIA-ALL', MaxLength = 20, Locked = true;
+        MongoliaAllLocationLbl: Label 'Mongolia - all location', MaxLength = 100;
+        MontserratAllTok: Label 'MONTSERRAT-ALL', MaxLength = 20, Locked = true;
+        MontserratAllLocationLbl: Label 'Montserrat - all location', MaxLength = 100;
+        MyanmarAllTok: Label 'MYANMAR-ALL', MaxLength = 20, Locked = true;
+        MyanmarAllLocationLbl: Label 'Myanmar - all location', MaxLength = 100;
+        NamibiaAllTok: Label 'NAMIBIA-ALL', MaxLength = 20, Locked = true;
+        NamibiaAllLocationLbl: Label 'Namibia - all location', MaxLength = 100;
+        NauruAllTok: Label 'NAURU-ALL', MaxLength = 20, Locked = true;
+        NauruAllLocationLbl: Label 'Nauru - all location', MaxLength = 100;
+        NepalAllTok: Label 'NEPAL-ALL', MaxLength = 20, Locked = true;
+        NepalAllLocationLbl: Label 'Nepal - all location', MaxLength = 100;
+        NewCaledoniaAllTok: Label 'NEWCALEDONIA-ALL', MaxLength = 20, Locked = true;
+        NewCaledoniaAllLocationLbl: Label 'New Caledonia - all location', MaxLength = 100;
+        NigerAllTok: Label 'NIGER-ALL', MaxLength = 20, Locked = true;
+        NigerAllLocationLbl: Label 'Niger - all location', MaxLength = 100;
+        NiueAllTok: Label 'NIUE-ALL', MaxLength = 20, Locked = true;
+        NiueAllLocationLbl: Label 'Niue - all location', MaxLength = 100;
+        NorfolkIslandAllTok: Label 'NORFOLKISLAND-ALL', MaxLength = 20, Locked = true;
+        NorfolkIslandAllLocationLbl: Label 'Norfolk Island - all location', MaxLength = 100;
+        NorthMacedoniaAllTok: Label 'NORTHMACEDONIA-ALL', MaxLength = 20, Locked = true;
+        NorthMacedoniaAllLocationLbl: Label 'North Macedonia - all location', MaxLength = 100;
+        NorthernMarianaAllTok: Label 'NORTHERNMARIANA-ALL', MaxLength = 20, Locked = true;
+        NorthernMarianaAllLocationLbl: Label 'Northern Mariana Islands - all location', MaxLength = 100;
+        OmanAllTok: Label 'OMAN-ALL', MaxLength = 20, Locked = true;
+        OmanAllLocationLbl: Label 'Oman - all location', MaxLength = 100;
+        PakistanAllTok: Label 'PAKISTAN-ALL', MaxLength = 20, Locked = true;
+        PakistanAllLocationLbl: Label 'Pakistan - all location', MaxLength = 100;
+        PalauAllTok: Label 'PALAU-ALL', MaxLength = 20, Locked = true;
+        PalauAllLocationLbl: Label 'Palau - all location', MaxLength = 100;
+        PalestineAllTok: Label 'PALESTINE-ALL', MaxLength = 20, Locked = true;
+        PalestineAllLocationLbl: Label 'Palestine - all location', MaxLength = 100;
+        PanamaAllTok: Label 'PANAMA-ALL', MaxLength = 20, Locked = true;
+        PanamaAllLocationLbl: Label 'Panama - all location', MaxLength = 100;
+        PapuaNewGuineaAllTok: Label 'PAPUANEWGUINEA-ALL', MaxLength = 20, Locked = true;
+        PapuaNewGuineaAllLocationLbl: Label 'Papua New Guinea - all location', MaxLength = 100;
+        ParaguayAllTok: Label 'PARAGUAY-ALL', MaxLength = 20, Locked = true;
+        ParaguayAllLocationLbl: Label 'Paraguay - all location', MaxLength = 100;
+        PeruAllTok: Label 'PERU-ALL', MaxLength = 20, Locked = true;
+        PeruAllLocationLbl: Label 'Peru - all location', MaxLength = 100;
+        PitcairnAllTok: Label 'PITCAIRN-ALL', MaxLength = 20, Locked = true;
+        PitcairnAllLocationLbl: Label 'Pitcairn Islands - all location', MaxLength = 100;
+        PuertoRicoAllTok: Label 'PUERTORICO-ALL', MaxLength = 20, Locked = true;
+        PuertoRicoAllLocationLbl: Label 'Puerto Rico - all location', MaxLength = 100;
+        QatarAllTok: Label 'QATAR-ALL', MaxLength = 20, Locked = true;
+        QatarAllLocationLbl: Label 'Qatar - all location', MaxLength = 100;
+        RwandaAllTok: Label 'RWANDA-ALL', MaxLength = 20, Locked = true;
+        RwandaAllLocationLbl: Label 'Rwanda - all location', MaxLength = 100;
+        ReunionAllTok: Label 'REUNION-ALL', MaxLength = 20, Locked = true;
+        ReunionAllLocationLbl: Label 'Reunion - all location', MaxLength = 100;
+        SaintBarthelemyAllTok: Label 'SAINTBARTHELEMY-ALL', MaxLength = 20, Locked = true;
+        SaintBarthelemyAllLocationLbl: Label 'Saint Barthelemy - all location', MaxLength = 100;
+        SaintHelenaAllTok: Label 'SAINTHELENA-ALL', MaxLength = 20, Locked = true;
+        SaintHelenaAllLocationLbl: Label 'St Helena, Ascension, Tristan da Cunha - all location', MaxLength = 100;
+        SaintKittsNevisAllTok: Label 'SAINTKITTSNEVIS-ALL', MaxLength = 20, Locked = true;
+        SaintKittsNevisAllLocationLbl: Label 'St. Kitts & Nevis - all location', MaxLength = 100;
+        SaintLuciaAllTok: Label 'SAINTLUCIA-ALL', MaxLength = 20, Locked = true;
+        SaintLuciaAllLocationLbl: Label 'St. Lucia - all location', MaxLength = 100;
+        SaintMartinAllTok: Label 'SAINTMARTIN-ALL', MaxLength = 20, Locked = true;
+        SaintMartinAllLocationLbl: Label 'Saint Martin - all location', MaxLength = 100;
+        SaintPierreQuelonAllTok: Label 'SAINTPIERREQUELO-ALL', MaxLength = 20, Locked = true;
+        SaintPierreQuelonAllLocationLbl: Label 'St. Pierre & Miquelon - all location', MaxLength = 100;
+        SaintVincentAllTok: Label 'SAINTVINCENT-ALL', MaxLength = 20, Locked = true;
+        SaintVincentAllLocationLbl: Label 'St. Vincent & Grenadines - all location', MaxLength = 100;
+        SanMarinoAllTok: Label 'SANMARINO-ALL', MaxLength = 20, Locked = true;
+        SanMarinoAllLocationLbl: Label 'San Marino - all location', MaxLength = 100;
+        SaoTomeAllTok: Label 'SAOTOME-ALL', MaxLength = 20, Locked = true;
+        SaoTomeAllLocationLbl: Label 'Sao Tome & Principe - all location', MaxLength = 100;
+        SenegalAllTok: Label 'SENEGAL-ALL', MaxLength = 20, Locked = true;
+        SenegalAllLocationLbl: Label 'Senegal - all location', MaxLength = 100;
+        SeychellesAllTok: Label 'SEYCHELLES-ALL', MaxLength = 20, Locked = true;
+        SeychellesAllLocationLbl: Label 'Seychelles - all location', MaxLength = 100;
+        SierraLeoneAllTok: Label 'SIERRALEONE-ALL', MaxLength = 20, Locked = true;
+        SierraLeoneAllLocationLbl: Label 'Sierra Leone - all location', MaxLength = 100;
+        SintMaartenAllTok: Label 'SINTMAARTEN-ALL', MaxLength = 20, Locked = true;
+        SintMaartenAllLocationLbl: Label 'Sint Maarten - all location', MaxLength = 100;
+        SomaliaAllTok: Label 'SOMALIA-ALL', MaxLength = 20, Locked = true;
+        SomaliaAllLocationLbl: Label 'Somalia - all location', MaxLength = 100;
+        SouthGeorgiaAllTok: Label 'SOUTHGEORGIA-ALL', MaxLength = 20, Locked = true;
+        SouthGeorgiaAllLocationLbl: Label 'South Georgia and South Sandwich Islands - all location', MaxLength = 100;
+        SouthSudanAllTok: Label 'SOUTHSUDAN-ALL', MaxLength = 20, Locked = true;
+        SouthSudanAllLocationLbl: Label 'South Sudan - all location', MaxLength = 100;
+        SriLankaAllTok: Label 'SRILANKA-ALL', MaxLength = 20, Locked = true;
+        SriLankaAllLocationLbl: Label 'Sri Lanka - all location', MaxLength = 100;
+        SudanAllTok: Label 'SUDAN-ALL', MaxLength = 20, Locked = true;
+        SudanAllLocationLbl: Label 'Sudan - all location', MaxLength = 100;
+        SurinameAllTok: Label 'SURINAME-ALL', MaxLength = 20, Locked = true;
+        SurinameAllLocationLbl: Label 'Suriname - all location', MaxLength = 100;
+        SvalbardJanMayenAllTok: Label 'SVALBARDJANMAYEN-ALL', MaxLength = 20, Locked = true;
+        SvalbardJanMayenAllLocationLbl: Label 'Svalbard & Jan Mayen - all location', MaxLength = 100;
+        SyriaAllTok: Label 'SYRIA-ALL', MaxLength = 20, Locked = true;
+        SyriaAllLocationLbl: Label 'Syria - all location', MaxLength = 100;
+        TaiwanAllTok: Label 'TAIWAN-ALL', MaxLength = 20, Locked = true;
+        TaiwanAllLocationLbl: Label 'Taiwan - all location', MaxLength = 100;
+        TajikistanAllTok: Label 'TAJIKISTAN-ALL', MaxLength = 20, Locked = true;
+        TajikistanAllLocationLbl: Label 'Tajikistan - all location', MaxLength = 100;
+        TimorLesteAllTok: Label 'TIMORLESTE-ALL', MaxLength = 20, Locked = true;
+        TimorLesteAllLocationLbl: Label 'Timor-Leste - all location', MaxLength = 100;
+        TogoAllTok: Label 'TOGO-ALL', MaxLength = 20, Locked = true;
+        TogoAllLocationLbl: Label 'Togo - all location', MaxLength = 100;
+        TokelauAllTok: Label 'TOKELAU-ALL', MaxLength = 20, Locked = true;
+        TokelauAllLocationLbl: Label 'Tokelau - all location', MaxLength = 100;
+        TongaAllTok: Label 'TONGA-ALL', MaxLength = 20, Locked = true;
+        TongaAllLocationLbl: Label 'Tonga - all location', MaxLength = 100;
+        TrinidadTobagoAllTok: Label 'TRINIDADTOBAGO-ALL', MaxLength = 20, Locked = true;
+        TrinidadTobagoAllLocationLbl: Label 'Trinidad & Tobago - all location', MaxLength = 100;
+        TurkmenistanAllTok: Label 'TURKMENISTAN-ALL', MaxLength = 20, Locked = true;
+        TurkmenistanAllLocationLbl: Label 'Turkmenistan - all location', MaxLength = 100;
+        TurksCalcosAllTok: Label 'TURKSCALCOS-ALL', MaxLength = 20, Locked = true;
+        TurksCalcosAllLocationLbl: Label 'Turks & Caicos Islands - all location', MaxLength = 100;
+        TuvaluAllTok: Label 'TUVALU-ALL', MaxLength = 20, Locked = true;
+        TuvaluAllLocationLbl: Label 'Tuvalu - all location', MaxLength = 100;
+        UkraineAllTok: Label 'UKRAINE-ALL', MaxLength = 20, Locked = true;
+        UkraineAllLocationLbl: Label 'Ukraine - all location', MaxLength = 100;
+        USMinorOutlyingAllTok: Label 'USMINOROUTLYING-ALL', MaxLength = 20, Locked = true;
+        USMinorOutlyingAllLocationLbl: Label 'U.S. Minor Outlying Islands - all location', MaxLength = 100;
+        UruguayAllTok: Label 'URUGUAY-ALL', MaxLength = 20, Locked = true;
+        UruguayAllLocationLbl: Label 'Uruguay - all location', MaxLength = 100;
+        UzbekistanAllTok: Label 'UZBEKISTAN-ALL', MaxLength = 20, Locked = true;
+        UzbekistanAllLocationLbl: Label 'Uzbekistan - all location', MaxLength = 100;
+        VenezuelAllTok: Label 'VENEZUEL-ALL', MaxLength = 20, Locked = true;
+        VenezuelAllLocationLbl: Label 'Venezuela - all location', MaxLength = 100;
+        VietnamAllTok: Label 'VIETNAM-ALL', MaxLength = 20, Locked = true;
+        VietnamAllLocationLbl: Label 'Vietnam - all location', MaxLength = 100;
+        VirginIslandsBrAllTok: Label 'VIRGINISLANDSBR-ALL', MaxLength = 20, Locked = true;
+        VirginIslandsBrAllLocationLbl: Label 'British Virgin Islands - all location', MaxLength = 100;
+        VirginIslandsUSAllTok: Label 'VIRGINISLANDSUS-ALL', MaxLength = 20, Locked = true;
+        VirginIslandsUSAllLocationLbl: Label 'U.S. Virgin Islands - all location', MaxLength = 100;
+        WallisatunaAllTok: Label 'WALLISATUNA-ALL', MaxLength = 20, Locked = true;
+        WallisatunaAllLocationLbl: Label 'Wallis & Futuna - all location', MaxLength = 100;
+        WesternSaharaAllTok: Label 'WESTERNSAHARA-ALL', MaxLength = 20, Locked = true;
+        WesternSaharaAllLocationLbl: Label 'Western Sahara - all location', MaxLength = 100;
+        YemenAllTok: Label 'YEMEN-ALL', MaxLength = 20, Locked = true;
+        YemenAllLocationLbl: Label 'Yemen - all location', MaxLength = 100;
+        ZambiaAllTok: Label 'ZAMBIA-ALL', MaxLength = 20, Locked = true;
+        ZambiaAllLocationLbl: Label 'Zambia - all location', MaxLength = 100;
+        ZimbabweAllTok: Label 'ZIMBABWE-ALL', MaxLength = 20, Locked = true;
+        ZimbabweAllLocationLbl: Label 'Zimbabwe - all location', MaxLength = 100;
+        AlandIslandsAllTok: Label 'ALANDISLANDS-ALL', MaxLength = 20, Locked = true;
+        AlandIslandsAllLocationLbl: Label 'Aland Islands - all location', MaxLength = 100;
+
+    procedure UnitedArabEmiratesAll(): Code[20]
+    begin
+        exit(UnitedArabEmiratesAllTok);
+    end;
+
+    procedure AustriaAll(): Code[20]
+    begin
+        exit(AustriaAllTok);
+    end;
+
+    procedure AustraliaAll(): Code[20]
+    begin
+        exit(AustraliaAllTok);
+    end;
+
+    procedure BelgiumAll(): Code[20]
+    begin
+        exit(BelgiumAllTok);
+    end;
+
+    procedure BulgariaAll(): Code[20]
+    begin
+        exit(BulgariaAllTok);
+    end;
+
+    procedure BruneiDarussalamAll(): Code[20]
+    begin
+        exit(BruneiDarussalamAllTok);
+    end;
+
+    procedure BrazilAll(): Code[20]
+    begin
+        exit(BrazilAllTok);
+    end;
+
+    procedure SwitzerlandAll(): Code[20]
+    begin
+        exit(SwitzerlandAllTok);
+    end;
+
+    procedure SwitzerlandGeneva(): Code[20]
+    begin
+        exit(SwitzerlandGenevaTok);
+    end;
+
+    procedure SwitzerlandZurich(): Code[20]
+    begin
+        exit(SwitzerlandZurichTok);
+    end;
+
+    procedure ChinaAll(): Code[20]
+    begin
+        exit(ChinaAllTok);
+    end;
+
+    procedure CostaRicaAll(): Code[20]
+    begin
+        exit(CostaRicaAllTok);
+    end;
+
+    procedure CyprusAll(): Code[20]
+    begin
+        exit(CyprusAllTok);
+    end;
+
+    procedure CzechiaAll(): Code[20]
+    begin
+        exit(CzechiaAllTok);
+    end;
+
+    procedure AlgeriaAll(): Code[20]
+    begin
+        exit(AlgeriaAllTok);
+    end;
+
+    procedure EstoniaAll(): Code[20]
+    begin
+        exit(EstoniaAllTok);
+    end;
+
+    procedure GreeceAll(): Code[20]
+    begin
+        exit(GreeceAllTok);
+    end;
+
+    procedure SpainAll(): Code[20]
+    begin
+        exit(SpainAllTok);
+    end;
+
+    procedure FinlandAll(): Code[20]
+    begin
+        exit(FinlandAllTok);
+    end;
+
+    procedure FijiIslandsAll(): Code[20]
+    begin
+        exit(FijiIslandsAllTok);
+    end;
+
+    procedure GreatBritainAll(): Code[20]
+    begin
+        exit(GreatBritainAllTok);
+    end;
+
+    procedure CroatiaAll(): Code[20]
+    begin
+        exit(CroatiaAllTok);
+    end;
+
+    procedure HungaryAll(): Code[20]
+    begin
+        exit(HungaryAllTok);
+    end;
+
+    procedure IndonesiaAll(): Code[20]
+    begin
+        exit(IndonesiaAllTok);
+    end;
+
+    procedure IrelandAll(): Code[20]
+    begin
+        exit(IrelandAllTok);
+    end;
+
+    procedure IndiaAll(): Code[20]
+    begin
+        exit(IndiaAllTok);
+    end;
+
+    procedure IcelandAll(): Code[20]
+    begin
+        exit(IcelandAllTok);
+    end;
+
+    procedure ItalyAll(): Code[20]
+    begin
+        exit(ItalyAllTok);
+    end;
+
+    procedure JapanAll(): Code[20]
+    begin
+        exit(JapanAllTok);
+    end;
+
+    procedure JapanTokyo(): Code[20]
+    begin
+        exit(JapanTokyoTok);
+    end;
+
+    procedure KenyaAll(): Code[20]
+    begin
+        exit(KenyaAllTok);
+    end;
+
+    procedure LithuaniaAll(): Code[20]
+    begin
+        exit(LithuaniaAllTok);
+    end;
+
+    procedure LuxembourgAll(): Code[20]
+    begin
+        exit(LuxembourgAllTok);
+    end;
+
+    procedure LatviaAll(): Code[20]
+    begin
+        exit(LatviaAllTok);
+    end;
+
+    procedure MoroccoAll(): Code[20]
+    begin
+        exit(MoroccoAllTok);
+    end;
+
+    procedure MontenegroAll(): Code[20]
+    begin
+        exit(MontenegroAllTok);
+    end;
+
+    procedure MaltaAll(): Code[20]
+    begin
+        exit(MaltaAllTok);
+    end;
+
+    procedure MexicoAll(): Code[20]
+    begin
+        exit(MexicoAllTok);
+    end;
+
+    procedure MalaysiaAll(): Code[20]
+    begin
+        exit(MalaysiaAllTok);
+    end;
+
+    procedure MozambiqueAll(): Code[20]
+    begin
+        exit(MozambiqueAllTok);
+    end;
+
+    procedure NigeriaAll(): Code[20]
+    begin
+        exit(NigeriaAllTok);
+    end;
+
+    procedure NorthernIrelandAll(): Code[20]
+    begin
+        exit(NorthernIrelandAllTok);
+    end;
+
+    procedure NetherlandsAll(): Code[20]
+    begin
+        exit(NetherlandsAllTok);
+    end;
+
+    procedure NorwayAll(): Code[20]
+    begin
+        exit(NorwayAllTok);
+    end;
+
+    procedure NorwayOslo(): Code[20]
+    begin
+        exit(NorwayOsloTok);
+    end;
+
+    procedure NewZealandAll(): Code[20]
+    begin
+        exit(NewZealandAllTok);
+    end;
+
+    procedure PhilippinesAll(): Code[20]
+    begin
+        exit(PhilippinesAllTok);
+    end;
+
+    procedure PolandAll(): Code[20]
+    begin
+        exit(PolandAllTok);
+    end;
+
+    procedure PortugalAll(): Code[20]
+    begin
+        exit(PortugalAllTok);
+    end;
+
+    procedure RomaniaAll(): Code[20]
+    begin
+        exit(RomaniaAllTok);
+    end;
+
+    procedure SerbiaAll(): Code[20]
+    begin
+        exit(SerbiaAllTok);
+    end;
+
+    procedure RussiaAll(): Code[20]
+    begin
+        exit(RussiaAllTok);
+    end;
+
+    procedure SaudiArabiaAll(): Code[20]
+    begin
+        exit(SaudiArabiaAllTok);
+    end;
+
+    procedure SolomonIslandsAll(): Code[20]
+    begin
+        exit(SolomonIslandsAllTok);
+    end;
+
+    procedure SwedenAll(): Code[20]
+    begin
+        exit(SwedenAllTok);
+    end;
+
+    procedure SingaporeAll(): Code[20]
+    begin
+        exit(SingaporeAllTok);
+    end;
+
+    procedure SloveniaAll(): Code[20]
+    begin
+        exit(SloveniaAllTok);
+    end;
+
+    procedure SlovakiaAll(): Code[20]
+    begin
+        exit(SlovakiaAllTok);
+    end;
+
+    procedure SwazilandAll(): Code[20]
+    begin
+        exit(SwazilandAllTok);
+    end;
+
+    procedure ThailandAll(): Code[20]
+    begin
+        exit(ThailandAllTok);
+    end;
+
+    procedure TunisiaAll(): Code[20]
+    begin
+        exit(TunisiaAllTok);
+    end;
+
+    procedure TurkiyeAll(): Code[20]
+    begin
+        exit(TurkiyeAllTok);
+    end;
+
+    procedure TanzaniaAll(): Code[20]
+    begin
+        exit(TanzaniaAllTok);
+    end;
+
+    procedure UgandaAll(): Code[20]
+    begin
+        exit(UgandaAllTok);
+    end;
+
+    procedure VanuatuAll(): Code[20]
+    begin
+        exit(VanuatuAllTok);
+    end;
+
+    procedure SamoaAll(): Code[20]
+    begin
+        exit(SamoaAllTok);
+    end;
+
+    procedure SouthAfricaAll(): Code[20]
+    begin
+        exit(SouthAfricaAllTok);
+    end;
+
+    procedure AfghanistanAll(): Code[20]
+    begin
+        exit(AfghanistanAllTok);
+    end;
+
+    procedure AlbaniaAll(): Code[20]
+    begin
+        exit(AlbaniaAllTok);
+    end;
+
+    procedure AndorraAll(): Code[20]
+    begin
+        exit(AndorraAllTok);
+    end;
+
+    procedure AngolaAll(): Code[20]
+    begin
+        exit(AngolaAllTok);
+    end;
+
+    procedure AnguillaAll(): Code[20]
+    begin
+        exit(AnguillaAllTok);
+    end;
+
+    procedure AntarcticaAll(): Code[20]
+    begin
+        exit(AntarcticaAllTok);
+    end;
+
+    procedure AntiguaBarbudaAll(): Code[20]
+    begin
+        exit(AntiguaBarbudaAllTok);
+    end;
+
+    procedure ArgentinaAll(): Code[20]
+    begin
+        exit(ArgentinaAllTok);
+    end;
+
+    procedure ArmeniaAll(): Code[20]
+    begin
+        exit(ArmeniaAllTok);
+    end;
+
+    procedure ArubaAll(): Code[20]
+    begin
+        exit(ArubaAllTok);
+    end;
+
+    procedure AzerbaijanAll(): Code[20]
+    begin
+        exit(AzerbaijanAllTok);
+    end;
+
+    procedure BahamasAll(): Code[20]
+    begin
+        exit(BahamasAllTok);
+    end;
+
+    procedure BahrainAll(): Code[20]
+    begin
+        exit(BahrainAllTok);
+    end;
+
+    procedure BangladeshAll(): Code[20]
+    begin
+        exit(BangladeshAllTok);
+    end;
+
+    procedure BarbadosAll(): Code[20]
+    begin
+        exit(BarbadosAllTok);
+    end;
+
+    procedure BelarusAll(): Code[20]
+    begin
+        exit(BelarusAllTok);
+    end;
+
+    procedure BelizeAll(): Code[20]
+    begin
+        exit(BelizeAllTok);
+    end;
+
+    procedure BeninAll(): Code[20]
+    begin
+        exit(BeninAllTok);
+    end;
+
+    procedure BermudaAll(): Code[20]
+    begin
+        exit(BermudaAllTok);
+    end;
+
+    procedure BhutanAll(): Code[20]
+    begin
+        exit(BhutanAllTok);
+    end;
+
+    procedure BoliviaAll(): Code[20]
+    begin
+        exit(BoliviaAllTok);
+    end;
+
+    procedure BonaireAll(): Code[20]
+    begin
+        exit(BonaireAllTok);
+    end;
+
+    procedure BosniaHerzegovinaAll(): Code[20]
+    begin
+        exit(BosniaHerzegovinaAllTok);
+    end;
+
+    procedure BotswanaAll(): Code[20]
+    begin
+        exit(BotswanaAllTok);
+    end;
+
+    procedure BouvetIslandAll(): Code[20]
+    begin
+        exit(BouvetIslandAllTok);
+    end;
+
+    procedure BritishIndianOceanAll(): Code[20]
+    begin
+        exit(BritishIndianOceanAllTok);
+    end;
+
+    procedure BurkinaFasoAll(): Code[20]
+    begin
+        exit(BurkinaFasoAllTok);
+    end;
+
+    procedure BurundiAll(): Code[20]
+    begin
+        exit(BurundiAllTok);
+    end;
+
+    procedure CaboVerdeAll(): Code[20]
+    begin
+        exit(CaboVerdeAllTok);
+    end;
+
+    procedure CambodiaAll(): Code[20]
+    begin
+        exit(CambodiaAllTok);
+    end;
+
+    procedure CameroonAll(): Code[20]
+    begin
+        exit(CameroonAllTok);
+    end;
+
+    procedure CaymanIslandsAll(): Code[20]
+    begin
+        exit(CaymanIslandsAllTok);
+    end;
+
+    procedure CentralAfricanAll(): Code[20]
+    begin
+        exit(CentralAfricanAllTok);
+    end;
+
+    procedure ChadAll(): Code[20]
+    begin
+        exit(ChadAllTok);
+    end;
+
+    procedure ChileAll(): Code[20]
+    begin
+        exit(ChileAllTok);
+    end;
+
+    procedure ChristmasIslandAll(): Code[20]
+    begin
+        exit(ChristmasIslandAllTok);
+    end;
+
+    procedure CocosIslandsAll(): Code[20]
+    begin
+        exit(CocosIslandsAllTok);
+    end;
+
+    procedure ColombiaAll(): Code[20]
+    begin
+        exit(ColombiaAllTok);
+    end;
+
+    procedure ComorosAll(): Code[20]
+    begin
+        exit(ComorosAllTok);
+    end;
+
+    procedure CongoDRAll(): Code[20]
+    begin
+        exit(CongoDRAllTok);
+    end;
+
+    procedure CongoAll(): Code[20]
+    begin
+        exit(CongoAllTok);
+    end;
+
+    procedure CookIslandsAll(): Code[20]
+    begin
+        exit(CookIslandsAllTok);
+    end;
+
+    procedure CubaAll(): Code[20]
+    begin
+        exit(CubaAllTok);
+    end;
+
+    procedure CuracaoAll(): Code[20]
+    begin
+        exit(CuracaoAllTok);
+    end;
+
+    procedure CotedIvoireAll(): Code[20]
+    begin
+        exit(CotedIvoireAllTok);
+    end;
+
+    procedure DjiboutiAll(): Code[20]
+    begin
+        exit(DjiboutiAllTok);
+    end;
+
+    procedure DominicaAll(): Code[20]
+    begin
+        exit(DominicaAllTok);
+    end;
+
+    procedure DominicanAll(): Code[20]
+    begin
+        exit(DominicanAllTok);
+    end;
+
+    procedure EcuadorAll(): Code[20]
+    begin
+        exit(EcuadorAllTok);
+    end;
+
+    procedure EgyptAll(): Code[20]
+    begin
+        exit(EgyptAllTok);
+    end;
+
+    procedure ElSalvadorAll(): Code[20]
+    begin
+        exit(ElSalvadorAllTok);
+    end;
+
+    procedure EquatorialGuineaAll(): Code[20]
+    begin
+        exit(EquatorialGuineaAllTok);
+    end;
+
+    procedure EritreaAll(): Code[20]
+    begin
+        exit(EritreaAllTok);
+    end;
+
+    procedure EthiopiaAll(): Code[20]
+    begin
+        exit(EthiopiaAllTok);
+    end;
+
+    procedure FalklandIslandsAll(): Code[20]
+    begin
+        exit(FalklandIslandsAllTok);
+    end;
+
+    procedure FaroeIslandsAll(): Code[20]
+    begin
+        exit(FaroeIslandsAllTok);
+    end;
+
+    procedure FrenchGuianaAll(): Code[20]
+    begin
+        exit(FrenchGuianaAllTok);
+    end;
+
+    procedure FrenchPolynesiaAll(): Code[20]
+    begin
+        exit(FrenchPolynesiaAllTok);
+    end;
+
+    procedure FrenchSouthernAll(): Code[20]
+    begin
+        exit(FrenchSouthernAllTok);
+    end;
+
+    procedure GabonAll(): Code[20]
+    begin
+        exit(GabonAllTok);
+    end;
+
+    procedure GambiaAll(): Code[20]
+    begin
+        exit(GambiaAllTok);
+    end;
+
+    procedure GeorgiaAll(): Code[20]
+    begin
+        exit(GeorgiaAllTok);
+    end;
+
+    procedure GhanaAll(): Code[20]
+    begin
+        exit(GhanaAllTok);
+    end;
+
+    procedure GibraltarAll(): Code[20]
+    begin
+        exit(GibraltarAllTok);
+    end;
+
+    procedure GreenlandAll(): Code[20]
+    begin
+        exit(GreenlandAllTok);
+    end;
+
+    procedure GrenadaAll(): Code[20]
+    begin
+        exit(GrenadaAllTok);
+    end;
+
+    procedure GuadeloupeAll(): Code[20]
+    begin
+        exit(GuadeloupeAllTok);
+    end;
+
+    procedure GuamAll(): Code[20]
+    begin
+        exit(GuamAllTok);
+    end;
+
+    procedure GuatemalaAll(): Code[20]
+    begin
+        exit(GuatemalaAllTok);
+    end;
+
+    procedure GuernseyAll(): Code[20]
+    begin
+        exit(GuernseyAllTok);
+    end;
+
+    procedure GuineaAll(): Code[20]
+    begin
+        exit(GuineaAllTok);
+    end;
+
+    procedure GuineaBissauAll(): Code[20]
+    begin
+        exit(GuineaBissauAllTok);
+    end;
+
+    procedure GuyanaAll(): Code[20]
+    begin
+        exit(GuyanaAllTok);
+    end;
+
+    procedure HaitiAll(): Code[20]
+    begin
+        exit(HaitiAllTok);
+    end;
+
+    procedure HeardIslandAll(): Code[20]
+    begin
+        exit(HeardIslandAllTok);
+    end;
+
+    procedure HolySeeAll(): Code[20]
+    begin
+        exit(HolySeeAllTok);
+    end;
+
+    procedure HondurasAll(): Code[20]
+    begin
+        exit(HondurasAllTok);
+    end;
+
+    procedure HongKongAll(): Code[20]
+    begin
+        exit(HongKongAllTok);
+    end;
+
+    procedure IsleManAll(): Code[20]
+    begin
+        exit(IsleManAllTok);
+    end;
+
+    procedure IsraelAll(): Code[20]
+    begin
+        exit(IsraelAllTok);
+    end;
+
+    procedure JamaicaAll(): Code[20]
+    begin
+        exit(JamaicaAllTok);
+    end;
+
+    procedure JerseyAll(): Code[20]
+    begin
+        exit(JerseyAllTok);
+    end;
+
+    procedure JordanAll(): Code[20]
+    begin
+        exit(JordanAllTok);
+    end;
+
+    procedure KazakhstanAll(): Code[20]
+    begin
+        exit(KazakhstanAllTok);
+    end;
+
+    procedure KiribatiAll(): Code[20]
+    begin
+        exit(KiribatiAllTok);
+    end;
+
+    procedure NorthKoreaAll(): Code[20]
+    begin
+        exit(NorthKoreaAllTok);
+    end;
+
+    procedure SouthKoreaAll(): Code[20]
+    begin
+        exit(SouthKoreaAllTok);
+    end;
+
+    procedure KuwaitAll(): Code[20]
+    begin
+        exit(KuwaitAllTok);
+    end;
+
+    procedure KyrgyzstanAll(): Code[20]
+    begin
+        exit(KyrgyzstanAllTok);
+    end;
+
+    procedure LaosAll(): Code[20]
+    begin
+        exit(LaosAllTok);
+    end;
+
+    procedure LebanonAll(): Code[20]
+    begin
+        exit(LebanonAllTok);
+    end;
+
+    procedure LesothoAll(): Code[20]
+    begin
+        exit(LesothoAllTok);
+    end;
+
+    procedure LiberiaAll(): Code[20]
+    begin
+        exit(LiberiaAllTok);
+    end;
+
+    procedure LibyaAll(): Code[20]
+    begin
+        exit(LibyaAllTok);
+    end;
+
+    procedure LiechtensteinAll(): Code[20]
+    begin
+        exit(LiechtensteinAllTok);
+    end;
+
+    procedure MacaoAll(): Code[20]
+    begin
+        exit(MacaoAllTok);
+    end;
+
+    procedure MadagascarAll(): Code[20]
+    begin
+        exit(MadagascarAllTok);
+    end;
+
+    procedure MalawiAll(): Code[20]
+    begin
+        exit(MalawiAllTok);
+    end;
+
+    procedure MaldivesAll(): Code[20]
+    begin
+        exit(MaldivesAllTok);
+    end;
+
+    procedure MaliAll(): Code[20]
+    begin
+        exit(MaliAllTok);
+    end;
+
+    procedure MarshallIslandsAll(): Code[20]
+    begin
+        exit(MarshallIslandsAllTok);
+    end;
+
+    procedure MartiniqueAll(): Code[20]
+    begin
+        exit(MartiniqueAllTok);
+    end;
+
+    procedure MauritaniaAll(): Code[20]
+    begin
+        exit(MauritaniaAllTok);
+    end;
+
+    procedure MauritiusAll(): Code[20]
+    begin
+        exit(MauritiusAllTok);
+    end;
+
+    procedure MayotteAll(): Code[20]
+    begin
+        exit(MayotteAllTok);
+    end;
+
+    procedure MicronesiaAll(): Code[20]
+    begin
+        exit(MicronesiaAllTok);
+    end;
+
+    procedure MoldovaAll(): Code[20]
+    begin
+        exit(MoldovaAllTok);
+    end;
+
+    procedure MonacoAll(): Code[20]
+    begin
+        exit(MonacoAllTok);
+    end;
+
+    procedure MongoliaAll(): Code[20]
+    begin
+        exit(MongoliaAllTok);
+    end;
+
+    procedure MontserratAll(): Code[20]
+    begin
+        exit(MontserratAllTok);
+    end;
+
+    procedure MyanmarAll(): Code[20]
+    begin
+        exit(MyanmarAllTok);
+    end;
+
+    procedure NamibiaAll(): Code[20]
+    begin
+        exit(NamibiaAllTok);
+    end;
+
+    procedure NauruAll(): Code[20]
+    begin
+        exit(NauruAllTok);
+    end;
+
+    procedure NepalAll(): Code[20]
+    begin
+        exit(NepalAllTok);
+    end;
+
+    procedure NewCaledoniaAll(): Code[20]
+    begin
+        exit(NewCaledoniaAllTok);
+    end;
+
+    procedure NigerAll(): Code[20]
+    begin
+        exit(NigerAllTok);
+    end;
+
+    procedure NiueAll(): Code[20]
+    begin
+        exit(NiueAllTok);
+    end;
+
+    procedure NorfolkIslandAll(): Code[20]
+    begin
+        exit(NorfolkIslandAllTok);
+    end;
+
+    procedure NorthMacedoniaAll(): Code[20]
+    begin
+        exit(NorthMacedoniaAllTok);
+    end;
+
+    procedure NorthernMarianaAll(): Code[20]
+    begin
+        exit(NorthernMarianaAllTok);
+    end;
+
+    procedure OmanAll(): Code[20]
+    begin
+        exit(OmanAllTok);
+    end;
+
+    procedure PakistanAll(): Code[20]
+    begin
+        exit(PakistanAllTok);
+    end;
+
+    procedure PalauAll(): Code[20]
+    begin
+        exit(PalauAllTok);
+    end;
+
+    procedure PalestineAll(): Code[20]
+    begin
+        exit(PalestineAllTok);
+    end;
+
+    procedure PanamaAll(): Code[20]
+    begin
+        exit(PanamaAllTok);
+    end;
+
+    procedure PapuaNewGuineaAll(): Code[20]
+    begin
+        exit(PapuaNewGuineaAllTok);
+    end;
+
+    procedure ParaguayAll(): Code[20]
+    begin
+        exit(ParaguayAllTok);
+    end;
+
+    procedure PeruAll(): Code[20]
+    begin
+        exit(PeruAllTok);
+    end;
+
+    procedure PitcairnAll(): Code[20]
+    begin
+        exit(PitcairnAllTok);
+    end;
+
+    procedure PuertoRicoAll(): Code[20]
+    begin
+        exit(PuertoRicoAllTok);
+    end;
+
+    procedure QatarAll(): Code[20]
+    begin
+        exit(QatarAllTok);
+    end;
+
+    procedure RwandaAll(): Code[20]
+    begin
+        exit(RwandaAllTok);
+    end;
+
+    procedure ReunionAll(): Code[20]
+    begin
+        exit(ReunionAllTok);
+    end;
+
+    procedure SaintBarthelemyAll(): Code[20]
+    begin
+        exit(SaintBarthelemyAllTok);
+    end;
+
+    procedure SaintHelenaAll(): Code[20]
+    begin
+        exit(SaintHelenaAllTok);
+    end;
+
+    procedure SaintKittsNevisAll(): Code[20]
+    begin
+        exit(SaintKittsNevisAllTok);
+    end;
+
+    procedure SaintLuciaAll(): Code[20]
+    begin
+        exit(SaintLuciaAllTok);
+    end;
+
+    procedure SaintMartinAll(): Code[20]
+    begin
+        exit(SaintMartinAllTok);
+    end;
+
+    procedure SaintPierreQuelonAll(): Code[20]
+    begin
+        exit(SaintPierreQuelonAllTok);
+    end;
+
+    procedure SaintVincentAll(): Code[20]
+    begin
+        exit(SaintVincentAllTok);
+    end;
+
+    procedure SanMarinoAll(): Code[20]
+    begin
+        exit(SanMarinoAllTok);
+    end;
+
+    procedure SaoTomeAll(): Code[20]
+    begin
+        exit(SaoTomeAllTok);
+    end;
+
+    procedure SenegalAll(): Code[20]
+    begin
+        exit(SenegalAllTok);
+    end;
+
+    procedure SeychellesAll(): Code[20]
+    begin
+        exit(SeychellesAllTok);
+    end;
+
+    procedure SierraLeoneAll(): Code[20]
+    begin
+        exit(SierraLeoneAllTok);
+    end;
+
+    procedure SintMaartenAll(): Code[20]
+    begin
+        exit(SintMaartenAllTok);
+    end;
+
+    procedure SomaliaAll(): Code[20]
+    begin
+        exit(SomaliaAllTok);
+    end;
+
+    procedure SouthGeorgiaAll(): Code[20]
+    begin
+        exit(SouthGeorgiaAllTok);
+    end;
+
+    procedure SouthSudanAll(): Code[20]
+    begin
+        exit(SouthSudanAllTok);
+    end;
+
+    procedure SriLankaAll(): Code[20]
+    begin
+        exit(SriLankaAllTok);
+    end;
+
+    procedure SudanAll(): Code[20]
+    begin
+        exit(SudanAllTok);
+    end;
+
+    procedure SurinameAll(): Code[20]
+    begin
+        exit(SurinameAllTok);
+    end;
+
+    procedure SvalbardJanMayenAll(): Code[20]
+    begin
+        exit(SvalbardJanMayenAllTok);
+    end;
+
+    procedure SyriaAll(): Code[20]
+    begin
+        exit(SyriaAllTok);
+    end;
+
+    procedure TaiwanAll(): Code[20]
+    begin
+        exit(TaiwanAllTok);
+    end;
+
+    procedure TajikistanAll(): Code[20]
+    begin
+        exit(TajikistanAllTok);
+    end;
+
+    procedure TimorLesteAll(): Code[20]
+    begin
+        exit(TimorLesteAllTok);
+    end;
+
+    procedure TogoAll(): Code[20]
+    begin
+        exit(TogoAllTok);
+    end;
+
+    procedure TokelauAll(): Code[20]
+    begin
+        exit(TokelauAllTok);
+    end;
+
+    procedure TongaAll(): Code[20]
+    begin
+        exit(TongaAllTok);
+    end;
+
+    procedure TrinidadTobagoAll(): Code[20]
+    begin
+        exit(TrinidadTobagoAllTok);
+    end;
+
+    procedure TurkmenistanAll(): Code[20]
+    begin
+        exit(TurkmenistanAllTok);
+    end;
+
+    procedure TurksCalcosAll(): Code[20]
+    begin
+        exit(TurksCalcosAllTok);
+    end;
+
+    procedure TuvaluAll(): Code[20]
+    begin
+        exit(TuvaluAllTok);
+    end;
+
+    procedure UkraineAll(): Code[20]
+    begin
+        exit(UkraineAllTok);
+    end;
+
+    procedure USMinorOutlyingAll(): Code[20]
+    begin
+        exit(USMinorOutlyingAllTok);
+    end;
+
+    procedure UruguayAll(): Code[20]
+    begin
+        exit(UruguayAllTok);
+    end;
+
+    procedure UzbekistanAll(): Code[20]
+    begin
+        exit(UzbekistanAllTok);
+    end;
+
+    procedure VenezuelAll(): Code[20]
+    begin
+        exit(VenezuelAllTok);
+    end;
+
+    procedure VietnamAll(): Code[20]
+    begin
+        exit(VietnamAllTok);
+    end;
+
+    procedure VirginIslandsBrAll(): Code[20]
+    begin
+        exit(VirginIslandsBrAllTok);
+    end;
+
+    procedure VirginIslandsUSAll(): Code[20]
+    begin
+        exit(VirginIslandsUSAllTok);
+    end;
+
+    procedure WallisatunaAll(): Code[20]
+    begin
+        exit(WallisatunaAllTok);
+    end;
+
+    procedure WesternSaharaAll(): Code[20]
+    begin
+        exit(WesternSaharaAllTok);
+    end;
+
+    procedure YemenAll(): Code[20]
+    begin
+        exit(YemenAllTok);
+    end;
+
+    procedure ZambiaAll(): Code[20]
+    begin
+        exit(ZambiaAllTok);
+    end;
+
+    procedure ZimbabweAll(): Code[20]
+    begin
+        exit(ZimbabweAllTok);
+    end;
+
+    procedure AlandIslandsAll(): Code[20]
+    begin
+        exit(AlandIslandsAllTok);
+    end;
 
     procedure CanadaAll(): Code[20]
     begin
@@ -63,6 +2035,11 @@ codeunit 8208 "Create Expense Location"
         exit(DenmarkAllTok);
     end;
 
+    procedure DenmarkCph(): Code[20]
+    begin
+        exit(DenmarkCphTok);
+    end;
+
     procedure Domestic(): Code[20]
     begin
         exit(DomesticTok);
@@ -71,6 +2048,11 @@ codeunit 8208 "Create Expense Location"
     procedure FranceAll(): Code[20]
     begin
         exit(FranceAllTok);
+    end;
+
+    procedure FranceParis(): Code[20]
+    begin
+        exit(FranceParisTok);
     end;
 
     procedure GermanyAll(): Code[20]
