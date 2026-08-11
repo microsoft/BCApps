@@ -412,6 +412,91 @@ codeunit 149918 "Subc. Invt. Put-away Test"
 
     [HandlerFunctions('MessageHandler')]
     [Test]
+    procedure PostLastOperation_WithLotAssignedInInventoryPutAway_MultiplePartialPosts()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseEntry: Record "Warehouse Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        LotNo: Code[50];
+    begin
+        // [SCENARIO] Post a LastOperation Inventory Put-away in two partial steps when the lot is assigned
+        // directly on the Inventory Put-away line and not predefined on the production order line.
+        // [FEATURE] Subcontracting Inventory Put-Away - Partial direct lot assignment
+
+        // [GIVEN] A lot-tracked item and a single-operation subcontracting routing
+        Initialize();
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetupAndBin(Location, Bin);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 20, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [GIVEN] A lot is assigned directly on the Inventory Put-away line
+        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        LotNo := 'DIRECT-PARTIAL-LOT';
+        WarehouseActivityLine.Validate("Lot No.", LotNo);
+        WarehouseActivityLine.Modify(true);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+
+        // [WHEN] The first partial quantity is posted
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.Validate("Qty. to Handle", 6);
+        WarehouseActivityLine.Modify(true);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreEqual(20, PurchaseLine.Quantity, 'The original purchase line quantity must remain unchanged after a partial post');
+        Assert.AreEqual(14, PurchaseLine."Outstanding Quantity", 'The purchase line outstanding quantity must reflect the first partial post');
+
+        // [WHEN] The remaining quantity is posted from the same Inventory Put-away
+        SubcWarehouseLibrary.PostPartialPutAway(WarehouseActivityHeader, 14);
+
+        // [THEN] The complete lot quantity is posted exactly once
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Location Code", Location.Code);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Lot No.", LotNo);
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(20, ItemLedgerEntry.Quantity, 'Item Ledger Entry quantity must equal both partial postings');
+
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Lot No.", LotNo);
+        Assert.RecordIsNotEmpty(WarehouseEntry);
+        WarehouseEntry.CalcSums(Quantity);
+        Assert.AreEqual(20, WarehouseEntry.Quantity, 'Warehouse Entry quantity must equal both partial postings');
+    end;
+
+    [HandlerFunctions('MessageHandler')]
+    [Test]
     procedure PostNotLastOperation_WithLotAssignedInInventoryPutAway_NoWarehouseEntryCreated()
     var
         Bin: Record Bin;
