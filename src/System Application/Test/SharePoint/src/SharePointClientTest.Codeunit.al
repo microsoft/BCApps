@@ -474,6 +474,28 @@ codeunit 132970 "SharePoint Client Test"
         Assert.AreEqual('Invalid JWT token. The token is expired.', SharepointDiagnostics.GetErrorMessage(), 'Different error description expected');
     end;
 
+    [Test]
+    procedure TestVerboseErrorResponse()
+    var
+        TempSharePointListItem: Record "SharePoint List Item" temporary;
+        SharepointDiagnostics: Interface "HTTP Diagnostics";
+        Guid: Guid;
+        IsSuccess: Boolean;
+    begin
+        // [Scenario] GetListItems by list Id operation fails with an OData v3 verbose error payload (error.message.value)
+        Initialize();
+
+        Evaluate(Guid, '{7A1F0E2B-8C4D-4E6F-9A0B-1C2D3E4F5A6B}');
+        IsSuccess := SharePointClient.GetListItems(Guid, TempSharePointListItem);
+        Assert.AreEqual(false, IsSuccess, 'Unsuccessfull operation expected');
+        Assert.AreEqual(0, TempSharePointListItem.Count(), 'Expected 0 records');
+
+        SharepointDiagnostics := SharePointClient.GetDiagnostics();
+        Assert.AreEqual(403, SharepointDiagnostics.GetHttpStatusCode(), 'Different status expected');
+        Assert.AreEqual('Forbidden', SharepointDiagnostics.GetResponseReasonPhrase(), 'Different reason phrase expected');
+        Assert.AreEqual('Access denied. You do not have permission to perform this action.', SharepointDiagnostics.GetErrorMessage(), 'Different error description expected');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then

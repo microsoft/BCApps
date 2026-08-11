@@ -11,8 +11,8 @@ page 37099 "Prod. Order Routings Gantt"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Production Order Routings Gantt';
-    AboutTitle = 'About Production Order Routings Gantt';
+    Caption = 'Production Order Routings Gantt (Power BI)';
+    AboutTitle = 'About Production Order Routings Gantt (Power BI)';
     AboutText = 'Visualize the schedules of each work and machine center with a Gantt chart, detailing production order routing lines. Highlight the duration of each production order on a timeline for better planning and management.';
 
     layout

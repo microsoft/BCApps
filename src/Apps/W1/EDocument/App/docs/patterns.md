@@ -12,12 +12,14 @@ This pattern appears in:
 - `"Service Integration"` (`enum 6151`) implements `IDocumentSender`, `IDocumentReceiver`, `IConsentManager` -- service communication
 - `"Integration Action Type"` (`enum 6170`) implements `IDocumentAction` -- extensible actions
 - `"E-Document Service Status"` (`enum 6106`) implements `IEDocumentStatus` -- status-dependent behavior
-- `"Structure Received E-Doc."` (`enum 6120`) implements `IStructureReceivedEDocument` -- structuring raw data
-- `"E-Doc. Read into Draft"` (`enum 6113`) implements `IStructuredFormatReader` -- parsing structured data
-- `"E-Doc. Process Draft"` (`enum 6112`) implements `IProcessStructuredData` -- draft preparation
-- `"E-Document Type"` (`enum 6105`) implements `IEDocumentFinishDraft` -- document creation per type
+- `"Structure Received E-Doc."` (`enum 6103`) implements `IStructureReceivedEDocument` -- structuring raw data
+- `"E-Doc. Read into Draft"` (`enum 6109`) implements `IStructuredFormatReader` -- parsing structured data
+- `"E-Doc. Process Draft"` (`enum 6107`) implements `IProcessStructuredData` -- draft preparation, including purchase and sales draft types
+- `"E-Document Type"` (`enum 6121`) implements `IEDocumentFinishDraft` -- document creation per type
 - `"Export Eligibility Evaluator"` implements `IExportEligibilityEvaluator` -- export gating
 - `"E-Doc. File Format"` implements `IEDocFileFormat`, `IBlobType` -- file type behavior
+- `"E-Document Message Type"` implements `IEDocMessageBuilder` -- lifecycle message payload construction
+- `"E-Document Format"` also implements `IEDocResponseProvider` -- lets a format request a related response message
 
 The enum value is stored on the E-Document or Service table and read at the dispatch site. For example, in `ImportEDocumentProcess.ReadIntoDraft()`:
 
@@ -27,6 +29,8 @@ EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocume
 ```
 
 This is clean but has a consequence: the dispatch decision is locked to a single field value. You cannot chain implementations or compose behaviors without building that into the interface contract.
+
+*Updated: 2026-07-29 -- added sales draft and message dispatch enum patterns.*
 
 ## Error-trapping codeunit wrapper ("if codeunit.run")
 
@@ -94,7 +98,17 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
 }
 ```
 
-This pattern appears in `EDocHistoricalMatching`, `EDocGLAccountMatching`, `EDocDeferralMatching`, and `EDocSimilarDescriptions`. The key advantage is that state flows through the instance rather than through event parameters, keeping the AI tool interface clean while preserving row-level context across asynchronous function calls.
+This pattern appears in `EDocHistoricalMatching`, `EDocGLAccountMatching`, `EDocDeferralMatching`, and `EDocSimilarDescriptions`. The key advantage is that state flows through the instance rather than through event parameters, keeping the AI tool interface clean while preserving row-level context across asynchronous function calls. The older Purchase Order Matching Copilot action and buffer/page objects are pending obsolete; current AI-assisted matching runs during import-time draft preparation through `E-Doc. AI Tool Processor` and the matching tool codeunits.
+
+*Updated: 2026-07-29 -- noted the obsolete PO matching Copilot path and current import-time AI matching.*
+
+## Data Exchange bridge into staging tables
+
+The Data Exchange V2 purchase reader uses a bridge pattern. It lets the platform Data Exchange pipeline parse XML into `Intermediate Data Import`, then maps that intermediate data into `E-Document Purchase Header` and `E-Document Purchase Line` staging records. This keeps Data Exchange definitions declarative while still fitting the V2 import pipeline's draft, prepare, and finish stages.
+
+The bridge also performs work that Data Exchange mappings cannot express cleanly: choosing the configured definition by root namespace, applying the blank-LCY currency convention, decoding embedded attachments, and adding PEPPOL allowance charge lines to intermediate data before staging line creation.
+
+*Updated: 2026-07-29 -- documented the Data Exchange V2 bridge pattern.*
 
 ## Bidirectional state machine (import pipeline)
 
@@ -105,13 +119,21 @@ The V2.0 import pipeline in `ImportEDocumentProcess.Codeunit.al` is a bidirectio
 
 The `StatusStepIndex()` function maps each `"Import E-Doc. Proc. Status"` to a numeric index (0-4), and `GetNextStep()` / `GetPreviousStep()` map statuses to the `"Import E-Document Steps"` enum values that transition between them.
 
-This design makes it possible to revert a processed document back to any earlier stage. For example, if a user notices the vendor was resolved incorrectly, they can revert from "Draft Ready" to "Ready for draft", change vendor data, and re-run "Prepare draft".
+This design makes it possible to revert a processed document back to any earlier stage. For example, if a user notices the vendor was resolved incorrectly, they can revert from "Draft Ready" to "Ready for draft", change vendor data, and re-run "Prepare draft". The same state machine now routes to different draft types: purchase invoices and credit memos use purchase staging, while inbound orders use sales staging and Sales Order creation.
 
 ## Workflow as orchestration layer
 
 The framework delegates flow control to BC's Workflow engine rather than hardcoding the sequence of operations. The E-Document workflow setup (`EDocumentWorkFlowSetup.Codeunit.al`) registers workflow events and responses. The key events are "E-Document Created" and "E-Document Sent". Responses include "Send E-Document to Service", "Send E-Document via Email".
 
 This means the sequence of operations (export -> send -> email -> approval) is configured in the workflow, not in code. `EDocumentCreatedFlow.Codeunit.al` triggers the workflow after document creation, and each workflow step response delegates to the appropriate framework method.
+
+## Lifecycle messages as related payloads
+
+Some PEPPOL interactions are not new BC documents. Core models them as `E-Document Message` records linked to the parent E-Document, with payloads stored in `E-Doc. Data Storage`. The message type enum dispatches to a builder, while the document format can opt in by implementing `IEDocResponseProvider`.
+
+This keeps order responses out of the document creation pipeline while preserving an auditable payload and response status on the E-Document. Inbound `OrderResponse` XML is stored against the matching outbound E-Document and the temporary inbound carrier is deleted.
+
+*Updated: 2026-07-29 -- added lifecycle message pattern for order responses.*
 
 ## Blob management (TempBlob and Data Storage)
 
@@ -149,7 +171,7 @@ These patterns exist in the codebase but are deprecated. Understanding them help
 
 **Why deprecated**: No staging tables, no user review, no reversibility. Format implementations had to know how to create Purchase Invoices, violating separation of concerns.
 
-**What to do instead**: Use V2.0 pipeline with `"Import Process" = "Version 2.0"`. Implement `IStructuredFormatReader` to populate staging tables and let the framework handle BC document creation.
+**What to do instead**: Use V2.0 pipeline with `"Import Process" = "Version 2.0"`, which is the default for new services. Implement `IStructuredFormatReader` to populate staging tables and let the framework handle BC document creation.
 
 ### Old "E-Document Integration" enum and interface
 

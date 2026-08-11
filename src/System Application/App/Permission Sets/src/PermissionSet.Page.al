@@ -119,6 +119,23 @@ page 9855 "Permission Set"
                 AboutTitle = 'About view all permissions';
                 AboutText = 'View all permissions gives you the big picture. It opens a flat list of the permissions in the set you''re working with and all added sets';
             }
+            action("Where-Used")
+            {
+                ApplicationArea = All;
+                Promoted = true;
+                PromotedOnly = true;
+                PromotedCategory = Process;
+                Image = Track;
+                Caption = 'Where-Used';
+                ToolTip = 'View where this permission set is used, including which users and security groups have been assigned with it.';
+
+                trigger OnAction()
+                var
+                    PermissionsOverviewCU: Codeunit "Permissions Overview";
+                begin
+                    PermissionsOverviewCU.OpenForPermissionSet(Rec."Role ID");
+                end;
+            }
             group("Record Permissions")
             {
                 Caption = 'Record Permissions';

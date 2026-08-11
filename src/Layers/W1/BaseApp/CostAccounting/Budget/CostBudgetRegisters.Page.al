@@ -154,7 +154,6 @@ page 1121 "Cost Budget Registers"
                     Image = Delete;
                     RunObject = Report "Delete Cost Budget Entries";
                     RunPageOnRec = true;
-                    ToolTip = 'Delete posted cost budget entries and reverses allocations, for example when you simulate budget allocations by using different allocation codes, when you reverse cost budget allocations to include late entries in a combined entry as part of the same posting process, or when you cancel a cost budget entry in the register.';
                 }
             }
         }

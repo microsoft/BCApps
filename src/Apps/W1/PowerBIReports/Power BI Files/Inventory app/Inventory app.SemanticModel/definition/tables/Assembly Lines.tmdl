@@ -18,14 +18,22 @@ table 'Assembly Lines'
 			VAR Endpoint = "&page=903&"
 			VAR BaseLink = [Base Link] & Endpoint
 			VAR OrderBaseLink = BaseLink & "filter='Assembly Line'.'Document Type' IS 'Order'"
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Assembly Lines'[itemNo]),'Assembly Lines'[itemNo], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Assembly Lines'[dimensionSetID]), 'Assembly Lines'[dimensionSetID], "|")
-			
-			VAR ItemFilter = " AND 'Assembly Line'.'No.' IS '" & Items & "'"
-			VAR DimensionFilter = " AND 'Assembly Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( OrderBaseLink )
+			    + LEN ( " AND 'Assembly Line'.'No.' IS ''" )
+			    + SUMX ( VALUES ( 'Assembly Lines'[itemNo] ), LEN ( 'Assembly Lines'[itemNo] ) + 1 )
+			    + LEN ( " AND 'Assembly Line'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Assembly Lines'[dimensionSetID] ), LEN ( 'Assembly Lines'[dimensionSetID] ) + 1 )
 			RETURN
-			OrderBaseLink & ItemFilter & DimensionFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        OrderBaseLink
+			            & " AND 'Assembly Line'.'No.' IS '" & CONCATENATEX(VALUES('Assembly Lines'[itemNo]),'Assembly Lines'[itemNo], "|") & "'"
+			            & " AND 'Assembly Line'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Assembly Lines'[dimensionSetID]), 'Assembly Lines'[dimensionSetID], "|") & "'",
+			        BaseLink
+			    )
 		displayFolder: _Back Link
 		lineageTag: 19f9d473-1224-45dd-b93a-54bda8096b7f
 

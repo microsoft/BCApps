@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,10 +10,10 @@ using Microsoft.Manufacturing.Setup;
 codeunit 99001569 "Subc. Feature Flag Handler"
 {
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
     ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App so this codeunit will be removed in a future release.';
 
-    [Obsolete('Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App so this codeunit will be removed in a future release.', '29.0')]
+    [Obsolete('Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App so this codeunit will be removed in a future release.', '28.0')]
     procedure IsSubcontractingEnabled(): Boolean
     var
         ManufacturingSetup: Record "Manufacturing Setup";
