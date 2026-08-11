@@ -10341,6 +10341,7 @@ table 37 "Sales Line"
         if IsHandled then
             exit(FormattedType);
 #endif
+    IsHandled := false;
         OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
             exit(FormattedType);

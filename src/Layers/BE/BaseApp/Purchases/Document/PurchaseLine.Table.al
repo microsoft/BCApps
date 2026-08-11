@@ -9499,6 +9499,7 @@ table 39 "Purchase Line"
         if IsHandled then
             exit(FormattedType);
 #endif
+    IsHandled := false;
         OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
             exit(FormattedType);
