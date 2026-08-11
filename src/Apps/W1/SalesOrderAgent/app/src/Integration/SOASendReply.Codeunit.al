@@ -45,8 +45,7 @@ codeunit 4419 "SOA Send Reply"
 
         if MappedContactEmail <> '' then begin
             ValidateMessageAccess(Rec, SOASetup);
-            ToRecipients.Add(MappedContactEmail);
-            GetOriginEmailCCRecipients(InputAgentTaskMessage, CCRecipients);
+            GetMappedReplyRecipients(InputAgentTaskMessage, MappedContactEmail, ToRecipients, CCRecipients);
             EmailMessage.CreateReply(ToRecipients, Subject, Body, true, InputAgentTaskMessage."External ID", CCRecipients, EmptyBCCRecipients);
         end else
             EmailMessage.CreateReplyAll(Subject, Body, true, InputAgentTaskMessage."External ID");
@@ -74,7 +73,6 @@ codeunit 4419 "SOA Send Reply"
         ReplyNotAuthorizedErr: Label 'You are not authorized to send this reply.';
         InvalidMappedContactErr: Label 'The contact mapping for this message is no longer valid. Choose another contact before sending the reply.';
         MappedContactEmailMissingErr: Label 'The mapped contact %1 does not have a primary email address. Add an email address to the contact or choose another contact before sending the reply.', Comment = '%1 = Contact No.';
-        MultipleAlternateEmailMappingsErr: Label 'The sender''s alternate email address is assigned to more than one contact. Remove the duplicate alternate email mappings before sending the reply.';
         MappedContactErrorTitleErr: Label 'Contact mapping requires attention';
         MappedContactErrorDetailedMessageErr: Label 'Open the source email message and correct its contact mapping or the mapped contact''s primary email address, then retry the reply.';
         ShowSourceEmailMessageLbl: Label 'Show source email message';
@@ -104,8 +102,6 @@ codeunit 4419 "SOA Send Reply"
 
         // Only the alternate email represents a persistent mapping; primary email matches keep the existing Reply All behavior.
         if SOAFiltersImpl.FindContactByAlternateEmail(Contact, InputAgentTaskMessage.From, ContactCount) then begin
-            if ContactCount > 1 then
-                ErrorMappedContact(MultipleAlternateEmailMappingsErr, InputAgentTaskMessage);
             if Contact."E-Mail" = '' then
                 ErrorMappedContact(StrSubstNo(MappedContactEmailMissingErr, Contact."No."), InputAgentTaskMessage);
 
@@ -140,26 +136,72 @@ codeunit 4419 "SOA Send Reply"
         Error(MappedContactErrorInfo);
     end;
 
-    local procedure GetOriginEmailCCRecipients(InputAgentTaskMessage: Record "Agent Task Message"; var CCRecipients: List of [Text])
+    local procedure GetMappedReplyRecipients(InputAgentTaskMessage: Record "Agent Task Message"; MappedContactEmail: Text; var ToRecipients: List of [Text]; var CCRecipients: List of [Text])
     var
         SOAEmail: Record "SOA Email";
         EmailInbox: Record "Email Inbox";
+        TempEmailAccount: Record "Email Account" temporary;
+        EmailAccount: Codeunit "Email Account";
         OriginEmailMessage: Codeunit "Email Message";
+        IncludedRecipients: Dictionary of [Text, Boolean];
+        OriginCCRecipients: List of [Text];
+        OriginToRecipients: List of [Text];
+        OriginEmailAccountAddress: Text;
+        Recipient: Text;
     begin
         SOAEmail.SetLoadFields("Email Inbox ID");
         SOAEmail.SetRange("Task ID", InputAgentTaskMessage."Task ID");
         SOAEmail.SetRange("Task Message ID", InputAgentTaskMessage.ID);
         if not SOAEmail.FindFirst() then
-            Error(OriginEmailUnavailableErr);
+            ErrorMappedContact(OriginEmailUnavailableErr, InputAgentTaskMessage);
 
-        EmailInbox.SetLoadFields("Message Id");
+        EmailInbox.SetLoadFields("Message Id", "Account Id", Connector);
         if not EmailInbox.Get(SOAEmail."Email Inbox ID") then
-            Error(OriginEmailUnavailableErr);
+            ErrorMappedContact(OriginEmailUnavailableErr, InputAgentTaskMessage);
 
         if not OriginEmailMessage.Get(EmailInbox."Message Id") then
-            Error(OriginEmailUnavailableErr);
+            ErrorMappedContact(OriginEmailUnavailableErr, InputAgentTaskMessage);
 
-        OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, CCRecipients);
+        EmailAccount.GetAllAccounts(false, TempEmailAccount);
+        TempEmailAccount.SetRange("Account Id", EmailInbox."Account Id");
+        TempEmailAccount.SetRange(Connector, EmailInbox.Connector);
+        if not TempEmailAccount.FindFirst() then
+            ErrorMappedContact(OriginEmailUnavailableErr, InputAgentTaskMessage);
+        OriginEmailAccountAddress := TempEmailAccount."Email Address";
+
+        AddRecipientIfUnique(MappedContactEmail, ToRecipients, IncludedRecipients);
+
+        OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::"To", OriginToRecipients);
+        foreach Recipient in OriginToRecipients do
+            if not IsOriginalReplyRecipientExcluded(Recipient, InputAgentTaskMessage.From, OriginEmailAccountAddress) then
+                AddRecipientIfUnique(Recipient, ToRecipients, IncludedRecipients);
+
+        OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, OriginCCRecipients);
+        foreach Recipient in OriginCCRecipients do
+            if not IsOriginalReplyRecipientExcluded(Recipient, InputAgentTaskMessage.From, OriginEmailAccountAddress) then
+                AddRecipientIfUnique(Recipient, CCRecipients, IncludedRecipients);
+    end;
+
+    local procedure AddRecipientIfUnique(Recipient: Text; var Recipients: List of [Text]; var IncludedRecipients: Dictionary of [Text, Boolean])
+    var
+        NormalizedRecipient: Text;
+    begin
+        NormalizedRecipient := LowerCase(Recipient.Trim());
+        if (NormalizedRecipient = '') or IncludedRecipients.ContainsKey(NormalizedRecipient) then
+            exit;
+
+        Recipients.Add(Recipient);
+        IncludedRecipients.Add(NormalizedRecipient, true);
+    end;
+
+    local procedure IsOriginalReplyRecipientExcluded(Recipient: Text; OriginalSender: Text; OriginEmailAccountAddress: Text): Boolean
+    var
+        NormalizedRecipient: Text;
+    begin
+        NormalizedRecipient := LowerCase(Recipient.Trim());
+        exit(
+            (NormalizedRecipient = LowerCase(OriginalSender.Trim())) or
+            (NormalizedRecipient = LowerCase(OriginEmailAccountAddress.Trim())));
     end;
 
     local procedure AddMessageAttachments(var EmailMessage: Codeunit "Email Message"; var AgentTaskMessage: Record "Agent Task Message")

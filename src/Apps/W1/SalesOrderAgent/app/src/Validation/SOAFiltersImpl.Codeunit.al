@@ -217,41 +217,29 @@ codeunit 4305 "SOA Filters Impl."
 
     local procedure DispatchContactLinkChoice(Choice: Integer; ContactEmail: Text; ContactName: Text; TaskID: BigInteger; TaskMessageID: Guid)
     begin
-        LogContactLinkChoice(Choice);
         case Choice of
             1:
-                CreateContact(ContactEmail, ContactName);
+                if CreateContact(ContactEmail, ContactName) then
+                    LogContactLinkChoice(ContactLinkActionCreateContactLbl);
             2:
-                SelectContactAndSetOverride(TaskID, TaskMessageID);
+                if SelectContactAndSetOverride(TaskID, TaskMessageID) then
+                    LogContactLinkChoice(ContactLinkActionUseOnceLbl);
             3:
-                SelectContactAndUpdateEmail(ContactEmail, TaskID, TaskMessageID);
+                if SelectContactAndUpdateEmail(ContactEmail, TaskID, TaskMessageID) then
+                    LogContactLinkChoice(ContactLinkActionUseAlwaysLbl);
         end;
     end;
 
-    local procedure LogContactLinkChoice(Choice: Integer)
+    local procedure LogContactLinkChoice(ContactLinkAction: Text)
     var
         SOASetup: Codeunit "SOA Setup";
         TelemetryDimensions: Dictionary of [Text, Text];
-        ContactLinkAction: Text;
     begin
-        case Choice of
-            0:
-                ContactLinkAction := ContactLinkActionCancelledLbl;
-            1:
-                ContactLinkAction := ContactLinkActionCreateContactLbl;
-            2:
-                ContactLinkAction := ContactLinkActionUseOnceLbl;
-            3:
-                ContactLinkAction := ContactLinkActionUseAlwaysLbl;
-            else
-                ContactLinkAction := ContactLinkActionUnknownLbl;
-        end;
-
         TelemetryDimensions.Add(ContactLinkActionDimensionLbl, ContactLinkAction);
         FeatureTelemetry.LogUsage('0000V0N', SOASetup.GetFeatureName(), ContactLinkActionSelectedTelemetryLbl, TelemetryDimensions);
     end;
 
-    internal procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid)
+    internal procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid): Boolean
     var
         SelectedContact: Record Contact;
         SOATaskContactOverride: Record "SOA Task Contact Override";
@@ -260,7 +248,7 @@ codeunit 4305 "SOA Filters Impl."
         ValidateContactMappingAccess(TaskID, TaskMessageID);
         ContactList.LookupMode(true);
         if ContactList.RunModal() <> Action::LookupOK then
-            exit;
+            exit(false);
         ContactList.GetRecord(SelectedContact);
         if not SOATaskContactOverride.Get(TaskID, TaskMessageID) then begin
             SOATaskContactOverride.Init();
@@ -273,9 +261,10 @@ codeunit 4305 "SOA Filters Impl."
             SOATaskContactOverride.Modify();
         end;
         Commit();
+        exit(true);
     end;
 
-    internal procedure CreateContact(ContactEmail: Text; SenderName: Text)
+    internal procedure CreateContact(ContactEmail: Text; SenderName: Text): Boolean
     var
         ExistingContact: Record Contact;
         CreateContactPage: Page "SOA Create Contact";
@@ -287,15 +276,15 @@ codeunit 4305 "SOA Filters Impl."
                     Error('')
                 else begin
                     Page.Run(Page::"Contact Card", ExistingContact);
-                    exit;
+                    exit(false);
                 end;
 
         CreateContactPage.SetGlobalVariables(SenderName, ContactEmail);
         Commit();
-        CreateContactPage.RunModal();
+        exit(CreateContactPage.RunModal() in [Action::OK, Action::Yes, Action::LookupOK]);
     end;
 
-    internal procedure SelectContactAndUpdateEmail(ContactEmail: Text; TaskID: BigInteger; TaskMessageID: Guid)
+    internal procedure SelectContactAndUpdateEmail(ContactEmail: Text; TaskID: BigInteger; TaskMessageID: Guid): Boolean
     var
         SelectedContact: Record Contact;
         ContactList: Page "Contact List";
@@ -304,11 +293,11 @@ codeunit 4305 "SOA Filters Impl."
         ContactList.LookupMode(true);
         Commit();
         if ContactList.RunModal() <> Action::LookupOK then
-            exit;
+            exit(false);
         ContactList.GetRecord(SelectedContact);
         if SelectedContact."E-Mail 2" <> '' then
             if not Confirm(ContactAlreadyHasAlternateEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail 2", SelectedContact.FieldCaption("E-Mail 2"), ContactEmail) then
-                exit;
+                exit(false);
         // Direct assignment is intentional: ContactEmail originates from an incoming email's From address,
         // which has already been accepted by the mail system. Validate() is skipped to avoid rejecting
         // valid but non-standard addresses such as system aliases or distribution lists.
@@ -317,6 +306,7 @@ codeunit 4305 "SOA Filters Impl."
 #pragma warning restore AA0139
         SelectedContact.Modify(true);
         Commit();
+        exit(true);
     end;
 
     /// <summary>
@@ -430,12 +420,20 @@ codeunit 4305 "SOA Filters Impl."
     end;
 
     internal procedure FindContactByAlternateEmail(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
+    var
+        MatchedContactNo: Code[20];
     begin
+        if not FindContactByEmail(Contact, EmailAddress, ContactCount) then
+            exit(false);
+        if ContactCount <> 1 then
+            exit(false);
+
+        MatchedContactNo := Contact."No.";
         Contact.Reset();
         Contact.ReadIsolation := IsolationLevel::ReadCommitted;
         Contact.SetLoadFields("E-Mail");
+        Contact.SetRange("No.", MatchedContactNo);
         Contact.SetFilter("E-Mail 2", GetSafeFromEmailFilter(EmailAddress));
-        ContactCount := Contact.Count();
         exit(Contact.FindFirst());
     end;
 
@@ -453,10 +451,8 @@ codeunit 4305 "SOA Filters Impl."
         DuplicateContactNotificationLbl: Label 'There are %1 contacts with the same email address <%2>. The first matching contact will be used.', Comment = '%1 - number of contacts, %2 - email address';
         ContactMappingNotAuthorizedErr: Label 'You are not authorized to change the contact mapping for this message.';
         ContactLinkActionDimensionLbl: Label 'ContactLinkAction', Locked = true;
-        ContactLinkActionCancelledLbl: Label 'Cancelled', Locked = true;
         ContactLinkActionCreateContactLbl: Label 'CreateContact', Locked = true;
         ContactLinkActionUseOnceLbl: Label 'UseOnce', Locked = true;
         ContactLinkActionUseAlwaysLbl: Label 'UseAlways', Locked = true;
-        ContactLinkActionUnknownLbl: Label 'Unknown', Locked = true;
         ContactLinkActionSelectedTelemetryLbl: Label 'Unknown sender contact action selected.', Locked = true;
 }

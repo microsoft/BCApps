@@ -16,6 +16,7 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Email 2';
+                Editable = false;
                 ToolTip = 'Specifies an alternative email address for the contact.';
                 Visible = IsAgentSession;
             }

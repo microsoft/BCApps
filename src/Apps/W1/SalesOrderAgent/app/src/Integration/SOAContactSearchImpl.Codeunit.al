@@ -25,6 +25,9 @@ codeunit 4411 "SOA Contact Search Impl"
     [EventSubscriber(ObjectType::Page, Page::"Contact List", OnBeforeFindRecord, '', false, false)]
     local procedure FindRecordContactFromList(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
     begin
+        if IsHandled then
+            exit;
+
         FindRecordContact(Rec, Which, Found, IsHandled);
     end;
 
@@ -35,6 +38,10 @@ codeunit 4411 "SOA Contact Search Impl"
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         OriginalFilterGroup: Integer;
     begin
+        OriginalFilterGroup := Rec.FilterGroup();
+        ClearFilterGroup(Rec, 11);
+        Rec.FilterGroup(OriginalFilterGroup);
+
         if AgentTaskID = 0 then
             exit;
 
@@ -52,11 +59,18 @@ codeunit 4411 "SOA Contact Search Impl"
         if not SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             exit;
 
-        OriginalFilterGroup := Rec.FilterGroup();
+        ClearFilterGroup(Rec, 0);
+        ClearFilterGroup(Rec, -1);
         Rec.FilterGroup(11);
         Rec.SetRange("No.", SOATaskContactOverride."Contact No.");
         Rec.FilterGroup(OriginalFilterGroup);
         Found := Rec.Find(Which);
         IsHandled := true;
+    end;
+
+    local procedure ClearFilterGroup(var Contact: Record Contact; FilterGroupNo: Integer)
+    begin
+        Contact.FilterGroup(FilterGroupNo);
+        Contact.SetView('');
     end;
 }
