@@ -1008,8 +1008,8 @@ codeunit 141026 "ERM GST On Prepayments"
         SalesLine.Validate(Quantity, 6);
         SalesLine.Modify(true);
 
-        // [THEN] The stored prepayment base is reduced to the current line amount, so no phantom prepayment remains.
-        SalesLine.TestField("Prepmt. Line Amount", SalesLine."Line Amount");
+        // [THEN] The stored prepayment amount is reduced to the current line amount (after invoice discount), so no phantom prepayment remains.
+        SalesLine.TestField("Prepmt. Line Amount", SalesLine."Line Amount" - SalesLine."Inv. Discount Amount");
 
         // [THEN] Posting another Prepayment Invoice reports there is nothing to post.
         asserterror LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
