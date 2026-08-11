@@ -298,7 +298,6 @@ report 5754 "Create Pick"
     local procedure CreateTempLine()
     var
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
-        PickWhseActivHeader: Record "Warehouse Activity Header";
         TempWhseItemTrkgLine: Record "Whse. Item Tracking Line" temporary;
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         PickQty: Decimal;
@@ -434,20 +433,22 @@ report 5754 "Create Pick"
             Commit();
         end;
 
-        PickWhseActivHeader.SetRange(Type, PickWhseActivHeader.Type::Pick);
-        PickWhseActivHeader.SetRange("No.", FirstSetPickNo, LastPickNo);
-        IsHandled := false;
-        OnCreateTempLineOnBeforeFindAndPrintPickHeaders(PickWhseActivHeader, PrintPick, IsHandled);
-        if not IsHandled then
-            FindAndPrintPickHeaders(PickWhseActivHeader, PrintPick, SortActivity);
+        FindAndPrintPickHeaders();
     end;
 
-    local procedure FindAndPrintPickHeaders(var PickWhseActivHeader: Record "Warehouse Activity Header"; PrintPick: Boolean; SortActivity: Enum "Whse. Activity Sorting Method")
+    local procedure FindAndPrintPickHeaders()
     var
+        PickWhseActivHeader: Record "Warehouse Activity Header";
         WarehouseDocumentPrint: Codeunit "Warehouse Document-Print";
         PickListReportID: Integer;
         IsHandled: Boolean;
     begin
+        PickWhseActivHeader.SetRange(Type, PickWhseActivHeader.Type::Pick);
+        PickWhseActivHeader.SetRange("No.", FirstSetPickNo, LastPickNo);
+        OnBeforeFindAndPrintPickHeaders(PickWhseActivHeader, PrintPick, IsHandled);
+        if IsHandled then
+            exit;
+
         PickWhseActivHeader.Find('-');
         repeat
             if SortActivity <> SortActivity::None then
@@ -681,7 +682,7 @@ report 5754 "Create Pick"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCreateTempLineOnBeforeFindAndPrintPickHeaders(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PrintPick: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeFindAndPrintPickHeaders(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PrintPick: Boolean; var IsHandled: Boolean)
     begin
     end;
 
