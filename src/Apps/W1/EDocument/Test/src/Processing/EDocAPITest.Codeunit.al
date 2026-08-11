@@ -16,13 +16,13 @@ codeunit 135575 "E-Doc. API Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
-    [Test]
-    procedure GetEDocument()
     trigger OnRun()
     begin
         LibraryGraphMgt.BindAuthentication();
     end;
 
+    [Test]
+    procedure GetEDocument()
     var
         PurchaseHeader: Record "Purchase Header";
         EDocument: Record "E-Document";
