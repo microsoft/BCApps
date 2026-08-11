@@ -8,7 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
+#if not CLEAN29
 using Microsoft.Manufacturing.Reports;
+#endif
 
 page 99000754 "Work Center Card"
 {
