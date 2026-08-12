@@ -20,6 +20,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -41,6 +42,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         NumberFAEntryErr: Label 'Number of FA entries did not match the expected';
         NumberMaintenanceEntryErr: Label 'Number of maintenance entries did not match the expected';
         DerogatoryAcqErr: Label 'The derogatory book did not receive the acquisition cost from the purchase invoice.';
+        FinalValidationEventMarkerLbl: Label 'DEROGATORY-LINK-ORDER', Locked = true;
         CompletionStatsTok: Label 'The depreciation has been calculated.';
         MissingDerogatoryCounterpartTok: Label 'The derogatory counterpart for source entry';
         MultipleDerogatoryCounterpartsTok: Label 'More than one derogatory counterpart references source entry';
@@ -60,6 +62,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
           AcqCostAmount, DerogatoryAmt, FANo, NormalDeprBookCode);
 
         VerifyFAPostingDate(FANo);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]
@@ -92,6 +95,68 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
         CheckFALedgerEntries(FANo, TaxDeprBookCode);
         VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
+    end;
+
+    [Test]
+    procedure GeneralJournalAcquisitionCreatesSingleLinkedCounterpart()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+        UpdateIntegrationInBook(NormalDeprBookCode, true);
+
+        CreatePostGenJnlLine(
+            GenJournalLine, WorkDate(), GenJournalLine."FA Posting Type"::"Acquisition Cost",
+            FANo, NormalDeprBookCode, LibraryRandom.RandDec(10000, 2));
+
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
+    end;
+
+    [Test]
+    procedure MaintenancePostingCreatesSingleLinkedCounterpart()
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDeprBookCode, TaxDeprBookCode);
+
+        VerifyLinkedMaintenanceCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
+    end;
+
+    [Test]
+    procedure MissingTaxBookAssetDoesNotCreateCounterpart()
+    var
+        FixedAsset: Record "Fixed Asset";
+        FAJournalLine: Record "FA Journal Line";
+        FALedgerEntry: Record "FA Ledger Entry";
+        NormalDepreciationBookCode: Code[10];
+        TaxDepreciationBookCode: Code[10];
+    begin
+        CreateNormalAndTaxDeprBooks(NormalDepreciationBookCode, TaxDepreciationBookCode);
+        CreateFAPostingGroup(FixedAsset);
+        CreateFADeprBookWithDates(
+            FixedAsset."No.", NormalDepreciationBookCode, FixedAsset."FA Posting Group",
+            WorkDate(), CalcDate('<5Y>', WorkDate()));
+        UpdateIntegrationInBook(NormalDepreciationBookCode, false);
+        CreateFAJournalLine(
+            FAJournalLine, FixedAsset."No.", NormalDepreciationBookCode,
+            FAJournalLine."FA Posting Type"::"Acquisition Cost", LibraryRandom.RandDec(10000, 2));
+
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBookCode);
+        Assert.AreEqual(0, FALedgerEntry.Count(), NumberFAEntryErr);
     end;
 
     [Test]
@@ -180,6 +245,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
         // 3. Verify
         VerifyFinalDepreciationWithNegativeDerogatory(FANo);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]
@@ -208,6 +274,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
         // 3. Verify : Verify the FA Eedger Entry for Acquisition, Depreciation and Derogatory.
         VerifyFinalDepreciationWithNegativeDerogatory(FANo);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]
@@ -260,6 +327,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
         // [THEN] No G/L entries are created
         VerifyNoOfFALedgerEntries(0, NoGLEntryErr, FANo, true, -1);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]
@@ -361,6 +429,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
         // [THEN] 6 G/L entries are created
         VerifyNoOfFALedgerEntries(6, NoGLEntryErr, FANo, true, -1);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]
@@ -593,6 +662,8 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         CounterpartSalvageFALedgerEntry.SetRange("FA Posting Type", CounterpartSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
         CounterpartSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.", SourceSalvageFALedgerEntry."Entry No.");
         Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count, NumberFAEntryErr);
+        CounterpartSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.");
+        Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count(), NumberFAEntryErr);
     end;
 
     [Test]
@@ -628,6 +699,8 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         CounterpartSalvageFALedgerEntry.SetRange("FA Posting Type", CounterpartSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
         CounterpartSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.", SourceSalvageFALedgerEntry."Entry No.");
         Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count, NumberFAEntryErr);
+        CounterpartSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.");
+        Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count(), NumberFAEntryErr);
     end;
 
     [Test]
@@ -674,6 +747,110 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             Assert.AreEqual(1, CounterpartFALedgerEntry.Count, NumberFAEntryErr);
         until SourceFALedgerEntry.Next() = 0;
         Assert.AreNotEqual(0, AutomaticSourceCount, NumberFAEntryErr);
+        CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.");
+        CounterpartFALedgerEntry.SetRange("FA No.", FANo);
+        CounterpartFALedgerEntry.SetRange("FA Posting Date", FAPostingDate);
+        CounterpartFALedgerEntry.SetRange("Automatic Entry", true);
+        Assert.AreEqual(AutomaticSourceCount, CounterpartFALedgerEntry.Count(), NumberFAEntryErr);
+    end;
+
+    [Test]
+    procedure GeneratedMirrorDoesNotRunConfiguredDuplication()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FAJournalLine: Record "FA Journal Line";
+        DuplicateFAJournalLine: Record "FA Journal Line";
+        FANo: Code[20];
+        NormalDepreciationBookCode: Code[10];
+        TaxDepreciationBookCode: Code[10];
+        DuplicateTemplateName: Code[10];
+        DuplicateBatchName: Code[10];
+    begin
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDepreciationBookCode, TaxDepreciationBookCode);
+        UpdateIntegrationInBook(NormalDepreciationBookCode, false);
+        CreateDuplicationTarget(
+            DepreciationBook, FANo, DuplicateTemplateName, DuplicateBatchName);
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDepreciationBookCode,
+            FAJournalLine."FA Posting Type"::"Acquisition Cost", LibraryRandom.RandDec(10000, 2));
+        FAJournalLine.Validate("Duplicate in Depreciation Book", DepreciationBook.Code);
+        FAJournalLine.Modify(true);
+
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        DuplicateFAJournalLine.SetRange("Journal Template Name", DuplicateTemplateName);
+        DuplicateFAJournalLine.SetRange("Journal Batch Name", DuplicateBatchName);
+        DuplicateFAJournalLine.SetRange("FA No.", FANo);
+        Assert.AreEqual(
+            1, DuplicateFAJournalLine.Count(),
+            'Only the source posting may run the configured duplication dispatcher.');
+        VerifyLinkedCounterparts(FANo, NormalDepreciationBookCode, TaxDepreciationBookCode);
+    end;
+
+    [Test]
+    procedure ReturningInsertionOverloadsReturnInsertedIdentities()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        DirectFALedgerEntry: Record "FA Ledger Entry";
+        InsertedFALedgerEntry: Record "FA Ledger Entry";
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        DirectMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        InsertedMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
+        FANo: Code[20];
+        NormalDepreciationBookCode: Code[10];
+        TaxDepreciationBookCode: Code[10];
+    begin
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDepreciationBookCode, TaxDepreciationBookCode);
+        PostLinkedFAAcquisition(
+            SourceFALedgerEntry, CounterpartFALedgerEntry,
+            FANo, NormalDepreciationBookCode, TaxDepreciationBookCode);
+        DirectFALedgerEntry := SourceFALedgerEntry;
+        PrepareDirectFALedgerEntry(DirectFALedgerEntry);
+
+        FAInsertLedgerEntry.InsertFA(DirectFALedgerEntry, InsertedFALedgerEntry);
+
+        Assert.AreNotEqual(0, InsertedFALedgerEntry."Entry No.", NumberFAEntryErr);
+        InsertedFALedgerEntry.Get(InsertedFALedgerEntry."Entry No.");
+
+        PostLinkedMaintenance(
+            SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
+            FANo, NormalDepreciationBookCode, TaxDepreciationBookCode);
+        DirectMaintenanceLedgerEntry := SourceMaintenanceLedgerEntry;
+        PrepareDirectMaintenanceLedgerEntry(DirectMaintenanceLedgerEntry);
+        Clear(FAInsertLedgerEntry);
+
+        FAInsertLedgerEntry.InsertMaintenance(
+            DirectMaintenanceLedgerEntry, InsertedMaintenanceLedgerEntry);
+
+        Assert.AreNotEqual(0, InsertedMaintenanceLedgerEntry."Entry No.", NumberMaintenanceEntryErr);
+        InsertedMaintenanceLedgerEntry.Get(InsertedMaintenanceLedgerEntry."Entry No.");
+    end;
+
+    [Test]
+    procedure FinalLinkValidationRunsAfterPostingEvent()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        EventSubscriber: Codeunit "ERM Derogatory Depr. Posting";
+        FANo: Code[20];
+        NormalDepreciationBookCode: Code[10];
+        TaxDepreciationBookCode: Code[10];
+    begin
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDepreciationBookCode, TaxDepreciationBookCode);
+        UpdateIntegrationInBook(NormalDepreciationBookCode, false);
+        CreateFAJournalLine(
+            FAJournalLine, FANo, NormalDepreciationBookCode,
+            FAJournalLine."FA Posting Type"::"Acquisition Cost", LibraryRandom.RandDec(10000, 2));
+        FAJournalLine.Validate(Description, FinalValidationEventMarkerLbl);
+        FAJournalLine.Modify(true);
+
+        BindSubscription(EventSubscriber);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        UnbindSubscription(EventSubscriber);
+
+        VerifyLinkedCounterparts(FANo, NormalDepreciationBookCode, TaxDepreciationBookCode);
     end;
 
     [Test]
@@ -1529,6 +1706,50 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         exit(FixedAsset."No.");
     end;
 
+    local procedure CreateDuplicationTarget(var DuplicateDepreciationBook: Record "Depreciation Book"; FANo: Code[20]; var DuplicateTemplateName: Code[10]; var DuplicateBatchName: Code[10])
+    var
+        FAJournalSetup: Record "FA Journal Setup";
+        FAJournalTemplate: Record "FA Journal Template";
+        FAJournalBatch: Record "FA Journal Batch";
+        FADepreciationBook: Record "FA Depreciation Book";
+    begin
+        CreateAndSetupDeprBook(DuplicateDepreciationBook);
+        FAJournalTemplate.SetRange(Recurring, false);
+        LibraryFixedAsset.FindFAJournalTemplate(FAJournalTemplate);
+        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalSetup.Get(DuplicateDepreciationBook.Code, '');
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatch.Name);
+        FAJournalSetup.Modify(true);
+        LibraryFixedAsset.CreateFADepreciationBook(
+            FADepreciationBook, FANo, DuplicateDepreciationBook.Code);
+        DuplicateTemplateName := FAJournalBatch."Journal Template Name";
+        DuplicateBatchName := FAJournalBatch.Name;
+    end;
+
+    local procedure PrepareDirectFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry")
+    begin
+        FALedgerEntry."Entry No." := 0;
+        FALedgerEntry."Document No." := LibraryRandom.RandText(MaxStrLen(FALedgerEntry."Document No."));
+        FALedgerEntry."Journal Batch Name" := '';
+        FALedgerEntry."Derogatory Source Entry No." := 0;
+        FALedgerEntry.Reversed := false;
+        FALedgerEntry."Reversed by Entry No." := 0;
+        FALedgerEntry."Reversed Entry No." := 0;
+    end;
+
+    local procedure PrepareDirectMaintenanceLedgerEntry(var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    begin
+        MaintenanceLedgerEntry."Entry No." := 0;
+        MaintenanceLedgerEntry."Document No." :=
+            LibraryRandom.RandText(MaxStrLen(MaintenanceLedgerEntry."Document No."));
+        MaintenanceLedgerEntry."Journal Batch Name" := '';
+        MaintenanceLedgerEntry."Derogatory Source Entry No." := 0;
+        MaintenanceLedgerEntry.Reversed := false;
+        MaintenanceLedgerEntry."Reversed by Entry No." := 0;
+        MaintenanceLedgerEntry."Reversed Entry No." := 0;
+    end;
+
     local procedure CreateFAWithBooks(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10]; StartingDate: Date; EndingDate: Date): Code[20]
     var
         FixedAsset: Record "Fixed Asset";
@@ -1556,9 +1777,31 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     local procedure CreateNormalAndTaxDeprBooks(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10])
     begin
+        EnableCentralizedPostingForComposedFrenchTests();
         NormalDeprBookCode := CreateDeprBookModifyDerogCalc('');
         UpdateIntegrationInBook(NormalDeprBookCode, true);
         TaxDeprBookCode := CreateDeprBookModifyDerogCalc(NormalDeprBookCode);
+    end;
+
+    local procedure EnableCentralizedPostingForComposedFrenchTests()
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepreciationBookRecordRef: RecordRef;
+        AcceleratedDepreciationFeatureKey: Text[50];
+    begin
+        DepreciationBookRecordRef.Open(Database::"Depreciation Book");
+        if not DepreciationBookRecordRef.FieldExist(10802) then
+            exit;
+
+        AcceleratedDepreciationFeatureKey := 'AcceleratedDepreciation';
+        if not FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName()) then begin
+            FeatureDataUpdateStatus."Feature Key" := AcceleratedDepreciationFeatureKey;
+            FeatureDataUpdateStatus."Company Name" :=
+                CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus.Insert();
+        end;
+        FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled;
+        FeatureDataUpdateStatus.Modify();
     end;
 
     local procedure CreateDeprBookModifyDerogCalc(DerogDeprBookCode: Code[10]): Code[10]
@@ -1922,17 +2165,54 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        ExpectedCounterpartCount: Integer;
     begin
         SourceFALedgerEntry.SetRange("FA No.", FANo);
         SourceFALedgerEntry.SetRange("Depreciation Book Code", NormalDepreciationBookCode);
-        SourceFALedgerEntry.SetRange("Automatic Entry", false);
+        ExpectedCounterpartCount := SourceFALedgerEntry.Count();
         SourceFALedgerEntry.FindSet();
         repeat
             SourceFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+            CounterpartFALedgerEntry.Reset();
             CounterpartFALedgerEntry.SetRange("Derogatory Source Entry No.", SourceFALedgerEntry."Entry No.");
             CounterpartFALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBookCode);
             Assert.AreEqual(1, CounterpartFALedgerEntry.Count, NumberFAEntryErr);
         until SourceFALedgerEntry.Next() = 0;
+        CounterpartFALedgerEntry.Reset();
+        CounterpartFALedgerEntry.SetRange("FA No.", FANo);
+        CounterpartFALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBookCode);
+        Assert.AreEqual(ExpectedCounterpartCount, CounterpartFALedgerEntry.Count(), NumberFAEntryErr);
+        CounterpartFALedgerEntry.SetFilter("Derogatory Source Entry No.", '<>%1', 0);
+        Assert.AreEqual(ExpectedCounterpartCount, CounterpartFALedgerEntry.Count(), NumberFAEntryErr);
+    end;
+
+    local procedure VerifyLinkedMaintenanceCounterparts(FANo: Code[20]; NormalDepreciationBookCode: Code[10]; TaxDepreciationBookCode: Code[10])
+    var
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        ExpectedCounterpartCount: Integer;
+    begin
+        SourceMaintenanceLedgerEntry.SetRange("FA No.", FANo);
+        SourceMaintenanceLedgerEntry.SetRange("Depreciation Book Code", NormalDepreciationBookCode);
+        ExpectedCounterpartCount := SourceMaintenanceLedgerEntry.Count();
+        SourceMaintenanceLedgerEntry.FindSet();
+        repeat
+            SourceMaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 0);
+            CounterpartMaintenanceLedgerEntry.Reset();
+            CounterpartMaintenanceLedgerEntry.SetRange(
+                "Derogatory Source Entry No.", SourceMaintenanceLedgerEntry."Entry No.");
+            CounterpartMaintenanceLedgerEntry.SetRange(
+                "Depreciation Book Code", TaxDepreciationBookCode);
+            Assert.AreEqual(1, CounterpartMaintenanceLedgerEntry.Count(), NumberMaintenanceEntryErr);
+        until SourceMaintenanceLedgerEntry.Next() = 0;
+        CounterpartMaintenanceLedgerEntry.Reset();
+        CounterpartMaintenanceLedgerEntry.SetRange("FA No.", FANo);
+        CounterpartMaintenanceLedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBookCode);
+        Assert.AreEqual(
+            ExpectedCounterpartCount, CounterpartMaintenanceLedgerEntry.Count(), NumberMaintenanceEntryErr);
+        CounterpartMaintenanceLedgerEntry.SetFilter("Derogatory Source Entry No.", '<>%1', 0);
+        Assert.AreEqual(
+            ExpectedCounterpartCount, CounterpartMaintenanceLedgerEntry.Count(), NumberMaintenanceEntryErr);
     end;
 
     local procedure VerifyFinalDepreciationWithNegativeDerogatory(FixedAssetNo: Code[20])
@@ -2002,5 +2282,12 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             Reply := false
         else
             Reply := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"FA Jnl.-Post Line", 'OnPostFixedAssetOnBeforeInsertEntry', '', false, false)]
+    local procedure CorruptGeneratedMirrorLinkAfterPostingEvent(var FALedgEntry: Record "FA Ledger Entry")
+    begin
+        if FALedgEntry.Description = FinalValidationEventMarkerLbl then
+            FALedgEntry."Derogatory Source Entry No." := 2147483647;
     end;
 }
