@@ -101,12 +101,15 @@ table 20261 "Tax Transaction Value"
             DataClassification = EndUserIdentifiableInformation;
             Caption = 'Visible on Interface';
         }
-        field(18; "ID"; Integer)
+#pragma warning disable AS0146
+#pragma warning disable AS0041
+        field(18; "ID"; BigInteger)
         {
             DataClassification = SystemMetadata;
             Caption = 'ID';
-            AutoIncrement = true;
         }
+#pragma warning restore AS0041
+#pragma warning restore AS0146
         field(19; "Tax Type"; Code[20])
         {
             DataClassification = EndUserIdentifiableInformation;
@@ -153,6 +156,18 @@ table 20261 "Tax Transaction Value"
         {
         }
     }
+
+    trigger OnInsert()
+    var
+        TransactionValueHelper: Codeunit "Transaction Value Helper";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec.ID = 0 then
+            Rec.ID := TransactionValueHelper.GetNextTransactionValueID();
+    end;
+
     procedure GetAttributeColumName(): Text
     var
         TaxAttribute: Record "Tax Attribute";
