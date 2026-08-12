@@ -183,17 +183,23 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
     local procedure FallbackToADI(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
-        ADIHandler: Codeunit "E-Document ADI Handler";
         ADIResult: Interface IStructuredDataType;
     begin
-        ADIResult := ADIHandler.StructureReceivedEDocument(EDocumentDataStorage);
-
-        if ADIResult.GetContent() <> '' then
-            Telemetry.LogMessage('0000SGY', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions())
-        else
+        if not TryStructureWithADI(EDocumentDataStorage, ADIResult) then begin
             Telemetry.LogMessage('0000SGZ', ADIFallbackFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
+            Error(GetLastErrorText());
+        end;
 
+        Telemetry.LogMessage('0000SGY', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
         exit(ADIResult);
+    end;
+
+    [TryFunction]
+    local procedure TryStructureWithADI(EDocumentDataStorage: Record "E-Doc. Data Storage"; var ADIResult: Interface IStructuredDataType)
+    var
+        ADIHandler: Codeunit "E-Document ADI Handler";
+    begin
+        ADIResult := ADIHandler.StructureReceivedEDocument(EDocumentDataStorage);
     end;
 
     local procedure ValidateMLLMResponse(ResponseJson: JsonObject): Boolean
