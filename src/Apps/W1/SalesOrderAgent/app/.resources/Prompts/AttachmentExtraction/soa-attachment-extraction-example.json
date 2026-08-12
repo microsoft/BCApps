@@ -16,65 +16,138 @@
     }
   ],
   "references": [
-    { "type": "purchase order number", "value": "PO-2026-004871" },
-    { "type": "document date", "value": "2026-03-04" },
-    { "type": "customer account number", "value": "CUST-10093" }
+    {
+      "type": "purchase order number",
+      "value": "PO-2026-004871"
+    },
+    {
+      "type": "document date",
+      "value": "2026-03-04"
+    },
+    {
+      "type": "customer account number",
+      "value": "CUST-10093"
+    }
   ],
   "requested_dates": [
-    { "type": "requested delivery date", "value": "2026-03-19" },
-    { "type": "ship-by date", "value": "2026-03-16", "applies_to_source_location": "line 3" }
+    {
+      "type": "requested delivery date",
+      "value": "2026-03-19"
+    },
+    {
+      "type": "ship-by date",
+      "value": "2026-03-16",
+      "applies_to_source_location": "line 3"
+    }
   ],
   "items": [
     {
       "identifiers": [
-        { "type": "vendor item number", "value": "1928-S" },
-        { "type": "customer item number", "value": "FR-CHAIR-BLU-L" },
-        { "type": "variant code", "value": "BLUE-L" },
-        { "type": "GTIN", "value": "05012345678900" }
+        {
+          "type": "vendor item number",
+          "value": "1928-S"
+        },
+        {
+          "type": "customer item number",
+          "value": "FR-CHAIR-BLU-L"
+        },
+        {
+          "type": "variant code",
+          "value": "BLUE-L"
+        },
+        {
+          "type": "GTIN",
+          "value": "05012345678900"
+        }
       ],
       "description": "ATHENS Desk Chair, blue fabric upholstery, large frame, height-adjustable gas lift, chrome five-star base, assembly required",
       "quantity": 12,
       "unit_of_measure": "PCS",
       "attributes": [
-        { "name": "Brand", "value": "ATHENS" },
-        { "name": "Color", "value": "Blue" },
-        { "name": "Size", "value": "Large" },
-        { "name": "Material", "value": "Fabric" },
-        { "name": "Frame Finish", "value": "Chrome" },
-        { "name": "Assembly", "value": "Required" }
+        {
+          "name": "Brand",
+          "value": "ATHENS"
+        },
+        {
+          "name": "Color",
+          "value": "Blue"
+        },
+        {
+          "name": "Size",
+          "value": "Large"
+        },
+        {
+          "name": "Material",
+          "value": "Fabric"
+        },
+        {
+          "name": "Frame Finish",
+          "value": "Chrome"
+        },
+        {
+          "name": "Assembly",
+          "value": "Required"
+        }
       ],
-      "unit_price": 149.5,
-      "line_amount": 1794,
       "source_location": "line 1"
     },
     {
       "identifiers": [
-        { "type": "manufacturer item number", "value": "TC-7734" }
+        {
+          "type": "manufacturer item number",
+          "value": "TC-7734"
+        }
       ],
       "description": "PARIS Guest Table, oak veneer top, 1400 x 800 mm, four legs, flat-packed",
       "quantity": 3,
       "unit_of_measure": "EA",
       "attributes": [
-        { "name": "Material", "value": "Oak veneer" },
-        { "name": "Dimensions", "value": "1400 x 800 mm" },
-        { "name": "Packaging", "value": "Flat-packed" },
-        { "name": "Model Year", "value": "2025" }
+        {
+          "name": "Material",
+          "value": "Oak veneer"
+        },
+        {
+          "name": "Dimensions",
+          "value": "1400 x 800 mm"
+        },
+        {
+          "name": "Packaging",
+          "value": "Flat-packed"
+        },
+        {
+          "name": "Model Year",
+          "value": "2025"
+        }
       ],
-      "unit_price": 320,
       "source_location": "line 2"
     },
     {
       "identifiers": [
-        { "type": "catalog number", "value": "CAT-0099-XL" }
+        {
+          "type": "catalog number",
+          "value": "CAT-0099-XL"
+        }
       ],
       "description": "MUNICH Storage Cabinet, white, XL, six shelves, lockable doors",
       "quantity": 5,
       "unit_of_measure": "BOX 250",
       "attributes": [
-        { "name": "Color", "value": "White" },
-        { "name": "Size", "value": "XL" },
-        { "name": "Shelf Count", "value": "6" },
-        { "name": "Lockable", "value": "Yes" }
+        {
+          "name": "Color",
+          "value": "White"
+        },
+        {
+          "name": "Size",
+          "value": "XL"
+        },
+        {
+          "name": "Shelf Count",
+          "value": "6"
+        },
+        {
+          "name": "Lockable",
+          "value": "Yes"
+        }
       ],
       "status_notes": [
         "Replaces discontinued CAT-0099-L",
@@ -87,17 +160,29 @@
       "quantity": 1,
       "unit_of_measure": "SERVICE",
       "attributes": [
-        { "name": "Service Type", "value": "On-site installation" },
-        { "name": "Preferred Time Window", "value": "Weekday mornings" }
+        {
+          "name": "Service Type",
+          "value": "On-site installation"
+        },
+        {
+          "name": "Preferred Time Window",
+          "value": "Weekday mornings"
+        }
       ],
       "source_location": "line 4"
     }
   ],
   "additional_relevant_information": [
-    { "label": "Delivery instruction", "value": "Deliver to loading dock B, call 30 minutes before arrival" },
-    { "label": "Order note", "value": "Do not split the order across more than two shipments" }
+    {
+      "label": "Delivery instruction",
+      "value": "Deliver to loading dock B, call 30 minutes before arrival"
+    },
+    {
+      "label": "Order note",
+      "value": "Do not split the order across more than two shipments"
+    }
   ],
   "warnings": [
-    "The unit price for line 3 is not visible in the document"
+    "The requested delivery date for line 3 is not visible in the document"
   ]
 }
