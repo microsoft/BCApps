@@ -7935,6 +7935,9 @@ codeunit 22 "Item Jnl.-Post Line"
         if ItemJnlLine."Entry Type" <> ItemJnlLine."Entry Type"::Purchase then
             exit(false);
 
+        if Item."Costing Method" = Item."Costing Method"::Standard then
+            exit(false);
+
         if not (InvtSetup."Automatic Cost Posting") or not (InvtSetup."Expected Cost Posting to G/L") then
             exit(false);
 
