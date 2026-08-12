@@ -211,8 +211,8 @@ codeunit 11725 "Cash Document-Release CZP"
         CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."No.");
         CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Posting Date");
         CashDocumentHeaderCZP.VATRounding();
-        CashDocumentHeaderCZP.CalcFields(CashDocumentHeaderCZP."Amount Including VAT", CashDocumentHeaderCZP."Amount Including VAT (LCY)");
         if not SkipAmountsTestFields then begin
+            CashDocumentHeaderCZP.CalcFields(CashDocumentHeaderCZP."Amount Including VAT", CashDocumentHeaderCZP."Amount Including VAT (LCY)");
             CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Amount Including VAT");
             CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Amount Including VAT (LCY)");
         end;
