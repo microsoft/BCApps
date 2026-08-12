@@ -16,43 +16,40 @@ codeunit 3992 "Reten. Pol. Post. Invt. Fltr." implements "Reten. Pol. Filtering"
 
     procedure HasReadPermission(TableId: Integer): Boolean
     var
-        DefaultFiltering: Interface "Reten. Pol. Filtering";
+        RecordRef: RecordRef;
     begin
-        DefaultFiltering := "Reten. Pol. Filtering"::Default;
-        exit(DefaultFiltering.HasReadPermission(TableId))
+        RecordRef.Open(TableId);
+        exit(RecordRef.ReadPermission())
     end;
 
     procedure Count(RecordRef: RecordRef): Integer
-    var
-        DefaultFiltering: Interface "Reten. Pol. Filtering";
     begin
-        DefaultFiltering := "Reten. Pol. Filtering"::Default;
-        exit(DefaultFiltering.Count(RecordRef))
+        exit(RecordRef.Count())
     end;
 
-    procedure ApplyRetentionPolicyAllRecordFilters(RetentionPolicySetup: Record "Retention Policy Setup"; var RecordRef: RecordRef; var RetenPolFilteringParam: Record "Reten. Pol. Filtering Param" temporary): Boolean
+    procedure ApplyRetentionPolicyAllRecordFilters(RetentionPolicySetup: Record "Retention Policy Setup"; var RecordRef: RecordRef; var TempRetenPolFilteringParam: Record "Reten. Pol. Filtering Param" temporary): Boolean
     var
         DefaultFiltering: Interface "Reten. Pol. Filtering";
     begin
         DefaultFiltering := "Reten. Pol. Filtering"::Default;
-        if not DefaultFiltering.ApplyRetentionPolicyAllRecordFilters(RetentionPolicySetup, RecordRef, RetenPolFilteringParam) then
+        if not DefaultFiltering.ApplyRetentionPolicyAllRecordFilters(RetentionPolicySetup, RecordRef, TempRetenPolFilteringParam) then
             exit(false);
 
         MarkFilteredRecords(RecordRef);
         ExcludeProtectedRecords(RecordRef);
-        exit(DefaultFiltering.Count(RecordRef) > 0)
+        exit(not RecordRef.IsEmpty())
     end;
 
-    procedure ApplyRetentionPolicySubSetFilters(RetentionPolicySetup: Record "Retention Policy Setup"; var RecordRef: RecordRef; var RetenPolFilteringParam: Record "Reten. Pol. Filtering Param" temporary): Boolean
+    procedure ApplyRetentionPolicySubSetFilters(RetentionPolicySetup: Record "Retention Policy Setup"; var RecordRef: RecordRef; var TempRetenPolFilteringParam: Record "Reten. Pol. Filtering Param" temporary): Boolean
     var
         DefaultFiltering: Interface "Reten. Pol. Filtering";
     begin
         DefaultFiltering := "Reten. Pol. Filtering"::Default;
-        if not DefaultFiltering.ApplyRetentionPolicySubSetFilters(RetentionPolicySetup, RecordRef, RetenPolFilteringParam) then
+        if not DefaultFiltering.ApplyRetentionPolicySubSetFilters(RetentionPolicySetup, RecordRef, TempRetenPolFilteringParam) then
             exit(false);
 
         ExcludeProtectedRecords(RecordRef);
-        exit(DefaultFiltering.Count(RecordRef) > 0)
+        exit(not RecordRef.IsEmpty())
     end;
 
     local procedure MarkFilteredRecords(var RecordRef: RecordRef)
@@ -76,6 +73,7 @@ codeunit 3992 "Reten. Pol. Post. Invt. Fltr." implements "Reten. Pol. Filtering"
         LocationExists: Dictionary of [Code[10], Boolean];
         LocationCode: Code[10];
         LocationExistsForCode: Boolean;
+        UnsupportedTableErrorInfo: ErrorInfo;
     begin
         case RecordRef.Number of
             Database::"Posted Invt. Pick Header":
@@ -89,7 +87,13 @@ codeunit 3992 "Reten. Pol. Post. Invt. Fltr." implements "Reten. Pol. Filtering"
                     LocationCodeFieldRef := RecordRef.Field(PostedInvtPutawayHeader.FieldNo("Location Code"));
                 end;
             else
-                Error(UnsupportedTableErr, RecordRef.Number);
+                begin
+                    UnsupportedTableErrorInfo.DataClassification := DataClassification::SystemMetadata;
+                    UnsupportedTableErrorInfo.ErrorType := ErrorType::Internal;
+                    UnsupportedTableErrorInfo.Verbosity := Verbosity::Error;
+                    UnsupportedTableErrorInfo.Message := StrSubstNo(UnsupportedTableErr, RecordRef.Number);
+                    Error(UnsupportedTableErrorInfo);
+                end;
         end;
 
         Location.SetLoadFields("Bin Mandatory");
