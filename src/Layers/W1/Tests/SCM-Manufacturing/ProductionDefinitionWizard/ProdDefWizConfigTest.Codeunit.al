@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Test;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Sales.Document;
 
@@ -27,6 +28,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         ProdDefWizLibrary: Codeunit "Prod. Def. Wiz. Library";
         ProdDefWizSetupLib: Codeunit "Prod. Def. Wiz. Setup Lib.";
+        ProdDefWizCheckLib: Codeunit "Prod. Def. Wiz. Check Lib.";
         IsInitialized: Boolean;
         WizardFinished: Boolean;
         // Handler state
@@ -121,6 +123,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
     procedure TestC3_ProdCompDisplayHide_Steps4And5Skipped()
     var
         SalesLine: Record "Sales Line";
+        ProdOrder: Record "Production Order";
         ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         RoutingNo: Code[20];
@@ -130,6 +133,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         LocationCode: Code[10];
         ComponentsStepNotVisibleHideLbl: Label 'Components step (Step 4) should not be visible when ProdComp = Hide';
         ProdRoutingStepNotVisibleHideLbl: Label 'Prod. Routing step (Step 5) should not be visible when ProdComp = Hide';
+        ProductionOrderShouldBeCreatedLbl: Label 'Production order should be created when ProdComp = Hide';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C3] ProdComponentDisplay = Hide → Steps 4 and 5 are skipped
@@ -153,6 +157,10 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         // [THEN] Steps 4 and 5 are not visible
         Assert.IsFalse(ActualComponentsStepVisible, ComponentsStepNotVisibleHideLbl);
         Assert.IsFalse(ActualProdRoutingStepVisible, ProdRoutingStepNotVisibleHideLbl);
+        Assert.IsTrue(WizardFinished, ProductionOrderShouldBeCreatedLbl);
+        ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
+        ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 2);
+        ProdDefWizCheckLib.VerifyProdOrderHasRoutingLineCount(ProdOrder, 2);
     end;
 
     [Test]

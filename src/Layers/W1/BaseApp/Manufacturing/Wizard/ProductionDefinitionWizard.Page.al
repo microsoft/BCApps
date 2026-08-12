@@ -735,6 +735,8 @@ page 99001021 "Production Definition Wizard"
     begin
         if SaveBOMRouting and (BOMRoutingSaveTarget = BOMRoutingSaveTarget::Empty) then
             Error(SaveTargetRequiredErr);
+        if IsCreateProductionOrderMode() and (ProdComponentDisplay = ProdComponentDisplay::Hide) then
+            TempData.BuildTemporaryStructureFromBOMRouting();
         Finished := true;
         CurrPage.Close();
     end;

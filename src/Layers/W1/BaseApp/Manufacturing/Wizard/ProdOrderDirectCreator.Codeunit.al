@@ -49,7 +49,7 @@ codeunit 99001018 "Prod. Order Direct Creator"
         ProdOrderCompRoutingCreated := false;
 
         ProdOrder."Due Date" := TempProdOrder."Due Date";
-        ProdOrder."Starting Date" := TempProdOrder."Due Date";
+        ProdOrder."Starting Date" := TempProdOrder."Starting Date";
         ProdOrder."Source Type" := TempProdOrder."Source Type";
         ProdOrder."Location Code" := TempProdOrder."Location Code";
         ProdOrder.Validate("Source No.", TempProdOrder."Source No.");
