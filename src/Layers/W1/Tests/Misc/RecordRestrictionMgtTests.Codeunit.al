@@ -778,6 +778,57 @@ codeunit 134320 "Record Restriction Mgt. Tests"
         VerifyApprovalEntryNotExists(GenJournalBatch);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ChangingDeferralScheduleRestrictsGenJournalLine()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        DeferralLine: Record "Deferral Line";
+        RestrictedRecord: Record "Restricted Record";
+        Workflow: Record Workflow;
+        WorkflowSetup: Codeunit "Workflow Setup";
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+        DeferralScheduleSubform: TestPage "Deferral Schedule Subform";
+        DeferralCode: Code[10];
+    begin
+        // [SCENARIO 644246] Changing the deferral schedule of an approved General Journal Line re-imposes the record restriction.
+
+        // [GIVEN] General Journal Line Approval Workflow is enabled.
+        Initialize();
+        LibraryWorkflow.CreateEnabledWorkflow(Workflow, WorkflowSetup.GeneralJournalLineApprovalWorkflowCode());
+
+        // [GIVEN] A General Journal Line with a deferral schedule.
+        DeferralCode := LibraryERM.CreateDeferralTemplateCode(
+          "Deferral Calculation Method"::"Straight-Line", "Deferral Calculation Start Date"::"Posting Date", 3);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+          GenJournalLine, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), LibraryRandom.RandDecInRange(100, 200, 2));
+        GenJournalLine.Validate("Deferral Code", DeferralCode);
+        GenJournalLine.Modify(true);
+
+        // [GIVEN] The line is approved (restriction removed).
+        RecordRestrictionMgt.AllowRecordUsage(GenJournalLine);
+        RestrictedRecord.SetRange("Record ID", GenJournalLine.RecordId);
+        Assert.RecordIsEmpty(RestrictedRecord);
+
+        // [WHEN] The deferral schedule of the line is changed.
+        DeferralLine.SetRange("Deferral Doc. Type", DeferralLine."Deferral Doc. Type"::"G/L");
+        DeferralLine.SetRange("Gen. Jnl. Template Name", GenJournalLine."Journal Template Name");
+        DeferralLine.SetRange("Gen. Jnl. Batch Name", GenJournalLine."Journal Batch Name");
+        DeferralLine.SetRange("Line No.", GenJournalLine."Line No.");
+        DeferralLine.FindFirst();
+
+        DeferralScheduleSubform.OpenEdit();
+        DeferralScheduleSubform.GoToRecord(DeferralLine);
+        DeferralScheduleSubform.Description.SetValue(CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(DeferralLine.Description)));
+        DeferralScheduleSubform.Close();
+
+        // [THEN] A restriction is re-imposed on the General Journal Line
+        RestrictedRecord.SetRange("Record ID", GenJournalLine.RecordId);
+        RestrictedRecord.FindFirst();
+        Assert.RecordIsNotEmpty(RestrictedRecord);
+    end;
+
     local procedure Initialize()
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";

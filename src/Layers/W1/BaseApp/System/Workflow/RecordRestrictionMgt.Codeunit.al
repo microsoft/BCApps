@@ -2,6 +2,7 @@
 
 using Microsoft.Bank.Check;
 using Microsoft.EServices.EDocument;
+using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.Inventory.Item;
@@ -781,6 +782,57 @@ codeunit 1550 "Record Restriction Mgt."
     local procedure CheckRecordRestrictionOnBeforeDeleteJobQueueEntry(var Rec: Record "Job Queue Entry")
     begin
         CheckRecordHasUsageRestrictions(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Deferral Header", 'OnAfterInsertEvent', '', false, false)]
+    local procedure RestrictGenJournalLineOnAfterDeferralHeaderInsert(var Rec: Record "Deferral Header"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary then
+            exit;
+
+        RestrictGenJournalLineFromDeferral(Rec."Deferral Doc. Type", Rec."Gen. Jnl. Template Name", Rec."Gen. Jnl. Batch Name", Rec."Line No.");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Deferral Header", 'OnAfterModifyEvent', '', false, false)]
+    local procedure RestrictGenJournalLineOnAfterDeferralHeaderModify(var Rec: Record "Deferral Header"; var xRec: Record "Deferral Header"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary then
+            exit;
+        if Format(Rec) = Format(xRec) then
+            exit;
+
+        RestrictGenJournalLineFromDeferral(Rec."Deferral Doc. Type", Rec."Gen. Jnl. Template Name", Rec."Gen. Jnl. Batch Name", Rec."Line No.");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Deferral Line", 'OnAfterInsertEvent', '', false, false)]
+    local procedure RestrictGenJournalLineOnAfterDeferralLineInsert(var Rec: Record "Deferral Line"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary then
+            exit;
+
+        RestrictGenJournalLineFromDeferral(Rec."Deferral Doc. Type", Rec."Gen. Jnl. Template Name", Rec."Gen. Jnl. Batch Name", Rec."Line No.");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Deferral Line", 'OnAfterModifyEvent', '', false, false)]
+    local procedure RestrictGenJournalLineOnAfterDeferralLineModify(var Rec: Record "Deferral Line"; var xRec: Record "Deferral Line"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary then
+            exit;
+        if Format(Rec) = Format(xRec) then
+            exit;
+
+        RestrictGenJournalLineFromDeferral(Rec."Deferral Doc. Type", Rec."Gen. Jnl. Template Name", Rec."Gen. Jnl. Batch Name", Rec."Line No.");
+    end;
+
+    local procedure RestrictGenJournalLineFromDeferral(DeferralDocType: Enum "Deferral Document Type"; GenJnlTemplateName: Code[10]; GenJnlBatchName: Code[10]; LineNo: Integer)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        if DeferralDocType <> DeferralDocType::"G/L" then
+            exit;
+
+        if GenJournalLine.Get(GenJnlTemplateName, GenJnlBatchName, LineNo) then
+            RestrictGenJournalLine(GenJournalLine);
     end;
 
     [IntegrationEvent(false, false)]
