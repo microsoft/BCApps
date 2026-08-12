@@ -22,9 +22,16 @@ codeunit 4763 "Contoso Manufacturing"
         tabledata "Production BOM Header" = rim,
         tabledata "Production BOM Line" = rim,
         tabledata "Routing Header" = rim,
+        tabledata "Routing Comment Line" = rimd,
         tabledata "Routing Line" = rim,
+        tabledata "Routing Personnel" = rimd,
+        tabledata "Routing Quality Measure" = rimd,
+        tabledata "Routing Tool" = rimd,
         tabledata "Standard Task" = rim,
         tabledata "Standard Task Description" = rim,
+        tabledata "Standard Task Personnel" = r,
+        tabledata "Standard Task Quality Measure" = r,
+        tabledata "Standard Task Tool" = r,
         tabledata "Work Center" = rim,
         tabledata "Work Center Group" = rim,
         tabledata "Machine Center" = rim,
@@ -200,8 +207,10 @@ codeunit 4763 "Contoso Manufacturing"
         if RoutingLine.Get(RoutingNo, VersionCode, OperationNo) then begin
             Exists := true;
 
-            if not OverwriteData then
+            if not OverwriteData then begin
+                AssignStandardTaskToExistingRoutingLine(RoutingLine, StandardTaskCode);
                 exit;
+            end;
         end;
 
         RoutingLine.Validate("Routing No.", RoutingNo);
@@ -226,6 +235,37 @@ codeunit 4763 "Contoso Manufacturing"
             RoutingLine.Modify(true)
         else
             RoutingLine.Insert(true);
+    end;
+
+    local procedure AssignStandardTaskToExistingRoutingLine(var RoutingLine: Record "Routing Line"; StandardTaskCode: Code[10])
+    var
+        RoutingHeader: Record "Routing Header";
+        ExistingDescription: Text[100];
+        ExistingDescription2: Text[50];
+        WasCertified: Boolean;
+    begin
+        if (StandardTaskCode = '') or (RoutingLine."Standard Task Code" <> '') then
+            exit;
+
+        ExistingDescription := RoutingLine.Description;
+        ExistingDescription2 := RoutingLine."Description 2";
+
+        RoutingHeader.Get(RoutingLine."Routing No.");
+        WasCertified := RoutingHeader.Status = RoutingHeader.Status::Certified;
+        if WasCertified then begin
+            RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+            RoutingHeader.Modify(true);
+        end;
+
+        RoutingLine.Validate("Standard Task Code", StandardTaskCode);
+        RoutingLine.Description := ExistingDescription;
+        RoutingLine."Description 2" := ExistingDescription2;
+        RoutingLine.Modify(true);
+
+        if WasCertified then begin
+            RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+            RoutingHeader.Modify(true);
+        end;
     end;
 
     procedure InsertStandardTask(StandardTaskCode: Code[10]; Description: Text[100])
