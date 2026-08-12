@@ -329,7 +329,7 @@ report 713 "Inventory - Customer Sales"
             Type = Word;
             LayoutFile = '.\Inventory\Reports\InventoryCustomerSalesBody.docx';
             Caption = 'Body-only: Inventory Customer Sales Word';
-            Summary = 'Portrait inventory customer sales. Per item and customer: invoiced quantity, sales amount, discount, profit and profit %, with subtotals per item and overall totals.';
+            Summary = 'Portrait inventory customer sales. Per item and customer: invoiced quantity, sales amount, discount, profit, and profit %, with subtotals per item, and overall totals.';
         }
     }
 

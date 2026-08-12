@@ -376,7 +376,7 @@ report 1702 "Deferral Summary - Purchasing"
             //Subtype = Body;
             LayoutFile = './Finance/Deferral/DeferralSummaryPurchasingBody.docx';
             Caption = 'Deferral Summary Purchasing Word';
-            Summary = 'Landscape purchase deferral summary. Per vendor: posting date, document, line type and description, deferral account, start date and periods, with amount recognised, remaining and total deferred, plus totals.';
+            Summary = 'Landscape purchase deferral summary. Per vendor: posting date, document, line type, and description, deferral account, start date, and periods, with amount recognised, remaining, and total deferred, plus totals.';
         }
     }
 

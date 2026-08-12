@@ -245,7 +245,7 @@ report 714 "Inventory - Vendor Purchases"
             //Subtype = Body;
             LayoutFile = './Inventory/Reports/InventoryVendorPurchasesBody.docx';
             Caption = 'Body-only: Inventory - Vendor Purchases Word';
-            Summary = 'Portrait inventory vendor purchases. Per item and vendor: invoiced quantity, cost amount and discount amount, with subtotals per item and overall totals.';
+            Summary = 'Portrait inventory vendor purchases. Per item and vendor: invoiced quantity, cost amount, and discount amount, with subtotals per item, and overall totals.';
         }
     }
 

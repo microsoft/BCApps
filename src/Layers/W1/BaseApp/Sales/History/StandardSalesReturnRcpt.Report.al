@@ -651,7 +651,7 @@ report 1309 "Standard Sales - Return Rcpt."
             //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesReturnRcptBody.docx';
             Caption = 'Body-only: Standard Sales Return Receipt (Word)';
-            Summary = 'Portrait sales return receipt. Customer and company address, header (date, shipment date, return order no.), and item lines with number, description, quantity and unit of measure.';
+            Summary = 'Portrait sales return receipt. Customer and company address, header (date, shipment date, return order no.), and item lines with number, description, quantity, and unit of measure.';
         }
     }
 

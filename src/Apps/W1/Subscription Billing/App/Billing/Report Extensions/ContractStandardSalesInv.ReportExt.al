@@ -202,7 +202,7 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
             //Subtype = Body;
             LayoutFile = './Billing/Report Extensions/Layouts/SalesInvoiceForSubscriptionBillingBody.docx';
             Caption = 'Body-only: Sales Invoice for Subscription Billing (Word)';
-            Summary = 'Portrait sales invoice for subscription billing. Customer and company address, header (references, due date, payment/shipping details, tracking), item lines with price, discount %, VAT % and amount, and VAT-inclusive totals.';
+            Summary = 'Portrait sales invoice for subscription billing. Customer and company address, header (references, due date, payment/shipping details, tracking), item lines with price, discount %, VAT %, and amount, and VAT-inclusive totals.';
         }
     }
 

@@ -240,7 +240,7 @@ report 5085 "Contact Cover Sheet"
         {
             Type = Word;
             LayoutFile = './CRM/Reports/ContactCoverSheetBody.docx';
-            Summary = 'Portrait contact cover sheet. Contact and company address blocks plus company VAT reg. no., giro no. and bank details, closing with a regards line.';
+            Summary = 'Portrait contact cover sheet. Contact and company address blocks plus company VAT reg. no., giro no., and bank details, closing with a regards line.';
         }
     }
 

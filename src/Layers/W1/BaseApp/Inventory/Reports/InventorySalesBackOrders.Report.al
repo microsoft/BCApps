@@ -278,7 +278,7 @@ report 718 "Inventory - Sales Back Orders"
             //Subtype = Body;
             LayoutFile = '.\Inventory\Reports\InventorySalesBackOrdersBody.docx';
             Caption = 'Body-only: Inventory - Sales Back Orders Word';
-            Summary = 'Portrait inventory sales back orders. Per item: sales order no., customer name and phone, shipment date, quantity and outstanding quantity, and other back orders, with outstanding subtotals.';
+            Summary = 'Portrait inventory sales back orders. Per item: sales order no., customer name, and phone, shipment date, quantity, and outstanding quantity, and other back orders, with outstanding subtotals.';
         }
     }
 

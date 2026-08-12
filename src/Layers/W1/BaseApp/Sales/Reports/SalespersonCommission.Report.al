@@ -481,7 +481,7 @@ report 115 "Salesperson - Commission"
             //Subtype = Body;
             LayoutFile = './Sales/Reports/SalespersonCommissionBody.docx';
             Caption = 'Body-only: Salesperson Commission Word';
-            Summary = 'Landscape salesperson commission. Per salesperson and entry: posting date, document and customer no., sales, profit and adjusted profit, with sales/profit/adjusted commission amounts, subtotals and totals. In LCY.';
+            Summary = 'Landscape salesperson commission. Per salesperson and entry: posting date, document, and customer no., sales, profit, and adjusted profit, with sales/profit/adjusted commission amounts, subtotals, and totals. In LCY.';
         }
     }
 

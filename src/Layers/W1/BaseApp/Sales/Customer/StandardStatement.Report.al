@@ -1009,7 +1009,7 @@ report 1316 "Standard Statement"
             //Subtype = Body;
             LayoutFile = './Sales/Customer/StandardStatementBody.docx';
             Caption = 'Standard Customer Statement (Word)';
-            Summary = 'Portrait customer statement. Customer and company address, opening balance, ledger entries with document, due date and amounts, overdue entries and aging bands, and closing balance per currency.';
+            Summary = 'Portrait customer statement. Customer and company address, opening balance, ledger entries with document, due date, and amounts, overdue entries, and aging bands, and closing balance per currency.';
         }
         layout("StandardCustomerStatementEmailBody.docx")
         {
@@ -1018,7 +1018,7 @@ report 1316 "Standard Statement"
             //HeaderPart = Standard_HeaderFooter;
             LayoutFile = './Sales/Customer/StandardCustomerStatementEmailBody.docx';
             Caption = 'Body-only: Standard Customer Statement Email (Word)';
-            Summary = 'Portrait customer statement email body. Statement heading and customer no., greeting, body and closing text, and company address. Cover text for the statement email.';
+            Summary = 'Portrait customer statement email body. Statement heading and customer no., greeting, body, and closing text, and company address. Cover text for the statement email.';
         }
     }
 

@@ -265,7 +265,7 @@ report 1017 "Job Task Quote"
             //Subtype = Body;
             LayoutFile = './Projects/Project/Reports/JobTaskQuoteBody.docx';
             Caption = 'Body-only: Project Task Quote (Word)';
-            Summary = 'Landscape project (job) task quote. Bill-to and company address, job no. and description, task lines with task no., type, number, quantity, unit price, line discount % and amount, and total job value.';
+            Summary = 'Landscape project (job) task quote. Bill-to and company address, job no., and description, task lines with task no., type, number, quantity, unit price, line discount % and amount, and total job value.';
         }
     }
 

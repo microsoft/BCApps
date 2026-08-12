@@ -85,7 +85,7 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
             //Subtype = Body;
             LayoutFile = 'src\Reports\StandardESGSalesQuoteBody.docx';
             Caption = 'Body-only: Standard ESG Sales Quote (Word)';
-            Summary = 'Portrait ESG sales quote. Customer and company address, header (dates, reference, valid-to, salesperson, terms), item lines with CO2e per unit, quantity, price, discount %, VAT % and amount, VAT-inclusive totals and total CO2e.';
+            Summary = 'Portrait ESG sales quote. Customer and company address, header (dates, reference, valid-to, salesperson, terms), item lines with CO2e per unit, quantity, price, discount %, VAT %, and amount, VAT-inclusive totals, and total CO2e.';
         }
 
     }
