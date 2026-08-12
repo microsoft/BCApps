@@ -513,7 +513,6 @@ page 6181 "E-Document Purchase Draft"
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
-        EnsureManualDraftForFailedExtraction();
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
         if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
             EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
@@ -731,37 +730,6 @@ page 6181 "E-Document Purchase Draft"
         if GuiAllowed() then
             Progress.Close();
         EDocumentErrorHelper.ThrowIfHasErrors(Rec);
-    end;
-
-    local procedure EnsureManualDraftForFailedExtraction()
-    var
-        ExistingEDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
-        EDocImport: Codeunit "E-Doc. Import";
-        OriginalStructureDataImpl: Enum "Structure Received E-Doc.";
-    begin
-        // When extraction failed, build an empty editable draft on open, treating the data as already structured for this run only and restoring the selection so it can still be re-analyzed.
-        Rec.CalcFields("Import Processing Status");
-        if not ((Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and (Rec.Status = Enum::"E-Document Status"::Error)) then
-            exit;
-        if ExistingEDocumentPurchaseHeader.Get(Rec."Entry No") then
-            exit;
-        if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
-            exit;
-
-        OriginalStructureDataImpl := Rec."Structure Data Impl.";
-        Rec."Structure Data Impl." := Enum::"Structure Received E-Doc."::"Already Structured";
-        Rec."Read into Draft Impl." := Enum::"E-Doc. Read into Draft"::"Blank Draft";
-        Rec.Modify();
-
-        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Read into Draft";
-        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
-        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
-
-        Rec.Get(Rec."Entry No");
-        Rec."Structure Data Impl." := OriginalStructureDataImpl;
-        Rec.Modify();
     end;
 
     local procedure ProvideFeedback()

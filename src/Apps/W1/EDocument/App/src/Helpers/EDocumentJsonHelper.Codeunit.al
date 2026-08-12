@@ -35,18 +35,18 @@ codeunit 6121 "EDocument Json Helper"
             exit(JsonToken.AsArray());
     end;
 
-    internal procedure HasExtractedInvoiceData(SourceJsonObject: JsonObject): Boolean
+    internal procedure HasADIExtractedInvoiceData(SourceJsonObject: JsonObject): Boolean
     var
         InnerObject: JsonObject;
         ItemsJsonArray: JsonArray;
         FieldsToken, ItemToken, ItemFieldsToken : JsonToken;
         ItemIndex: Integer;
     begin
-        if not TryGetResultObject(SourceJsonObject, InnerObject) then
+        if not TryGetADIResultObject(SourceJsonObject, InnerObject) then
             exit(false);
 
         if InnerObject.Get('fields', FieldsToken) and FieldsToken.IsObject() then
-            if HasExtractedFieldValue(FieldsToken.AsObject()) then
+            if HasADIExtractedFieldValue(FieldsToken.AsObject()) then
                 exit(true);
 
         if InnerObject.Get('items', ItemToken) and ItemToken.IsArray() then begin
@@ -54,14 +54,14 @@ codeunit 6121 "EDocument Json Helper"
             for ItemIndex := 0 to ItemsJsonArray.Count() - 1 do
                 if ItemsJsonArray.Get(ItemIndex, ItemToken) and ItemToken.IsObject() then
                     if ItemToken.AsObject().Get('fields', ItemFieldsToken) and ItemFieldsToken.IsObject() then
-                        if HasExtractedFieldValue(ItemFieldsToken.AsObject()) then
+                        if HasADIExtractedFieldValue(ItemFieldsToken.AsObject()) then
                             exit(true);
         end;
 
         exit(false);
     end;
 
-    local procedure TryGetResultObject(SourceJsonObject: JsonObject; var ResultObject: JsonObject): Boolean
+    local procedure TryGetADIResultObject(SourceJsonObject: JsonObject; var ResultObject: JsonObject): Boolean
     var
         JsonToken: JsonToken;
         OutputsObject: JsonObject;
@@ -77,7 +77,7 @@ codeunit 6121 "EDocument Json Helper"
         exit(true);
     end;
 
-    local procedure HasExtractedFieldValue(FieldsJsonObject: JsonObject): Boolean
+    local procedure HasADIExtractedFieldValue(FieldsJsonObject: JsonObject): Boolean
     var
         FieldJsonObject: JsonObject;
         FieldNames: List of [Text];
@@ -88,9 +88,9 @@ codeunit 6121 "EDocument Json Helper"
         foreach FieldName in FieldNames do
             if FieldsJsonObject.Get(FieldName, JsonToken) and JsonToken.IsObject() then begin
                 FieldJsonObject := JsonToken.AsObject();
-                if HasJsonValue(FieldJsonObject, 'value_text') or
-                   HasJsonValue(FieldJsonObject, 'value_number') or
-                   HasJsonValue(FieldJsonObject, 'value_date')
+                if HasADIJsonValue(FieldJsonObject, 'value_text') or
+                   HasADIJsonValue(FieldJsonObject, 'value_number') or
+                   HasADIJsonValue(FieldJsonObject, 'value_date')
                 then
                     exit(true);
             end;
@@ -98,7 +98,7 @@ codeunit 6121 "EDocument Json Helper"
         exit(false);
     end;
 
-    local procedure HasJsonValue(FieldJsonObject: JsonObject; PropertyName: Text): Boolean
+    local procedure HasADIJsonValue(FieldJsonObject: JsonObject; PropertyName: Text): Boolean
     var
         JsonToken: JsonToken;
     begin

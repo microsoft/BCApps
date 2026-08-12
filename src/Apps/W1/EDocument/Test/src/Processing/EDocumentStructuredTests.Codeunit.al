@@ -92,7 +92,7 @@ codeunit 139891 "E-Document Structured Tests"
     begin
         ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{"invoiceId":{"value_text":null,"value_number":null,"value_date":null}},"items":[{"fields":{"description":{"value_text":"   ","value_number":null,"value_date":null}}}]}}}}');
 
-        Assert.IsFalse(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'An ADI response containing only empty extracted values must be treated as empty.');
+        Assert.IsFalse(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'An ADI response containing only empty extracted values must be treated as empty.');
     end;
 
     [Test]
@@ -103,7 +103,7 @@ codeunit 139891 "E-Document Structured Tests"
     begin
         ResponseJson.ReadFrom('{}');
 
-        Assert.IsFalse(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'An empty ADI JSON response must be treated as empty.');
+        Assert.IsFalse(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'An empty ADI JSON response must be treated as empty.');
     end;
 
     [Test]
@@ -114,7 +114,7 @@ codeunit 139891 "E-Document Structured Tests"
     begin
         ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{},"items":[{"fields":{"description":{"value_text":"Consulting","value_number":null,"value_date":null}}}]}}}}');
 
-        Assert.IsTrue(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'A line value must count as extracted invoice data.');
+        Assert.IsTrue(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'A line value must count as extracted invoice data.');
     end;
 
     [Test]
@@ -125,7 +125,7 @@ codeunit 139891 "E-Document Structured Tests"
     begin
         ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{"invoiceTotal":{"value_text":null,"value_number":0,"value_date":null}},"items":[]}}}}');
 
-        Assert.IsTrue(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'A numeric zero must count as extracted invoice data.');
+        Assert.IsTrue(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'A numeric zero must count as extracted invoice data.');
     end;
 
     [Test]
@@ -136,21 +136,20 @@ codeunit 139891 "E-Document Structured Tests"
     begin
         ResponseJson.ReadFrom(NavApp.GetResourceAsText('capi/capi-invoice-valid-0.json'));
 
-        Assert.IsTrue(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'The valid ADI fixture must contain extracted invoice data.');
+        Assert.IsTrue(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'The valid ADI fixture must contain extracted invoice data.');
     end;
 
     [Test]
-    procedure TestOpeningFailedExtractionCreatesEditableDraft()
+    procedure TestOpeningFailedExtractionCreatesDraftWithoutReprocessing()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocLogRecord: Record "E-Document Log";
         EDocumentLog: Codeunit "E-Document Log";
         EDocumentProcessing: Codeunit "E-Document Processing";
-        EDocPurchaseDraftTestPage: TestPage "E-Document Purchase Draft";
+        EDocPreparePurchDraft: Codeunit "EDoc Prepare Purch. Draft";
     begin
-        // [SCENARIO] Opening the draft of a document whose extraction failed creates an empty editable
-        // draft without permanently reclassifying how the document was structured.
+        // [SCENARIO] Opening the draft of a document whose extraction failed creates the records required by the page without reprocessing the document.
         Initialize(Enum::"Service Integration"::"Mock");
         SetupCAPIEDocumentService();
 
@@ -169,24 +168,24 @@ codeunit 139891 "E-Document Structured Tests"
         EDocument.Status := EDocument.Status::Error;
         EDocument.Modify();
 
-        // [WHEN] The user opens the failed document's draft page
-        EDocPurchaseDraftTestPage.OpenEdit();
-        EDocPurchaseDraftTestPage.GoToRecord(EDocument);
-        EDocPurchaseDraftTestPage.Close();
+        // [WHEN] The draft is opened for the failed document
+        EDocPreparePurchDraft.EnsureDraftHeaderExistsForFailedExtraction(EDocument);
 
-        // [THEN] A blank purchase draft exists and the document has advanced past the failed structure step
+        // [THEN] A purchase draft header exists so the draft page can render
         EDocument.Get(EDocument."Entry No");
         EDocument.CalcFields("Import Processing Status");
-        Assert.IsTrue(
-            EDocument."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"],
-            'Opening the draft should advance the document to the draft stage.');
         Assert.IsTrue(EDocumentPurchaseHeader.Get(EDocument."Entry No"), 'A purchase draft header should exist after opening the draft.');
 
-        // [THEN] The document was read as a blank draft
-        Assert.AreEqual(Enum::"E-Doc. Read into Draft"::"Blank Draft", EDocument."Read into Draft Impl.", 'The document should be read as a blank draft.');
+        // [THEN] The failed processing state and implementation remain unchanged so the extraction error is preserved and ADI can be retried
+        Assert.AreEqual(Enum::"Import E-Document Steps"::"Structure received data", EDocument."Import Processing Status", 'Opening the draft must not advance the import pipeline.');
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'Opening the draft must preserve the extraction error state.');
+        Assert.AreEqual(Enum::"Structure Received E-Doc."::ADI, EDocument."Structure Data Impl.", 'Opening the draft must preserve the structuring implementation.');
 
-        // [THEN] The structuring selection is restored, so the document is not reclassified and ADI can be retried
-        Assert.AreEqual(Enum::"Structure Received E-Doc."::ADI, EDocument."Structure Data Impl.", 'Opening the draft must restore the original structuring implementation.');
+        // [THEN] Reopening is idempotent: the guard prevents reprocessing or a duplicate draft
+        EDocPreparePurchDraft.EnsureDraftHeaderExistsForFailedExtraction(EDocument);
+        EDocumentPurchaseHeader.Reset();
+        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.AreEqual(1, EDocumentPurchaseHeader.Count(), 'Reopening must not create a duplicate draft header.');
     end;
     #endregion
 
