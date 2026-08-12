@@ -10095,8 +10095,10 @@ table 39 "Purchase Line"
         OutstandingAmountExclTax: Decimal;
     begin
         if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Rcd. Not Invoiced" = 0) then
-            if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then
+            if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then begin
+                CapPrepmtAmountsToLineAmountForFullGST();
                 exit;
+            end;
 
         if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then begin
             OutstandingAmountExclTax := CalculateOutstandingAmountExclTax();
@@ -10115,6 +10117,24 @@ table 39 "Purchase Line"
         end;
         if not IsTemporary() then
             CheckPrepmtAmounts();
+    end;
+
+    local procedure CapPrepmtAmountsToLineAmountForFullGST()
+    var
+        LineAmountAfterInvDisc: Decimal;
+    begin
+        if not (GetFullGST() and (not PrePaymentLineAmountEntered)) then
+            exit;
+
+        LineAmountAfterInvDisc := "Line Amount" - "Inv. Discount Amount";
+        if "Prepmt. Line Amount" <= LineAmountAfterInvDisc then
+            exit;
+
+        "Prepmt. Line Amount" := LineAmountAfterInvDisc;
+        if "Prepmt. Line Amount" < "Prepmt. Amt. Inv." then
+            "Prepmt. Line Amount" := "Prepmt. Amt. Inv.";
+        if "Prepmt. VAT Base Amt." > "Prepmt. Line Amount" then
+            "Prepmt. VAT Base Amt." := "Prepmt. Line Amount";
     end;
 
     local procedure CalculateOutstandingAmountExclTax(): Decimal

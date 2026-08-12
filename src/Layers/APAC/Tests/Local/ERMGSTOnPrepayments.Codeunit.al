@@ -1016,6 +1016,59 @@ codeunit 141026 "ERM GST On Prepayments"
         Assert.ExpectedError(DocumentErrorsMgt.GetNothingToPostErrorMsg());
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure NoSecondPurchPrepmtInvoiceAfterQtyReducedToInvoicedQtyWithFullGST()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [FEATURE] [GST] [Prepayment] [Purchase]
+        // [SCENARIO 643225] No second Prepayment Invoice is generated when a Full GST on Prepayment purchase order line is reduced to the already received and invoiced quantity after a Prepayment Credit Memo.
+
+        // [GIVEN] Full GST on Prepayment enabled and a Purchase Order with 100% Prepayment, Quantity 10.
+        Initialize();
+        CreateGeneralPostingSetup(GeneralPostingSetup);
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor(GeneralPostingSetup."Gen. Bus. Posting Group", 0));
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, CreateItem(GeneralPostingSetup."Gen. Prod. Posting Group"), 10);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
+        PurchaseLine.Validate("Prepayment %", 100);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Prepayment Invoice is posted for the full quantity.
+        LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+
+        // [GIVEN] Only part of the order (6 out of 10) is received and invoiced.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", 6);
+        PurchaseLine.Validate("Qty. to Invoice", 6);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");  // Unique Vendor Invoice No. required for the final invoice.
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Prepayment Credit Memo is posted, reversing the un-deducted prepayment.
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", PurchaseHeader."No.");  // Unique Vendor Cr. Memo No. required for the credit memo.
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchasePrepaymentCreditMemo(PurchaseHeader);
+
+        // [WHEN] The order is reopened and the quantity is reduced to the received and invoiced quantity (6).
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate(Quantity, 6);
+        PurchaseLine.Modify(true);
+
+        // [THEN] The stored prepayment amount is reduced to the current line amount (after invoice discount), so no phantom prepayment remains.
+        PurchaseLine.TestField("Prepmt. Line Amount", PurchaseLine."Line Amount" - PurchaseLine."Inv. Discount Amount");
+
+        // [THEN] Posting another Prepayment Invoice reports there is nothing to post.
+        asserterror LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+        Assert.ExpectedError(DocumentErrorsMgt.GetNothingToPostErrorMsg());
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
