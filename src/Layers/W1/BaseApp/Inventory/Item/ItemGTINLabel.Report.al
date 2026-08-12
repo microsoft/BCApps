@@ -88,7 +88,7 @@ report 6625 "Item GTIN Label"
             //Subtype = Body;
             LayoutFile = './Inventory/Item/ItemGTINLabelBody.docx';
             Caption = 'Body-only: Item GTIN Label (Word)';
-            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+            Summary = 'Portrait item label. Item description and number with a GTIN barcode (1D and 2D) for physical item and shelf labelling.';
         }
     }
 

@@ -315,7 +315,7 @@ report 1016 "Job Quote"
             //Subtype = Body;
             LayoutFile = './Projects/Project/Reports/JobQuoteBody.docx';
             Caption = 'Body-only: Project Quote (Word)';
-            Summary = 'Body-only: The Project Quote (Word) provides a basic layout.';
+            Summary = 'Landscape project (job) quote. Bill-to and company address, job no. and description, planning lines with type, number, quantity, unit price, line discount % and amount, and total job value.';
         }
     }
 

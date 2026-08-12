@@ -1037,7 +1037,7 @@ report 1304 "Standard Sales - Quote"
             //Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesQuoteBody.docx';
             Caption = 'Body-only: Standard Sales Quote (Word)';
-            Summary = 'Body-only: The Standard Sales Quote (Word) provides a basic layout.';
+            Summary = 'Portrait sales quote. Customer and company address, header (document no., your reference, valid-to date, salesperson, payment terms, shipment method), item lines with price, discount %, VAT % and amount, and VAT-inclusive totals.';
         }
 
         layout("StandardSalesQuoteEmailBody.docx")

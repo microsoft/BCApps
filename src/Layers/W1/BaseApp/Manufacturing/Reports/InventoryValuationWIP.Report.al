@@ -504,7 +504,7 @@ report 5802 "Inventory Valuation - WIP"
             //subtype = Body;
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIPBody.docx';
             Caption = 'Body-only: Production Order - WIP Word';
-            Summary = 'Body-only: Built in layout for the Production Order - WIP Word report.';
+            Summary = 'Landscape inventory valuation - WIP. Per production order: status, no., description and source, with WIP value split into material consumption, capacity and output at the end date, and cost posted to G/L, plus totals.';
         }
     }
 

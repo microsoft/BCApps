@@ -97,7 +97,7 @@ report 6626 "Reference No Label"
             //Subtype = Body;
             LayoutFile = './Inventory/Reports/ReferenceNoLabelBody.docx';
             Caption = 'Body-only: Reference No. Label (Word)';
-            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+            Summary = 'Portrait item label. Item description, number and unit of measure with a reference-number barcode (1D and 2D) for labelling.';
         }
     }
 

@@ -300,7 +300,7 @@ report 99000753 "Quantity Explosion of BOM"
             //Subtype = Body;
             LayoutFile = './Manufacturing/Reports/QuantityExplosionofBOMBody.docx';
             Caption = 'Body-only: Quantity Explosion of BOM Word';
-            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+            Summary = 'Portrait quantity explosion of BOM. For a calculation date: the item''s indented BOM component levels with number, description, quantity, unit of measure and total BOM quantity.';
         }
     }
 

@@ -1347,7 +1347,7 @@ report 1306 "Standard Sales - Invoice"
             //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesInvoiceBody.docx';
             Caption = 'Body-only: Standard Sales Invoice (Word)';
-            Summary = 'Body-only: The Standard Sales Invoice (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+            Summary = 'Portrait sales invoice. Customer and company address, header with dates, references, payment terms, shipping and tracking, item lines with quantity, price, discount %, VAT % and amount, and VAT-inclusive totals.';
         }
         layout("StandardSalesInvoiceVatSpecBody.docx")
         {
@@ -1355,7 +1355,7 @@ report 1306 "Standard Sales - Invoice"
             //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesInvoiceVatSpecBody.docx';
             Caption = 'Body-only: Standard Sales Invoice - VAT Spec (Word)';
-            Summary = 'Body-only: The Standard Sales Invoice - VAT Spec (Word) provides a layout with VAT Specification.';
+            Summary = 'Portrait sales invoice with VAT specification. Customer and company address, header and item lines with price, discount %, VAT % and amount, VAT-inclusive totals, and a VAT specification (base and amount per VAT identifier, in LCY).';
         }
         layout("StandardSalesInvoiceDefEmailBody.docx")
         {
@@ -1363,7 +1363,7 @@ report 1306 "Standard Sales - Invoice"
             //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesInvoiceDefEmailBody.docx';
             Caption = 'Body-only: Standard Sales Invoice Email (Word)';
-            Summary = 'Body-only: The Standard Sales Invoice Email (Word) provides the default email body layout.';
+            Summary = 'Portrait sales invoice email body. Company address and bill-to customer no., greeting, body and closing text, document no., due date, total including VAT and a payment-service logo. Cover text for the invoice email.';
         }
     }
 

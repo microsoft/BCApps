@@ -104,7 +104,7 @@ report 5084 "Email Merge"
             //Subtype = Body;
             LayoutFile = './CRM/Interaction/DefaultEmailMergeDocBody.docx';
             Caption = 'Body-only: EMail Merge (Word)';
-            Summary = 'Body-only: The EMail Merge (Word) provides a basic layout.';
+            Summary = 'Portrait email-merge letter. Salutation, free-text body content and a closing signature with the salesperson''s name and job title. Used for mail-merge letters to contacts.';
         }
     }
 

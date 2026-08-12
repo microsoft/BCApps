@@ -1086,7 +1086,7 @@ report 1305 "Standard Sales - Order Conf."
             //Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesOrderConfBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Body (Word)';
-            Summary = 'Simple layout with most necessary fields.';
+            Summary = 'Portrait sales order confirmation. Customer and company address, header (document no., date, external doc. no., salesperson, quote no., shipment method), item lines with price, discount %, VAT % and amount, and VAT-inclusive totals.';
         }
         layout("StandardOrderConfirmationEmailBody.docx")
         {
@@ -1095,7 +1095,7 @@ report 1305 "Standard Sales - Order Conf."
             //HeaderFooterPart = 'External Minimalistic';
             LayoutFile = './Sales/Document/StandardOrderConfirmationEmailBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Email (Word)';
-            Summary = 'Layout intended for an email body.';
+            Summary = 'Portrait order confirmation email body. Company address and bill-to customer no., greeting, body and closing text, document no., due date and total including VAT. Cover text for the confirmation email.';
         }
     }
 

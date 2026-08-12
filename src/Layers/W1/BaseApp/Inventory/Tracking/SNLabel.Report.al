@@ -94,7 +94,7 @@ report 6627 "SN Label"
             //Subtype = Body;
             LayoutFile = './Inventory/Tracking/SNLabelBody.docx';
             Caption = 'Body-only: SN Label (Word)';
-            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+            Summary = 'Portrait item tracking label. Item description and number with the serial number as text and a 2D barcode. For labelling serial-tracked items.';
         }
     }
 
