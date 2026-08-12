@@ -81,17 +81,50 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
-    procedure ComposedFrenchFeatureStateIsRestoredBetweenTests()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure SuccessfulComposedFrenchTestBodyRestoresFeatureState()
     var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
         DepreciationBookRecordRef: RecordRef;
+        PreviousFeatureStatus: Enum "Feature Status";
+        AcceleratedDepreciationFeatureKey: Text[50];
+        FeatureStatusRecordExisted: Boolean;
     begin
         DepreciationBookRecordRef.Open(Database::"Depreciation Book");
         if not DepreciationBookRecordRef.FieldExist(10802) then
             exit;
 
-        Assert.IsTrue(
-            ComposedFrenchFeatureStateCleanup.WasLastFeatureStateRestored(),
-            'The preceding composed-French W1 test must restore its feature state.');
+        AcceleratedDepreciationFeatureKey := 'AcceleratedDepreciation';
+        FeatureStatusRecordExisted :=
+            FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName());
+        if FeatureStatusRecordExisted then
+            PreviousFeatureStatus := FeatureDataUpdateStatus."Feature Status";
+        ComposedFrenchFeatureStateCleanup.CaptureFeatureState(
+            AcceleratedDepreciationFeatureKey, CompanyName());
+        if not FeatureStatusRecordExisted then begin
+            FeatureDataUpdateStatus."Feature Key" := AcceleratedDepreciationFeatureKey;
+            FeatureDataUpdateStatus."Company Name" :=
+                CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus.Insert();
+        end;
+        if FeatureDataUpdateStatus."Feature Status" = FeatureDataUpdateStatus."Feature Status"::Enabled then
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled
+        else
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled;
+        FeatureDataUpdateStatus.Modify();
+        Commit();
+
+        asserterror CompleteTestBody();
+        Assert.ExpectedError(TestBodyCompletedErr);
+        RestoreFeatureStateAfterTestBody();
+
+        if FeatureStatusRecordExisted then begin
+            FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName());
+            FeatureDataUpdateStatus.TestField("Feature Status", PreviousFeatureStatus);
+        end else
+            Assert.IsFalse(
+                FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName()),
+                'Cleanup must delete a feature-status row created by the successful test body.');
     end;
 
     [Test]
