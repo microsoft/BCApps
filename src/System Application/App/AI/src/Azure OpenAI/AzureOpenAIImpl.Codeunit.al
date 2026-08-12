@@ -130,7 +130,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
         FastPromptResponse.Set(ALCopilotFastPromptResponse.IsFastPrompt(), ALCopilotFastPromptResponse.Template(), ALCopilotFastPromptResponse.ErrorCode(), ALCopilotFastPromptResponse.ErrorText());
         CustomDimensions.Add('IsFastPrompt', Format(ALCopilotFastPromptResponse.IsFastPrompt()));
-        if (ALCopilotFastPromptResponse.IsFastPrompt() and (ALCopilotFastPromptResponse.Template() <> '')) then begin
+        if (FastPromptResponse.IsFastPrompt() and (not FastPromptResponse.GetTemplate().IsEmpty())) then begin
             FeatureTelemetry.LogUsage('0000MTD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, Enum::"AL Telemetry Scope"::ExtensionPublisher, CustomDimensions);
             exit(true);
         end;
