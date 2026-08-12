@@ -1080,6 +1080,8 @@ report 1305 "Standard Sales - Order Conf."
             ObsoleteTag = '32.0';
         }
 #endif
+
+
         layout("StandardSalesOrderConfBody.docx")
         {
             Type = Word;
