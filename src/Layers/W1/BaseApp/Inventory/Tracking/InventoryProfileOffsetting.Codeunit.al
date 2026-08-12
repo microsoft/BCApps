@@ -2609,28 +2609,32 @@ codeunit 99000854 "Inventory Profile Offsetting"
             then begin
                 AdjustTransferDates(ReqLine);
                 if ReqLine."Action Message" = ReqLine."Action Message"::New then begin
-                    CurrentSupplyInvtProfile.Copy(SupplyInvtProfile);
+                    IsHandled := false;
+                    OnMaintainPlanningLineOnBeforeCreateDemandInvtProfileForTransfer(ReqLine, SupplyInvtProfile, TempTrkgReservEntry, LineNo, IsHandled);
+                    if not IsHandled then begin
+                        CurrentSupplyInvtProfile.Copy(SupplyInvtProfile);
 
-                    SupplyInvtProfile.Reset();
-                    SupplyInvtProfile.SetSourceFilter(
-                      Database::"Requisition Line", 1, ReqLine."Worksheet Template Name", ReqLine."Line No.", ReqLine."Journal Batch Name", 0);
-                    SupplyInvtProfile.SetTrackingFilter(CurrentSupplyInvtProfile);
-                    if not SupplyInvtProfile.FindFirst() then begin
-                        SupplyInvtProfile.Init();
-                        SupplyInvtProfile."Line No." := GetNextLineNo();
-                        SupplyInvtProfile."Item No." := ReqLine."No.";
-                        SupplyInvtProfile.TransferFromOutboundTransfPlan(ReqLine, TempItemTrkgEntry);
-                        SupplyInvtProfile.CopyTrackingFromInvtProfile(CurrentSupplyInvtProfile);
-                        if SupplyInvtProfile.IsSupply then
-                            SupplyInvtProfile.ChangeSign();
-                        OnMaintainPlanningLineOnBeforeSupplyInvtProfileInsert(SupplyInvtProfile, CurrentSupplyInvtProfile);
-                        SupplyInvtProfile.Insert();
-                    end else begin
-                        SupplyInvtProfile.TransferFromOutboundTransfPlan(ReqLine, TempItemTrkgEntry);
-                        SupplyInvtProfile.Modify();
+                        SupplyInvtProfile.Reset();
+                        SupplyInvtProfile.SetSourceFilter(
+                          Database::"Requisition Line", 1, ReqLine."Worksheet Template Name", ReqLine."Line No.", ReqLine."Journal Batch Name", 0);
+                        SupplyInvtProfile.SetTrackingFilter(CurrentSupplyInvtProfile);
+                        if not SupplyInvtProfile.FindFirst() then begin
+                            SupplyInvtProfile.Init();
+                            SupplyInvtProfile."Line No." := GetNextLineNo();
+                            SupplyInvtProfile."Item No." := ReqLine."No.";
+                            SupplyInvtProfile.TransferFromOutboundTransfPlan(ReqLine, TempItemTrkgEntry);
+                            SupplyInvtProfile.CopyTrackingFromInvtProfile(CurrentSupplyInvtProfile);
+                            if SupplyInvtProfile.IsSupply then
+                                SupplyInvtProfile.ChangeSign();
+                            OnMaintainPlanningLineOnBeforeSupplyInvtProfileInsert(SupplyInvtProfile, CurrentSupplyInvtProfile);
+                            SupplyInvtProfile.Insert();
+                        end else begin
+                            SupplyInvtProfile.TransferFromOutboundTransfPlan(ReqLine, TempItemTrkgEntry);
+                            SupplyInvtProfile.Modify();
+                        end;
+
+                        SupplyInvtProfile.Copy(CurrentSupplyInvtProfile);
                     end;
-
-                    SupplyInvtProfile.Copy(CurrentSupplyInvtProfile);
                 end else
                     SynchronizeTransferProfiles(SupplyInvtProfile, ReqLine);
             end;
@@ -5437,6 +5441,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
     [IntegrationEvent(false, false)]
     local procedure OnMaintainPlanningLineOnAfterLineCreated(var SupplyInvtProfile: Record "Inventory Profile"; var RequisitionLine: Record "Requisition Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMaintainPlanningLineOnBeforeCreateDemandInvtProfileForTransfer(var RequisitionLine: Record "Requisition Line"; var SupplyInventoryProfile: Record "Inventory Profile"; var TempTrackingReservationEntry: Record "Reservation Entry" temporary; var InventoryProfileLineNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
