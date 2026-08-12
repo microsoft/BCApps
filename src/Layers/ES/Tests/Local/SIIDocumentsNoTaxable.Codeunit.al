@@ -3255,8 +3255,8 @@ codeunit 147524 "SII Documents No Taxable"
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VATProductPostingGroup: Record "VAT Product Posting Group";
         SalesLine: Record "Sales Line";
-        PostedInvoiceNo: Code[20];
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        PostedInvoiceNo: Code[20];
     begin
         LibrarySales.CreateSalesHeader(SalesOrderHeader, SalesOrderHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
         SalesOrderHeader.Validate("Special Scheme Code", SalesOrderHeader."Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
