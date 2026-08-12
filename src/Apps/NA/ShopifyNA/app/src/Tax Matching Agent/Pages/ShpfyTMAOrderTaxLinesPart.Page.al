@@ -97,7 +97,7 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
                 {
                     ApplicationArea = All;
                     StyleExpr = RateStyleExpr;
-                    ToolTip = 'Specifies the Business Central Tax Jurisdiction matched to this Shopify tax line. You can change it to correct or complete the match; the Tax Area is rebuilt from these codes when you approve.';
+                    ToolTip = 'Specifies the Business Central Tax Jurisdiction matched to this Shopify tax line. When it is blank the line is unmatched and highlighted red — assign a Tax Jurisdiction to complete the match. You can change it to correct or complete the match; the Tax Area is rebuilt from these codes when you approve.';
 
                     trigger OnValidate()
                     begin
@@ -204,8 +204,17 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
         TMAMatcher: Codeunit "Shpfy TMA Matcher";
     begin
         Clear(BCRatePct);
+
+        // An unmatched tax line (no Tax Jurisdiction assigned) is highlighted red so the reviewer is
+        // drawn to the line they must complete — mirroring the rate-conflict highlight. The order is
+        // held for review (Tax Match Incomplete) until every line has a Tax Jurisdiction.
+        if Rec."Tax Jurisdiction Code" = '' then begin
+            RateStyleExpr := 'Unfavorable';
+            exit;
+        end;
+
         if not TMAMatcher.TryGetEffectiveItemRate(Rec, BCRatePct) then begin
-            // No jurisdiction assigned yet or no Tax Detail bracket — nothing to compare.
+            // Jurisdiction assigned but no Tax Detail bracket yet — nothing to compare.
             RateStyleExpr := 'Standard';
             exit;
         end;
