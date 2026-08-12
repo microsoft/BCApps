@@ -13,32 +13,33 @@ codeunit 139550 "Intrastat Report Test"
 
     var
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryIntrastat: Codeunit "Library - Intrastat";
         LibraryInventory: Codeunit "Library - Inventory";
-        LibraryERM: Codeunit "Library - ERM";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryMarketing: Codeunit "Library - Marketing";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryService: Codeunit "Library - Service";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryMarketing: Codeunit "Library - Marketing";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
         IsInitialized: Boolean;
-        ValidationErr: Label '%1 must be %2 in %3.', Comment = '%1 = FieldCaption(Quantity),%2 = SalesLine.Quantity,%3 = TableCaption(SalesShipmentLine).';
-        LineNotExistErr: Label 'Intrastat Report Lines incorrectly created.';
-        LineCountErr: Label 'The number of %1 entries is incorrect.', Comment = '%1 = Intrastat Report Line table';
-        InternetURLTxt: Label 'www.microsoft.com';
-        InvalidURLTxt: Label 'URL must be prefix with http.';
-        PackageTrackingNoErr: Label 'Package Tracking No does not exist.';
         HttpTxt: Label 'http://';
+        InternetURLTxt: Label 'www.microsoft.com';
+        IntrastatCountryRegionCodeMustBeSameErr: Label 'Intrastat Country/Region Code must be same.';
+        InvalidURLTxt: Label 'URL must be prefix with http.';
+        LineCountErr: Label 'The number of %1 entries is incorrect.', Comment = '%1 = Intrastat Report Line table';
+        LineNotExistErr: Label 'Intrastat Report Lines incorrectly created.';
         OnDelIntrastatContactErr: Label 'You cannot delete contact number %1 because it is set up as an Intrastat contact in the Intrastat Setup window.', Comment = '%1 - Contact No';
         OnDelVendorIntrastatContactErr: Label 'You cannot delete vendor number %1 because it is set up as an Intrastat contact in the Intrastat Setup window.', Comment = '%1 - Vendor No';
+        PackageTrackingNoErr: Label 'Package Tracking No does not exist.';
         ShptMethodCodeErr: Label 'Wrong Shipment Method Code';
         StatPeriodFormatErr: Label '%1 must be 4 characters, for example, 9410 for October, 1994.', Comment = '%1 - field caption';
         StatPeriodMonthErr: Label 'Please check the month number.';
+        ValidationErr: Label '%1 must be %2 in %3.', Comment = '%1 = FieldCaption(Quantity),%2 = SalesLine.Quantity,%3 = TableCaption(SalesShipmentLine).';
 
     [Test]
     [Scope('OnPrem')]
@@ -4827,6 +4828,68 @@ codeunit 139550 "Intrastat Report Test"
 
         //[THEN] Tariff No selected successfully No error occur
         Assert.AreEqual(TariffNo."No.", ItemTempl."Tariff No.", '');
+    end;
+
+    [Test]
+    [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
+    procedure IntrastatCountryCodeOnSuggestedAndManualIntrastatReportLines()
+    var
+        CountryRegion: array[3] of Record "Country/Region";
+        Customer: Record Customer;
+        Item: Record Item;
+        Location: Record Location;
+        ManualIntrastatReportLine: Record "Intrastat Report Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SuggestedIntrastatReportLine: Record "Intrastat Report Line";
+        DocumentNo: Code[20];
+        IntrastatReportNo: Code[20];
+    begin
+        // [SCENARIO 646599] "Intrastat Country/Region Code" is set both on suggested and on manually added Intrastat Report Lines
+        Initialize();
+
+        // [GIVEN] Create Country/Region with "Intrastat Code", Country/Region with its own "Intrastat Code".
+        LibraryIntrastat.CreateCountryRegion(CountryRegion[1], true);
+        LibraryIntrastat.CreateCountryRegion(CountryRegion[2], true);
+        LibraryIntrastat.CreateCountryRegion(CountryRegion[3], true);
+        CountryRegion[1].Validate("Intrastat Code", CountryRegion[2].Code);
+        CountryRegion[1].Modify(true);
+
+        // [GIVEN] Create Customer with Country/Region Code.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Country/Region Code", CountryRegion[1].Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Posted Sales Order for the customer.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        Item.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        InsertIntrastatInfoInSalesHeader(SalesHeader);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Modify(true);
+        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [GIVEN] Create Intrastat Report with lines created by Suggest Lines.
+        CreateIntrastatReportAndSuggestLines(WorkDate(), IntrastatReportNo);
+
+        // [WHEN] Add a line manually to the same Intrastat Report with "Country/Region Code".
+        LibraryIntrastat.CreateIntrastatReportLineinIntrastatReport(ManualIntrastatReportLine, IntrastatReportNo);
+        ManualIntrastatReportLine.Validate("Country/Region Code", CountryRegion[3].Code);
+        ManualIntrastatReportLine.Modify(true);
+
+        // [THEN] Verify the suggested line has "Intrastat Country/Region Code".
+        SuggestedIntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
+        SuggestedIntrastatReportLine.SetRange("Document No.", DocumentNo);
+        SuggestedIntrastatReportLine.FindFirst();
+        Assert.AreEqual(SuggestedIntrastatReportLine."Intrastat Country/Region Code", CountryRegion[2].Code, IntrastatCountryRegionCodeMustBeSameErr);
+
+        // [THEN] Verify the manually added line has "Intrastat Country/Region Code" = "Intrastat Code".
+        ManualIntrastatReportLine.Get(IntrastatReportNo, ManualIntrastatReportLine."Line No.");
+        Assert.AreEqual(ManualIntrastatReportLine."Intrastat Country/Region Code", CountryRegion[3]."Intrastat Code", IntrastatCountryRegionCodeMustBeSameErr);
     end;
 
     local procedure Initialize()
