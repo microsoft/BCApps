@@ -254,7 +254,8 @@ codeunit 11503 CHMgt
         if not IsDomesticIBAN(IBAN) then
             exit('');
 
-        PureIBAN := DtaMgt.IBANDELCHR(IBAN);
+        // IBANDELCHR expects Code[37]; IBANs are at most 34 characters, so this never truncates real data.
+        PureIBAN := DtaMgt.IBANDELCHR(CopyStr(IBAN, 1, 37));
         if StrLen(PureIBAN) < 9 then
             exit('');
 
