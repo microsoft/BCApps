@@ -416,6 +416,10 @@ Post-implementation review remediation (2026-08-12): The posting-event regressio
 
 Final isolation review fix (2026-08-12): Running `ComposedFrenchFeatureStateIsRestoredBetweenTests` alone on the composed FR environment failed with the preceding-test assertion (1 passed / 2 failed including runner entries). Its replacement captures the exact feature-status row existence and value, changes the status, executes the successful sentinel cleanup boundary, and asserts exact restoration or deletion in the same test. The order-dependent `WasLastFeatureStateRestored` API and shared flag were removed while the independent simulated-failure regression remained unchanged. AL LSP found the replacement symbol and no old API symbol. Final AL MCP compile returned zero diagnostics for W1 and FR; both test apps built and published; the replacement passed individually on FR (3/3 runner entries), W1 codeunits 134149 and 134166 passed 50/50 and 27/27, and composed FR codeunits 134149 and 134194 passed 50/50 and 32/32.
 
+Remaining confirmed coverage-gap remediation (2026-08-12): The returning raw `InsertFA` and `InsertMaintenance` compatibility case now captures exact tax-book totals before each direct insertion, proves those totals do not change, and proves no ledger row in any book links to either returned identity. Generated-mirror containment now enables automatic insurance posting on the source book, supplies an insurance number, and requires exactly one source-side coverage entry with the source amount and document identity in addition to the existing duplicate-book assertion. FA and maintenance reversal fixtures now require one linked row rather than accepting `FindFirst`, assert one total tax-book row before reversal, and assert exactly two afterward. No product source changed.
+
+The first targeted W1 run honestly reported 8 passed / 2 failed: the new insurance assertion read the cleared post-call FA journal amount as zero while the persisted source coverage entry had its correct nonzero amount, and the runner also reported a wrapper/sentinel result. Capturing the expected source amount/document before posting fixed only the test fixture; the targeted rerun passed 10/10. AL MCP then built and published Tests-Fixed Asset for W1 and FR; full W1 codeunit 134149 passed 50/50, composed FR codeunit 134149 passed 50/50, and FR codeunit 134194 passed 32/32. AL LSP resolved seven declaration/call references for the returning `InsertFA` overload, two for the FA-journal `PostDerogatoryCounterpart` overload (its source boundary and declaration), and nine for the strengthened `FindLinkedFAEntry` helper.
+
 - EPIC-009: Complete semantic, build, and runtime release gates
 
 | Task | Description | Status | Relevant Files |
@@ -428,6 +432,7 @@ Final isolation review fix (2026-08-12): Running `ComposedFrenchFeatureStateIsRe
 
 ## 15. Change Log
 
+- 2026-08-12: Closed remaining EPIC-008 direct-insertion, generated-mirror insurance, and exact reversal-cardinality coverage gaps.
 - 2026-08-12: Remediated EPIC-008 review findings for event-order validity, composed-FR feature isolation, unfiltered/row-count invariants, and returned insertion identity.
 - 2026-08-12: Completed EPIC-008 deterministic W1/FR coverage, total-row/link invariants, link-validation/event/compatibility cases, upgrade idempotency/telemetry/amount assertions, and composed-French feature awareness.
 - 2026-08-11: Completed EPIC-007 French historical linkage migration: transfer-sequenced matching, mutually unique FA/maintenance graph linking, aggregate telemetry, and the forward corrective rebuild/tag with focused upgrade regressions.
