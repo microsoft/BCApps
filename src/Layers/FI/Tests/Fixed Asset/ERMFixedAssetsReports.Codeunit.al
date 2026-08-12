@@ -1352,6 +1352,8 @@ codeunit 134978 "ERM Fixed Assets Reports"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Fixed Assets Reports");
     end;
 
+#if not CLEAN29
+#pragma warning disable AL0432
     [Test]
     [HandlerFunctions('CalcAndPostDeprDifferenceRPH,DepreciationCalcConfirmHandler')]
     [Scope('OnPrem')]
@@ -1388,6 +1390,9 @@ codeunit 134978 "ERM Fixed Assets Reports"
         // Verify
         VerifyCalcAndPostDeprDifferenceReportWithZeroDifference();
     end;
+
+#pragma warning restore AL0432
+#endif
 
     [Test]
     procedure FAReclassificationRespectsDepreciationRounding()
@@ -2068,6 +2073,8 @@ codeunit 134978 "ERM Fixed Assets Reports"
         Sleep(200);
     end;
 
+#if not CLEAN29
+#pragma warning disable AL0432
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure CalcAndPostDeprDifferenceRPH(var CalcAndPostDeprDifferenceRequestPage: TestRequestPage "Calc. and Post Depr. Diff.")
@@ -2123,6 +2130,9 @@ codeunit 134978 "ERM Fixed Assets Reports"
           LibraryReportDataset.FindRow('DifferenceAmt', 0) > -1,
           StrSubstNo(ZeroDifferenceLineErr, 'Calc. and Post Depr. Diff.'));
     end;
+
+#pragma warning restore AL0432
+#endif
 
     [ConfirmHandler]
     [Scope('OnPrem')]

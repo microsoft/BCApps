@@ -5,24 +5,17 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
-pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
+pageextension 13479 "Source Code Setup DeprDiff Pg" extends "Source Code Setup"
 {
     layout
     {
         addafter("Insurance Journal")
         {
-#if not CLEAN29
-#pragma warning disable AL0432
-            field("Depr. Difference"; Rec."Depr. Difference")
+            field("Depreciation Difference Code"; Rec."Depreciation Difference Code")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the source code for posting differences in accumulated depreciation.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
-                ObsoleteReason = 'Moved to Depreciation Differences FI app.';
             }
-#pragma warning restore AL0432
-#endif
         }
     }
 }

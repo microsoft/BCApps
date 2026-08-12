@@ -489,16 +489,36 @@ table 5606 "FA Posting Group"
                 CheckGLAcc("Book Val. Acc. on Disp. (Loss)", false);
             end;
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(13400; "Depr. Difference Acc."; Code[20])
         {
             Caption = 'Depr. Difference Acc.';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
             TableRelation = "G/L Account";
         }
         field(13401; "Depr. Difference Bal. Acc."; Code[20])
         {
             Caption = 'Depr. Difference Bal. Acc.';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
             TableRelation = "G/L Account";
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
