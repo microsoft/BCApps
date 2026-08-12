@@ -99,22 +99,22 @@ page 7085 "Expense VAT Spec. API"
         }
     }
 
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if (Rec."VAT Bus. Posting Group" = '') and ExpenseAgentSetup."Allow VAT Reclaim" then begin
+            ExpenseAgentSetup.TestField("Default VAT Bus. Posting Group");
+            Rec."VAT Bus. Posting Group" := ExpenseAgentSetup."Default VAT Bus. Posting Group";
+        end;
+        exit(true);
+    end;
+
     trigger OnInit()
     var
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-    end;
-
-    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-    begin
-        if Rec."VAT Bus. Posting Group" <> '' then begin
-            ExpenseAgentSetup.GetRecordOnce();
-            ExpenseAgentSetup.TestField("Default VAT Bus. Posting Group");
-            Rec."VAT Bus. Posting Group" := ExpenseAgentSetup."Default VAT Bus. Posting Group";
-        end;
-        exit(true);
     end;
 }
