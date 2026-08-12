@@ -1181,10 +1181,8 @@ codeunit 148146 "Identification Tests"
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Identification Tests");
 
         GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."LCY Code" = '' then begin
-            GeneralLedgerSetup."LCY Code" := 'EUR';
-            GeneralLedgerSetup.Modify(true);
-        end;
+        GeneralLedgerSetup."LCY Code" := 'EUR';
+        GeneralLedgerSetup.Modify(true);
 
         LibraryUtility.UpdateSetupNoSeriesCode(
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
