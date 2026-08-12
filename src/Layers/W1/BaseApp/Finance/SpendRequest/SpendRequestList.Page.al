@@ -9,7 +9,7 @@ page 6840 "Spend Request List"
     Caption = 'Spend Requests';
     PageType = List;
     ApplicationArea = Basic, Suite;
-    UsageCategory = Documents;
+    UsageCategory = Lists;
     SourceTable = "Spend Request";
     CardPageId = "Spend Request Card";
     Editable = false;
@@ -21,9 +21,6 @@ page 6840 "Spend Request List"
             repeater(Control1)
             {
                 field("No."; Rec."No.")
-                {
-                }
-                field(Type; Rec.Type)
                 {
                 }
                 field("Requested By"; Rec."Requested By")
@@ -44,6 +41,8 @@ page 6840 "Spend Request List"
                 field(RemainingAmountLCY; Rec.GetRemainingAmountLCY())
                 {
                     Caption = 'Remaining Amount (LCY)';
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                     ToolTip = 'Specifies the difference between estimated amount and actually spent amount.';
                     Importance = Additional;
                 }
@@ -65,4 +64,85 @@ page 6840 "Spend Request List"
             }
         }
     }
+    actions
+    {
+        area(Processing)
+        {
+            action(RefreshCurrency)
+            {
+                Caption = 'Refresh Currency Exchange rate';
+                ToolTip = 'Updates the currency exchange rate and Total Expected Amount (LCY).';
+                Enabled = (Rec."Currency Code" <> '') and (Rec.Status <> Rec.Status::Closed);
+                ApplicationArea = Basic, Suite;
+                Image = Recalculate;
+
+                trigger OnAction()
+                begin
+                    if Rec.Status = Rec.Status::Closed then
+                        Error(SpendRequestClosedErr);
+                    Rec.UpdateCurrencyExchangeRate();
+                    Rec.Modify();
+                end;
+            }
+        }
+        area(Navigation)
+        {
+            action(Dimensions)
+            {
+                AccessByPermission = TableData Microsoft.Finance.Dimension.Dimension = R;
+                ApplicationArea = Dimensions;
+                Caption = 'Dimensions';
+                Enabled = Rec."No." <> '';
+                Image = Dimensions;
+                ShortCutKey = 'Alt+D';
+                ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to expenses to distribute costs and analyze transaction history.';
+
+                trigger OnAction()
+                begin
+                    Rec.ShowDocDim();
+                    CurrPage.SaveRecord();
+                end;
+            }
+        }
+        area(Reporting)
+        {
+            group(Report)
+            {
+                Caption = 'Report';
+                Image = Print;
+
+                action(Print)
+                {
+                    Caption = 'Print';
+                    ToolTip = 'Prints the spend request so it can be sent to the requester.';
+                    ApplicationArea = Basic, Suite;
+                    Image = Print;
+                    RunObject = Report "Spend Request Document";
+                    RunPageOnRec = true;
+                }
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(RefreshCurrency_Promoted; RefreshCurrency)
+                {
+                }
+            }
+            group(Category_SpendRequest)
+            {
+                Caption = 'Spend Request';
+
+                actionref(Dimensions_Promoted; Dimensions)
+                {
+                }
+            }
+        }
+    }
+
+    var
+        SpendRequestClosedErr: Label 'A closed spend request cannot be updated.';
 }

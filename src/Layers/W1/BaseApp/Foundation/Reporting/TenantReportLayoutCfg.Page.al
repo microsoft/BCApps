@@ -58,7 +58,7 @@ page 9663 "Tenant Report Layout Cfg"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the company this configuration applies to. Empty applies to all companies.';
                 }
-                field("Header Part Name"; Rec."Header Part Name")
+                field(HeaderPartDisplay; HeaderPartDisplay)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Header/Footer Part';
@@ -70,7 +70,7 @@ page 9663 "Tenant Report Layout Cfg"
                         SetHeaderPart();
                     end;
                 }
-                field("Theme Part Name"; Rec."Theme Part Name")
+                field(ThemePartDisplay; ThemePartDisplay)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Theme Part';
@@ -94,6 +94,14 @@ page 9663 "Tenant Report Layout Cfg"
             Error(FeatureNotEnabledErr);
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        // The Header/Theme Part Name columns store the composite reference (<guid>::<name>); decode to the
+        // plain layout name for display so the list shows names instead of the raw GUID-prefixed value.
+        HeaderPartDisplay := LookupHelper.DecodeLayoutName(Rec."Header Part Name");
+        ThemePartDisplay := LookupHelper.DecodeLayoutName(Rec."Theme Part Name");
+    end;
+
     local procedure SetHeaderPart()
     var
         Composite: Text;
@@ -101,6 +109,7 @@ page 9663 "Tenant Report Layout Cfg"
         if not LookupHelper.LookupCompositePart(Enum::"Report Layout Subtype"::HeaderFooter, Composite) then
             exit;
         Rec."Header Part Name" := CopyStr(Composite, 1, MaxStrLen(Rec."Header Part Name"));
+        HeaderPartDisplay := LookupHelper.DecodeLayoutName(Composite);
         CurrPage.Update(true);
     end;
 
@@ -111,6 +120,7 @@ page 9663 "Tenant Report Layout Cfg"
         if not LookupHelper.LookupCompositePart(Enum::"Report Layout Subtype"::Theme, Composite) then
             exit;
         Rec."Theme Part Name" := CopyStr(Composite, 1, MaxStrLen(Rec."Theme Part Name"));
+        ThemePartDisplay := LookupHelper.DecodeLayoutName(Composite);
         CurrPage.Update(true);
     end;
 
@@ -122,6 +132,8 @@ page 9663 "Tenant Report Layout Cfg"
 
     var
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        HeaderPartDisplay: Text;
+        ThemePartDisplay: Text;
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
         GlobalWildcardCannotHaveLayoutNameErr: Label 'When Report ID is 0 (global wildcard), Layout Name must be empty.';
 }
