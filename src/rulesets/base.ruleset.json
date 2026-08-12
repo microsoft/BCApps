@@ -90,11 +90,6 @@
       "justification": "Will be fixed. Reserved database tables are read-only in a multi-tenant environment"
     },
     {
-      "id": "AS0112",
-      "action": "None",
-      "justification": "The permission set 'Reten. Pol. Setup - BaseApp' should not be included through a permission set extension because it includes permissions for objects defined in another application."
-    },
-    {
       "id": "AS0014",
       "action": "Warning",
       "justification": "The project manifest must contain the allocated identifier range."
@@ -341,26 +336,6 @@
       "id": "AA0470",
       "action": "Warning",
       "justification": "Variable with placeholders should have a comment explaining their content."
-    },
-    {
-      "id": "AA0471",
-      "action": "None",
-      "justification": "AutoformatType should be defined for decimal fields in Page objects to ensure proper formatting behavior."
-    },
-    {
-      "id": "AA0472",
-      "action": "None",
-      "justification": "AutoformatExpression should be defined when AutoformatType is not default to ensure proper formatting behavior."
-    },
-    {
-      "id": "AA0473",
-      "action": "None",
-      "justification": "AutoformatType should be defined for decimal fields in Table objects to ensure proper formatting behavior."
-    },
-    {
-      "id": "AA0474",
-      "action": "None",
-      "justification": "AutoformatExpression should be defined when AutoformatType is not default to ensure proper formatting behavior."
     },
     {
       "id": "AW0002",

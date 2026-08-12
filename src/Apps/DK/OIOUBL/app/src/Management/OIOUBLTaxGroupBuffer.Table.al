@@ -15,6 +15,9 @@ table 13673 "OIOUBL-Tax Group Buffer"
         {
             Caption = 'Tax Category ID';
         }
+        // Temporary buffer used only to aggregate amounts for the OIOUBL XML export.
+        // The fields are never shown in the UI, so AutoFormatType is not meaningful here.
+#pragma warning disable AA0473
         field(2; "OIOUBL-VAT %"; Decimal)
         {
             Caption = 'VAT %';
@@ -31,6 +34,7 @@ table 13673 "OIOUBL-Tax Group Buffer"
         {
             Caption = 'Inv. Discount Amount';
         }
+#pragma warning restore AA0473
     }
 
     keys
