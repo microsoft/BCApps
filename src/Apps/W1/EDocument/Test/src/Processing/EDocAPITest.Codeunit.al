@@ -29,6 +29,7 @@ codeunit 135575 "E-Doc. API Test"
     var
         PurchaseHeader: Record "Purchase Header";
         EDocument: Record "E-Document";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         TargetURL: Text;
         Response: Text;
         EDocsApiServiceNameTok: Label 'eDocuments', Locked = true;
