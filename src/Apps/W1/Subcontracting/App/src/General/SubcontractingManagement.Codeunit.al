@@ -48,13 +48,13 @@ codeunit 99001505 "Subcontracting Management"
             "Component Supply Method"::"Consignment at Vendor",
             "Component Supply Method"::"Vendor-Supplied":
                 if (VendorSubcontrLocation <> '') and (ProdOrderComponent."Location Code" <> VendorSubcontrLocation) then
-                    ProdOrderComponent.Validate("Location Code", VendorSubcontrLocation);
+                    ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, VendorSubcontrLocation);
 
             "Component Supply Method"::"Transfer to Vendor",
             "Component Supply Method"::Empty:
                 begin
                     if (ProdOrderComponent."Location Code" <> OriginalLocationCode) and (OriginalLocationCode <> '') then begin
-                        ProdOrderComponent.Validate("Location Code", OriginalLocationCode);
+                        ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, OriginalLocationCode);
                         ProdOrderComponent."Subc. Original Location Code" := '';
                     end;
                     if (ProdOrderComponent."Bin Code" <> OriginalBinCode) and (OriginalBinCode <> '') then begin
@@ -63,6 +63,19 @@ codeunit 99001505 "Subcontracting Management"
                     end;
                 end;
         end;
+    end;
+
+    internal procedure ValidateProdOrderCompLocationPreservingFlushingMethod(var ProdOrderComponent: Record "Prod. Order Component"; NewLocationCode: Code[10])
+    var
+        PreservedFlushingMethod: Enum "Flushing Method";
+    begin
+        // Validating "Location Code" re-reads the planning parameters from the item or SKU (Prod. Order Component.GetUpdateFromSKU),
+        // which silently overwrites a manually chosen "Flushing Method". Subcontracting only shuttles the component between the
+        // shop floor and the subcontractor location, so a manually set "Flushing Method" must survive that automatic move.
+        PreservedFlushingMethod := ProdOrderComponent."Flushing Method";
+        ProdOrderComponent.Validate("Location Code", NewLocationCode);
+        if ProdOrderComponent."Flushing Method" <> PreservedFlushingMethod then
+            ProdOrderComponent."Flushing Method" := PreservedFlushingMethod;
     end;
 
     procedure ChangeLocationOnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])

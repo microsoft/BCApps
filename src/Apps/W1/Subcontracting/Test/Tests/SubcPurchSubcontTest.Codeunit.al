@@ -420,6 +420,133 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
     [Test]
     [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure SubcTransferPreservesManuallyChangedComponentFlushingMethod()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 646576] A manually changed component Flushing Method is preserved when the component is transferred to the subcontractor location.
+        Initialize();
+
+        // [GIVEN] A subcontracting purchase order with a "Transfer to Vendor" component
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", LibraryRandom.RandIntInRange(2, 10));
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [GIVEN] The component item's own Flushing Method is "Pick + Manual"
+        FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
+        ProdOrderComponent.FindFirst();
+        ComponentItem.Get(ProdOrderComponent."Item No.");
+        ComponentItem.Validate("Flushing Method", "Flushing Method"::"Pick + Manual");
+        ComponentItem.Modify(true);
+
+        // [GIVEN] The user manually changes the released component's Flushing Method to "Backward"
+        ProdOrderComponent.Validate("Flushing Method", "Flushing Method"::Backward);
+        ProdOrderComponent.Modify(true);
+
+        // [WHEN] The transfer to the subcontractor is created and posted as a direct transfer
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        PostDirectTransferOrder(TransferHeader);
+
+        // [THEN] The component has been moved to the subcontractor location
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Assert.AreEqual(Vendor."Subc. Location Code", ProdOrderComponent."Location Code", 'Component should be moved to the subcontractor location.');
+
+        // [THEN] The manually selected "Backward" flushing method is preserved
+        Assert.AreEqual("Flushing Method"::Backward, ProdOrderComponent."Flushing Method", 'Manually changed Flushing Method must be preserved after the subcontracting transfer.');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure SubcReturnTransferPreservesManuallyChangedComponentFlushingMethod()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrderPage: TestPage "Purchase Order";
+        OriginalLocationCode: Code[10];
+        TransferredQty: Decimal;
+        ConsumedQty: Decimal;
+    begin
+        // [SCENARIO 646576] A manually changed component Flushing Method is preserved through the full
+        // subcontracting lifecycle, including the return of the remaining stock from the subcontractor
+        // (even when consumption has already been posted at the subcontractor location).
+        Initialize();
+
+        // [GIVEN] A subcontracting purchase order with a "Transfer to Vendor" component
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", LibraryRandom.RandIntInRange(2, 10));
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [GIVEN] The component item's own Flushing Method is "Pick + Manual" while the user manually sets the component to "Backward"
+        FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
+        ProdOrderComponent.FindFirst();
+        OriginalLocationCode := ProdOrderComponent."Location Code";
+        ComponentItem.Get(ProdOrderComponent."Item No.");
+        ComponentItem.Validate("Flushing Method", "Flushing Method"::"Pick + Manual");
+        ComponentItem.Modify(true);
+        ProdOrderComponent.Validate("Flushing Method", "Flushing Method"::Backward);
+        ProdOrderComponent.Modify(true);
+
+        // [GIVEN] The component is transferred to the subcontractor and partially consumed there
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        TransferLine.FindFirst();
+        TransferredQty := TransferLine.Quantity;
+        ConsumedQty := Round(TransferredQty / 2, 1);
+        PostDirectTransferOrder(TransferHeader);
+
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        ProdOrderLine.Get(ProductionOrder.Status, ProductionOrder."No.", ProdOrderComponent."Prod. Order Line No.");
+        LibraryMfgManagement.PostConsumptionForComponent(ProdOrderLine, ProdOrderComponent, ComponentItem, ConsumedQty);
+
+        // [WHEN] The remaining stock is returned from the subcontractor and the return transfer is posted
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+        PurchaseOrderPage.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrderPage.Close();
+
+        ReturnTransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        ReturnTransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        ReturnTransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        ReturnTransferLine.FindFirst();
+        ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+        PostDirectTransferOrder(ReturnTransferHeader);
+
+        // [THEN] The component has been moved back to its original location
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Assert.AreEqual(OriginalLocationCode, ProdOrderComponent."Location Code", 'Component should be moved back to its original location after the return.');
+
+        // [THEN] The manually selected "Backward" flushing method is still preserved
+        Assert.AreEqual("Flushing Method"::Backward, ProdOrderComponent."Flushing Method", 'Manually changed Flushing Method must be preserved after the subcontracting return transfer.');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
     procedure SubcTransferPartialConsumptionAndReturnFlow()
     var
         ComponentItem: Record Item;
