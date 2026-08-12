@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -5836,6 +5836,7 @@ table 37 "Sales Line"
     local procedure CapPrepmtAmountsToLineAmountForFullGST()
     var
         LineAmountAfterInvDisc: Decimal;
+        VATExclCeiling: Decimal;
     begin
         if not (GetFullGST() and (not PrePaymentLineAmountEntered)) then
             exit;
@@ -5847,8 +5848,13 @@ table 37 "Sales Line"
         "Prepmt. Line Amount" := LineAmountAfterInvDisc;
         if "Prepmt. Line Amount" < "Prepmt. Amt. Inv." then
             "Prepmt. Line Amount" := "Prepmt. Amt. Inv.";
-        if "Prepmt. VAT Base Amt." > "Prepmt. Line Amount" then
-            "Prepmt. VAT Base Amt." := "Prepmt. Line Amount";
+
+        if SalesHeader."Prices Including VAT" then
+            VATExclCeiling := Round(LineAmountAfterInvDisc / (1 + GetVATPct() / 100), Currency."Amount Rounding Precision")
+        else
+            VATExclCeiling := LineAmountAfterInvDisc;
+        if "Prepmt. VAT Base Amt." > VATExclCeiling then
+            "Prepmt. VAT Base Amt." := VATExclCeiling;
     end;
 
     local procedure CheckLineAmount(MaxLineAmount: Decimal)

@@ -5970,7 +5970,7 @@ table 39 "Purchase Line"
                 GLAcc.Get(GenPostingSetup."Purch. Prepayments Account");
                 VATPostingSetupRetrieved := false;
                 OnUpdatePrepmtSetupFieldsOnBeforeGetVATPostingSetup(Rec, GLAcc, VATPostingSetup, VATPostingSetupRetrieved);
-                if not VATPostingSetupRetrieved then		
+                if not VATPostingSetupRetrieved then
                     if not BASManagement.VendorRegistered("Buy-from Vendor No.") then
                         VATPostingSetup.Get(
                         "VAT Bus. Posting Group",
@@ -10124,6 +10124,7 @@ table 39 "Purchase Line"
     local procedure CapPrepmtAmountsToLineAmountForFullGST()
     var
         LineAmountAfterInvDisc: Decimal;
+        VATExclCeiling: Decimal;
     begin
         if not (GetFullGST() and (not PrePaymentLineAmountEntered)) then
             exit;
@@ -10135,8 +10136,13 @@ table 39 "Purchase Line"
         "Prepmt. Line Amount" := LineAmountAfterInvDisc;
         if "Prepmt. Line Amount" < "Prepmt. Amt. Inv." then
             "Prepmt. Line Amount" := "Prepmt. Amt. Inv.";
-        if "Prepmt. VAT Base Amt." > "Prepmt. Line Amount" then
-            "Prepmt. VAT Base Amt." := "Prepmt. Line Amount";
+
+        if PurchHeader."Prices Including VAT" then
+            VATExclCeiling := Round(LineAmountAfterInvDisc / (1 + GetVATPct() / 100), Currency."Amount Rounding Precision")
+        else
+            VATExclCeiling := LineAmountAfterInvDisc;
+        if "Prepmt. VAT Base Amt." > VATExclCeiling then
+            "Prepmt. VAT Base Amt." := VATExclCeiling;
     end;
 
     local procedure CalculateOutstandingAmountExclTax(): Decimal
