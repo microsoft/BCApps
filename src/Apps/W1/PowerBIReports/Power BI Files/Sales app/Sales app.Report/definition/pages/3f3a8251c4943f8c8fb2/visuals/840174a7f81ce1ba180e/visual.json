@@ -53,13 +53,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Customer"
+                      "Entity": "Project"
                     }
                   },
-                  "Property": "Customer Name"
+                  "Property": "Sell-to Customer Name"
                 }
               },
-              "queryRef": "Customer.Customer Name",
+              "queryRef": "Project.Sell-to Customer Name",
               "nativeQueryRef": "Customer Name"
             },
             {
