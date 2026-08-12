@@ -4040,8 +4040,8 @@ codeunit 137063 "SCM Manufacturing 7.0"
     begin
         // Just refresh production order in order to create lines
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
-        if not ViaReport then // Calculate it again
-            begin
+        // Calculate it again
+        if not ViaReport then begin
             ProdOrderLine.SetRange(Status, ProductionOrder.Status);
             ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
             if ProdOrderLine.Find('-') then
