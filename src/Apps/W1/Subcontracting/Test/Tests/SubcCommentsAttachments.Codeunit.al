@@ -1546,6 +1546,9 @@ codeunit 139994 "Subc. Comments & Attachments"
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released,
             ProductionOrder."Source Type"::Item, Item."No.", 10, Location.Code);
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
 
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
@@ -1652,11 +1655,10 @@ codeunit 139994 "Subc. Comments & Attachments"
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         if PurchaseLine.FindSet() then
             repeat
-                if PurchaseLine.Quantity = 0 then begin
+                if PurchaseLine.Quantity = 0 then
                     PurchaseLine.Validate(Quantity, 1);
-                    if PurchaseLine."Direct Unit Cost" = 0 then
-                        PurchaseLine.Validate("Direct Unit Cost", 1);
-                end;
+                if PurchaseLine."Direct Unit Cost" = 0 then
+                    PurchaseLine.Validate("Direct Unit Cost", 1);
                 PurchaseLine.Validate("Qty. to Receive", PurchaseLine.Quantity);
                 PurchaseLine.Validate("Qty. to Invoice", PurchaseLine.Quantity);
                 PurchaseLine.Modify(true);
@@ -2049,13 +2051,11 @@ codeunit 139994 "Subc. Comments & Attachments"
                 GeneralPostingSetup.Blocked := false;
                 GeneralPostingSetup.Modify();
             end;
-            GeneralPostingSetup.SuggestSetupAccounts();
             EnsureGeneralPostingSetupAccounts(GeneralPostingSetup);
             exit;
         end;
 
         LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProdPostingGroup);
-        GeneralPostingSetup.SuggestSetupAccounts();
         EnsureGeneralPostingSetupAccounts(GeneralPostingSetup);
     end;
 
