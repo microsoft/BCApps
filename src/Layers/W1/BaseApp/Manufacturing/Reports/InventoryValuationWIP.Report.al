@@ -14,6 +14,8 @@ report 5802 "Inventory Valuation - WIP"
     Caption = 'Production Order - WIP';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -471,13 +473,19 @@ report 5802 "Inventory Valuation - WIP"
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.xlsx';
             Summary = 'Built in layout for the Production Order - WIP Excel report.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Production Order - WIP Word';
             Type = Word;
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.docx';
             Summary = 'Built in layout for the Production Order - WIP Word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+
         }
+#endif
 #if not CLEAN28
         layout(RDLC)
         {
@@ -490,6 +498,14 @@ report 5802 "Inventory Valuation - WIP"
             Summary = 'Built in layout for the Production Order - WIP RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            //subtype = Body;
+            LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIPBody.docx';
+            Caption = 'Body-only: Production Order - WIP Word';
+            Summary = 'Landscape inventory valuation (WIP). Per production order: status, no., description, and source, with WIP value split into material consumption, capacity, and output at the end date, and cost posted to G/L, plus totals.';
+        }
     }
 
     labels

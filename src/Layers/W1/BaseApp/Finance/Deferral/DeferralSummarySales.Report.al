@@ -19,6 +19,8 @@ report 1701 "Deferral Summary - Sales"
     ApplicationArea = Suite;
     Caption = 'Deferral Summary - Sales';
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = "BC Default Theme";
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -344,13 +346,18 @@ report 1701 "Deferral Summary - Sales"
             LayoutFile = './Finance/Deferral/DeferralSummarySales.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Deferral Summary Sales Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummarySales.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#ENDIF
 #if not CLEAN27
         layout(RDLC)
         {
@@ -363,6 +370,14 @@ report 1701 "Deferral Summary - Sales"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Finance/Deferral/DeferralSummarySalesBody.docx';
+            Caption = 'Body-only: Deferral Summary Sales Word';
+            Summary = 'Landscape sales deferral summary. Per customer: posting date, document, line type, and description, deferral account, start date, and periods, with amount recognised, remaining, and total deferred, plus totals.';
+        }
     }
 
     labels

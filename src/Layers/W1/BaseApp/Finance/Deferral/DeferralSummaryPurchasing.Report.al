@@ -19,6 +19,8 @@ report 1702 "Deferral Summary - Purchasing"
     ApplicationArea = Suite;
     Caption = 'Deferral Summary - Purchasing';
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = BC_Default_Theme;
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -344,13 +346,18 @@ report 1702 "Deferral Summary - Purchasing"
             LayoutFile = './Finance/Deferral/DeferralSummaryPurchasing.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Deferral Summary Purchasing Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummaryPurchasing.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -363,6 +370,14 @@ report 1702 "Deferral Summary - Purchasing"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Finance/Deferral/DeferralSummaryPurchasingBody.docx';
+            Caption = 'Deferral Summary Purchasing Word';
+            Summary = 'Landscape purchase deferral summary. Per vendor: posting date, document, line type, and description, deferral account, start date, and periods, with amount recognised, remaining, and total deferred, plus totals.';
+        }
     }
 
     labels

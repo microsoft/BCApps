@@ -18,6 +18,8 @@ report 1700 "Deferral Summary - G/L"
     ApplicationArea = Basic, Suite;
     Caption = 'Deferral Summary - G/L';
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = BC_Default_Theme;
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -277,13 +279,18 @@ report 1700 "Deferral Summary - G/L"
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Deferral Summary G/L Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -296,6 +303,14 @@ report 1700 "Deferral Summary - G/L"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Finance/Deferral/DeferralSummaryGLBody.docx';
+            Caption = 'Deferral Summary G/L Word';
+            Summary = 'Landscape G/L deferral summary. Per G/L account: posting date, document, deferral account, start date, and periods, with amount recognised, remaining, and total deferred, plus totals.';
+        }
     }
 
     labels

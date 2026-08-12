@@ -184,12 +184,25 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
             Caption = 'Sales Invoice for Subscription Billing (RDLC)';
             Summary = 'The Sales Invoice for Subscription Billing (RDLC) is the most detailed layout and provides most flexible layout options.';
         }
+#if not CLEAN32
         layout("SalesInvoiceForSubscriptionBilling.docx")
         {
             Type = Word;
             LayoutFile = './Billing/Report Extensions/Layouts/SalesInvoiceForSubscriptionBilling.docx';
             Caption = 'Sales Invoice for Subscription Billing (Word)';
             Summary = 'The Sales Invoice for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("SalesInvoiceForSubscriptionBillingBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Billing/Report Extensions/Layouts/SalesInvoiceForSubscriptionBillingBody.docx';
+            Caption = 'Body-only: Sales Invoice for Subscription Billing (Word)';
+            Summary = 'Portrait sales invoice for subscription billing. Customer and company address, header (references, due date, payment/shipping details, tracking), item lines with price, discount %, VAT %, and amount, and VAT-inclusive totals.';
         }
     }
 

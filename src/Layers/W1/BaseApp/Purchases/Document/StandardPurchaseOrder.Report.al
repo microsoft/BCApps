@@ -29,6 +29,8 @@ report 1322 "Standard Purchase - Order"
 {
     Caption = 'Purchase - Order';
     DefaultRenderingLayout = "StandardPurchaseOrder.docx";
+    //DefaultHeaderFooterPart = External_Modern_Logo;
+    //DefaultThemePart = "BC Default Theme";
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purchase Header";
@@ -1019,26 +1021,57 @@ report 1322 "Standard Purchase - Order"
 
     rendering
     {
+#if not CLEAN32
         layout("StandardPurchaseOrder.docx")
         {
             Type = Word;
             LayoutFile = './Purchases/Document/StandardPurchaseOrder.docx';
             Caption = 'Standard Purchase Order (Word)';
             Summary = 'The Standard Purchase Order (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardPurchaseOrderThemable.docx")
         {
             Type = Word;
             LayoutFile = './Purchases/Document/StandardPurchaseOrderThemable.docx';
             Caption = 'Standard Purchase Order - themable Word layout';
             Summary = 'The Standard Purchase Order (Word) provides a Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardPurchaseOrderEmail.docx")
         {
             Type = Word;
             LayoutFile = './Purchases/Document/StandardPurchaseOrderEmail.docx';
             Caption = 'Standard Purchase Order Email (Word)';
             Summary = 'The Standard Purchase Order Email (Word) provides an email body layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("StandardPurchaseOrderBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Purchases/Document/StandardPurchaseOrderBody.docx';
+            Caption = 'Body-only: Standard Purchase Order (Word)';
+            Summary = 'Portrait purchase order. Buy-from, ship-to, and company address, header (order no., date, payment terms, buyer, shipment method, vendor invoice no.), item lines with cost, VAT %, and amount, and VAT totals.';
+        }
+        layout("StandardPurchaseOrderEmailBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Purchases/Document/StandardPurchaseOrderEmailBody.docx';
+            Caption = 'Body-only: Standard Purchase Order Email (Word)';
+            Summary = 'Portrait purchase order email body. Company address and vendor no., greeting, and body text, order no., and date, total including VAT, and a closing with the buyer''s name. Cover text for the order email.';
         }
     }
 

@@ -7534,12 +7534,6 @@ End Function
         <Field Name="VATRegistrationNo_Lbl">
           <DataField>VATRegistrationNo_Lbl</DataField>
         </Field>
-        <Field Name="GlobalLocationNumber">
-          <DataField>GlobalLocationNumber</DataField>
-        </Field>
-        <Field Name="GlobalLocationNumber_Lbl">
-          <DataField>GlobalLocationNumber_Lbl</DataField>
-        </Field>
         <Field Name="LegalEntityType">
           <DataField>LegalEntityType</DataField>
         </Field>

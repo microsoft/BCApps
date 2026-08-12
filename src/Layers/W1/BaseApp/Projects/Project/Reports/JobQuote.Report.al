@@ -16,6 +16,8 @@ using System.Utilities;
 report 1016 "Job Quote"
 {
     DefaultRenderingLayout = "JobQuote.rdlc";
+    //DefaultHeaderFooterPart = External_Modern_Logo;
+    //DefaultThemePart = "BC Default Theme";
     Caption = 'Project Quote';
     PreviewMode = PrintLayout;
 
@@ -295,12 +297,25 @@ report 1016 "Job Quote"
             Caption = 'Project Quote (RDLC)';
             Summary = 'The Project Quote (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("JobQuote.docx")
         {
             Type = Word;
             LayoutFile = './Projects/Project/JobQuote.docx';
             Caption = 'Project Quote (Word)';
             Summary = 'The Project Quote (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("JobQuoteBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Projects/Project/Reports/JobQuoteBody.docx';
+            Caption = 'Body-only: Project Quote (Word)';
+            Summary = 'Landscape project (job) quote. Bill-to and company address, job no., and description, planning lines with type, number, quantity, unit price, line discount % and amount, and total job value.';
         }
     }
 

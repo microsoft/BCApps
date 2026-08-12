@@ -2257,15 +2257,6 @@
       </DefaultValue>
       <Prompt>DocumentationLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="TimezoneLabel">
-      <DataType>String</DataType>
-      <DefaultValue>
-        <Values>
-          <Value>TimezoneLabel</Value>
-        </Values>
-      </DefaultValue>
-      <Prompt>TimezoneLabel</Prompt>
-    </ReportParameter>
     <ReportParameter Name="Account_CategoryCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -2387,7 +2378,7 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>46</NumberOfRows>
+      <NumberOfRows>45</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
@@ -2552,71 +2543,66 @@
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>32</RowIndex>
-          <ParameterName>TimezoneLabel</ParameterName>
-        </CellDefinition>
-        <CellDefinition>
-          <ColumnIndex>0</ColumnIndex>
-          <RowIndex>33</RowIndex>
           <ParameterName>Account_CategoryCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>34</RowIndex>
+          <RowIndex>33</RowIndex>
           <ParameterName>Account_Category_DescriptionCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>35</RowIndex>
+          <RowIndex>34</RowIndex>
           <ParameterName>Posting_DateCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>36</RowIndex>
+          <RowIndex>35</RowIndex>
           <ParameterName>Document_TypeCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>37</RowIndex>
+          <RowIndex>36</RowIndex>
           <ParameterName>Document_No_Caption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>38</RowIndex>
+          <RowIndex>37</RowIndex>
           <ParameterName>Account_No_Caption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>39</RowIndex>
+          <RowIndex>38</RowIndex>
           <ParameterName>Account_NameCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>40</RowIndex>
+          <RowIndex>39</RowIndex>
           <ParameterName>DescriptionCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>41</RowIndex>
+          <RowIndex>40</RowIndex>
           <ParameterName>Emission_ScopeCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>42</RowIndex>
+          <RowIndex>41</RowIndex>
           <ParameterName>Country_Region_CodeCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>43</RowIndex>
+          <RowIndex>42</RowIndex>
           <ParameterName>Emission_CO2Caption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>44</RowIndex>
+          <RowIndex>43</RowIndex>
           <ParameterName>Emission_CH4Caption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>45</RowIndex>
+          <RowIndex>44</RowIndex>
           <ParameterName>Emission_N2OCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>

@@ -18,6 +18,8 @@ report 114 "Salesperson - Sales Statistics"
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson - Sales Statistics';
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = "BC Default Theme";
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
 
@@ -252,13 +254,18 @@ report 114 "Salesperson - Sales Statistics"
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Salesperson Sales Statistics Word';
             Type = Word;
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -271,6 +278,14 @@ report 114 "Salesperson - Sales Statistics"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/Reports/SalespersonSalesStatisticsBody.docx';
+            Caption = 'Body-only: Salesperson Sales Statistics Word';
+            Summary = 'Landscape salesperson sales statistics. Per salesperson: sales, profit and adjusted profit (LCY and %), invoice discount, payment discount given, and tolerance, with column totals.';
+        }
     }
 
     labels

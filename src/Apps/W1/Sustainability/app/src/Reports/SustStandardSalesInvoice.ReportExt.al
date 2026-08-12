@@ -55,20 +55,39 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
     }
     rendering
     {
+#if not CLEAN32
         layout("StandardESGSalesInvoice.docx")
         {
             Type = Word;
             Caption = 'Standard ESG Sales Invoice (Word)';
             Summary = 'The Standard ESG Sales Invoice (Word) provides a basic layout.';
             LayoutFile = 'src\Reports\StandardESGSalesInvoice.docx';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardESGSalesInvoiceBlueSimple.docx")
         {
             Type = Word;
             Caption = 'Standard ESG Sales Invoice - Blue (Word)';
             Summary = 'The Standard ESG Sales Invoice (Word) provides a basic layout with blue theme.';
             LayoutFile = 'src\Reports\StandardESGSalesInvoiceBlueSimple.docx';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+        layout("StandardESGSalesInvoiceBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = 'src\Reports\StandardESGSalesInvoiceBody.docx';
+            Caption = 'Body-only: Standard ESG Sales Invoice (Word)';
+            Summary = 'Portrait ESG sales invoice. Customer and company address, header (dates, references, payment/shipping, tracking), item lines with CO2e per unit, quantity, price, discount %, VAT %, and amount, and VAT-inclusive totals with total CO2e.';
+        }
+
     }
 
     trigger OnPreReport()

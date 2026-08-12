@@ -113,12 +113,25 @@ reportextension 8011 "Contract Standard Sales Quote" extends "Standard Sales - Q
             Caption = 'Sales Quote for Subscription Billing (RDLC)';
             Summary = 'The Sales Quote for Subscription Billing (RDLC) is the most detailed layout and provides most flexible layout options.';
         }
+#if not CLEAN32
         layout("SalesQuoteForSubscriptionBilling.docx")
         {
             Type = Word;
             LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesQuoteForSubscriptionBilling.docx';
             Caption = 'Sales Quote for Subscription Billing (Word)';
             Summary = 'The Sales Quote for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("SalesQuoteForSubscriptionBillingBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesQuoteForSubscriptionBillingBody.docx';
+            Caption = 'Body-only: Sales Quote for Subscription Billing (Word)';
+            Summary = 'Portrait sales quote for subscription billing. Customer and company address, header (dates, reference, valid-to, salesperson, terms), item lines with price, discount %, VAT %, and amount, plus service commitment lines, and VAT-inclusive totals.';
         }
     }
 

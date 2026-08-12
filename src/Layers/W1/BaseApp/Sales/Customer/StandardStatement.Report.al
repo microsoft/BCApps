@@ -24,6 +24,8 @@ report 1316 "Standard Statement"
 {
     Caption = 'Customer Statement';
     DefaultRenderingLayout = "StandardStatement.docx";
+    //DefaultHeaderFooterPart = External_Modern;
+    //DefaultThemePart = BC_Default_Theme;
     WordMergeDataItem = Customer;
 
     dataset
@@ -977,19 +979,46 @@ report 1316 "Standard Statement"
             Caption = 'Standard Customer Statement (RDLC)';
             Summary = 'The Standard Customer Statement (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("StandardStatement.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Customer/StandardStatement.docx';
             Caption = 'Standard Customer Statement (Word)';
             Summary = 'The Standard Customer Statement (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardCustomerStatementEmail.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Customer/StandardCustomerStatementEmail.docx';
             Caption = 'Standard Customer Statement Email (Word)';
             Summary = 'The Standard Customer Statement Email (Word) provides an email body layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("StandardStatementBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/Customer/StandardStatementBody.docx';
+            Caption = 'Standard Customer Statement (Word)';
+            Summary = 'Portrait customer statement. Customer and company address, opening balance, ledger entries with document, due date, and amounts, overdue entries, and aging bands, and closing balance per currency.';
+        }
+        layout("StandardCustomerStatementEmailBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            //HeaderPart = Standard_HeaderFooter;
+            LayoutFile = './Sales/Customer/StandardCustomerStatementEmailBody.docx';
+            Caption = 'Body-only: Standard Customer Statement Email (Word)';
+            Summary = 'Portrait customer statement email body. Statement heading and customer no., greeting, body, and closing text, and company address. Cover text for the statement email.';
         }
     }
 

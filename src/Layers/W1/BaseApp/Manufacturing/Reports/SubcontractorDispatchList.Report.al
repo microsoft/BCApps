@@ -12,6 +12,8 @@ using Microsoft.Purchases.Vendor;
 report 99000789 "Subcontractor - Dispatch List"
 {
     DefaultRenderingLayout = ExcelLayout;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = "BC Default Theme";
     ApplicationArea = Manufacturing;
     Caption = 'Subcontractor - Dispatch List';
     UsageCategory = ReportsAndAnalysis;
@@ -250,12 +252,17 @@ report 99000789 "Subcontractor - Dispatch List"
 
     rendering
     {
+#if not CLEAN32
         layout(WordLayout)
         {
             Type = Word;
             LayoutFile = './Manufacturing/Reports/SubcontractorDispatchList.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout(ExcelLayout)
         {
             Type = Excel;
@@ -273,6 +280,13 @@ report 99000789 "Subcontractor - Dispatch List"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Manufacturing/Reports/SubcontractorDispatchListBody.docx';
+            Summary = 'Landscape subcontractor dispatch list. Per vendor and work centre: routing line with operation, dates, remaining, and outstanding purchase quantity, unit of measure, and the components needed.';
+        }
     }
 
     labels

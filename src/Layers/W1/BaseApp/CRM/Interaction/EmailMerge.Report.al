@@ -14,6 +14,8 @@ using System.Utilities;
 report 5084 "Email Merge"
 {
     DefaultRenderingLayout = "EmailMerge.rdlc";
+    //DefaultHeaderFooterPart = None;
+    //DefaultThemePart = "Default.dotx";
     Caption = 'Email Merge';
 
     dataset
@@ -84,12 +86,25 @@ report 5084 "Email Merge"
             Caption = 'EMail Merge (RDLC)';
             Summary = 'The EMail Merge (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("DefaultEmailMergeDoc.docx")
         {
             Type = Word;
             LayoutFile = './CRM/DefaultEmailMergeDoc.docx';
             Caption = 'EMail Merge (Word)';
             Summary = 'The EMail Merge (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("DefaultEmailMergeDocBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './CRM/Interaction/DefaultEmailMergeDocBody.docx';
+            Caption = 'Body-only: EMail Merge (Word)';
+            Summary = 'Portrait email-merge letter. Salutation, free-text body content, and a closing signature with the salesperson''s name, and job title. Used for mail-merge letters to contacts.';
         }
     }
 

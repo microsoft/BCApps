@@ -13,6 +13,8 @@ report 6625 "Item GTIN Label"
     Caption = 'Item GTIN Label';
     WordMergeDataItem = Items;
     DefaultRenderingLayout = Word;
+    //DefaultHeaderFooterPart = None;
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -69,11 +71,24 @@ report 6625 "Item GTIN Label"
 
     rendering
     {
+#if not CLEAN32
         layout(Word)
         {
             Type = Word;
             LayoutFile = './Inventory/Item/ItemGTINLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout(WordBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Inventory/Item/ItemGTINLabelBody.docx';
+            Caption = 'Body-only: Item GTIN Label (Word)';
+            Summary = 'Portrait item label. Item description and number with a GTIN barcode (1D and 2D) for physical item and shelf labelling.';
         }
     }
 

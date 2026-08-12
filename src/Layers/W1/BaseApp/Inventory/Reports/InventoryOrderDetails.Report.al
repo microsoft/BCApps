@@ -14,6 +14,8 @@ report 708 "Inventory Order Details"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Order Details';
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = "BC Default Theme";
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -291,13 +293,18 @@ report 708 "Inventory Order Details"
             Type = Excel;
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Inventory Order Details Word';
             LayoutFile = '.\Inventory\Reports\InventoryOrderDetails.docx';
             Type = Word;
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -310,6 +317,14 @@ report 708 "Inventory Order Details"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventoryOrderDetailsBody.docx';
+            Caption = 'Body-only: Inventory Order Details Word';
+            Summary = 'Landscape inventory order details. Per item: sales order no., bill-to name, shipment date, quantity, outstanding, and back-order quantity, unit price, discount, and outstanding amount, with totals.';
+        }
     }
 
     labels

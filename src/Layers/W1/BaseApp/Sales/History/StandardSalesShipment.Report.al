@@ -35,6 +35,8 @@ report 1308 "Standard Sales - Shipment"
 {
     Caption = 'Sales - Shipment';
     DefaultRenderingLayout = "StandardSalesShipment.docx";
+    //DefaultHeaderFooterPart = External_Default_Detailed;
+    //DefaultThemePart = "BC Default Theme";
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
@@ -845,26 +847,49 @@ report 1308 "Standard Sales - Shipment"
             Caption = 'Standard Sales Shipment (RDLC)';
             Summary = 'The Standard Sales Shipment (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("StandardSalesShipment.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesShipment.docx';
             Caption = 'Standard Sales Shipment (Word)';
             Summary = 'The Standard Sales Shipment (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesShipmentBlue.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesShipmentBlue.docx';
             Caption = 'Standard Sales Shipment - Blue (Word)';
             Summary = 'The Standard Sales Shipment - Blue (Word) provides a simple layout with a blue theme.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesShipmentBlueThemable.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesShipmentBlueThemable.docx';
             Caption = 'Standard Sales Shipment - themable Word layout';
             Summary = 'The Standard Sales Shipment - Themable (Word) provides a Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("StandardSalesShipmentBody.docx")
+        {
+            Type = Word;
+            //subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesShipmentBody.docx';
+            Caption = 'Body-only: Standard Sales Shipment (Word)';
+            Summary = 'Portrait sales shipment. Customer and company address, header (document no., date, shipping agent, tracking no., job no.), item lines with quantity, and unit of measure, and item tracking (lot/serial numbers).';
         }
     }
 

@@ -12,6 +12,8 @@ using System.Utilities;
 report 99000753 "Quantity Explosion of BOM"
 {
     DefaultRenderingLayout = ExcelLayout;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = "BC Default Theme";
     ApplicationArea = Manufacturing;
     Caption = 'Quantity Explosion of BOM';
     UsageCategory = ReportsAndAnalysis;
@@ -261,13 +263,18 @@ report 99000753 "Quantity Explosion of BOM"
 
     rendering
     {
+#if not CLEAN32
         layout(WordLayout)
         {
             Caption = 'Quantity Explosion of BOM Word';
             Type = Word;
             LayoutFile = './Manufacturing/Reports/QuantityExplosionofBOM.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
         layout(ExcelLayout)
         {
             Caption = 'Quantity Explosion of BOM Excel';
@@ -287,6 +294,14 @@ report 99000753 "Quantity Explosion of BOM"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Manufacturing/Reports/QuantityExplosionofBOMBody.docx';
+            Caption = 'Body-only: Quantity Explosion of BOM Word';
+            Summary = 'Portrait quantity explosion of BOM. For a calculation date: the item''s indented BOM component levels with number, description, quantity, unit of measure, and total BOM quantity.';
+        }
     }
 
     labels

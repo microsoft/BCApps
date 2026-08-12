@@ -21,6 +21,8 @@ report 107 "Customer - Order Summary"
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = 
 
     dataset
     {
@@ -460,13 +462,18 @@ report 107 "Customer - Order Summary"
             Type = Excel;
             Summary = 'Built in layout for the Customer Order Summary excel report.';
         }
+#if not CLEAN32
         layout(Word)
         {
             Caption = 'Customer Order Summary Word';
             LayoutFile = '.\Sales\Reports\CustomerOrderSummary.docx';
             Type = Word;
             Summary = 'Built in layout for the Customer Order Summary word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -479,6 +486,14 @@ report 107 "Customer - Order Summary"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = '.\Sales\Reports\CustomerOrderSummaryBody.docx';
+            Caption = 'Body-only: Customer Order Summary Word';
+            Summary = 'Landscape customer order summary. Per customer and currency: outstanding sales order amounts split across time periods (before, dated periods, after) with a line total, plus overall totals. Amounts in LCY.';
+        }
     }
     labels
     {

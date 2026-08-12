@@ -14,6 +14,8 @@ report 713 "Inventory - Customer Sales"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Customer Sales';
     DefaultRenderingLayout = Excel;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = BC_Default_Theme;
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -322,6 +324,13 @@ report 713 "Inventory - Customer Sales"
             Summary = 'Built in layout for the Inventory Customer Sales RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = '.\Inventory\Reports\InventoryCustomerSalesBody.docx';
+            Caption = 'Body-only: Inventory Customer Sales Word';
+            Summary = 'Portrait inventory customer sales. Per item and customer: invoiced quantity, sales amount, discount, profit, and profit %, with subtotals per item, and overall totals.';
+        }
     }
 
     labels

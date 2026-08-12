@@ -1332,6 +1332,287 @@
       </Page>
     </ReportSection>
   </ReportSections>
+  <ReportParameters>
+    <ReportParameter Name="ItemAgeCompositionValueLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemAgeCompositionValueLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemAgeCompositionValueLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemAgeCompositionQtyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemAgeCompositionQtyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemAgeCompositionQtyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemAgeComposValuePrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemAgeComposValuePrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemAgeComposValuePrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemAgeComposQtyPrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemAgeComposQtyPrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemAgeComposQtyPrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemAgeComposValueAnalysisLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemAgeComposValueAnalysisLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemAgeComposValueAnalysisLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DataRetrievedLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DataRetrievedLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DataRetrievedLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="BeforeLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>BeforeLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>BeforeLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AfterLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AfterLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AfterLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvValueBeforeLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvValueBeforeLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvValueBeforeLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvValueAfterLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvValueAfterLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvValueAfterLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvBeforeLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvBeforeLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvBeforeLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvAfterLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvAfterLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvAfterLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryValue2Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryValue2Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryValue2Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryValue3Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryValue3Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryValue3Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryValue4Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryValue4Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryValue4Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Inventory2Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Inventory2Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Inventory2Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Inventory3Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Inventory3Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Inventory3Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Inventory4Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Inventory4Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Inventory4Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryValueLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryValueLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryValueLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AboutTheReportLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AboutTheReportLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AboutTheReportLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EnvironmentLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EnvironmentLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EnvironmentLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CompanyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CompanyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CompanyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="UserLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>UserLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>UserLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RunOnLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RunOnLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Description_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Description_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Description_ItemCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="No_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>No_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>No_ItemCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryPostingGroup_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryPostingGroup_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryPostingGroup_ItemCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="StatisticsGroup_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>StatisticsGroup_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>StatisticsGroup_ItemCaption</Prompt>
+    </ReportParameter>
+  </ReportParameters>
   <Code>Public Function BlankZero(ByVal Value As Decimal)
     if Value = 0 then
         Return ""
@@ -1402,9 +1683,6 @@ End Function</Code>
         </Field>
         <Field Name="PeriodStartDate5">
           <DataField>PeriodStartDate5</DataField>
-        </Field>
-        <Field Name="PrintLine">
-          <DataField>PrintLine</DataField>
         </Field>
         <Field Name="InvtValueRTC1">
           <DataField>InvtValueRTC1</DataField>
@@ -1502,6 +1780,9 @@ End Function</Code>
         <Field Name="TotalCaption">
           <DataField>TotalCaption</DataField>
         </Field>
+        <Field Name="PrintLine">
+          <DataField>PrintLine</DataField>
+        </Field>
         <Field Name="TotalInvtValue_ItemLedgEntry">
           <DataField>TotalInvtValue_ItemLedgEntry</DataField>
         </Field>
@@ -1538,11 +1819,53 @@ End Function</Code>
         <Field Name="InvtValue1_ItemLedgEntryFormat">
           <DataField>InvtValue1_ItemLedgEntryFormat</DataField>
         </Field>
+        <Field Name="InvtQty1_ItemLedgEntry">
+          <DataField>InvtQty1_ItemLedgEntry</DataField>
+        </Field>
+        <Field Name="InvtQty1_ItemLedgEntryFormat">
+          <DataField>InvtQty1_ItemLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="InvtQty2_ItemLedgEntry">
+          <DataField>InvtQty2_ItemLedgEntry</DataField>
+        </Field>
+        <Field Name="InvtQty2_ItemLedgEntryFormat">
+          <DataField>InvtQty2_ItemLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="InvtQty3_ItemLedgEntry">
+          <DataField>InvtQty3_ItemLedgEntry</DataField>
+        </Field>
+        <Field Name="InvtQty3_ItemLedgEntryFormat">
+          <DataField>InvtQty3_ItemLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="InvtQty4_ItemLedgEntry">
+          <DataField>InvtQty4_ItemLedgEntry</DataField>
+        </Field>
+        <Field Name="InvtQty4_ItemLedgEntryFormat">
+          <DataField>InvtQty4_ItemLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="InvtQty5_ItemLedgEntry">
+          <DataField>InvtQty5_ItemLedgEntry</DataField>
+        </Field>
+        <Field Name="InvtQty5_ItemLedgEntryFormat">
+          <DataField>InvtQty5_ItemLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="TotalInvtQty">
+          <DataField>TotalInvtQty</DataField>
+        </Field>
+        <Field Name="TotalInvtQtyFormat">
+          <DataField>TotalInvtQtyFormat</DataField>
+        </Field>
         <Field Name="Description_Item">
           <DataField>Description_Item</DataField>
         </Field>
         <Field Name="No_Item">
           <DataField>No_Item</DataField>
+        </Field>
+        <Field Name="InventoryPostingGroup_Item">
+          <DataField>InventoryPostingGroup_Item</DataField>
+        </Field>
+        <Field Name="StatisticsGroup_Item">
+          <DataField>StatisticsGroup_Item</DataField>
         </Field>
       </Fields>
       <Query>

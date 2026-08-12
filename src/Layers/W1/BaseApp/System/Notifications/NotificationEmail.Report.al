@@ -18,9 +18,10 @@ using System.Utilities;
 
 report 1320 "Notification Email"
 {
-    WordLayout = './System/Notifications/NotificationEmail.docx';
     Caption = 'Notification Email';
-    DefaultLayout = Word;
+    DefaultRenderingLayout = "NotificationEmail.docx";
+    //DefaultHeaderFooterPart = None;
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -127,6 +128,28 @@ report 1320 "Notification Email"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+#if not CLEAN32
+        layout("NotificationEmail.docx")
+        {
+            Type = Word;
+            LayoutFile = './System/Notifications/NotificationEmail.docx';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("NotificationEmailBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './System/Notifications/NotificationEmailBody.docx';
+            Caption = 'Body-only: Notification Email (Word)';
+            Summary = 'Portrait notification email body. Four text lines, a document type, number, and action link, up to three labelled fields with values, a details section, and settings links. Generic notification template.';
         }
     }
 

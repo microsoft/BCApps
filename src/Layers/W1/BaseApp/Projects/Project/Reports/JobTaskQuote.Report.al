@@ -16,6 +16,8 @@ using System.Utilities;
 report 1017 "Job Task Quote"
 {
     DefaultRenderingLayout = "JobTaskQuote.rdlc";
+    //DefaultHeaderFooterPart = External_Modern_Logo;
+    //DefaultThemePart = "BC Default Theme";
     Caption = 'Project Task Quote';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Job Task";
@@ -245,12 +247,25 @@ report 1017 "Job Task Quote"
             Caption = 'Project Task Quote (RDLC)';
             Summary = 'The Project Task Quote (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("JobTaskQuote.docx")
         {
             Type = Word;
             LayoutFile = './Projects/Project/JobTaskQuote.docx';
             Caption = 'Project Task Quote (Word)';
             Summary = 'The Project Task Quote (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("JobTaskQuoteBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Projects/Project/Reports/JobTaskQuoteBody.docx';
+            Caption = 'Body-only: Project Task Quote (Word)';
+            Summary = 'Landscape project (job) task quote. Bill-to and company address, job no., and description, task lines with task no., type, number, quantity, unit price, line discount % and amount, and total job value.';
         }
     }
 

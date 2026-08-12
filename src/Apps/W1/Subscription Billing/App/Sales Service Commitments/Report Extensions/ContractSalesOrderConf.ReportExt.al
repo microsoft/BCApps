@@ -114,12 +114,25 @@ reportextension 8010 "Contract Sales Order Conf." extends "Standard Sales - Orde
             Caption = 'Sales Order Confirmation for Subscription Billing (RDLC)';
             Summary = 'The Sales Order Confirmation for Subscription Billing (RDLC) is the most detailed layout and provides most flexible layout options.';
         }
+#if not CLEAN32
         layout("SalesOrderConfForSubscriptionBilling.docx")
         {
             Type = Word;
             LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesOrderConfForSubscriptionBilling.docx';
             Caption = 'Sales Order Confirmation for Subscription Billing (Word)';
             Summary = 'The Sales Order Confirmation for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("SalesOrderConfForSubscriptionBillingBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesOrderConfForSubscriptionBillingBody.docx';
+            Caption = 'Body-only: Sales Order Confirmation for Subscription Billing (Word)';
+            Summary = 'Portrait sales order confirmation for subscription billing. Customer and company address, header (external doc. no., salesperson, quote no., shipment method), item lines with price, discount %, VAT %, and amount, and VAT-inclusive totals.';
         }
     }
     var

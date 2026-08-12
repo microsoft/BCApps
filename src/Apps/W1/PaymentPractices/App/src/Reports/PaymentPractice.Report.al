@@ -8,6 +8,8 @@ report 685 "Payment Practice"
 {
     ApplicationArea = All;
     DefaultRenderingLayout = PaymentPractice_PeriodLayout;
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -77,25 +79,65 @@ report 685 "Payment Practice"
     rendering
     {
         layout(PaymentPractice_PeriodLayout)
+        #if not CLEAN32
         {
             Type = Word;
             Caption = 'Payment Practice by Period';
             Summary = 'Payment Practice by Period';
             LayoutFile = 'src/Reports/Payment Practice by Period.docx';
+             ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+        #endif 
+#if not CLEAN32
         layout(PaymentPractice_SmallBusinessLayout)
         {
             Type = Word;
             Caption = 'Payment Practice Small Business';
             Summary = 'Payment Practice Small Business';
             LayoutFile = 'src/Reports/Payment Practice Small Business.docx';
+             ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+        #endif
+        #if not CLEAN32
         layout(PaymentPractice_VendorSizeLayout)
         {
             Type = Word;
             Caption = 'Payment Practice by Vendor Size';
             Summary = 'Payment Practice by Vendor Size';
             LayoutFile = 'src/Reports/Payment Practice by Vendor Size.docx';
+             ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+        #endif
+        layout(PaymentPractice_PeriodLayoutBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = 'src/Reports/Payment Practice by PeriodBody.docx';
+            Caption = 'Body-only: Payment Practice by Period';
+            Summary = 'Portrait payment practices report by period. Reporting period and aggregation, average agreed, and actual payment periods, and % paid on time, with lines per payment period showing the share paid, and amount.';
+
+        }
+        layout(PaymentPractice_SmallBusinessLayoutBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = 'src/Reports/Payment Practice Small BusinessBody.docx';
+            Caption = 'Body-only: Payment Practice Small Business';
+            Summary = 'Portrait payment practices report (small business). Reporting period and aggregation, agreed/actual payment periods, % paid on time, median/mode/percentile times, Peppol, and small-business share, with per-period lines.';
+        }
+        layout(PaymentPractice_VendorSizeLayoutBody)
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = 'src/Reports/Payment Practice by Vendor SizeBody.docx';
+            Caption = 'Body-only: Payment Practice by Vendor Size';
+            Summary = 'Portrait payment practices report by vendor size. Reporting period and aggregation with overall averages, and lines per company-size code showing average agreed, and actual payment periods, and % paid on time.';
         }
     }
 }

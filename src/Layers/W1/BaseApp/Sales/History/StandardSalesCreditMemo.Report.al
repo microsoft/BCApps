@@ -38,6 +38,8 @@ report 1307 "Standard Sales - Credit Memo"
 {
     Caption = 'Sales - Credit Memo';
     DefaultRenderingLayout = "StandardSalesCreditMemo.docx";
+    //DefaultHeaderFooterPart = External_Default_Detailed;
+    //DefaultThemePart = "BC Default Theme";
     Permissions = TableData "Sales Shipment Buffer" = rimd;
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
@@ -1022,26 +1024,58 @@ report 1307 "Standard Sales - Credit Memo"
             Caption = 'Standard Sales Credit Memo (RDLC)';
             Summary = 'The Standard Sales Credit Memo (RDLC) provides a detailed layout.';
         }
+#if not CLEAN32
         layout("StandardSalesCreditMemo.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesCreditMemo.docx';
             Caption = 'Standard Sales Credit Memo (Word)';
             Summary = 'The Standard Sales Credit Memo (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesCreditMemoThemable.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesCreditMemoThemable.docx';
             Caption = 'Standard Sales Credit Memo - themable Word layout';
             Summary = 'The Standard Sales Credit Memo (Word) provides a basic Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesCreditMemoEmail.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesCreditMemoEmail.docx';
             Caption = 'Standard Sales Credit Memo Email (Word)';
             Summary = 'The Standard Sales Credit Memo Email (Word) provides an email body layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("StandardSalesCreditMemoBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoBody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo (Word)';
+            Summary = 'Portrait sales credit memo. Customer and company address, header (document no., reference, salesperson, applies-to document, due date), item lines with price, discount %, VAT %, and amount, and VAT-inclusive totals.';
+        }
+
+        layout("StandardSalesCreditMemoEmailBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo Email (Word)';
+            Summary = 'Portrait sales credit memo email body. Company address and bill-to customer no., greeting, body, and closing text, document no., due date, and total including VAT. Cover text for the credit memo email.';
         }
     }
 
