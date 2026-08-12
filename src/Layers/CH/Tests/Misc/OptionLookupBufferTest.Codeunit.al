@@ -246,6 +246,38 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure BlanketSalesOrderSupportsLongGermanLineTypeCaption()
+    var
+        Customer: Record Customer;
+        SalesLine: Record "Sales Line";
+        BlanketSalesOrder: TestPage "Blanket Sales Order";
+        CurrentLanguage: Integer;
+        LineTypeCaption: Text[30];
+    begin
+        // [SCENARIO 644921] A long German line type caption can be selected on a blanket sales order
+        Initialize();
+
+        // [GIVEN] German language and a blanket sales order
+        CurrentLanguage := GlobalLanguage;
+        GlobalLanguage(1031);
+        LineTypeCaption := Format(SalesLine.Type::"Charge (Item)");
+        Assert.IsTrue(StrLen(LineTypeCaption) > 20, 'The German line type caption must be longer than 20 characters.');
+        LibrarySales.CreateCustomer(Customer);
+        BlanketSalesOrder.OpenNew();
+        BlanketSalesOrder."Sell-to Customer Name".SetValue(Customer.Name);
+
+        // [WHEN] Selecting Charge (Item) as the line type
+        BlanketSalesOrder.SalesLines.First();
+        BlanketSalesOrder.SalesLines.FilteredTypeField.SetValue(LineTypeCaption);
+
+        // [THEN] The complete localized caption is displayed
+        BlanketSalesOrder.SalesLines.FilteredTypeField.AssertEquals(LineTypeCaption);
+        BlanketSalesOrder.Close();
+        GlobalLanguage(CurrentLanguage);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SalesInvoiceSubtypeAutoComplete()
     var
         SalesLine: Record "Sales Line";
