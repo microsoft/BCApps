@@ -2528,10 +2528,10 @@ codeunit 147524 "SII Documents No Taxable"
         // [WHEN] Create xml for sales credit memo
         Assert.IsTrue(SIIXMLCreator.GenerateXml(CustLedgerEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
 
-        // [THEN] XML file has a sii:ImporteTAIReglasLocalizacion node with the VAT amount
+        // [THEN] XML file has a sii:ImporteTAIReglasLocalizacion node with the negative VAT amount
         LibrarySII.VerifyOneNodeWithValueByXPath(
           XMLDoc, XPathSalesNoTaxLocalTok, '',
-          SIIXMLCreator.FormatNumber(GetVATBaseAmountFromCustLedgEntry(CustLedgerEntry)));
+          SIIXMLCreator.FormatNumber(-GetVATBaseAmountFromCustLedgEntry(CustLedgerEntry)));
     end;
 
     [Test]
@@ -2561,19 +2561,19 @@ codeunit 147524 "SII Documents No Taxable"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ReplacementSalesCrMemoWithOneStopShopHasNegativeAmount()
+    procedure CorrectiveSalesCrMemoWithOneStopShopHasNegativeAmount()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         XMLDoc: DotNet XmlDocument;
     begin
         // [FEATURE] [Sales]
-        // [SCENARIO 639647] A replacement sales credit memo with One Stop Shop option has negative ImporteTAIReglasLocalizacion in SII XML
+        // [SCENARIO 639647] A corrective (R5) sales credit memo with One Stop Shop option has negative ImporteTAIReglasLocalizacion in SII XML
 
         Initialize();
-        // [GIVEN] Posted sales invoice and posted replacement sales credit memo with "Corrected Invoice No." and One Stop Shop option enabled
-        PostReplacementSalesCrMemoWithOneStopShop(CustLedgerEntry);
+        // [GIVEN] Posted sales invoice and posted corrective R5 sales credit memo with "Corrected Invoice No.", blank "Correction Type" and One Stop Shop option enabled
+        PostCorrectiveSalesCrMemoWithOneStopShop(CustLedgerEntry);
 
-        // [WHEN] Create xml for replacement sales credit memo
+        // [WHEN] Create xml for the corrective sales credit memo
         Assert.IsTrue(SIIXMLCreator.GenerateXml(CustLedgerEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
 
         // [THEN] XML file has a sii:ImporteTAIReglasLocalizacion node with negative value
@@ -3246,7 +3246,7 @@ codeunit 147524 "SII Documents No Taxable"
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, DocType, LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
-    local procedure PostReplacementSalesCrMemoWithOneStopShop(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    local procedure PostCorrectiveSalesCrMemoWithOneStopShop(var CustLedgerEntry: Record "Cust. Ledger Entry")
     var
         SalesOrderHeader: Record "Sales Header";
         PostedSalesInvoiceHeader: Record "Sales Invoice Header";
@@ -3284,10 +3284,10 @@ codeunit 147524 "SII Documents No Taxable"
         CreditMemoSalesHeader.Modify(true);
 
         CreditMemoSalesHeader.TestField("Corrected Invoice No.", PostedInvoiceNo);
-        CreditMemoSalesHeader.TestField("Correction Type", CreditMemoSalesHeader."Correction Type"::Replacement);
+        // The R5 corrective credit memo from the repro keeps a blank "Correction Type" (routes through the SII "por diferencias" / Difference path), not Replacement
+        CreditMemoSalesHeader.TestField("Correction Type", CreditMemoSalesHeader."Correction Type"::" ");
         CreditMemoSalesHeader.TestField("Special Scheme Code", CreditMemoSalesHeader."Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
         CreditMemoSalesHeader.TestField("Cr. Memo Type", CreditMemoSalesHeader."Cr. Memo Type"::"R5 Corrected Invoice in Simplified Invoices");
-        CreditMemoSalesHeader.TestField("ID Type", CreditMemoSalesHeader."ID Type"::"02-VAT Registration No.");
 
         LibrarySales.CreateSalesLine(
           SalesLine, CreditMemoSalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), LibraryRandom.RandInt(100));
