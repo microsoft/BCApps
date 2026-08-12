@@ -59,6 +59,7 @@ codeunit 134645 "Option Lookup Buffer Test"
     procedure FillOptionBufferWithCustomValuesForSalesTest()
     var
         TempOptionLookupBuffer: Record "Option Lookup Buffer" temporary;
+        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
         SalesLine: Record "Sales Line";
     begin
         // [SCENARIO 412825] Fill OptionLookupBuffer with custom values for Sales
@@ -66,7 +67,7 @@ codeunit 134645 "Option Lookup Buffer Test"
 
         // [GIVEN] Empty Option Lookup Buffer table
         // [GIVEN] Extend "Sales Line Type" enum and add handler for Test_Custom1 value
-        BindSubscription(this); // to add handling of custom value
+        BindSubscription(OptionLookupBufferTest); // to add handling of custom value
         // [WHEN] FillLookupBuffer is called for LookupType::Sales
         TempOptionLookupBuffer.FillLookupBuffer(TempOptionLookupBuffer."Lookup Type"::Sales);
 
@@ -426,7 +427,7 @@ codeunit 134645 "Option Lookup Buffer Test"
         repeat
             // [WHEN] Trying to autocomplete an incomplete option
             ExpectedText := TempReferenceOptionLookupBuffer."Option Caption";
-            InputText := CopyStr(ExpectedText, 1, StrLen(ExpectedText) - 1);
+            InputText := CopyStr(CopyStr(ExpectedText, 1, StrLen(ExpectedText) - 1), 1, MaxStrLen(InputText));
             TempOptionLookupBuffer.AutoCompleteLookup(InputText, TempOptionLookupBuffer."Lookup Type"::Purchases);
 
             // [THEN] The correct option is returned
