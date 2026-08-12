@@ -104,6 +104,7 @@ codeunit 4305 "SOA Filters Impl."
 
                 Contact.Reset();
                 Contact.SetLoadFields("No.");
+                Contact.SetCurrentKey("E-Mail 2");
                 Contact.SetFilter("E-Mail 2", From);
                 Contact.ReadIsolation := IsolationLevel::ReadCommitted;
                 if Contact.FindSet() then
@@ -372,6 +373,7 @@ codeunit 4305 "SOA Filters Impl."
 
         Contact.Reset();
         Contact.ReadIsolation := IsolationLevel::ReadCommitted;
+        Contact.SetCurrentKey("E-Mail 2");
         Contact.SetFilter("E-Mail 2", EmailFilter);
         exit(not Contact.IsEmpty());
     end;
@@ -400,6 +402,7 @@ codeunit 4305 "SOA Filters Impl."
         Contact.Reset();
         Contact.ReadIsolation := IsolationLevel::ReadCommitted;
         Contact.SetLoadFields("No.");
+        Contact.SetCurrentKey("E-Mail 2");
         Contact.SetFilter("E-Mail 2", EmailFilter);
         if Contact.FindSet() then
             repeat
