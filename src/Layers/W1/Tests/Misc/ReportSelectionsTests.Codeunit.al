@@ -2930,16 +2930,14 @@ codeunit 134421 "Report Selections Tests"
     local procedure SetupReportSelectionsVendor(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
-        // the vendor path never sets a custom layout - it only needs an empty code of the right width
-        EmptyCustomLayoutCode: Code[20];
     begin
         OldReportSelections.Reset();
         OldReportSelections.SetRange(Usage, OldReportSelections.Usage::"P.Order");
         OldReportSelections.FindFirst();
 
+        // the vendor path never sets a custom layout - it only needs an empty layout code
         UpdateReportSelections(
-          OldReportSelections.Usage::"P.Order", GetReportIDForPurchaseOrder(), UseForEmailAttachment, UseForEmailBody,
-          EmptyCustomLayoutCode);
+          OldReportSelections.Usage::"P.Order", GetReportIDForPurchaseOrder(), UseForEmailAttachment, UseForEmailBody, '');
     end;
 
     local procedure SetupInvoiceReportLayoutSelection()

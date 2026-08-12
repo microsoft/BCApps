@@ -5,9 +5,7 @@
 namespace Microsoft.Sustainability.Tests;
 
 using Microsoft.Foundation.Company;
-#if not CLEAN29
 using Microsoft.Foundation.Reporting;
-#endif
 using Microsoft.Foundation.UOM;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;

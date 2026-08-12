@@ -4339,6 +4339,7 @@ codeunit 139197 DocumentSendingPostTests
     end;
 #endif
 
+#if not CLEAN29
     local procedure Scenario_423995_Verify(PostedInvoiceNo: Code[20]; DocumentSendingProfileEmail: Record "Document Sending Profile"; ExpectedTargetEmail: Text[80]; ExpectedAttachmentName: Text)
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -4354,6 +4355,7 @@ codeunit 139197 DocumentSendingPostTests
 
         SalesInvoiceHeader.SendRecords();
     end;
+#endif
 
     local procedure SetupInvoiceReportLayoutSelection()
     var

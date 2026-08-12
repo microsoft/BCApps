@@ -2152,7 +2152,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     [Scope('OnPrem')]
     procedure UT_CustomReportSelection_CheckSendToEmail()
     var
+#if not CLEAN29
         CustomReportLayout: Record "Custom Report Layout";
+#endif
         CustomReportSelection: Record "Custom Report Selection";
         Customer: Record Customer;
         DataRecRef: RecordRef;
@@ -2163,10 +2165,16 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
 
         CreateCustomer(Customer);
 
+#if not CLEAN29
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", GetStandardStatementReportID(), true, true,
           CustomReportLayout.InitBuiltInLayout(GetStandardStatementReportID(), CustomReportLayout.Type::Word.AsInteger()),
           '', CustomReportSelection.Usage::"C.Statement");
+#else
+        InsertCustomReportSelectionCustomer(
+          CustomReportSelection, Customer."No.", GetStandardStatementReportID(), true, true, '',
+          '', CustomReportSelection.Usage::"C.Statement");
+#endif
 
         DataRecRef.GETTABLE(Customer);
         asserterror CustomReportSelection.CheckEmailSendTo(DataRecRef);
@@ -2347,7 +2355,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
+#if not CLEAN29
         CustomReportLayout: Record "Custom Report Layout";
+#endif
         SendingProfileCode: Code[20];
         CustomReportLayoutCode: Code[20];
     begin
@@ -2363,8 +2373,12 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateSalesInvoice(SalesHeader, Customer[1]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
+#if not CLEAN29
         // [GIVEN] Custom Report Layout RL1 with Report ID 1316 and Type RDLC.
         CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(1316, CustomReportLayout.Type::RDLC.AsInteger());
+#else
+        CustomReportLayoutCode := '';
+#endif
 
         // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316 and Custom Layout Description RL1.
         LibrarySales.CreateCustomer(Customer[2]);
@@ -2387,7 +2401,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
+#if not CLEAN29
         CustomReportLayout: Record "Custom Report Layout";
+#endif
         SendingProfileCode: Code[20];
         CustomReportLayoutCode: Code[20];
     begin
@@ -2403,8 +2419,12 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateSalesInvoice(SalesHeader, Customer[1]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
+#if not CLEAN29
         // [GIVEN] Custom Report Layout RL1 with Report ID 1316 and Type RDLC.
         CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(1316, CustomReportLayout.Type::RDLC.AsInteger());
+#else
+        CustomReportLayoutCode := '';
+#endif
 
         // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316 and Custom Layout Description RL1.
         // [GIVEN] Customer C2 has Document Sending Profile P1 and posted Sales Invoice.
@@ -2716,7 +2736,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         SalesHeader: Record "Sales Header";
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
+#if not CLEAN29
         CustomReportLayout: Record "Custom Report Layout";
+#endif
         CustomReportLayoutCode: Code[20];
     begin
         CreateCustomer(Customer);
@@ -2726,12 +2748,16 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         InsertReportSelections(
           ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
+#if not CLEAN29
         CustomReportLayout.SetRange("Report ID", ReportId);
         CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
         if CustomReportLayout.FindFirst() then
             CustomReportLayoutCode := CustomReportLayout.Code
         else
             CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(ReportId, CustomReportLayout.Type::Word.AsInteger());
+#else
+        CustomReportLayoutCode := '';
+#endif
 
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", ReportId, true, true,
@@ -2742,7 +2768,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
+#if not CLEAN29
         CustomReportLayout: Record "Custom Report Layout";
+#endif
         CustomReportLayoutCode: Code[20];
     begin
         CreateCustomer(Customer);
@@ -2750,12 +2778,16 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         InsertReportSelections(
           ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
+#if not CLEAN29
         CustomReportLayout.SetRange("Report ID", ReportId);
         CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
         if CustomReportLayout.FindFirst() then
             CustomReportLayoutCode := CustomReportLayout.Code
         else
             CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(ReportId, CustomReportLayout.Type::Word.AsInteger());
+#else
+        CustomReportLayoutCode := '';
+#endif
 
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", ReportId, true, true,

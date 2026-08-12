@@ -990,6 +990,7 @@ codeunit 134600 "Report Layout Test"
     end;
 #endif
 
+#if not CLEAN29
     local procedure AddCustomerDocumentLayoutReport(CustomerNo: Code[20]; NewUsage: Enum "Report Selection Usage"; ReportID: Integer; CustomReportLayoutCode: Code[20])
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -1003,6 +1004,7 @@ codeunit 134600 "Report Layout Test"
         CustomReportSelection."Custom Report Layout Code" := CustomReportLayoutCode;
         CustomReportSelection.Insert(true);
     end;
+#endif
 
     local procedure CreateSalesLineWithJobTaskNo(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var

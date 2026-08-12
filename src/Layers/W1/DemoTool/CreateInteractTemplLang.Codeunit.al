@@ -37,6 +37,7 @@ codeunit 101596 "Create Interact. Templ. Lang."
               InsertFileAttachment(InteractionTemplateCode, LanguageCode, FileExtension, AttachmentNo);
 #else
         // The HTML branch created demo data in the obsoleted layout table; only the file attachment remains.
+        CustomReportLayoutCode := '';
         InsertInteractionTmplLanguage :=
           InsertFileAttachment(InteractionTemplateCode, LanguageCode, FileExtension, AttachmentNo);
 #endif
