@@ -143,7 +143,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         HasElecAddress := GetCustomerElecAddress(SourceDocumentHeader, EDocumentService.Code, ElecAddress, ElecAddressScheme);
         InjectBuyerEndpoint(XmlDoc, NamespaceMgr, HasElecAddress, ElecAddress, ElecAddressScheme);
-        InjectBuyerIdentification(XmlDoc, NamespaceMgr, HasElecAddress, ElecAddress, ElecAddressScheme);
 
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
@@ -615,20 +614,19 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         if CustomerNo = '' then
             exit(false);
 
-        if GetServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo, ElecAddress, ElecAddressScheme) then
+        if GetServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo, ElecAddress, ElecAddressScheme) then begin
+            ElecAddressScheme := ElecAddressScheme::"0225";
             exit(true);
+        end;
 
-        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "VAT Registration No.", "Country/Region Code");
+        Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
         if not Customer.Get(CustomerNo) then
             exit(false);
 
-        ElecAddress := Customer."FR Electronic Address";
-        ElecAddressScheme := Customer."FR Elec. Address Scheme";
-        if (ElecAddress = '') and FREDocHelpers.IsFrenchCustomer(Customer) then begin
-            ElecAddress := Customer."VAT Registration No.";
-            ElecAddressScheme := ElecAddressScheme::"9957";
-        end;
-        exit(ElecAddress <> '');
+        if not FREDocHelpers.GetBuyerElectronicAddress(Customer, ElecAddress) then
+            exit(false);
+        ElecAddressScheme := ElecAddressScheme::"0225";
+        exit(true);
     end;
 
     local procedure GetServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ElecAddress: Text[250]; var ElecAddressScheme: Enum "Electronic Address Scheme"): Boolean
@@ -642,29 +640,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ElecAddress := CopyStr(ServiceParticipant."Participant Identifier", 1, MaxStrLen(ElecAddress));
         ElecAddressScheme := ServiceParticipant."FR Identifier Scheme";
         exit(true);
-    end;
-
-    local procedure InjectBuyerIdentification(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; HasElecAddress: Boolean; ElecAddress: Text[250]; ElecAddressScheme: Enum "Electronic Address Scheme")
-    var
-        BuyerPartyNode: XmlNode;
-        PartyIdElement: XmlElement;
-        IdElement: XmlElement;
-    begin
-        if not HasElecAddress then
-            exit;
-
-        if not XmlDoc.SelectSingleNode('//cac:AccountingCustomerParty/cac:Party', NamespaceMgr, BuyerPartyNode) then
-            exit;
-
-        // Add buyer SIRET as PartyIdentification (BT-46) when scheme is 0009
-        if ElecAddressScheme <> ElecAddressScheme::"0009" then
-            exit;
-
-        PartyIdElement := XmlElement.Create('PartyIdentification', CacNamespaceTok);
-        IdElement := XmlElement.Create('ID', CbcNamespaceTok, ElecAddress);
-        IdElement.SetAttribute('schemeID', '0009');
-        PartyIdElement.Add(IdElement);
-        InsertPartyIdentification(BuyerPartyNode, PartyIdElement, NamespaceMgr);
     end;
 
     local procedure GetElecAddressSchemeCode(ElecAddressScheme: Enum "Electronic Address Scheme"): Text

@@ -140,157 +140,174 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CustomerAddress: Text[250];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects buyer endpoint from FR Electronic Address and scheme
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects buyer endpoint from FR Electronic Address with scheme 0225
         Initialize();
 
-        // [GIVEN] Posted sales invoice for customer with FR electronic address and scheme 0002
+        // [GIVEN] Posted sales invoice for customer with FR electronic address
         CustomerAddress := '123456789';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0002")));
 
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer EndpointID contains FR Electronic Address and scheme 0002
+        // [THEN] Buyer EndpointID contains FR Electronic Address with scheme 0225
         Assert.AreEqual(CustomerAddress,
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('0002',
+        Assert.AreEqual('0225',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
     [Test]
-    procedure ExportSalesInvKeepsBuyerEndpointWhenFRElectronicAddressBlank()
+    procedure ExportSalesInvUsesBuyerRegistrationNumberFallback()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR does not overwrite buyer endpoint when FR Electronic Address is blank
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR uses customer Registration Number as buyer endpoint when FR Electronic Address is blank
         Initialize();
 
-        // [GIVEN] Posted sales invoice for customer with blank FR electronic address
+        // [GIVEN] Posted sales invoice for customer with blank FR electronic address but valid Registration Number
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
 
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer EndpointID remains populated by base PEPPOL logic
-        Assert.AreNotEqual('',
+        // [THEN] Buyer EndpointID contains first 9 digits of Registration Number with scheme 0225
+        Assert.AreEqual('123456789',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
+        Assert.AreEqual('0225',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
     [Test]
-    procedure ExportSalesInvInjectsBuyerPartyIdentificationWhenScheme0009()
+    procedure ExportSalesInvInjectsBuyerEndpointWithSIRENSuffix()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
         CustomerAddress: Text[250];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects buyer PartyIdentification with scheme 0009 when customer uses SIRET scheme
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects buyer endpoint with SIREN_suffix value and scheme 0225
         Initialize();
 
-        // [GIVEN] Posted sales invoice for customer with FR electronic address and scheme 0009
-        CustomerAddress := '12345678901234';
+        // [GIVEN] Posted sales invoice for customer with FR electronic address in SIREN_suffix format
+        CustomerAddress := '123456789_001';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0009")));
 
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer PartyIdentification contains address with scheme 0009
+        // [THEN] Buyer EndpointID contains the SIREN_suffix value with scheme 0225
         Assert.AreEqual(CustomerAddress,
-            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'),
-            StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification ID'));
-        Assert.AreEqual('0009',
-            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID'),
-            StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification schemeID'));
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
+        Assert.AreEqual('0225',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
     [Test]
-    procedure ExportSalesInvDoesNotInjectBuyerPartyIdentificationWhenSchemeNot0009()
+    procedure ExportSalesInvIgnoresConfiguredSchemeForBuyerEndpoint()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
         CustomerAddress: Text[250];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR does not inject buyer PartyIdentification when scheme is not 0009
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR always uses scheme 0225 regardless of customer configured scheme
         Initialize();
 
-        // [GIVEN] Posted sales invoice for customer with FR electronic address and scheme 0002
+        // [GIVEN] Posted sales invoice for customer with FR electronic address and configured scheme 0002
         CustomerAddress := '123456789';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0002")));
 
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer PartyIdentification is not added by FR logic
+        // [THEN] Buyer EndpointID uses scheme 0225 regardless of configured 0002
+        Assert.AreEqual('0225',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
+
+        // [THEN] Buyer PartyIdentification is not synthesized
         Assert.AreEqual('',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'),
             StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification ID should be empty'));
     end;
 
     [Test]
-    procedure ExportSalesInvInjectsBuyerEndpointWithEMScheme()
+    procedure ExportSalesInvNormalizesBuyerServiceParticipantScheme()
     var
+        Customer: Record Customer;
+        ServiceParticipant: Record "Service Participant";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
-        CustomerAddress: Text[250];
+        CustomerNo: Code[20];
+        EndpointId: Text[200];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects buyer endpoint with EM scheme when customer uses email scheme
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR normalizes service participant scheme to 0225 regardless of configured enum
         Initialize();
 
-        // [GIVEN] Posted sales invoice for customer with FR electronic address and EM scheme
-        CustomerAddress := 'buyer@example.com';
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"EM")));
+        // [GIVEN] Customer with service participant using configured scheme 0002
+        CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
+        EndpointId := '987654321_ABC';
+        ServiceParticipant.Service := EDocumentService.Code;
+        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Customer;
+        ServiceParticipant.Participant := CustomerNo;
+        ServiceParticipant."Participant Identifier" := EndpointId;
+        ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0002";
+        ServiceParticipant.Insert();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
         // [WHEN] Export FR PEPPOL XML
+        CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer EndpointID contains email with scheme EM
-        Assert.AreEqual(CustomerAddress,
+        // [THEN] Buyer EndpointID uses scheme 0225 even though participant was configured with 0002
+        Assert.AreEqual(EndpointId,
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('EM',
+        Assert.AreEqual('0225',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
     [Test]
-    procedure ExportSalesInvInjectsBuyerEndpointAndIdentificationWithScheme0009()
+    procedure ExportSalesInvDoesNotSynthesizeBuyerPartyIdentification()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
         CustomerAddress: Text[250];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects both buyer endpoint and PartyIdentification when scheme is 0009
+        // [SCENARIO] Export in PEPPOL BIS 3.0 FR does not synthesize buyer PartyIdentification even with 0009 configured
         Initialize();
 
-        // [GIVEN] Posted sales invoice for customer with FR electronic address and scheme 0009
-        CustomerAddress := '98765432109876';
+        // [GIVEN] Posted sales invoice for customer with FR electronic address and configured scheme 0009
+        CustomerAddress := '987654321_001';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0009")));
 
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer EndpointID contains address with scheme 0009
+        // [THEN] Buyer EndpointID uses scheme 0225 (not the configured 0009)
         Assert.AreEqual(CustomerAddress,
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('0009',
+        Assert.AreEqual('0225',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
-        // [THEN] Buyer PartyIdentification is also injected with scheme 0009
-        Assert.AreEqual(CustomerAddress,
+
+        // [THEN] Buyer PartyIdentification is not synthesized from BT-49
+        Assert.AreEqual('',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'),
-            StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification ID'));
-        Assert.AreEqual('0009',
-            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID'),
-            StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification schemeID'));
+            StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification ID should be empty'));
     end;
 
     [Test]
@@ -489,11 +506,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreEqual('0009',
             GetNodeByPath(XmlDoc, '/CreditNote/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Supplier EndpointID schemeID'));
-        // [THEN] Buyer EndpointID contains address with scheme 0002
+        // [THEN] Buyer EndpointID contains address with scheme 0225
         Assert.AreEqual(CustomerAddress,
             GetNodeByPath(XmlDoc, '/CreditNote/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('0002',
+        Assert.AreEqual('0225',
             GetNodeByPath(XmlDoc, '/CreditNote/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
@@ -866,58 +883,117 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesInvUsesBuyerVATFallbackWhenElectronicAddressIsEmpty()
+    procedure ExportSalesInvUsesRegistrationNumberFallbackForBuyerEndpoint()
     var
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
     begin
-        // [SCENARIO] Customer VAT registration number is used when the electronic address is blank
+        // [SCENARIO] Customer Registration Number is used when both FR Electronic Address and Service Participant are absent
         Initialize();
 
-        // [GIVEN] Posted sales invoice for a customer with blank electronic address and a VAT number
+        // [GIVEN] Posted sales invoice for a customer with blank FR electronic address and a Registration Number
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
-        Customer."Country/Region Code" := '';
         Customer."FR Electronic Address" := '';
-        Customer."VAT Registration No." := 'FR12345678901';
         Customer.Modify(true);
 
         // [WHEN] The invoice is checked and exported
         CheckInvoice(SalesInvoiceHeader);
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] The buyer endpoint uses the VAT identifier and French VAT scheme 9957
-        Assert.AreEqual(GetCustomerVATRegistrationNo(SalesInvoiceHeader."Sell-to Customer No."),
+        // [THEN] The buyer endpoint uses the first 9 digits of Registration Number with scheme 0225
+        Assert.AreEqual('123456789',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('9957',
+        Assert.AreEqual('0225',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
     [Test]
-    procedure CheckSalesInvRejectsNonFrenchBuyerVATFallback()
+    procedure ExportSalesInvUsesFrenchVATFallbackForBuyerEndpoint()
     var
-        CountryRegion: Record "Country/Region";
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] French VAT Registration No. SIREN extraction is used as buyer endpoint when FR Electronic Address and Registration Number are blank
+        Initialize();
+
+        // [GIVEN] Customer "C" with French VAT but no FR Electronic Address or Registration Number
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        Customer.Get(CustomerNo);
+        Customer."FR Electronic Address" := '';
+        Customer."Registration Number" := '';
+        Customer."VAT Registration No." := 'FR78945627890';
+        Customer.Modify(true);
+
+        // [GIVEN] Posted sales invoice for "C"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        // [WHEN] The invoice is checked and exported
+        CheckInvoice(SalesInvoiceHeader);
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] Buyer EndpointID = '945627890' with scheme 0225
+        Assert.AreEqual('945627890',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
+        Assert.AreEqual('0225',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
+    end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenBuyerHasOnlyNonFrenchVAT()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Check rejects a buyer with only a non-French VAT when FR Electronic Address and Registration Number are blank
+        Initialize();
+
+        // [GIVEN] Customer "C" with non-French VAT but no FR Electronic Address or Registration Number
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        Customer.Get(CustomerNo);
+        Customer."FR Electronic Address" := '';
+        Customer."Registration Number" := '';
+        Customer."VAT Registration No." := 'DE123456789';
+        Customer.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        // [WHEN] Check is called
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        // [THEN] Error about buyer electronic address is raised
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
+    end;
+
+    [Test]
+    procedure CheckSalesInvRejectsMalformedBuyerIdentifier()
+    var
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
-        // [SCENARIO] A non-French VAT registration number is not used as a French buyer endpoint
+        // [SCENARIO] A malformed FR Electronic Address that does not match SIREN format is rejected
         Initialize();
 
-        LibraryERM.CreateCountryRegion(CountryRegion);
-        CountryRegion.Validate("ISO Code", 'DE');
-        CountryRegion.Modify(true);
-        Customer.Get(CreateCustomer('', "Electronic Address Scheme"::"EM"));
-        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('DE');
-        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Get(CreateCustomer('ABCD56789', "Electronic Address Scheme"::"0002"));
+        Customer."Registration Number" := '';
         Customer.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(Customer."No."));
 
+        // [WHEN] Check is called
         asserterror CheckInvoice(SalesInvoiceHeader);
 
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(Customer."No."));
+        // [THEN] Error about malformed buyer identifier is raised
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
+            Customer.FieldCaption("FR Electronic Address"), Customer."No."));
     end;
 
     [Test]
@@ -977,11 +1053,12 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustomerNo: Code[20];
     begin
-        // [SCENARIO] Check rejects a buyer without an electronic address, VAT registration number, or a service participant identifier
+        // [SCENARIO] Check rejects a buyer without an electronic address, Registration Number, or a service participant identifier
         Initialize();
 
         CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
         ClearCustomerVATRegistrationNo(CustomerNo);
+        ClearCustomerRegistrationNumber(CustomerNo);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
         asserterror CheckInvoice(SalesInvoiceHeader);
@@ -990,20 +1067,47 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure CheckRaisesErrorWhenBuyerElectronicAddressSchemeIsMissing()
+    procedure CheckRaisesErrorWhenBuyerElectronicAddressIsMalformed()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
         CustomerNo: Code[20];
     begin
-        // [SCENARIO] Check rejects a buyer electronic address without its scheme
+        // [SCENARIO] Check rejects a buyer electronic address that does not match SIREN or SIREN_suffix format
         Initialize();
 
-        CustomerNo := CreateCustomer('buyer@example.com', "Electronic Address Scheme"::" ");
+        CustomerNo := CreateCustomer('SHORT', "Electronic Address Scheme"::"0002");
+        Customer.Get(CustomerNo);
+        Customer."Registration Number" := '';
+        Customer.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
         asserterror CheckInvoice(SalesInvoiceHeader);
 
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressSchemeRequiredError(CustomerNo));
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
+            Customer.FieldCaption("FR Electronic Address"), CustomerNo));
+    end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenBuyerElectronicAddressSuffixIsBlank()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Check rejects a buyer electronic address with a blank SIREN suffix
+        Initialize();
+
+        CustomerNo := CreateCustomer('123456789_ ', "Electronic Address Scheme"::"0225");
+        Customer.Get(CustomerNo);
+        Customer."Registration Number" := '';
+        Customer.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
+            Customer.FieldCaption("FR Electronic Address"), CustomerNo));
     end;
 
     [Test]
@@ -1293,6 +1397,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         if Customer."Post Code" = '' then
             Customer.Validate("Post Code", '75001');
         Customer."VAT Registration No." := 'FR12345678901';
+        Customer."Registration Number" := '123456789';
 
         Customer.Validate("FR Electronic Address", FRElectronicAddress);
         Customer.Validate("FR Elec. Address Scheme", AddressScheme);
@@ -1315,6 +1420,15 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     begin
         Customer.Get(CustomerNo);
         Customer."VAT Registration No." := '';
+        Customer.Modify(true);
+    end;
+
+    local procedure ClearCustomerRegistrationNumber(CustomerNo: Code[20])
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CustomerNo);
+        Customer."Registration Number" := '';
         Customer.Modify(true);
     end;
 

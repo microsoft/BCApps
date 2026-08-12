@@ -23,6 +23,10 @@ pageextension 10972 "E-Reporting Customer Card" extends "Customer Card"
             field("FR Elec. Address Scheme"; Rec."FR Elec. Address Scheme")
             {
                 ApplicationArea = Basic, Suite;
+                ObsoleteReason = 'French buyer electronic addresses always use scheme 0225.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
+                Visible = false;
             }
         }
     }

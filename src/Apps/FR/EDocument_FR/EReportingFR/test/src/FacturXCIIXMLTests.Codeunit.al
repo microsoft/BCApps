@@ -275,11 +275,11 @@ codeunit 148148 "Factur-X CII XML Tests"
         ElecAddress: Text[250];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X CII XML has buyer FR Electronic Address as BuyerTradeParty/URIUniversalCommunication/URIID
+        // [SCENARIO] Factur-X CII XML has buyer FR Electronic Address as BuyerTradeParty/URIUniversalCommunication/URIID with scheme 0225
         Initialize();
 
-        // [GIVEN] Customer with FR Electronic Address
-        ElecAddress := '98765432101234';
+        // [GIVEN] Customer with FR Electronic Address in SIREN_suffix format
+        ElecAddress := '987654321_001';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress(ElecAddress));
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
 
@@ -290,33 +290,38 @@ codeunit 148148 "Factur-X CII XML Tests"
         Assert.AreEqual(ElecAddress,
             GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
+
+        // [THEN] schemeID = '0225'
+        Assert.AreEqual('0225',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
     end;
 
     [Test]
-    procedure FacturXSalesInvoiceXMLBuyerFallsBackToVATNoWhenFRElecAddressBlank()
+    procedure FacturXSalesInvoiceXMLBuyerFallsBackToRegistrationNumber()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X CII XML uses buyer VAT Registration No. with schemeID 9957 as fallback when FR Electronic Address is blank (BR-FR-12)
+        // [SCENARIO] Factur-X CII XML uses buyer Registration Number (first 9 digits) with schemeID 0225 when FR Electronic Address is blank
         Initialize();
 
-        // [GIVEN] Posted sales invoice with customer having no FR Electronic Address but having a VAT Registration No.
+        // [GIVEN] Posted sales invoice with customer having no FR Electronic Address but having a Registration Number
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
 
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
-        // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID = customer VAT Registration No. (BR-FR-12 fallback)
-        Assert.AreEqual(Customer."VAT Registration No.",
+        // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID = first 9 digits of Registration Number
+        Assert.AreEqual(CopyStr(Customer."Registration Number", 1, 9),
             GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
 
-        // [THEN] schemeID = '9957'
-        Assert.AreEqual('9957',
+        // [THEN] schemeID = '0225'
+        Assert.AreEqual('0225',
             GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
     end;
@@ -511,7 +516,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
-    procedure FacturXSalesInvoiceXMLHasBuyerElecAddressSchemeID()
+    procedure FacturXSalesInvoiceXMLHasBuyerElecAddressSchemeID0225()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
@@ -519,21 +524,19 @@ codeunit 148148 "Factur-X CII XML Tests"
         ElecAddress: Text[250];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X CII XML buyer electronic address URIID has schemeID from customer setting
+        // [SCENARIO] Factur-X CII XML buyer electronic address always has schemeID 0225 regardless of customer configured scheme
         Initialize();
 
-        // [GIVEN] Customer with FR Electronic Address and a SIRET electronic address scheme
-        ElecAddress := '98765432101234';
+        // [GIVEN] Customer with FR Electronic Address (valid SIREN)
+        ElecAddress := '987654321';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress(ElecAddress));
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
-        Customer.Validate("FR Elec. Address Scheme", Customer."FR Elec. Address Scheme"::"0009");
-        Customer.Modify(true);
 
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
-        // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID/@schemeID = bare scheme code (not the enum caption)
-        Assert.AreEqual('0009',
+        // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID/@schemeID = '0225'
+        Assert.AreEqual('0225',
             GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
     end;
@@ -676,6 +679,58 @@ codeunit 148148 "Factur-X CII XML Tests"
         Assert.AreEqual(Format(SalesInvoiceLine."VAT %", 0, '<Standard Format,9>'),
             GetCIINodeValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent'),
             StrSubstNo(IncorrectValueErr, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent'));
+    end;
+
+    [Test]
+    procedure FacturXExemptVATBreakdownHasExemptionReasonWithoutVATEXCode()
+    var
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        TempBlob: Codeunit "Temp Blob";
+        ExemptionReasonXPath: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] An exempt VAT breakdown without a configured VATEX code satisfies BR-E-10
+        Initialize();
+
+        // [GIVEN] VAT Posting Setup with 0% VAT, category 'E', and no VAT Clause
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        VATPostingSetup."Tax Category" := 'E';
+        VATPostingSetup."VAT Clause Code" := '';
+        VATPostingSetup.Modify(true);
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+
+        // [GIVEN] Posted sales invoice with one exempt line
+        Customer.Get(CreateCustomer('123456789'));
+        Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] The category 'E' header VAT breakdown contains fallback exemption reason text
+        ExemptionReasonXPath := '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:CategoryCode="E"]/ram:ExemptionReason';
+        Assert.AreEqual('Exempt from VAT', GetCIINodeValue(TempBlob, ExemptionReasonXPath),
+            StrSubstNo(IncorrectValueErr, ExemptionReasonXPath));
+        Assert.AreEqual(1, GetCIINodeCount(TempBlob, ExemptionReasonXPath + '/following-sibling::ram:BasisAmount'),
+            StrSubstNo(IncorrectValueErr, 'ExemptionReason must precede BasisAmount'));
     end;
 
     [Test]
@@ -1077,6 +1132,96 @@ codeunit 148148 "Factur-X CII XML Tests"
             GetCIINodeValue(TempBlob, '//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:Name'),
             StrSubstNo(IncorrectValueErr, '//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedTradeProduct/ram:Name'));
     end;
+
+    [Test]
+    procedure FacturXSalesCrMemoZeroVATCatSPreservedWithGermanBuyer()
+    var
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        TempBlob: Codeunit "Temp Blob";
+        CustomerNo: Code[20];
+        LineTaxCategoryXPath: Text;
+        HeaderTaxCategoryXPath: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Credit memo line with VAT%=0 preserves source Tax Category 'S' and serializes the rate; German buyer gets DE-prefixed VAT ID
+        Initialize();
+
+        // [GIVEN] German customer "C" with VAT Registration No. '533435789', FR Electronic Address '123456789_FOREIGN'
+        EnsureCountryRegionExists('DE');
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Country/Region Code", 'DE');
+        Customer."VAT Registration No." := '533435789';
+        Customer."Registration Number" := '';
+        Customer."FR Electronic Address" := '123456789_FOREIGN';
+        Customer.Modify(true);
+        CustomerNo := Customer."No.";
+
+        // [GIVEN] VAT Posting Setup with Normal VAT, 0%, Tax Category 'S'
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Credit Memo Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Credit Memo Nos."));
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        VATPostingSetup."Tax Category" := 'S';
+        VATPostingSetup.Modify(true);
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+        Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        // [GIVEN] Posted sales credit memo "CM" with a single financial line
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
+        SalesLine.Modify(true);
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Create credit memo CII XML
+        CreateSalesCreditMemoCIIXML(SalesCrMemoHeader, TempBlob);
+
+        // [THEN] Line-level ApplicableTradeTax preserves CategoryCode 'S' and RateApplicablePercent '0'
+        LineTaxCategoryXPath := '//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:CategoryCode';
+        Assert.AreEqual('S', GetCIINodeValue(TempBlob, LineTaxCategoryXPath),
+            StrSubstNo(IncorrectValueErr, LineTaxCategoryXPath));
+        Assert.AreEqual('0',
+            GetCIINodeValue(TempBlob, '//ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax[ram:CategoryCode="S"]/ram:RateApplicablePercent'),
+            StrSubstNo(IncorrectValueErr, 'Line RateApplicablePercent'));
+
+        // [THEN] Header ApplicableTradeTax preserves CategoryCode 'S' and RateApplicablePercent '0'
+        HeaderTaxCategoryXPath := '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:CategoryCode';
+        Assert.AreEqual('S', GetCIINodeValue(TempBlob, HeaderTaxCategoryXPath),
+            StrSubstNo(IncorrectValueErr, HeaderTaxCategoryXPath));
+        Assert.AreEqual('0',
+            GetCIINodeValue(TempBlob, '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:CategoryCode="S"]/ram:RateApplicablePercent'),
+            StrSubstNo(IncorrectValueErr, 'Header RateApplicablePercent'));
+        Assert.AreEqual(0, GetCIINodeCount(TempBlob, '//ram:ApplicableTradeTax[ram:CategoryCode="O"]'),
+            StrSubstNo(IncorrectValueErr, 'CategoryCode O must not be derived from zero-rate category S'));
+
+        // [THEN] Buyer SpecifiedTaxRegistration/ID = 'DE533435789' with schemeID 'VA'
+        Assert.AreEqual('DE533435789',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'));
+        Assert.AreEqual('VA',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID/@schemeID'));
+
+        // [THEN] Buyer URIID = '123456789_FOREIGN' with schemeID '0225'
+        Assert.AreEqual('123456789_FOREIGN',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
+        Assert.AreEqual('0225',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
+    end;
     #endregion
 
     #region Reminder
@@ -1240,7 +1385,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
-    procedure FacturXCheckRaisesErrorWhenBuyerElectronicAddressSchemeIsMissing()
+    procedure FacturXCheckRaisesErrorWhenBuyerElectronicAddressIsMalformed()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
@@ -1248,15 +1393,14 @@ codeunit 148148 "Factur-X CII XML Tests"
         CustomerNo: Code[20];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X Format Check raises error when buyer has electronic address but no scheme
+        // [SCENARIO] Factur-X Format Check raises error when buyer electronic address does not match SIREN format
         Initialize();
 
-        // [GIVEN] Customer "C" with electronic address but blank scheme
+        // [GIVEN] Customer "C" with malformed FR Electronic Address (non-digit prefix)
         CustomerNo := CreateCustomer('');
         Customer.Get(CustomerNo);
-        Customer."FR Electronic Address" := 'buyer@example.com';
-        Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::" ";
-        Customer."VAT Registration No." := '';
+        Customer."FR Electronic Address" := 'ABCDEFGHI';
+        Customer."Registration Number" := '';
         Customer.Modify(true);
 
         // [GIVEN] Posted sales invoice for "C"
@@ -1266,32 +1410,71 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [WHEN] Factur-X Format Check is called
         asserterror CheckFacturX(SourceDocumentHeader);
 
-        // [THEN] Error about missing scheme is raised
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressSchemeRequiredError(CustomerNo));
+        // [THEN] Error about malformed buyer identifier is raised
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
+            Customer.FieldCaption("FR Electronic Address"), CustomerNo));
     end;
 
     [Test]
-    procedure FacturXCheckRaisesErrorWhenBuyerVATIsNonFrench()
+    procedure FacturXCheckPassesAndExportsURIIDFromFrenchVAT()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        CountryRegion: Record "Country/Region";
+        Customer: Record Customer;
+        SourceDocumentHeader: RecordRef;
+        TempBlob: Codeunit "Temp Blob";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X uses SIREN extracted from French VAT as BuyerTradeParty URIID when FR Electronic Address and Registration Number are blank
+        Initialize();
+
+        // [GIVEN] Customer "C" with French VAT but no FR Electronic Address or Registration Number
+        CustomerNo := CreateCustomer('');
+        Customer.Get(CustomerNo);
+        Customer."FR Electronic Address" := '';
+        Customer."Registration Number" := '';
+        Customer."VAT Registration No." := 'FR78945627890';
+        Customer.Modify(true);
+
+        // [GIVEN] Posted sales invoice for "C"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomer(CustomerNo));
+        SourceDocumentHeader.GetTable(SalesInvoiceHeader);
+
+        // [WHEN] Factur-X Format Check is called
+        CheckFacturX(SourceDocumentHeader);
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID = '945627890'
+        Assert.AreEqual('945627890',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
+
+        // [THEN] schemeID = '0225'
+        Assert.AreEqual('0225',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
+    end;
+
+    [Test]
+    procedure FacturXCheckRaisesErrorWhenBuyerHasOnlyNonFrenchVAT()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
         SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X Format Check raises error when buyer VAT is non-French and no electronic address
+        // [SCENARIO] Factur-X Format Check raises error when buyer has only a non-French VAT without FR Electronic Address or Registration Number
         Initialize();
 
-        // [GIVEN] Customer "C" with German VAT but no FR electronic address
-        LibraryERM.CreateCountryRegion(CountryRegion);
-        CountryRegion.Validate("ISO Code", 'DE');
-        CountryRegion.Modify(true);
+        // [GIVEN] Customer "C" with non-French VAT but no FR Electronic Address or Registration Number
         CustomerNo := CreateCustomer('');
         Customer.Get(CustomerNo);
         Customer."FR Electronic Address" := '';
-        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('DE');
-        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer."Registration Number" := '';
+        Customer."VAT Registration No." := 'DE123456789';
         Customer.Modify(true);
 
         // [GIVEN] Posted sales invoice for "C"
@@ -1375,7 +1558,6 @@ codeunit 148148 "Factur-X CII XML Tests"
     procedure FacturXMixedVATWithInvDiscountTaxTotalEqualsBreakdownSum()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
         TempBlob: Codeunit "Temp Blob";
         TaxTotalAmount: Decimal;
         Calculated20: Decimal;
@@ -1393,16 +1575,8 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         // [GIVEN] Posted sales invoice "SI" with two lines at 20% and 10% VAT and invoice discount applied
         SalesInvoiceHeader.Get(CreateAndPostMultiVATInvoiceWithDiscount(true));
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
-        SalesInvoiceLine.SetRange("VAT %", 20);
-        SalesInvoiceLine.FindFirst();
-        ExpectedBasis20 := SalesInvoiceLine.Amount;
-        ExpectedCalculated20 := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
-        SalesInvoiceLine.SetRange("VAT %", 10);
-        SalesInvoiceLine.FindFirst();
-        ExpectedBasis10 := SalesInvoiceLine.Amount;
-        ExpectedCalculated10 := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+        GetPostedInvoiceAmountsByVATRate(SalesInvoiceHeader."No.", 20, ExpectedBasis20, ExpectedCalculated20);
+        GetPostedInvoiceAmountsByVATRate(SalesInvoiceHeader."No.", 10, ExpectedBasis10, ExpectedCalculated10);
 
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
@@ -1486,7 +1660,6 @@ codeunit 148148 "Factur-X CII XML Tests"
     procedure FacturXMixedVATNoDiscountBreakdownAndReconciliation()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
         TempBlob: Codeunit "Temp Blob";
         TaxTotalAmount: Decimal;
         TaxBasisTotalAmount: Decimal;
@@ -1505,16 +1678,8 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         // [GIVEN] Posted sales invoice "SI" with two lines at 20% and 10% VAT without invoice discount
         SalesInvoiceHeader.Get(CreateAndPostMultiVATInvoiceWithDiscount(false));
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
-        SalesInvoiceLine.SetRange("VAT %", 20);
-        SalesInvoiceLine.FindFirst();
-        ExpectedBasis20 := SalesInvoiceLine.Amount;
-        ExpectedCalculated20 := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
-        SalesInvoiceLine.SetRange("VAT %", 10);
-        SalesInvoiceLine.FindFirst();
-        ExpectedBasis10 := SalesInvoiceLine.Amount;
-        ExpectedCalculated10 := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+        GetPostedInvoiceAmountsByVATRate(SalesInvoiceHeader."No.", 20, ExpectedBasis20, ExpectedCalculated20);
+        GetPostedInvoiceAmountsByVATRate(SalesInvoiceHeader."No.", 10, ExpectedBasis10, ExpectedCalculated10);
 
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
@@ -1861,6 +2026,22 @@ codeunit 148148 "Factur-X CII XML Tests"
         GeneralPostingSetup.Modify(true);
     end;
 
+    local procedure GetPostedInvoiceAmountsByVATRate(DocumentNo: Code[20]; VATRate: Decimal; var BasisAmount: Decimal; var CalculatedAmount: Decimal)
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
+        SalesInvoiceLine.SetLoadFields("VAT %", Amount, "Amount Including VAT");
+        if SalesInvoiceLine.FindSet() then
+            repeat
+                if SalesInvoiceLine."VAT %" = VATRate then begin
+                    BasisAmount += SalesInvoiceLine.Amount;
+                    CalculatedAmount += SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+                end;
+            until SalesInvoiceLine.Next() = 0;
+    end;
+
     local procedure CreateCustomer(FRElecAddress: Text[250]): Code[20]
     var
         Customer: Record Customer;
@@ -1868,6 +2049,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
+        Customer."Registration Number" := '123456789';
         Customer.Validate("FR Electronic Address", FRElecAddress);
         Customer.Modify(true);
         exit(Customer."No.");
