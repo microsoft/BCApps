@@ -92,7 +92,8 @@ page 283 "Recurring General Journal"
                         RecurringFrequencyDateFormula: DateFormula;
                     begin
                         if RecurringFrequency <> '' then
-                            Evaluate(RecurringFrequencyDateFormula, RecurringFrequency);
+                            if not Evaluate(RecurringFrequencyDateFormula, RecurringFrequency) then
+                                Error(InvalidRecurringFrequencyErr, RecurringFrequency);
                         Rec.Validate("Recurring Frequency", RecurringFrequencyDateFormula);
                         SetRecurringFrequency();
                     end;
@@ -1043,6 +1044,7 @@ page 283 "Recurring General Journal"
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
         RecurringFrequency: Text;
+        InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
 
     protected var
         GenJnlManagement: Codeunit GenJnlManagement;
