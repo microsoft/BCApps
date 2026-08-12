@@ -18,7 +18,7 @@ report 114 "Salesperson - Sales Statistics"
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson - Sales Statistics';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = "BC Default Theme";
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;

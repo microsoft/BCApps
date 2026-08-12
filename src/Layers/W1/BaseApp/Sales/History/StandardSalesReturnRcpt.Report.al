@@ -27,7 +27,7 @@ report 1309 "Standard Sales - Return Rcpt."
 {
     Caption = 'Return Receipt';
     DefaultRenderingLayout = "StandardSalesReturnRcpt.docx";
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = External_Default_Detailed;
     //DefaultThemePart = "BC Default Theme";
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;

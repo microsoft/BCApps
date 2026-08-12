@@ -18,7 +18,7 @@ report 115 "Salesperson - Commission"
     ApplicationArea = Suite;
     Caption = 'Salesperson - Commission';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = "BC Default Theme";
     UsageCategory = ReportsAndAnalysis;
 
