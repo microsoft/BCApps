@@ -90,7 +90,6 @@ page 283 "Recurring General Journal"
                     var
                         RecurringFrequencyDateFormula: DateFormula;
                     begin
-                        // Bound to Text so Edit in Excel exports localized DateFormula tokens (e.g. +1T) instead of invariant (+1D).
                         if RecurringFrequency <> '' then
                             Evaluate(RecurringFrequencyDateFormula, RecurringFrequency);
                         Rec.Validate("Recurring Frequency", RecurringFrequencyDateFormula);
