@@ -18,8 +18,8 @@ report 1700 "Deferral Summary - G/L"
     ApplicationArea = Basic, Suite;
     Caption = 'Deferral Summary - G/L';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "External Default";
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = BC_Default_Theme;
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -306,10 +306,10 @@ report 1700 "Deferral Summary - G/L"
         layout(WordBody)
         {
             Type = Word;
-            //Subtype=Body;
+            //Subtype = Body;
             LayoutFile = './Finance/Deferral/DeferralSummaryGLBody.docx';
-            Caption = 'Body-only: Deferral Summary G/L Word';
-            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+            Caption = 'Deferral Summary G/L Word';
+            Summary = 'Landscape G/L deferral summary. Per G/L account: posting date, document, deferral account, start date and periods, with amount recognised, remaining and total deferred, plus totals.';
         }
     }
 

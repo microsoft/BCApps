@@ -16,7 +16,7 @@ using System.Utilities;
 report 1017 "Job Task Quote"
 {
     DefaultRenderingLayout = "JobTaskQuote.rdlc";
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = External_Modern;
     //DefaultThemePart = "BC Default Theme";
     Caption = 'Project Task Quote';
     PreviewMode = PrintLayout;

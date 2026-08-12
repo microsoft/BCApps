@@ -16,7 +16,7 @@ report 718 "Inventory - Sales Back Orders"
     Caption = 'Inventory - Sales Back Orders';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = "BC Default Theme";
 
     dataset

@@ -14,7 +14,7 @@ report 708 "Inventory Order Details"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Order Details';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = "BC Default Theme";
     UsageCategory = ReportsAndAnalysis;
 

@@ -19,8 +19,8 @@ report 1702 "Deferral Summary - Purchasing"
     ApplicationArea = Suite;
     Caption = 'Deferral Summary - Purchasing';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "External Default";
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = BC_Default_Theme;
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -375,8 +375,8 @@ report 1702 "Deferral Summary - Purchasing"
             Type = Word;
             //Subtype = Body;
             LayoutFile = './Finance/Deferral/DeferralSummaryPurchasingBody.docx';
-            Caption = 'Body-only: Deferral Summary Purchasing Word';
-            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+            Caption = 'Deferral Summary Purchasing Word';
+            Summary = 'Landscape purchase deferral summary. Per vendor: posting date, document, line type and description, deferral account, start date and periods, with amount recognised, remaining and total deferred, plus totals.';
         }
     }
 

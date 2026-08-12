@@ -24,8 +24,8 @@ report 1316 "Standard Statement"
 {
     Caption = 'Customer Statement';
     DefaultRenderingLayout = "StandardStatement.docx";
-    //DefaultHeaderFooterPart = "External Default";
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultHeaderFooterPart = External_Modern;
+    //DefaultThemePart = BC_Default_Theme;
     WordMergeDataItem = Customer;
 
     dataset
@@ -1008,13 +1008,14 @@ report 1316 "Standard Statement"
             Type = Word;
             //Subtype = Body;
             LayoutFile = './Sales/Customer/StandardStatementBody.docx';
-            Caption = 'Body-only: Standard Customer Statement (Word)';
-            Summary = 'Body-only: The Standard Customer Statement (Word) provides a basic layout.';
+            Caption = 'Standard Customer Statement (Word)';
+            Summary = 'The Standard Customer Statement (Word) provides a basic layout.';
         }
         layout("StandardCustomerStatementEmailBody.docx")
         {
             Type = Word;
             //Subtype = Body;
+            //HeaderPart = Standard_HeaderFooter;
             LayoutFile = './Sales/Customer/StandardCustomerStatementEmailBody.docx';
             Caption = 'Body-only: Standard Customer Statement Email (Word)';
             Summary = 'Body-only: The Standard Customer Statement Email (Word) provides an email body layout.';

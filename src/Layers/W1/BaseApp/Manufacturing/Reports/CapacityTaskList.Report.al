@@ -11,7 +11,7 @@ using Microsoft.Manufacturing.WorkCenter;
 report 99000780 "Capacity Task List"
 {
     DefaultRenderingLayout = ExcelLayout;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = "BC Default Theme";
     ApplicationArea = Manufacturing;
     Caption = 'Capacity Task List';

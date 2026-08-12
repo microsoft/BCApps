@@ -14,8 +14,8 @@ report 713 "Inventory - Customer Sales"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Customer Sales';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "External Default";
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultThemePart = BC_Default_Theme;
     UsageCategory = ReportsAndAnalysis;
 
     dataset

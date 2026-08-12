@@ -14,7 +14,7 @@ report 714 "Inventory - Vendor Purchases"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Vendor Purchases';
     DefaultRenderingLayout = Word;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = "BC Default Theme";
     UsageCategory = ReportsAndAnalysis;
 
