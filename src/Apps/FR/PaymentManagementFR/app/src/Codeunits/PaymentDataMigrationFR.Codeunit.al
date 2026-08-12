@@ -153,33 +153,28 @@ codeunit 10844 "Payment Data Migration FR"
 
     local procedure TransferRecords(SourceTableId: Integer; TargetTableId: Integer)
     var
-        SourceField: Record Field;
         SourceRecRef: RecordRef;
         TargetRecRef: RecordRef;
         ExistingRecRef: RecordRef;
         SourceFieldRef: FieldRef;
         TargetFieldRef: FieldRef;
+        TransferableFieldNos: List of [Integer];
+        FieldNo: Integer;
     begin
         SourceRecRef.Open(SourceTableId, false);
         TargetRecRef.Open(TargetTableId, false);
         ExistingRecRef.Open(TargetTableId, false);
 
-        SourceField.SetRange(TableNo, SourceTableId);
-        SourceField.SetRange(Class, SourceField.Class::Normal);
-        SourceField.SetRange(Enabled, true);
+        GetTransferableFieldNos(SourceTableId, TargetRecRef, TransferableFieldNos);
 
         if SourceRecRef.FindSet() then
             repeat
                 TargetRecRef.Init();
-                if SourceField.FindSet() then
-                    repeat
-                        // The app tables do not necessarily have every field of the base application table.
-                        if TargetRecRef.FieldExist(SourceField."No.") then begin
-                            SourceFieldRef := SourceRecRef.Field(SourceField."No.");
-                            TargetFieldRef := TargetRecRef.Field(SourceField."No.");
-                            TargetFieldRef.Value := SourceFieldRef.Value;
-                        end;
-                    until SourceField.Next() = 0;
+                foreach FieldNo in TransferableFieldNos do begin
+                    SourceFieldRef := SourceRecRef.Field(FieldNo);
+                    TargetFieldRef := TargetRecRef.Field(FieldNo);
+                    TargetFieldRef.Value := SourceFieldRef.Value;
+                end;
 
                 // Records that were already migrated, for example by a previous run that failed halfway, are kept.
                 if not TargetRecordExists(TargetRecRef, ExistingRecRef) then
@@ -189,6 +184,22 @@ codeunit 10844 "Payment Data Migration FR"
         SourceRecRef.Close();
         TargetRecRef.Close();
         ExistingRecRef.Close();
+    end;
+
+    local procedure GetTransferableFieldNos(SourceTableId: Integer; var TargetRecRef: RecordRef; var TransferableFieldNos: List of [Integer])
+    var
+        SourceField: Record Field;
+    begin
+        SourceField.SetRange(TableNo, SourceTableId);
+        SourceField.SetRange(Class, SourceField.Class::Normal);
+        SourceField.SetRange(Enabled, true);
+
+        if SourceField.FindSet() then
+            repeat
+                // The app tables do not necessarily have every field of the base application table.
+                if TargetRecRef.FieldExist(SourceField."No.") then
+                    TransferableFieldNos.Add(SourceField."No.");
+            until SourceField.Next() = 0;
     end;
 
     local procedure TargetRecordExists(var TargetRecRef: RecordRef; var ExistingRecRef: RecordRef): Boolean
