@@ -139,3 +139,91 @@ Describe "ParallelTestExecution transient retry scheduling" {
         }
     }
 }
+
+Describe "ParallelTestExecution GDI+ warmup (serialize-first)" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    It "dispatches the first app alone and awaits it before fanning out the rest" {
+        # PLATFORM GDI+ first-touch race mitigation: the first company-open must run alone and be
+        # awaited to completion so the NST's process-wide GDI+ state warms single-threaded before
+        # any parallel open. This asserts exactly that ordering: dispatch(first) -> wait -> rest.
+        InModuleScope ParallelTestExecution {
+            $script:events = [System.Collections.Generic.List[string]]::new()
+
+            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Medium', 'Small') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Wait-ForFreeTenant { 'tenant2' }
+            Mock Merge-TenantTestResults { }
+            Mock Start-TestAppDispatch { $script:events.Add("dispatch:$AppName") }
+            Mock Wait-ForAllTestJobs { $script:events.Add('wait'); $true }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $null = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Medium', 'Small')
+
+            # First app dispatched alone, then awaited, before any other app is dispatched.
+            $script:events[0] | Should -Be 'dispatch:Big'
+            $script:events[1] | Should -Be 'wait'
+            $waitIndex = $script:events.IndexOf('wait')
+            $script:events.IndexOf('dispatch:Medium') | Should -BeGreaterThan $waitIndex
+            $script:events.IndexOf('dispatch:Small')  | Should -BeGreaterThan $waitIndex
+        }
+    }
+
+    It "skips the serial warmup when only one tenant is available (already serial, no race)" {
+        InModuleScope ParallelTestExecution {
+            $script:events = [System.Collections.Generic.List[string]]::new()
+
+            Mock Get-AvailableBcTenants { @('default') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Medium') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Merge-TenantTestResults { }
+            Mock Start-TestAppDispatch { $script:events.Add("dispatch:$AppName") }
+            Mock Wait-ForAllTestJobs { $script:events.Add('wait'); $true }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $null = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Medium')
+
+            # No serial warmup: the two apps are dispatched by the normal loop with no leading
+            # solo dispatch+await. (Start-TestAppDispatch is mocked so no jobs accumulate, hence the
+            # loop's terminal Wait-ForAllTestJobs is not reached - the key point is no 'wait' was
+            # emitted by a warmup step.)
+            $script:events | Should -Be @('dispatch:Big', 'dispatch:Medium')
+            $script:events | Should -Not -Contain 'wait'
+        }
+    }
+
+    It "returns the pending list unchanged when there is a single tenant" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-GdiPlusWarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('A', 'B', 'C') -AppIdByName @{ A = 'id-A'; B = 'id-B'; C = 'id-C' } `
+                -Tenants @('default') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
+            $result | Should -Be @('A', 'B', 'C')
+        }
+    }
+
+    It "returns the pending list unchanged when there is a single app" {
+        InModuleScope ParallelTestExecution {
+            Mock Start-TestAppDispatch { }
+            Mock Wait-ForAllTestJobs { $true }
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-GdiPlusWarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('Only') -AppIdByName @{ Only = 'id-Only' } `
+                -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
+            $result | Should -Be @('Only')
+            Should -Invoke Start-TestAppDispatch -Times 0
+        }
+    }
+}
