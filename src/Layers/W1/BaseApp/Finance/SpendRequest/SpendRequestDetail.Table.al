@@ -69,6 +69,7 @@ table 6841 "Spend Request Detail"
             Editable = false;
             DecimalPlaces = 0 : 5;
             InitValue = 1;
+            AutoFormatType = 0;
             ToolTip = 'Specifies the most recent exchange rate for the specified currency (1 = pari).';
 
             trigger OnValidate()

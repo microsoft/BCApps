@@ -41,15 +41,6 @@ table 6840 "Spend Request"
                 end;
             end;
         }
-        field(2; Type; Enum "Spend Request Type")
-        {
-            Caption = 'Document Type';
-            ToolTip = 'Specifies the document type of the spend request.';
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-            end;
-        }
         field(3; "Requested By"; Code[20])
         {
             Caption = 'Requested By';
@@ -116,6 +107,7 @@ table 6840 "Spend Request"
             Editable = false;
             DecimalPlaces = 0 : 5;
             InitValue = 1;
+            AutoFormatType = 0;
             ToolTip = 'Specifies the most recent exchange rate for the specified currency (1 = pari).';
             trigger OnValidate()
             begin
@@ -300,10 +292,10 @@ table 6840 "Spend Request"
     }
     fieldgroups
     {
-        fieldgroup(DropDown; "No.", Type, "Requested By", Purpose, Status)
+        fieldgroup(DropDown; "No.", Purpose, Status)
         {
         }
-        fieldgroup(Brick; "No.", Purpose, "Requested By", Status, "Total Expected Amount")
+        fieldgroup(Brick; "No.", Purpose, Status, "Total Expected Amount")
         {
         }
     }
@@ -358,6 +350,7 @@ table 6840 "Spend Request"
         ChangeCurrCodeOnLineQst: Label 'You have changed the currency code on the expense request. Do you also want to update the lines that had the same currency code?';
         SpendRequestIsUsedMsg: Label 'Spend request %1 was approved for %2 and current allocation is %3.', Comment = '%1 is a document no., %2 and %3 are amounts in local currency.';
         SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
+        SkipSpendRequestClose: Boolean;
 
     /// <summary>
     /// Returns the difference between estimated amount and actually spent amount
@@ -575,8 +568,19 @@ table 6840 "Spend Request"
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
         Rec.TestField(Status, Rec.Status::Approved);
-        if GuiAllowed() then
+
+        if GuiAllowed() and not SkipSpendRequestClose then
             SpendRequestclose := Confirm(SpendRequestCloseQst, true, Rec."No.");
+    end;
+
+    /// <summary>
+    /// Sets whether the confirmation to close the spend request should be skipped during validation.
+    /// When set to true, ValidateSpendRequest does not prompt to close the spend request.
+    /// </summary>
+    /// <param name="NewSkipSpendRequestClose">True to skip the close confirmation; otherwise false.</param>
+    procedure SetSkipSpendRequestClose(NewSkipSpendRequestClose: Boolean)
+    begin
+        SkipSpendRequestClose := NewSkipSpendRequestClose;
     end;
 
     /// <summary>
