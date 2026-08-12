@@ -48,7 +48,6 @@ codeunit 1223 "SEPA CT-Check Line"
         IBANTypeErr: Label 'The IBAN type on the recipient bank account must match the payment reference type.';
         QRIBANErr: Label 'The recipient bank account has an IBAN that is of type QR-IBAN. This type requires that the recipient bank account has a SEPA CT export payment type that is type 2.2 or 3.';
         QRRefErr: Label 'The payment reference is a QR reference. This type requires that the recipient bank account has a SEPA CT export payment type that is type 2.2 or 3.';
-        CustomerIBANNoClearingErr: Label 'The IBAN on customer bank account %1 does not contain a valid Swiss bank clearing number, which is required for a domestic (payment type 2.2) transfer.', Comment = '%1 - customer bank account code';
         IBANTypeHelpLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2210475', Locked = true;
         QRIBANHelpLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2210564', Locked = true;
         QRRefHelpLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2210811', Locked = true;
@@ -270,27 +269,18 @@ codeunit 1223 "SEPA CT-Check Line"
     var
         DummyPaymentExportData: Record "Payment Export Data";
         BankAccount: Record "Bank Account";
-        CHMgt: Codeunit CHMgt;
         SwissPaymentType: Option;
     begin
         if not SwissExport then
             exit;
 
-        if not CustomerBankAccount.GetPaymentType(SwissPaymentType, GenJnlLine."Currency Code") then
-            exit;
-
-        case SwissPaymentType of
-            DummyPaymentExportData."Swiss Payment Type"::"2.2":
-                if CHMgt.GetClearingNoFromIBAN(CustomerBankAccount.IBAN) = '' then
-                    GenJnlLine.InsertPaymentFileError(StrSubstNo(CustomerIBANNoClearingErr, GenJnlLine."Recipient Bank Account"));
-            DummyPaymentExportData."Swiss Payment Type"::"6":
-                begin
-                    BankAccount.Get(GenJnlLine."Bal. Account No.");
-                    if BankAccount."SWIFT Code" = '' then
-                        AddFieldEmptyError(
-                          GenJnlLine, BankAccount.TableCaption(), BankAccount.FieldCaption("SWIFT Code"), GenJnlLine."Bal. Account No.");
-                end;
-        end;
+        if CustomerBankAccount.GetPaymentType(SwissPaymentType, GenJnlLine."Currency Code") then
+            if SwissPaymentType = DummyPaymentExportData."Swiss Payment Type"::"6" then begin
+                BankAccount.Get(GenJnlLine."Bal. Account No.");
+                if BankAccount."SWIFT Code" = '' then
+                    AddFieldEmptyError(
+                      GenJnlLine, BankAccount.TableCaption(), BankAccount.FieldCaption("SWIFT Code"), GenJnlLine."Bal. Account No.");
+            end;
     end;
 
     [IntegrationEvent(false, false)]

@@ -827,17 +827,13 @@ table 1226 "Payment Export Data"
     end;
 
     local procedure FillSwissFieldsFromCustomerBankAccount(CustomerBankAccount: Record "Customer Bank Account")
-    var
-        CHMgt: Codeunit CHMgt;
     begin
         if not SwissExport then
             exit;
 
         CustomerBankAccount.GetPaymentType("Swiss Payment Type", "Currency Code");
         if "Swiss Payment Type" = "Swiss Payment Type"::"2.2" then
-            // MmbId must be the bank clearing number (IID), not the IBAN. Customer bank accounts have no
-            // Clearing No. field, so derive it from the domestic IBAN.
-            "Recipient Bank BIC" := CHMgt.GetClearingNoFromIBAN(CustomerBankAccount.IBAN);
+            "Recipient Bank BIC" := CopyStr("Recipient Bank Acc. No.", 1, MaxStrLen("Recipient Bank BIC"));
     end;
 
     local procedure FillSwissFieldsFromVendorBankAccount(VendorBankAccount: Record "Vendor Bank Account")
