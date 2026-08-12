@@ -672,27 +672,45 @@ codeunit 134194 "UT Derogatory Linkage Upg."
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TrueRepeatedExecutionMakesNoFurtherChanges()
     var
+        FALedgerEntry: Record "FA Ledger Entry";
+        MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         DerogatoryFALedgerEntry: Record "FA Ledger Entry";
         DerogatoryMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
         LinkedCount: Integer;
         AmbiguousCount: Integer;
         MissingCount: Integer;
+        FALedgerEntryCount: Integer;
+        MaintenanceLedgerEntryCount: Integer;
     begin
         InitializeLinkageTestData();
         CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
         CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
         CreateMaintenanceLedgerEntry(1, SourceDepreciationBookCode);
         CreateMaintenanceLedgerEntry(2, DerogatoryDepreciationBookCode);
+        FALedgerEntryCount := FALedgerEntry.Count();
+        MaintenanceLedgerEntryCount := MaintenanceLedgerEntry.Count();
 
         UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
         UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+        Assert.AreEqual(
+            FALedgerEntryCount, FALedgerEntry.Count(),
+            'The first linkage pass must not change the total FA ledger row count.');
+        Assert.AreEqual(
+            MaintenanceLedgerEntryCount, MaintenanceLedgerEntry.Count(),
+            'The first linkage pass must not change the total maintenance ledger row count.');
         LinkedCount := 0;
         AmbiguousCount := 0;
         MissingCount := 0;
 
         UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
         UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+        Assert.AreEqual(
+            FALedgerEntryCount, FALedgerEntry.Count(),
+            'The repeated linkage pass must not change the total FA ledger row count.');
+        Assert.AreEqual(
+            MaintenanceLedgerEntryCount, MaintenanceLedgerEntry.Count(),
+            'The repeated linkage pass must not change the total maintenance ledger row count.');
 
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
@@ -758,6 +776,8 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         DerogatoryFAAmount: Decimal;
         SourceMaintenanceAmount: Decimal;
         DerogatoryMaintenanceAmount: Decimal;
+        FALedgerEntryCount: Integer;
+        MaintenanceLedgerEntryCount: Integer;
     begin
         InitializeLinkageTestData();
         CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
@@ -772,10 +792,18 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         DerogatoryFAAmount := DerogatoryFALedgerEntry.Amount;
         SourceMaintenanceAmount := SourceMaintenanceLedgerEntry.Amount;
         DerogatoryMaintenanceAmount := DerogatoryMaintenanceLedgerEntry.Amount;
+        FALedgerEntryCount := SourceFALedgerEntry.Count();
+        MaintenanceLedgerEntryCount := SourceMaintenanceLedgerEntry.Count();
 
         UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
         UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
 
+        Assert.AreEqual(
+            FALedgerEntryCount, SourceFALedgerEntry.Count(),
+            'Linkage must not change the total FA ledger row count.');
+        Assert.AreEqual(
+            MaintenanceLedgerEntryCount, SourceMaintenanceLedgerEntry.Count(),
+            'Linkage must not change the total maintenance ledger row count.');
         SourceFALedgerEntry.Get(1);
         DerogatoryFALedgerEntry.Get(2);
         SourceMaintenanceLedgerEntry.Get(1);
