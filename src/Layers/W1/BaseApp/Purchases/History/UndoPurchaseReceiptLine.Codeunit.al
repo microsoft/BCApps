@@ -637,17 +637,17 @@ codeunit 5813 "Undo Purchase Receipt Line"
         FindSalesShipmentLineByDropShipmentLink(SalesShipmentLine, PurchRcptLine);
     end;
 
-    local procedure FindSalesShipmentLineByDropShipmentLink(var SalesShipmentLine: Record "Sales Shipment Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    local procedure FindSalesShipmentLineByDropShipmentLink(var SalesShipLine: Record "Sales Shipment Line"; PurchReceiptLine: Record "Purch. Rcpt. Line")
     begin
-        SalesShipmentLine.Reset();
-        SalesShipmentLine.SetRange("Order No.", PurchRcptLine."Sales Order No.");
-        SalesShipmentLine.SetRange("Order Line No.", PurchRcptLine."Sales Order Line No.");
-        SalesShipmentLine.SetRange("Purchase Order No.", PurchRcptLine."Order No.");
-        SalesShipmentLine.SetRange("Purch. Order Line No.", PurchRcptLine."Order Line No.");
-        SalesShipmentLine.SetRange("Drop Shipment", true);
-        SalesShipmentLine.SetRange(Correction, false);
-        SalesShipmentLine.SetRange(Quantity, PurchRcptLine.Quantity);
-        SalesShipmentLine.FindFirst();
+        SalesShipLine.Reset();
+        SalesShipLine.SetRange("Order No.", PurchReceiptLine."Sales Order No.");
+        SalesShipLine.SetRange("Order Line No.", PurchReceiptLine."Sales Order Line No.");
+        SalesShipLine.SetRange("Purchase Order No.", PurchReceiptLine."Order No.");
+        SalesShipLine.SetRange("Purch. Order Line No.", PurchReceiptLine."Order Line No.");
+        SalesShipLine.SetRange("Drop Shipment", true);
+        SalesShipLine.SetRange(Correction, false);
+        SalesShipLine.SetRange(Quantity, PurchReceiptLine.Quantity);
+        SalesShipLine.FindFirst();
     end;
 
     procedure IsUndoSalesShipmentLineForDropShipment(NewUndoSalesShptLineExists: Boolean)
