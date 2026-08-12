@@ -3289,12 +3289,7 @@ codeunit 147524 "SII Documents No Taxable"
         CreditMemoSalesHeader.TestField("Special Scheme Code", CreditMemoSalesHeader."Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
         CreditMemoSalesHeader.TestField("Cr. Memo Type", CreditMemoSalesHeader."Cr. Memo Type"::"R5 Corrected Invoice in Simplified Invoices");
 
-        LibrarySales.CreateSalesLine(
-          SalesLine, CreditMemoSalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), LibraryRandom.RandInt(100));
-        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
-        SalesLine.Modify(true);
-
+        // Post the corrective credit memo with only the single OSS line copied from the invoice, mirroring the repro
         LibraryERM.FindCustomerLedgerEntry(
           CustLedgerEntry,
           "Sales Document Type"::"Credit Memo",
