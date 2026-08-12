@@ -3333,6 +3333,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATEntry.SetRange("Document No.", CustLedgEntry."Document No.");
         VATEntry.SetRange("Posting Date", CustLedgEntry."Posting Date");
         VATEntry.SetRange("One Stop Shop Reporting", true);
+        Assert.IsFalse(VATEntry.IsEmpty(), 'Expected at least one One Stop Shop VAT Entry for the posted customer ledger entry.');
         VATEntry.CalcSums(Base);
         exit(Abs(VATEntry.Base));
     end;
