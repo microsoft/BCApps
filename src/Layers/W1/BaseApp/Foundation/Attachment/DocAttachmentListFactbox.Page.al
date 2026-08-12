@@ -76,8 +76,11 @@ page 1178 "Doc. Attachment List Factbox"
                     DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
                     RecRef: RecordRef;
                 begin
-                    if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then
+                    if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
                         OnAfterGetRecRefFail(Rec, RecRef);
+                        if RecRef.Number() = 0 then
+                            Error(CannotResolveSourceRecordErr, Rec."Table ID");
+                    end;
                     DocumentAttachment.SaveAttachment(files, RecRef);
                     CurrPage.Update();
                 end;
@@ -195,8 +198,11 @@ page 1178 "Doc. Attachment List Factbox"
         if Rec."Table ID" = 0 then
             exit;
 
-        if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then
+        if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
             OnAfterGetRecRefFail(Rec, RecRef);
+            if RecRef.Number() = 0 then
+                Error(CannotResolveSourceRecordErr, Rec."Table ID");
+        end;
         DocumentAttachmentDetails.OpenForRecRef(RecRef);
         OnBeforeDocumentAttachmentDetailsRunModal(Rec, RecRef, DocumentAttachmentDetails);
         DocumentAttachmentDetails.RunModal();
@@ -207,8 +213,11 @@ page 1178 "Doc. Attachment List Factbox"
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         RecRef: RecordRef;
     begin
-        if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then
+        if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
             OnAfterGetRecRefFail(Rec, RecRef);
+            if RecRef.Number() = 0 then
+                Error(CannotResolveSourceRecordErr, Rec."Table ID");
+        end;
         OfficeMgmt.InitiateSendToAttachments(RecRef);
         CurrPage.Update(true);
     end;
@@ -263,6 +272,7 @@ page 1178 "Doc. Attachment List Factbox"
         IsOfficeAddIn: Boolean;
         EmailHasAttachments: Boolean;
         CannotDownloadOrViewFileWithEmptyNameErr: Label 'The file must have a name.';
+        CannotResolveSourceRecordErr: Label 'Attachments are not supported for table %1.', Comment = '%1 = Table ID of the record that the attachment belongs to.';
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterGetRecRefFail(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)

@@ -108,6 +108,8 @@ codeunit 1173 "Document Attachment Mgmt"
         Job: Record Job;
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        ReturnReceiptHeader: Record "Return Receipt Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         VATReportHeader: Record "VAT Report Header";
@@ -175,6 +177,18 @@ codeunit 1173 "Document Attachment Mgmt"
                     RecRef.Open(Database::"Sales Cr.Memo Header");
                     if SalesCrMemoHeader.Get(DocumentAttachment."No.") then
                         RecRef.GetTable(SalesCrMemoHeader);
+                end;
+            Database::"Sales Shipment Header":
+                begin
+                    RecRef.Open(Database::"Sales Shipment Header");
+                    if SalesShipmentHeader.Get(DocumentAttachment."No.") then
+                        RecRef.GetTable(SalesShipmentHeader);
+                end;
+            Database::"Return Receipt Header":
+                begin
+                    RecRef.Open(Database::"Return Receipt Header");
+                    if ReturnReceiptHeader.Get(DocumentAttachment."No.") then
+                        RecRef.GetTable(ReturnReceiptHeader);
                 end;
             Database::"Purchase Header":
                 begin
