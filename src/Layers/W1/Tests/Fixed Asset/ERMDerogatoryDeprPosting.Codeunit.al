@@ -32,6 +32,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
+        ComposedFrenchFeatureStateCleanup: Codeunit "ERM Derog. Feature Cleanup";
         WrongJournalUsedErr: Label 'FA Journal without G/L Integration should be used for depreciation calculation.';
         NoPurchInvoiceExistErr: Label 'Purchase invoice was not posted.';
         DepreciationErr: Label 'Depreciation is not equal to Acquisition';
@@ -46,9 +47,23 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         CompletionStatsTok: Label 'The depreciation has been calculated.';
         MissingDerogatoryCounterpartTok: Label 'The derogatory counterpart for source entry';
         MultipleDerogatoryCounterpartsTok: Label 'More than one derogatory counterpart references source entry';
+        InvalidDerogatoryLinkTok: Label 'cannot be linked to depreciation book';
+        SimulatedFeatureBodyFailureErr: Label 'Simulated composed-French test-body failure.';
+        TestBodyCompletedErr: Label 'The test body ran to completion.';
+        TestBodyCompleted: Boolean;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DerogatoryWithModifiedFAPostingDate()
+    begin
+        asserterror begin
+            DerogatoryWithModifiedFAPostingDateBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure DerogatoryWithModifiedFAPostingDateBody()
     var
         FANo: Code[20];
         NormalDeprBookCode: Code[10];
@@ -66,7 +81,78 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    procedure ComposedFrenchFeatureStateIsRestoredBetweenTests()
+    var
+        DepreciationBookRecordRef: RecordRef;
+    begin
+        DepreciationBookRecordRef.Open(Database::"Depreciation Book");
+        if not DepreciationBookRecordRef.FieldExist(10802) then
+            exit;
+
+        Assert.IsTrue(
+            ComposedFrenchFeatureStateCleanup.WasLastFeatureStateRestored(),
+            'The preceding composed-French W1 test must restore its feature state.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure FailedComposedFrenchTestBodyRestoresFeatureState()
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        DepreciationBookRecordRef: RecordRef;
+        PreviousFeatureStatus: Enum "Feature Status";
+        AcceleratedDepreciationFeatureKey: Text[50];
+        FeatureStatusRecordExisted: Boolean;
+    begin
+        DepreciationBookRecordRef.Open(Database::"Depreciation Book");
+        if not DepreciationBookRecordRef.FieldExist(10802) then
+            exit;
+
+        AcceleratedDepreciationFeatureKey := 'AcceleratedDepreciation';
+        FeatureStatusRecordExisted :=
+            FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName());
+        if FeatureStatusRecordExisted then
+            PreviousFeatureStatus := FeatureDataUpdateStatus."Feature Status";
+        ComposedFrenchFeatureStateCleanup.CaptureFeatureState(
+            AcceleratedDepreciationFeatureKey, CompanyName());
+        if not FeatureStatusRecordExisted then begin
+            FeatureDataUpdateStatus."Feature Key" := AcceleratedDepreciationFeatureKey;
+            FeatureDataUpdateStatus."Company Name" :=
+                CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus.Insert();
+        end;
+        if FeatureDataUpdateStatus."Feature Status" = FeatureDataUpdateStatus."Feature Status"::Enabled then
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled
+        else
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled;
+        FeatureDataUpdateStatus.Modify();
+        Commit();
+
+        asserterror Error(SimulatedFeatureBodyFailureErr);
+        Assert.ExpectedError(SimulatedFeatureBodyFailureErr);
+        ComposedFrenchFeatureStateCleanup.RestoreFeatureState();
+
+        if FeatureStatusRecordExisted then begin
+            FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName());
+            FeatureDataUpdateStatus.TestField("Feature Status", PreviousFeatureStatus);
+        end else
+            Assert.IsFalse(
+                FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName()),
+                'Cleanup must delete a feature-status row created by the failed test body.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PostPurchInvoiceWithFALine()
+    begin
+        asserterror begin
+            PostPurchInvoiceWithFALineBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure PostPurchInvoiceWithFALineBody()
     var
         FANo: Code[20];
         NormalDeprBookCode: Code[10];
@@ -81,7 +167,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PostFAJournalLine()
+    begin
+        asserterror begin
+            PostFAJournalLineBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure PostFAJournalLineBody()
     var
         FANo: Code[20];
         NormalDeprBookCode: Code[10];
@@ -98,7 +194,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure GeneralJournalAcquisitionCreatesSingleLinkedCounterpart()
+    begin
+        asserterror begin
+            GeneralJournalAcquisitionCreatesSingleLinkedCounterpartBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure GeneralJournalAcquisitionCreatesSingleLinkedCounterpartBody()
     var
         GenJournalLine: Record "Gen. Journal Line";
         FANo: Code[20];
@@ -116,7 +222,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MaintenancePostingCreatesSingleLinkedCounterpart()
+    begin
+        asserterror begin
+            MaintenancePostingCreatesSingleLinkedCounterpartBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MaintenancePostingCreatesSingleLinkedCounterpartBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -134,7 +250,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MissingTaxBookAssetDoesNotCreateCounterpart()
+    begin
+        asserterror begin
+            MissingTaxBookAssetDoesNotCreateCounterpartBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MissingTaxBookAssetDoesNotCreateCounterpartBody()
     var
         FixedAsset: Record "Fixed Asset";
         FAJournalLine: Record "FA Journal Line";
@@ -160,7 +286,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure BookValueAmountsInNormalBookWithDerogatory()
+    begin
+        asserterror begin
+            BookValueAmountsInNormalBookWithDerogatoryBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure BookValueAmountsInNormalBookWithDerogatoryBody()
     var
         FANo: Code[20];
         NormalDeprBookCode: Code[10];
@@ -178,7 +314,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure BookValueAmountsInTaxBookWithDerogatory()
+    begin
+        asserterror begin
+            BookValueAmountsInTaxBookWithDerogatoryBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure BookValueAmountsInTaxBookWithDerogatoryBody()
     var
         FANo: Code[20];
         NormalDeprBookCode: Code[10];
@@ -197,7 +343,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CalculateDepreciationWithoutGLIntegration()
+    begin
+        asserterror begin
+            CalculateDepreciationWithoutGLIntegrationBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure CalculateDepreciationWithoutGLIntegrationBody()
     var
         FAJournalLine: Record "FA Journal Line";
         FANo: Code[20];
@@ -222,7 +378,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FinalDepreciationWithNegativeDerogatory()
+    begin
+        asserterror begin
+            FinalDepreciationWithNegativeDerogatoryBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure FinalDepreciationWithNegativeDerogatoryBody()
     var
         FANo: Code[20];
         NormalDeprBookCode: Code[10];
@@ -250,7 +416,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CheckBookValueForDepreciationWithDerogatory()
+    begin
+        asserterror begin
+            CheckBookValueForDepreciationWithDerogatoryBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure CheckBookValueForDepreciationWithDerogatoryBody()
     var
         FADepreciationBook: Record "FA Depreciation Book";
         FANo: Code[20];
@@ -279,7 +455,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CheckDerogAmountAddAcqCost()
+    begin
+        asserterror begin
+            CheckDerogAmountAddAcqCostBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure CheckDerogAmountAddAcqCostBody()
     var
         FAJournalLine: Record "FA Journal Line";
         FADepreciationBook: Record "FA Depreciation Book";
@@ -332,7 +518,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ErrPostingAddAcqViaFAJnlWithGLInt()
+    begin
+        asserterror begin
+            ErrPostingAddAcqViaFAJnlWithGLIntBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure ErrPostingAddAcqViaFAJnlWithGLIntBody()
     var
         FAJournalLine: Record "FA Journal Line";
         FADepreciationBook: Record "FA Depreciation Book";
@@ -381,7 +577,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CheckDerogAmountAddAcqCostGL()
+    begin
+        asserterror begin
+            CheckDerogAmountAddAcqCostGLBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure CheckDerogAmountAddAcqCostGLBody()
     var
         GenJournalLine: Record "Gen. Journal Line";
         FADepreciationBook: Record "FA Depreciation Book";
@@ -434,7 +640,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('CancelFALedgerEntryRequestPageHandler,MessageHandler,DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CancelDerogEntryAddAcqCost()
+    begin
+        asserterror begin
+            CancelDerogEntryAddAcqCostBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure CancelDerogEntryAddAcqCostBody()
     var
         FAJournalLine: Record "FA Journal Line";
         FADepreciationBook: Record "FA Depreciation Book";
@@ -487,7 +703,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('ReverseFALedgerEntriesPageHandler,MessageHandler,DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ReverseDerogEntryAddAcqCost()
+    begin
+        asserterror begin
+            ReverseDerogEntryAddAcqCostBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure ReverseDerogEntryAddAcqCostBody()
     var
         GenJournalLine: Record "Gen. Journal Line";
         FADepreciationBook: Record "FA Depreciation Book";
@@ -546,7 +772,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [Test]
     [HandlerFunctions('ReverseFALedgerEntriesPageHandler,MessageHandler,DepreciationCalcConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ReverseDerogEntryInitAcqCost()
+    begin
+        asserterror begin
+            ReverseDerogEntryInitAcqCostBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure ReverseDerogEntryInitAcqCostBody()
     var
         GenJournalLine: Record "Gen. Journal Line";
         FADepreciationBook: Record "FA Depreciation Book";
@@ -600,7 +836,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure AcquisitionViaPurchInvoiceMirrorsToDerogatoryBook()
+    begin
+        asserterror begin
+            AcquisitionViaPurchInvoiceMirrorsToDerogatoryBookBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure AcquisitionViaPurchInvoiceMirrorsToDerogatoryBookBody()
     var
         FANormalDeprBook: Record "FA Depreciation Book";
         FATaxDeprBook: Record "FA Depreciation Book";
@@ -628,7 +874,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure AcquisitionSalvageCompanionIsLinked()
+    begin
+        asserterror begin
+            AcquisitionSalvageCompanionIsLinkedBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure AcquisitionSalvageCompanionIsLinkedBody()
     var
         FAJournalLine: Record "FA Journal Line";
         SourceSalvageFALedgerEntry: Record "FA Ledger Entry";
@@ -667,7 +923,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure GeneralJournalSalvageCompanionIsLinked()
+    begin
+        asserterror begin
+            GeneralJournalSalvageCompanionIsLinkedBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure GeneralJournalSalvageCompanionIsLinkedBody()
     var
         GenJournalLine: Record "Gen. Journal Line";
         SourceSalvageFALedgerEntry: Record "FA Ledger Entry";
@@ -704,7 +970,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure AutomaticOnlyDepreciationCompanionsAreLinked()
+    begin
+        asserterror begin
+            AutomaticOnlyDepreciationCompanionsAreLinkedBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure AutomaticOnlyDepreciationCompanionsAreLinkedBody()
     var
         FAJournalLine: Record "FA Journal Line";
         SourceFALedgerEntry: Record "FA Ledger Entry";
@@ -752,10 +1028,21 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         CounterpartFALedgerEntry.SetRange("FA Posting Date", FAPostingDate);
         CounterpartFALedgerEntry.SetRange("Automatic Entry", true);
         Assert.AreEqual(AutomaticSourceCount, CounterpartFALedgerEntry.Count(), NumberFAEntryErr);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure GeneratedMirrorDoesNotRunConfiguredDuplication()
+    begin
+        asserterror begin
+            GeneratedMirrorDoesNotRunConfiguredDuplicationBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure GeneratedMirrorDoesNotRunConfiguredDuplicationBody()
     var
         DepreciationBook: Record "Depreciation Book";
         FAJournalLine: Record "FA Journal Line";
@@ -788,16 +1075,28 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ReturningInsertionOverloadsReturnInsertedIdentities()
+    begin
+        asserterror begin
+            ReturningInsertionOverloadsReturnInsertedIdentitiesBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure ReturningInsertionOverloadsReturnInsertedIdentitiesBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
         DirectFALedgerEntry: Record "FA Ledger Entry";
         InsertedFALedgerEntry: Record "FA Ledger Entry";
+        LocatedFALedgerEntry: Record "FA Ledger Entry";
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         DirectMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         InsertedMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        LocatedMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         FANo: Code[20];
         NormalDepreciationBookCode: Code[10];
@@ -812,8 +1111,19 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
         FAInsertLedgerEntry.InsertFA(DirectFALedgerEntry, InsertedFALedgerEntry);
 
-        Assert.AreNotEqual(0, InsertedFALedgerEntry."Entry No.", NumberFAEntryErr);
-        InsertedFALedgerEntry.Get(InsertedFALedgerEntry."Entry No.");
+        LocatedFALedgerEntry.SetRange("FA No.", DirectFALedgerEntry."FA No.");
+        LocatedFALedgerEntry.SetRange("Depreciation Book Code", DirectFALedgerEntry."Depreciation Book Code");
+        LocatedFALedgerEntry.SetRange("Document No.", DirectFALedgerEntry."Document No.");
+        LocatedFALedgerEntry.SetRange("FA Posting Type", DirectFALedgerEntry."FA Posting Type");
+        Assert.AreEqual(1, LocatedFALedgerEntry.Count(), NumberFAEntryErr);
+        LocatedFALedgerEntry.FindFirst();
+        Assert.AreEqual(
+            LocatedFALedgerEntry."Entry No.", InsertedFALedgerEntry."Entry No.",
+            'The returning FA insertion overload must return the uniquely inserted entry.');
+        InsertedFALedgerEntry.TestField("FA No.", DirectFALedgerEntry."FA No.");
+        InsertedFALedgerEntry.TestField("Depreciation Book Code", DirectFALedgerEntry."Depreciation Book Code");
+        InsertedFALedgerEntry.TestField("Document No.", DirectFALedgerEntry."Document No.");
+        InsertedFALedgerEntry.TestField("FA Posting Type", DirectFALedgerEntry."FA Posting Type");
 
         PostLinkedMaintenance(
             SourceMaintenanceLedgerEntry, CounterpartMaintenanceLedgerEntry,
@@ -825,13 +1135,37 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         FAInsertLedgerEntry.InsertMaintenance(
             DirectMaintenanceLedgerEntry, InsertedMaintenanceLedgerEntry);
 
-        Assert.AreNotEqual(0, InsertedMaintenanceLedgerEntry."Entry No.", NumberMaintenanceEntryErr);
-        InsertedMaintenanceLedgerEntry.Get(InsertedMaintenanceLedgerEntry."Entry No.");
+        LocatedMaintenanceLedgerEntry.SetRange("FA No.", DirectMaintenanceLedgerEntry."FA No.");
+        LocatedMaintenanceLedgerEntry.SetRange(
+            "Depreciation Book Code", DirectMaintenanceLedgerEntry."Depreciation Book Code");
+        LocatedMaintenanceLedgerEntry.SetRange("Document No.", DirectMaintenanceLedgerEntry."Document No.");
+        LocatedMaintenanceLedgerEntry.SetRange("Maintenance Code", DirectMaintenanceLedgerEntry."Maintenance Code");
+        Assert.AreEqual(1, LocatedMaintenanceLedgerEntry.Count(), NumberMaintenanceEntryErr);
+        LocatedMaintenanceLedgerEntry.FindFirst();
+        Assert.AreEqual(
+            LocatedMaintenanceLedgerEntry."Entry No.", InsertedMaintenanceLedgerEntry."Entry No.",
+            'The returning maintenance insertion overload must return the uniquely inserted entry.');
+        InsertedMaintenanceLedgerEntry.TestField("FA No.", DirectMaintenanceLedgerEntry."FA No.");
+        InsertedMaintenanceLedgerEntry.TestField(
+            "Depreciation Book Code", DirectMaintenanceLedgerEntry."Depreciation Book Code");
+        InsertedMaintenanceLedgerEntry.TestField("Document No.", DirectMaintenanceLedgerEntry."Document No.");
+        InsertedMaintenanceLedgerEntry.TestField("Maintenance Code", DirectMaintenanceLedgerEntry."Maintenance Code");
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FinalLinkValidationRunsAfterPostingEvent()
+    begin
+        asserterror begin
+            FinalLinkValidationRunsAfterPostingEventBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure FinalLinkValidationRunsAfterPostingEventBody()
     var
+        FALedgerEntry: Record "FA Ledger Entry";
         FAJournalLine: Record "FA Journal Line";
         EventSubscriber: Codeunit "ERM Derogatory Depr. Posting";
         FANo: Code[20];
@@ -847,14 +1181,26 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         FAJournalLine.Modify(true);
 
         BindSubscription(EventSubscriber);
-        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        asserterror LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
         UnbindSubscription(EventSubscriber);
 
-        VerifyLinkedCounterparts(FANo, NormalDepreciationBookCode, TaxDepreciationBookCode);
+        Assert.ExpectedError(InvalidDerogatoryLinkTok);
+        FALedgerEntry.SetRange("FA No.", FANo);
+        Assert.AreEqual(0, FALedgerEntry.Count(), 'The rejected source and counterpart must be rolled back together.');
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FAReversalUsesPersistedLinkAfterRelationshipChanges()
+    begin
+        asserterror begin
+            FAReversalUsesPersistedLinkAfterRelationshipChangesBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure FAReversalUsesPersistedLinkAfterRelationshipChangesBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -880,7 +1226,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MaintenanceReversalUsesPersistedLinkAfterRelationshipRemoval()
+    begin
+        asserterror begin
+            MaintenanceReversalUsesPersistedLinkAfterRelationshipRemovalBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MaintenanceReversalUsesPersistedLinkAfterRelationshipRemovalBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -904,7 +1260,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MissingRequiredFACounterpartErrors()
+    begin
+        asserterror begin
+            MissingRequiredFACounterpartErrorsBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MissingRequiredFACounterpartErrorsBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -925,7 +1291,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MissingRequiredMaintenanceCounterpartErrors()
+    begin
+        asserterror begin
+            MissingRequiredMaintenanceCounterpartErrorsBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MissingRequiredMaintenanceCounterpartErrorsBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -947,7 +1323,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure AlreadyReversedFACounterpartErrorsAndRollsBackSourceReversal()
+    begin
+        asserterror begin
+            AlreadyReversedFACounterpartErrorsAndRollsBackSourceReversalBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure AlreadyReversedFACounterpartErrorsAndRollsBackSourceReversalBody()
     var
         FALedgerEntry: Record "FA Ledger Entry";
         SourceFALedgerEntry: Record "FA Ledger Entry";
@@ -982,7 +1368,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure AlreadyReversedMaintenanceCounterpartErrorsAndRollsBackSourceReversal()
+    begin
+        asserterror begin
+            AlreadyReversedMaintenanceCounterpartErrorsAndRollsBackSourceReversalBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure AlreadyReversedMaintenanceCounterpartErrorsAndRollsBackSourceReversalBody()
     var
         MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -1023,7 +1419,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MultipleFACounterpartsAcrossBooksError()
+    begin
+        asserterror begin
+            MultipleFACounterpartsAcrossBooksErrorBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MultipleFACounterpartsAcrossBooksErrorBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -1044,7 +1450,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MultipleMaintenanceCounterpartsAcrossBooksError()
+    begin
+        asserterror begin
+            MultipleMaintenanceCounterpartsAcrossBooksErrorBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MultipleMaintenanceCounterpartsAcrossBooksErrorBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -1066,7 +1482,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure UnlinkedCurrentlyIneligibleFAReversesNormally()
+    begin
+        asserterror begin
+            UnlinkedCurrentlyIneligibleFAReversesNormallyBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure UnlinkedCurrentlyIneligibleFAReversesNormallyBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -1092,7 +1518,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure UnlinkedCurrentlyIneligibleMaintenanceReversesNormally()
+    begin
+        asserterror begin
+            UnlinkedCurrentlyIneligibleMaintenanceReversesNormallyBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure UnlinkedCurrentlyIneligibleMaintenanceReversesNormallyBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -1120,7 +1556,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MarkedLegacyFAUsesHeuristicFallback()
+    begin
+        asserterror begin
+            MarkedLegacyFAUsesHeuristicFallbackBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MarkedLegacyFAUsesHeuristicFallbackBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -1142,7 +1588,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MarkedLegacyMaintenanceUsesHeuristicFallback()
+    begin
+        asserterror begin
+            MarkedLegacyMaintenanceUsesHeuristicFallbackBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MarkedLegacyMaintenanceUsesHeuristicFallbackBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -1166,7 +1622,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MarkedLegacyFAUsesHeuristicAfterRelationshipRemoval()
+    begin
+        asserterror begin
+            MarkedLegacyFAUsesHeuristicAfterRelationshipRemovalBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MarkedLegacyFAUsesHeuristicAfterRelationshipRemovalBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -1189,7 +1655,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MarkedLegacyMaintenanceUsesHeuristicAfterRelationshipChange()
+    begin
+        asserterror begin
+            MarkedLegacyMaintenanceUsesHeuristicAfterRelationshipChangeBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MarkedLegacyMaintenanceUsesHeuristicAfterRelationshipChangeBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -1214,7 +1690,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure FAReversalOfReversalPreservesMarksAndLinks()
+    begin
+        asserterror begin
+            FAReversalOfReversalPreservesMarksAndLinksBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure FAReversalOfReversalPreservesMarksAndLinksBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -1249,7 +1735,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure MaintenanceReversalOfReversalPreservesMarksAndLinks()
+    begin
+        asserterror begin
+            MaintenanceReversalOfReversalPreservesMarksAndLinksBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure MaintenanceReversalOfReversalPreservesMarksAndLinksBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -1286,7 +1782,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure AutomaticSalvageCompanionsReverseThroughLinks()
+    begin
+        asserterror begin
+            AutomaticSalvageCompanionsReverseThroughLinksBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure AutomaticSalvageCompanionsReverseThroughLinksBody()
     var
         FAJournalLine: Record "FA Journal Line";
         SourceAcquisitionFALedgerEntry: Record "FA Ledger Entry";
@@ -1330,7 +1836,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure TaxBookAcquisitionReversesSameBookAutomaticSalvageOnce()
+    begin
+        asserterror begin
+            TaxBookAcquisitionReversesSameBookAutomaticSalvageOnceBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure TaxBookAcquisitionReversesSameBookAutomaticSalvageOnceBody()
     var
         FAJournalLine: Record "FA Journal Line";
         FALedgerEntry: Record "FA Ledger Entry";
@@ -1382,7 +1898,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DirectFACounterpartReversalPreservesRoleAfterSetupChange()
+    begin
+        asserterror begin
+            DirectFACounterpartReversalPreservesRoleAfterSetupChangeBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure DirectFACounterpartReversalPreservesRoleAfterSetupChangeBody()
     var
         SourceFALedgerEntry: Record "FA Ledger Entry";
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
@@ -1406,7 +1932,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DirectMaintenanceCounterpartReversalPreservesRoleAfterSetupChange()
+    begin
+        asserterror begin
+            DirectMaintenanceCounterpartReversalPreservesRoleAfterSetupChangeBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure DirectMaintenanceCounterpartReversalPreservesRoleAfterSetupChangeBody()
     var
         SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -1432,7 +1968,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure AcquisitionReversesOnlyItsAdjacentAutomaticSalvage()
+    begin
+        asserterror begin
+            AcquisitionReversesOnlyItsAdjacentAutomaticSalvageBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure AcquisitionReversesOnlyItsAdjacentAutomaticSalvageBody()
     var
         DepreciationBook: Record "Depreciation Book";
         FAJournalLine: Record "FA Journal Line";
@@ -1491,7 +2037,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure AcquisitionReversalOfReversalRestoresAutomaticSalvage()
+    begin
+        asserterror begin
+            AcquisitionReversalOfReversalRestoresAutomaticSalvageBody();
+            CompleteTestBody();
+        end;
+        RestoreFeatureStateAfterTestBody();
+    end;
+
+    local procedure AcquisitionReversalOfReversalRestoresAutomaticSalvageBody()
     var
         FAJournalLine: Record "FA Journal Line";
         SourceAcquisitionFALedgerEntry: Record "FA Ledger Entry";
@@ -1794,6 +2350,8 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             exit;
 
         AcceleratedDepreciationFeatureKey := 'AcceleratedDepreciation';
+        ComposedFrenchFeatureStateCleanup.CaptureFeatureState(
+            AcceleratedDepreciationFeatureKey, CompanyName());
         if not FeatureDataUpdateStatus.Get(AcceleratedDepreciationFeatureKey, CompanyName()) then begin
             FeatureDataUpdateStatus."Feature Key" := AcceleratedDepreciationFeatureKey;
             FeatureDataUpdateStatus."Company Name" :=
@@ -1802,6 +2360,25 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         end;
         FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled;
         FeatureDataUpdateStatus.Modify();
+    end;
+
+    local procedure CompleteTestBody()
+    begin
+        TestBodyCompleted := true;
+        Error(TestBodyCompletedErr);
+    end;
+
+    local procedure RestoreFeatureStateAfterTestBody()
+    var
+        BodyErrorText: Text;
+        BodyCompleted: Boolean;
+    begin
+        BodyErrorText := GetLastErrorText();
+        BodyCompleted := TestBodyCompleted;
+        TestBodyCompleted := false;
+        ComposedFrenchFeatureStateCleanup.RestoreFeatureState();
+        if not BodyCompleted then
+            Error(BodyErrorText);
     end;
 
     local procedure CreateDeprBookModifyDerogCalc(DerogDeprBookCode: Code[10]): Code[10]
@@ -2286,8 +2863,19 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"FA Jnl.-Post Line", 'OnPostFixedAssetOnBeforeInsertEntry', '', false, false)]
     local procedure CorruptGeneratedMirrorLinkAfterPostingEvent(var FALedgEntry: Record "FA Ledger Entry")
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
     begin
-        if FALedgEntry.Description = FinalValidationEventMarkerLbl then
-            FALedgEntry."Derogatory Source Entry No." := 2147483647;
+        if FALedgEntry.Description <> FinalValidationEventMarkerLbl then
+            exit;
+
+        DepreciationBook.Get(FALedgEntry."Depreciation Book Code");
+        if DepreciationBook."Derogatory Calc." = '' then
+            exit;
+
+        LibraryFixedAsset.CreateFixedAsset(FixedAsset);
+        FALedgEntry."FA No." := FixedAsset."No.";
     end;
+
 }
