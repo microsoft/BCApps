@@ -8,6 +8,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Enums;
@@ -427,6 +428,18 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Canceled';
             Editable = false;
+        }
+        field(100; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request to which the posted expense report line is linked.';
+            TableRelation = "Spend Request";
+        }
+        field(101; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            DataClassification = CustomerContent;
         }
         field(1000; "Job Ledger Entry No."; Integer)
         {
