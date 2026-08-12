@@ -358,19 +358,6 @@ page 6181 "E-Document Purchase Draft"
                         AnalyzeEDocument();
                     end;
                 }
-                action(CreateManualDraftAction)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Create draft manually';
-                    ToolTip = 'Start an empty draft for this document so you can enter the details by hand. Use this when the file could not be read as an invoice.';
-                    Image = NewDocument;
-                    Visible = ShowCreateManualDraftAction;
-
-                    trigger OnAction()
-                    begin
-                        CreateManualDraft();
-                    end;
-                }
                 action(LinkToExistingDocument)
                 {
                     ApplicationArea = Basic, Suite;
@@ -526,6 +513,7 @@ page 6181 "E-Document Purchase Draft"
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
+        EnsureManualDraftForFailedExtraction();
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
         if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
             EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
@@ -574,7 +562,6 @@ page 6181 "E-Document Purchase Draft"
         ShowAnalyzeDocumentAction :=
             (Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and
             (Rec.Status = Enum::"E-Document Status"::Error);
-        ShowCreateManualDraftAction := ShowAnalyzeDocumentAction;
 
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
@@ -746,26 +733,22 @@ page 6181 "E-Document Purchase Draft"
         EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
-    local procedure CreateManualDraft()
+    local procedure EnsureManualDraftForFailedExtraction()
     var
+        ExistingEDocumentPurchaseHeader: Record "E-Document Purchase Header";
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
-        Progress: Dialog;
         OriginalStructureDataImpl: Enum "Structure Received E-Doc.";
     begin
-        if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
-            exit;
-
-        // Only offer a manual draft when extraction actually failed at the structure step.
+        // When extraction failed, build an empty editable draft on open, treating the data as already structured for this run only and restoring the selection so it can still be re-analyzed.
         Rec.CalcFields("Import Processing Status");
         if not ((Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and (Rec.Status = Enum::"E-Document Status"::Error)) then
             exit;
+        if ExistingEDocumentPurchaseHeader.Get(Rec."Entry No") then
+            exit;
+        if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
+            exit;
 
-        if GuiAllowed() then
-            Progress.Open(ProcessingDocumentMsg);
-
-        // Treat the data as already structured only for this recovery run so re-running the structure
-        // step is a no-op, and restore the selection afterwards so the document can still be re-analyzed.
         OriginalStructureDataImpl := Rec."Structure Data Impl.";
         Rec."Structure Data Impl." := Enum::"Structure Received E-Doc."::"Already Structured";
         Rec."Read into Draft Impl." := Enum::"E-Doc. Read into Draft"::"Blank Draft";
@@ -779,9 +762,6 @@ page 6181 "E-Document Purchase Draft"
         Rec.Get(Rec."Entry No");
         Rec."Structure Data Impl." := OriginalStructureDataImpl;
         Rec.Modify();
-        if GuiAllowed() then
-            Progress.Close();
-        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
     local procedure ProvideFeedback()
@@ -838,7 +818,6 @@ page 6181 "E-Document Purchase Draft"
         HasErrorsOrWarnings, HasErrors : Boolean;
         ShowFinalizeDraftAction: Boolean;
         ShowAnalyzeDocumentAction: Boolean;
-        ShowCreateManualDraftAction: Boolean;
         FinalizeDraftInvokedTxt: Label 'User invoked Finalize Draft action.', Locked = true;
         FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';

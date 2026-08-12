@@ -54,10 +54,6 @@ pagecustomization "PA E-Doc. Purchase Draft" customizes "E-Document Purchase Dra
         {
             Visible = true;
         }
-        modify(CreateManualDraftAction)
-        {
-            Visible = true;
-        }
         modify(Vendors)
         {
             Visible = true;

@@ -140,7 +140,7 @@ codeunit 139891 "E-Document Structured Tests"
     end;
 
     [Test]
-    procedure TestCreateManualDraft_RecoversFromFailedExtraction()
+    procedure TestOpeningFailedExtractionCreatesEditableDraft()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
@@ -149,8 +149,8 @@ codeunit 139891 "E-Document Structured Tests"
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocPurchaseDraftTestPage: TestPage "E-Document Purchase Draft";
     begin
-        // [SCENARIO] When extraction fails, the "Create draft manually" action recovers into a blank draft
-        // without permanently reclassifying how the document was structured.
+        // [SCENARIO] Opening the draft of a document whose extraction failed creates an empty editable
+        // draft without permanently reclassifying how the document was structured.
         Initialize(Enum::"Service Integration"::"Mock");
         SetupCAPIEDocumentService();
 
@@ -169,24 +169,24 @@ codeunit 139891 "E-Document Structured Tests"
         EDocument.Status := EDocument.Status::Error;
         EDocument.Modify();
 
-        // [WHEN] The user creates a draft manually from the draft page
+        // [WHEN] The user opens the failed document's draft page
         EDocPurchaseDraftTestPage.OpenEdit();
         EDocPurchaseDraftTestPage.GoToRecord(EDocument);
-        EDocPurchaseDraftTestPage.CreateManualDraftAction.Invoke();
+        EDocPurchaseDraftTestPage.Close();
 
         // [THEN] A blank purchase draft exists and the document has advanced past the failed structure step
         EDocument.Get(EDocument."Entry No");
         EDocument.CalcFields("Import Processing Status");
         Assert.IsTrue(
             EDocument."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"],
-            'The manual draft should advance the document to the draft stage.');
-        Assert.IsTrue(EDocumentPurchaseHeader.Get(EDocument."Entry No"), 'A purchase draft header should exist after the manual draft.');
+            'Opening the draft should advance the document to the draft stage.');
+        Assert.IsTrue(EDocumentPurchaseHeader.Get(EDocument."Entry No"), 'A purchase draft header should exist after opening the draft.');
 
         // [THEN] The document was read as a blank draft
         Assert.AreEqual(Enum::"E-Doc. Read into Draft"::"Blank Draft", EDocument."Read into Draft Impl.", 'The document should be read as a blank draft.');
 
         // [THEN] The structuring selection is restored, so the document is not reclassified and ADI can be retried
-        Assert.AreEqual(Enum::"Structure Received E-Doc."::ADI, EDocument."Structure Data Impl.", 'The manual draft must restore the original structuring implementation.');
+        Assert.AreEqual(Enum::"Structure Received E-Doc."::ADI, EDocument."Structure Data Impl.", 'Opening the draft must restore the original structuring implementation.');
     end;
     #endregion
 

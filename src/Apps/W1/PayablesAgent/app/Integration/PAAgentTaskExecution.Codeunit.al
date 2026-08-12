@@ -25,13 +25,6 @@ codeunit 3314 "PA Agent Task Execution" implements IAgentTaskExecution
         AgentTaskUserInterventionSuggestion.Description := PACreateVendorInterventionSuggestionDescriptionLbl;
         AgentTaskUserInterventionSuggestion.Instructions := PACreateVendorInterventionSuggestionInstructionsLbl;
         AgentTaskUserInterventionSuggestion.Insert();
-
-        Clear(AgentTaskUserInterventionSuggestion);
-        AgentTaskUserInterventionSuggestion.Code := PAManualDraftInterventionSuggestionCodeLbl;
-        AgentTaskUserInterventionSuggestion.Summary := PAManualDraftInterventionSuggestionSummaryLbl;
-        AgentTaskUserInterventionSuggestion.Description := PAManualDraftInterventionSuggestionDescriptionLbl;
-        AgentTaskUserInterventionSuggestion.Instructions := PAManualDraftInterventionSuggestionInstructionsLbl;
-        AgentTaskUserInterventionSuggestion.Insert();
     end;
 
     procedure GetAgentTaskPageContext(AgentTaskPageContextReq: Record "Agent Task Page Context Req."; var AgentTaskPageContext: Record "Agent Task Page Context")
@@ -74,8 +67,4 @@ codeunit 3314 "PA Agent Task Execution" implements IAgentTaskExecution
         PACreateVendorInterventionSuggestionSummaryLbl: Label 'Create vendor', MaxLength = 100;
         PACreateVendorInterventionSuggestionDescriptionLbl: Label 'Always show when request is related to not finding a vendor.', Locked = true, MaxLength = 1024;
         PACreateVendorInterventionSuggestionInstructionsLbl: Label 'Follow the "Create a Vendor" instructions before continuing.', Locked = true, MaxLength = 1024;
-        PAManualDraftInterventionSuggestionCodeLbl: Label 'PA-MANUAL-DRAFT', Locked = true, MaxLength = 20;
-        PAManualDraftInterventionSuggestionSummaryLbl: Label 'Create draft manually', MaxLength = 100;
-        PAManualDraftInterventionSuggestionDescriptionLbl: Label 'Always show when the document could not be read as an invoice.', Locked = true, MaxLength = 1024;
-        PAManualDraftInterventionSuggestionInstructionsLbl: Label 'The document could not be read as an invoice. Ask the user to replace or check the PDF and analyze it again, or to create the draft manually with the "Create draft manually" action. Do not search for or create a vendor until the user chooses.', Locked = true, MaxLength = 1024;
 }
