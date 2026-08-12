@@ -23,12 +23,12 @@ codeunit 4411 "SOA Contact Search Impl"
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Contact List", OnBeforeFindRecord, '', false, false)]
-    local procedure FindRecordContactFromList(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
+    local procedure FindRecordContactFromList(var Contact: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
     begin
         if IsHandled then
             exit;
 
-        FindRecordContact(Rec, Which, Found, IsHandled);
+        FindRecordContact(Contact, Which, Found, IsHandled);
     end;
 
     local procedure FindRecordContact(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
