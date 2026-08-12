@@ -15,7 +15,7 @@ report 99000769 "Output Item Label"
     ApplicationArea = Manufacturing;
     WordMergeDataItem = ItemLedgerEntry;
     DefaultRenderingLayout = Word;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = None;
     //DefaultThemePart = "BC Default Theme";
     Caption = 'Production Output Item Label';
 

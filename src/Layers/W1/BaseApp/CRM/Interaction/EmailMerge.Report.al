@@ -14,7 +14,7 @@ using System.Utilities;
 report 5084 "Email Merge"
 {
     DefaultRenderingLayout = "EmailMerge.rdlc";
-    //DefaultHeaderFooterPart = "ExternalDefault.docx";
+    //DefaultHeaderFooterPart = None;
     //DefaultThemePart = "Default.dotx";
     Caption = 'Email Merge';
 

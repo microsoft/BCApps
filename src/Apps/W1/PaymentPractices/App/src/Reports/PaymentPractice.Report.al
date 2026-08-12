@@ -8,7 +8,7 @@ report 685 "Payment Practice"
 {
     ApplicationArea = All;
     DefaultRenderingLayout = PaymentPractice_PeriodLayout;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = "BC Default Theme";
 
     dataset

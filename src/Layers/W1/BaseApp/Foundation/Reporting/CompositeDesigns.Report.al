@@ -76,6 +76,15 @@ report 1175 "Composite Layout Designs"
             Caption = 'Internal Default';
             Summary = '';
         }
+        layout(Internal_Minimalistic_Centered)
+        {
+            Type = Word;
+            SubType = HeaderFooter;
+            LayoutFile = '.\Foundation\Reporting\HeaderFooterDesign\InternalMinimalisticCentered.docx';
+            Caption = 'Internal Minimalistic Centered';
+            Summary = '';
+        }
+
         layout(Default)
         {
             Type = Word;

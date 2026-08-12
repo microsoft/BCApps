@@ -14,7 +14,7 @@ report 5802 "Inventory Valuation - WIP"
     Caption = 'Production Order - WIP';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = "BC Default Theme";
 
     dataset

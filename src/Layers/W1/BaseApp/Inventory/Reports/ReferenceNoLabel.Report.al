@@ -15,7 +15,7 @@ report 6626 "Reference No Label"
     Caption = 'Reference No. Label';
     WordMergeDataItem = ItemReference;
     DefaultRenderingLayout = Word;
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = None;
     //DefaultThemePart = "BC Default Theme";
 
     dataset

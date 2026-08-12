@@ -21,7 +21,7 @@ report 107 "Customer - Order Summary"
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart =
+    //DefaultHeaderFooterPart = Internal_Default;
     //DefaultThemePart = 
 
     dataset

@@ -20,7 +20,7 @@ report 1320 "Notification Email"
 {
     Caption = 'Notification Email';
     DefaultRenderingLayout = "NotificationEmail.docx";
-    //DefaultHeaderFooterPart = "External Default";
+    //DefaultHeaderFooterPart = None;
     //DefaultThemePart = "BC Default Theme";
 
     dataset
