@@ -52,7 +52,6 @@ codeunit 148146 "Identification Tests"
         EDocHelpers: Codeunit "EDoc. Helpers";
         ImmutableLifecycleErr: Label 'The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.', Locked = true;
         ImmutableLifecycleVATErr: Label 'A French electronic invoice lifecycle VAT breakdown cannot be changed.', Locked = true;
-        UnsupportedSenderPlatformSchemeErr: Label 'The sender platform scheme must be 0238.', Locked = true;
         WorkerFailureErr: Label 'Lifecycle worker test failure.', Locked = true;
         XmlNodeMissingErr: Label 'The payload must contain XML node %1.', Comment = '%1 = XML path', Locked = true;
         XmlNodeValueErr: Label 'The XML node %1 has an unexpected value.', Comment = '%1 = XML path', Locked = true;
@@ -370,19 +369,19 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
-    procedure SenderPlatformSchemeRejectsUnsupportedValue()
+    procedure SenderPlatformSchemeDefaultsTo0238()
     var
         EDocumentService: Record "E-Document Service";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] French lifecycle setup accepts only the supported sender platform identifier scheme
+        // [SCENARIO] French lifecycle setup defaults the sender platform identifier scheme to 0238
         Initialize();
 
-        // [WHEN] An unsupported sender platform scheme is entered
-        asserterror EDocumentService.Validate("FR Sender Platform Scheme", '0009');
+        // [WHEN] A new E-Document Service is initialized
+        EDocumentService.Init();
 
-        // [THEN] The unsupported scheme is rejected
-        Assert.ExpectedError(UnsupportedSenderPlatformSchemeErr);
+        // [THEN] The sender platform scheme defaults to 0238
+        Assert.AreEqual('0238', EDocumentService."FR Sender Platform Scheme", 'The sender platform scheme must default to 0238.');
     end;
 
     [Test]

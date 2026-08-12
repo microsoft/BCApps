@@ -1,3 +1,11 @@
+namespace Microsoft.eServices.EDocument.Formats.Test;
+
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Formats;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using System.Utilities;
+
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,8 +21,11 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         FacturXInvoiceTok: Label 'facturx/facturx-invoice-0.xml', Locked = true;
         FacturXCreditMemoTok: Label 'facturx/facturx-creditmemo-0.xml', Locked = true;
         PeppolBIS30FRInvoiceTok: Label 'peppolfr/peppol-bis-fr-invoice-0.xml', Locked = true;
+        PeppolBIS30FRCreditMemoTok: Label 'peppolfr/peppol-bis-fr-creditmemo-0.xml', Locked = true;
         UnsupportedXmlTok: Label '<?xml version="1.0" encoding="UTF-8"?><SomethingElse xmlns="urn:test" />', Locked = true;
+        MalformedXmlTok: Label '<Invoice', Locked = true;
         PdfWithoutEmbeddedInvoiceTok: Label '%PDF-1.7', Locked = true;
+        FacturXTypeCodeTok: Label '<ram:TypeCode>%1</ram:TypeCode>', Locked = true;
 
     #region Factur-X
     [Test]
@@ -26,7 +37,7 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
         ProcessDraft: Enum "E-Doc. Process Draft";
     begin
-        // [FEATURE] [E-Document] [Factur-X] [Import]
+        // [FEATURE] [AI test]
         // [SCENARIO] A Factur-X invoice is read into a purchase invoice draft
         Initialize();
 
@@ -75,7 +86,7 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
         ProcessDraft: Enum "E-Doc. Process Draft";
     begin
-        // [FEATURE] [E-Document] [Factur-X] [Import]
+        // [FEATURE] [AI test]
         // [SCENARIO] A Factur-X credit memo is read into a purchase credit memo draft
         Initialize();
 
@@ -98,7 +109,7 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         EDocument: Record "E-Document";
         EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
     begin
-        // [FEATURE] [E-Document] [Factur-X] [Import]
+        // [FEATURE] [AI test]
         // [SCENARIO] Reading a document that is not a Cross Industry Invoice fails with a clear error
         Initialize();
 
@@ -113,12 +124,52 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     end;
 
     [Test]
+    procedure FacturXMalformedXmlFails()
+    var
+        EDocument: Record "E-Document";
+        EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Reading malformed Factur-X XML fails with a clear error
+        Initialize();
+
+        // [GIVEN] A malformed XML document
+        CreateEDocument(EDocument);
+
+        // [WHEN] The document is read into draft
+        asserterror EDocumentFacturXHandler.ReadIntoDraft(EDocument, CreateBlob(MalformedXmlTok));
+
+        // [THEN] The reader reports that the document cannot be read as XML
+        Assert.ExpectedError('The received document could not be read as XML.');
+    end;
+
+    [Test]
+    procedure FacturXUnsupportedTypeCodeFails()
+    var
+        EDocument: Record "E-Document";
+        EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Reading a Factur-X document with an unsupported type code fails with a clear error
+        Initialize();
+
+        // [GIVEN] A Cross Industry Invoice with unsupported document type code 999
+        CreateEDocument(EDocument);
+
+        // [WHEN] The document is read into draft
+        asserterror EDocumentFacturXHandler.ReadIntoDraft(EDocument, GetFacturXBlobWithTypeCode('999'));
+
+        // [THEN] The reader reports the unsupported document type code
+        Assert.ExpectedError('Unsupported document type code 999.');
+    end;
+
+    [Test]
     procedure FacturXPdfWithoutEmbeddedInvoiceFails()
     var
         EDocument: Record "E-Document";
         EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
     begin
-        // [FEATURE] [E-Document] [Factur-X] [Import]
+        // [FEATURE] [AI test]
         // [SCENARIO] Reading a PDF without an embedded Factur-X invoice fails with a clear error
         Initialize();
 
@@ -139,7 +190,7 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
     begin
-        // [FEATURE] [E-Document] [Factur-X] [Import]
+        // [FEATURE] [AI test]
         // [SCENARIO] Re-running Read into Draft replaces the previous draft instead of duplicating it
         Initialize();
 
@@ -166,7 +217,7 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         EDocPeppolBIS30FRHandler: Codeunit "E-Doc. Peppol BIS 3.0 FR Hdlr";
         ProcessDraft: Enum "E-Doc. Process Draft";
     begin
-        // [FEATURE] [E-Document] [Peppol BIS 3.0 FR] [Import]
+        // [FEATURE] [AI test]
         // [SCENARIO] A Peppol BIS 3.0 FR invoice is read into a purchase invoice draft
         Initialize();
 
@@ -205,12 +256,45 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     end;
 
     [Test]
+    procedure PeppolBIS30FRCreditMemoIsReadIntoDraft()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocPeppolBIS30FRHandler: Codeunit "E-Doc. Peppol BIS 3.0 FR Hdlr";
+        ProcessDraft: Enum "E-Doc. Process Draft";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A Peppol BIS 3.0 FR credit note is read into a purchase credit memo draft
+        Initialize();
+
+        // [GIVEN] A Peppol BIS 3.0 FR UBL credit note
+        CreateEDocument(EDocument);
+
+        // [WHEN] The document is read into draft
+        ProcessDraft := EDocPeppolBIS30FRHandler.ReadIntoDraft(EDocument, GetResourceBlob(PeppolBIS30FRCreditMemoTok));
+
+        // [THEN] The draft is prepared as a purchase credit memo referring to the original invoice
+        Assert.AreEqual(Format("E-Doc. Process Draft"::"Purchase Credit Memo"), Format(ProcessDraft), 'The draft should be processed as a purchase credit memo.');
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        Assert.AreEqual('PBIS-FR-CM-6002', EDocumentPurchaseHeader."Sales Invoice No.", 'Wrong document number.');
+        Assert.AreEqual('PBIS-FR-6001', EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", 'Wrong applies-to external invoice number.');
+
+        // [THEN] The credit note line is extracted
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.AreEqual(1, EDocumentPurchaseLine.Count(), 'Wrong number of draft lines.');
+        EDocumentPurchaseLine.FindFirst();
+        Assert.AreEqual(1, EDocumentPurchaseLine.Quantity, 'Wrong quantity.');
+        Assert.AreEqual(120, EDocumentPurchaseLine."Sub Total", 'Wrong line sub total.');
+    end;
+
+    [Test]
     procedure PeppolBIS30FRUnsupportedRootElementFails()
     var
         EDocument: Record "E-Document";
         EDocPeppolBIS30FRHandler: Codeunit "E-Doc. Peppol BIS 3.0 FR Hdlr";
     begin
-        // [FEATURE] [E-Document] [Peppol BIS 3.0 FR] [Import]
+        // [FEATURE] [AI test]
         // [SCENARIO] Reading a document that is neither an Invoice nor a CreditNote fails with a clear error
         Initialize();
 
@@ -222,6 +306,49 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
 
         // [THEN] The reader rejects the document
         Assert.ExpectedError('Unsupported XML root element');
+    end;
+
+    [Test]
+    procedure PeppolBIS30FRMalformedXmlFails()
+    var
+        EDocument: Record "E-Document";
+        EDocPeppolBIS30FRHandler: Codeunit "E-Doc. Peppol BIS 3.0 FR Hdlr";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Reading malformed Peppol BIS 3.0 FR XML fails with a clear error
+        Initialize();
+
+        // [GIVEN] A malformed XML document
+        CreateEDocument(EDocument);
+
+        // [WHEN] The document is read into draft
+        asserterror EDocPeppolBIS30FRHandler.ReadIntoDraft(EDocument, CreateBlob(MalformedXmlTok));
+
+        // [THEN] The reader reports that the document cannot be read as XML
+        Assert.ExpectedError('The received document could not be read as XML.');
+    end;
+
+    [Test]
+    procedure PeppolBIS30FRInvoiceCanBeReadIntoDraftTwice()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocPeppolBIS30FRHandler: Codeunit "E-Doc. Peppol BIS 3.0 FR Hdlr";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Re-reading a Peppol BIS 3.0 FR invoice replaces the existing draft
+        Initialize();
+
+        // [GIVEN] A Peppol BIS 3.0 FR invoice that has been read into draft
+        CreateEDocument(EDocument);
+        EDocPeppolBIS30FRHandler.ReadIntoDraft(EDocument, GetResourceBlob(PeppolBIS30FRInvoiceTok));
+
+        // [WHEN] The document is read into draft again
+        EDocPeppolBIS30FRHandler.ReadIntoDraft(EDocument, GetResourceBlob(PeppolBIS30FRInvoiceTok));
+
+        // [THEN] The draft still contains a single line
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.AreEqual(1, EDocumentPurchaseLine.Count(), 'Re-reading the document should not duplicate the draft lines.');
     end;
     #endregion
 
@@ -247,6 +374,15 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
     local procedure GetResourceBlob(FilePath: Text): Codeunit "Temp Blob"
     begin
         exit(CreateBlob(NavApp.GetResourceAsText(FilePath, TextEncoding::UTF8)));
+    end;
+
+    local procedure GetFacturXBlobWithTypeCode(TypeCode: Text): Codeunit "Temp Blob"
+    var
+        FacturXXml: Text;
+    begin
+        FacturXXml := NavApp.GetResourceAsText(FacturXInvoiceTok, TextEncoding::UTF8);
+        FacturXXml := FacturXXml.Replace('<ram:TypeCode>380</ram:TypeCode>', StrSubstNo(FacturXTypeCodeTok, TypeCode));
+        exit(CreateBlob(FacturXXml));
     end;
 
     local procedure CreateBlob(Content: Text) TempBlob: Codeunit "Temp Blob"
