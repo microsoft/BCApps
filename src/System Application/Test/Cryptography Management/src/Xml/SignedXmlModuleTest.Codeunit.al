@@ -82,6 +82,43 @@ codeunit 132612 "Signed Xml Module Test"
     end;
 
     [Test]
+    procedure SetReferenceType()
+    var
+        SignatureKey: Codeunit "Signature Key";
+        XmlToSign: XmlDocument;
+        KeyText: SecretText;
+        Signature: XmlElement;
+        NamespaceMgr: XmlNamespaceManager;
+        Node: XmlNode;
+        SignatureNamespaceUriTok: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
+        ReferenceTypeTok: Label 'http://uri.etsi.org/01903#SignedProperties', Locked = true;
+    begin
+        XmlDocument.ReadFrom('<XmlData Id="ID01">This is a document</XmlData>', XmlToSign);
+        GetSignatureKeyXmlString(KeyText);
+        SignatureKey.FromXmlString(KeyText);
+
+        SignedXml.InitializeSignedXml(XmlToSign);
+        SignedXml.SetSigningKey(SignatureKey);
+        SignedXml.InitializeReference('#ID01');
+        SignedXml.SetReferenceType(ReferenceTypeTok);
+        SignedXml.AddReferenceToSignedXML();
+
+        SignedXml.ComputeSignature();
+        Signature := SignedXml.GetXml();
+
+        NamespaceMgr.AddNamespace('ns', SignatureNamespaceUriTok);
+        Signature.SelectSingleNode(
+            './ns:SignedInfo/ns:Reference/@Type',
+            NamespaceMgr,
+            Node);
+
+        LibraryAssert.AreEqual(
+            ReferenceTypeTok,
+            Node.AsXmlAttribute().Value,
+            'Incorrect reference type was applied.');
+    end;
+
+    [Test]
     procedure SetXmlDSigC14NTranform()
     var
         SignatureKey: Codeunit "Signature Key";
