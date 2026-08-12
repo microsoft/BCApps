@@ -2192,6 +2192,82 @@ codeunit 134344 "Document Totals Pages"
         Assert.AreEqual(NewDescription, SalesOrder.SalesLines.Description.Value(), LineDescriptionRevertedErr);
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseInvoiceStatisticsUpdateVATAmountPageHandler')]
+    procedure PurchInvTotalInclVATMatchesStatisticsAfterVATAdjMixedVATGroupsSameAccount()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        GLAccountNo: Code[20];
+        MaxVATDifference: Decimal;
+        TotalAmountInclVATBefore: Decimal;
+        TotalVATAmountBefore: Decimal;
+        VATAdjustment: Decimal;
+    begin
+        // [FEATURE] [UI] [VAT] [Purchase] [VAT Difference]
+        // [SCENARIO 637288] "Total VAT Amount" and "Total Amount Incl. VAT" on Purchase Invoice subform must update
+        // after VAT adjustment when invoice has mixed VAT groups on the same G/L Account with negative lines.
+        Initialize();
+
+        // [GIVEN] "VAT Difference" is allowed with random Max VAT Difference
+        MaxVATDifference := LibraryRandom.RandDecInRange(1, 5, 2);
+        LibraryERM.SetMaxVATDifferenceAllowed(MaxVATDifference);
+        LibraryPurchase.SetAllowVATDifference(true);
+
+        // [GIVEN] Two VAT Posting Setups with random VAT%, same VAT Bus. Posting Group
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+          VATPostingSetup[1], VATPostingSetup[1]."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(5, 15));
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup[2], VATPostingSetup[1]."VAT Bus. Posting Group", VATProductPostingGroup.Code);
+        VATPostingSetup[2].Validate("VAT Calculation Type", VATPostingSetup[2]."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup[2].Validate("VAT %", LibraryRandom.RandIntInRange(16, 25));
+        VATPostingSetup[2].Validate("VAT Identifier", VATProductPostingGroup.Code);
+        VATPostingSetup[2]."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup[2].Modify(true);
+
+        // [GIVEN] Purchase Invoice with mixed VAT lines on the same G/L Account, including negative adjustment lines
+        GLAccountNo := LibraryERM.CreateGLAccountWithPurchSetup();
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
+        CreatePurchLineWithGLAccAndVATSetup(PurchaseLine, PurchaseHeader, VATPostingSetup[1], GLAccountNo, LibraryRandom.RandDecInRange(1000, 5000, 2));
+        CreatePurchLineWithGLAccAndVATSetup(PurchaseLine, PurchaseHeader, VATPostingSetup[1], GLAccountNo, -LibraryRandom.RandDecInRange(100, 500, 2));
+        CreatePurchLineWithGLAccAndVATSetup(PurchaseLine, PurchaseHeader, VATPostingSetup[2], GLAccountNo, LibraryRandom.RandDecInRange(1000, 5000, 2));
+        CreatePurchLineWithGLAccAndVATSetup(PurchaseLine, PurchaseHeader, VATPostingSetup[2], GLAccountNo, -LibraryRandom.RandDecInRange(100, 900, 2));
+
+        // [GIVEN] Open Purchase Invoice page and capture totals before adjustment
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseInvoicePage.PurchLines.Last();
+        TotalVATAmountBefore := PurchaseInvoicePage.PurchLines."Total VAT Amount".AsDecimal();
+        TotalAmountInclVATBefore := PurchaseInvoicePage.PurchLines."Total Amount Incl. VAT".AsDecimal();
+
+        // [WHEN] VAT Amount adjusted on Statistics page (within allowed VAT difference)
+        VATAdjustment := -LibraryRandom.RandDecInRange(0, MaxVATDifference, 2);
+        LibraryVariableStorage.Enqueue(VATAdjustment);
+        PurchaseInvoicePage.PurchaseStatistics.Invoke();
+        PurchaseInvoicePage.Close();
+
+        // [THEN] "Total VAT Amount" on the subform reflects the VAT adjustment
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseInvoicePage.PurchLines.Last();
+        Assert.AreEqual(
+            TotalVATAmountBefore + VATAdjustment,
+            PurchaseInvoicePage.PurchLines."Total VAT Amount".AsDecimal(),
+            StrSubstNo(VATAmountErr, PurchaseInvoicePage.PurchLines."Total VAT Amount".Caption, 'expected Total VAT Amount'));
+
+        // [THEN] "Total Amount Incl. VAT" on the subform reflects the VAT adjustment
+        Assert.AreEqual(
+            TotalAmountInclVATBefore + VATAdjustment,
+            PurchaseInvoicePage.PurchLines."Total Amount Incl. VAT".AsDecimal(),
+            StrSubstNo(VATAmountErr, PurchaseInvoicePage.PurchLines."Total Amount Incl. VAT".Caption, 'expected Total Amount Incl. VAT'));
+
+        PurchaseInvoicePage.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -2459,6 +2535,16 @@ codeunit 134344 "Document Totals Pages"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 20, 2));
         SalesLine.Modify();
+    end;
+
+    local procedure CreatePurchLineWithGLAccAndVATSetup(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; VATPostingSetup: Record "VAT Posting Setup"; GLAccountNo: Code[20]; DirectUnitCost: Decimal)
+    begin
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+        PurchaseLine."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        PurchaseLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
     end;
 
     [ConfirmHandler]
