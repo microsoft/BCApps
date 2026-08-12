@@ -7,6 +7,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+    EventSubscriberInstance = Manual;
 
     var
         Assert: Codeunit Assert;
@@ -725,13 +726,8 @@ codeunit 134194 "UT Derogatory Linkage Upg."
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure AllLinkageOutcomeCountsAreAvailableForTelemetry()
     var
+        EventSubscriber: Codeunit "UT Derogatory Linkage Upg.";
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
-        FALinkedCount: Integer;
-        FAAmbiguousCount: Integer;
-        FAMissingCount: Integer;
-        MaintenanceLinkedCount: Integer;
-        MaintenanceAmbiguousCount: Integer;
-        MaintenanceMissingCount: Integer;
     begin
         InitializeLinkageTestData();
         CreateFALedgerEntry(1, 'FA1', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
@@ -746,18 +742,13 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         CreateMaintenanceLedgerEntry(11, DerogatoryDepreciationBookCode, 'MC2');
         CreateMaintenanceLedgerEntry(12, DerogatoryDepreciationBookCode, 'MC2');
         CreateMaintenanceLedgerEntry(20, SourceDepreciationBookCode, 'MC3');
+        EnsureDerogatoryLinkageUpgradeTagIsCleared();
 
-        UpgradeDerogatoryLinkage.LinkFALedgerEntries(
-            FALinkedCount, FAAmbiguousCount, FAMissingCount);
-        UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(
-            MaintenanceLinkedCount, MaintenanceAmbiguousCount, MaintenanceMissingCount);
+        BindSubscription(EventSubscriber);
+        asserterror UpgradeDerogatoryLinkage.RunAfterRelationshipTransfer(false);
+        UnbindSubscription(EventSubscriber);
 
-        Assert.AreEqual(1, FALinkedCount, 'The telemetry input must report one linked FA source.');
-        Assert.AreEqual(1, FAAmbiguousCount, 'The telemetry input must report one ambiguous FA source.');
-        Assert.AreEqual(1, FAMissingCount, 'The telemetry input must report one missing FA source.');
-        Assert.AreEqual(1, MaintenanceLinkedCount, 'The telemetry input must report one linked maintenance source.');
-        Assert.AreEqual(1, MaintenanceAmbiguousCount, 'The telemetry input must report one ambiguous maintenance source.');
-        Assert.AreEqual(1, MaintenanceMissingCount, 'The telemetry input must report one missing maintenance source.');
+        Assert.ExpectedError('Derogatory linkage telemetry observed.');
     end;
 
     [Test]
@@ -1498,5 +1489,18 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FALedgerEntry."Posting Date" := WorkDate();
         FALedgerEntry."Document Date" := WorkDate();
         FALedgerEntry.Insert();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Derogatory Linkage", 'OnAfterEmitLinkageTelemetry', '', false, false)]
+    local procedure OnAfterEmitLinkageTelemetry(EventId: Text; TelemetryDimensions: Dictionary of [Text, Text])
+    begin
+        Assert.AreEqual('0000FRD', EventId, 'The linkage upgrade must emit the expected telemetry event.');
+        Assert.AreEqual('1', TelemetryDimensions.Get('FALinked'), 'The telemetry must report one linked FA source.');
+        Assert.AreEqual('1', TelemetryDimensions.Get('FAAmbiguous'), 'The telemetry must report one ambiguous FA source.');
+        Assert.AreEqual('1', TelemetryDimensions.Get('FAMissing'), 'The telemetry must report one missing FA source.');
+        Assert.AreEqual('1', TelemetryDimensions.Get('MaintenanceLinked'), 'The telemetry must report one linked maintenance source.');
+        Assert.AreEqual('1', TelemetryDimensions.Get('MaintenanceAmbiguous'), 'The telemetry must report one ambiguous maintenance source.');
+        Assert.AreEqual('1', TelemetryDimensions.Get('MaintenanceMissing'), 'The telemetry must report one missing maintenance source.');
+        Error('Derogatory linkage telemetry observed.');
     end;
 }
