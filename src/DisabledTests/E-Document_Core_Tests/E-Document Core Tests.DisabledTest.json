@@ -757,5 +757,101 @@
     "codeunitId": 139883,
     "codeunitName": "E-Doc Process Test",
     "method": "SuccessfulImportWithAdditionalFieldsHasNoErrors"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "CheckFailureSetsExportErrorStatus"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "DeletingJournalLineCancelsEDocument"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "EntriesReportCreatesEDocument"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "FormatImplementationReceivesJournalAndEntryRecRef"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "JournalReportCheckboxOffCreatesNothing"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "JournalReportCreatesEDocument"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "JournalReportCreatesOneEDocumentPerPaymentGroup"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "JournalReportRerunConfirmNoSkipsGroup"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "JournalReportRerunConfirmYesReExportsSameEDocument"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "PeppolXmlContainsRemittanceAdviceData"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "PostingRePointsEDocumentToVendorLedgerEntry"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "PreviewPostingDoesNotRePointEDocument"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "ReExportAfterVoidReusesEDocument"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "UnsupportedDocumentTypeCreatesNothing"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "VoidAfterSentErrors"
+  },
+  {
+    "bug": "646558",
+    "codeunitId": 139547,
+    "codeunitName": "E-Doc. Remit. Advice Test",
+    "method": "VoidClearsFlagAndCancelsEDocument"
   }
 ]

@@ -5,6 +5,7 @@
     "method": "UnlinkedExpenseUserIsHiddenFromAPI"
   },
   {
+    "bug": "646560",
     "codeunitId": 148318,
     "codeunitName": "Expense Capabilities API Test",
     "method": "CapabilitiesProjectsEnabledViaAPI"
@@ -15,6 +16,7 @@
     "method": "CapabilitiesProjectsDisabledViaAPI"
   },
   {
+    "bug": "646560",
     "codeunitId": 148318,
     "codeunitName": "Expense Capabilities API Test",
     "method": "CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI"

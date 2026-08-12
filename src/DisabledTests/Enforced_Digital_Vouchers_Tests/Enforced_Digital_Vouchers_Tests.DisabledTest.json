@@ -63,5 +63,35 @@
     "codeunitId": 139515,
     "codeunitName": "Digital Vouchers Tests",
     "method": "ServiceInvVoucherAutomaticGenerationDoesNoChangeNoPrinted"
+  },
+  {
+    "bug": "646559",
+    "codeunitId": 139649,
+    "codeunitName": "E-Doc. Attachment Tests",
+    "method": "PurchaseCreditMemoEDocumentAttachedAfterPosting"
+  },
+  {
+    "bug": "646559",
+    "codeunitId": 139649,
+    "codeunitName": "E-Doc. Attachment Tests",
+    "method": "PurchaseInvoiceCannotPostWithoutEDocument"
+  },
+  {
+    "bug": "646559",
+    "codeunitId": 139649,
+    "codeunitName": "E-Doc. Attachment Tests",
+    "method": "PurchaseInvoiceEDocumentAttachedAfterPosting"
+  },
+  {
+    "bug": "646559",
+    "codeunitId": 139649,
+    "codeunitName": "E-Doc. Attachment Tests",
+    "method": "SalesCreditMemoEDocumentAttachedAfterExport"
+  },
+  {
+    "bug": "646559",
+    "codeunitId": 139649,
+    "codeunitName": "E-Doc. Attachment Tests",
+    "method": "SalesInvoiceEDocumentAttachedAfterExport"
   }
 ]
