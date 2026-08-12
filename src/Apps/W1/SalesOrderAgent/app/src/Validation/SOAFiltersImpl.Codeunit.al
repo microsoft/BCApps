@@ -274,7 +274,7 @@ codeunit 4305 "SOA Filters Impl."
         if ContactEmail <> '' then
             if FindContactByEmail(ExistingContact, ContactEmail, ContactCount) then
                 if not Confirm(ContactAlreadyExistQst, false, ExistingContact."No.") then
-                    Error('')
+                    exit(false)
                 else begin
                     Page.Run(Page::"Contact Card", ExistingContact);
                     exit(false);
