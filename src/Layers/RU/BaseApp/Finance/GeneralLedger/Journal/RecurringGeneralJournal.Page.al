@@ -81,9 +81,22 @@ page 283 "Recurring General Journal"
                         IsDimensionBalanceLine();
                     end;
                 }
-                field("Recurring Frequency"; Rec."Recurring Frequency")
+                field("Recurring Frequency"; RecurringFrequency)
                 {
                     ApplicationArea = Suite;
+                    Caption = 'Recurring Frequency';
+                    ToolTip = 'Specifies a recurring frequency if the Recurring field of the General Journal Template table indicates the journal is recurring.';
+
+                    trigger OnValidate()
+                    var
+                        RecurringFrequencyDateFormula: DateFormula;
+                    begin
+                        // Bound to Text so Edit in Excel exports localized DateFormula tokens (e.g. +1T) instead of invariant (+1D).
+                        if RecurringFrequency <> '' then
+                            Evaluate(RecurringFrequencyDateFormula, RecurringFrequency);
+                        Rec.Validate("Recurring Frequency", RecurringFrequencyDateFormula);
+                        SetRecurringFrequency();
+                    end;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
@@ -949,6 +962,7 @@ page 283 "Recurring General Journal"
     begin
         Rec.ShowShortcutDimCode(ShortcutDimCode);
         GetAccSchedInfo();
+        SetRecurringFrequency();
     end;
 
     trigger OnInit()
@@ -965,6 +979,7 @@ page 283 "Recurring General Journal"
         UpdateBalance();
         Rec.SetUpNewLine(xRec, Balance, BelowxRec);
         Clear(ShortcutDimCode);
+        SetRecurringFrequency();
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
@@ -1028,6 +1043,7 @@ page 283 "Recurring General Journal"
         VATDateEnabled: Boolean;
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
+        RecurringFrequency: Text;
 
     protected var
         GenJnlManagement: Codeunit GenJnlManagement;
@@ -1057,6 +1073,11 @@ page 283 "Recurring General Journal"
         TotalBalanceVisible := ShowTotalBalance;
         if ShowTotalBalance then
             NumberOfRecords := Rec.Count();
+    end;
+
+    local procedure SetRecurringFrequency()
+    begin
+        RecurringFrequency := Format(Rec."Recurring Frequency");
     end;
 
     local procedure SelectJournalWithError()
