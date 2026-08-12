@@ -20,7 +20,6 @@ codeunit 8275 "Create Expense Country Data ES" implements "Expense Agent Country
         BindSubscription(CreateExpPostingGrpES);
 
         CreateExpenseCountryDataW1.CreateSetupData();
-        Codeunit.Run(Codeunit::"Update Employee ES");
         Codeunit.Run(Codeunit::"Update Emp. Posting Grp ES");
         Codeunit.Run(Codeunit::"Create Exp. Posting Grp ES");
 
@@ -33,6 +32,7 @@ codeunit 8275 "Create Expense Country Data ES" implements "Expense Agent Country
         CreateExpenseCountryDataW1: Codeunit "Create Expense Country Data W1";
     begin
         CreateExpenseCountryDataW1.CreateMasterData();
+        Codeunit.Run(Codeunit::"Update Employee ES");
         Codeunit.Run(Codeunit::"Create Exp. Categories ES");
         Codeunit.Run(Codeunit::"Create Exp. SubCategories ES");
         Codeunit.Run(Codeunit::"Create Exp. Rule Header ES");

@@ -41,9 +41,14 @@ codeunit 8288 "Create Expense Country Data DK" implements "Expense Agent Country
     procedure CreateTransactionalData()
     var
         CreateExpenseCountryDataW1: Codeunit "Create Expense Country Data W1";
+        ExpDemoDataSubscriberDK: Codeunit "Exp. Demo Data Subscriber DK";
     begin
+        BindSubscription(ExpDemoDataSubscriberDK);
+
         CreateExpenseCountryDataW1.CreateTransactionalData();
         Codeunit.Run(Codeunit::"Create Expense DK");
+
+        UnbindSubscription(ExpDemoDataSubscriberDK);
     end;
 
     procedure CreateHistoricalData()

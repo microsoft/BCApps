@@ -41,9 +41,14 @@ codeunit 8311 "Create Expense Country Data DE" implements "Expense Agent Country
     procedure CreateTransactionalData()
     var
         CreateExpenseCountryDataW1: Codeunit "Create Expense Country Data W1";
+        ExpDemoDataSubscriberDE: Codeunit "Exp. Demo Data Subscriber DE";
     begin
+        BindSubscription(ExpDemoDataSubscriberDE);
+
         CreateExpenseCountryDataW1.CreateTransactionalData();
         Codeunit.Run(Codeunit::"Create Expense DE");
+
+        UnbindSubscription(ExpDemoDataSubscriberDE);
     end;
 
     procedure CreateHistoricalData()
