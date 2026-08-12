@@ -73,5 +73,11 @@
     "codeunitId": 139963,
     "codeunitName": "Qlty. Tests - Result Eval.",
     "method": "ValidateInspectionLine"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 139972,
+    "codeunitName": "Qlty. Tests - Inspections API",
+    "method": "*"
   }
 ]

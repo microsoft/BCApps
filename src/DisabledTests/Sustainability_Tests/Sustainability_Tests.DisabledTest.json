@@ -40,6 +40,51 @@
     "method": "VerifySustainabilityFieldsInPurchaseOrderStatistics"
   },
   {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilityAccounts"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilityCategory"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilityEntries"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilityJournalLines"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilitySubcategory"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestPostSustainabilityAccount"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestPostSustainabilityCategory"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestPostSustainabilityJournalLine"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestPostSustainabilitySubcategory"
+  },
+  {
     "codeunitId": 148187,
     "codeunitName": "Sust. Certificate Test",
     "method": "VerifySustFieldsAreNotVisibleOnProdJnlAndCapLedgerEntriesAndSustEntriesAreNotCreatedIfEnableValueChainTrackingIsFalse"
