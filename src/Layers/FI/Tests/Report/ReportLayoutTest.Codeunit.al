@@ -28,7 +28,9 @@ codeunit 134600 "Report Layout Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+#if not CLEAN29
         Usage: Option "Order Confirmation","Work Order","Pick Instruction";
+#endif
         IsInitialized: Boolean;
 
     local procedure Initialize()

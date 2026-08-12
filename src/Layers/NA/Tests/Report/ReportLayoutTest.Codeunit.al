@@ -29,7 +29,9 @@ codeunit 134600 "Report Layout Test"
         LibraryReportValidation: Codeunit "Library - Report Validation";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+#if not CLEAN29
         Usage: Option "Order Confirmation","Work Order","Pick Instruction";
+#endif
         IsInitialized: Boolean;
 #if not CLEAN28
         LayoutCodeShouldNotChangedErr: Label 'Layout code should not change.';
