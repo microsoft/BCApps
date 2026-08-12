@@ -9,6 +9,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
@@ -80,11 +81,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     procedure SubcontractingSetupWizardShowsCompanyDefaultsAndConfigurationLinks()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
+        SubcCompTransferLeadTime: DateFormula;
         SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
         CreateProdOrderInfoLine: Boolean;
         SubcDefaultCompLocation: Enum "Components at Location";
-        SubcCompTransferLeadTime: DateFormula;
         SubcontractingBatchName: Code[10];
         SubcontractingTemplateName: Code[10];
     begin
@@ -208,6 +209,120 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [THEN] Default Component Location Source is available for later maintenance
         Assert.IsFalse(PageControl.IsEmpty(), StrSubstNo(ControlNotExistMsg, ManufacturingSetup.FieldCaption("Subc. Default Comp. Location")));
+    end;
+
+    [Test]
+    procedure CommentPagesExposeOperationKeysAndFields()
+    var
+        PageAction: Record "Page Action";
+        PageControl: Record "Page Control Field";
+        SubcProdOrderRoutingComment: Record "Subc. Prod. Rtng. Comment";
+        SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
+        SubcStandardTaskComment: Record "Subc. Standard Task Comment";
+    begin
+        // [SCENARIO TP-001] Dedicated subcontracting comment pages expose their source operation keys and editable fields.
+        Initialize();
+
+        // [WHEN] Source pages expose navigation to dedicated subcontracting comments
+        AssertPageActionRunsPage(PageAction, Page::"Standard Tasks", 'Subcontracting Comments', Page::"Subc. Standard Task Comments");
+        AssertPageActionRunsPage(PageAction, Page::"Routing Lines", 'Subcontracting Comments', Page::"Subc. Routing Comments");
+        AssertPageActionRunsPage(PageAction, Page::"Routing Version Lines", 'Subcontracting Comments', Page::"Subc. Routing Comments");
+        AssertPageActionRunsPage(PageAction, Page::"Prod. Order Routing", 'Subcontracting Comments', Page::"Subc. Prod. Rtng. Comments");
+
+        // [WHEN] Controls on each dedicated comment page are inspected
+        AssertPageControlExists(
+            Database::"Subc. Standard Task Comment", Page::"Subc. Standard Task Comments",
+            SubcStandardTaskComment.FieldNo("Standard Task Code"), SubcStandardTaskComment.FieldCaption("Standard Task Code"));
+        AssertPageControlExists(
+            Database::"Subc. Standard Task Comment", Page::"Subc. Standard Task Comments",
+            SubcStandardTaskComment.FieldNo("Line No."), SubcStandardTaskComment.FieldCaption("Line No."));
+        AssertPageControlExists(
+            Database::"Subc. Standard Task Comment", Page::"Subc. Standard Task Comments",
+            SubcStandardTaskComment.FieldNo(Description), SubcStandardTaskComment.FieldCaption(Description));
+        AssertPageControlExists(
+            Database::"Subc. Standard Task Comment", Page::"Subc. Standard Task Comments",
+            SubcStandardTaskComment.FieldNo("Description 2"), SubcStandardTaskComment.FieldCaption("Description 2"));
+
+        AssertPageControlExists(
+            Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
+            SubcRoutingCommentLine.FieldNo("Routing No."), SubcRoutingCommentLine.FieldCaption("Routing No."));
+        AssertPageControlExists(
+            Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
+            SubcRoutingCommentLine.FieldNo("Version Code"), SubcRoutingCommentLine.FieldCaption("Version Code"));
+        AssertPageControlExists(
+            Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
+            SubcRoutingCommentLine.FieldNo("Operation No."), SubcRoutingCommentLine.FieldCaption("Operation No."));
+        AssertPageControlExists(
+            Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
+            SubcRoutingCommentLine.FieldNo("Line No."), SubcRoutingCommentLine.FieldCaption("Line No."));
+        AssertPageControlExists(
+            Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
+            SubcRoutingCommentLine.FieldNo(Description), SubcRoutingCommentLine.FieldCaption(Description));
+        AssertPageControlExists(
+            Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
+            SubcRoutingCommentLine.FieldNo("Description 2"), SubcRoutingCommentLine.FieldCaption("Description 2"));
+
+        AssertPageControlExists(
+            Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
+            SubcProdOrderRoutingComment.FieldNo(Status), SubcProdOrderRoutingComment.FieldCaption(Status));
+        AssertPageControlExists(
+            Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
+            SubcProdOrderRoutingComment.FieldNo("Prod. Order No."), SubcProdOrderRoutingComment.FieldCaption("Prod. Order No."));
+        AssertPageControlExists(
+            Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
+            SubcProdOrderRoutingComment.FieldNo("Routing Reference No."), SubcProdOrderRoutingComment.FieldCaption("Routing Reference No."));
+        AssertPageControlExists(
+            Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
+            SubcProdOrderRoutingComment.FieldNo("Routing No."), SubcProdOrderRoutingComment.FieldCaption("Routing No."));
+        AssertPageControlExists(
+            Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
+            SubcProdOrderRoutingComment.FieldNo("Operation No."), SubcProdOrderRoutingComment.FieldCaption("Operation No."));
+        AssertPageControlExists(
+            Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
+            SubcProdOrderRoutingComment.FieldNo("Line No."), SubcProdOrderRoutingComment.FieldCaption("Line No."));
+        AssertPageControlExists(
+            Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
+            SubcProdOrderRoutingComment.FieldNo(Description), SubcProdOrderRoutingComment.FieldCaption(Description));
+        AssertPageControlExists(
+            Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
+            SubcProdOrderRoutingComment.FieldNo("Description 2"), SubcProdOrderRoutingComment.FieldCaption("Description 2"));
+
+        // [THEN] Ordinary routing comments are not a source for the dedicated page surface
+        PageControl.SetRange(TableNo, Database::"Routing Comment Line");
+        PageControl.SetRange(PageNo, Page::"Subc. Routing Comments");
+        Assert.IsTrue(PageControl.IsEmpty(), 'The dedicated subcontracting routing comment page must not use ordinary routing comments.');
+    end;
+
+    [Test]
+    procedure V1DoesNotExposeUnsupportedCommentOrAttachmentSetup()
+    var
+        PageControl: Record "Page Control Field";
+        TableField: Record Field;
+    begin
+        // [SCENARIO TP-025] V1 comment and attachment surfaces do not expose unsupported metadata.
+        Initialize();
+
+        // [WHEN] Dedicated comment tables are inspected for unsupported translation and date metadata
+        AssertTableFieldMissing(TableField, Database::"Subc. Standard Task Comment", 'Vendor No.');
+        AssertTableFieldMissing(TableField, Database::"Subc. Standard Task Comment", 'Language Code');
+        AssertTableFieldMissing(TableField, Database::"Subc. Standard Task Comment", 'Starting Date');
+        AssertTableFieldMissing(TableField, Database::"Subc. Standard Task Comment", 'Ending Date');
+        AssertTableFieldMissing(TableField, Database::"Subc. Routing Comment Line", 'Vendor No.');
+        AssertTableFieldMissing(TableField, Database::"Subc. Routing Comment Line", 'Language Code');
+        AssertTableFieldMissing(TableField, Database::"Subc. Routing Comment Line", 'Starting Date');
+        AssertTableFieldMissing(TableField, Database::"Subc. Routing Comment Line", 'Ending Date');
+        AssertTableFieldMissing(TableField, Database::"Subc. Prod. Rtng. Comment", 'Vendor No.');
+        AssertTableFieldMissing(TableField, Database::"Subc. Prod. Rtng. Comment", 'Language Code');
+        AssertTableFieldMissing(TableField, Database::"Subc. Prod. Rtng. Comment", 'Starting Date');
+        AssertTableFieldMissing(TableField, Database::"Subc. Prod. Rtng. Comment", 'Ending Date');
+
+        // [THEN] Routing Lines do not expose operation-specific attachment selection
+        AssertTableFieldMissing(TableField, Database::"Routing Line", 'Document Flow Production');
+        AssertTableFieldMissing(TableField, Database::"Routing Line", 'Document Flow Purchase');
+        AssertPageControlMissing(PageControl, Database::"Routing Line", Page::"Routing Lines", 'Document Flow Production');
+        AssertPageControlMissing(PageControl, Database::"Routing Line", Page::"Routing Lines", 'Document Flow Purchase');
+        AssertPageControlMissing(PageControl, Database::"Routing Line", Page::"Routing Version Lines", 'Document Flow Production');
+        AssertPageControlMissing(PageControl, Database::"Routing Line", Page::"Routing Version Lines", 'Document Flow Purchase');
     end;
 
     [Test]
@@ -803,6 +918,43 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, RoutingLine.FieldCaption("Transfer Description")));
     end;
 
+    local procedure AssertPageControlExists(ControlTableNo: Integer; ControlPageNo: Integer; ControlFieldNo: Integer; ControlFieldCaption: Text)
+    var
+        PageControl: Record "Page Control Field";
+    begin
+        PageControl.SetRange(TableNo, ControlTableNo);
+        PageControl.SetRange(PageNo, ControlPageNo);
+        PageControl.SetRange(FieldNo, ControlFieldNo);
+        Assert.IsFalse(PageControl.IsEmpty(), StrSubstNo(ControlNotExistMsg, ControlFieldCaption));
+    end;
+
+    local procedure AssertPageActionRunsPage(var PageAction: Record "Page Action"; SourcePageNo: Integer; ActionName: Text; TargetPageNo: Integer)
+    begin
+        PageAction.Reset();
+        PageAction.SetRange("Page ID", SourcePageNo);
+        PageAction.SetRange(Name, ActionName);
+        Assert.IsFalse(PageAction.IsEmpty(), StrSubstNo(ActionNotExistMsg, ActionName, SourcePageNo));
+        PageAction.FindFirst();
+        Assert.AreEqual(TargetPageNo, PageAction.RunObjectID, StrSubstNo(ActionTargetUnexpectedMsg, ActionName, TargetPageNo));
+    end;
+
+    local procedure AssertPageControlMissing(var PageControl: Record "Page Control Field"; ControlTableNo: Integer; ControlPageNo: Integer; ControlNameValue: Text)
+    begin
+        PageControl.Reset();
+        PageControl.SetRange(TableNo, ControlTableNo);
+        PageControl.SetRange(PageNo, ControlPageNo);
+        PageControl.SetRange(ControlName, ControlNameValue);
+        Assert.IsTrue(PageControl.IsEmpty(), StrSubstNo(UnsupportedControlExistsMsg, ControlNameValue, ControlPageNo));
+    end;
+
+    local procedure AssertTableFieldMissing(var TableField: Record Field; TableNumber: Integer; FieldNameValue: Text)
+    begin
+        TableField.Reset();
+        TableField.SetRange(TableNo, TableNumber);
+        TableField.SetRange(FieldName, FieldNameValue);
+        Assert.IsTrue(TableField.IsEmpty(), StrSubstNo(UnsupportedFieldExistsMsg, FieldNameValue, TableNumber));
+    end;
+
     local procedure GetNextCapLedgerEntryNo(): Integer
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
@@ -1041,7 +1193,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
+        ActionNotExistMsg: Label 'Action %1 does not exist on page %2.', Comment = '%1 = action name, %2 = page number';
+        ActionTargetUnexpectedMsg: Label 'Action %1 does not run page %2.', Comment = '%1 = action name, %2 = target page number';
         ControlNotExistMsg: Label 'Control %1 does not exist.', Comment = '%1 = field caption';
+        UnsupportedControlExistsMsg: Label 'Unsupported control %1 exists on page %2.', Comment = '%1 = control name, %2 = page number';
+        UnsupportedFieldExistsMsg: Label 'Unsupported field %1 exists on table %2.', Comment = '%1 = field name, %2 = table number';
         SubcontractingActionsVisibleErr: Label 'Subcontractor Prices action should not be visible for a non-subcontracting Work Center.';
         SubcontractingActionsEnabledErr: Label 'Subcontractor Prices action should not be enabled for a non-subcontracting Work Center.';
         SubcontractingActionsNotVisibleErr: Label 'Subcontractor Prices action should be visible for a subcontracting Work Center.';
@@ -1060,4 +1216,4 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SendNotificationTok: Label 'Send', Locked = true;
         VendorCardNoErr: Label 'The Vendor Card opened for an unexpected vendor.';
         VendorNoTok: Label 'VendorNo', Locked = true;
-    }
+}

@@ -54,6 +54,20 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
     }
     actions
     {
+        addafter("Co&mments")
+        {
+            action("Subcontracting Comments")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Comments';
+                Image = ViewComments;
+                RunObject = Page "Subc. Routing Comments";
+                RunPageLink = "Routing No." = field("Routing No."),
+                              "Version Code" = field("Version Code"),
+                              "Operation No." = field("Operation No.");
+                ToolTip = 'View or edit subcontracting comments for the routing line.';
+            }
+        }
         addafter("&Quality Measures")
         {
             action("Subc. Prices")

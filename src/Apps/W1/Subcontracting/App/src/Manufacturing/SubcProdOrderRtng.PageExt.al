@@ -77,6 +77,28 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     }
     actions
     {
+        addafter("Co&mments")
+        {
+            action("Subcontracting Comments")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Comments';
+                Image = ViewComments;
+                RunObject = Page "Subc. Prod. Rtng. Comments";
+                RunPageLink = Status = field(Status),
+                              "Prod. Order No." = field("Prod. Order No."),
+                              "Routing Reference No." = field("Routing Reference No."),
+                              "Routing No." = field("Routing No."),
+                              "Operation No." = field("Operation No.");
+                ToolTip = 'View or edit subcontracting comments for the production order routing line.';
+            }
+        }
+        addafter("Co&mments_Promoted")
+        {
+            actionref(SubcontractingComments_Promoted; "Subcontracting Comments")
+            {
+            }
+        }
         addafter("Allocated Capacity")
         {
             action("Subcontracting Purchase Lines")
