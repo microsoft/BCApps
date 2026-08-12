@@ -18,11 +18,11 @@ codeunit 135575 "E-Doc. API Test"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgtForAuthentication.BindAuthentication();
     end;
 
     var
-        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgtForAuthentication: Codeunit "Library - Graph Mgt";
 
     [Test]
     procedure GetEDocument()
