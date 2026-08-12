@@ -923,9 +923,46 @@ codeunit 7314 "Warehouse Availability Mgt."
         if not (Location.Get(LocationCode) and Location."Bin Mandatory" and (Location."Shipment Bin Code" <> '')) then
             exit;
 
-        QtyOnShipmentBin := CalcQtyOnBin(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, ItemTrackingSetup);
+        QtyOnShipmentBin := CalcQtyOnShipmentBins(LocationCode, ItemNo, VariantCode, ItemTrackingSetup);
         if QtyOnShipmentBin = 0 then
             QtyPicked := 0
+    end;
+
+    local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+        BinType: Record "Bin Type";
+        Location: Record Location;
+        Bin: Record Bin;
+        CreatePick: Codeunit "Create Pick";
+        ShipBinTypeFilter: Text;
+        QtyOnShipmentBins: Decimal;
+        DefaultBinAlreadyCounted: Boolean;
+    begin
+        ShipBinTypeFilter := CreatePick.GetBinTypeFilter(1);
+
+        if ShipBinTypeFilter <> '' then begin
+            WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+            WarehouseEntry.SetLoadFields("Qty. (Base)");
+            WarehouseEntry.SetRange("Item No.", ItemNo);
+            WarehouseEntry.SetRange("Location Code", LocationCode);
+            WarehouseEntry.SetRange("Variant Code", VariantCode);
+            WarehouseEntry.SetFilter("Bin Type Code", ShipBinTypeFilter);
+            WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+            WarehouseEntry.CalcSums("Qty. (Base)");
+            QtyOnShipmentBins := WarehouseEntry."Qty. (Base)";
+        end;
+
+        if Location.Get(LocationCode) and (Location."Shipment Bin Code" <> '') then
+            if Bin.Get(LocationCode, Location."Shipment Bin Code") then begin
+                if (ShipBinTypeFilter <> '') and (Bin."Bin Type Code" <> '') then
+                    if BinType.Get(Bin."Bin Type Code") then
+                        DefaultBinAlreadyCounted := BinType.Ship;
+                if not DefaultBinAlreadyCounted then
+                    QtyOnShipmentBins += CalcQtyOnBin(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
+            end;
+
+        exit(QtyOnShipmentBins);
     end;
 
     [IntegrationEvent(false, false)]

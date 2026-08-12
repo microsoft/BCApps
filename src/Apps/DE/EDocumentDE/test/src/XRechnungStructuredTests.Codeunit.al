@@ -19,6 +19,7 @@ codeunit 148500 "XRechnung Structured Tests"
         IsInitialized: Boolean;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
         TestFileTok: Label 'xrechnung/xrechnung-invoice-0.xml', Locked = true;
+        UnsupportedXmlRootElementErr: Label 'Unsupported XML root element: %1.', Comment = '%1 = local name of the XML root element';
         MockCurrencyCode: Code[10];
         MockDate: Date;
 
@@ -170,6 +171,79 @@ codeunit 148500 "XRechnung Structured Tests"
         XRechnungStructuredValidations.SetMockCurrencyCode(MockCurrencyCode);
         XRechnungStructuredValidations.SetMockDate(MockDate);
         XRechnungStructuredValidations.AssertPurchaseDocument(Vendor."No.", PurchaseHeader, Item);
+    end;
+
+    [Test]
+    procedure TestXRechnungUnsupportedRootElement_IsRejected()
+    var
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        StructuredFormatReader: Interface IStructuredFormatReader;
+        XmlOutStream: OutStream;
+    begin
+        // [FEATURE] [E-Document] [XRechnung] [Import]
+        // [SCENARIO] An unsupported XRechnung document type is rejected instead of creating an empty draft
+        Initialize(Enum::"Service Integration"::"No Integration");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        XmlOutStream.WriteText('<Reminder xmlns="urn:oasis:names:specification:ubl:schema:xsd:Reminder-2" />');
+        StructuredFormatReader := Enum::"E-Doc. Read into Draft"::XRechnung;
+
+        asserterror StructuredFormatReader.ReadIntoDraft(EDocument, TempBlob);
+
+        Assert.ExpectedError(StrSubstNo(UnsupportedXmlRootElementErr, 'Reminder'));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure TestXRechnungUnexpectedRootNamespace_IsRejected()
+    var
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        StructuredFormatReader: Interface IStructuredFormatReader;
+        XmlOutStream: OutStream;
+    begin
+        // [FEATURE] [E-Document] [XRechnung] [Import]
+        // [SCENARIO] An Invoice from an unsupported namespace is rejected instead of creating an empty draft
+        Initialize(Enum::"Service Integration"::"No Integration");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        XmlOutStream.WriteText('<Invoice xmlns="urn:unsupported:invoice" />');
+        StructuredFormatReader := Enum::"E-Doc. Read into Draft"::XRechnung;
+
+        asserterror StructuredFormatReader.ReadIntoDraft(EDocument, TempBlob);
+
+        Assert.ExpectedError(StrSubstNo(UnsupportedXmlRootElementErr, 'Invoice'));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure TestXRechnungInvoice_ReadIntoDraftTwice_DoesNotDuplicateLines()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        LineCountAfterFirstRead: Integer;
+    begin
+        // [FEATURE] [E-Document] [XRechnung] [Import]
+        // [SCENARIO] Re-running Read into Draft resets the previous draft instead of appending duplicate lines
+
+        // [GIVEN] A valid XRechnung XML invoice document is read into a draft
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupXRechnungEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, TestFileTok);
+        ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft");
+
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        LineCountAfterFirstRead := EDocumentPurchaseLine.Count();
+        Assert.IsTrue(LineCountAfterFirstRead > 0, 'The first read into draft should create purchase lines.');
+
+        // [WHEN] The document is read into a draft a second time
+        EDocument.Get(EDocument."Entry No");
+        ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft");
+
+        // [THEN] The draft contains the same number of lines
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.AreEqual(LineCountAfterFirstRead, EDocumentPurchaseLine.Count(), 'Re-reading the draft should not duplicate purchase lines.');
     end;
 
     [PageHandler]

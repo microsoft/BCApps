@@ -13,6 +13,7 @@ report 5195 "Create Conts. from Customers"
 {
     ApplicationArea = RelationshipMgmt;
     Caption = 'Create Contacts from Customers';
+    ToolTip = 'Create a contact card from information about the customer''s contact person.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
