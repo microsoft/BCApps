@@ -20,6 +20,8 @@ codeunit 134286 "Non. Ded. VAT Currency"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
+        GLEntriesSourceCurrNotBalancedErr: Label 'G/L Entries source currency amounts must be balanced';
+        NoSourceCurrGLEntriesErr: Label 'No G/L Entries with the expected source currency were created';
 
     [Test]
     procedure BasicPurchInvWithACY()
@@ -242,6 +244,50 @@ codeunit 134286 "Non. Ded. VAT Currency"
         VerifyGLEntriesBalanced(DocumentNo, PostingDate);
     end;
 
+    [Test]
+    procedure PostFCYPurchInvWithPartialNonDedVATAndSourceCurrConsistency()
+    var
+        PurchHeader: Record "Purchase Header";
+        PurchLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        CurrencyCode: Code[10];
+        DocNo: Code[20];
+    begin
+        // [SCENARIO 640619] Posting a foreign currency Purchase Invoice with partial Non-Deductible VAT does not cause a G/L Entry consistency error when "Check Source Curr. Consistency" is enabled in General Ledger Setup.
+        Initialize();
+
+        // [GIVEN] "Check Source Curr. Consistency" is enabled in General Ledger Setup
+        EnableCheckSourceCurrConsistency();
+
+        // [GIVEN] Normal VAT Posting Setup with "VAT %" = 20 and partial "Non-Deductible VAT %" = 50
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("Non-Deductible VAT %", 50);
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Currency "C" with exchange rate that differs from LCY
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 100, 130);
+
+        // [GIVEN] Purchase Invoice in currency "C" with Normal VAT and partial Non-Deductible VAT
+        LibraryPurchase.CreatePurchHeader(
+            PurchHeader, PurchHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        PurchHeader.Validate("Currency Code", CurrencyCode);
+        PurchHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(
+            PurchLine, PurchHeader, PurchLine.Type::Item,
+            LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), 1);
+        PurchLine.Validate("Direct Unit Cost", 100);
+        PurchLine.Modify(true);
+
+        // [WHEN] Post the Purchase Invoice (must not raise a source currency consistency error)
+        DocNo := LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
+
+        // [THEN] G/L Entries are balanced in LCY and in source currency
+        VerifyGLEntriesBalanced(DocNo, PurchHeader."Posting Date");
+        VerifyGLEntriesSourceCurrencyBalanced(DocNo, PurchHeader."Posting Date", CurrencyCode);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -366,5 +412,26 @@ codeunit 134286 "Non. Ded. VAT Currency"
         GLEntry.CalcSums("Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
         Assert.AreEqual(GLEntry."Debit Amount", GLEntry."Credit Amount", 'G/L Entries LCY must be balanced');
         Assert.AreEqual(GLEntry."Add.-Currency Debit Amount", GLEntry."Add.-Currency Credit Amount", 'G/L Entries ACY must be balanced');
+    end;
+
+    local procedure VerifyGLEntriesSourceCurrencyBalanced(DocumentNo: Code[20]; PostingDate: Date; CurrencyCode: Code[10])
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("Posting Date", PostingDate);
+        GLEntry.SetRange("Source Currency Code", CurrencyCode);
+        Assert.IsFalse(GLEntry.IsEmpty(), NoSourceCurrGLEntriesErr);
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", GLEntriesSourceCurrNotBalancedErr);
+    end;
+
+    local procedure EnableCheckSourceCurrConsistency()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
+        GeneralLedgerSetup.Modify(true);
     end;
 }
