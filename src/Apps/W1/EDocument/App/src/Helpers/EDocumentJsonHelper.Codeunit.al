@@ -35,6 +35,59 @@ codeunit 6121 "EDocument Json Helper"
             exit(JsonToken.AsArray());
     end;
 
+    internal procedure HasExtractedInvoiceData(SourceJsonObject: JsonObject): Boolean
+    var
+        FieldsJsonObject: JsonObject;
+        ItemJsonObject: JsonObject;
+        ItemsJsonArray: JsonArray;
+        JsonToken: JsonToken;
+        ItemIndex: Integer;
+    begin
+        FieldsJsonObject := GetHeaderFields(SourceJsonObject);
+        if HasExtractedFieldValue(FieldsJsonObject) then
+            exit(true);
+
+        ItemsJsonArray := GetLinesArray(SourceJsonObject);
+        for ItemIndex := 0 to ItemsJsonArray.Count() - 1 do
+            if ItemsJsonArray.Get(ItemIndex, JsonToken) and JsonToken.IsObject() then begin
+                ItemJsonObject := JsonToken.AsObject();
+                if ItemJsonObject.Get('fields', JsonToken) and JsonToken.IsObject() then
+                    if HasExtractedFieldValue(JsonToken.AsObject()) then
+                        exit(true);
+            end;
+    end;
+
+    local procedure HasExtractedFieldValue(FieldsJsonObject: JsonObject): Boolean
+    var
+        FieldJsonObject: JsonObject;
+        FieldNames: List of [Text];
+        JsonToken: JsonToken;
+        FieldName: Text;
+    begin
+        FieldNames := FieldsJsonObject.Keys();
+        foreach FieldName in FieldNames do
+            if FieldsJsonObject.Get(FieldName, JsonToken) and JsonToken.IsObject() then begin
+                FieldJsonObject := JsonToken.AsObject();
+                if HasJsonValue(FieldJsonObject, 'value_text') or
+                   HasJsonValue(FieldJsonObject, 'value_number') or
+                   HasJsonValue(FieldJsonObject, 'value_date')
+                then
+                    exit(true);
+            end;
+    end;
+
+    local procedure HasJsonValue(FieldJsonObject: JsonObject; PropertyName: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        if not FieldJsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
+            exit(false);
+        if JsonToken.AsValue().IsNull() then
+            exit(false);
+
+        exit(JsonToken.AsValue().AsText().Trim() <> '');
+    end;
+
     internal procedure GetInnerObject(SourceJsonObject: JsonObject): JsonObject
     var
         JsonToken: JsonToken;

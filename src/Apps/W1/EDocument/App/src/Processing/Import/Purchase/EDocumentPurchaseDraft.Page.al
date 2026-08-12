@@ -358,6 +358,19 @@ page 6181 "E-Document Purchase Draft"
                         AnalyzeEDocument();
                     end;
                 }
+                action(CreateManualDraftAction)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Create draft manually';
+                    ToolTip = 'Start an empty draft for this document so you can enter the details by hand. Use this when the file could not be read as an invoice.';
+                    Image = NewDocument;
+                    Visible = ShowCreateManualDraftAction;
+
+                    trigger OnAction()
+                    begin
+                        CreateManualDraft();
+                    end;
+                }
                 action(LinkToExistingDocument)
                 {
                     ApplicationArea = Basic, Suite;
@@ -561,6 +574,7 @@ page 6181 "E-Document Purchase Draft"
         ShowAnalyzeDocumentAction :=
             (Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and
             (Rec.Status = Enum::"E-Document Status"::Error);
+        ShowCreateManualDraftAction := ShowAnalyzeDocumentAction;
 
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
@@ -732,6 +746,40 @@ page 6181 "E-Document Purchase Draft"
         EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
+    local procedure CreateManualDraft()
+    var
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImport: Codeunit "E-Doc. Import";
+        Progress: Dialog;
+    begin
+        if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
+            exit;
+
+        // Only offer a manual draft when extraction actually failed at the structure step.
+        Rec.CalcFields("Import Processing Status");
+        if not ((Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and (Rec.Status = Enum::"E-Document Status"::Error)) then
+            exit;
+
+        if GuiAllowed() then
+            Progress.Open(ProcessingDocumentMsg);
+
+        // The document could not be read as an invoice. Start an empty draft the user can fill in,
+        // treating the data as already structured so structuring is a no-op instead of failing again.
+        Rec."Structure Data Impl." := Enum::"Structure Received E-Doc."::"Already Structured";
+        Rec."Read into Draft Impl." := Enum::"E-Doc. Read into Draft"::"Blank Draft";
+        Rec.Modify();
+
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Read into Draft";
+        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
+
+        Rec.Get(Rec."Entry No");
+        if GuiAllowed() then
+            Progress.Close();
+        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
+    end;
+
     local procedure ProvideFeedback()
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
@@ -786,6 +834,7 @@ page 6181 "E-Document Purchase Draft"
         HasErrorsOrWarnings, HasErrors : Boolean;
         ShowFinalizeDraftAction: Boolean;
         ShowAnalyzeDocumentAction: Boolean;
+        ShowCreateManualDraftAction: Boolean;
         FinalizeDraftInvokedTxt: Label 'User invoked Finalize Draft action.', Locked = true;
         FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';

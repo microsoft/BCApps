@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Format;
+using Microsoft.eServices.EDocument.Helpers;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
@@ -81,6 +82,61 @@ codeunit 139891 "E-Document Structured Tests"
         end
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_AllExtractedValuesAreEmpty()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{"invoiceId":{"value_text":null,"value_number":null,"value_date":null}},"items":[{"fields":{"description":{"value_text":"   ","value_number":null,"value_date":null}}}]}}}}');
+
+        Assert.IsFalse(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'An ADI response containing only empty extracted values must be treated as empty.');
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_EmptyJsonResponse()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom('{}');
+
+        Assert.IsFalse(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'An empty ADI JSON response must be treated as empty.');
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_LineContainsExtractedValue()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{},"items":[{"fields":{"description":{"value_text":"Consulting","value_number":null,"value_date":null}}}]}}}}');
+
+        Assert.IsTrue(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'A line value must count as extracted invoice data.');
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_ZeroIsExtractedValue()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{"invoiceTotal":{"value_text":null,"value_number":0,"value_date":null}},"items":[]}}}}');
+
+        Assert.IsTrue(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'A numeric zero must count as extracted invoice data.');
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_ValidResponseContainsExtractedData()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom(NavApp.GetResourceAsText('capi/capi-invoice-valid-0.json'));
+
+        Assert.IsTrue(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'The valid ADI fixture must contain extracted invoice data.');
     end;
     #endregion
 
