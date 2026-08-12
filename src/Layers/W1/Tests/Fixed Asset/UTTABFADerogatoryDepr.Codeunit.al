@@ -77,6 +77,70 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ValidateFALinkRequiresExistingSource()
+    var
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+    begin
+        DerogatoryFALedgerEntry."Derogatory Source Entry No." := GetNextFALedgerEntryNo() + 1;
+
+        asserterror DerogatoryPostingMgt.ValidateDerogatoryLink(DerogatoryFALedgerEntry);
+
+        Assert.ExpectedError('does not exist and cannot be used as a derogatory source entry');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ValidateFALinkRejectsDuplicateCounterpart()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        ExistingCounterpartFALedgerEntry: Record "FA Ledger Entry";
+        DuplicateCounterpartFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+        CreateDepreciationBook(TaxDepreciationBook);
+        UpdateDerogatoryCalculationDepreciationBook(TaxDepreciationBook, NormalDepreciationBook.Code);
+        CreateFALedgerEntry(SourceFALedgerEntry, NormalDepreciationBook.Code, 0);
+        CreateFALedgerEntry(
+            ExistingCounterpartFALedgerEntry, TaxDepreciationBook.Code, SourceFALedgerEntry."Entry No.");
+        ExistingCounterpartFALedgerEntry."FA No." := SourceFALedgerEntry."FA No.";
+        ExistingCounterpartFALedgerEntry.Modify();
+        DuplicateCounterpartFALedgerEntry := ExistingCounterpartFALedgerEntry;
+        DuplicateCounterpartFALedgerEntry."Entry No." := 0;
+
+        asserterror DerogatoryPostingMgt.ValidateDerogatoryLink(DuplicateCounterpartFALedgerEntry);
+
+        Assert.ExpectedError('A derogatory counterpart already exists for source entry');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ValidateMaintenanceLinkRejectsDifferentAsset()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+        CreateDepreciationBook(TaxDepreciationBook);
+        UpdateDerogatoryCalculationDepreciationBook(TaxDepreciationBook, NormalDepreciationBook.Code);
+        CreateMaintenanceLedgerEntry(SourceMaintenanceLedgerEntry, NormalDepreciationBook.Code);
+        CounterpartMaintenanceLedgerEntry."FA No." := LibraryUTUtility.GetNewCode();
+        CounterpartMaintenanceLedgerEntry."Depreciation Book Code" := TaxDepreciationBook.Code;
+        CounterpartMaintenanceLedgerEntry."Derogatory Source Entry No." := SourceMaintenanceLedgerEntry."Entry No.";
+
+        asserterror DerogatoryPostingMgt.ValidateDerogatoryLink(CounterpartMaintenanceLedgerEntry);
+
+        Assert.ExpectedError('cannot be linked to depreciation book');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure GeneratedMirrorRoleIsNotEligible()
     var
         NormalDepreciationBook: Record "Depreciation Book";
@@ -450,6 +514,34 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         FALedgerEntry."Derogatory Excluded" := false;
         FALedgerEntry.Amount := LibraryRandom.RandDec(10, 2);
         FALedgerEntry.Insert();
+    end;
+
+    local procedure CreateFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry"; DepreciationBookCode: Code[10]; DerogatorySourceEntryNo: Integer)
+    begin
+        FALedgerEntry."Entry No." := GetNextFALedgerEntryNo();
+        FALedgerEntry."FA No." := LibraryUTUtility.GetNewCode();
+        FALedgerEntry."Depreciation Book Code" := DepreciationBookCode;
+        FALedgerEntry."Derogatory Source Entry No." := DerogatorySourceEntryNo;
+        FALedgerEntry.Insert();
+    end;
+
+    local procedure GetNextFALedgerEntryNo(): Integer
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        exit(FALedgerEntry.GetLastEntryNo() + 1);
+    end;
+
+    local procedure CreateMaintenanceLedgerEntry(var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; DepreciationBookCode: Code[10])
+    var
+        LastMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+    begin
+        MaintenanceLedgerEntry."Entry No." := 1;
+        if LastMaintenanceLedgerEntry.FindLast() then
+            MaintenanceLedgerEntry."Entry No." := LastMaintenanceLedgerEntry."Entry No." + 1;
+        MaintenanceLedgerEntry."FA No." := LibraryUTUtility.GetNewCode();
+        MaintenanceLedgerEntry."Depreciation Book Code" := DepreciationBookCode;
+        MaintenanceLedgerEntry.Insert();
     end;
 
     local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; DepreciationBookCode: Code[10])

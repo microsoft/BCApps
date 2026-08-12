@@ -2,7 +2,7 @@
 goal: Complete deterministic derogatory depreciation mirroring across W1, localization, reversal, and French upgrade paths
 version: 1.0
 date_created: 2026-08-05
-last_updated: 2026-08-10
+last_updated: 2026-08-12
 owner: Business Central Fixed Assets
 tags: [feature, fixed-assets, derogatory-depreciation, posting, reversal, upgrade, localization]
 ---
@@ -398,13 +398,19 @@ The NL behavioral regression was added before the product edits. A red behaviora
 
 Implementation and validation notes (2026-08-11): The French linkage upgrade now exposes `RunAfterRelationshipTransfer`, invoked after both relationship transfers, and keeps the original tag unset until matching and six aggregate outcome telemetry dimensions complete. FA and maintenance pairs are collected into complete candidate graphs before writes; only mutually unique pairs are linked, while contested sources are marked ambiguous and unmatched sources are counted missing. The corrective per-company path is separately tag-gated, clears only link and ambiguity fields in configured pairs, and invokes the rebuild through the internal `Derog. Linkage Corrective Run` rollback boundary. It never changes accounting values, dates, document identities, or reversal fields. The focused French codeunit 134194 runtime suite passed 29/29 after AL MCP publication; AL MCP compile returned zero diagnostics. The AL MCP build operation returned `CompilationFailed` without diagnostics despite that successful compile, so the final packages used for runtime validation were the local final-check packages produced by the existing local build path.
 
-- EPIC-008: Implement deterministic automated coverage
+- EPIC-008: Implement deterministic automated coverage — DONE
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-019 | Strengthen `VerifyLinkedCounterparts` to assert total tax-book row count equals expected and linked count, then add purchase/general/FA journal, maintenance, G/L on/off, no-asset-book, automatic-only, salvage, normal/final/negative/acquisition cases. | Not Started | `src/Layers/W1/Tests/Fixed Asset/ERMDerogatoryDeprPosting.Codeunit.al` |
-| ITEM-020 | Add setup ambiguity, link validation, generated-mirror containment, insertion compatibility, event ordering, link-first reversal, missing/multiple/already-reversed/setup-change/reversal-of-reversal tests. | Not Started | `src/Layers/W1/Tests/Fixed Asset/UTTABFADerogatoryDepr.Codeunit.al`, `src/Layers/W1/Tests/Fixed Asset/ERMDerogatoryDeprPosting.Codeunit.al` |
-| ITEM-021 | Extend FR upgrade tests for prerequisite sequencing, true repeated execution, partial recovery, mutual uniqueness including unequal distance, missing, maintenance code, canceled assets, automatic Derogatory acquisition, reversed and reversal-of-reversal pairs, telemetry, and unchanged amounts. Also make the composed French run of W1 codeunit 134149 feature-aware. | Not Started | `src/Layers/FR/Tests/Fixed Asset/UTDerogatoryLinkageUpg.Codeunit.al` |
+| ITEM-019 | Strengthen `VerifyLinkedCounterparts` to assert total tax-book row count equals expected and linked count, then add purchase/general/FA journal, maintenance, G/L on/off, no-asset-book, automatic-only, salvage, normal/final/negative/acquisition cases. | DONE | `src/Layers/W1/Tests/Fixed Asset/ERMDerogatoryDeprPosting.Codeunit.al` |
+| ITEM-020 | Add setup ambiguity, link validation, generated-mirror containment, insertion compatibility, event ordering, link-first reversal, missing/multiple/already-reversed/setup-change/reversal-of-reversal tests. | DONE | `src/Layers/W1/Tests/Fixed Asset/UTTABFADerogatoryDepr.Codeunit.al`, `src/Layers/W1/Tests/Fixed Asset/ERMDerogatoryDeprPosting.Codeunit.al` |
+| ITEM-021 | Extend FR upgrade tests for prerequisite sequencing, true repeated execution, partial recovery, mutual uniqueness including unequal distance, missing, maintenance code, canceled assets, automatic Derogatory acquisition, reversed and reversal-of-reversal pairs, telemetry, and unchanged amounts. Also make the composed French run of W1 codeunit 134149 feature-aware. | DONE | `src/Layers/FR/Tests/Fixed Asset/UTDerogatoryLinkageUpg.Codeunit.al` |
+
+Implementation and validation notes (2026-08-12): `VerifyLinkedCounterparts` now proves that every normal-book source has one link, that the total tax-book row count equals the source count, and that every tax-book row is linked. The W1 matrix adds explicit general-journal, maintenance, missing-tax-asset-book, configured-duplication, returning-insertion, and posting-event ordering cases, strengthens automatic-only and salvage total-row assertions, and applies the total-row invariant to normal, final, negative, and acquisition scenarios. Unit coverage now exercises missing, duplicate, and identity-invalid FA/maintenance links. Existing EPIC-001/EPIC-002 tests continue to cover setup ambiguity, compatibility, containment, link-first reversal, missing/multiple/already-reversed/setup-change, salvage, and reversal-of-reversal behavior.
+
+The French suite adds a true second execution, all six linkage outcome counts passed to telemetry, and unchanged FA/maintenance amounts. Existing EPIC-007 coverage supplies prerequisite/tag sequencing, partial recovery, mutually unique and unequal-distance ambiguity, missing candidates, maintenance-code identity, canceled assets, automatic acquisition adjustments, and reversal chains. The composed French W1 suite detects the French legacy schema without a compile-time FR dependency and enables the centralized feature required by its linked-counterpart contract. Before that adjustment, the fresh composed run of codeunit 134149 reported 6 passed / 36 failed; after the tests were published but before the adjustment, the new focused group reported 2 passed / 6 failed, including expected linked count 1 versus actual 0. Coverage-only cases that codify already-correct behavior have no fabricated red phase.
+
+Validation and review (2026-08-12, AL MCP and AL LSP): W1 and FR BaseApp plus Tests-Fixed Asset compiled with zero errors and both BaseApps and test apps built. The W1 and FR test apps were published; BaseApp publication was not required because EPIC-008 changes only test sources. Runtime passed W1 codeunits 134166 (27/27) and 134149 (48/48), composed FR codeunit 134149 (48/48), and FR codeunit 134194 (32/32). AL LSP references confirmed both `PostDerogatoryCounterpart` overloads are reached only from the source boundaries, returning and compatibility insertion overloads remain referenced, final FA/maintenance validation is called by insertion, the strengthened verifier has ten call sites, and `RunAfterRelationshipTransfer` feeds both linkage count procedures into the six-dimension telemetry call. Self-review found and fixed one coverage gap by applying the total-row verifier to the normal/final/negative/acquisition scenarios; the final targeted and full suites remained green.
 
 - EPIC-009: Complete semantic, build, and runtime release gates
 
@@ -418,6 +424,7 @@ Implementation and validation notes (2026-08-11): The French linkage upgrade now
 
 ## 15. Change Log
 
+- 2026-08-12: Completed EPIC-008 deterministic W1/FR coverage, total-row/link invariants, link-validation/event/compatibility cases, upgrade idempotency/telemetry/amount assertions, and composed-French feature awareness.
 - 2026-08-11: Completed EPIC-007 French historical linkage migration: transfer-sequenced matching, mutually unique FA/maintenance graph linking, aggregate telemetry, and the forward corrective rebuild/tag with focused upgrade regressions.
 - 2026-08-11: Completed EPIC-006 semantic verification for DACH, GB, NL, and SE, retained consumed general-journal declarations, removed zero-consumer posted-journal declarations, and added the NL inherited-posting regression.
 - 2026-08-11: Completed EPIC-005 IT/RU localization derogatory mirroring port with centralized posting, link-first reversal, and regression tests. IT/RU execution deferred to localization release gate.

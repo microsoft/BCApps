@@ -670,6 +670,124 @@ codeunit 134194 "UT Derogatory Linkage Upg."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TrueRepeatedExecutionMakesNoFurtherChanges()
+    var
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
+        CreateMaintenanceLedgerEntry(1, SourceDepreciationBookCode);
+        CreateMaintenanceLedgerEntry(2, DerogatoryDepreciationBookCode);
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+        UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+        LinkedCount := 0;
+        AmbiguousCount := 0;
+        MissingCount := 0;
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+        UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        DerogatoryFALedgerEntry.Get(2);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        DerogatoryMaintenanceLedgerEntry.Get(2);
+        DerogatoryMaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        Assert.AreEqual(0, LinkedCount, 'A true second pass must not create another link.');
+        Assert.AreEqual(0, AmbiguousCount, 'A true second pass must not change ambiguity markers.');
+        Assert.AreEqual(0, MissingCount, 'A true second pass must not recount resolved sources.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure AllLinkageOutcomeCountsAreAvailableForTelemetry()
+    var
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        FALinkedCount: Integer;
+        FAAmbiguousCount: Integer;
+        FAMissingCount: Integer;
+        MaintenanceLinkedCount: Integer;
+        MaintenanceAmbiguousCount: Integer;
+        MaintenanceMissingCount: Integer;
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, 'FA1', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(2, 'FA1', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(10, 'FA2', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(11, 'FA2', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(12, 'FA2', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateFALedgerEntry(20, 'FA3', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, false, 0, 0);
+        CreateMaintenanceLedgerEntry(1, SourceDepreciationBookCode, 'MC1');
+        CreateMaintenanceLedgerEntry(2, DerogatoryDepreciationBookCode, 'MC1');
+        CreateMaintenanceLedgerEntry(10, SourceDepreciationBookCode, 'MC2');
+        CreateMaintenanceLedgerEntry(11, DerogatoryDepreciationBookCode, 'MC2');
+        CreateMaintenanceLedgerEntry(12, DerogatoryDepreciationBookCode, 'MC2');
+        CreateMaintenanceLedgerEntry(20, SourceDepreciationBookCode, 'MC3');
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(
+            FALinkedCount, FAAmbiguousCount, FAMissingCount);
+        UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(
+            MaintenanceLinkedCount, MaintenanceAmbiguousCount, MaintenanceMissingCount);
+
+        Assert.AreEqual(1, FALinkedCount, 'The telemetry input must report one linked FA source.');
+        Assert.AreEqual(1, FAAmbiguousCount, 'The telemetry input must report one ambiguous FA source.');
+        Assert.AreEqual(1, FAMissingCount, 'The telemetry input must report one missing FA source.');
+        Assert.AreEqual(1, MaintenanceLinkedCount, 'The telemetry input must report one linked maintenance source.');
+        Assert.AreEqual(1, MaintenanceAmbiguousCount, 'The telemetry input must report one ambiguous maintenance source.');
+        Assert.AreEqual(1, MaintenanceMissingCount, 'The telemetry input must report one missing maintenance source.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure LinkageChangesNoAccountingAmounts()
+    var
+        SourceFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        DerogatoryMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+        SourceFAAmount: Decimal;
+        DerogatoryFAAmount: Decimal;
+        SourceMaintenanceAmount: Decimal;
+        DerogatoryMaintenanceAmount: Decimal;
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
+        CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
+        CreateMaintenanceLedgerEntry(1, SourceDepreciationBookCode);
+        CreateMaintenanceLedgerEntry(2, DerogatoryDepreciationBookCode);
+        SourceFALedgerEntry.Get(1);
+        DerogatoryFALedgerEntry.Get(2);
+        SourceMaintenanceLedgerEntry.Get(1);
+        DerogatoryMaintenanceLedgerEntry.Get(2);
+        SourceFAAmount := SourceFALedgerEntry.Amount;
+        DerogatoryFAAmount := DerogatoryFALedgerEntry.Amount;
+        SourceMaintenanceAmount := SourceMaintenanceLedgerEntry.Amount;
+        DerogatoryMaintenanceAmount := DerogatoryMaintenanceLedgerEntry.Amount;
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+        UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        SourceFALedgerEntry.Get(1);
+        DerogatoryFALedgerEntry.Get(2);
+        SourceMaintenanceLedgerEntry.Get(1);
+        DerogatoryMaintenanceLedgerEntry.Get(2);
+        SourceFALedgerEntry.TestField(Amount, SourceFAAmount);
+        DerogatoryFALedgerEntry.TestField(Amount, DerogatoryFAAmount);
+        SourceMaintenanceLedgerEntry.TestField(Amount, SourceMaintenanceAmount);
+        DerogatoryMaintenanceLedgerEntry.TestField(Amount, DerogatoryMaintenanceAmount);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TwoSourcesCompetingForOneCandidateAreBothMarkedAmbiguous()
     var
         FirstSourceFALedgerEntry: Record "FA Ledger Entry";
