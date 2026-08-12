@@ -5,7 +5,7 @@
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
-  "UsePsSession": false,
+  "UsePsSession": true,
   "usePsSessionForBc28": true,
   "debugMode": true,
   "gitHubRunner": "windows-latest",
