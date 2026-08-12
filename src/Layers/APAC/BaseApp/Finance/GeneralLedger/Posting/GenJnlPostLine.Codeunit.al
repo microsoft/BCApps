@@ -8163,7 +8163,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true, TotalAmountAddCurr)
                 else
                     InitGLEntry(
-                        GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, 0, false, true, TotalAmountAddCurr);
+                        GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true,
+                        CalcAmountSrcCurr(GenJnlLine, TotalAmountLCY));
         end;
     end;
 
