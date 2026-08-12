@@ -49,10 +49,6 @@
       "action": "Warning"
     },
     {
-      "id": "AL0640",
-      "action": "Error"
-    },
-    {
       "id": "AL0659",
       "action": "Warning",
       "justification": "The length of the enum identifier 'Acc. Schedule Line Totaling Type' should not exceed 30 characters as it may result in runtime issues in cases where there are other enums with the same first 30 characters."
@@ -429,11 +425,6 @@
     {
       "id": "PTE0018",
       "action": "Warning"
-    },
-    {
-      "id": "AD0001",
-      "action": "Error",
-      "justification": "Analyzer exceptions should be an error as they can prevent other rules from being validated properly."
     },
     {
       "id": "AL0468",
