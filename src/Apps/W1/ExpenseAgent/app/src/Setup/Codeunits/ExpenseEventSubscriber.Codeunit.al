@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Reversal;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Journal;
@@ -41,6 +42,9 @@ codeunit 6908 "Expense Event Subscriber"
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         EmailChangeWarningQst: Label 'Employee %1 has existing expenses. Changing the email address may make these expenses inaccessible to them in the expense app. Do you want to continue?', Comment = '%1 = Employee No.';
+        PolicyNotAcknowledgedErr: Label 'You must acknowledge the travel policy before releasing the spend request.';
+        NoTravelersErr: Label 'You must add at least one traveler before releasing the spend request.';
+        DestinationRequiredErr: Label '%1 is required for international travel.', Comment = '%1 = Field Caption';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Instruction Mgt.", OnShowPostedDocumentOnBeforePageRun, '', false, false)]
     local procedure OnShowPostedDocumentOnBeforePageRun(CalledFromPageId: Integer; RecVariant: Variant; var PageId: Integer)
@@ -161,6 +165,18 @@ codeunit 6908 "Expense Event Subscriber"
             IsHandled := true;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Spend Request", OnBeforeRelease, '', false, false)]
+    local procedure OnBeforeReleaseSpendRequest(var SpendRequest: Record "Spend Request")
+    begin
+        CheckSpendRequestBeforeRelease(SpendRequest);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Spend Request", OnAfterRelease, '', false, false)]
+    local procedure OnAfterReleaseSpendRequest(var SpendRequest: Record "Spend Request")
+    begin
+        AutoApproveSpendRequestWhenAgentDisabled(SpendRequest);
+    end;
+
     internal procedure IsSourceExpense(SourceCode: Code[10]): Boolean
     var
         SourceCodeSetup: Record "Source Code Setup";
@@ -246,5 +262,43 @@ codeunit 6908 "Expense Event Subscriber"
         Expense.SetRange("Expense User No.", ExpenseUserNo);
         if not Expense.IsEmpty() then
             Error(CannotDeleteEmployeeWithExpenseErr, EmployeeNo);
+    end;
+
+    local procedure CheckSpendRequestBeforeRelease(SpendRequest: Record "Spend Request")
+    var
+        Traveler: Record Traveler;
+    begin
+        if SpendRequest.Status = SpendRequest.Status::Released then
+            exit;
+
+        SpendRequest.TestField("Requested For");
+        SpendRequest.TestField("Expected Start Date");
+        SpendRequest.TestField("Expected End Date");
+
+        if not SpendRequest."Travel Policy Acknowledgment" then
+            Error(PolicyNotAcknowledgedErr);
+
+        if SpendRequest."International Travel" and (SpendRequest."Dest. Country/Region Code" = '') then
+            Error(DestinationRequiredErr, SpendRequest.FieldCaption("Dest. Country/Region Code"));
+
+        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        if Traveler.IsEmpty() then
+            Error(NoTravelersErr);
+    end;
+
+    local procedure AutoApproveSpendRequestWhenAgentDisabled(var SpendRequest: Record "Spend Request")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if SpendRequest.Status <> SpendRequest.Status::Released then
+            exit;
+
+        // Without the agent there is no approver, so a released request is approved right away.
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Enable Agent" then
+            exit;
+
+        SpendRequest.Status := SpendRequest.Status::Approved;
+        SpendRequest.Modify();
     end;
 }

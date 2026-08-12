@@ -5180,6 +5180,9 @@ table 81 "Gen. Journal Line"
             then
                 CustCheckCreditLimit.GenJnlLineCheck(Rec);
 
+        if "Spend Request No." <> '' then
+            CheckSpendRequestAmount();
+
         Validate("VAT %");
         Validate("Bal. VAT %");
         UpdateLineBalance();
@@ -5194,6 +5197,13 @@ table 81 "Gen. Journal Line"
         end;
 
         OnAfterValidateAmount(Rec);
+    end;
+
+    local procedure CheckSpendRequestAmount()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Amount (LCY)");
     end;
 
     local procedure UpdateApplyToAmount()
