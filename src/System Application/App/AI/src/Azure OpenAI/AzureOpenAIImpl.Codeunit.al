@@ -113,9 +113,9 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 Error(FastPromptUnsupportedAuthorizationErr);
         end;
 
+        ClearLastError();
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.GetCapabilityName());
         ALCopilotFastPromptResponse := ALCopilotFunctions.GetFastPrompt(ConfigKey, ALCopilotAuthorization, ALCopilotCapability, CallerModuleInfo.Publisher());
-        ClearLastError();
 
         if IsNull(ALCopilotFastPromptResponse) then begin
             ErrorCode := GetLastErrorCode();
