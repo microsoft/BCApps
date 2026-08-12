@@ -172,6 +172,7 @@ codeunit 132684 "Azure OpenAI Test"
         LibraryAssert.ExpectedError('Copilot capability ''Text Capability'' has not been enabled. Please contact your system administrator.');
     end;
 
+#if not CLEAN29
     [Test]
     procedure GenerateTextCompletionsCopilotCapabilityNotSet()
     var
@@ -324,6 +325,7 @@ codeunit 132684 "Azure OpenAI Test"
         ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Billing Type"::"Custom Billed");
         LibraryAssert.ExpectedError(ErrorMessage);
     end;
+#endif
 
     [Test]
     procedure GenerateEmbeddingCopilotCapabilityNotSet()

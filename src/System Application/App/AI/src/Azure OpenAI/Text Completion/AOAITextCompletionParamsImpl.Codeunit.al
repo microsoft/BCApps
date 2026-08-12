@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+#if not CLEAN29
 codeunit 7766 "AOAI TextCompletionParams Impl"
 {
     Access = Internal;
@@ -153,3 +154,4 @@ codeunit 7766 "AOAI TextCompletionParams Impl"
         SetFrequencyPenalty(0);
     end;
 }
+#endif

@@ -25,6 +25,7 @@ codeunit 139021 "Azure OpenAI Test Partner"
         LearMoreUrlLbl: Label 'http://LearnMore.com', Locked = true;
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure GenerateTextCompletionsBillingTypeAuthorizationErr()
@@ -73,6 +74,7 @@ codeunit 139021 "Azure OpenAI Test Partner"
         ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Billing Type"::"Custom Billed");
         LibraryAssert.ExpectedError(ErrorMessage);
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
