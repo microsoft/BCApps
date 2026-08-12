@@ -36,6 +36,7 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         FAPostingTypeErr: Label '%1 must be equal to ''Acquisition Cost''', Comment = '%1 = FA Posting Type Field Caption';
         CO2eMustNotBeZeroErr: Label 'The CO2e fields must have a value that is not 0.';
+        AllowedToPostSustainabilityEntryForAcquisitionErr: Label 'It is only allowed to post Sustainability Entry for Acquisition Cost.';
 
     [Test]
     procedure TestSustValueChainFixedAssetForPurchaseInvoicePosting()
@@ -857,6 +858,71 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
             -FAAmount,
             FALedgerEntry."Amount",
             StrSubstNo(ValueMustBeEqualErr, FALedgerEntry.FieldCaption(Amount), 0, FALedgerEntry.TableCaption()));
+    end;
+
+    [Test]
+    procedure TestSustValueChainFixedAssetForPurchaseInvoiceWithoutAcqCost()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SustainabilityAccount: Record "Sustainability Account";
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        EmissionFee: array[3] of Record "Emission Fee";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641224]  Verify that the system throws an error message when posting a purchase invoice with a fixed asset line where the "FA Posting Type" is changed to Maintenance.
+        Initialize();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+
+        // [GIVEN] Generate Emission.
+        EmissionCO2 := LibraryRandom.RandIntInRange(100, 100);
+        EmissionCH4 := LibraryRandom.RandIntInRange(200, 200);
+        EmissionN2O := LibraryRandom.RandIntInRange(300, 300);
+
+        // [GIVEN] Create Emission Fee With Emission Scope and Country/Region.
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount."Emission Scope", '');
+
+        // [GIVEN] Create a Fixed Asset.
+        CreateFixedAssetSetup(DepreciationBook);
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FixedAsset."FA Posting Group");
+        UpdateIntegrationInBook(DepreciationBook, true, true, true, true, true, true, true);
+
+        // [GIVEN] Update "Default Sust. Account", "Default CO2 Emission", "Default CH4 Emission", "Default N2O Emission" in a Fixed Asset.
+        FixedAsset.Validate("Default Sust. Account", SustainabilityAccount."No.");
+        FixedAsset.Validate("Default CO2 Emission", EmissionCO2);
+        FixedAsset.Validate("Default CH4 Emission", EmissionCH4);
+        FixedAsset.Validate("Default N2O Emission", EmissionN2O);
+        FixedAsset.Modify(true);
+
+        // [GIVEN] Create a Purchase Invoice with a Fixed Asset Line where the "FA Posting Type" is changed to Maintenance.
+        CreatePurchaseHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Fixed Asset", FixedAsset."No.", LibraryRandom.RandIntInRange(10, 10));
+        PurchaseLine.Validate("FA Posting Type", PurchaseLine."FA Posting Type"::Maintenance);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Post the Purchase Invoice.
+        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Verify that the system throws an error message because emissions are only allowed for "Acquisition Cost".
+        Assert.ExpectedError(AllowedToPostSustainabilityEntryForAcquisitionErr);
+
+        // [THEN] Verify that no Sustainability Ledger Entry is created for the Sustainability Account.
+        SustainabilityLedgerEntry.SetRange("Account No.", AccountCode);
+        Assert.RecordCount(SustainabilityLedgerEntry, 0);
     end;
 
     local procedure Initialize()

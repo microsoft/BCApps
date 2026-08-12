@@ -460,6 +460,18 @@ codeunit 9660 "Report Layouts Impl."
         Log('0000N0F', 'Report layout deleted by user', CustomDimensions);
     end;
 
+    internal procedure UpdateReportLayoutDescription(ReportID: Integer; LayoutName: Text[250]; NewDescription: Text[250])
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        EmptyGuid: Guid;
+    begin
+        if not TenantReportLayout.Get(ReportID, LayoutName, EmptyGuid) then
+            exit;
+
+        TenantReportLayout.Description := NewDescription;
+        TenantReportLayout.Modify(true);
+    end;
+
     internal procedure ReplaceLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; var ReturnReportID: Integer; var ReturnLayoutName: Text)
     var
         TenantReportLayout: Record "Tenant Report Layout";
