@@ -37,26 +37,44 @@ codeunit 6121 "EDocument Json Helper"
 
     internal procedure HasExtractedInvoiceData(SourceJsonObject: JsonObject): Boolean
     var
-        FieldsJsonObject: JsonObject;
-        ItemJsonObject: JsonObject;
+        InnerObject: JsonObject;
         ItemsJsonArray: JsonArray;
-        JsonToken: JsonToken;
+        FieldsToken, ItemToken, ItemFieldsToken : JsonToken;
         ItemIndex: Integer;
     begin
-        FieldsJsonObject := GetHeaderFields(SourceJsonObject);
-        if HasExtractedFieldValue(FieldsJsonObject) then
-            exit(true);
+        if not TryGetResultObject(SourceJsonObject, InnerObject) then
+            exit(false);
 
-        ItemsJsonArray := GetLinesArray(SourceJsonObject);
-        for ItemIndex := 0 to ItemsJsonArray.Count() - 1 do
-            if ItemsJsonArray.Get(ItemIndex, JsonToken) and JsonToken.IsObject() then begin
-                ItemJsonObject := JsonToken.AsObject();
-                if ItemJsonObject.Get('fields', JsonToken) and JsonToken.IsObject() then
-                    if HasExtractedFieldValue(JsonToken.AsObject()) then
-                        exit(true);
-            end;
+        if InnerObject.Get('fields', FieldsToken) and FieldsToken.IsObject() then
+            if HasExtractedFieldValue(FieldsToken.AsObject()) then
+                exit(true);
+
+        if InnerObject.Get('items', ItemToken) and ItemToken.IsArray() then begin
+            ItemsJsonArray := ItemToken.AsArray();
+            for ItemIndex := 0 to ItemsJsonArray.Count() - 1 do
+                if ItemsJsonArray.Get(ItemIndex, ItemToken) and ItemToken.IsObject() then
+                    if ItemToken.AsObject().Get('fields', ItemFieldsToken) and ItemFieldsToken.IsObject() then
+                        if HasExtractedFieldValue(ItemFieldsToken.AsObject()) then
+                            exit(true);
+        end;
 
         exit(false);
+    end;
+
+    local procedure TryGetResultObject(SourceJsonObject: JsonObject; var ResultObject: JsonObject): Boolean
+    var
+        JsonToken: JsonToken;
+        OutputsObject: JsonObject;
+    begin
+        if not SourceJsonObject.Get('outputs', JsonToken) or not JsonToken.IsObject() then
+            exit(false);
+        OutputsObject := JsonToken.AsObject();
+        if not OutputsObject.Get('1', JsonToken) or not JsonToken.IsObject() then
+            exit(false);
+        if not JsonToken.AsObject().Get('result', JsonToken) or not JsonToken.IsObject() then
+            exit(false);
+        ResultObject := JsonToken.AsObject();
+        exit(true);
     end;
 
     local procedure HasExtractedFieldValue(FieldsJsonObject: JsonObject): Boolean
