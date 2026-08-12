@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -593,6 +593,8 @@ table 39 "Purchase Line"
                             FieldError("Quantity (Base)", StrSubstNo(Text004, FieldCaption("Qty. Received (Base)")));
                     end;
                 end;
+
+                CheckCorrectiveCreditMemoQtyIncrease(xRec);
 
                 if (Type = Type::"Charge (Item)") and (CurrFieldNo <> 0) then begin
                     if (Quantity = 0) and ("Qty. to Assign" <> 0) then
@@ -4242,6 +4244,7 @@ table 39 "Purchase Line"
 #pragma warning restore AA0470
         Text029: Label 'must be positive.';
         Text030: Label 'must be negative.';
+        CorrectiveCreditMemoQtyIncreaseErr: Label 'must not be greater than %1 because a corrective credit memo can only reverse the original posted invoice, not add quantity.', Comment = '%1 - the quantity copied from the posted purchase invoice';
 #pragma warning disable AA0470
         Text032: Label '%1 must not be greater than the sum of %2 and %3.';
 #pragma warning restore AA0470
@@ -8022,9 +8025,11 @@ table 39 "Purchase Line"
 
         if ("Qty. to Invoice" <> 0) and ("Prepmt. Amt. Inv." <> 0) then begin
             GetPurchHeader();
-            if ("Prepayment %" = 100) and not IsFinalInvoice() then
+            if ("Prepayment %" = 100) and not IsFinalInvoice() then begin
+                // Reset to non-zero so GetLineAmountToHandle uses the proration branch, matching the already-posted amount
+                "Prepmt Amt to Deduct" := "Prepmt. Amt. Inv.";
                 "Prepmt Amt to Deduct" := GetLineAmountToHandle("Qty. to Invoice") - "Inv. Disc. Amount to Invoice"
-            else
+            end else
                 "Prepmt Amt to Deduct" :=
                   Round(
                     ("Prepmt. Amt. Inv." - "Prepmt Amt Deducted") *
@@ -10298,6 +10303,18 @@ table 39 "Purchase Line"
         exit("Matched Inv./Cr. Memo Lines" > 0);
     end;
 
+    local procedure CheckCorrectiveCreditMemoQtyIncrease(xPurchaseLine: Record "Purchase Line")
+    begin
+        if not ("Copied From Posted Doc." and IsCreditDocType()) then
+            exit;
+
+        if not IsNonInventoriableItem() then
+            exit;
+
+        if Abs("Quantity (Base)") > Abs(xPurchaseLine."Quantity (Base)") then
+            FieldError(Quantity, StrSubstNo(CorrectiveCreditMemoQtyIncreaseErr, xPurchaseLine.Quantity));
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var PurchaseLine: Record "Purchase Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     begin
@@ -11673,6 +11690,7 @@ table 39 "Purchase Line"
     local procedure OnAfterIsCreditDocType(PurchaseLine: Record "Purchase Line"; var Result: Boolean)
     begin
     end;
+
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsInvoiceDocType(var PurchaseLine: Record "Purchase Line"; var Result: Boolean)
