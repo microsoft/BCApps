@@ -55,6 +55,8 @@ codeunit 6121 "EDocument Json Helper"
                     if HasExtractedFieldValue(JsonToken.AsObject()) then
                         exit(true);
             end;
+
+        exit(false);
     end;
 
     local procedure HasExtractedFieldValue(FieldsJsonObject: JsonObject): Boolean
@@ -74,6 +76,8 @@ codeunit 6121 "EDocument Json Helper"
                 then
                     exit(true);
             end;
+
+        exit(false);
     end;
 
     local procedure HasJsonValue(FieldJsonObject: JsonObject; PropertyName: Text): Boolean

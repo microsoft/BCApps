@@ -751,6 +751,7 @@ page 6181 "E-Document Purchase Draft"
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         Progress: Dialog;
+        OriginalStructureDataImpl: Enum "Structure Received E-Doc.";
     begin
         if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
             exit;
@@ -763,8 +764,9 @@ page 6181 "E-Document Purchase Draft"
         if GuiAllowed() then
             Progress.Open(ProcessingDocumentMsg);
 
-        // The document could not be read as an invoice. Start an empty draft the user can fill in,
-        // treating the data as already structured so structuring is a no-op instead of failing again.
+        // Treat the data as already structured only for this recovery run so re-running the structure
+        // step is a no-op, and restore the selection afterwards so the document can still be re-analyzed.
+        OriginalStructureDataImpl := Rec."Structure Data Impl.";
         Rec."Structure Data Impl." := Enum::"Structure Received E-Doc."::"Already Structured";
         Rec."Read into Draft Impl." := Enum::"E-Doc. Read into Draft"::"Blank Draft";
         Rec.Modify();
@@ -775,6 +777,8 @@ page 6181 "E-Document Purchase Draft"
         EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
 
         Rec.Get(Rec."Entry No");
+        Rec."Structure Data Impl." := OriginalStructureDataImpl;
+        Rec.Modify();
         if GuiAllowed() then
             Progress.Close();
         EDocumentErrorHelper.ThrowIfHasErrors(Rec);

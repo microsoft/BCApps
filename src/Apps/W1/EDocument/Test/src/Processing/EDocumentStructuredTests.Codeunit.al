@@ -138,6 +138,56 @@ codeunit 139891 "E-Document Structured Tests"
 
         Assert.IsTrue(EDocumentJsonHelper.HasExtractedInvoiceData(ResponseJson), 'The valid ADI fixture must contain extracted invoice data.');
     end;
+
+    [Test]
+    procedure TestCreateManualDraft_RecoversFromFailedExtraction()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocLogRecord: Record "E-Document Log";
+        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocPurchaseDraftTestPage: TestPage "E-Document Purchase Draft";
+    begin
+        // [SCENARIO] When extraction fails, the "Create draft manually" action recovers into a blank draft
+        // without permanently reclassifying how the document was structured.
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupCAPIEDocumentService();
+
+        // [GIVEN] An inbound PDF e-document that has ADI selected as its structuring implementation
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::PDF, 'Data');
+        EDocumentLog.SetFields(EDocument, EDocumentService);
+        EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Unprocessed);
+        EDocument."Unstructured Data Entry No." := EDocLogRecord."E-Doc. Data Storage Entry No.";
+        EDocument."Structure Data Impl." := "Structure Received E-Doc."::ADI;
+        EDocument."File Name" := 'Test.pdf';
+        EDocument.Modify();
+
+        // [GIVEN] Structuring failed, leaving the document at the structure step in an error state
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Unprocessed);
+        EDocument.Status := EDocument.Status::Error;
+        EDocument.Modify();
+
+        // [WHEN] The user creates a draft manually from the draft page
+        EDocPurchaseDraftTestPage.OpenEdit();
+        EDocPurchaseDraftTestPage.GoToRecord(EDocument);
+        EDocPurchaseDraftTestPage.CreateManualDraftAction.Invoke();
+
+        // [THEN] A blank purchase draft exists and the document has advanced past the failed structure step
+        EDocument.Get(EDocument."Entry No");
+        EDocument.CalcFields("Import Processing Status");
+        Assert.IsTrue(
+            EDocument."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"],
+            'The manual draft should advance the document to the draft stage.');
+        Assert.IsTrue(EDocumentPurchaseHeader.Get(EDocument."Entry No"), 'A purchase draft header should exist after the manual draft.');
+
+        // [THEN] The document was read as a blank draft
+        Assert.AreEqual(Enum::"E-Doc. Read into Draft"::"Blank Draft", EDocument."Read into Draft Impl.", 'The document should be read as a blank draft.');
+
+        // [THEN] The structuring selection is restored, so the document is not reclassified and ADI can be retried
+        Assert.AreEqual(Enum::"Structure Received E-Doc."::ADI, EDocument."Structure Data Impl.", 'The manual draft must restore the original structuring implementation.');
+    end;
     #endregion
 
     #region PEPPOL 3.0 XML
