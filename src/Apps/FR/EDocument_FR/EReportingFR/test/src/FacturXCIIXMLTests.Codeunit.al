@@ -879,6 +879,33 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
+    procedure FacturXSalesCreditMemoXMLHasReferencedInvoiceNumberAndDate()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X CII XML for an applied credit memo identifies the referenced invoice and its date
+        Initialize();
+
+        // [GIVEN] Posted sales credit memo applied to posted invoice "SI"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        SalesCrMemoHeader.Get(CreateAndPostSalesCreditMemo(SalesInvoiceHeader));
+
+        // [WHEN] Create credit memo CII XML
+        CreateSalesCreditMemoCIIXML(SalesCrMemoHeader, TempBlob);
+
+        // [THEN] InvoiceReferencedDocument contains the invoice number and document date
+        Assert.AreEqual(SalesInvoiceHeader."No.",
+            GetCIINodeValue(TempBlob, '//ram:InvoiceReferencedDocument/ram:IssuerAssignedID'),
+            StrSubstNo(IncorrectValueErr, '//ram:InvoiceReferencedDocument/ram:IssuerAssignedID'));
+        Assert.AreEqual(Format(SalesInvoiceHeader."Document Date", 0, '<Year4><Month,2><Day,2>'),
+            GetCIINodeValue(TempBlob, '//ram:InvoiceReferencedDocument/ram:FormattedIssueDateTime/qdt:DateTimeString'),
+            StrSubstNo(IncorrectValueErr, '//ram:InvoiceReferencedDocument/ram:FormattedIssueDateTime/qdt:DateTimeString'));
+    end;
+
+    [Test]
     procedure FacturXSalesCreditMemoXMLHasSellerSIRET()
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -1142,6 +1169,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SalesInvoiceLine: Record "Sales Invoice Line";
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         SourceDocumentLines: RecordRef;
+        OriginalView: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] GetFrenchBillingMode returns B1 for an invoice with only Item lines
@@ -1151,11 +1179,13 @@ codeunit 148148 "Factur-X CII XML Tests"
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(false));
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SourceDocumentLines.GetTable(SalesInvoiceLine);
+        OriginalView := SourceDocumentLines.GetView(false);
 
         // [WHEN] GetFrenchBillingMode is called
-        // [THEN] Result = 'B1'
+        // [THEN] Result = 'B1' and the source lines view is unchanged
         Assert.AreEqual('B1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
             StrSubstNo(IncorrectValueErr, 'BillingMode B1'));
+        Assert.AreEqual(OriginalView, SourceDocumentLines.GetView(false), StrSubstNo(IncorrectValueErr, 'Source Document Lines View'));
     end;
 
     [Test]
@@ -1165,6 +1195,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SalesInvoiceLine: Record "Sales Invoice Line";
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         SourceDocumentLines: RecordRef;
+        OriginalView: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] GetFrenchBillingMode returns M1 for an invoice with both Item and G/L Account lines
@@ -1174,11 +1205,13 @@ codeunit 148148 "Factur-X CII XML Tests"
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(true));
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SourceDocumentLines.GetTable(SalesInvoiceLine);
+        OriginalView := SourceDocumentLines.GetView(false);
 
         // [WHEN] GetFrenchBillingMode is called
-        // [THEN] Result = 'M1'
+        // [THEN] Result = 'M1' and the source lines view is unchanged
         Assert.AreEqual('M1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
             StrSubstNo(IncorrectValueErr, 'BillingMode M1'));
+        Assert.AreEqual(OriginalView, SourceDocumentLines.GetView(false), StrSubstNo(IncorrectValueErr, 'Source Document Lines View'));
     end;
     #endregion
 
@@ -1659,6 +1692,28 @@ codeunit 148148 "Factur-X CII XML Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesCreditMemo(SalesInvoiceHeader: Record "Sales Invoice Header"): Code[20]
+    var
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", Customer."No.");
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", SalesInvoiceHeader."No.");
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateSalesDocumentWithLine(DocType: Enum "Sales Document Type"; FRElecAddress: Text[250]): Code[20]
     begin
         exit(CreateSalesDocumentWithLine(DocType, FRElecAddress, ''));
@@ -1984,6 +2039,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         NamespaceMgr.NameTable(XmlDoc.NameTable());
         NamespaceMgr.AddNamespace('rsm', 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100');
         NamespaceMgr.AddNamespace('ram', 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100');
+        NamespaceMgr.AddNamespace('qdt', 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100');
         NamespaceMgr.AddNamespace('udt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
     end;
 

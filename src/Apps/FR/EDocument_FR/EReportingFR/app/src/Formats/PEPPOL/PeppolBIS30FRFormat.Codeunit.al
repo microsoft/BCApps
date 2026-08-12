@@ -161,7 +161,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ProfileIdNode.ReplaceWith(NewProfileIdNode);
     end;
 
-    internal procedure GetFrenchBillingMode(var SourceDocumentLines: RecordRef): Text
+    internal procedure GetFrenchBillingMode(SourceDocumentLines: RecordRef): Text
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
@@ -420,6 +420,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 begin
                     SourceDocumentHeader.SetTable(SalesCrMemoHeader);
                     ReferencedDocumentNo := SalesCrMemoHeader."Applies-to Doc. No.";
+                    SalesInvoiceHeader.SetLoadFields("Document Date");
                     if SalesInvoiceHeader.Get(ReferencedDocumentNo) then
                         ReferencedDocumentDate := SalesInvoiceHeader."Document Date";
                 end;
@@ -427,6 +428,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 begin
                     SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
                     ReferencedDocumentNo := ServiceCrMemoHeader."Applies-to Doc. No.";
+                    ServiceInvoiceHeader.SetLoadFields("Document Date");
                     if ServiceInvoiceHeader.Get(ReferencedDocumentNo) then
                         ReferencedDocumentDate := ServiceInvoiceHeader."Document Date";
                 end;
@@ -541,6 +543,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
     local procedure InjectSupplierEndpoint(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; CompanyInformation: Record "Company Information"; EDocumentServiceCode: Code[20])
     var
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         SupplierPartyNode: XmlNode;
         ExistingEndpointNode: XmlNode;
         EndpointElement: XmlElement;
@@ -558,10 +561,11 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 if CompanyInformation."Registration No." <> '' then begin
                     ElecAddress := CompanyInformation."Registration No.";
                     ElecAddressScheme := ElecAddressScheme::"0002";
-                end else begin
-                    ElecAddress := CopyStr(CompanyInformation.GetVATRegistrationNumber(), 1, MaxStrLen(ElecAddress));
-                    ElecAddressScheme := ElecAddressScheme::"9957";
-                end;
+                end else
+                    if FREDocHelpers.IsFrenchCompany(CompanyInformation) then begin
+                        ElecAddress := CopyStr(CompanyInformation.GetVATRegistrationNumber(), 1, MaxStrLen(ElecAddress));
+                        ElecAddressScheme := ElecAddressScheme::"9957";
+                    end;
 
         if ElecAddress = '' then
             exit;

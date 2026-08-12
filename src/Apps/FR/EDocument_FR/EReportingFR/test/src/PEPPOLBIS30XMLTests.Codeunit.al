@@ -16,6 +16,10 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using Microsoft.Service.Posting;
+using Microsoft.Service.Test;
 using System.Utilities;
 
 codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
@@ -40,6 +44,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CompanyInformation: Record "Company Information";
         EDocumentService: Record "E-Document Service";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryService: Codeunit "Library - Service";
         LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -407,6 +412,50 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
     #endregion
 
+    #region ServiceDocuments
+    [Test]
+    procedure ExportServiceInvoiceRunsFRValidationAndCreatesXML()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A posted service invoice passes French validation and is exported with its transferred line
+        Initialize();
+
+        // [GIVEN] Posted service invoice "SI" for a customer with a French electronic address
+        ServiceInvoiceHeader.Get(CreateAndPostServiceInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+
+        // [WHEN] The service invoice is checked and exported
+        CheckServiceInvoice(ServiceInvoiceHeader);
+        ExportServiceInvoice(ServiceInvoiceHeader, XmlDoc);
+
+        // [THEN] The PEPPOL invoice contains the transferred service line
+        Assert.AreNotEqual('', GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cbc:ID'), StrSubstNo(IncorrectValueErr, 'Invoice Line ID'));
+    end;
+
+    [Test]
+    procedure ExportServiceCreditMemoRunsFRValidationAndCreatesXML()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A posted service credit memo passes French validation and is exported with its transferred line
+        Initialize();
+
+        // [GIVEN] Posted service credit memo "SCM" for a customer with a French electronic address
+        ServiceCrMemoHeader.Get(CreateAndPostServiceCreditMemo(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+
+        // [WHEN] The service credit memo is checked and exported
+        CheckServiceCreditMemo(ServiceCrMemoHeader);
+        ExportServiceCreditMemo(ServiceCrMemoHeader, XmlDoc);
+
+        // [THEN] The PEPPOL credit note contains the transferred service line
+        Assert.AreNotEqual('', GetNodeByPath(XmlDoc, '/CreditNote/cac:CreditNoteLine/cbc:ID'), StrSubstNo(IncorrectValueErr, 'Credit Note Line ID'));
+    end;
+    #endregion
+
     #region SalesCreditMemo
     [Test]
     procedure ExportSalesCrMemoInjectsSupplierAndBuyerElements()
@@ -720,6 +769,34 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CompanyInformation."SIRET No." := OriginalSIRETNo;
         CompanyInformation."Registration No." := CopyStr(OriginalRegistrationNo, 1, MaxStrLen(CompanyInformation."Registration No."));
         CompanyInformation.Modify(true);
+    end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenSellerVATFallbackIsNonFrench()
+    var
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [SCENARIO] A non-French company VAT registration number cannot be used as a French seller endpoint
+        Initialize();
+
+        // [GIVEN] A non-French company with no SIRET, SIREN, or service participant endpoint
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Validate("ISO Code", 'DE');
+        CountryRegion.Modify(true);
+        CompanyInformation.Get();
+        CompanyInformation."SIRET No." := '';
+        CompanyInformation."Registration No." := '';
+        CompanyInformation.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo('DE'));
+        CompanyInformation.Validate("Country/Region Code", CountryRegion.Code);
+        CompanyInformation.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+
+        // [WHEN] Check is called
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        // [THEN] An error about the missing seller electronic address is raised
+        AssertExpectedDialogError(EDocHelpers.GetSellerElectronicAddressRequiredError());
     end;
 
     [Test]
@@ -1364,6 +1441,100 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SourceDocumentLines.GetTable(SalesCrMemoLine);
 
         EDocument."Document Type" := EDocument."Document Type"::"Sales Credit Memo";
+        PeppolBIS30FRFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
+
+        TempBlob.CreateInStream(FileInStream);
+        XmlDocument.ReadFrom(FileInStream, XmlDoc);
+    end;
+
+    local procedure CreateAndPostServiceInvoice(CustomerNo: Code[20]): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+    begin
+        CreateServiceDocument(ServiceHeader, ServiceHeader."Document Type"::Invoice, CustomerNo);
+        Codeunit.Run(Codeunit::"Service-Post", ServiceHeader);
+        exit(ServiceHeader."Last Posting No.");
+    end;
+
+    local procedure CreateAndPostServiceCreditMemo(CustomerNo: Code[20]): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+    begin
+        CreateServiceDocument(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo", CustomerNo);
+        Codeunit.Run(Codeunit::"Service-Post", ServiceHeader);
+        exit(ServiceHeader."Last Posting No.");
+    end;
+
+    local procedure CreateServiceDocument(var ServiceHeader: Record "Service Header"; DocumentType: Enum "Service Document Type"; CustomerNo: Code[20])
+    var
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        ServiceLine: Record "Service Line";
+    begin
+        CreateDirectPostingGLAccountWithSalesSetup(GLAccount);
+        Customer.Get(CustomerNo);
+        Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, CustomerNo);
+        ServiceHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        ServiceHeader.Modify(true);
+        LibraryService.CreateServiceLineWithQuantity(ServiceLine, ServiceHeader, ServiceLine.Type::"G/L Account", GLAccount."No.", 1);
+        ServiceLine.Validate("Unit Price", 100);
+        ServiceLine.Modify(true);
+    end;
+
+    local procedure CheckServiceInvoice(ServiceInvoiceHeader: Record "Service Invoice Header")
+    var
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(ServiceInvoiceHeader);
+        PeppolBIS30FRFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Create);
+    end;
+
+    local procedure CheckServiceCreditMemo(ServiceCrMemoHeader: Record "Service Cr.Memo Header")
+    var
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(ServiceCrMemoHeader);
+        PeppolBIS30FRFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Create);
+    end;
+
+    local procedure ExportServiceInvoice(ServiceInvoiceHeader: Record "Service Invoice Header"; var XmlDoc: XmlDocument)
+    var
+        ServiceInvoiceLine: Record "Service Invoice Line";
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        SourceDocumentHeader: RecordRef;
+        SourceDocumentLines: RecordRef;
+        FileInStream: InStream;
+    begin
+        SourceDocumentHeader.GetTable(ServiceInvoiceHeader);
+        ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
+        SourceDocumentLines.GetTable(ServiceInvoiceLine);
+        EDocument."Document Type" := EDocument."Document Type"::"Service Invoice";
+
+        PeppolBIS30FRFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
+
+        TempBlob.CreateInStream(FileInStream);
+        XmlDocument.ReadFrom(FileInStream, XmlDoc);
+    end;
+
+    local procedure ExportServiceCreditMemo(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var XmlDoc: XmlDocument)
+    var
+        ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        SourceDocumentHeader: RecordRef;
+        SourceDocumentLines: RecordRef;
+        FileInStream: InStream;
+    begin
+        SourceDocumentHeader.GetTable(ServiceCrMemoHeader);
+        ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
+        SourceDocumentLines.GetTable(ServiceCrMemoLine);
+        EDocument."Document Type" := EDocument."Document Type"::"Service Credit Memo";
+
         PeppolBIS30FRFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
 
         TempBlob.CreateInStream(FileInStream);

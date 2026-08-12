@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Service.Participant;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 
@@ -48,7 +49,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Registration No." = '' then
-            Error(GetSIRENRequiredError());
+            Error(SIRENRequiredErr, CompanyInformation.FieldCaption("Registration No."), CompanyInformation.TableCaption());
     end;
 
     procedure CheckSIRETNotEmpty()
@@ -57,12 +58,13 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."SIRET No." = '' then
-            Error(GetSIRETRequiredError());
+            Error(SIRETRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.TableCaption());
     end;
 
     procedure CheckSellerElectronicAddress(EDocumentServiceCode: Code[20])
     var
         CompanyInformation: Record "Company Information";
+        ServiceParticipant: Record "Service Participant";
     begin
         if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Company, '') then
             exit;
@@ -72,10 +74,23 @@ codeunit 10991 "EDoc. Helpers"
             exit;
         if CompanyInformation."Registration No." <> '' then
             exit;
-        if CompanyInformation.GetVATRegistrationNumber() <> '' then
+        if (CompanyInformation.GetVATRegistrationNumber() <> '') and IsFrenchCompany(CompanyInformation) then
             exit;
 
-        Error(GetSellerElectronicAddressRequiredError());
+        Error(SellerElectronicAddressRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.FieldCaption("Registration No."), CompanyInformation.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), CompanyInformation.TableCaption());
+    end;
+
+    internal procedure IsFrenchCompany(CompanyInformation: Record "Company Information"): Boolean
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if CompanyInformation.GetVATRegistrationNumber().StartsWith('FR') then
+            exit(true);
+
+        if not CountryRegion.Get(CompanyInformation."Country/Region Code") then
+            exit(false);
+
+        exit(CountryRegion."ISO Code" = 'FR');
     end;
 
     procedure CheckSellerCountryCode()
@@ -84,7 +99,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Country/Region Code" = '' then
-            Error(GetSellerCountryCodeRequiredError());
+            Error(SellerCountryCodeRequiredErr, CompanyInformation.FieldCaption("Country/Region Code"), CompanyInformation.TableCaption());
     end;
 
     procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef)
@@ -95,6 +110,7 @@ codeunit 10991 "EDoc. Helpers"
     procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20])
     var
         Customer: Record Customer;
+        ServiceParticipant: Record "Service Participant";
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
         CustomerNoFieldRef: FieldRef;
         CustomerNo: Code[20];
@@ -115,13 +131,13 @@ codeunit 10991 "EDoc. Helpers"
 
         if Customer."FR Electronic Address" <> '' then begin
             if Customer."FR Elec. Address Scheme" = Customer."FR Elec. Address Scheme"::" " then
-                Error(GetBuyerElectronicAddressSchemeRequiredError(Customer."No."));
+                Error(BuyerElectronicAddressSchemeRequiredErr, Customer.FieldCaption("FR Elec. Address Scheme"), Customer.TableCaption(), Customer."No.");
             exit;
         end;
         if IsFrenchCustomer(Customer) and (Customer."VAT Registration No." <> '') then
             exit;
 
-        Error(GetBuyerElectronicAddressRequiredError(Customer."No."));
+        Error(BuyerElectronicAddressRequiredErr, Customer.FieldCaption("FR Electronic Address"), Customer.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), Customer.TableCaption(), Customer."No.");
     end;
 
     procedure IsFrenchCustomer(Customer: Record Customer): Boolean

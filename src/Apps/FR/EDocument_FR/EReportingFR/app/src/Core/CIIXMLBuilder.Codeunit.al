@@ -488,6 +488,7 @@ codeunit 10978 "CII XML Builder"
                 begin
                     SourceDocumentHeader.SetTable(SalesCrMemoHeader);
                     ReferencedDocumentNo := SalesCrMemoHeader."Applies-to Doc. No.";
+                    SalesInvoiceHeader.SetLoadFields("Document Date");
                     if SalesInvoiceHeader.Get(ReferencedDocumentNo) then
                         ReferencedDocumentDate := SalesInvoiceHeader."Document Date";
                 end;
@@ -495,6 +496,7 @@ codeunit 10978 "CII XML Builder"
                 begin
                     SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
                     ReferencedDocumentNo := ServiceCrMemoHeader."Applies-to Doc. No.";
+                    ServiceInvoiceHeader.SetLoadFields("Document Date");
                     if ServiceInvoiceHeader.Get(ReferencedDocumentNo) then
                         ReferencedDocumentDate := ServiceInvoiceHeader."Document Date";
                 end;
