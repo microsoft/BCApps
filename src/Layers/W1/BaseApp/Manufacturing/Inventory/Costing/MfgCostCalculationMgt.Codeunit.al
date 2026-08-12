@@ -240,7 +240,15 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         ExpSubDirCostRtng: Decimal;
         ExpCapOvhdCostRtng: Decimal;
         ExpOvhdCost: Decimal;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCalcProdOrderLineExpCost(ProdOrderLine, ShareOfTotalCapCost, ExpMatCost, ExpCapDirCost, ExpSubDirCost, ExpCapOvhdCost, ExpMfgOvhdCost, IsHandled);
+        if IsHandled then begin
+            OnAfterCalcProdOrderLineExpCost(ProdOrderLine, ShareOfTotalCapCost, ExpMatCost, ExpCapDirCost, ExpSubDirCost, ExpCapOvhdCost, ExpMfgOvhdCost);
+            exit;
+        end;
+
         ProdOrderComp.SetCurrentKey(Status, "Prod. Order No.", "Prod. Order Line No.");
         ProdOrderComp.SetRange(Status, ProdOrderLine.Status);
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
@@ -746,7 +754,7 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
                 CostTime := CalcQtyAdjdForRoutingScrap(MfgItemQtyBase, ScrapFactorPctAccum, FixedScrapQtyAccum);
         end;
 
-        OnAfterCalculateCostTime(MfgItemQtyBase, ScrapFactorPctAccum, FixedScrapQtyAccum, UnitCostCalculation, CostTime);
+        OnAfterCalculateCostTime(MfgItemQtyBase, ScrapFactorPctAccum, FixedScrapQtyAccum, UnitCostCalculation, CostTime, SetupTime, RunTime, CostInclSetup, ConcurrentCapacities);
     end;
 
     procedure FindRoutingLine(var RoutingLine: Record "Routing Line"; ProdBOMLine: Record "Production BOM Line"; CalculationDate: Date; RoutingNo: Code[20]) RecFound: Boolean
@@ -852,6 +860,11 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalcProdOrderLineExpCost(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ShareOfTotalCapCost: Decimal; var ExpMatCost: Decimal; var ExpCapDirCost: Decimal; var ExpSubDirCost: Decimal; var ExpCapOvhdCost: Decimal; var ExpMfgOvhdCost: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnCalcProdOrderLineActCostOnBeforeSetProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ActMatCost: Decimal; var ActCapDirCost: Decimal; var ActSubDirCost: Decimal; var ActCapOvhdCost: Decimal; var ActMfgOvhdCost: Decimal; var ActMatCostCostACY: Decimal; var ActCapDirCostACY: Decimal; var ActSubDirCostACY: Decimal; var ActCapOvhdCostACY: Decimal; var ActMfgOvhdCostACY: Decimal)
     begin
     end;
@@ -937,7 +950,7 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalculateCostTime(MfgItemQtyBase: Decimal; ScrapFactorPctAccum: Decimal; FixedScrapQtyAccum: Decimal; UnitCostCalculationType: Enum "Unit Cost Calculation Type"; var CostTime: Decimal)
+    local procedure OnAfterCalculateCostTime(MfgItemQtyBase: Decimal; ScrapFactorPctAccum: Decimal; FixedScrapQtyAccum: Decimal; UnitCostCalculationType: Enum "Unit Cost Calculation Type"; var CostTime: Decimal; SetupTime: Decimal; RunTime: Decimal; CostInclSetup: Boolean; ConcurrentCapacities: Decimal)
     begin
     end;
 }
