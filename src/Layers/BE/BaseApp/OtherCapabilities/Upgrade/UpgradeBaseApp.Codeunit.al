@@ -213,6 +213,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeJobTaskReportSelection();
         UpgradeJournalTemplateNamesInSetupTables();
         UpgradeGenJournalTemplates();
+        UpgradeRemittanceAdviceReportSelection();
         UpgradeAccountSchedulesToFinancialReports();
         UpgradeCRMUnitGroupMapping();
         UpgradeCRMSDK90ToCRMSDK91();
@@ -2786,6 +2787,19 @@ codeunit 104000 "Upgrade - BaseApp"
             exit;
         ReportSelectionMgt.InitReportSelection("Report Selection Usage"::"Job Task Quote");
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetJobTaskReportSelectionUpgradeTag());
+    end;
+
+    local procedure UpgradeRemittanceAdviceReportSelection()
+    var
+        ReportSelectionMgt: Codeunit "Report Selection Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetRemittanceAdviceReportSelectionUpgradeTag()) then
+            exit;
+        ReportSelectionMgt.InitReportSelection("Report Selection Usage"::"V.Remittance");
+        ReportSelectionMgt.InitReportSelection("Report Selection Usage"::"P.V.Remit.");
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetRemittanceAdviceReportSelectionUpgradeTag());
     end;
 
     local procedure UpgradeCRMUnitGroupMapping()
