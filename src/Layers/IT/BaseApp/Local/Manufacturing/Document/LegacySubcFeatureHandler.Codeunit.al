@@ -59,7 +59,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         if not IsMigrationAllowedInCurrentEnvironment() then
             Error(MigrationNotAllowedInProductionErr);
 
-        if OpenSubcontractingTransfersExist() then
+        if OpenWIPTransfersExist() then
             Error(OpenSubcontractingTransfersExistErr);
 
         if OpenWIPPurchaseLinesExist() then
@@ -111,7 +111,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         if WIPItemCapacityLedgerEntriesExist() then
             exit(true);
 
-        if OpenSubcontractingTransfersExist() then
+        if OpenWIPTransfersExist() then
             exit(true);
 
         if OpenWIPPurchaseLinesExist() then
@@ -184,7 +184,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         exit(Result);
     end;
 
-    local procedure OpenSubcontractingTransfersExist(): Boolean
+    local procedure OpenWIPTransfersExist(): Boolean
     var
         TransferLine: Record "Transfer Line";
     begin
