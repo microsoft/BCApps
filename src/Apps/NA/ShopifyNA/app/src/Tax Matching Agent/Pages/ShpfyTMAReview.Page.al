@@ -105,7 +105,7 @@ page 30471 "Shpfy TMA Review"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Visible = Rec."Tax Match Applied" and not Rec."Tax Match Reviewed" and (ReviewRequired or Rec."Tax Rate Conflict");
+                Visible = Rec."Tax Match Applied" and not Rec."Tax Match Reviewed" and (ReviewRequired or Rec."Tax Rate Conflict" or Rec."Tax Match Incomplete");
                 ToolTip = 'Confirms the tax match for this order and approves it. The Tax Area is (re)built from the Tax Jurisdiction Codes on the tax lines below — including any you changed — and the order is released so a Sales Document can be created. Review the per-line Business Central rates against Shopify''s (differences are highlighted) before approving.';
 
                 trigger OnAction()
@@ -124,7 +124,7 @@ page 30471 "Shpfy TMA Review"
                 PromotedOnly = true;
                 // Only meaningful while the order is approved, still held-when-unapproved, and no
                 // Sales Document has been created yet — undoing cannot un-create an existing document.
-                Visible = Rec."Tax Match Applied" and Rec."Tax Match Reviewed" and (Rec."Sales Order No." = '') and (Rec."Sales Invoice No." = '') and (ReviewRequired or Rec."Tax Rate Conflict");
+                Visible = Rec."Tax Match Applied" and Rec."Tax Match Reviewed" and (Rec."Sales Order No." = '') and (Rec."Sales Invoice No." = '') and (ReviewRequired or Rec."Tax Rate Conflict" or Rec."Tax Match Incomplete");
                 ToolTip = 'Reverses the approval of this order''s tax match. The order is held for review again and no Sales Document is created until it is approved once more. Available only before the Sales Document has been created.';
 
                 trigger OnAction()
@@ -163,7 +163,7 @@ page 30471 "Shpfy TMA Review"
             exit(true);
         end;
         // No edits: warn if the order is still held for review and not yet approved.
-        if (not Rec."Tax Match Reviewed") and (ReviewRequired or Rec."Tax Rate Conflict") then
+        if (not Rec."Tax Match Reviewed") and (ReviewRequired or Rec."Tax Rate Conflict" or Rec."Tax Match Incomplete") then
             exit(Confirm(CloseWithoutApproveQst, false));
         exit(true);
     end;
@@ -324,6 +324,9 @@ page 30471 "Shpfy TMA Review"
             Error(NoTaxAreaErr);
 
         OrderHeader."Tax Rate Conflict" := HasRateConflict;
+        // Approval is blocked above unless every tax line has a jurisdiction (HasUnmatchedTaxLine),
+        // so once we get here the match is complete.
+        OrderHeader."Tax Match Incomplete" := false;
         CTActivityLog.LogTaxAreaEntry(OrderHeader, ResolvedTaxAreaCode, TaxAreaWasCreated, MatchedJurisdictions);
 
         OrderHeader."Tax Match Reviewed" := true;

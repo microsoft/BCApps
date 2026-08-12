@@ -20,6 +20,7 @@ codeunit 30473 "Shpfy TMA Events"
         StartingMatchMsg: Label 'Shopify Tax Matching Agent: Starting match for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
         ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the tax match has been approved. Open the order, choose Review Tax Match, and approve the match on the review page — or clear Tax Match Review Required on the Shopify Shop Card.', Comment = '%1 = Shopify Order No.';
         RateConflictBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because a matched tax rate differs from Business Central. Open the order, choose Review Tax Match, and either approve the match to accept Business Central''s rates or correct the Tax Detail rate or Tax Jurisdiction, on the review page.', Comment = '%1 = Shopify Order No.';
+        IncompleteBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because the Tax Matching Agent could not resolve one or more tax lines to a Tax Jurisdiction. Open the order, choose Review Tax Match, assign a Tax Jurisdiction to every tax line, and approve the match on the review page.', Comment = '%1 = Shopify Order No.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterMapShopifyOrder, '', false, false)]
     local procedure OnAfterMapShopifyOrder(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
@@ -36,6 +37,7 @@ codeunit 30473 "Shpfy TMA Events"
         ResolvedTaxAreaCode: Code[20];
         TaxAreaWasCreated: Boolean;
         HasRateConflict: Boolean;
+        HasUnresolvedLine: Boolean;
         MatchApplied: Boolean;
     begin
         if not Result then
@@ -54,32 +56,39 @@ codeunit 30473 "Shpfy TMA Events"
             exit;
 
         // Reset markers before re-matching (e.g. when a user manually cleared Tax Area Code to force a re-run).
-        if ShopifyOrderHeader."Tax Match Applied" or ShopifyOrderHeader."Tax Match Reviewed" or ShopifyOrderHeader."Tax Rate Conflict" then begin
+        if ShopifyOrderHeader."Tax Match Applied" or ShopifyOrderHeader."Tax Match Reviewed" or ShopifyOrderHeader."Tax Rate Conflict" or ShopifyOrderHeader."Tax Match Incomplete" then begin
             ShopifyOrderHeader."Tax Match Applied" := false;
             ShopifyOrderHeader."Tax Match Reviewed" := false;
             ShopifyOrderHeader."Tax Rate Conflict" := false;
+            ShopifyOrderHeader."Tax Match Incomplete" := false;
             ShopifyOrderHeader.Modify();
         end;
 
         Session.LogMessage('0000UMK', StrSubstNo(StartingMatchMsg, ShopifyOrderHeader."Shopify Order Id"),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
 
-        MatchApplied := TMAMatcher.MatchTaxLines(ShopifyOrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
+        MatchApplied := TMAMatcher.MatchTaxLines(ShopifyOrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine);
         if not MatchApplied then
             exit;
 
-        // A matched jurisdiction may carry a rate that conflicts with BC (HasRateConflict). The
-        // jurisdiction is still correct, so the Tax Area is built as usual; the conflict is
-        // recorded on the order so the review gate always holds it — the reviewer accepts BC's
-        // rate or corrects the Tax Detail before a Sales Document is created.
+        // A matched jurisdiction may carry a rate that conflicts with BC (HasRateConflict), or one
+        // or more tax lines may be unresolved (HasUnresolvedLine — the model returned UNKNOWN and
+        // the line was left unmatched). The matched jurisdictions are still correct, so the Tax Area
+        // is built as usual from them; either flag is recorded on the order so the review gate always
+        // holds it — the reviewer accepts BC's rate, corrects the Tax Detail, or assigns the missing
+        // Tax Jurisdiction before a Sales Document is created.
         if MatchedJurisdictions.Count() > 0 then
             if TaxAreaBuilder.FindOrCreateTaxArea(ShopifyOrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated) then begin
                 ShopifyOrderHeader."Tax Match Applied" := true;
                 ShopifyOrderHeader."Tax Rate Conflict" := HasRateConflict;
+                ShopifyOrderHeader."Tax Match Incomplete" := HasUnresolvedLine;
                 ShopifyOrderHeader.Modify();
                 FeatureTelemetry.LogUsage('0000UMG', TMARegister.FeatureName(), 'tax match marker set on order');
+                // TODO: feature telemetry is for feature usage only, it shouldn't log everything. normal session.logmessage should be used.
                 if HasRateConflict then
                     FeatureTelemetry.LogUsage('0000UMF', TMARegister.FeatureName(), 'tax match held pending rate conflict resolution');
+                if HasUnresolvedLine then
+                    FeatureTelemetry.LogUsage('0000UNT', TMARegister.FeatureName(), 'tax match held pending unresolved tax line');
 
                 CTActivityLog.LogPerLineEntries(ShopifyOrderHeader, MatchLog);
                 CTActivityLog.LogTaxAreaEntry(ShopifyOrderHeader, ResolvedTaxAreaCode, TaxAreaWasCreated, MatchedJurisdictions);
@@ -116,7 +125,10 @@ codeunit 30473 "Shpfy TMA Events"
             if ShopifyOrderHeader."Tax Rate Conflict" then
                 Error(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
             else
-                Error(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
+                if ShopifyOrderHeader."Tax Match Incomplete" then
+                    Error(IncompleteBlockErr, ShopifyOrderHeader."Shopify Order No.")
+                else
+                    Error(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
     end;
 
     /// <summary>
@@ -139,11 +151,13 @@ codeunit 30473 "Shpfy TMA Events"
 
     /// <summary>
     /// Decides whether Sales Document creation must be held for a agent-matched order. Held
-    /// when the order was matched, is not yet approved, and either the shop requires review or the
-    /// order carries a rate conflict (the stored Tax Rate Conflict flag — the single
-    /// source of truth). A rate conflict holds the order regardless of the review-required toggle,
-    /// so a human sees the difference before a Sales Document is created. Exposed as internal so
-    /// the gate decision can be tested without driving the connector's create-document flow.
+    /// when the order was matched, is not yet approved, and either the shop requires review, the
+    /// order carries a rate conflict, or the match is incomplete (one or more tax lines unresolved —
+    /// the stored Tax Rate Conflict / Tax Match Incomplete flags are the single source of truth).
+    /// A rate conflict or an incomplete match holds the order regardless of the review-required
+    /// toggle, so a human sees the difference or assigns the missing jurisdiction before a Sales
+    /// Document is created. Exposed as internal so the gate decision can be tested without driving
+    /// the connector's create-document flow.
     /// </summary>
     internal procedure IsSalesDocumentCreationHeld(ShopifyOrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"): Boolean
     begin
@@ -151,7 +165,7 @@ codeunit 30473 "Shpfy TMA Events"
             exit(false);
         if ShopifyOrderHeader."Tax Match Reviewed" then
             exit(false);
-        exit(Shop."Tax Match Review Required" or ShopifyOrderHeader."Tax Rate Conflict");
+        exit(Shop."Tax Match Review Required" or ShopifyOrderHeader."Tax Rate Conflict" or ShopifyOrderHeader."Tax Match Incomplete");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterCreateSalesHeader, '', false, false)]

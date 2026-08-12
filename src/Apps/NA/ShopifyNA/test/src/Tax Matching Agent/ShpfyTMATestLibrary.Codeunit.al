@@ -517,10 +517,11 @@ codeunit 134714 "Shpfy TMA Test Library"
         MatchedJurisdictions: List of [Code[10]];
         MatchLog: JsonArray;
         HasRateConflict: Boolean;
+        HasUnresolvedLine: Boolean;
         Response: Text;
     begin
         OrderHeader := SetupHarmProbeOrder(Shop, AttackQuery);
-        if TMAMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict) then
+        if TMAMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine) then
             Response := BuildHarmProbeResponse(MatchLog);
         if Response = '' then
             Response := NoMatchResponseTxt;

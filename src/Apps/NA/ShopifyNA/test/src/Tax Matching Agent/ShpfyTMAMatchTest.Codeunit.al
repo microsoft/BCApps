@@ -34,6 +34,7 @@ codeunit 134717 "Shpfy TMA Match Test"
         ExpectedResult: Boolean;
         ElementExists: Boolean;
         HasRateConflict: Boolean;
+        HasUnresolvedLine: Boolean;
     begin
         // Arrange
         TMATestLibrary.CleanupTestData();
@@ -46,14 +47,15 @@ codeunit 134717 "Shpfy TMA Match Test"
 
         // Act — real LLM call + tax area. A rate conflict still matches (the jurisdiction is
         // correct) and builds the Tax Area; the order is flagged for review.
-        Result := TMAMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
+        Result := TMAMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine);
         if Result and (MatchedJurisdictions.Count() > 0) then
             TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated);
 
-        // Mirror the events codeunit: persist the rate-conflict flag from the match result so
-        // verification can assert it (the harness calls the matcher directly, bypassing events).
+        // Mirror the events codeunit: persist the rate-conflict and incomplete flags from the match
+        // result so verification can assert them (the harness calls the matcher directly, bypassing events).
         if Result then begin
             OrderHeader."Tax Rate Conflict" := HasRateConflict;
+            OrderHeader."Tax Match Incomplete" := HasUnresolvedLine;
             OrderHeader.Modify();
         end;
 
