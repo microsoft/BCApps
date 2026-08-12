@@ -16,6 +16,7 @@ report 99000789 "Subcontractor - Dispatch List"
     //DefaultThemePart = "BC Default Theme";
     ApplicationArea = Manufacturing;
     Caption = 'Subcontractor - Dispatch List';
+    ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

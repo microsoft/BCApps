@@ -55,6 +55,9 @@ function Get-ToleranceBranch {
 .Description
     Only 'main' and 'releases/*' branches are supported. All other branches must
     not produce or consume the unstable tests artifact.
+
+.Parameter Branch
+    Branch name to check. Only 'main' and 'releases/*' are supported.
 #>
 function Test-IsToleranceSupportedBranch {
     [CmdletBinding()]
@@ -83,6 +86,9 @@ function Test-IsToleranceSupportedBranch {
     The artifact is branch-scoped so different branches can carry different sets of unstable
     tests. The branch is normalized so the resulting name is safe to use as a GitHub
     artifact name (which disallows '/').
+
+.Parameter Branch
+    Supported branch (main or releases/*) whose artifact name should be derived.
 #>
 function Get-UnstableTestsArtifactName {
     [CmdletBinding()]
@@ -107,6 +113,9 @@ function Get-UnstableTestsArtifactName {
     BC test results use the format '<id> <name>' in the classname attribute.
     Returns a hashtable with 'Id' ([int]) and 'Name' ([string]).
     When the string does not start with a numeric prefix, Id is 0 and Name is the full string.
+
+.Parameter Codeunit
+    The codeunit string to split, e.g. '137404 SCM Manufacturing'.
 #>
 function Split-CodeunitString {
     [CmdletBinding()]
@@ -127,6 +136,13 @@ function Split-CodeunitString {
 <#
 .Synopsis
     Builds a normalized identifier for a single test (extensionId + codeunitId + method).
+
+.Parameter CodeunitId
+    Numeric id of the codeunit that owns the test.
+.Parameter TestMethod
+    Name of the test method.
+.Parameter ExtensionId
+    Owning extension's app id. Optional; defaults to empty for tests without one.
 #>
 function Get-UnstableTestKey {
     [CmdletBinding()]
@@ -162,6 +178,9 @@ function Get-UnstableTestKey {
     The 'reason' and 'linkedIssue' fields are optional. The function returns an empty
     hashtable when the file does not exist, so callers can treat "no artifact" as
     "no unstable tests yet".
+
+.Parameter Path
+    Path to the unstable-tests.json file. A missing file is treated as an empty list.
 #>
 function Read-UnstableTestsList {
     [CmdletBinding()]
@@ -230,6 +249,9 @@ function Read-UnstableTestsList {
     Returns a list of pscustomobjects with CodeunitId, CodeunitName, TestMethod, FailureMessage.
     The codeunit string is taken from the testcase 'classname' attribute when present,
     otherwise from the parent testsuite 'name' attribute, and then split into ID and name.
+
+.Parameter Path
+    Path to the JUnit/XUnit test results XML file to parse.
 #>
 function Get-FailedTestsFromResults {
     [CmdletBinding()]
@@ -318,6 +340,11 @@ function Get-FailedTestsFromResults {
 .Description
     Returns a pscustomobject with two collections: Tolerated (failures listed in the
     unstable tests artifact) and Unresolved (failures that should still fail the build).
+
+.Parameter FailedTests
+    The failed tests to classify (as produced by Get-FailedTestsFromResults).
+.Parameter UnstableTests
+    The unstable tests list keyed by test key (as produced by Read-UnstableTestsList).
 #>
 function Resolve-TestTolerance {
     [CmdletBinding()]
@@ -358,12 +385,20 @@ function Resolve-TestTolerance {
 
 <#
 .Synopsis
-    Rewrites the test results XML so tolerated failures are no longer marked as failures.
+    Rewrites the test results XML so tolerated failures are reclassified as skipped.
 .Description
-    For each tolerated test case, removes <failure> / <error> children and adjusts the
-    parent <testsuite> 'failures' / 'errors' counts accordingly. A
-    <system-out>TOLERATED: ...</system-out> note is inserted so the reclassification is
-    discoverable when reading the XML directly. The file is rewritten in place.
+    For each tolerated test case, converts its <failure> / <error> child into a
+    <skipped> node so the failure no longer fails the build but stays visible in the
+    test summary as "failed (tolerated)". The test method 'name' is suffixed with
+    " (tolerated)", the parent <testsuite> 'failures' / 'errors' counts are decremented
+    and its 'skipped' count incremented, and a <system-out> note is inserted so the
+    reclassification is discoverable when reading the XML directly. The original failure
+    message is preserved on the <skipped> node. The file is rewritten in place.
+
+.Parameter Path
+    Path to the test results XML to rewrite in place.
+.Parameter ToleratedTests
+    The tolerated failures whose test cases should be reclassified as skipped.
 #>
 function Update-TestResultsForTolerance {
     [CmdletBinding()]
@@ -403,6 +438,7 @@ function Update-TestResultsForTolerance {
         $suiteName = if ($suite.HasAttribute('name')) { $suite.GetAttribute('name') } else { '' }
         $removedFailures = 0
         $removedErrors = 0
+        $addedSkipped = 0
 
         $extensionId = ''
         $extProp = $suite.SelectSingleNode("properties/property[@name='extensionid']")
@@ -419,20 +455,48 @@ function Update-TestResultsForTolerance {
 
             $entry = $toleratedKeys[$key]
 
+            # Capture the original failure detail before removing it, so it can be
+            # preserved on the <skipped> node for context.
+            $originalMessage = ''
             $failureNode = $tc.SelectSingleNode('failure')
             if ($null -ne $failureNode) {
+                if ($failureNode.HasAttribute('message')) { $originalMessage = $failureNode.GetAttribute('message') }
+                if ([string]::IsNullOrWhiteSpace($originalMessage)) { $originalMessage = $failureNode.InnerText }
                 [void]$tc.RemoveChild($failureNode)
                 $removedFailures++
             }
             $errorNode = $tc.SelectSingleNode('error')
             if ($null -ne $errorNode) {
+                if ([string]::IsNullOrWhiteSpace($originalMessage)) {
+                    if ($errorNode.HasAttribute('message')) { $originalMessage = $errorNode.GetAttribute('message') }
+                    if ([string]::IsNullOrWhiteSpace($originalMessage)) { $originalMessage = $errorNode.InnerText }
+                }
                 [void]$tc.RemoveChild($errorNode)
                 $removedErrors++
             }
 
-            $note = $xml.CreateElement('system-out')
+            # Nothing to reclassify if the case had neither a failure nor an error.
+            if ($null -eq $failureNode -and $null -eq $errorNode) { continue }
+
             $reason = if ($entry.Reason) { " ($($entry.Reason))" } else { '' }
-            $note.InnerText = "TOLERATED: failure tolerated by Test Tolerance feature$reason"
+
+            # Reclassify the failure as skipped so it no longer fails the build but remains
+            # clearly visible in the test summary as a tolerated failure.
+            $skipped = $xml.CreateElement('skipped')
+            $skipped.SetAttribute('message', "Failed (tolerated by Test Tolerance)$reason")
+            if (-not [string]::IsNullOrWhiteSpace($originalMessage)) {
+                $skipped.InnerText = "Original failure: $originalMessage"
+            }
+            [void]$tc.AppendChild($skipped)
+            $addedSkipped++
+
+            # Suffix the test method name so tolerated tests stand out in name-based summaries.
+            if ($tc.HasAttribute('name') -and $testMethod -notmatch '\(tolerated\)$') {
+                $tc.SetAttribute('name', "$testMethod (tolerated)")
+            }
+
+            $note = $xml.CreateElement('system-out')
+            $note.InnerText = "FAILED (TOLERATED): failure tolerated by Test Tolerance feature$reason"
             [void]$tc.AppendChild($note)
         }
 
@@ -443,6 +507,10 @@ function Update-TestResultsForTolerance {
         if ($removedErrors -gt 0 -and $suite.HasAttribute('errors')) {
             $current = [int]$suite.GetAttribute('errors')
             $suite.SetAttribute('errors', [string]([Math]::Max(0, $current - $removedErrors)))
+        }
+        if ($addedSkipped -gt 0) {
+            $currentSkipped = if ($suite.HasAttribute('skipped')) { [int]$suite.GetAttribute('skipped') } else { 0 }
+            $suite.SetAttribute('skipped', [string]($currentSkipped + $addedSkipped))
         }
     }
 
@@ -456,6 +524,11 @@ function Update-TestResultsForTolerance {
     Given a test results XML and an unstable tests artifact, checks if all failed tests are
     listed as unstable. If so, rewrites the test results to reclassify them and returns $true.
     Returns $false if any failures are not tolerated, or if inputs are missing/unsupported.
+
+.Parameter TestResultsPath
+    Path to the test results XML for the current build.
+.Parameter UnstableTestsPath
+    Path to the downloaded unstable-tests.json. When missing or empty, no tolerance is applied.
 #>
 function Test-ShouldTolerateFailures {
     [CmdletBinding()]
@@ -524,6 +597,11 @@ function Test-ShouldTolerateFailures {
 
     Requires the GH_TOKEN, GITHUB_TOKEN, or _token environment variable and GITHUB_REPOSITORY to be set.
     If no token variable is available the function skips the download and returns $null.
+
+.Parameter Branch
+    Supported branch whose unstable-tests artifact should be downloaded.
+.Parameter OutputDirectory
+    Local directory the artifact is extracted into.
 #>
 function Receive-UnstableTestsArtifact {
     [CmdletBinding()]
@@ -577,7 +655,7 @@ function Receive-UnstableTestsArtifact {
             New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
         }
 
-        $zipPath = Join-Path $OutputDirectory 'unstable-tests.zip'
+        $zipPath = Join-Path -Path $OutputDirectory -ChildPath 'unstable-tests.zip'
         Invoke-WebRequest -Uri "https://api.github.com/repos/$repo/actions/artifacts/$($artifact.id)/zip" `
             -Headers $headers `
             -OutFile $zipPath
@@ -585,7 +663,7 @@ function Receive-UnstableTestsArtifact {
         Expand-Archive -Path $zipPath -DestinationPath $OutputDirectory -Force
         Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
 
-        $jsonPath = Join-Path $OutputDirectory 'unstable-tests.json'
+        $jsonPath = Join-Path -Path $OutputDirectory -ChildPath 'unstable-tests.json'
         if (Test-Path $jsonPath) {
             Write-Host "Unstable tests artifact downloaded to '$jsonPath'."
             return $jsonPath
@@ -622,6 +700,11 @@ function Receive-UnstableTestsArtifact {
     only transforms the supplied failed-test set into the artifact format.
 
     Returns the updated hashtable keyed by 'extensionId::codeunit::testMethod'.
+
+.Parameter FailedTests
+    Hashtable of failed tests keyed by test key to convert into unstable-test entries.
+.Parameter RunCount
+    Number of CI/CD runs the window covered; used only to build the auto-detected reason text.
 #>
 function Update-UnstableTestsList {
     [CmdletBinding()]
@@ -663,6 +746,19 @@ function Update-UnstableTestsList {
 
     Returns an empty array when no qualifying runs are found.
     Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+
+.Parameter Branch
+    Branch whose recent CI/CD runs should be examined.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form to query.
+.Parameter RunLimit
+    Maximum number of qualifying runs (those with test result artifacts) to return.
+.Parameter WorkflowFile
+    Workflow file whose runs are listed. Defaults to 'CICD.yaml'.
+.Parameter FilterPush
+    Include runs triggered by 'push' when selecting the window.
+.Parameter FilterWorkflowDispatch
+    Include runs triggered by 'workflow_dispatch' when selecting the window.
 #>
 function Find-UnstableTestRunIds {
     [CmdletBinding()]
@@ -735,6 +831,13 @@ function Find-UnstableTestRunIds {
 
     Returns an empty hashtable when none of the runs produced failed tests.
     Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable to be set for 'gh' authentication.
+
+.Parameter RunIds
+    Ids of the runs whose test result artifacts should be downloaded and parsed.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form the runs belong to.
+.Parameter WorkDirectory
+    Local scratch directory used to download and expand the artifacts.
 #>
 function Get-FailedTestsFromRuns {
     [CmdletBinding()]
@@ -752,7 +855,7 @@ function Get-FailedTestsFromRuns {
 
     $allFailed = @{}
     foreach ($runId in $RunIds) {
-        $runDir = Join-Path $WorkDirectory "run-$runId"
+        $runDir = Join-Path -Path $WorkDirectory -ChildPath "run-$runId"
 
         Write-Host "Downloading test result artifacts from run $runId in '$Repository' ..."
         gh run download $runId --repo $Repository --dir $runDir --pattern '*TestResult*' 2>&1 | ForEach-Object { Write-Host $_ }
@@ -803,6 +906,13 @@ function Get-FailedTestsFromRuns {
     'Test' is a pscustomobject with PascalCase properties (as produced by Get-FailedTestsFromRuns or
     Update-UnstableTestsList). 'Reason' overrides the entry reason; when empty, the test's own Reason
     property (if any) is used. 'Repository' is used to build the sourceRunUrl from the test's SourceRunId.
+
+.Parameter Test
+    A single failed/unstable test object with PascalCase properties.
+.Parameter Reason
+    Overrides the entry reason. When empty, the test's own Reason property is used.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form, used to build the sourceRunUrl from the test's SourceRunId.
 #>
 function ConvertTo-UnstableTestEntry {
     [CmdletBinding()]
@@ -844,6 +954,15 @@ function ConvertTo-UnstableTestEntry {
 
     'Tests' must already be the final list of artifact entries (camelCase), e.g. from
     ConvertTo-UnstableTestEntry or Add-FailedTestsToUnstableTests.
+
+.Parameter Branch
+    Branch the artifact belongs to; written into the payload.
+.Parameter RunIds
+    Source run ids recorded in the payload for traceability.
+.Parameter Tests
+    The final list of artifact entries (camelCase) to serialize. Defaults to an empty list.
+.Parameter OutputPath
+    Path the unstable-tests.json is written to; parent directories are created as needed.
 #>
 function Save-UnstableTestsArtifact {
     [CmdletBinding()]
@@ -865,7 +984,10 @@ function Save-UnstableTestsArtifact {
         New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
     }
 
-    $tests = @($Tests)
+    # Normalize to a plain array. Avoid @($Tests): wrapping a List[object] directly throws
+    # "Argument types do not match" on some PowerShell/.NET builds, while [object[]] on an empty
+    # collection yields $null. Piping unrolls any list/array shape safely and always into an array.
+    $tests = @($Tests | ForEach-Object { $_ })
     $payload = [ordered]@{
         branch    = $Branch
         updatedAt = (Get-Date).ToUniversalTime().ToString('o')
@@ -892,6 +1014,13 @@ function Save-UnstableTestsArtifact {
 
     Returns the merged list ready to be serialized into the artifact: the existing entries unchanged
     (as parsed) followed by the newly added entries produced by ConvertTo-UnstableTestEntry.
+
+.Parameter ExistingTests
+    The current 'tests' array parsed from an existing artifact, or empty when none exists.
+.Parameter FailedTests
+    Hashtable of newly observed failures keyed by test key to merge in additively.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form, used to build sourceRunUrl for newly added entries.
 #>
 function Add-FailedTestsToUnstableTests {
     [CmdletBinding()]
@@ -911,7 +1040,10 @@ function Add-FailedTestsToUnstableTests {
     # Preserve every existing entry verbatim. Track the key of each entry that has one so that newly
     # observed failures already present in the list are not appended again; entries with an
     # unexpected/legacy shape (e.g. missing testMethod) are still kept, just not used for dedup.
-    foreach ($entry in @($ExistingTests)) {
+    # Enumerate directly rather than via @($ExistingTests): a List[object] passed here would otherwise
+    # throw "Argument types do not match" when wrapped in the array-subexpression operator. foreach
+    # handles the default empty array, arrays and lists alike.
+    foreach ($entry in $ExistingTests) {
         if ($null -eq $entry) { continue }
         $merged.Add($entry) | Out-Null
         $method = if ($entry.PSObject.Properties['testMethod']) { [string]$entry.testMethod } else { '' }
@@ -930,7 +1062,11 @@ function Add-FailedTestsToUnstableTests {
         }
         $ft = $FailedTests[$k]
         $sourceRunId = if ($ft.PSObject.Properties['SourceRunId']) { [string]$ft.SourceRunId } else { '' }
-        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason "Manually added from CI/CD run $sourceRunId" -Repository $Repository)) | Out-Null
+        # Prefer a reason the test already carries (e.g. cross-PR detection sets its own). Passing an
+        # empty reason lets ConvertTo-UnstableTestEntry fall back to the test's own Reason property.
+        # Tests without a Reason (the additive-from-run path) get the default run-based reason.
+        $reason = if (($ft.PSObject.Properties['Reason']) -and $ft.Reason) { '' } else { "Manually added from CI/CD run $sourceRunId" }
+        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason $reason -Repository $Repository)) | Out-Null
         $seenKeys[$k] = $true
         Write-Host "ADDED UNSTABLE: $k"
         $added++
@@ -938,6 +1074,522 @@ function Add-FailedTestsToUnstableTests {
 
     Write-Host "Merged unstable tests list contains $($merged.Count) test(s) ($added newly added)."
     return $merged.ToArray()
+}
+
+<#
+.Synopsis
+    Correlation core: selects tests that failed across multiple distinct PRs.
+.Description
+    Deterministic, unit-tested heuristic behind the cross-PR PR-build detector (its only side effect is
+    progress logging via Write-Host; it performs no file or network I/O). Given a set of per-PR-build
+    observations (each carrying the PR number and the failing tests parsed from that build), it counts
+    how many *distinct* PRs each test failed on and returns the tests that meet the minimum distinct-PR
+    threshold.
+
+    The key idea: a test failing on a single PR is ambiguous (it could be that PR's own change), but the
+    same test failing across several unrelated PRs in a short window is almost never caused by any one
+    PR — it is an instability. Counting *distinct PR numbers* (not raw runs) makes the signal robust
+    against the same PR being retried multiple times.
+
+    'Observations' is an array of objects with:
+      - PrNumber   : the PR the build belongs to (used for distinct counting; reruns of the same PR count once)
+      - RunId      : the source run id (kept on the representative entry for traceability)
+      - FailedTests: the list of failing tests for that build (as produced by Get-FailedTestsFromResults)
+
+    Returns a hashtable keyed by the three-part test key, in the same shape Add-FailedTestsToUnstableTests
+    consumes, with each entry carrying a Reason describing the distinct-PR count and the target branch.
+
+.Parameter Branch
+    Target branch the observations relate to; recorded in each entry's reason.
+.Parameter Observations
+    Per-PR-build observations (PrNumber, RunId, FailedTests). May be empty.
+.Parameter MinDistinctPrs
+    Minimum number of distinct PRs a test must fail on to qualify as unstable.
+.Parameter WindowHours
+    Size of the recent-PR-build window in hours; used only in the reason text.
+#>
+function Select-CrossPrUnstableTests {
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Branch,
+
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [psobject[]] $Observations,
+
+        [Parameter(Mandatory = $true)]
+        [int] $MinDistinctPrs,
+
+        [Parameter(Mandatory = $true)]
+        [int] $WindowHours
+    )
+
+    # For each test key, gather the set of distinct PR numbers it failed on plus a representative
+    # test object and source run id (first seen).
+    $byKey = @{}
+    foreach ($obs in $Observations) {
+        if ($null -eq $obs) { continue }
+        $pr = if ($obs.PSObject.Properties['PrNumber']) { [string]$obs.PrNumber } else { '' }
+        if ([string]::IsNullOrWhiteSpace($pr)) { continue }
+        $runId = if ($obs.PSObject.Properties['RunId']) { [string]$obs.RunId } else { '' }
+
+        # Enumerate directly rather than via @(...): wrapping a List[object] in the array-subexpression
+        # operator throws "Argument types do not match" on some PowerShell/.NET builds. foreach already
+        # handles $null (zero iterations), scalars, arrays and lists safely.
+        foreach ($ft in $obs.FailedTests) {
+            if ($null -eq $ft) { continue }
+            $key = $ft.Key
+            if ([string]::IsNullOrWhiteSpace($key)) { continue }
+            if (-not $byKey.ContainsKey($key)) {
+                $byKey[$key] = [pscustomobject]@{
+                    Test  = $ft
+                    Prs   = (New-Object 'System.Collections.Generic.HashSet[string]')
+                    RunId = $runId
+                }
+            }
+            [void]$byKey[$key].Prs.Add($pr)
+            if ([string]::IsNullOrWhiteSpace($byKey[$key].RunId) -and $runId) { $byKey[$key].RunId = $runId }
+        }
+    }
+
+    $result = @{}
+    foreach ($key in @($byKey.Keys)) {
+        $entry = $byKey[$key]
+        $distinct = $entry.Prs.Count
+        if ($distinct -lt $MinDistinctPrs) { continue }
+
+        $ft = $entry.Test
+        $result[$key] = [pscustomobject]@{
+            ExtensionId    = if ($ft.PSObject.Properties['ExtensionId']) { $ft.ExtensionId } else { '' }
+            CodeunitId     = if ($ft.PSObject.Properties['CodeunitId']) { $ft.CodeunitId } else { 0 }
+            CodeunitName   = if ($ft.PSObject.Properties['CodeunitName']) { $ft.CodeunitName } else { '' }
+            TestMethod     = $ft.TestMethod
+            FailureMessage = if ($ft.PSObject.Properties['FailureMessage']) { $ft.FailureMessage } else { '' }
+            FailureDetail  = if ($ft.PSObject.Properties['FailureDetail']) { $ft.FailureDetail } else { '' }
+            SourceRunId    = $entry.RunId
+            Reason         = "Auto-detected: failed on $distinct distinct PRs targeting '$Branch' within the last $WindowHours h"
+        }
+        Write-Host "CROSS-PR UNSTABLE ($distinct distinct PRs): $key"
+    }
+
+    Write-Host "Selected $($result.Count) cross-PR unstable test(s) for branch '$Branch' (threshold: $MinDistinctPrs distinct PRs)."
+    return $result
+}
+
+<#
+.Synopsis
+    Downloads a single workflow-run artifact (by id) to a local zip file.
+.Description
+    Uses Start-Process so the artifact zip is written to disk as raw bytes. Capturing 'gh' stdout through
+    the PowerShell pipeline (or a '>' redirect on some hosts) decodes it as text and corrupts the archive.
+    Returns $true when a non-empty file was written, $false otherwise (the caller treats a failure as a
+    skippable artifact).
+
+    Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+
+.Parameter Repository
+    Repository in '<owner>/<repo>' form that owns the artifact.
+.Parameter ArtifactId
+    Id of the artifact to download.
+.Parameter OutFile
+    Local path the raw artifact zip is written to.
+#>
+function Save-GitHubArtifactZip {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Repository,
+
+        [Parameter(Mandatory = $true)]
+        [string] $ArtifactId,
+
+        [Parameter(Mandatory = $true)]
+        [string] $OutFile
+    )
+
+    $errFile = "$OutFile.stderr"
+    $ok = $false
+    try {
+        $proc = Start-Process -FilePath 'gh' `
+            -ArgumentList @('api', "/repos/$Repository/actions/artifacts/$ArtifactId/zip") `
+            -RedirectStandardOutput $OutFile -RedirectStandardError $errFile -NoNewWindow -Wait -PassThru
+        $ok = ($proc.ExitCode -eq 0) -and (Test-Path $OutFile) -and ((Get-Item $OutFile).Length -gt 0)
+    }
+    catch {
+        $ok = $false
+    }
+    finally {
+        Remove-Item $errFile -Force -ErrorAction SilentlyContinue
+    }
+    return $ok
+}
+
+<#
+.Synopsis
+    Collects the failing tests from every attempt of a single PR-build run.
+.Description
+    A workflow run can be re-run, producing several attempts. The run-level artifacts endpoint returns the
+    artifacts from ALL of a run's attempts (a re-run uploads a fresh artifact with a new id even when the
+    name is unchanged), so we enumerate the run's '*TestResult*' artifacts and download each one by id -
+    rather than 'gh run download', which only fetches a single artifact per name (the latest attempt). This
+    lets an instability that only surfaced in an earlier attempt still be observed.
+
+    Failures are de-duplicated by test key within the run, so the same failure seen in several attempts (or
+    in duplicate artifacts) is recorded once per run. Distinct-PR counting happens later, so multiple
+    attempts of the same PR never inflate the instability signal.
+
+    Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+
+.Parameter Repository
+    Repository in '<owner>/<repo>' form the run belongs to.
+.Parameter RunId
+    Id of the run whose every attempt's test results should be collected.
+.Parameter WorkDirectory
+    Local scratch directory used to download and expand each artifact.
+#>
+function Get-RunFailedTestsAllAttempts {
+    [CmdletBinding()]
+    [OutputType([System.Collections.Generic.List[object]])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Repository,
+
+        [Parameter(Mandatory = $true)]
+        [string] $RunId,
+
+        [Parameter(Mandatory = $true)]
+        [string] $WorkDirectory
+    )
+
+    $failed = New-Object System.Collections.Generic.List[object]
+
+    $artLines = @(gh api "/repos/$Repository/actions/runs/$RunId/artifacts?per_page=100" --paginate `
+            --jq '.artifacts[] | select((.name | test("TestResult")) and (.expired | not)) | [(.id | tostring), .name] | @tsv' 2>$null)
+    # Tolerated: a still-running (or artifact-less) build lists no artifacts and 'gh' may exit non-zero.
+    $global:LASTEXITCODE = 0
+    $artLines = @($artLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($artLines.Count -eq 0) { return $failed }
+
+    New-Item -ItemType Directory -Path $WorkDirectory -Force | Out-Null
+    $seen = New-Object 'System.Collections.Generic.HashSet[string]'
+    foreach ($artLine in $artLines) {
+        $parts = $artLine -split "`t", 2
+        $artId = $parts[0]
+        $artName = if ($parts.Count -gt 1) { $parts[1] } else { $artId }
+        if ([string]::IsNullOrWhiteSpace($artId)) { continue }
+        if ($artName -match 'BcptTestResults|PageScriptingTestResult') { continue }
+
+        $zipPath = Join-Path -Path $WorkDirectory -ChildPath "artifact-$artId.zip"
+        $extractDir = Join-Path -Path $WorkDirectory -ChildPath "artifact-$artId"
+        if (-not (Save-GitHubArtifactZip -Repository $Repository -ArtifactId $artId -OutFile $zipPath)) {
+            # 'gh api ... /zip' redirects stdout to the target file, so a failed download can still leave a
+            # partial/empty zip behind. Remove it so it does not accumulate in the per-run work directory.
+            Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+            Write-Host "::warning::Could not download artifact '$artName' (id $artId) from run $RunId; skipping."
+            continue
+        }
+        try {
+            try {
+                Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force -ErrorAction Stop
+            }
+            catch {
+                Write-Host "::warning::Could not extract artifact '$artName' (id $artId) from run $RunId; skipping."
+                continue
+            }
+            finally {
+                Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+            }
+
+            foreach ($xml in @(Get-ChildItem -Path $extractDir -Filter '*.xml' -Recurse -ErrorAction SilentlyContinue)) {
+                foreach ($ft in @(Get-FailedTestsFromResults -Path $xml.FullName)) {
+                    if ($null -eq $ft) { continue }
+                    $key = $ft.Key
+                    if ([string]::IsNullOrWhiteSpace($key)) { continue }
+                    if ($seen.Add($key)) { $failed.Add($ft) | Out-Null }
+                }
+            }
+        }
+        finally {
+            # Each artifact can hold many XML files and Path B scans many runs/attempts, so drop the extracted
+            # directory once its results are parsed to keep runner disk usage bounded across the hourly run.
+            Remove-Item $extractDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    return $failed
+}
+
+<#
+.Synopsis
+    Builds a map of PR number -> the sorted, de-duplicated list of test keys that failed on that PR.
+.Description
+    Aggregates each observation's failing tests (already unioned across the PR build's attempts) into a
+    per-PR set, so the result answers "which tests failed on this PR, across some/all of its attempts".
+    The map is ordered by PR number and each PR's test-key list is sorted for stable, readable output.
+
+.Parameter Observations
+    Per-PR-build observations (PrNumber, FailedTests) to aggregate. May be empty.
+#>
+function Get-PrFailingTestsMap {
+    [CmdletBinding()]
+    [OutputType([System.Collections.Specialized.OrderedDictionary])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [psobject[]] $Observations
+    )
+
+    $byPr = @{}
+    foreach ($obs in $Observations) {
+        if ($null -eq $obs) { continue }
+        $pr = if ($obs.PSObject.Properties['PrNumber']) { [string]$obs.PrNumber } else { '' }
+        if ([string]::IsNullOrWhiteSpace($pr)) { continue }
+        if (-not $byPr.ContainsKey($pr)) { $byPr[$pr] = New-Object 'System.Collections.Generic.HashSet[string]' }
+        foreach ($ft in $obs.FailedTests) {
+            if ($null -eq $ft) { continue }
+            $key = $ft.Key
+            if (-not [string]::IsNullOrWhiteSpace($key)) { [void]$byPr[$pr].Add($key) }
+        }
+    }
+
+    $result = [ordered]@{}
+    foreach ($pr in ($byPr.Keys | Sort-Object { [int]$_ })) {
+        $result[$pr] = @($byPr[$pr] | Sort-Object)
+    }
+    return $result
+}
+
+<#
+.Synopsis
+    Detects cross-PR unstable tests from recent PR Build runs targeting a branch.
+.Description
+    The network-facing entry point for the cross-PR detector. It:
+    1. Lists 'Pull Request Build' runs that either COMPLETED within the last WindowHours or are still in
+       progress. Because a PR build can run for many hours, recency is measured by the run's completion
+       time (updated_at), not its start time (created_at) - otherwise a build that failed would always be
+       filtered out, since by the time it finishes and has uploaded test results it was created hours ago.
+       To find those runs, the server-side listing looks back WindowHours + MaxBuildHours by created_at
+       (wide enough to include a long build that just completed) and the completion window is then applied
+       client-side. Including in-progress runs lets an instability be caught from a build whose test job
+       has already finished (and uploaded results) even before the whole build completes.
+    2. Resolves each run's PR number and base branch, keeping only runs that target Branch and either
+       failed (completed within the window) or are still running.
+    3. For each qualifying run, downloads and parses the test results from ALL of the run's attempts (a
+       re-run can surface an instability that only failed in an earlier attempt). Failures are unioned per
+       run; a running build that has not uploaded any results yet is simply skipped.
+    4. Logs a map of PR number -> failing tests (aggregated across that PR's attempts) for visibility.
+    5. Delegates to Select-CrossPrUnstableTests to keep only tests that failed on >= MinDistinctPrs
+       distinct PRs. Because counting is per distinct PR, a test failing on several attempts of the SAME
+       PR never qualifies on its own.
+
+    Returns a hashtable of failing tests (keyed by the three-part test key) ready to be merged into the
+    per-branch unstable-tests artifact via Add-FailedTestsToUnstableTests. Returns an empty hashtable
+    when the branch is unsupported or nothing meets the threshold.
+
+    Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+
+.Parameter Branch
+    Branch whose recent PR builds should be examined.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form to query.
+.Parameter WindowHours
+    How far back (by build completion time) to include recent PR builds, in hours.
+.Parameter MaxBuildHours
+    Maximum expected PR-build duration; widens the server-side created_at lookback. Defaults to 12.
+.Parameter MinDistinctPrs
+    Minimum number of distinct PRs a test must fail on to be flagged.
+.Parameter WorkflowFile
+    PR-build workflow file whose runs are listed. Defaults to 'PullRequestHandler.yaml'.
+.Parameter MaxRuns
+    Safety cap on how many listed runs are processed. Defaults to 300.
+.Parameter WorkDirectory
+    Local scratch directory used to download and expand each run's artifacts.
+#>
+function Find-CrossPrUnstableTests {
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Branch,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Repository,
+
+        [Parameter(Mandatory = $true)]
+        [int] $WindowHours,
+
+        # How long a PR build can run, at most. Added to WindowHours to widen the server-side created_at
+        # lookback so a long build that only just completed is still listed; the WindowHours completion
+        # window is then enforced client-side on updated_at. BC PR builds routinely run 5-10 hours.
+        [int] $MaxBuildHours = 12,
+
+        [Parameter(Mandatory = $true)]
+        [int] $MinDistinctPrs,
+
+        [string] $WorkflowFile = 'PullRequestHandler.yaml',
+
+        [int] $MaxRuns = 300,
+
+        [Parameter(Mandatory = $true)]
+        [string] $WorkDirectory
+    )
+
+    if (-not (Test-IsToleranceSupportedBranch -Branch $Branch)) {
+        Write-Host "Branch '$Branch' is not supported by the test tolerance feature. Skipping."
+        return @{}
+    }
+
+    $now = (Get-Date).ToUniversalTime()
+    # Completion window: a completed build is only relevant if it finished within the last WindowHours.
+    $completedSince = $now.AddHours(-$WindowHours)
+    # Server-side created_at lookback is widened by MaxBuildHours so a long build that just completed
+    # (created many hours ago) is still returned by the listing; the completion window above is enforced
+    # client-side on updated_at.
+    $createdSince = $now.AddHours(-($WindowHours + $MaxBuildHours))
+    $sinceIso = $createdSince.ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $createdFilter = [uri]::EscapeDataString(">=$sinceIso")
+    Write-Host "::group::Path B · Scanning recent PR builds (branch '$Branch')"
+    Write-Host "Listing '$WorkflowFile' runs targeting '$Branch' (completed within the last $WindowHours h or in progress; scanning builds created since $sinceIso) ..."
+
+    # No status filter: we want completed runs (kept only when they failed and finished within the window)
+    # and in-progress runs (kept best-effort in case their test job already uploaded results).
+    $jq = '.workflow_runs[] | {id, headSha: .head_sha, status, conclusion, runAttempt: .run_attempt, createdAt: .created_at, updatedAt: .updated_at, prNumbers: [.pull_requests[]?.number], baseRefs: [.pull_requests[]?.base.ref]}'
+
+    # Page manually instead of 'gh api --paginate', which would eagerly fetch every matching page even
+    # though we only ever process the first MaxRuns runs. We request only as many pages as are needed to
+    # cover MaxRuns and stop early on the last (short) page, keeping API traffic bounded during the
+    # hourly schedule. The jq filter emits one compact JSON object per run, so a page yielding fewer than
+    # per_page lines is the last page.
+    $perPage = [math]::Min(100, [math]::Max(1, $MaxRuns))
+    $maxPages = [math]::Max(1, [int][math]::Ceiling($MaxRuns / [double]$perPage))
+    $lines = New-Object System.Collections.Generic.List[string]
+    for ($page = 1; $page -le $maxPages; $page++) {
+        $pageLines = @(gh api "/repos/$Repository/actions/workflows/$WorkflowFile/runs?event=pull_request&per_page=$perPage&page=$page&created=$createdFilter" --jq $jq 2>$null)
+        if ($LASTEXITCODE -ne 0) {
+            if ($page -eq 1) {
+                Write-Host "::endgroup::"
+                Write-Host "No PR Build runs found in the window (or the listing failed)."
+                return @{}
+            }
+            Write-Host "::warning::Listing PR Build runs failed on page $page; proceeding with $($lines.Count) run(s) already fetched."
+            break
+        }
+        $pageLines = @($pageLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        if ($pageLines.Count -eq 0) { break }
+        $lines.AddRange([string[]]$pageLines)
+        if ($pageLines.Count -lt $perPage) { break }  # last page
+    }
+    if ($lines.Count -eq 0) {
+        Write-Host "::endgroup::"
+        Write-Host "No PR Build runs found in the window (or the listing failed)."
+        return @{}
+    }
+    Write-Host "Found $($lines.Count) PR build run(s) created since $sinceIso; classifying ..."
+
+    $observations = New-Object System.Collections.Generic.List[object]
+    $processed = 0
+    # Counters for a visible summary of what was examined vs skipped and why.
+    $examinedFailed = 0      # completed + failed + finished within the window, targeting this branch
+    $examinedInProgress = 0  # still running, targeting this branch (best-effort)
+    $skippedNotFailure = 0   # completed but did not fail
+    $skippedStaleFailed = 0  # completed + failed but finished before the window
+    $skippedStatus = 0       # queued/waiting/other non-terminal status
+    $skippedNotBranch = 0    # did not resolve to a PR targeting this branch
+    foreach ($line in $lines) {
+        if ([string]::IsNullOrWhiteSpace($line)) { continue }
+        if ($processed -ge $MaxRuns) { Write-Host "Reached MaxRuns ($MaxRuns); stopping."; break }
+
+        $run = $null
+        try { $run = $line | ConvertFrom-Json } catch { continue }
+        if ($null -eq $run) { continue }
+
+        # A completed run only matters if it FAILED and finished within the completion window (updated_at
+        # >= now - WindowHours) - a build that completed long ago is stale and its instabilities, if any,
+        # would have been picked up by an earlier run. An in-progress run may already have uploaded test
+        # results from a finished test job, so include it best-effort. Everything else (completed and not
+        # failed, completed but stale, queued/waiting, etc.) is skipped.
+        $runType = $null
+        $isCompleted = ($run.status -eq 'completed')
+        if ($isCompleted) {
+            if ($run.conclusion -ne 'failure') { $skippedNotFailure++; continue }
+            $completedAt = $null
+            if ($run.updatedAt) { try { $completedAt = [datetime]::Parse($run.updatedAt, [cultureinfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AdjustToUniversal -bor [System.Globalization.DateTimeStyles]::AssumeUniversal) } catch { $completedAt = $null } }
+            if ($null -eq $completedAt -or $completedAt -lt $completedSince) { $skippedStaleFailed++; continue }
+            $runType = 'failed'
+        }
+        elseif ($run.status -eq 'in_progress') {
+            $runType = 'in_progress'
+        }
+        else {
+            $skippedStatus++
+            continue
+        }
+
+        # Resolve the PR number for this run's base branch. Same-repo PRs are present in pull_requests;
+        # fork PRs are not, so fall back to the commit->PRs API.
+        $prNumber = ''
+        $baseRefs = @($run.baseRefs)
+        $prNumbers = @($run.prNumbers)
+        for ($i = 0; $i -lt $baseRefs.Count; $i++) {
+            if ($baseRefs[$i] -eq $Branch -and $i -lt $prNumbers.Count) { $prNumber = [string]$prNumbers[$i]; break }
+        }
+        if ([string]::IsNullOrWhiteSpace($prNumber) -and $run.headSha) {
+            $prLines = @(gh api "/repos/$Repository/commits/$($run.headSha)/pulls" --jq '.[] | {number, base: .base.ref}' 2>$null)
+            foreach ($pl in $prLines) {
+                if ([string]::IsNullOrWhiteSpace($pl)) { continue }
+                try { $pr = $pl | ConvertFrom-Json } catch { continue }
+                if ($pr -and $pr.base -eq $Branch) { $prNumber = [string]$pr.number; break }
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($prNumber)) { $skippedNotBranch++; continue }  # not targeting this branch
+
+        if ($runType -eq 'failed') { $examinedFailed++ } else { $examinedInProgress++ }
+        $processed++
+        $runId = [string]$run.id
+        $runAttempt = if ($run.PSObject.Properties['runAttempt'] -and $run.runAttempt) { [int]$run.runAttempt } else { 1 }
+        $runDir = Join-Path -Path $WorkDirectory -ChildPath "run-$runId"
+        $attemptText = if ($runAttempt -gt 1) { "$runAttempt attempts" } else { '1 attempt' }
+        $statusText = if ($runType -eq 'failed') { 'completed/failed' } else { 'in progress' }
+        Write-Host "Downloading test results from PR #$prNumber build (run $runId, $statusText, $attemptText) ..."
+        # Gather failures across every attempt of this run (see Get-RunFailedTestsAllAttempts). Attempts of
+        # the same run belong to the same PR, so they never inflate the distinct-PR count below. Wrap in @()
+        # so an empty result (e.g. a running build with no uploaded artifacts yet) yields an empty array
+        # rather than $null, whose '.Count' would throw under StrictMode.
+        $runFailed = @(Get-RunFailedTestsAllAttempts -Repository $Repository -RunId $runId -WorkDirectory $runDir)
+        if ($runFailed.Count -eq 0) { continue }
+
+        $observations.Add([pscustomobject]@{
+            PrNumber    = $prNumber
+            RunId       = $runId
+            RunAttempt  = $runAttempt
+            FailedTests = $runFailed
+        }) | Out-Null
+    }
+
+    $examinedTotal = $examinedFailed + $examinedInProgress
+    Write-Host "::endgroup::"
+    Write-Host "Examined $examinedTotal PR build(s) targeting '$Branch': $examinedFailed completed/failed, $examinedInProgress in progress."
+    Write-Host "Skipped $($skippedNotFailure + $skippedStaleFailed + $skippedStatus + $skippedNotBranch) run(s): $skippedNotBranch not targeting '$Branch', $skippedNotFailure completed but not failed, $skippedStaleFailed failed but completed before the window, $skippedStatus queued/other status."
+    Write-Host "Collected failing tests from $($observations.Count) PR build(s) targeting '$Branch'."
+
+    # Emit the PR -> failing tests map (aggregated across each PR build's attempts) for visibility.
+    $prMap = Get-PrFailingTestsMap -Observations $observations.ToArray()
+    Write-Host "::group::PR -> failing tests across attempts (branch '$Branch')"
+    if ($prMap.Count -eq 0) {
+        Write-Host "No PR builds with failing tests in the window."
+    }
+    else {
+        foreach ($pr in $prMap.Keys) {
+            $keys = $prMap[$pr]
+            Write-Host "PR #${pr}: $($keys.Count) failing test(s)"
+            foreach ($k in $keys) { Write-Host "    $k" }
+        }
+    }
+    Write-Host "::endgroup::"
+    return (Select-CrossPrUnstableTests -Branch $Branch -Observations $observations.ToArray() -MinDistinctPrs $MinDistinctPrs -WindowHours $WindowHours)
 }
 
 Export-ModuleMember -Function `
@@ -956,4 +1608,7 @@ Export-ModuleMember -Function `
     Get-FailedTestsFromRuns, `
     ConvertTo-UnstableTestEntry, `
     Save-UnstableTestsArtifact, `
-    Add-FailedTestsToUnstableTests
+    Add-FailedTestsToUnstableTests, `
+    Select-CrossPrUnstableTests, `
+    Get-PrFailingTestsMap, `
+    Find-CrossPrUnstableTests

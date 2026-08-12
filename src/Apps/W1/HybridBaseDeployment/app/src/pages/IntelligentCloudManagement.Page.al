@@ -427,6 +427,21 @@ page 4003 "Intelligent Cloud Management"
                     HybridCloudManagement.EnableDisableOnPremDevelopment();
                 end;
             }	    
+            action(InsertExistingCompanies)
+            {
+                Visible = IsSuper and IsOnPrem;
+                ApplicationArea = Basic, Suite;
+                Caption = 'OnPrem Development - Insert existing companies as Hybrid Companies';
+                ToolTip = 'Insert the existing companies from this environment into the Hybrid Company table so they appear in the cloud migration wizard. Intended for OnPrem development scenarios.';
+                Image = Company;
+
+                trigger OnAction()
+                var
+                    HybridCloudManagement: Codeunit "Hybrid Cloud Management";
+                begin
+                    HybridCloudManagement.InsertExistingCompaniesToHybridCompanyTable();
+                end;
+            }
             action(ValidationStatus)
             {
                 ApplicationArea = Basic, Suite;

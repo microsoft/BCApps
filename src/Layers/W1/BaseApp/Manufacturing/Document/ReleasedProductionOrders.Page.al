@@ -424,7 +424,6 @@ page 9326 "Released Production Orders"
                 Caption = 'Production Order Statistics';
                 Image = "Report";
                 RunObject = Report "Production Order Statistics";
-                ToolTip = 'View statistical information about the production order''s direct material and capacity costs and overhead as well as its capacity need in the time unit of measure.';
             }
         }
         area(Promoted)
