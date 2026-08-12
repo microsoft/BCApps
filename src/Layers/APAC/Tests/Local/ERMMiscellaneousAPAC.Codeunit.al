@@ -827,6 +827,7 @@ codeunit 141008 "ERM - Miscellaneous APAC"
         PayablesAccountNo: Code[20];
         PostedDocumentNo: Code[20];
         ExpectedACYAmount: Decimal;
+        NonPayablesACY: Decimal;
     begin
         // [FEATURE] [Purchase] [ACY]
         // [SCENARIO 641827] Vendor ACY is posted on the payables entry for a purchase invoice in LCY.
@@ -855,12 +856,14 @@ codeunit 141008 "ERM - Miscellaneous APAC"
         // [WHEN] The purchase invoice is posted.
         PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
 
-        // [THEN] The purchase and payables entries carry balancing ACY amounts.
+        // [THEN] The purchase (expense) G/L entry carries the vendor-rate ACY: Quantity * Direct Unit Cost * Vendor Exchange Rate (ACY).
         GLEntry.SetRange("Document No.", PostedDocumentNo);
         GLEntry.SetRange("G/L Account No.", PurchaseLine."No.");
         Assert.RecordCount(GLEntry, 1);
         GLEntry.FindFirst();
+        GLEntry.TestField("Additional-Currency Amount", ExpectedACYAmount);
 
+        // [THEN] The payables (balancing) entry carries the offsetting ACY of all non-residual entries, in blank source currency.
         PayablesAccountNo := GetPayablesAccountFromVendorPostingGroup(PurchaseHeader."Pay-to Vendor No.");
         GLEntry.Reset();
         GLEntry.SetRange("Document No.", PostedDocumentNo);
@@ -868,15 +871,15 @@ codeunit 141008 "ERM - Miscellaneous APAC"
           "G/L Account No.", '<>%1&<>%2&<>%3',
           PayablesAccountNo, Currency."Residual Gains Account", Currency."Residual Losses Account");
         GLEntry.CalcSums("Additional-Currency Amount");
-        ExpectedACYAmount := GLEntry."Additional-Currency Amount";
-        Assert.IsTrue(ExpectedACYAmount <> 0, AmountMustBeEqualMsg);
+        NonPayablesACY := GLEntry."Additional-Currency Amount";
+        Assert.IsTrue(NonPayablesACY <> 0, AmountMustBeEqualMsg);
 
         GLEntry.SetRange("G/L Account No.", PayablesAccountNo);
         Assert.RecordCount(GLEntry, 1);
         GLEntry.FindFirst();
         GLEntry.TestField("Source Currency Code", '');
         GLEntry.TestField("Source Currency Amount", GLEntry.Amount);
-        GLEntry.TestField("Additional-Currency Amount", -ExpectedACYAmount);
+        GLEntry.TestField("Additional-Currency Amount", -NonPayablesACY);
 
         // [THEN] LCY, source currency, and ACY are balanced.
         GLEntry.Reset();
