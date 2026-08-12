@@ -1591,12 +1591,12 @@ codeunit 134982 "ERM Financial Reports"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementWithRetainedEarningsRequestPageHandler')]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementWithBalAccountRequestPageHandler')]
     procedure CloseIncomeStatementConsolidatesEntriesPerGLAccountWithARC()
     var
         GLAccount: Record "G/L Account";
         BalGLAccount: Record "G/L Account";
-        RetainedEarningsGLAccount: Record "G/L Account";
+        ReportBalancingGLAccount: Record "G/L Account";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
         ClosingGLEntry: Record "G/L Entry";
@@ -1622,10 +1622,12 @@ codeunit 134982 "ERM Financial Reports"
         LibraryFiscalYear.CreateFiscalYear();
         LibraryFiscalYear.CloseFiscalYear();
 
-        // [GIVEN] Income Statement G/L Account "A", a balancing account and a Retained Earnings account
+        // [GIVEN] Income Statement G/L Account "A", a balancing account for the posted entries and a
+        // separate balancing account for the report. They must differ, because the report excludes its
+        // own balancing account from the accounts that are closed.
         LibraryCostAccounting.CreateIncomeStmtGLAccount(GLAccount);
         LibraryERM.CreateGLAccount(BalGLAccount);
-        LibraryERM.CreateGLAccount(RetainedEarningsGLAccount);
+        LibraryERM.CreateGLAccount(ReportBalancingGLAccount);
 
         // [GIVEN] Three posted G/L entries to account "A" with blank dimensions and blank Business Unit Code
         PostingDate := LibraryFiscalYear.GetLastPostingDate(true);
@@ -1649,7 +1651,7 @@ codeunit 134982 "ERM Financial Reports"
         Date.SetRange("Period Start", PostingDate);
         Date.FindFirst();
         DocNo := LibraryUtility.GenerateGUID();
-        RunCloseIncomeStatementWithRetainedEarnings(GenJournalLine, NormalDate(Date."Period End"), DocNo, RetainedEarningsGLAccount."No.");
+        RunCloseIncomeStatementWithBalAccount(GenJournalLine, NormalDate(Date."Period End"), DocNo, ReportBalancingGLAccount."No.");
 
         // [THEN] Exactly one closing G/L Entry exists for account "A"
         ClosingGLEntry.SetRange("G/L Account No.", GLAccount."No.");
@@ -2612,14 +2614,14 @@ codeunit 134982 "ERM Financial Reports"
         Report.Run(Report::"Close Income Statement");
     end;
 
-    local procedure RunCloseIncomeStatementWithRetainedEarnings(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; DocumentNo: Code[20]; RetainedEarningsAccNo: Code[20])
+    local procedure RunCloseIncomeStatementWithBalAccount(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; DocumentNo: Code[20]; BalancingAccountNo: Code[20])
     begin
-        // Enqueue values for CloseIncomeStatementWithRetainedEarningsRequestPageHandler.
+        // Enqueue values for CloseIncomeStatementWithBalAccountRequestPageHandler.
         LibraryVariableStorage.Enqueue(PostingDate);
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
         LibraryVariableStorage.Enqueue(DocumentNo);
-        LibraryVariableStorage.Enqueue(RetainedEarningsAccNo);
+        LibraryVariableStorage.Enqueue(BalancingAccountNo);
 
         Commit();  // commit requires to run report.
         Report.Run(Report::"Close Income Statement");
@@ -2973,15 +2975,15 @@ codeunit 134982 "ERM Financial Reports"
     end;
 
     [RequestPageHandler]
-    procedure CloseIncomeStatementWithRetainedEarningsRequestPageHandler(var CloseIncomeStatement: TestRequestPage "Close Income Statement")
+    procedure CloseIncomeStatementWithBalAccountRequestPageHandler(var CloseIncomeStatement: TestRequestPage "Close Income Statement")
     begin
-        // Same as CloseIncomeStatementRequestPageHandler, but supplies a Retained Earnings Account, which
-        // report 94 requires when an Additional Reporting Currency is set. Dimensions are left blank.
+        // Same as CloseIncomeStatementRequestPageHandler, but supplies a Balancing Account No., which this
+        // version of report 94 requires when an Additional Reporting Currency is set. Dimensions are left blank.
         CloseIncomeStatement.FiscalYearEndingDate.SetValue(LibraryVariableStorage.DequeueDate()); // Fiscal Year Ending Date
         CloseIncomeStatement.GenJournalTemplate.SetValue(LibraryVariableStorage.DequeueText()); // Gen. Journal Template
         CloseIncomeStatement.GenJournalBatch.SetValue(LibraryVariableStorage.DequeueText()); // Gen. Journal Batch
         CloseIncomeStatement.DocumentNo.SetValue(LibraryVariableStorage.DequeueText()); // Document No.
-        CloseIncomeStatement.RetainedEarningsAcc.SetValue(LibraryVariableStorage.DequeueText()); // Retained Earnings Acc.
+        CloseIncomeStatement.BalancingAccountNo.SetValue(LibraryVariableStorage.DequeueText()); // Balancing Account No.
         CloseIncomeStatement.OK().Invoke();
     end;
 
