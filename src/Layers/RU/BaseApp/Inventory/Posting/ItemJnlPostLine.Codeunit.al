@@ -29,6 +29,7 @@ using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
+using Microsoft.Warehouse.Ledger;
 
 codeunit 22 "Item Jnl.-Post Line"
 {
@@ -8348,6 +8349,26 @@ codeunit 22 "Item Jnl.-Post Line"
     internal procedure GetItemLedgerEntryNo(): Integer
     begin
         exit(ItemLedgEntryNo);
+    end;
+
+    procedure SetRegisters(var ItemRegister: Record "Item Register"; ItemApplicationEntryNo: Integer; var WarehouseRegister: Record "Warehouse Register"; var GLRegister: Record "G/L Register"; NextVATEntryNo: Integer; NextTransactionNo: Integer)
+    begin
+        if ItemRegister."No." <> 0 then begin
+            ItemReg := ItemRegister;
+            ItemLedgEntryNo := ItemRegister."To Entry No.";
+            PhysInvtEntryNo := ItemRegister."To Phys. Inventory Entry No.";
+            ValueEntryNo := ItemRegister."To Value Entry No.";
+            CapLedgEntryNo := ItemRegister."To Capacity Entry No.";
+            ItemApplnEntryNo := ItemApplicationEntryNo;
+        end;
+        if WarehouseRegister."No." <> 0 then
+            WhseJnlRegisterLine.SetWhseRegister(WarehouseRegister);
+        OnAfterSetRegisters(ItemRegister, ItemApplicationEntryNo, WarehouseRegister, GLRegister, NextVATEntryNo, NextTransactionNo);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetRegisters(var ItemRegister: Record "Item Register"; ItemApplicationEntryNo: Integer; var WarehouseRegister: Record "Warehouse Register"; var GLRegister: Record "G/L Register"; NextVATEntryNo: Integer; NextTransactionNo: Integer)
+    begin
     end;
 
     internal procedure RegisterWhseJnlLine(var WhseJnlLine: Record "Warehouse Journal Line")
