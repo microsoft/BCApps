@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8013,9 +8013,11 @@ table 39 "Purchase Line"
 
         if ("Qty. to Invoice" <> 0) and ("Prepmt. Amt. Inv." <> 0) then begin
             GetPurchHeader();
-            if ("Prepayment %" = 100) and not IsFinalInvoice() then
+            if ("Prepayment %" = 100) and not IsFinalInvoice() then begin
+                // Reset to non-zero so GetLineAmountToHandle uses the proration branch, matching the already-posted amount
+                "Prepmt Amt to Deduct" := "Prepmt. Amt. Inv.";
                 "Prepmt Amt to Deduct" := GetLineAmountToHandle("Qty. to Invoice") - "Inv. Disc. Amount to Invoice"
-            else
+            end else
                 "Prepmt Amt to Deduct" :=
                   Round(
                     ("Prepmt. Amt. Inv." - "Prepmt Amt Deducted") *

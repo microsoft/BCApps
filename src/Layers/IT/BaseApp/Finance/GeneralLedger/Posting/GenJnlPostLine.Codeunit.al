@@ -879,6 +879,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             VATEntry."VAT Registration No." := GenJnlLine."VAT Registration No.";
         VATEntry."Country/Region Code" := GenJnlLine."Country/Region Code";
+        // When the journal line is created programmatically without going through
+        // OnValidate of "VAT Prod. Posting Group" (e.g. expense report posting),
+        // "Deductible %" stays at its default 0.  In that case fall back to the
+        // VAT Posting Setup value so that ChangeVATAmounts uses the correct
+        // deductible percentage instead of treating all VAT as non-deductible.
+        if GenJnlLine."Deductible %" = 0 then
+            GenJnlLine."Deductible %" := VATPostingSetup."Deductible %";
         VATEntry."Deductible %" := GenJnlLine."Deductible %";
         VATEntry."VAT %" := VATPostingSetup."VAT %";
         VATEntry."Operation Occurred Date" := GenJnlLine."Operation Occurred Date";
