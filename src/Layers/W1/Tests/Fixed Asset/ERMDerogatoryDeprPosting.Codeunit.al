@@ -300,6 +300,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         FALedgerEntry: Record "FA Ledger Entry";
         NormalDepreciationBookCode: Code[10];
         TaxDepreciationBookCode: Code[10];
+        AcquisitionCostAmount: Decimal;
     begin
         CreateNormalAndTaxDeprBooks(NormalDepreciationBookCode, TaxDepreciationBookCode);
         CreateFAPostingGroup(FixedAsset);
@@ -307,12 +308,21 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
             FixedAsset."No.", NormalDepreciationBookCode, FixedAsset."FA Posting Group",
             WorkDate(), CalcDate('<5Y>', WorkDate()));
         UpdateIntegrationInBook(NormalDepreciationBookCode, false);
+        AcquisitionCostAmount := LibraryRandom.RandDec(10000, 2);
         CreateFAJournalLine(
             FAJournalLine, FixedAsset."No.", NormalDepreciationBookCode,
-            FAJournalLine."FA Posting Type"::"Acquisition Cost", LibraryRandom.RandDec(10000, 2));
+            FAJournalLine."FA Posting Type"::"Acquisition Cost", AcquisitionCostAmount);
 
         LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
 
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.SetRange("Depreciation Book Code", NormalDepreciationBookCode);
+        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        Assert.AreEqual(1, FALedgerEntry.Count(), NumberFAEntryErr);
+        FALedgerEntry.FindFirst();
+        FALedgerEntry.TestField(Amount, AcquisitionCostAmount);
+        FALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        FALedgerEntry.Reset();
         FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
         FALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBookCode);
         Assert.AreEqual(0, FALedgerEntry.Count(), NumberFAEntryErr);
@@ -944,6 +954,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         SourceSalvageFALedgerEntry.SetRange("FA No.", FANo);
         SourceSalvageFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
         SourceSalvageFALedgerEntry.SetRange("FA Posting Type", SourceSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
+        Assert.AreEqual(1, SourceSalvageFALedgerEntry.Count(), NumberFAEntryErr);
         SourceSalvageFALedgerEntry.FindFirst();
         SourceSalvageFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
         CounterpartSalvageFALedgerEntry.SetRange("FA No.", FANo);
@@ -953,6 +964,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count, NumberFAEntryErr);
         CounterpartSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.");
         Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count(), NumberFAEntryErr);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]
@@ -992,6 +1004,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         SourceSalvageFALedgerEntry.SetRange("FA No.", FANo);
         SourceSalvageFALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
         SourceSalvageFALedgerEntry.SetRange("FA Posting Type", SourceSalvageFALedgerEntry."FA Posting Type"::"Salvage Value");
+        Assert.AreEqual(1, SourceSalvageFALedgerEntry.Count(), NumberFAEntryErr);
         SourceSalvageFALedgerEntry.FindFirst();
         CounterpartSalvageFALedgerEntry.SetRange("FA No.", FANo);
         CounterpartSalvageFALedgerEntry.SetRange("Depreciation Book Code", TaxDeprBookCode);
@@ -1000,6 +1013,7 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count, NumberFAEntryErr);
         CounterpartSalvageFALedgerEntry.SetRange("Derogatory Source Entry No.");
         Assert.AreEqual(1, CounterpartSalvageFALedgerEntry.Count(), NumberFAEntryErr);
+        VerifyLinkedCounterparts(FANo, NormalDeprBookCode, TaxDeprBookCode);
     end;
 
     [Test]

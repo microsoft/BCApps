@@ -149,6 +149,7 @@ codeunit 104103 "Upgrade Derogatory Linkage"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TelemetryDimensions: Dictionary of [Text, Text];
+        EventId: Text;
     begin
         TelemetryDimensions.Add('FALinked', Format(FALinkedCount));
         TelemetryDimensions.Add('FAAmbiguous', Format(FAAmbiguousCount));
@@ -156,7 +157,14 @@ codeunit 104103 "Upgrade Derogatory Linkage"
         TelemetryDimensions.Add('MaintenanceLinked', Format(MaintenanceLinkedCount));
         TelemetryDimensions.Add('MaintenanceAmbiguous', Format(MaintenanceAmbiguousCount));
         TelemetryDimensions.Add('MaintenanceMissing', Format(MaintenanceMissingCount));
-        FeatureTelemetry.LogUsage('0000FRD', 'Fixed Asset', 'FR historical derogatory linkage upgrade', TelemetryDimensions);
+        EventId := '0000FRD';
+        FeatureTelemetry.LogUsage(EventId, 'Fixed Asset', 'FR historical derogatory linkage upgrade', TelemetryDimensions);
+        OnAfterEmitLinkageTelemetry(EventId, TelemetryDimensions);
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterEmitLinkageTelemetry(EventId: Text; TelemetryDimensions: Dictionary of [Text, Text])
+    begin
     end;
 
     // ---------------------------------------------------------------------------------------------------------
