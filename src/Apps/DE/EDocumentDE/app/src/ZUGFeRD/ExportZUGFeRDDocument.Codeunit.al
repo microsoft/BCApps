@@ -526,7 +526,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DataTypeManagement: Codeunit "Data Type Management";
         HeaderRecordRef: RecordRef;
         HeaderTradeAgreementElement, SellerTradePartyElement, BuyerTradePartyElement, SpecifiedTaxRegistrationElement, IDElement : XmlElement;
-        SellerOrderReferencedDocumentElement: XmlElement;
+        SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement: XmlElement;
         PostalTradeAddressElement, ContactElement : XmlElement;
         SellerIDAttr, BuyerIDAttr : XmlAttribute;
         CustomerNo: Code[20];
@@ -542,6 +542,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         CustomerEmail: Text[250];
         PhoneNumber: Text[30];
         OrderNo: Code[20];
+        ExternalDocumentNo: Code[35];
         SellerStreetName: Text;
         SellerAdditionalStreetName: Text;
         SellerCityName: Text;
@@ -572,6 +573,7 @@ codeunit 13917 "Export ZUGFeRD Document"
                     CustomerEmail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), RecordVariant, CustomerNo, TempBodyReportSelections);
                     PhoneNumber := SalesInvoiceHeader."Sell-to Phone No.";
                     OrderNo := SalesInvoiceHeader."Order No.";
+                    ExternalDocumentNo := SalesInvoiceHeader."External Document No.";
                     RespCentrCode := SalesInvoiceHeader."Responsibility Center";
                     GetSellerContactInfo(SalesInvoiceHeader, SellerContactName, SellerPhoneNumber, SellerEmailAddress);
                 end;
@@ -592,6 +594,7 @@ codeunit 13917 "Export ZUGFeRD Document"
                     CustomerEmail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), RecordVariant, CustomerNo, TempBodyReportSelections);
                     PhoneNumber := SalesCrMemoHeader."Sell-to Phone No.";
                     OrderNo := SalesCrMemoHeader."Return Order No.";
+                    ExternalDocumentNo := SalesCrMemoHeader."External Document No.";
                     RespCentrCode := SalesCrMemoHeader."Responsibility Center";
                     GetSellerContactInfo(SalesCrMemoHeader, SellerContactName, SellerPhoneNumber, SellerEmailAddress);
                 end;
@@ -681,6 +684,12 @@ codeunit 13917 "Export ZUGFeRD Document"
             SellerOrderReferencedDocumentElement := XmlElement.Create('SellerOrderReferencedDocument', XmlNamespaceRAM);
             SellerOrderReferencedDocumentElement.Add(XmlElement.Create('IssuerAssignedID', XmlNamespaceRAM, OrderNo));
             HeaderTradeAgreementElement.Add(SellerOrderReferencedDocumentElement);
+        end;
+
+        if ExternalDocumentNo <> '' then begin
+            BuyerOrderReferencedDocumentElement := XmlElement.Create('BuyerOrderReferencedDocument', XmlNamespaceRAM);
+            BuyerOrderReferencedDocumentElement.Add(XmlElement.Create('IssuerAssignedID', XmlNamespaceRAM, ExternalDocumentNo));
+            HeaderTradeAgreementElement.Add(BuyerOrderReferencedDocumentElement);
         end;
 
         OnAfterInsertApplicableHeaderTradeAgreement(HeaderTradeAgreementElement, HeaderRecordRef);
