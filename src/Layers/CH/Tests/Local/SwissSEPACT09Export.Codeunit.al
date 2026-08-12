@@ -901,7 +901,6 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         GenJournalLine: Record "Gen. Journal Line";
         CHMgt: Codeunit CHMgt;
         FileName: Text;
-        MessageID: Text;
         VendorNo: Code[20];
         ExpectedMmbId: Code[5];
     begin
@@ -920,7 +919,6 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
           GenJournalLine."Account Type"::Vendor, GenJournalLine."Document Type"::Payment);
 
         // [WHEN] Export payments to file
-        MessageID := GetMessageID(GenJournalLine."Bal. Account No.");
         FileName := GenJournalLine_XMLExport(GenJournalLine);
 
         // [THEN] The payment is classified as Swiss Payment Type "2.2" (LclInstrm = "CH03")
@@ -2005,7 +2003,6 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         GenJournalLine: Record "Gen. Journal Line";
         CHMgt: Codeunit CHMgt;
         FileName: Text;
-        MessageID: Text;
         CustomerNo: Code[20];
         ExpectedMmbId: Code[5];
     begin
@@ -2023,7 +2020,6 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
           GenJournalLine."Account Type"::Customer, GenJournalLine."Document Type"::Refund);
 
         // [WHEN] Export payments to file
-        MessageID := GetMessageID(GenJournalLine."Bal. Account No.");
         FileName := GenJournalLine_XMLExport(GenJournalLine);
 
         // [THEN] <MmbId> holds the bank clearing number (IID) derived from the IBAN

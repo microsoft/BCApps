@@ -258,7 +258,7 @@ codeunit 11503 CHMgt
         if StrLen(PureIBAN) < 9 then
             exit('');
 
-        exit(CopyStr(DelChr(CopyStr(PureIBAN, 5, 5), '<', '0'), 1, 5));
+        ClearingNo := CopyStr(DelChr(CopyStr(PureIBAN, 5, 5), '<', '0'), 1, 5);
     end;
 
     procedure IsDomesticCurrency(CurrencyCode: Code[10]): Boolean
