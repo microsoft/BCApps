@@ -27,7 +27,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         WarehouseEntryTypeBlockedErr: Label '"%1" warehouse transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
         NavigatePageSearchFiltersTok: Label 'NAVIGATEFILTERS', Locked = true;
         BlockedByQualityInspectionTitleLbl: Label 'Blocked by quality inspection', Comment = 'Title for the error message when a transaction is blocked by a quality inspection';
-        ShowInspectionActionLbl: Label 'Show Quality Inspection %1', Comment = '%1 = Quality Inspection identifier';
+        ShowInspectionActionLbl: Label 'Show Quality Inspection';
 
     [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Setup."Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [InherentPermissions(PermissionObjectType::TableData, Database::Microsoft.QualityManagement.Configuration.Result."Qlty. Inspection Result", 'R', InherentPermissionsScope::Permissions)]
@@ -445,7 +445,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         BlockedErrorInfo.PageNo := Page::"Qlty. Inspection";
         BlockedErrorInfo.DataClassification := DataClassification::CustomerContent;
         BlockedErrorInfo.ErrorType := ErrorType::Client;
-        BlockedErrorInfo.AddNavigationAction(StrSubstNo(ShowInspectionActionLbl, QltyInspectionHeader.GetFriendlyIdentifier()));
+        BlockedErrorInfo.AddNavigationAction(ShowInspectionActionLbl);
         Error(BlockedErrorInfo);
     end;
 
