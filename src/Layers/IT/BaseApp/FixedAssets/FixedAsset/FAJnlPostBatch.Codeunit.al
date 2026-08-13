@@ -499,6 +499,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
                     end;
             OnPostLinesOnBeforeFAJnlPostLine(FAJnlLine, FAJnlPostLine);
             FAJnlPostLine.FAJnlPostLine(FAJnlLine, false);
+            OnPostLinesOnAfterFAJnlPostLine(FAJnlLine);
         until FAJnlLine.Next() = 0;
         PostCompressTable(FAJnlLine);
     end;
