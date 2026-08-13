@@ -19,7 +19,6 @@ codeunit 148150 "FI Company Field Report Test"
         VendorCrMemoNoTok: Label '123', Locked = true;
         ServiceSuppliesCode4CaptionLbl: Label 'Total Value of Service Supplies(Code 4)';
         FeatureIdTok: Label 'FIVATVIESDeclaration', Locked = true;
-        IsInitialized: Boolean;
 
     local procedure Initialize()
     var
@@ -36,8 +35,11 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryReportDataset.Reset();
         SetVATVIESDeclarationFeature(false);
 
-        if IsInitialized then
-            exit;
+        CompanyInformation.Get();
+        CompanyInformation."VAT Registration No." := 'FI12345678';
+        CompanyInformation."Business Identity Code" := BusinessIdentityCodeTxt;
+        CompanyInformation."Registered Home City" := RegisteredHomeCityTxt;
+        CompanyInformation.Modify();
 
         LibrarySales.SetCreditWarningsToNoWarnings();
         LibrarySales.SetStockoutWarning(false);
@@ -52,11 +54,6 @@ codeunit 148150 "FI Company Field Report Test"
             FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
             FeatureKeyUpdateStatus.Modify();
         end;
-
-        CompanyInformation.Get();
-        CompanyInformation."Business Identity Code" := BusinessIdentityCodeTxt;
-        CompanyInformation."Registered Home City" := RegisteredHomeCityTxt;
-        CompanyInformation.Modify();
 
         LibrarySales.SetOrderNoSeriesInSetup();
         LibrarySales.SetPostedNoSeriesInSetup();
@@ -84,7 +81,6 @@ codeunit 148150 "FI Company Field Report Test"
         SalesAndReceivablesSetup."Default Number" := '';
         SalesAndReceivablesSetup.Modify();
 
-        IsInitialized := true;
         Commit();
     end;
 
