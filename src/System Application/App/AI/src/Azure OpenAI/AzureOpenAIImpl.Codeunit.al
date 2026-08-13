@@ -113,8 +113,9 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 Error(FastPromptUnsupportedAuthorizationErr);
         end;
 
-        ClearLastError();
+
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.GetCapabilityName());
+        ClearLastError();
         ALCopilotFastPromptResponse := ALCopilotFunctions.GetFastPrompt(ConfigKey, ALCopilotAuthorization, ALCopilotCapability, CallerModuleInfo.Publisher());
 
         if IsNull(ALCopilotFastPromptResponse) then begin
@@ -124,6 +125,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 ErrorText := FastPromptResponseRetrievalErr;
             FastPromptResponse.Set(false, EmptySecretText, ErrorCode, ErrorText);
             CustomDimensions.Add('ErrorCode', ErrorCode);
+            CustomDimensions.Add('ErrorText', ErrorText);
             FeatureTelemetry.LogError('0000UZD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::ExtensionPublisher, CustomDimensions);
             exit(false);
         end;
