@@ -24,7 +24,7 @@ tableextension 31028 "Cash Document Line CZZ" extends "Cash Document Line CZP"
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
-                OnBeforeValidateAdvanceLetterNoCZZ(Rec, xRec, IsHandled);
+                OnBeforeValidateAdvanceLetterNoCZZ(Rec, IsHandled);
                 if IsHandled then
                     exit;
 
@@ -159,7 +159,7 @@ tableextension 31028 "Cash Document Line CZZ" extends "Cash Document Line CZP"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateAdvanceLetterNoCZZ(var CashDocumentLineCZP: Record "Cash Document Line CZP"; xCashDocumentLineCZP: Record "Cash Document Line CZP"; var IsHandled: Boolean)
+    local procedure OnBeforeValidateAdvanceLetterNoCZZ(var CashDocumentLineCZP: Record "Cash Document Line CZP"; var IsHandled: Boolean)
     begin
     end;
 
