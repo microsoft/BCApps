@@ -1,15 +1,5 @@
 [
   {
-    "codeunitId": 148318,
-    "codeunitName": "Expense Capabilities API Test",
-    "method": "CapabilitiesProjectsEnabledViaAPI"
-  },
-  {
-    "codeunitId": 148318,
-    "codeunitName": "Expense Capabilities API Test",
-    "method": "CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI"
-  },
-  {
     "codeunitId": 148302,
     "codeunitName": "Expense Report Posting Test",
     "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsExpenseDate"

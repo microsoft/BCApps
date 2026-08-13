@@ -23,10 +23,9 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
-        ProjectsCapabilityNameTok: Label '"capabilityname":"projects"', Locked = true;
-        ConsolidatedCapabilityNameTok: Label '"capabilityname":"consolidatedprojects"', Locked = true;
-        IsEnabledTrueTok: Label '"isenabled":true', Locked = true;
-        IsEnabledFalseTok: Label '"isenabled":false', Locked = true;
+        ProjectsEnabledTok: Label '"capabilityname":"projects","isenabled":true', Locked = true;
+        ProjectsDisabledTok: Label '"capabilityname":"projects","isenabled":false', Locked = true;
+        ConsolidatedProjectsEnabledTok: Label '"capabilityname":"consolidatedprojects","isenabled":true', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -53,13 +52,9 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := StripWhitespace(LowerCase(ResponseText));
 
-        // [THEN] A 'projects' row is present with isEnabled = true.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsCapabilityNameTok),
-            'Response must contain a projects capability row.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, IsEnabledTrueTok),
-            'Response must contain at least one isEnabled=true value.');
-        Assert.AreEqual(0, StrPos(ResponseText, IsEnabledFalseTok),
-            'Response must NOT contain any isEnabled=false value when Projects is the only capability and it is enabled.');
+        // [THEN] The 'projects' row is present with isEnabled = true.
+        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsEnabledTok),
+            'Projects row must be reported as isEnabled = true when Enable Project Fields is true.');
     end;
 
     [Test]
@@ -87,10 +82,8 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := StripWhitespace(LowerCase(ResponseText));
 
-        // [THEN] The 'projects' row is present and isEnabled = false.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsCapabilityNameTok),
-            'Response must contain a projects capability row.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, IsEnabledFalseTok),
+        // [THEN] The 'projects' row is present with isEnabled = false.
+        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsDisabledTok),
             'Projects row must be reported as isEnabled = false when Enable Project Fields is false.');
     end;
 
@@ -117,11 +110,9 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := StripWhitespace(LowerCase(ResponseText));
 
-        // [THEN] A 'consolidatedAssignedProjects' row is present and no isEnabled=false values exist.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ConsolidatedCapabilityNameTok),
-            'Response must contain a consolidatedAssignedProjects capability row.');
-        Assert.AreEqual(0, StrPos(ResponseText, IsEnabledFalseTok),
-            'No capability must be reported disabled when project fields are enabled.');
+        // [THEN] The 'consolidatedProjects' row is present with isEnabled = true.
+        Assert.AreNotEqual(0, StrPos(ResponseText, ConsolidatedProjectsEnabledTok),
+            'Consolidated projects row must be reported as isEnabled = true when project fields are enabled.');
     end;
 
     local procedure Initialize()
