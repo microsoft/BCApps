@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using System.Security.AccessControl;
 
-codeunit 148338 "Expense Activity Log Test"
+codeunit 148342 "Expense Activity Log Test"
 {
     Subtype = Test;
     TestType = UnitTest;
@@ -245,6 +245,7 @@ codeunit 148338 "Expense Activity Log Test"
             ExpenseReportLine."Document No." := ExpenseReportHeader."No.";
             ExpenseReportLine."Line No." := CategoryIndex * 10000;
             ExpenseReportLine."Expense Category" := CopyStr(PadStr(Format(CategoryIndex), 20, 'X'), 1, MaxStrLen(ExpenseReportLine."Expense Category"));
+            ExpenseReportLine."Receipt Attached" := CategoryIndex = 90;
             ExpenseReportLine.Insert();
         end;
 
@@ -263,6 +264,66 @@ codeunit 148338 "Expense Activity Log Test"
         Assert.IsTrue(Categories.ReadFrom(ExpenseActivityLogEntry.Categories), 'Categories must remain valid JSON.');
         Categories.Get(Categories.Count() - 1, LastCategory);
         Assert.AreEqual('...', LastCategory.AsValue().AsText(), 'An overflowing category snapshot must end with an ellipsis.');
+        Assert.AreEqual(1, ExpenseActivityLogEntry."Receipt Count", 'Receipt counting must continue after the category snapshot overflows.');
+    end;
+
+    [Test]
+    procedure ExistingReportStartsTimelineWhenResubmitted()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        // [SCENARIO] A report submitted before activity tracking starts gets a complete timeline when resubmitted.
+        // [GIVEN] A released report with an earlier submission timestamp but no activity entries.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        ExpenseReportHeader."Submission DateTime" := CurrentDateTime() - 1000;
+        ExpenseReportHeader.Modify(true);
+
+        // [WHEN] The existing report is resubmitted.
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+
+        // [THEN] The timeline starts with Created and records the action as Resubmitted.
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.FindSet();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Created, ExpenseActivityLogEntry."Event Type", 'The timeline must start with report creation.');
+        ExpenseActivityLogEntry.Next();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Resubmitted, ExpenseActivityLogEntry."Event Type", 'An earlier submission timestamp must produce Resubmitted.');
+        Assert.AreEqual(0, ExpenseActivityLogEntry.Next(), 'Only creation and resubmission entries are expected.');
+    end;
+
+    [Test]
+    procedure ReopeningApprovedReportIsLogged()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        // [SCENARIO] Reopening an approved report records the approver lifecycle action.
+        // [GIVEN] An approved report whose approver is the current BC user.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        SubmitterExpenseUser."User Id For Approvals" := '';
+        SubmitterExpenseUser.Modify();
+        ApproverExpenseUser."User Id For Approvals" := CopyStr(UserId(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ApproverExpenseUser.Modify();
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        ExpenseReportApprovalMgt.Approve(ExpenseReportHeader, ApproverExpenseUser."No.");
+
+        // [WHEN] The approver reopens the approved report.
+        ExpenseReportApprovalMgt.ReopenApproved(ExpenseReportHeader);
+
+        // [THEN] ReopenedByApprover is the latest activity.
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.FindLast();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::ReopenedByApprover, ExpenseActivityLogEntry."Event Type", 'Reopening an approved report must be logged.');
+        Assert.AreEqual(ApproverExpenseUser.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'The reopen entry must identify the approver.');
     end;
 
     [Test]

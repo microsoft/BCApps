@@ -121,14 +121,23 @@ codeunit 6901 "Expense Report Approval Mgmt"
     end;
 
     procedure ReopenApproved(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ApproverExpenseUserNo: Code[20];
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval" then
             exit;
 
         CheckApproverPermissions(ExpenseReportHeader);
+        ApproverExpenseUserNo := GetExpenseUserNo();
         ExpenseReportHeader.UpdateApproverID();
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Pending Approval";
         ExpenseReportHeader.Modify(true);
+        LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::ReopenedByApprover,
+            Enum::"Expense Activity Actor Role"::Approver,
+            ApproverExpenseUserNo,
+            '');
     end;
 
     procedure Reject(var ExpenseReportHeader: Record "Expense Report Header")
@@ -222,13 +231,14 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
         EventType: Enum "Expense Activity Event Type";
     begin
-        // Start the timeline with the earlier Created event once; later submissions are Resubmitted.
+        // Start tracking with the earlier Created event, including reports first acted on after upgrade.
+        if not ExpenseActivityLogMgt.HasEntriesForSource(Database::"Expense Report Header", ExpenseReportHeader.SystemId) then
+            ExpenseActivityLogMgt.LogExpenseReportCreatedEvent(ExpenseReportHeader);
+
         if IsResubmission then
             EventType := EventType::Resubmitted
-        else begin
-            ExpenseActivityLogMgt.LogExpenseReportCreatedEvent(ExpenseReportHeader);
+        else
             EventType := EventType::Submitted;
-        end;
 
         ExpenseActivityLogMgt.LogExpenseReportEvent(
             ExpenseReportHeader,

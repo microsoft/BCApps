@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.Security.AccessControl;
 
-table 6938 "Expense Activity Log Entry"
+table 7100 "Expense Activity Log Entry"
 {
     Access = Internal;
     Caption = 'Expense Activity Log Entry';

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7099 "Expense Activity Log FactBox"
+page 7072 "Expense Activity Log FactBox"
 {
     PageType = ListPart;
     SourceTable = "Expense Activity Log Entry";

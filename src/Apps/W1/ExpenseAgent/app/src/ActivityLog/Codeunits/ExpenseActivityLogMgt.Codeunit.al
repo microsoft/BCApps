@@ -247,6 +247,7 @@ codeunit 6913 "Expense Activity Log Mgt."
         CategoryCodes: List of [Code[20]];
         CategoriesText: Text;
         CandidateCategoriesText: Text;
+        CategoriesTruncated: Boolean;
     begin
         ExpenseReportLine.SetLoadFields("Expense Category", "Receipt Attached");
         ExpenseReportLine.SetRange("Document No.", ExpenseReportNo);
@@ -256,7 +257,10 @@ codeunit 6913 "Expense Activity Log Mgt."
                     ExpenseActivityLogEntry."Receipt Count" += 1;
 
                 // Add the category to the list if it is not already present and if it fits within the maximum length of the Categories field.
-                if (ExpenseReportLine."Expense Category" <> '') and (not CategoryCodes.Contains(ExpenseReportLine."Expense Category")) then begin
+                if (not CategoriesTruncated) and
+                   (ExpenseReportLine."Expense Category" <> '') and
+                   (not CategoryCodes.Contains(ExpenseReportLine."Expense Category"))
+                then begin
                     CategoryCodes.Add(ExpenseReportLine."Expense Category");
                     Categories.Add(ExpenseReportLine."Expense Category");
                     Categories.WriteTo(CandidateCategoriesText);
@@ -269,7 +273,7 @@ codeunit 6913 "Expense Activity Log Mgt."
                             Categories.WriteTo(CandidateCategoriesText);
                         end;
                         CategoriesText := CandidateCategoriesText;
-                        break;
+                        CategoriesTruncated := true;
                     end;
                     CategoriesText := CandidateCategoriesText;
                 end;

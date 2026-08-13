@@ -134,6 +134,10 @@ codeunit 148340 "Expense Agent API Scenarios"
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         Employee: Record Employee;
     begin
+        SubmitterExpenseUser.SetRange("User Id For Approvals", UserId());
+        SubmitterExpenseUser.ModifyAll("User Id For Approvals", '');
+        SubmitterExpenseUser.Reset();
+
         LibraryExpense.CreateExpenseUser(SubmitterExpenseUser);
         SubmitterExpenseUser.Name := CopyStr('Activity Submitter ' + RunToken, 1, MaxStrLen(SubmitterExpenseUser.Name));
         SubmitterExpenseUser."User Id For Approvals" :=
