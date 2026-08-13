@@ -1,6 +1,6 @@
 {
   "schema": "soa-attachment-content",
-  "document_summary": "Purchase order from Fabrikam Retail requesting four products for delivery to the Boston warehouse.",
+  "document_summary": "Purchase order from Fabrikam Retail requesting three products and one installation service for delivery to the Boston warehouse.",
   "parties": [
     {
       "role": "buyer",
@@ -37,7 +37,7 @@
     {
       "type": "ship-by date",
       "value": "2026-03-16",
-      "applies_to_source_location": "line 3"
+      "source_location": "line 3"
     }
   ],
   "items": [
@@ -98,7 +98,7 @@
           "value": "TC-7734"
         }
       ],
-      "description": "PARIS Guest Table, oak veneer top, 1400 x 800 mm, four legs, flat-packed",
+      "description": "PARIS Guest Table, oak veneer top, 1400 x 800 mm, four legs, flat-packed, model year 2025",
       "quantity": 3,
       "unit_of_measure": "EA",
       "attributes": [
@@ -125,38 +125,34 @@
       "identifiers": [
         {
           "type": "catalog number",
-          "value": "CAT-0099-XL"
+          "value": "CAT-4410-Z"
         }
       ],
-      "description": "MUNICH Storage Cabinet, white, XL, six shelves, lockable doors",
+      "description": "OSLO Shelf Support Pins, zinc-plated steel, 5 mm diameter, supplied in boxes of 250",
       "quantity": 5,
       "unit_of_measure": "BOX 250",
       "attributes": [
         {
-          "name": "Color",
-          "value": "White"
+          "name": "Material",
+          "value": "Zinc-plated steel"
         },
         {
-          "name": "Size",
-          "value": "XL"
+          "name": "Diameter",
+          "value": "5 mm"
         },
         {
-          "name": "Shelf Count",
-          "value": "6"
-        },
-        {
-          "name": "Lockable",
-          "value": "Yes"
+          "name": "Package Size",
+          "value": "250 pieces per box"
         }
       ],
       "status_notes": [
-        "Replaces discontinued CAT-0099-L",
+        "Replaces discontinued CAT-4410-N",
         "Partial delivery accepted"
       ],
       "source_location": "line 3"
     },
     {
-      "description": "On-site installation service for the delivered furniture",
+      "description": "On-site installation service for the delivered furniture, preferred time window weekday mornings",
       "quantity": 1,
       "unit_of_measure": "SERVICE",
       "attributes": [
@@ -183,6 +179,7 @@
     }
   ],
   "warnings": [
-    "The requested delivery date for line 3 is not visible in the document"
+    "The unit of measure on line 3 is printed as BOX 250 and carries a pack size, so the quantity 5 means 5 boxes rather than 5 pieces.",
+    "The item table on page 1 is skewed and its columns were matched to their headers by position."
   ]
 }
