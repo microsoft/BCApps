@@ -20,6 +20,46 @@
     "method": "CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI"
   },
   {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "ActivityLogCapabilityEnabledViaAPI"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "ActivityLogEntryIsExposedThroughReadOnlyAPI"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "ActivityLogAPIRejectsWrites"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "NonSnapshotActivityDoesNotExposeCurrencies"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "UnscopedActivityAPIHidesEntries"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "SubmitterHistoryReturnsCompleteTimelinesForSubmittedReports"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "ApproverHistoryReturnsCompleteTimelinesForActedOnReports"
+  },
+  {
+    "codeunitId": 148340,
+    "codeunitName": "Expense Agent API Scenarios",
+    "method": "CreatePersistentActivityScenarios"
+  },
+  {
     "codeunitId": 148333,
     "codeunitName": "Expense Agent Setup API Test",
     "method": "EmailAddressFieldIsExposedThroughAPI"

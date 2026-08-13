@@ -119,15 +119,26 @@ codeunit 6987 "Expense Report-Post"
     end;
 
     local procedure CheckAndCreatePostedDocument(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
         AmountToEmployee := 0;
         ValidateExpenseReportForPosting(ExpenseReportHeader);
         CreatePostedExpenseReport(ExpenseReportHeader);
+        if not PreviewMode then
+            if ExpenseActivityLogMgt.HasEntriesForSource(Database::"Expense Report Header", ExpenseReportHeader.SystemId) then
+                ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
+                    ExpenseReportHeader,
+                    Enum::"Expense Activity Event Type"::Posted,
+                    Enum::"Expense Activity Actor Role"::" ",
+                    '');
         UpdateLastPostingNos(ExpenseReportHeader);
         ProcessExpenseReportLines(ExpenseReportHeader);
         InsertPstdExpReportHeaderVATSpecs(ExpenseReportHeader."No.", PostedExpenseReportHeader."No.");
         if AmountToEmployee <> 0 then
             PostEmployeeEntry(ExpenseReportHeader);
+        if not PreviewMode then
+            ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(ExpenseReportHeader, PostedExpenseReportHeader);
     end;
 
     local procedure ValidateExpenseReportForPosting(var ExpenseReportHeader: Record "Expense Report Header")
