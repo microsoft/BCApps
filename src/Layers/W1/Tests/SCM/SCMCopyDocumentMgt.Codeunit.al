@@ -27,6 +27,7 @@ codeunit 137212 "SCM Copy Document Mgt."
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryRandom: Codeunit "Library - Random";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryE2EPlanPermissions: Codeunit "Library - E2E Plan Permissions";
         IsInitialized: Boolean;
         MsgCorrectedInvoiceNo: Label 'have a Corrected Invoice No. Do you want to continue?';
         WrongDimensionsCopiedErr: Label 'Wrong dimensions in copied document';
@@ -1765,8 +1766,8 @@ codeunit 137212 "SCM Copy Document Mgt."
         CreateEmptySalesHeader(ToSalesHeader, ToSalesHeader."Document Type"::Quote);
         Commit();
 
-        // [GIVEN] User is now restricted to the D365 Team Member permission set (regression harness for AB#630947)
-        LibraryLowerPermissions.SetTeamMember();
+        // [GIVEN] User is now restricted to the D365 Team Member plan (regression harness for AB#630947)
+        LibraryE2EPlanPermissions.SetTeamMemberPlan();
 
         // [WHEN] Copy Document is executed for the source quote into the target quote
         CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
