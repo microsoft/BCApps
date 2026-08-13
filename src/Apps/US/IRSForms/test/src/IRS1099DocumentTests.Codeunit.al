@@ -1389,7 +1389,6 @@ codeunit 148010 "IRS 1099 Document Tests"
         VendorLedgEntry: Record "Vendor Ledger Entry";
         VendNo: Code[20];
         FormNo: Code[20];
-        FormBoxNo: Code[20];
         PeriodNo: Code[20];
         InvNo: Code[20];
     begin
@@ -1400,7 +1399,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [GIVEN] IRS Reporting Period "P" with form "F" and form box "FB"
         PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
-        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
+        LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
 
         // [GIVEN] Vendor "V" with NO IRS 1099 form box setup (plain vendor)
         VendNo := LibraryPurchase.CreateVendorNo();
@@ -1460,7 +1459,6 @@ codeunit 148010 "IRS 1099 Document Tests"
         VendorLedgEntry: Record "Vendor Ledger Entry";
         VendNo: Code[20];
         FormNo: Code[20];
-        FormBoxNo: Code[20];
         PeriodNo: Code[20];
         InvNo: Code[20];
     begin
@@ -1471,7 +1469,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [GIVEN] IRS Reporting Period "P" with form "F" and form box "FB"
         PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
-        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
+        LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
 
         // [GIVEN] Vendor "V" with NO IRS 1099 form box setup
         VendNo := LibraryPurchase.CreateVendorNo();
