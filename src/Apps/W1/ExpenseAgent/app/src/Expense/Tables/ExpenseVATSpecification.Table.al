@@ -33,6 +33,9 @@ table 6918 "Expense VAT Specification"
 
             trigger OnValidate()
             begin
+                if not Recalculate then
+                    exit;
+
                 GetExpense();
                 if Expense."Expense Category" <> '' then
                     Validate("Expense Category", "Expense Category");
@@ -57,6 +60,9 @@ table 6918 "Expense VAT Specification"
 
             trigger OnValidate()
             begin
+                if not Recalculate then
+                    exit;
+
                 InitializeCurrency();
                 "VAT Amount" := Round(Amount * "VAT %" / (100 + "VAT %"), Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
                 "VAT Base Amount" := Round(Amount - "VAT Amount", Currency."Amount Rounding Precision");
@@ -91,6 +97,9 @@ table 6918 "Expense VAT Specification"
 
             trigger OnValidate()
             begin
+                if not Recalculate then
+                    exit;
+
                 ValidateAmount();
             end;
         }
@@ -151,6 +160,9 @@ table 6918 "Expense VAT Specification"
 
             trigger OnValidate()
             begin
+                if not Recalculate then
+                    exit;
+
                 GetExpense();
                 if Expense."Currency Code" = '' then begin
                     Amount := "Amount (LCY)";
@@ -174,6 +186,8 @@ table 6918 "Expense VAT Specification"
             var
                 ExpenseCategory: Record "Expense Category";
             begin
+                if not Recalculate then
+                    exit;
                 if "Expense Category" = '' then
                     exit;
                 if "Expense Subcategory" <> '' then
@@ -196,6 +210,8 @@ table 6918 "Expense VAT Specification"
                 ExpenseSubcategory: Record "Expense Subcategory";
                 ExpenseCategory: Record "Expense Category";
             begin
+                if not Recalculate then
+                    exit;
                 if "Expense Subcategory" <> '' then begin
                     if ExpenseSubcategory.Get("Expense Category", "Expense Subcategory") then begin
                         "VAT Prod. Posting Group" := ExpenseSubcategory."VAT Prod. Posting Group";
@@ -254,6 +270,7 @@ table 6918 "Expense VAT Specification"
         CurrExchRate: Record "Currency Exchange Rate";
         Expense: Record Expense;
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        Recalculate: Boolean;
 
     local procedure CalcVATAmountLCY(): Decimal
     var
@@ -355,5 +372,10 @@ table 6918 "Expense VAT Specification"
             exit('');
         Rec.Reasoning.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(Result);
+    end;
+
+    procedure SetRecalculation(NewRecalculate: Boolean)
+    begin
+        Recalculate := NewRecalculate;
     end;
 }
