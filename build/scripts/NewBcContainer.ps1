@@ -22,13 +22,6 @@ if ($platformVersion) {
     $parameters.platformArtifactUrl = "$platformUrl/platform"
 }
 
-$genericImageName = Get-BestGenericImageName
-Write-Host "Pulling latest generic Business Central container image '$genericImageName'"
-docker pull $genericImageName
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to pull Docker image '$genericImageName'"
-}
-
 New-BcContainer @parameters
 
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "EnforceUserPathForAlFileOperations" -keyValue "false"
