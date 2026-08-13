@@ -121,7 +121,13 @@ pageextension 18252 "GST Cash Receipt Voucher Ext" extends "Cash Receipt Voucher
     local procedure CallTaxEngine()
     var
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
+        CalculateTax.RunOnBeforeUpdateTaxAmountOnGenJnlLine(Rec, xRec, IsHandled);
+        if IsHandled then
+            exit;
+
+        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }
