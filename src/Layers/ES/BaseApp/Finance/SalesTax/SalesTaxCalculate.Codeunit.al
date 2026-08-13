@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 /// Provides comprehensive sales tax calculation functionality for transactions.
 /// Handles complex tax scenarios including tax-on-tax calculations and multi-jurisdictional rates.
 /// </summary>
+#pragma warning disable AA0206
 codeunit 398 "Sales Tax Calculate"
 {
 
