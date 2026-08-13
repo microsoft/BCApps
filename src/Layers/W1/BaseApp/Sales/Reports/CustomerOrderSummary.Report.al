@@ -23,7 +23,7 @@ report 107 "Customer - Order Summary"
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
     //DefaultHeaderFooterPart = Internal_Default;
-    //DefaultThemePart = 
+    //DefaultThemePart = 'BC Default';
 
     dataset
     {

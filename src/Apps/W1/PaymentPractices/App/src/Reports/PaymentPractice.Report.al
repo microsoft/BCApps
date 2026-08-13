@@ -78,18 +78,18 @@ report 685 "Payment Practice"
 
     rendering
     {
+#if not CLEAN32
         layout(PaymentPractice_PeriodLayout)
-        #if not CLEAN32
         {
             Type = Word;
             Caption = 'Payment Practice by Period';
             Summary = 'Payment Practice by Period';
             LayoutFile = 'src/Reports/Payment Practice by Period.docx';
-             ObsoleteState = Pending;
+            ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-        #endif 
+#endif
 #if not CLEAN32
         layout(PaymentPractice_SmallBusinessLayout)
         {
@@ -97,23 +97,23 @@ report 685 "Payment Practice"
             Caption = 'Payment Practice Small Business';
             Summary = 'Payment Practice Small Business';
             LayoutFile = 'src/Reports/Payment Practice Small Business.docx';
-             ObsoleteState = Pending;
+            ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-        #endif
-        #if not CLEAN32
+#endif
+#if not CLEAN32
         layout(PaymentPractice_VendorSizeLayout)
         {
             Type = Word;
             Caption = 'Payment Practice by Vendor Size';
             Summary = 'Payment Practice by Vendor Size';
             LayoutFile = 'src/Reports/Payment Practice by Vendor Size.docx';
-             ObsoleteState = Pending;
+            ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-        #endif
+#endif
         layout(PaymentPractice_PeriodLayoutBody)
         {
             Type = Word;
