@@ -642,7 +642,7 @@ codeunit 57 "Document Totals"
         end;
 
         if PurchHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
-            if TryGetGroupedVATAmount(PurchHeader, GroupedVATAmount) then
+            if GetGroupedVATAmount(PurchHeader, GroupedVATAmount) then
                 if GroupedVATAmount <> VATAmount then begin
                     VATAmount := GroupedVATAmount;
                     TotalPurchaseLine."Amount Including VAT" := TotalPurchaseLine.Amount + VATAmount;
@@ -734,7 +734,7 @@ codeunit 57 "Document Totals"
                     end;
             end;
 
-        if TryGetGroupedVATAmount(TotalPurchaseHeader, GroupedVATAmount) and (GroupedVATAmount <> VATAmount) then begin
+        if GetGroupedVATAmount(TotalPurchaseHeader, GroupedVATAmount) and (GroupedVATAmount <> VATAmount) then begin
             VATAmount := GroupedVATAmount;
             TotalPurchaseLine2."Amount Including VAT" := TotalPurchaseLine2.Amount + VATAmount;
             TotalPurchaseLine."Amount Including VAT" := TotalPurchaseLine2."Amount Including VAT";
@@ -746,7 +746,7 @@ codeunit 57 "Document Totals"
         TotalPurchaseLine := TotalPurchaseLine2;
     end;
 
-    local procedure TryGetGroupedVATAmount(var PurchHeader: Record "Purchase Header"; var GroupedVATAmount: Decimal): Boolean
+    local procedure GetGroupedVATAmount(var PurchHeader: Record "Purchase Header"; var GroupedVATAmount: Decimal): Boolean
     var
         PurchLine: Record "Purchase Line";
         TempVATAmountLine: Record "VAT Amount Line" temporary;

@@ -645,11 +645,12 @@ codeunit 57 "Document Totals"
         end;
 
         if PurchHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
-            if TryGetGroupedVATAmount(PurchHeader, GroupedVATAmount) then
-                if GroupedVATAmount <> VATAmount then begin
-                    VATAmount := GroupedVATAmount;
-                    TotalPurchaseLine."Amount Including VAT" := TotalPurchaseLine.Amount + VATAmount;
-                end;
+            if not PurchaseDocHasRevChargeOrNonDeductibleVAT(PurchHeader) then
+                if GetGroupedVATAmount(PurchHeader, GroupedVATAmount) then
+                    if GroupedVATAmount <> VATAmount then begin
+                        VATAmount := GroupedVATAmount;
+                        TotalPurchaseLine."Amount Including VAT" := TotalPurchaseLine.Amount + VATAmount;
+                    end;
 
         OnAfterPurchDeltaUpdateTotals(PurchaseLine, xPurchaseLine, TotalPurchaseLine, VATAmount, InvoiceDiscountAmount, InvoiceDiscountPct);
     end;
@@ -681,6 +682,7 @@ codeunit 57 "Document Totals"
         TotalPurchaseLine2: Record "Purchase Line";
         PurchaseLineWithReverseChargeVAT: Record "Purchase Line";
         VATAmountOfLinesWithRevChargeVAT: Decimal;
+        NonDeductibleVATAmount: Decimal;
         GroupedVATAmount: Decimal;
         IsHandled: Boolean;
     begin
@@ -758,13 +760,16 @@ codeunit 57 "Document Totals"
             repeat
                 TotalPurchaseLine2.Amount += PurchaseLine2.GetNonDeductibleVATAmount();
                 VATAmount -= PurchaseLine2.GetNonDeductibleVATAmount();
+                NonDeductibleVATAmount += PurchaseLine2.GetNonDeductibleVATAmount();
             until PurchaseLine2.Next() = 0;
 
-        if TryGetGroupedVATAmount(TotalPurchaseHeader, GroupedVATAmount) and (GroupedVATAmount <> VATAmount) then begin
-            VATAmount := GroupedVATAmount;
-            TotalPurchaseLine2."Amount Including VAT" := TotalPurchaseLine2.Amount + VATAmount;
-            TotalPurchaseLine."Amount Including VAT" := TotalPurchaseLine2."Amount Including VAT";
-        end;
+        // Reconcile with grouped (statistics) VAT only when no BE-specific reverse charge or non-deductible VAT adjustments apply
+        if (VATAmountOfLinesWithRevChargeVAT = 0) and (NonDeductibleVATAmount = 0) then
+            if GetGroupedVATAmount(TotalPurchaseHeader, GroupedVATAmount) and (GroupedVATAmount <> VATAmount) then begin
+                VATAmount := GroupedVATAmount;
+                TotalPurchaseLine2."Amount Including VAT" := TotalPurchaseLine2.Amount + VATAmount;
+                TotalPurchaseLine."Amount Including VAT" := TotalPurchaseLine2."Amount Including VAT";
+            end;
 
         OnAfterCalculatePurchaseSubPageTotals(
           TotalPurchaseHeader, TotalPurchaseLine, VATAmount, InvoiceDiscountAmount, InvoiceDiscountPct, TotalPurchaseLine2);
@@ -772,7 +777,7 @@ codeunit 57 "Document Totals"
         TotalPurchaseLine := TotalPurchaseLine2;
     end;
 
-    local procedure TryGetGroupedVATAmount(var PurchHeader: Record "Purchase Header"; var GroupedVATAmount: Decimal): Boolean
+    local procedure GetGroupedVATAmount(var PurchHeader: Record "Purchase Header"; var GroupedVATAmount: Decimal): Boolean
     var
         PurchLine: Record "Purchase Line";
         TempVATAmountLine: Record "VAT Amount Line" temporary;
@@ -783,6 +788,21 @@ codeunit 57 "Document Totals"
         PurchLine.CalcVATAmountLines(0, PurchHeader, PurchLine, TempVATAmountLine);
         GroupedVATAmount := TempVATAmountLine.GetTotalVATAmount();
         exit(true);
+    end;
+
+    local procedure PurchaseDocHasRevChargeOrNonDeductibleVAT(PurchHeader: Record "Purchase Header"): Boolean
+    var
+        PurchLine: Record "Purchase Line";
+    begin
+        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchHeader."No.");
+        PurchLine.SetRange("VAT Calculation Type", PurchLine."VAT Calculation Type"::"Reverse Charge VAT");
+        if not PurchLine.IsEmpty() then
+            exit(true);
+
+        PurchLine.SetRange("VAT Calculation Type");
+        PurchLine.SetFilter("Non Deductible VAT %", '<>%1', 0);
+        exit(not PurchLine.IsEmpty());
     end;
 
     procedure CalculatePostedPurchInvoiceTotals(var PurchInvHeader: Record "Purch. Inv. Header"; var VATAmount: Decimal; PurchInvLine: Record "Purch. Inv. Line")

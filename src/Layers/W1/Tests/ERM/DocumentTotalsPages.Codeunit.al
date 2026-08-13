@@ -2197,10 +2197,10 @@ codeunit 134344 "Document Totals Pages"
     procedure PurchInvTotalInclVATMatchesStatisticsAfterVATAdjMixedVATGroupsSameAccount()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseInvoicePage: TestPage "Purchase Invoice";
         PurchaseLine: Record "Purchase Line";
         VATPostingSetup: array[2] of Record "VAT Posting Setup";
         VATProductPostingGroup: Record "VAT Product Posting Group";
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
         GLAccountNo: Code[20];
         MaxVATDifference: Decimal;
         TotalAmountInclVATBefore: Decimal;
