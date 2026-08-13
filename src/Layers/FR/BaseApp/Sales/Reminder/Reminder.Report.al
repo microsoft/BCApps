@@ -34,6 +34,8 @@ report 117 Reminder
 #else
     DefaultRenderingLayout = "Reminder.rdlc";
 #endif
+    //DefaultHeaderFooterPart = None;
+    //DefaultThemePart = "BC Default Theme";
     WordMergeDataItem = "Issued Reminder Header";
 
     dataset
@@ -899,12 +901,25 @@ report 117 Reminder
             Summary = 'The Reminder (RDLC) provides a detailed layout.';
         }
 #endif
+#if not CLEAN32
         layout("DefaultReminderEmail.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Reminder/DefaultReminderEmail.docx';
             Caption = 'Default Reminder Email (Word)';
             Summary = 'The Default Reminder Email (Word) provides an email body for the reminder.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("DefaultReminderEmailBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/Reminder/DefaultReminderEmailBody.docx';
+            Caption = 'Body-only: Default Reminder Email (Word)';
+            Summary = 'Portrait reminder email body. Greeting and body text with amount due, reminder lines (document no./type, description, due date and remaining amount), total including VAT, closing text, and company address.';
         }
     }
 
