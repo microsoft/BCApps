@@ -916,6 +916,96 @@ codeunit 134004 "ERM Partial Payment Vendor"
         Assert.IsFalse(VendorLedgerEntry.Open, 'New payment should be closed.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToOldestPaymentExactOffsetSettlesNewDocument()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorNo: Code[20];
+        BalGLAccountNo: Code[20];
+        PaymentAmount: Decimal;
+        InvoiceRemaining: Decimal;
+    begin
+        // [SCENARIO 9529] Exact-offset boundary for the tightened "< 0" early exit. The open same-sign payment plus
+        // the new payment net to exactly zero against the newer invoice, but the older invoice must still flip the
+        // sign decision. In this net-balance-opposes-the-new-document edge the new payment must be settled in full
+        // and the residual must land on the invoices - exactly as summing every open entry would. Exiting at the
+        // exact zero (the former "<= 0" behaviour) would leave the new payment open instead, so this locks in the
+        // "< 0" comparison.
+        Initialize();
+
+        // [GIVEN] A vendor with Application Method = "Apply to Oldest"
+        VendorNo := CreateVendorWithApplyToOldest();
+        BalGLAccountNo := LibraryERM.CreateGLAccountNo();
+        PaymentAmount := 2 * LibraryRandom.RandIntInRange(100, 200);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, FindGeneralJournalTemplate());
+
+        // [GIVEN] An open payment of "A" (same sign as the new payment), dated after the invoices
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Vendor, VendorNo, PaymentAmount);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 3);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] An older invoice of "A" and a newer invoice of "3 * A", back-dated so they stay open
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Vendor, VendorNo, -PaymentAmount);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 1);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Vendor, VendorNo, -PaymentAmount * 3);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 2);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] A payment of "2 * A" is posted (weighing: +2A +A -3A = exactly 0, then -A after the older invoice)
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Vendor, VendorNo, PaymentAmount * 2);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 10);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The new payment is settled in full - not left open with a flipped remaining amount
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Payment);
+        VendorLedgerEntry.SetRange("Posting Date", WorkDate() + 10);
+        VendorLedgerEntry.FindFirst();
+        VendorLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, VendorLedgerEntry."Remaining Amount", 'New payment should be fully applied.');
+        Assert.IsFalse(VendorLedgerEntry.Open, 'New payment should be closed.');
+
+        // [THEN] Only the net balance (-A) remains, and it stays on the invoices - not on the new payment
+        VendorLedgerEntry.Reset();
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+        VendorLedgerEntry.FindSet();
+        repeat
+            VendorLedgerEntry.CalcFields("Remaining Amount");
+            InvoiceRemaining += VendorLedgerEntry."Remaining Amount";
+        until VendorLedgerEntry.Next() = 0;
+        Assert.AreEqual(-PaymentAmount, InvoiceRemaining, 'Only the net balance should remain, on the invoices.');
+    end;
+
     local procedure ApplytoOldestWithInvoice(DocumentType: Enum "Gen. Journal Document Type")
     var
         GenJournalLine: Record "Gen. Journal Line";
