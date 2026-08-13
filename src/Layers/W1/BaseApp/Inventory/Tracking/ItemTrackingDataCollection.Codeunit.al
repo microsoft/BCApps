@@ -558,10 +558,14 @@ codeunit 6501 "Item Tracking Data Collection"
         WhseActivLine.SetCurrentKey(
           "Item No.", "Location Code", "Activity Type", "Bin Type Code",
           "Unit of Measure Code", "Variant Code", "Breakbulk No.", "Action Type");
+        WhseActivLine.SetLoadFields(
+          "Item No.", "Variant Code", "Location Code", "Activity Type", "No.", "Line No.",
+          "Source Type", "Source Subtype", "Source No.", "Source Line No.",
+          "Lot No.", "Serial No.", "Package No.", "Qty. Outstanding (Base)");
         WhseActivLine.SetRange("Item No.", TrackingSpecification."Item No.");
         WhseActivLine.SetRange("Variant Code", TrackingSpecification."Variant Code");
         WhseActivLine.SetRange("Location Code", TrackingSpecification."Location Code");
-        WhseActivLine.SetRange("Activity Type", WhseActivLine."Activity Type"::Pick);
+        WhseActivLine.SetFilter("Activity Type", '%1|%2', WhseActivLine."Activity Type"::Pick, WhseActivLine."Activity Type"::"Invt. Pick");
         // Blank Action Type covers Inventory Pick lines (single-step pick with no Take/Place split).
         WhseActivLine.SetFilter("Action Type", '%1|%2', WhseActivLine."Action Type"::Take, WhseActivLine."Action Type"::" ");
         WhseActivLine.SetRange("Breakbulk No.", 0);
