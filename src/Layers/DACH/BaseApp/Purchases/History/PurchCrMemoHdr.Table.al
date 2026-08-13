@@ -566,6 +566,12 @@ table 124 "Purch. Cr. Memo Hdr."
             ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            Editable = false;
+            TableRelation = "Business Activity".Code;
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';

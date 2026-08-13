@@ -42,6 +42,7 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
+using Microsoft.Utilities;
 using System.IO;
 using System.Threading;
 
@@ -1221,6 +1222,11 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'Exported to Payment File';
             Editable = false;
+        }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
         }
         /// <summary>
         /// Dimension set identifier linking posted entries to dimension combinations for analytical reporting and financial analysis.

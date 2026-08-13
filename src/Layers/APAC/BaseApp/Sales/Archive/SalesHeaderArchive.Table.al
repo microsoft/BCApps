@@ -36,6 +36,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
+using Microsoft.Utilities;
 using System.Globalization;
 using System.Reflection;
 using System.Security.AccessControl;
@@ -1189,6 +1190,11 @@ table 5107 "Sales Header Archive"
             Caption = 'Ship-to Phone No.';
             ExtendedDatatype = PhoneNo;
             ToolTip = 'Specifies the telephone number of the company''s shipping address.';
+        }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
         }
         /// <summary>
         /// Specifies the unique identifier for the combination of dimension values assigned to this document.

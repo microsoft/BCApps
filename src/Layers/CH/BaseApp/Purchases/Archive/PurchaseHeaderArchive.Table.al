@@ -34,6 +34,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
+using Microsoft.Utilities;
 using System.Globalization;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -740,6 +741,11 @@ table 5109 "Purchase Header Archive"
             Caption = 'Ship-to Phone No.';
             ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
+        }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
         }
         field(480; "Dimension Set ID"; Integer)
         {

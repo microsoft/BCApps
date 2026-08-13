@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
@@ -467,6 +468,11 @@ table 79 "Company Information"
             begin
                 SetBrandColorValue();
             end;
+        }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
         }
         field(5700; "Responsibility Center"; Code[10])
         {

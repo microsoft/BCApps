@@ -781,6 +781,11 @@ table 254 "VAT Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Percentage of VAT that is non-deductible based on business use or regulatory restrictions.
         /// </summary>

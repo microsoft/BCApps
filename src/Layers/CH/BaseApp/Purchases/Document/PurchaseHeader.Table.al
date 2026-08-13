@@ -2319,6 +2319,11 @@ table 38 "Purchase Header"
             FieldClass = FlowField;
             AutoFormatType = 1;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
