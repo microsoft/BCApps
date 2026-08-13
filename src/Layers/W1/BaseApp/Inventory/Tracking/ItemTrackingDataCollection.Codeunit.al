@@ -555,6 +555,9 @@ codeunit 6501 "Item Tracking Data Collection"
         if TrackingSpecification."Item No." = '' then
             exit;
 
+        WhseActivLine.SetCurrentKey(
+          "Item No.", "Location Code", "Activity Type", "Bin Type Code",
+          "Unit of Measure Code", "Variant Code", "Breakbulk No.", "Action Type");
         WhseActivLine.SetRange("Item No.", TrackingSpecification."Item No.");
         WhseActivLine.SetRange("Variant Code", TrackingSpecification."Variant Code");
         WhseActivLine.SetRange("Location Code", TrackingSpecification."Location Code");
@@ -568,34 +571,38 @@ codeunit 6501 "Item Tracking Data Collection"
         if WhseActivLine.FindSet() then
             repeat
                 if (WhseActivLine."Lot No." <> '') or (WhseActivLine."Serial No." <> '') or (WhseActivLine."Package No." <> '') then
-                    if not PickBelongsToCurrentSource(WhseActivLine, TrackingSpecification) then begin
-                        LastReservEntryNo -= 1;
-                        TempGlobalReservEntry.Init();
-                        TempGlobalReservEntry."Entry No." := LastReservEntryNo;
-                        TempGlobalReservEntry."Reservation Status" := TempGlobalReservEntry."Reservation Status"::Prospect;
-                        TempGlobalReservEntry.Positive := false;
-                        TempGlobalReservEntry."Item No." := WhseActivLine."Item No.";
-                        TempGlobalReservEntry."Variant Code" := WhseActivLine."Variant Code";
-                        TempGlobalReservEntry."Location Code" := WhseActivLine."Location Code";
-                        TempGlobalReservEntry."Quantity (Base)" := -WhseActivLine."Qty. Outstanding (Base)";
-                        TempGlobalReservEntry."Qty. to Handle (Base)" := -WhseActivLine."Qty. Outstanding (Base)";
-                        TempGlobalReservEntry."Source Type" := Database::"Warehouse Activity Line";
-                        TempGlobalReservEntry."Source Subtype" := WhseActivLine."Activity Type".AsInteger();
-                        TempGlobalReservEntry."Source ID" := WhseActivLine."No.";
-                        TempGlobalReservEntry."Source Ref. No." := WhseActivLine."Line No.";
-                        TempGlobalReservEntry."Serial No." := WhseActivLine."Serial No.";
-                        TempGlobalReservEntry."Lot No." := WhseActivLine."Lot No.";
-                        TempGlobalReservEntry."Package No." := WhseActivLine."Package No.";
-                        TempGlobalReservEntry."Shipment Date" := DMY2Date(31, 12, 9999);
-                        if TempGlobalReservEntry.Insert() then
-                            CreateEntrySummary(TrackingSpecification, TempGlobalReservEntry);
-                    end;
+                    if not PickBelongsToCurrentSource(WhseActivLine, TrackingSpecification) then
+                        AddUnregisteredPickToTempRec(WhseActivLine, TrackingSpecification);
             until WhseActivLine.Next() = 0;
 
         OnAfterTransferUnregisteredPicksToTempRec(TrackingSpecification, TempGlobalReservEntry);
     end;
 
-    local procedure PickBelongsToCurrentSource(WhseActivLine: Record "Warehouse Activity Line"; TrackingSpecification: Record "Tracking Specification"): Boolean
+    local procedure AddUnregisteredPickToTempRec(var WhseActivLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification" temporary)
+    begin
+        LastReservEntryNo -= 1;
+        TempGlobalReservEntry.Init();
+        TempGlobalReservEntry."Entry No." := LastReservEntryNo;
+        TempGlobalReservEntry."Reservation Status" := TempGlobalReservEntry."Reservation Status"::Prospect;
+        TempGlobalReservEntry.Positive := false;
+        TempGlobalReservEntry."Item No." := WhseActivLine."Item No.";
+        TempGlobalReservEntry."Variant Code" := WhseActivLine."Variant Code";
+        TempGlobalReservEntry."Location Code" := WhseActivLine."Location Code";
+        TempGlobalReservEntry."Quantity (Base)" := -WhseActivLine."Qty. Outstanding (Base)";
+        TempGlobalReservEntry."Qty. to Handle (Base)" := -WhseActivLine."Qty. Outstanding (Base)";
+        TempGlobalReservEntry."Source Type" := Database::"Warehouse Activity Line";
+        TempGlobalReservEntry."Source Subtype" := WhseActivLine."Activity Type".AsInteger();
+        TempGlobalReservEntry."Source ID" := WhseActivLine."No.";
+        TempGlobalReservEntry."Source Ref. No." := WhseActivLine."Line No.";
+        TempGlobalReservEntry."Serial No." := WhseActivLine."Serial No.";
+        TempGlobalReservEntry."Lot No." := WhseActivLine."Lot No.";
+        TempGlobalReservEntry."Package No." := WhseActivLine."Package No.";
+        TempGlobalReservEntry."Shipment Date" := DMY2Date(31, 12, 9999);
+        TempGlobalReservEntry.Insert();
+        CreateEntrySummary(TrackingSpecification, TempGlobalReservEntry);
+    end;
+
+    local procedure PickBelongsToCurrentSource(var WhseActivLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification" temporary): Boolean
     begin
         exit(
            (WhseActivLine."Source Type" = TrackingSpecification."Source Type") and
