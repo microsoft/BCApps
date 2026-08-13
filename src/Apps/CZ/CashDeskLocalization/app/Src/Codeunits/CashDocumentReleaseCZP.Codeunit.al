@@ -206,7 +206,8 @@ codeunit 11725 "Cash Document-Release CZP"
     begin
         SkipPaymentPurposeTestField := false;
         SkipAmountsTestFields := false;
-        OnBeforeCheckMandatoryFields(CashDocumentHeaderCZP, SkipPaymentPurposeTestField, SkipAmountsTestFields);
+        OnBeforeCheckMandatoryFields(CashDocumentHeaderCZP, SkipPaymentPurposeTestField);
+        OnBeforeCheckMandatoryFieldsSkipAmounts(CashDocumentHeaderCZP, SkipAmountsTestFields);
 
         CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."No.");
         CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Posting Date");
@@ -377,7 +378,12 @@ codeunit 11725 "Cash Document-Release CZP"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckMandatoryFields(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var SkipPaymentPurposeTestField: Boolean; var SkipAmountsTestFields: Boolean)
+    local procedure OnBeforeCheckMandatoryFields(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var SkipPaymentPurposeTestField: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckMandatoryFieldsSkipAmounts(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var SkipAmountsTestFields: Boolean)
     begin
     end;
 }
