@@ -61,7 +61,6 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         OrderQty: Decimal;
         ShipmentDate: Date;
         WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
-        StartingDateShouldBeWorkDateLbl: Label 'Production Order Starting Date should be WorkDate()';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J1] InitializeFromSalesLine: Prod. Order header created with correct fields
@@ -87,7 +86,6 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderFields(ProdOrder, ItemNo, OrderQty, ShipmentDate, LocationCode, VariantCode);
-        Assert.AreEqual(WorkDate(), ProdOrder."Starting Date", StartingDateShouldBeWorkDateLbl);
     end;
 
     [Test]

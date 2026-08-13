@@ -136,6 +136,12 @@ page 99001029 "Temp BOM Lines"
             }
         }
     }
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec."Production BOM No." := xRec."Production BOM No.";
+        Rec."Version Code" := xRec."Version Code";
+        Rec.Type := xRec.Type;
+    end;
 
 
     /// <summary>
