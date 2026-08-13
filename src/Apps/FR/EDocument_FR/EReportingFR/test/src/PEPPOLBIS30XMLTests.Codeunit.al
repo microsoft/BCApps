@@ -243,7 +243,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     [Test]
     procedure ExportSalesInvNormalizesBuyerServiceParticipantScheme()
     var
-        Customer: Record Customer;
         ServiceParticipant: Record "Service Participant";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
@@ -1404,14 +1403,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Customer.Modify(true);
 
         exit(Customer."No.");
-    end;
-
-    local procedure GetCustomerVATRegistrationNo(CustomerNo: Code[20]): Text[20]
-    var
-        Customer: Record Customer;
-    begin
-        Customer.Get(CustomerNo);
-        exit(Customer."VAT Registration No.");
     end;
 
     local procedure ClearCustomerVATRegistrationNo(CustomerNo: Code[20])
