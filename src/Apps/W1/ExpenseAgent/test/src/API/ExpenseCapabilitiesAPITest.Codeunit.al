@@ -10,7 +10,6 @@ codeunit 148318 "Expense Capabilities API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
-    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

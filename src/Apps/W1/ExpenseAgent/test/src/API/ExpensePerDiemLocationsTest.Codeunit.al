@@ -10,7 +10,6 @@ codeunit 148349 "Expense PerDiem Locations Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
-    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

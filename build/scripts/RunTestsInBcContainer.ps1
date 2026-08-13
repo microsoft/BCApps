@@ -142,9 +142,9 @@ if ($AppNamesToTest.Count -gt 0) {
 $maxAttempts = if ($TestType -eq "Legacy") { 1 } else { 2 }
 $result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts $maxAttempts
 
-# Run tests that explicitly require disabled isolation on the same tenant
-if ($TestType -in @("UnitTest", "IntegrationTest")) {
-    Write-Host "Running DisableTestIsolation pass for $TestType"
+# For UnitTests, also run with DisableTestIsolation on the same tenant
+if ($TestType -eq "UnitTest") {
+    Write-Host "Running DisableTestIsolation pass for UnitTest"
     $parameters["requiredTestIsolation"] = "Disabled"
     $parameters["testRunnerCodeunitId"] = "130451"
     $parameters.Remove("ReRun") # Clear rerun state from the first pass
