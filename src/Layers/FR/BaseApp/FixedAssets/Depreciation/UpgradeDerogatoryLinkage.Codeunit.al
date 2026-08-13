@@ -76,9 +76,10 @@ codeunit 104103 "Upgrade Derogatory Linkage"
 
     /// <summary>
     /// Forward corrective per-company upgrade guarded by its own tag (FR-NFR-003/ITEM-025). Within one transaction,
-    /// clears only "Derogatory Source Entry No." and "Legacy Derogatory Ambiguous" for FR source/counterpart entries
-    /// in configured relationship pairs, then rebuilds every link from the complete matching graph. Runs the clear
-    /// and rebuild via Codeunit.Run boolean-context semantics on a separate, non-Upgrade-subtype codeunit (a
+    /// clears only "Derogatory Source Entry No." and "Legacy Derogatory Ambiguous" for historical FR
+    /// source/counterpart entries in configured relationship pairs, preserves later centrally posted links, then
+    /// rebuilds every link from the complete matching graph. Runs the clear and rebuild via Codeunit.Run
+    /// boolean-context semantics on a separate, non-Upgrade-subtype codeunit (a
     /// codeunit whose Subtype is Upgrade cannot itself be invoked via Codeunit.Run outside the schema
     /// synchronization process). A Commit is issued immediately before the Run call to establish the commit point
     /// that the platform rolls back to on failure - this is the standard AL pattern required for Codeunit.Run
@@ -112,6 +113,7 @@ codeunit 104103 "Upgrade Derogatory Linkage"
     internal procedure ClearAndRelinkConfiguredRelationshipPairs()
     begin
         ClearConfiguredRelationshipLinks();
+        ValidateConfiguredRelationships();
         RunAfterRelationshipTransfer(true);
     end;
 
@@ -128,21 +130,49 @@ codeunit 104103 "Upgrade Derogatory Linkage"
         DepreciationBook: Record "Depreciation Book";
         FALedgerEntry: Record "FA Ledger Entry";
         MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        UpgradeTagsRecordRef: RecordRef;
+        HistoricalLinkageCutoff: DateTime;
     begin
+        // System table 9999 "Upgrade Tags" is internal; fields 1, 2, and 3 are Tag, Tag Timestamp, and Company.
+        UpgradeTagsRecordRef.Open(9999);
+        UpgradeTagsRecordRef.Field(1).SetRange(UpgTagAcceleratedDepr.GetDerogatoryLinkageUpgradeTag());
+        UpgradeTagsRecordRef.Field(3).SetRange(CompanyName());
+        if UpgradeTagsRecordRef.FindFirst() then
+            HistoricalLinkageCutoff := UpgradeTagsRecordRef.Field(2).Value()
+        else
+            HistoricalLinkageCutoff := CurrentDateTime();
+        UpgradeTagsRecordRef.Close();
+
         DepreciationBook.SetFilter("Derogatory Calc.", '<>%1', '');
         if not DepreciationBook.FindSet() then
             exit;
         repeat
             FALedgerEntry.Reset();
             FALedgerEntry.SetFilter("Depreciation Book Code", '%1|%2', DepreciationBook."Derogatory Calc.", DepreciationBook.Code);
+            FALedgerEntry.SetFilter(SystemCreatedAt, '<=%1', HistoricalLinkageCutoff);
             FALedgerEntry.ModifyAll("Derogatory Source Entry No.", 0);
             FALedgerEntry.ModifyAll("Legacy Derogatory Ambiguous", false);
 
             MaintenanceLedgerEntry.Reset();
             MaintenanceLedgerEntry.SetFilter("Depreciation Book Code", '%1|%2', DepreciationBook."Derogatory Calc.", DepreciationBook.Code);
+            MaintenanceLedgerEntry.SetFilter(SystemCreatedAt, '<=%1', HistoricalLinkageCutoff);
             MaintenanceLedgerEntry.ModifyAll("Derogatory Source Entry No.", 0);
             MaintenanceLedgerEntry.ModifyAll("Legacy Derogatory Ambiguous", false);
         until DepreciationBook.Next() = 0;
+    end;
+
+    local procedure ValidateConfiguredRelationships()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        DerogatoryDepreciationBookCode: Code[10];
+    begin
+        DepreciationBook.SetFilter("Derogatory Calc.", '<>%1', '');
+        if DepreciationBook.FindSet() then
+            repeat
+                DerogatoryPostingMgt.GetDerogatoryBookCode(
+                    DepreciationBook."Derogatory Calc.", DerogatoryDepreciationBookCode);
+            until DepreciationBook.Next() = 0;
     end;
 
     local procedure EmitLinkageTelemetry(FALinkedCount: Integer; FAAmbiguousCount: Integer; FAMissingCount: Integer; MaintenanceLinkedCount: Integer; MaintenanceAmbiguousCount: Integer; MaintenanceMissingCount: Integer)
