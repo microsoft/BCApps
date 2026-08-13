@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-using Microsoft.Foundation.AuditCodes;
 
 /// <summary>
 /// Defines named VAT statement configurations within templates for organizing different VAT calculation scenarios.

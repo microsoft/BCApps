@@ -33,7 +33,6 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
-using Microsoft.Utilities;
 using Microsoft.Service.Setup;
 using System.Globalization;
 using System.Reflection;
