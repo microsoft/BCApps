@@ -1,10 +1,10 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-#if not CLEAN29
 /// <summary>
 /// Represents the Completion parameters used by the API.
 /// See more details at https://aka.ms/AAlsi39.
@@ -14,6 +14,9 @@ codeunit 7765 "AOAI Text Completion Params"
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.';
+    ObsoleteTag = '29.0';
 
     var
         AOAITextCompletionParamsImpl: Codeunit "AOAI TextCompletionParams Impl";

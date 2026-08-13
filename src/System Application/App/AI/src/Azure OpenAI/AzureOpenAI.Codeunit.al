@@ -175,7 +175,7 @@ codeunit 7771 "Azure OpenAI"
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
     [NonDebuggable]
-    [Obsolete('Text completion (davinci) models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
+    [Obsolete('Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
     procedure GenerateTextCompletion(Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -194,7 +194,7 @@ codeunit 7771 "Azure OpenAI"
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
     [NonDebuggable]
-    [Obsolete('Text completion (davinci) models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
+    [Obsolete('Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
     procedure GenerateTextCompletion(Prompt: SecretText; AOAICompletionParams: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -213,7 +213,7 @@ codeunit 7771 "Azure OpenAI"
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
     [NonDebuggable]
-    [Obsolete('Text completion (davinci) models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
+    [Obsolete('Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
     procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -233,7 +233,7 @@ codeunit 7771 "Azure OpenAI"
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
     [NonDebuggable]
-    [Obsolete('Text completion (davinci) models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
+    [Obsolete('Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
     procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; AOAICompletionParams: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
