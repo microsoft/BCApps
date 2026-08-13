@@ -265,6 +265,7 @@
         // [WHEN] The sales line type is formatted
         // [THEN] The complete subscriber-provided text is returned
         Assert.AreEqual(LongFormattedTypeTxt, SalesLine.FormatTypeAsText(), 'The subscriber-provided sales line type was truncated.');
+        UnbindSubscription(this);
     end;
 
     [Test]
@@ -283,6 +284,7 @@
         // [WHEN] The purchase line type is formatted
         // [THEN] The complete subscriber-provided text is returned
         Assert.AreEqual(LongFormattedTypeTxt, PurchaseLine.FormatTypeAsText(), 'The subscriber-provided purchase line type was truncated.');
+        UnbindSubscription(this);
     end;
 
 #if not CLEAN29
@@ -303,6 +305,7 @@
         // [WHEN] The sales line type is formatted
         // [THEN] The legacy subscriber-provided text is returned
         Assert.AreEqual(LegacyFormattedTypeTxt, SalesLine.FormatTypeAsText(), 'The handled legacy sales line type was not returned.');
+        UnbindSubscription(this);
     end;
 
     [Test]
@@ -322,6 +325,7 @@
         // [WHEN] The purchase line type is formatted
         // [THEN] The legacy subscriber-provided text is returned
         Assert.AreEqual(LegacyFormattedTypeTxt, PurchaseLine.FormatTypeAsText(), 'The handled legacy purchase line type was not returned.');
+        UnbindSubscription(this);
     end;
 #endif
 
