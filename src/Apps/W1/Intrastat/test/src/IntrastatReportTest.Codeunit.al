@@ -4829,6 +4829,31 @@ codeunit 139550 "Intrastat Report Test"
         Assert.AreEqual(TariffNo."No.", ItemTempl."Tariff No.", '');
     end;
 
+    [Test]
+    procedure ManualIntrastatReportLineUsesIntrastatCode()
+    var
+        CountryRegion: array[2] of Record "Country/Region";
+        IntrastatReportLine: Record "Intrastat Report Line";
+    begin
+        // [SCENARIO 646599] Intrastat Country/Region Code is populated from the Country/Region's Intrastat Code when a line is added manually
+        Initialize();
+
+        // [GIVEN] Create Country/Region with a different Intrastat Code.
+        LibraryIntrastat.CreateCountryRegion(CountryRegion[1], true);
+        LibraryIntrastat.CreateCountryRegion(CountryRegion[2], true);
+        CountryRegion[1].Validate(CountryRegion[1]."Intrastat Code", CountryRegion[2].Code);
+        CountryRegion[1].Modify(true);
+
+        // [GIVEN] An Intrastat Report with a manually added line
+        LibraryIntrastat.CreateIntrastatReportLine(IntrastatReportLine);
+
+        // [WHEN] The Country/Region Code is validated on the line
+        IntrastatReportLine.Validate("Country/Region Code", CountryRegion[1].Code);
+
+        // [THEN] The Intrastat Country/Region Code inherits the Intrastat Code from the Country/Region
+        IntrastatReportLine.TestField("Intrastat Country/Region Code", CountryRegion[2].Code);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
