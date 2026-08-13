@@ -59,7 +59,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         if not IsMigrationAllowedInCurrentEnvironment() then
             Error(MigrationNotAllowedInProductionErr);
 
-        if OpenSubcontractingTransfersExist() then
+        if OpenWIPTransfersExist() then
             Error(OpenSubcontractingTransfersExistErr);
 
         if OpenWIPPurchaseLinesExist() then
@@ -98,14 +98,20 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
     end;
 
     /// <summary>
-    /// Returns whether the database contains Legacy Subcontracting data based on the presence of WIP Item related data in open transfer orders, open purchase orders, or capacity ledger entries.
+    /// Returns whether the database contains Legacy Subcontracting data based on the presence of subcontracting purchase orders, subcontracting transfer orders, WIP Item related data, capacity ledger entries, or subcontracting prices.
     /// </summary>
     internal procedure DatabaseHasLegacySubcontractingData(): Boolean
     begin
+        if SubcontractingPurchaseOrdersExist() then
+            exit(true);
+
+        if SubcontractingTransferOrdersExist() then
+            exit(true);
+
         if WIPItemCapacityLedgerEntriesExist() then
             exit(true);
 
-        if OpenSubcontractingTransfersExist() then
+        if OpenWIPTransfersExist() then
             exit(true);
 
         if OpenWIPPurchaseLinesExist() then
@@ -178,12 +184,30 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         exit(Result);
     end;
 
-    local procedure OpenSubcontractingTransfersExist(): Boolean
+    local procedure OpenWIPTransfersExist(): Boolean
     var
         TransferLine: Record "Transfer Line";
     begin
         TransferLine.SetRange("WIP Item", true);
         TransferLine.SetFilter("WIP Outstanding Qty.", '<>%1', 0);
+        exit(not TransferLine.IsEmpty());
+    end;
+
+    local procedure SubcontractingPurchaseOrdersExist(): Boolean
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
+        PurchaseLine.SetFilter("Prod. Order Line No.", '<>%1', 0);
+        exit(not PurchaseLine.IsEmpty());
+    end;
+
+    local procedure SubcontractingTransferOrdersExist(): Boolean
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.SetFilter("Prod. Order No.", '<>%1', '');
         exit(not TransferLine.IsEmpty());
     end;
 
