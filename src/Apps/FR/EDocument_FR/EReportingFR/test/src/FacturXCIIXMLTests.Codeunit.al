@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
@@ -361,14 +362,6 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller postal address from Company Information
         Initialize();
 
-        // [GIVEN] Company Information with address
-        CompanyInformation.Get();
-        if CompanyInformation.Address = '' then begin
-            CompanyInformation.Address := '123 Test Street';
-            CompanyInformation.City := 'Paris';
-            CompanyInformation."Post Code" := '75001';
-            CompanyInformation.Modify(true);
-        end;
 
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
@@ -1016,14 +1009,14 @@ codeunit 148148 "Factur-X CII XML Tests"
         CompanyInformation.Get();
         CompanyInformation.Validate("Registration No.", '123456789');
         CompanyInformation.Validate("SIRET No.", '12345678901234');
-        if CompanyInformation."VAT Registration No." = '' then
-            CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
-        if CompanyInformation.Name = '' then
-            CompanyInformation.Name := 'Test Company FR';
-        if CompanyInformation."Country/Region Code" = '' then begin
-            EnsureCountryRegionExists('FR');
-            CompanyInformation.Validate("Country/Region Code", 'FR');
-        end;
+        CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
+        CompanyInformation.Name := 'Test Company FR';
+        EnsureCountryRegionExists('FR');
+        CompanyInformation.Validate("Country/Region Code", 'FR');
+
+        CompanyInformation.Address := '123 Test Street';
+        CompanyInformation.City := 'Paris';
+        CompanyInformation."Post Code" := '75001';
         CompanyInformation.Modify(true);
 
         SetupGeneralLedger();
