@@ -1880,7 +1880,7 @@ codeunit 148184 "Sustainability Posting Test"
 
         // [GIVEN] Update "Buy-from Country/Region Code" in Sustainability Journal Line.
         SustainabilityJournalLine.Validate("Document No.", SustainabilityJournalMgt.GetDocumentNo(false, SustainabilityJnlBatch, '', SustainabilityJournalLine."Posting Date"));
-        SustainabilityJournalLine.Validate(Description, LibraryRandom.RandText(10));
+        SustainabilityJournalLine.Validate(Description, LibraryUtility.GenerateGUID());
         SustainabilityJournalLine.Validate("Unit of Measure", UnitOfMeasure.Code);
         SustainabilityJournalLine.Validate("Fuel/Electricity", LibraryRandom.RandIntInRange(1, 1));
         SustainabilityJournalLine.Validate("Country/Region Code", CountryRegion.Code);
@@ -5704,7 +5704,7 @@ codeunit 148184 "Sustainability Posting Test"
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(SustainabilityJnlBatch, SustainabilityAccount, LineNo);
         SustainabilityJournalLine.Validate("Document No.", SustainabilityJournalMgt.GetDocumentNo(false, SustainabilityJnlBatch, '', SustainabilityJournalLine."Posting Date"));
-        SustainabilityJournalLine.Validate(Description, LibraryRandom.RandText(10));
+        SustainabilityJournalLine.Validate(Description, LibraryUtility.GenerateGUID());
         SustainabilityJournalLine.Validate("Unit of Measure", UnitOfMeasure.Code);
         SustainabilityJournalLine.Validate("Fuel/Electricity", LibraryRandom.RandIntInRange(1, 10));
         SustainabilityJournalLine.Modify(true);
@@ -5742,7 +5742,7 @@ codeunit 148184 "Sustainability Posting Test"
 
         // Create Corrective Credit Memo.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeader);
-        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryRandom.RandText(10));
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         PurchaseHeader.Modify();
 
         // Post Corrective Credit Memo.
@@ -5823,7 +5823,7 @@ codeunit 148184 "Sustainability Posting Test"
 
         // Create Corrective Credit Memo.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeader);
-        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryRandom.RandText(10));
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         PurchaseHeader.Modify();
 
         // Open Purchase Cr Memo Statistics.
@@ -6196,7 +6196,7 @@ codeunit 148184 "Sustainability Posting Test"
 
         // Create Corrective Credit Memo.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeader);
-        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryRandom.RandText(10));
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         PurchaseHeader.Modify(true);
 
         exit(PurchaseHeader."No.");
@@ -6242,7 +6242,7 @@ codeunit 148184 "Sustainability Posting Test"
             LibraryRandom.RandDecInDecimalRange(0.5, 1, 1));
     end;
 
-    local procedure CreateAndPostPurchaseDocument(var PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[20]; CountryRegionCode: Code[10]; AccountCode: Code[20]; EmissionCO2PerUnit: Decimal; EmissionCH4PerUnit: Decimal; EmissionN2OPerUnit: Decimal): Code[20]
+    local procedure CreateAndPostPurchaseDocument(var PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10]; CountryRegionCode: Code[10]; AccountCode: Code[20]; EmissionCO2PerUnit: Decimal; EmissionCH4PerUnit: Decimal; EmissionN2OPerUnit: Decimal): Code[20]
     var
         PurchaseLine: Record "Purchase Line";
     begin
