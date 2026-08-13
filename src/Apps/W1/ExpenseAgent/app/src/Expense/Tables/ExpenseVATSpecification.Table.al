@@ -275,7 +275,6 @@ table 6918 "Expense VAT Specification"
         CurrExchRate: Record "Currency Exchange Rate";
         Expense: Record Expense;
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        Recalculate: Boolean;
 
     local procedure CalcVATAmountLCY(): Decimal
     var
