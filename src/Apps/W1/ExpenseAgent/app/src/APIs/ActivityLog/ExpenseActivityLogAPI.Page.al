@@ -172,6 +172,7 @@ page 7104 "Expense Activity Log API"
 
     trigger OnOpenPage()
     begin
+        // Avoid JIT load consistency errors by including fields read in OnAfterGetRecord in the initial record buffer.
         Rec.AddLoadFields("Reimbursement Currency Code");
     end;
 
