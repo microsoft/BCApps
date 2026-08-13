@@ -264,7 +264,7 @@ report 99000753 "Quantity Explosion of BOM"
 
     rendering
     {
-#if not CLEAN32
+#if not CLEAN29
         layout(WordLayout)
         {
             Caption = 'Quantity Explosion of BOM Word';
@@ -273,7 +273,7 @@ report 99000753 "Quantity Explosion of BOM"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '29.0';
         }
 #endif
         layout(ExcelLayout)

@@ -440,7 +440,7 @@ report 1302 "Standard Sales - Pro Forma Inv"
             Caption = 'Standard Sales Proforma Invoice (RDLC)';
             Summary = 'The Standard Sales Proforma Invoice (RDLC) provides a detailed layout.';
         }
-#if not CLEAN32
+#if not CLEAN29
         layout("StandardSalesProFormaInv.docx")
         {
             Type = Word;
@@ -449,7 +449,7 @@ report 1302 "Standard Sales - Pro Forma Inv"
             Summary = 'The Standard Sales Proforma Invoice (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '29.0';
         }
 #endif
         layout("StandardSalesProFormaInvBody.docx")

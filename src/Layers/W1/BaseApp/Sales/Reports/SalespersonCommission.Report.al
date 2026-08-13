@@ -452,7 +452,7 @@ report 115 "Salesperson - Commission"
             LayoutFile = './Sales/Reports/SalespersonCommission.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN32
+#if not CLEAN29
         layout(Word)
         {
             Caption = 'Salesperson Commission Word';
@@ -461,7 +461,7 @@ report 115 "Salesperson - Commission"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '29.0';
         }
 #endif
 #if not CLEAN27

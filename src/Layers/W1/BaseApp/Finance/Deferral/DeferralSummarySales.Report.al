@@ -346,7 +346,7 @@ report 1701 "Deferral Summary - Sales"
             LayoutFile = './Finance/Deferral/DeferralSummarySales.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN32
+#if not CLEAN29
         layout(Word)
         {
             Caption = 'Deferral Summary Sales Word';
@@ -355,9 +355,9 @@ report 1701 "Deferral Summary - Sales"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '29.0';
         }
-#ENDIF
+#endif
 #if not CLEAN27
         layout(RDLC)
         {

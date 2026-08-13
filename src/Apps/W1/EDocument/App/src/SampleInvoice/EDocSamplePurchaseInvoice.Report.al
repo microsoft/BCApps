@@ -243,7 +243,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
 
     rendering
     {
-        #if not CLEAN32
+        #if not CLEAN29
         layout(SampleInvoiceLayout1)
         {
             Type = Word;
@@ -252,10 +252,10 @@ report 6102 "E-Doc Sample Purchase Invoice"
             LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice.docx';
              ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '29.0';
         }
         #endif
-        #if not CLEAN32
+        #if not CLEAN29
         layout(SampleInvoiceLayout2)
         {
             Type = Word;
@@ -264,10 +264,10 @@ report 6102 "E-Doc Sample Purchase Invoice"
             LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice2.docx';
              ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '29.0';
         }
         #endif
-        #if not CLEAN32
+        #if not CLEAN29
         layout(SampleInvoiceLayout3)
         {
             Type = Word;
@@ -276,7 +276,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
             LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice3.docx';
              ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '29.0';
         }
         #endif
         layout(SampleInvoiceLayoutBody)
