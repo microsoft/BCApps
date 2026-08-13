@@ -23,8 +23,7 @@ codeunit 148318 "Expense Capabilities API Test"
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ProjectsCapabilityNameTok: Label '"capabilityname":"projects"', Locked = true;
         ConsolidatedCapabilityNameTok: Label '"capabilityname":"consolidatedprojects"', Locked = true;
-        ActivityLogCapabilityNameTok: Label '"capabilityname":"activitylog"', Locked = true;
-        ActivityLogEnabledTok: Label '"capabilityname":"activitylog","isenabled":true', Locked = true;
+        ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
         IsEnabledTrueTok: Label '"isenabled":true', Locked = true;
         IsEnabledFalseTok: Label '"isenabled":false', Locked = true;
 
@@ -77,13 +76,11 @@ codeunit 148318 "Expense Capabilities API Test"
         // [WHEN] The expenseCapabilities collection is fetched through the API.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := LowerCase(ResponseText);
 
         // [THEN] ActivityLog is present and enabled.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ActivityLogCapabilityNameTok),
-            'Response must contain an activityLog capability row.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, ActivityLogEnabledTok),
-            'ActivityLog capability must be enabled.');
+        Assert.IsTrue(
+            ResponseContainsEnabledCapability(ResponseText, ActivityLogCapabilityNameTok),
+            'Response must contain an enabled activityLog capability row.');
     end;
 
     [Test]
@@ -165,6 +162,36 @@ codeunit 148318 "Expense Capabilities API Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Capabilities API Test");
+    end;
+
+    local procedure ResponseContainsEnabledCapability(ResponseText: Text; CapabilityName: Text): Boolean
+    var
+        RootObject: JsonObject;
+        CapabilityObject: JsonObject;
+        ValueArray: JsonArray;
+        CapabilityToken: JsonToken;
+        PropertyToken: JsonToken;
+        CapabilityIndex: Integer;
+    begin
+        RootObject.ReadFrom(ResponseText);
+        if not RootObject.Get('value', PropertyToken) then
+            exit(false);
+
+        ValueArray := PropertyToken.AsArray();
+        if ValueArray.Count() = 0 then
+            exit(false);
+        for CapabilityIndex := 0 to ValueArray.Count() - 1 do begin
+            ValueArray.Get(CapabilityIndex, CapabilityToken);
+            CapabilityObject := CapabilityToken.AsObject();
+            if CapabilityObject.Get('capabilityName', PropertyToken) then
+                if LowerCase(PropertyToken.AsValue().AsText()) = LowerCase(CapabilityName) then begin
+                    if not CapabilityObject.Get('isEnabled', PropertyToken) then
+                        exit(false);
+                    exit(PropertyToken.AsValue().AsBoolean());
+                end;
+        end;
+
+        exit(false);
     end;
 
 }
