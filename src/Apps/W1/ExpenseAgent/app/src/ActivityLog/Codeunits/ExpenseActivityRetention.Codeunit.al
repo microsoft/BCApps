@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.DataAdministration;
 
-codeunit 6914 "Expense Activity Retention"
+codeunit 6927 "Expense Activity Retention"
 {
     Access = Internal;
 

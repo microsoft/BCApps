@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.Security.AccessControl;
 
-codeunit 6913 "Expense Activity Log Mgt."
+codeunit 6926 "Expense Activity Log Mgt."
 {
     Access = Internal;
     Permissions = tabledata "Expense Activity Log Entry" = rimd;
