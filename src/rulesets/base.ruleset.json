@@ -90,6 +90,11 @@
       "justification": "Will be fixed. Reserved database tables are read-only in a multi-tenant environment"
     },
     {
+      "id": "AS0112",
+      "action": "None",
+      "justification": "Permission set extensions that include permission sets covering objects from another application. Needs a permission set redesign to fix."
+    },
+    {
       "id": "AS0014",
       "action": "Warning",
       "justification": "The project manifest must contain the allocated identifier range."
@@ -336,6 +341,11 @@
       "id": "AA0470",
       "action": "Warning",
       "justification": "Variable with placeholders should have a comment explaining their content."
+    },
+    {
+      "id": "AA0473",
+      "action": "None",
+      "justification": "AutoformatType should be defined for decimal fields in Table objects to ensure proper formatting behavior."
     },
     {
       "id": "AW0002",
