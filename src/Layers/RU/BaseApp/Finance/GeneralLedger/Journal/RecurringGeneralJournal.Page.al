@@ -1027,6 +1027,8 @@ page 283 "Recurring General Journal"
         ChangeExchangeRate: Page "Change Exchange Rate";
         AccSchedLineDesc: Text[250];
         ColumnLayoutHeader: Text[50];
+        RecurringFrequency: Text;
+        InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
         Balance: Decimal;
         TotalBalance: Decimal;
         NumberOfRecords: Integer;
@@ -1043,8 +1045,6 @@ page 283 "Recurring General Journal"
         VATDateEnabled: Boolean;
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
-        RecurringFrequency: Text;
-        InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
 
     protected var
         GenJnlManagement: Codeunit GenJnlManagement;

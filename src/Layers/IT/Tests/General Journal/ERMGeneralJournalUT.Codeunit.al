@@ -25,7 +25,6 @@ codeunit 134920 "ERM General Journal UT"
         GenJnlManagement: Codeunit GenJnlManagement;
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryVariableStorageCounter: Codeunit "Library - Variable Storage";
-        IsInitialized: Boolean;
         DocNoFilterErr: Label 'The document numbers cannot be renumbered while there is an active filter on the Document No. field.';
         WrongJobQueueStatus: Label 'Journal line cannot be modified because it has been scheduled for posting.';
         WrongFieldVisibilityErr: Label 'Wrong field visiblity';
@@ -39,6 +38,9 @@ codeunit 134920 "ERM General Journal UT"
         ValidRecurringFrequencyTok: Label '1M', Locked = true;
         InvalidRecurringFrequencyTok: Label 'ABC', Locked = true;
         InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
+        GenJournalLineNotFoundErr: Label 'The general journal line was not found.';
+        RecurringFrequencyNotClearedErr: Label 'The recurring frequency should be cleared.';
+        IsInitialized: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -6168,7 +6170,7 @@ codeunit 134920 "ERM General Journal UT"
         RecurringGeneralJournal.Close();
 
         // [THEN] The date formula is persisted on the line
-        GenJournalLine.Find();
+        Assert.IsTrue(GenJournalLine.FindFirst(), GenJournalLineNotFoundErr);
         Assert.AreEqual(ExpectedRecurringFrequency, GenJournalLine."Recurring Frequency", 'The entered recurring frequency was not persisted.');
     end;
 
@@ -6198,8 +6200,8 @@ codeunit 134920 "ERM General Journal UT"
         RecurringGeneralJournal.Close();
 
         // [THEN] The recurring frequency on the line is empty
-        GenJournalLine.Find();
-        Assert.AreEqual('', Format(GenJournalLine."Recurring Frequency"), 'The recurring frequency should be cleared.');
+        Assert.IsTrue(GenJournalLine.FindFirst(), GenJournalLineNotFoundErr);
+        Assert.AreEqual('', Format(GenJournalLine."Recurring Frequency"), RecurringFrequencyNotClearedErr);
     end;
 
     [Test]
