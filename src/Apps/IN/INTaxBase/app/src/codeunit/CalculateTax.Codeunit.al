@@ -35,6 +35,12 @@ codeunit 18543 "Calculate Tax"
         OnAfterValidateGenJnlLineFields(GenJournalLine);
     end;
 
+    procedure RunOnBeforeUpdateTaxAmountOnGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var xGenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        IsHandled := false;
+        OnBeforeUpdateTaxAmountOnGenJnlLine(GenJournalLine, xGenJournalLine, IsHandled);
+    end;
+
     procedure CallTaxEngineOnSalesLine(
         var SalesLine: Record "Sales Line";
         var xSalesLine: Record "Sales Line")
@@ -262,6 +268,11 @@ codeunit 18543 "Calculate Tax"
 
     [IntegrationEvent(false, false)]
     procedure OnBeforeCallTaxEngineForGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateTaxAmountOnGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var xGenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
