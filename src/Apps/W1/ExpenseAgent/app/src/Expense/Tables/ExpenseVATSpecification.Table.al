@@ -246,6 +246,11 @@ table 6918 "Expense VAT Specification"
             Caption = 'Reasoning';
             ToolTip = 'Specifies the AI reasoning text that explains how the VAT specification values were determined from the receipt or invoice.';
         }
+        field(43; Recalculate; Boolean)
+        {
+            Caption = 'Recalculate';
+            ToolTip = 'Specifies whether the VAT specification line should be recalculated automatically.';
+        }
     }
 
     keys
@@ -372,10 +377,5 @@ table 6918 "Expense VAT Specification"
             exit('');
         Rec.Reasoning.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(Result);
-    end;
-
-    procedure SetRecalculation(NewRecalculate: Boolean)
-    begin
-        Recalculate := NewRecalculate;
     end;
 }

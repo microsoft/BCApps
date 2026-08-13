@@ -657,6 +657,7 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseVATSpecification.Validate("Expense Category", ExpenseCategoryCode);
         ExpenseVATSpecification.Validate("Expense Subcategory", ExpenseSubcategoryCode);
         ExpenseVATSpecification.Validate(Amount, Amount);
+        ExpenseVATSpecification.Recalculate := true;
         ExpenseVATSpecification.Insert(true);
     end;
 

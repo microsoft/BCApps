@@ -63,6 +63,10 @@ page 7084 "Expense VAT Specification"
                 field(Source; Rec.Source)
                 {
                 }
+                field(Recalculate; Rec.Recalculate)
+                {
+                    Visible = false;
+                }
             }
         }
     }
