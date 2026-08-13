@@ -1412,6 +1412,35 @@ codeunit 134453 "ERM Fixed Assets GL Journal"
         Assert.AreEqual(1, FALedgerEntry.Count(), NumberFAEntryErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure FAJnlPostBatchCompatibilityDelegateBuildsCounterpart()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        TaxFADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        SourceFAJournalLine: Record "FA Journal Line";
+        CounterpartFAJournalLine: Record "FA Journal Line";
+        FAJnlPostBatch: Codeunit "FA Jnl.-Post Batch";
+    begin
+        Initialize();
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateJournalSetupDepreciation(TaxDepreciationBook);
+        TaxDepreciationBook.Validate("Derogatory Calc.", DepreciationBook.Code);
+        TaxDepreciationBook.Modify(true);
+        CreateFADepreciationBook(
+            TaxFADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", TaxDepreciationBook.Code);
+        SourceFAJournalLine."FA No." := FixedAsset."No.";
+        SourceFAJournalLine."Depreciation Book Code" := DepreciationBook.Code;
+
+        Assert.IsTrue(
+            FAJnlPostBatch.MakeDerogatoryFAJnlLine(CounterpartFAJournalLine, SourceFAJournalLine),
+            'The compatibility delegate must construct an eligible counterpart.');
+        CounterpartFAJournalLine.TestField("Depreciation Book Code", TaxDepreciationBook.Code);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
