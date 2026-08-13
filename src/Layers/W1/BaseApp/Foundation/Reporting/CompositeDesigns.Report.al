@@ -91,7 +91,7 @@ report 1175 "Composite Layout Designs"
             SubType = Theme;
             LayoutFile = '.\Foundation\Reporting\ReportTheme\Default.dotx';
             Caption = 'Default Theme';
-            Summary = '';
+            Summary = 'Simple and clear, so the details that matter stand out. Styling-only theme: neutral Segoe UI in semibold and regular for hierarchy, dark-grey text on white, calm accent colours, and softly banded table rows. Works for most reports out of the box.';
         }
         layout(Calm)
         {
@@ -99,7 +99,7 @@ report 1175 "Composite Layout Designs"
             SubType = Theme;
             LayoutFile = '.\Foundation\Reporting\ReportTheme\Calm.dotx';
             Caption = 'Calm Theme';
-            Summary = '';
+            Summary = 'Classic and calm, and easy to read. Styling-only theme: Sitka serif in semibold and regular for hierarchy, with dark-green text on a soft beige background. A timeless look that gives your reports a quieter, more classic feel.';
         }
         layout(Playful)
         {
@@ -107,7 +107,7 @@ report 1175 "Composite Layout Designs"
             SubType = Theme;
             LayoutFile = '.\Foundation\Reporting\ReportTheme\Playful.dotx';
             Caption = 'Playful Theme';
-            Summary = '';
+            Summary = 'Dynamic and lively, a fresh take on a professional report. Styling-only theme: geometric Bahnschrift in semibold and regular for hierarchy, with backgrounds alternating between green and pink for an energetic, modern feel.';
         }
     }
 }
