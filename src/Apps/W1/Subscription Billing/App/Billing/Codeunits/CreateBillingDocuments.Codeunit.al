@@ -1483,7 +1483,7 @@ codeunit 8060 "Create Billing Documents"
         TranslationHelper: Codeunit "Translation Helper";
         DocumentChangeManagement: Codeunit "Document Change Management";
         Language: Codeunit Language;
-        ProgressTracker: Codeunit "Progress Tracker";
+        ProgressTracker: Codeunit "Sub. Billing Progress Tracker";
         BillingLineNoByTempEntryNo: Dictionary of [Integer, Integer];
         DocumentDate: Date;
         PostingDate: Date;

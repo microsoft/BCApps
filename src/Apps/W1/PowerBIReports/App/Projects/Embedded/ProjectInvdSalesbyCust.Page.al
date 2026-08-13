@@ -11,8 +11,8 @@ page 37039 "Project Invd. Sales by Cust."
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Invoiced Sales by Customer';
-    AboutTitle = 'About Project Invoiced Sales by Customer';
+    Caption = 'Project Invoiced Sales by Customer (Power BI)';
+    AboutTitle = 'About Project Invoiced Sales by Customer (Power BI)';
     AboutText = 'The Project Invoiced Sales by Customer report details invoiced sales for a project, broken down by customer. It includes key KPIs such as % Invoiced, Billable Invoiced Price, and Billable Total Price, offering a clear view of project invoicing by customer. ';
 
     layout
