@@ -5977,7 +5977,7 @@ codeunit 134920 "ERM General Journal UT"
         RecurringGeneralJournal.Close();
 
         // [THEN] The date formula is persisted on the line
-        Assert.IsTrue(GenJournalLine.FindFirst(), GenJournalLineNotFoundErr);
+        Assert.IsTrue(GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No."), GenJournalLineNotFoundErr);
         Assert.AreEqual(ExpectedRecurringFrequency, GenJournalLine."Recurring Frequency", RecurringFrequencyNotPersistedErr);
     end;
 
@@ -6007,7 +6007,7 @@ codeunit 134920 "ERM General Journal UT"
         RecurringGeneralJournal.Close();
 
         // [THEN] The recurring frequency on the line is empty
-        Assert.IsTrue(GenJournalLine.FindFirst(), GenJournalLineNotFoundErr);
+        Assert.IsTrue(GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No."), GenJournalLineNotFoundErr);
         Assert.AreEqual('', Format(GenJournalLine."Recurring Frequency"), RecurringFrequencyNotClearedErr);
     end;
 
