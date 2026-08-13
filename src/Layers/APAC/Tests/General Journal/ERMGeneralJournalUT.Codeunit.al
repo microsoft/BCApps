@@ -39,6 +39,8 @@ codeunit 134920 "ERM General Journal UT"
         InvalidRecurringFrequencyTok: Label 'ABC', Locked = true;
         InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
         GenJournalLineNotFoundErr: Label 'The general journal line was not found.';
+        RecurringFrequencyNotDisplayedErr: Label 'Recurring Frequency should be displayed as the formatted date formula.';
+        RecurringFrequencyNotPersistedErr: Label 'The entered recurring frequency was not persisted.';
         RecurringFrequencyNotClearedErr: Label 'The recurring frequency should be cleared.';
         IsInitialized: Boolean;
 
@@ -6143,7 +6145,7 @@ codeunit 134920 "ERM General Journal UT"
         Page.Run(Page::"Recurring General Journal", GenJournalLine);
 
         // [THEN] The field displays the formatted date formula
-        Assert.AreEqual(Format(RecurringFrequency), RecurringGeneralJournal."Recurring Frequency".Value, 'Recurring Frequency should be displayed as the formatted date formula.');
+        Assert.AreEqual(Format(RecurringFrequency), RecurringGeneralJournal."Recurring Frequency".Value, RecurringFrequencyNotDisplayedErr);
         RecurringGeneralJournal.Close();
     end;
 
@@ -6172,7 +6174,7 @@ codeunit 134920 "ERM General Journal UT"
 
         // [THEN] The date formula is persisted on the line
         Assert.IsTrue(GenJournalLine.FindFirst(), GenJournalLineNotFoundErr);
-        Assert.AreEqual(ExpectedRecurringFrequency, GenJournalLine."Recurring Frequency", 'The entered recurring frequency was not persisted.');
+        Assert.AreEqual(ExpectedRecurringFrequency, GenJournalLine."Recurring Frequency", RecurringFrequencyNotPersistedErr);
     end;
 
     [Test]
