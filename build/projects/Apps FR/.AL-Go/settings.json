@@ -284,6 +284,7 @@
                                 {
                                     "branches":  [
                                                      "main",
+                                                     "private/*",
                                                      "releases/*.x"
                                                  ],
                                     "settings":  {
