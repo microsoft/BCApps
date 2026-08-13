@@ -342,6 +342,7 @@ codeunit 441 "Prepayment Mgt."
     begin
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::Order);
         SalesHeader.SetRange(Status, SalesHeader.Status::"Pending Prepayment");
+        OnBeforeUpdatePendingPrepaymentSales(SalesHeader);
         if SalesHeader.FindSet(true) then
             repeat
                 if not PrepaymentMgt.TestSalesPayment(SalesHeader) then begin
@@ -350,6 +351,7 @@ codeunit 441 "Prepayment Mgt."
                         Session.LogMessage('0000254', StrSubstNo(StatusOfSalesOrderIsChangedTxt, Format(SalesHeader."No.")), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', UpdateSalesOrderStatusTxt);
                 end;
             until SalesHeader.Next() = 0;
+        OnAfterUpdatePendingPrepaymentSales(SalesHeader);
     end;
 
     /// <summary>
@@ -424,6 +426,24 @@ codeunit 441 "Prepayment Mgt."
             UpdateFrequency::Weekly:
                 exit(60 * 24 * 7);
         end;
+    end;
+
+    /// <summary>
+    /// Integration event raised before pending prepayment sales orders are processed for release.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header filtered to pending prepayment orders</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdatePendingPrepaymentSales(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after pending prepayment sales orders have been processed for release.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header used while processing pending prepayment orders</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdatePendingPrepaymentSales(var SalesHeader: Record "Sales Header")
+    begin
     end;
 
     /// <summary>

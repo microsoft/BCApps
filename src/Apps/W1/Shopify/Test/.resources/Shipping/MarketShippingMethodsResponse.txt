@@ -1,0 +1,1 @@
+{"data":{"markets":{"pageInfo":{"hasNextPage":false},"edges":[{"cursor":"cursor1","node":{"delivery":{"shipping":{"isEnabled":true,"optionDefinitions":{"edges":[{"node":{"isActive":true,"name":"Standard Shipping"}},{"node":{"isActive":true,"name":"Express Shipping"}},{"node":{"isActive":false,"name":"Inactive Method"}}]}}}}}]}}}

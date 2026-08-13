@@ -700,7 +700,7 @@ codeunit 442 "Sales-Post Prepayments"
                     TempSalesLine.Insert();
                 end;
             until SalesLine.Next() = 0;
-UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineBuf, HasInvoiceDiscount);
+        UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineBuf, HasInvoiceDiscount);
 
         if SalesSetup."Invoice Rounding" then
             if InsertInvoiceRounding(
@@ -2083,8 +2083,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
     begin
         if HasInvoiceDiscount and (SalesHeader."Prepayment %" <> 0) then begin
             Currency.Initialize(SalesHeader."Currency Code");
-            SalesHeader.CalcFields(Amount);
-            PrepmtAmt := Round(SalesHeader.Amount * SalesHeader."Prepayment %" / 100, Currency."Amount Rounding Precision");
+            PrepmtAmt := CalcPrepmtAmount(SalesHeader, Currency);
             if TotalPrepmtInvLineBuffer.Amount > PrepmtAmt then begin
                 DifferenceAmt := TotalPrepmtInvLineBuffer.Amount - PrepmtAmt;
 
@@ -2097,6 +2096,23 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
                 end;
             end;
         end;
+    end;
+
+    local procedure CalcPrepmtAmount(SalesHeader: Record "Sales Header"; Currency: Record Currency): Decimal
+    var
+        SalesLine: Record "Sales Line";
+        PrepmtAmt: Decimal;
+    begin
+        ApplyFilter(SalesHeader, 2, SalesLine);
+	    SalesLine.SetLoadFields(Amount, "Amount Including VAT", "Prepayment %");
+        if SalesLine.FindSet() then
+            repeat
+                 if SalesHeader."Prepmt. Include Tax" then
+                     PrepmtAmt += SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100
+                 else
+                     PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;
+             until SalesLine.Next() = 0;
+        exit(Round(PrepmtAmt, Currency."Amount Rounding Precision"));
     end;
 
     /// <summary>

@@ -195,7 +195,9 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         SalesLine: Record "Sales Line";
         GiftCard: Record "Shpfy Gift Card";
         ShopLocation: Record "Shpfy Shop Location";
+        ExchangeOrderLine: Record "Shpfy Order Line";
         OpenAmount: Decimal;
+        LocationId: BigInteger;
         IsHandled: Boolean;
     begin
         repeat
@@ -234,7 +236,16 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                                     if RefundLine."Variant Code" <> '' then
                                         SalesLine.Validate("Variant Code", RefundLine."Variant Code");
 
-                                    if ShopLocation.Get(Shop.Code, RefundLine."Location Id") then
+                                    // Exchange-item refund lines are created before the order lines exist, so their Location Id
+                                    // is 0. Resolve it now from the exchange order line, which carries the fulfillment location.
+                                    LocationId := RefundLine."Location Id";
+                                    if RefundLine."Is Exchange Item" and (LocationId = 0) then begin
+                                        ExchangeOrderLine.SetLoadFields("Location Id");
+                                        if ExchangeOrderLine.Get(RefundHeader."Order Id", RefundLine."Order Line Id") then
+                                            LocationId := ExchangeOrderLine."Location Id";
+                                    end;
+
+                                    if ShopLocation.Get(Shop.Code, LocationId) then
                                         SalesLine.Validate("Location Code", ShopLocation."Default Location Code");
 
                                     if (Shop."Return Location Priority" = "Shpfy Return Location Priority"::"Default Return Location") or (SalesLine."Location Code" = '') then

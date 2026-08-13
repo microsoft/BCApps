@@ -170,6 +170,7 @@ page 254 "Purchase Journal"
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
                         CurrPage.SaveRecord();
+                        CurrPage.Update(false);
                     end;
                 }
                 field("<Vendor Name>"; GetVendorName())
@@ -178,6 +179,11 @@ page 254 "Purchase Journal"
                     Caption = 'Vendor Name';
                     Editable = false;
                     ToolTip = 'Specifies the name of the vendor.';
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
                 }
                 field(GenJnlLineApprovalStatus; GenJnlLineApprovalStatus)
                 {

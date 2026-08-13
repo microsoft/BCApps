@@ -192,6 +192,19 @@ page 9652 "Report Layout Selection"
                     REPORT.RunModal(Rec."Report ID");
                 end;
             }
+            action(ShowLayoutParts)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Show layout parts';
+                Image = ViewDocumentLine;
+                Visible = DocumentReportExperienceEnabled;
+                ToolTip = 'Show the header/footer and theme parts that will actually apply to the selected report in the current company, including where each part is resolved from.';
+
+                trigger OnAction()
+                begin
+                    ShowResolvedLayoutParts();
+                end;
+            }
             action(BulkUpdate)
             {
                 ApplicationArea = Basic, Suite;
@@ -236,6 +249,9 @@ page 9652 "Report Layout Selection"
                 actionref(RunReport_Promoted; RunReport)
                 {
                 }
+                actionref(ShowLayoutParts_Promoted; ShowLayoutParts)
+                {
+                }
 #if not CLEAN28
                 actionref(Customizations_Promoted; Customizations)
                 {
@@ -266,12 +282,16 @@ page 9652 "Report Layout Selection"
     end;
 
     trigger OnOpenPage()
+    var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         SelectedCompany := CompanyName;
+        DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
     end;
 
     var
         ReportLayoutSelection: Record "Report Layout Selection";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
         SelectedCompany: Text[30];
 #if not CLEAN28    
         WrongCompanyErr: Label 'You cannot select a layout that is specific to another company.';
@@ -279,8 +299,12 @@ page 9652 "Report Layout Selection"
         DefaultLbl: Label '(Default)';
         CustomLayoutDescription: Text;
         IsInitialized: Boolean;
+        DocumentReportExperienceEnabled: Boolean;
         CouldNotFindCustomReportLayoutErr: Label 'There is no custom report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
         CouldNotFindBuiltInReportLayoutErr: Label 'There is no built-in report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
+        ShowLayoutPartsMsg: Label 'Header/Footer Part: %1\Theme Part: %2', Comment = '%1 = resolved header/footer part, %2 = resolved theme part';
+        PartWithSourceTxt: Label '%1 (from %2)', Comment = '%1 = part name, %2 = where the part is resolved from';
+        SelectReportFirstErr: Label 'Select a report before using this action.';
 
     procedure UpdateRec()
     begin
@@ -530,6 +554,29 @@ page 9652 "Report Layout Selection"
         TenantReportLayoutSelection."User ID" := EmptyGuid;
         if not TenantReportLayoutSelection.Insert(true) then
             TenantReportLayoutSelection.Modify(true);
+    end;
+
+    local procedure ShowResolvedLayoutParts()
+    var
+        HeaderDisplay: Text;
+        HeaderSource: Text;
+        ThemeDisplay: Text;
+        ThemeSource: Text;
+    begin
+        if Rec."Report ID" = 0 then
+            Error(SelectReportFirstErr);
+
+        // Walk the same Tenant Report Layout Cfg precedence the platform uses at render time, so the message reflects
+        // the parts that will actually apply — including report, company and global defaults — not only a layout-level row.
+        LookupHelper.GetResolvedPartDisplays(Rec."Report ID", '', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        Message(ShowLayoutPartsMsg, FormatPartDisplay(HeaderDisplay, HeaderSource), FormatPartDisplay(ThemeDisplay, ThemeSource));
+    end;
+
+    local procedure FormatPartDisplay(PartName: Text; Source: Text): Text
+    begin
+        if Source = '' then
+            exit(PartName);
+        exit(StrSubstNo(PartWithSourceTxt, PartName, Source));
     end;
 
     procedure GetSelectedCompanyName(): Text[30]

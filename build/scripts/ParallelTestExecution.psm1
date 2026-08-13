@@ -48,11 +48,50 @@ function Get-CachedTestRunResult {
 
 <#
 .SYNOPSIS
+    Resolves the authoritative app name for a project from its app.json "name" field.
+.DESCRIPTION
+    Get-ApplicationGroup exposes the projects.json key as ApplicationName. That key is required to
+    match the app.json "name", but the two can drift (typos, "-Tests" vs " Test", trailing dots).
+    When they drift, the container only ever knows the app.json "name", so any match keyed off
+    ApplicationName silently drops the app from the test dispatch set and skips ALL of its tests
+    while the build stays green. Reading the name straight from app.json (via AppJsonPath) makes
+    the dispatch robust against that drift. Falls back to ApplicationName if app.json is missing
+    or unreadable.
+.OUTPUTS
+    [string] The app.json "name", or ApplicationName as a fallback.
+#>
+function Get-AppNameFromMetadata {
+    param(
+        [Parameter(Mandatory=$true)]
+        $BuildMetadata
+    )
+
+    $appJsonPath = $BuildMetadata.AppJsonPath
+    if (-not [string]::IsNullOrWhiteSpace($appJsonPath) -and (Test-Path $appJsonPath -PathType Leaf)) {
+        try {
+            $appName = (Get-Content $appJsonPath -Raw | ConvertFrom-Json).name
+            if (-not [string]::IsNullOrWhiteSpace($appName)) {
+                if ($appName -ne $BuildMetadata.ApplicationName) {
+                    Write-Host "::warning::Test app projects.json key '$($BuildMetadata.ApplicationName)' does not match its app.json name '$appName'. Using the app.json name for test dispatch. Align the projects.json key (and build/groups.json name) with the app.json name to avoid confusion."
+                }
+                return $appName
+            }
+        } catch {
+            Write-Host "WARNING: Could not read app name from '$appJsonPath' ($($_.Exception.Message)); falling back to projects.json key '$($BuildMetadata.ApplicationName)'."
+        }
+    }
+    return $BuildMetadata.ApplicationName
+}
+
+<#
+.SYNOPSIS
     Returns the names of test apps that are both expected for a country and installed in the container.
 .DESCRIPTION
     Combines the project metadata in build/projects.json (via Get-ApplicationGroup) with
     Get-BcContainerAppInfo so we only ever try to dispatch apps that actually exist in the
     container. The country defaults to "w1" when unset or set to the repo-level "base" sentinel.
+    App names are resolved from each project's app.json "name" (via Get-AppNameFromMetadata) so a
+    projects.json-key vs app.json-name mismatch cannot silently exclude a test app from dispatch.
 #>
 function Get-InstalledTestAppNames {
     param(
@@ -68,7 +107,7 @@ function Get-InstalledTestAppNames {
     $allTestAppNames = @(
         Get-ApplicationGroup -GroupName "All" -CountryCode $Country -SkipLanguagePacks |
         Where-Object { $_.IsTest } |
-        Select-Object -ExpandProperty ApplicationName
+        ForEach-Object { Get-AppNameFromMetadata -BuildMetadata $_ }
     )
 
     $installedAppNames = @(
@@ -594,22 +633,26 @@ function Invoke-ParallelTestExecution {
     $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false; transient = @(); retried = @{} }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
-    # Single dispatch loop. $pending is processed FIFO; transient platform-race failures
-    # are re-queued onto the back of $pending so the retry runs as part of the normal flow.
-    # The retry cap lives in Receive-TestJobResult: an app already in $state.retried gets
-    # classified as Failed (not Transient) on a second failure.
+    # Single dispatch loop. $pending is processed FIFO and $appNamesToTest arrives ordered
+    # longest-first (see TestConfiguration.json), which is the LPT schedule that keeps the
+    # tail short. The retry cap lives in Receive-TestJobResult: an app already in
+    # $state.retried gets classified as Failed (not Transient) on a second failure.
     $pending = @($appNamesToTest)
 
     while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
-        # Promote any transient failures back into the dispatch queue.
+        # Promote any transient failures back into the dispatch queue. They go to the FRONT:
+        # a platform race normally kills a job within a minute of dispatch, so the victim is
+        # almost always one of the first (i.e. longest) apps. Appending it instead would
+        # restart the longest app only after every other app had been dispatched, adding its
+        # full duration to the critical path.
         if ($state.transient.Count -gt 0) {
             $toRetry = @($state.transient)
             $state.transient = @()
             Write-Host "Re-queueing $($toRetry.Count) app(s) after transient platform race: $($toRetry -join ', ')"
             foreach ($appName in $toRetry) {
                 $state.retried[$appName] = $true
-                $pending += $appName
             }
+            $pending = @($toRetry) + @($pending)
         }
 
         if ($pending.Count -gt 0) {
@@ -689,4 +732,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata

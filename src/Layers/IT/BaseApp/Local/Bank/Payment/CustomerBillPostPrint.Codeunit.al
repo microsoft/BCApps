@@ -245,7 +245,7 @@ codeunit 12172 "Customer Bill - Post + Print"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforePostBalanceAccount(GenJnlLine, CustomerBillHeader, CustLedgEntry, BalanceAmount, IsHandled);
+        OnBeforePostBalanceAccount(GenJnlLine, CustomerBillHeader, CustLedgEntry, BalanceAmount, IsHandled, GenJnlPostLine);
         if IsHandled then
             exit;
 
@@ -374,7 +374,7 @@ codeunit 12172 "Customer Bill - Post + Print"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostBalanceAccount(var GenJournalLine: Record "Gen. Journal Line"; CustomerBillHeader: Record "Customer Bill Header"; CustLedgerEntry: Record "Cust. Ledger Entry"; var BalanceAmount: Decimal; var IsHandled: Boolean)
+    local procedure OnBeforePostBalanceAccount(var GenJournalLine: Record "Gen. Journal Line"; CustomerBillHeader: Record "Customer Bill Header"; CustLedgerEntry: Record "Cust. Ledger Entry"; var BalanceAmount: Decimal; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 }

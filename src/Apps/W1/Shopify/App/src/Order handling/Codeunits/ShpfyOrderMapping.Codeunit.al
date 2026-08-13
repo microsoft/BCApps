@@ -95,15 +95,17 @@ codeunit 30163 "Shpfy Order Mapping"
         if OrderHeader."Bill-to Customer No." = '' then begin
             OrderEvents.OnBeforeMapCustomer(OrderHeader, IsHandled);
             if not IsHandled then begin
-                JCustomer.Add('Name', OrderHeader."Sell-to Customer Name");
-                JCustomer.Add('Name2', OrderHeader."Sell-to Customer Name 2");
-                JCustomer.Add('Address', OrderHeader."Sell-to Address");
-                JCustomer.Add('Address2', OrderHeader."Sell-to Address 2");
-                JCustomer.Add('PostCode', OrderHeader."Sell-to Post Code");
-                JCustomer.Add('City', OrderHeader."Sell-to City");
-                JCustomer.Add('County', OrderHeader."Sell-to County");
-                JCustomer.Add('CountryCode', OrderHeader."Sell-to Country/Region Code");
-                OrderHeader."Sell-to Customer No." := CustomerMapping.DoMapping(OrderHeader."Customer Id", JCustomer, OrderHeader."Shop Code", CustomerTemplateCode, AllowCreateCustomer);
+                if OrderHeader."Sell-to Customer No." = '' then begin
+                    JCustomer.Add('Name', OrderHeader."Sell-to Customer Name");
+                    JCustomer.Add('Name2', OrderHeader."Sell-to Customer Name 2");
+                    JCustomer.Add('Address', OrderHeader."Sell-to Address");
+                    JCustomer.Add('Address2', OrderHeader."Sell-to Address 2");
+                    JCustomer.Add('PostCode', OrderHeader."Sell-to Post Code");
+                    JCustomer.Add('City', OrderHeader."Sell-to City");
+                    JCustomer.Add('County', OrderHeader."Sell-to County");
+                    JCustomer.Add('CountryCode', OrderHeader."Sell-to Country/Region Code");
+                    OrderHeader."Sell-to Customer No." := CustomerMapping.DoMapping(OrderHeader."Customer Id", JCustomer, OrderHeader."Shop Code", CustomerTemplateCode, AllowCreateCustomer);
+                end;
 
                 Clear(JCustomer);
                 JCustomer.Add('Name', OrderHeader."Bill-to Name");
@@ -120,6 +122,8 @@ codeunit 30163 "Shpfy Order Mapping"
 
                 if OrderHeader."Sell-to Customer No." = '' then
                     OrderHeader."Sell-to Customer No." := OrderHeader."Bill-to Customer No.";
+                if OrderHeader."Bill-to Customer No." = '' then
+                    OrderHeader."Bill-to Customer No." := OrderHeader."Sell-to Customer No.";
 
                 if OrderHeader."Bill-to Customer No." <> Shop."Default Customer No." then
                     OrderHeader."Bill-to Contact No." := FindContactNo(OrderHeader."Bill-to Contact Name", OrderHeader."Bill-to Customer No.");
