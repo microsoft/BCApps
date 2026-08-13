@@ -11,7 +11,7 @@ tableextension 4412 "SOA Item Ext" extends Item
 {
     fields
     {
-        field(4412; "Item Availability Filter"; Text[100])
+        field(4412; "Item Availability Filter"; Text[140])
         {
             Caption = 'Item Availability Filter';
             DataClassification = SystemMetadata;
