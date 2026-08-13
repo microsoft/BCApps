@@ -246,7 +246,7 @@ report 99001501 "Subc. Create Transf. Order"
                             Error(ExcessReservationsErr, TransferLine."Quantity (Base)", SubcTransferManagement.GetComponentReservedQtyBase(ProdOrderComponent), ProdOrderComponent."Item No.");
 
                         SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
-                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
+                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then
                             if Item."Order Tracking Policy" = Item."Order Tracking Policy"::None then
                                 SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code")
                             else begin
@@ -254,7 +254,6 @@ report 99001501 "Subc. Create Transf. Order"
                                 SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code");
                                 UnbindSubscription(SubcProdOrdCompRes);
                             end;
-                        end;
                         ProdOrderComponent.Modify();
 
                         SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
