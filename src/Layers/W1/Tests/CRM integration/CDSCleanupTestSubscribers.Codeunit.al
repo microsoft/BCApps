@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace Microsoft.Integration.Dataverse;
+
 codeunit 139202 "CDS Cleanup Test Subscribers"
 {
     // Used by "CDS Integration Mgt Test" to force Record.Truncate to be unsupported for the
