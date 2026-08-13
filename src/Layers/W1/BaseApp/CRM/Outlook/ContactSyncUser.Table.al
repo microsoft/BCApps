@@ -68,7 +68,7 @@ table 7121 "Contact Sync User"
         if "ID" = 0 then
             exit;
 
-        ValidateApprovedGraphDeltaUrl(NewDeltaUrl);
+        ValidateApprovedGraphDeltaUrl(NewDeltaUrl, true);
 
         "Delta Url" := CopyStr(NewDeltaUrl, 1, MaxStrLen("Delta Url"));
         if StrLen(NewDeltaUrl) > MaxStrLen("Delta Url") then
@@ -102,23 +102,19 @@ table 7121 "Contact Sync User"
             Error(CannotChangeRecordOwnerErr);
     end;
 
-    internal procedure ValidateApprovedGraphDeltaUrl(DeltaUrlToValidate: Text)
-    begin
-        if DeltaUrlToValidate = '' then
-            exit;
-
-        if not IsApprovedGraphDeltaUrl(DeltaUrlToValidate) then
-            Error(InvalidDeltaUrlErr);
-    end;
-
-    internal procedure IsApprovedGraphDeltaUrl(DeltaUrlToValidate: Text): Boolean
+    internal procedure ValidateApprovedGraphDeltaUrl(DeltaUrlToValidate: Text; RaiseError: Boolean): Boolean
     var
         Uri: Codeunit Uri;
+        IsApproved: Boolean;
     begin
         if DeltaUrlToValidate = '' then
-            exit(false);
+            exit(RaiseError);
 
-        exit(Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) = LowerCase(DeltaUrlToValidate));
+        IsApproved := Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) = LowerCase(DeltaUrlToValidate);
+        if RaiseError and not IsApproved then
+            Error(InvalidDeltaUrlErr);
+
+        exit(IsApproved);
     end;
 
     var

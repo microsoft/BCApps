@@ -481,7 +481,7 @@ codeunit 7106 "O365 Bidirectional Sync"
     var
         ContactSyncUser: Record "Contact Sync User";
     begin
-        exit(ContactSyncUser.IsApprovedGraphDeltaUrl(UriToValidate));
+        exit(ContactSyncUser.ValidateApprovedGraphDeltaUrl(UriToValidate, false));
     end;
 
     local procedure GetSecondaryEmailAddress(JsonObject: JsonObject): Text
