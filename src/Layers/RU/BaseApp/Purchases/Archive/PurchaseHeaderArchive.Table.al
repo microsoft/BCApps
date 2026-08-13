@@ -35,7 +35,6 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
-using Microsoft.Utilities;
 using System.Globalization;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -756,7 +755,7 @@ table 5109 "Purchase Header Archive"
 
             trigger OnLookup()
             begin
-                ShowDimensions();
+                Rec.ShowDimensions();
             end;
         }
         field(3998; "Source Doc. Exists"; Boolean)

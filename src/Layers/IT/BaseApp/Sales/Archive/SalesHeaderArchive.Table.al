@@ -36,7 +36,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
-using Microsoft.Utilities;
 using System.Globalization;
 using System.Reflection;
 using System.Security.AccessControl;
