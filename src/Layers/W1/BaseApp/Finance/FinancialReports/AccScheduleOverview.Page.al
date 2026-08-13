@@ -1049,9 +1049,6 @@ page 490 "Acc. Schedule Overview"
                 trigger OnAction()
                 begin
                     AccSchedManagement.ForceRecalculate(true);
-                    // Recalculate must reuse the filters currently entered in the page (kept in TempFinancialReport)
-                    // instead of reloading the persisted/default report filters, which would silently discard the
-                    // user's in-page dimension and other filter values.
                     PreserveCurrentPageFilters := true;
                     ReloadPage();
                 end;
@@ -1466,8 +1463,6 @@ page 490 "Acc. Schedule Overview"
 #endif
         RowDefinitionBlocked: Boolean;
         ColDefinitionBlocked: Boolean;
-        // When set, LoadPageState keeps the filters currently entered in the page (TempFinancialReport)
-        // instead of reloading the persisted/default report filters. Used by the Recalculate action.
         PreserveCurrentPageFilters: Boolean;
 
     protected var
@@ -1609,8 +1604,6 @@ page 490 "Acc. Schedule Overview"
 
         // `FinancialReportTemp` contains the state of the filters the user interacts with
         // `LoadFinancialReportFiltersOrDefault` loads this temporary record considering user overriden filters (if any).
-        // When PreserveCurrentPageFilters is set (e.g. from Recalculate), the filters currently entered in the page
-        // must be kept instead of being replaced by the persisted/default report filters.
         if PreserveCurrentPageFilters then
             PreserveCurrentPageFilters := false
         else
