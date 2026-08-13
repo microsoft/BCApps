@@ -451,6 +451,16 @@ codeunit 5633 "FA Jnl.-Post Batch"
         SuppressCommit := NewSuppressCommit;
     end;
 
+    procedure MakeDerogatoryFAJnlLine(var NewFAJnlLine: Record "FA Journal Line"; FAJournalLine: Record "FA Journal Line"): Boolean
+    var
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+    begin
+        NewFAJnlLine.Copy(FAJournalLine);
+        exit(
+            DerogatoryPostingMgt.MakeDerogatoryJournalLine(
+                NewFAJnlLine, FAJournalLine, Enum::"Derogatory Posting Role"::Source));
+    end;
+
     local procedure PostLines()
     var
         IsHandled: Boolean;
