@@ -336,8 +336,12 @@ codeunit 395 "FinChrgMemo-Issue"
         TempGenJnlLine."System-Created Entry" := SystemCreatedEntry;
         TempGenJnlLine."Posting No. Series" := FinChrgMemoHeader."Issuing No. Series";
         TempGenJnlLine."Salespers./Purch. Code" := '';
+#if not CLEAN29
         if GLSetup."Use Activity Code" then
             TempGenJnlLine."Activity Code" := FinChrgMemoHeader."Activity Code";
+#endif
+        if GLSetup."Use Business Activity Code" then
+            TempGenJnlLine."Business Activity Code" := FinChrgMemoHeader."Business Activity Code";
         OnAfterInitGenJnlLine(TempGenJnlLine, FinChrgMemoHeader, SrcCode);
     end;
 

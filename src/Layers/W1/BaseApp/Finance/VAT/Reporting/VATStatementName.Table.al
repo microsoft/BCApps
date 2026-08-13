@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Foundation.AuditCodes;
+
 /// <summary>
 /// Defines named VAT statement configurations within templates for organizing different VAT calculation scenarios.
 /// Groups VAT statement lines under named categories for various reporting and calculation purposes.
@@ -49,6 +51,11 @@ table 257 "VAT Statement Name"
         {
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
+        }
+        field(395; "Business Activity Code Filter"; Code[10])
+        {
+            Caption = 'Business Activity Code Filter';
+            TableRelation = "Business Activity".Code;
         }
     }
 

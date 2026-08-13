@@ -2,26 +2,29 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-#if not CLEAN29
-namespace Microsoft.Utilities;
+namespace Microsoft.Foundation.AuditCodes;
 
-table 12124 "Activity Code"
+table 395 "Business Activity"
 {
-    Caption = 'Activity Code';
-    LookupPageID = 12124;
+    Caption = 'Business Activity Code';
     DataClassification = CustomerContent;
-    ObsoleteReason = 'Replaced by the Business Activity Code table.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    LookupPageID = "Business Activities";
 
     fields
     {
-        field(1; "Code"; Code[6])
+        field(1; Code; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
+
+            trigger OnValidate()
+            var
+                BusinessActivityCodeMgt: Codeunit "Business Activity Code Mgt.";
+            begin
+                BusinessActivityCodeMgt.Validate(Code);
+            end;
         }
-        field(2; Description; Text[30])
+        field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
@@ -29,15 +32,9 @@ table 12124 "Activity Code"
 
     keys
     {
-        key(Key1; "Code")
+        key(Key1; Code)
         {
             Clustered = true;
         }
     }
-
-    fieldgroups
-    {
-    }
 }
-#endif
-

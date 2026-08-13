@@ -22,11 +22,16 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the operation type that is assigned to the posted service shipment.';
             }
+#if not CLEAN29
             field("Activity Code"; Rec."Activity Code")
             {
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the code for the company''s primary activity.';
+                ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
+#endif
         }
         modify("Due Date")
         {

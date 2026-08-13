@@ -1191,6 +1191,11 @@ table 5107 "Sales Header Archive"
             ExtendedDatatype = PhoneNo;
             ToolTip = 'Specifies the telephone number of the company''s shipping address.';
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the unique identifier for the combination of dimension values assigned to this document.
         /// </summary>
@@ -1526,11 +1531,16 @@ table 5107 "Sales Header Archive"
         {
             Caption = 'Operation Occurred Date';
         }
+#if not CLEAN29
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';

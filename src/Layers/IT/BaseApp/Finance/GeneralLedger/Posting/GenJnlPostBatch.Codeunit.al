@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -769,8 +769,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                     GenJnlLine2.CopyFromGenJnlAllocation(GenJnlAlloc);
                     GenJnlLine2."Deductible %" := GenJnlAlloc."Deductible %";
                     GenJnlLine2."Operation Occurred Date" := AllocateGenJnlLine."Operation Occurred Date";
+#if not CLEAN29
                     if GLSetup."Use Activity Code" then
                         GenJnlLine2."Activity Code" := AllocateGenJnlLine."Activity Code";
+#endif
+                    if GLSetup."Use Business Activity Code" then
+                        GenJnlLine2."Business Activity Code" := AllocateGenJnlLine."Business Activity Code";
                     GenJnlLine2."Allow Zero-Amount Posting" := true;
                     UpdateDimBalBatchName(GenJnlLine2);
                     OnPostAllocationsOnBeforePrepareGenJnlLineAddCurr(GenJnlLine2, AllocateGenJnlLine);

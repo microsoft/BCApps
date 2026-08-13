@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -481,8 +481,12 @@ codeunit 5980 "Service-Post"
         if (PassedServiceHeader."Document Type" = PassedServiceHeader."Document Type"::Invoice) or (PassedServiceHeader."Document Type" = PassedServiceHeader."Document Type"::"Credit Memo") or Invoice then
             ValidateIncludeInVATReport(PassedServiceHeader);
         GLSetup.GetRecordOnce();
+#if not CLEAN29
         if GLSetup."Use Activity Code" then
             PassedServiceHeader.TestField("Activity Code", ErrorInfo.Create());
+#endif
+        if GLSetup."Use Business Activity Code" then
+            PassedServiceHeader.TestField("Business Activity Code", ErrorInfo.Create());
 
         if PassedServiceHeader."Applies-to Doc. No." <> '' then
             if PassedServiceHeader."Applies-to Occurrence No." = 0 then

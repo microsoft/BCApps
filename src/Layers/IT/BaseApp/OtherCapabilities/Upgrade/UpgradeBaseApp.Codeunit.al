@@ -25,6 +25,8 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
@@ -62,16 +64,22 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Setup;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Archive;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
+using Microsoft.Service.Contract;
+using Microsoft.Service.Document;
+using Microsoft.Service.Archive;
 using Microsoft.Service.History;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
@@ -232,6 +240,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeInventorySetupAllowInvtAdjmt();
         UpgradeNoSeriesIT();
 #if not CLEAN29
+        UpgradeBusinessActivityCodes();
         UpgradeDirectTransferPostingToEnum();
 #endif
         UpgradeDirectTransferOnTransferRoute();
@@ -3775,6 +3784,67 @@ codeunit 104000 "Upgrade - BaseApp"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInitShipToPhoneNoUpgradeTag());
     end;
+
+#if not CLEAN29
+    local procedure UpgradeBusinessActivityCodes()
+    var
+        ActivityCode: Record "Activity Code";
+        BusinessActivity: Record "Business Activity";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag()) then
+            exit;
+
+        if ActivityCode.FindSet() then
+            repeat
+                if not BusinessActivity.Get(ActivityCode.Code) then begin
+                    BusinessActivity.Init();
+                    BusinessActivity.Code := ActivityCode.Code;
+                    BusinessActivity.Description := ActivityCode.Description;
+                    BusinessActivity.Insert();
+                end;
+            until ActivityCode.Next() = 0;
+
+        CopyBusinessActivityCodeField(Database::"Gen. Journal Line", 12123);
+        CopyBusinessActivityCodeField(Database::"Posted Gen. Journal Line", 12123);
+        CopyBusinessActivityCodeField(Database::"General Ledger Setup", 12131);
+        CopyBusinessActivityCodeField(Database::"VAT Entry", 12123);
+        CopyBusinessActivityCodeField(Database::"VAT Statement Line", 12125);
+        CopyBusinessActivityCodeField(Database::"VAT Statement Name", 12125);
+        CopyBusinessActivityCodeField(Database::"VAT Setup", 24);
+        CopyBusinessActivityCodeField(Database::"Company Information", 12124);
+        CopyBusinessActivityCodeField(Database::"Periodic VAT Settlement Entry", 1);
+        CopyBusinessActivityCodeField(Database::"Purchase Header Archive", 12123);
+        CopyBusinessActivityCodeField(Database::"Purchase Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Purch. Cr. Memo Hdr.", 12123);
+        CopyBusinessActivityCodeField(Database::"Purch. Inv. Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Sales Header Archive", 12123);
+        CopyBusinessActivityCodeField(Database::"Sales Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Finance Charge Memo Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Issued Fin. Charge Memo Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Sales Cr.Memo Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Sales Invoice Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Service Header Archive", 12123);
+        CopyBusinessActivityCodeField(Database::"Filed Service Contract Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Service Contract Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Service Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Service Cr.Memo Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Service Invoice Header", 12123);
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag());
+    end;
+
+    local procedure CopyBusinessActivityCodeField(TableId: Integer; ActivityCodeFieldId: Integer)
+    var
+        DataTransfer: DataTransfer;
+    begin
+        DataTransfer.SetTables(TableId, TableId);
+        DataTransfer.AddFieldValue(ActivityCodeFieldId, 12189);
+        DataTransfer.UpdateAuditFields := false;
+        DataTransfer.CopyFields();
+    end;
+#endif
 
     local procedure UpgradeReminderTextMultilines()
     var

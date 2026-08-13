@@ -7,6 +7,7 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 
 /// <summary>
@@ -219,6 +220,11 @@ table 256 "VAT Statement Line"
         {
             Caption = 'Box No.';
             ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
+        }
+        field(395; "Business Activity Code Filter"; Code[10])
+        {
+            Caption = 'Business Activity Code Filter';
+            TableRelation = "Business Activity".Code;
         }
     }
 

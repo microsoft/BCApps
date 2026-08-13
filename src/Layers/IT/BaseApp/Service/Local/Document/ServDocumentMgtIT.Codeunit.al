@@ -385,6 +385,7 @@ codeunit 12140 "Serv. Document Mgt. IT"
     end;
 
 
+#if not CLEAN29
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"ServContractManagement", 'OnBeforeServHeaderModify', '', false, false)]
     local procedure ServiceContract_OnBeforeServHeaderModify(var ServiceHeader: Record "Service Header"; ServiceContractHeader: Record "Service Contract Header")
     var
@@ -394,6 +395,7 @@ codeunit 12140 "Serv. Document Mgt. IT"
         if GeneralLedgerSetup."Use Activity Code" then
             ServiceHeader."Activity Code" := ServiceContractHeader."Activity Code";
     end;
+#endif
 
     // History
 

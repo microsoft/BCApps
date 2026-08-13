@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -2802,6 +2802,11 @@ table 81 "Gen. Journal Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Dimension set identifier linking to dimension value combinations for analytical reporting and cost center tracking.
         /// </summary>
@@ -3990,11 +3995,16 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Closing Balance Sheet';
         }
+#if not CLEAN29
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';
@@ -7916,7 +7926,10 @@ table 81 "Gen. Journal Line"
         "VAT Posting" := "VAT Posting"::"Manual VAT Entry";
         "System-Created Entry" := true;
         Prepayment := true;
+#if not CLEAN29
         "Activity Code" := PurchHeader."Activity Code";
+#endif
+        "Business Activity Code" := PurchHeader."Business Activity Code";
         "Fiscal Code" := PurchHeader."Fiscal Code";
         "Individual Person" := PurchHeader."Individual Person";
         Resident := PurchHeader.Resident;
@@ -8031,7 +8044,10 @@ table 81 "Gen. Journal Line"
         "Source No." := SalesHeader."Bill-to Customer No.";
         "IC Partner Code" := SalesHeader."Sell-to IC Partner Code";
         "Payment Method Code" := SalesHeader."Payment Method Code";
+#if not CLEAN29
         "Activity Code" := SalesHeader."Activity Code";
+#endif
+        "Business Activity Code" := SalesHeader."Business Activity Code";
         "Fiscal Code" := SalesHeader."Fiscal Code";
         "Individual Person" := SalesHeader."Individual Person";
         Resident := SalesHeader.Resident;
@@ -8903,7 +8919,10 @@ table 81 "Gen. Journal Line"
         FAGenJournalLine.Validate(Amount, Amount);
         FAGenJournalLine.Validate("Currency Code", "Currency Code");
         FAGenJournalLine.Validate("Posting Date", "Posting Date");
+#if not CLEAN29
         FAGenJournalLine.Validate("Activity Code", "Activity Code");
+#endif
+        FAGenJournalLine.Validate("Business Activity Code", "Business Activity Code");
         FAGenJournalLine.Validate("FA Posting Type", "FA Posting Type"::"Acquisition Cost");
         FAGenJournalLine.Validate("External Document No.", "External Document No.");
         FAGenJournalLine.Insert(true);

@@ -17,6 +17,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.TransactionNature;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Absence;
@@ -72,7 +73,10 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customs Office");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customs Authority Vendor");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Check Fiscal Code Setup");
+#if not CLEAN29
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Activity Code");
+#endif
+        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Business Activity");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Appointment Code");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Spesometro Appointment");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Lifo Category");

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.AuditCodes;
 // using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
 #if not CLEAN27
@@ -253,13 +254,26 @@ report 12 "VAT Statement"
                         end;
                     }
 #endif
-                    field(ActivityCode; ActivityCode)
+#if not CLEAN29
+                    field("Activity Code"; ActivityCode)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Activity Code';
                         Importance = Additional;
                         TableRelation = "Activity Code";
                         ToolTip = 'Specifies the activity code that is assigned to the VAT settlement transaction.';
+                        ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
+                    }
+#endif
+                    field("Business Activity Code"; ActivityCode)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Business Activity Code';
+                        Importance = Additional;
+                        TableRelation = "Business Activity";
+                        ToolTip = 'Specifies the business activity code that is assigned to the VAT settlement transaction.';
                     }
                     field("Country/Region Filter"; CountryRegionFilter)
                     {
@@ -381,7 +395,7 @@ report 12 "VAT Statement"
         Selection: Enum "VAT Statement Report Selection";
         TotalAmount: Decimal;
         UseAmtsInAddCurr: Boolean;
-        ActivityCode: Code[6];
+        ActivityCode: Code[10];
         CountryRegionFilter: Text;
 
     /// <summary>
@@ -443,8 +457,12 @@ report 12 "VAT Statement"
                         VATEntry.SetRange("Use Tax", VATStmtLine2."Use Tax");
                     end;
                     VATEntry.SetRange(Type, VATStmtLine2."Gen. Posting Type");
-                    if GLSetup."Use Activity Code" then
+                    if GLSetup."Use Business Activity Code" then
+                        VATEntry.SetFilter("Business Activity Code", "VAT Statement Line".GetFilter("Business Activity Code Filter"));
+#if not CLEAN29
+                    if GLSetup."Use Activity Code" and not GLSetup."Use Business Activity Code" then
                         VATEntry.SetFilter("Activity Code", "VAT Statement Line".GetFilter("Activity Code Filter"));
+#endif
                     if (EndDateReq = 0D) and (StartDate = 0D) then
                         VATEntry.SetRange("Operation Occurred Date")
                     else
@@ -569,7 +587,13 @@ report 12 "VAT Statement"
                                 PeriodVATSettlEntry.Reset();
                                 PeriodVATSettlEntry.SetCurrentKey("VAT Period Closed");
                                 PeriodVATSettlEntry.SetRange("VAT Period Closed", false);
-                                PeriodVATSettlEntry.SetRange("Activity Code", ActivityCode);
+                                if GLSetup."Use Business Activity Code" then
+                                    PeriodVATSettlEntry.SetRange("Business Activity Code", ActivityCode)
+#if not CLEAN29
+                                else
+                                    PeriodVATSettlEntry.SetRange("Activity Code", ActivityCode)
+#endif
+                                ;
                             end else begin
                                 PeriodicSettlVATEntry.Reset();
                                 PeriodicSettlVATEntry.SetCurrentKey("VAT Period Closed");
@@ -589,7 +613,13 @@ report 12 "VAT Statement"
                             if VATSettlementByActivityCodeIsEnabled then begin
                                 PeriodVATSettlEntry.Reset();
                                 PeriodVATSettlEntry.SetRange("VAT Period", VATPeriod);
-                                PeriodVATSettlEntry.SetRange("Activity Code", ActivityCode);
+                                if GLSetup."Use Business Activity Code" then
+                                    PeriodVATSettlEntry.SetRange("Business Activity Code", ActivityCode)
+#if not CLEAN29
+                                else
+                                    PeriodVATSettlEntry.SetRange("Activity Code", ActivityCode)
+#endif
+                                ;
                             end else begin
                                 PeriodicSettlVATEntry.Reset();
                                 PeriodicSettlVATEntry.SetRange("VAT Period", VATPeriod);

@@ -2,43 +2,34 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-#if not CLEAN29
-namespace Microsoft.Utilities;
+namespace Microsoft.Foundation.AuditCodes;
 
-page 12124 "Activity Codes"
+page 410 "Business Activities"
 {
     ApplicationArea = Basic, Suite;
+    Caption = 'Business Activities';
     PageType = List;
-    SourceTable = "Activity Code";
+    SourceTable = "Business Activity";
     UsageCategory = Lists;
-    ObsoleteReason = 'Replaced by the Business Activity Codes page.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
 
     layout
     {
-        area(content)
+        area(Content)
         {
-            repeater(Control1130000)
+            repeater(Control1)
             {
                 ShowCaption = false;
-                field("Code"; Rec.Code)
+                field(Code; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies a number that identifies your company''s business, such as 12348, if your company conducts trade.';
+                    ToolTip = 'Specifies the code that identifies the company''s business activity.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies a text description of the activity code.';
+                    ToolTip = 'Specifies a description of the business activity code.';
                 }
             }
         }
     }
-
-    actions
-    {
-    }
 }
-#endif
-

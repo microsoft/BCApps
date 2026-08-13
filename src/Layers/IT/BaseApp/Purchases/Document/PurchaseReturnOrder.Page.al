@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -308,7 +308,18 @@ page 6640 "Purchase Return Order"
                     ApplicationArea = PurchReturnOrder;
                     ToolTip = 'Specifies the operation type that is assigned to the purchase invoice.';
                 }
+#if not CLEAN29
                 field("Activity Code"; Rec."Activity Code")
+                {
+                    ApplicationArea = PurchReturnOrder;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
                 {
                     ApplicationArea = PurchReturnOrder;
                     ShowMandatory = IsActivityCodeMandatory;
@@ -1944,7 +1955,10 @@ page 6640 "Purchase Return Order"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+    #if not CLEAN29
         IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+    #endif
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup."Use Business Activity Code";
     end;
 
     procedure CallPostDocument(PostingCodeunitID: Integer)

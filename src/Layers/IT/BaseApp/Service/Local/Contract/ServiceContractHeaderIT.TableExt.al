@@ -10,11 +10,16 @@ tableextension 12151 "Service Contract Header IT" extends "Service Contract Head
 {
     fields
     {
+#if not CLEAN29
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
             DataClassification = CustomerContent;
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
     }
 }

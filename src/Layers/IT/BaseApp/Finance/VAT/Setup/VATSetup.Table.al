@@ -150,9 +150,18 @@ table 189 "VAT Setup"
         {
             Caption = 'Ship-To Alt. Cust. VAT Reg.';
         }
+#if not CLEAN29
         field(24; "Per Activity Code Settl. Entry"; Boolean)
         {
             Caption = 'Per Activity Code Settlement Entry';
+            ObsoleteReason = 'Replaced by the Per Business Activity Code Settl. Entry field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+        }
+#endif
+        field(395; "Per Business Activity Code Settl. Entry"; Boolean)
+        {
+            Caption = 'Per Business Activity Code Settlement Entry';
         }
     }
 

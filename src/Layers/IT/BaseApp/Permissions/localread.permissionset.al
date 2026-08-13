@@ -13,6 +13,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.TransactionNature;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Inventory.Costing;
@@ -31,7 +32,10 @@ permissionset 1002 "LOCAL READ"
     Caption = 'Country/region-specific read only access.';
 
     Permissions = tabledata "ABI/CAB Codes" = R,
+#if not CLEAN29
                   tabledata "Activity Code" = R,
+#endif
+                  tabledata "Business Activity" = R,
                   tabledata "Appointment Code" = R,
                   tabledata "Before Start Item Cost" = R,
                   tabledata Bill = R,

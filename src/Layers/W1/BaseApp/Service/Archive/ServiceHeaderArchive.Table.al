@@ -33,6 +33,7 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using Microsoft.Utilities;
 using Microsoft.Service.Setup;
 using System.Globalization;
 using System.Reflection;
@@ -607,6 +608,12 @@ table 6010 "Service Header Archive"
         {
             Caption = 'Work Description';
             DataClassification = CustomerContent;
+        }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
         }
         field(480; "Dimension Set ID"; Integer)
         {

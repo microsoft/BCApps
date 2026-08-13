@@ -526,6 +526,7 @@ codeunit 5940 ServContractManagement
         ServHeader2."Shortcut Dimension 1 Code" := ServContract2."Shortcut Dimension 1 Code";
         ServHeader2."Shortcut Dimension 2 Code" := ServContract2."Shortcut Dimension 2 Code";
         ServHeader2."Dimension Set ID" := ServContract2."Dimension Set ID";
+        CopyBusinessActivityCode(ServHeader2, ServContract2);
         OnBeforeServHeaderModify(ServHeader2, ServContract2);
         ServHeader2.Modify();
         RecordLinkManagement.CopyLinks(ServContract2, ServHeader2);
@@ -873,6 +874,7 @@ codeunit 5940 ServContractManagement
         ServHeader2."Dimension Set ID" := ServContract."Dimension Set ID";
         ServHeader2.Validate("Location Code",
           UserMgt.GetLocation(2, Cust."Location Code", ServContract."Responsibility Center"));
+        CopyBusinessActivityCode(ServHeader2, ServContract);
         OnBeforeServHeaderModify(ServHeader2, ServContract);
         ServHeader2.Modify();
 
@@ -882,6 +884,15 @@ codeunit 5940 ServContractManagement
           ServDocReg."Destination Document Type"::"Credit Memo", ServHeader2."No.");
 
         OnAfterCreateOrGetCreditHeader(ServHeader2, ServContract);
+    end;
+
+    local procedure CopyBusinessActivityCode(var ServiceHeader: Record "Service Header"; ServiceContractHeader: Record "Service Contract Header")
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."Use Business Activity Code" then
+            ServiceHeader."Business Activity Code" := ServiceContractHeader."Business Activity Code";
     end;
 
     local procedure CreateCreditLine(CreditNo: Code[20]; AccountNo: Code[20]; CreditAmount: Decimal; PeriodStarts: Date; PeriodEnds: Date; LineDescription: Text[100]; ServItemNo: Code[20]; ServContract: Record "Service Contract Header"; CreditCost: Decimal; CreditUnitPrice: Decimal; DiscAmount: Decimal; ApplyDiscAmt: Boolean; ServLedgEntryNo: Integer)

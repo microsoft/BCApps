@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -238,7 +238,18 @@ page 140 "Posted Purchase Credit Memo"
                     Editable = false;
                     Importance = Additional;
                 }
+#if not CLEAN29
                 field("Activity Code"; Rec."Activity Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;

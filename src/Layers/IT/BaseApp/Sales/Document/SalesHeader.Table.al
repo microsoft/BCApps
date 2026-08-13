@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -3003,6 +3003,11 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the identifier for the combination of dimensions applied to the document.
         /// </summary>
@@ -3770,11 +3775,16 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Sell-to Customer No."), false);
             end;
         }
+#if not CLEAN29
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';

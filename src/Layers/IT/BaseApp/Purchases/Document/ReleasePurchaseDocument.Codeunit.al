@@ -77,8 +77,12 @@ codeunit 415 "Release Purchase Document"
 
         PurchaseHeader.TestField("Buy-from Vendor No.");
         GeneralLedgerSetup.GetRecordOnce();
+#if not CLEAN29
         if GeneralLedgerSetup."Use Activity Code" then
             PurchaseHeader.TestField("Activity Code");
+#endif
+        if GeneralLedgerSetup."Use Business Activity Code" then
+            PurchaseHeader.TestField("Business Activity Code");
 
         IsHandled := false;
         OnCodeOnAfterCheckPurchaseReleaseRestrictions(PurchaseHeader, IsHandled);

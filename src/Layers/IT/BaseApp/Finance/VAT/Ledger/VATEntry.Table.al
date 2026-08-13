@@ -781,6 +781,11 @@ table 254 "VAT Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Percentage of VAT that is non-deductible based on business use or regulatory restrictions.
         /// </summary>
@@ -910,11 +915,16 @@ table 254 "VAT Entry"
         {
             Caption = 'Include in VAT Transac. Rep.';
         }
+#if not CLEAN29
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
         field(12124; "Reverse Sales VAT"; Boolean)
         {
             Caption = 'Reverse Sales VAT';
@@ -1049,11 +1059,21 @@ table 254 "VAT Entry"
         {
             Clustered = true;
         }
+#if not CLEAN29
         key(Key2; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Posting Date", "VAT Period", "Operation Occurred Date", "Activity Code", "Document Type", "VAT Registration No.")
         {
             SumIndexFields = Base, Amount, "Additional-Currency Base", "Additional-Currency Amount", "Remaining Unrealized Amount", "Remaining Unrealized Base", "Add.-Curr. Rem. Unreal. Amount", "Add.-Curr. Rem. Unreal. Base", "Nondeductible Amount", "Nondeductible Base", "Add. Curr. Nondeductible Amt.", "Add. Curr. Nondeductible Base";
         }
         key(Key3; Type, Closed, "Reverse Sales VAT", "EU Service", "Activity Code", "Document Type", "Bill-to/Pay-to No.", "VAT Bus. Posting Group", "VAT Prod. Posting Group", "VAT Period", "Operation Occurred Date", "Document Date", "Refers To Period")
+        {
+            SumIndexFields = Base, Amount, "Nondeductible Base", "Nondeductible Amount", "Remaining Unrealized Base", "Remaining Unrealized Amount";
+        }
+#endif
+        key(Key12189; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Posting Date", "VAT Period", "Operation Occurred Date", "Business Activity Code", "Document Type", "VAT Registration No.")
+        {
+            SumIndexFields = Base, Amount, "Additional-Currency Base", "Additional-Currency Amount", "Remaining Unrealized Amount", "Remaining Unrealized Base", "Add.-Curr. Rem. Unreal. Amount", "Add.-Curr. Rem. Unreal. Base", "Nondeductible Amount", "Nondeductible Base", "Add. Curr. Nondeductible Amt.", "Add. Curr. Nondeductible Base";
+        }
+        key(Key12190; Type, Closed, "Reverse Sales VAT", "EU Service", "Business Activity Code", "Document Type", "Bill-to/Pay-to No.", "VAT Bus. Posting Group", "VAT Prod. Posting Group", "VAT Period", "Operation Occurred Date", "Document Date", "Refers To Period")
         {
             SumIndexFields = Base, Amount, "Nondeductible Base", "Nondeductible Amount", "Remaining Unrealized Base", "Remaining Unrealized Amount";
         }

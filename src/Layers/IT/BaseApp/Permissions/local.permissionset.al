@@ -14,6 +14,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.TransactionNature;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Inventory.Costing;
@@ -34,7 +35,10 @@ permissionset 1001 "LOCAL"
     Caption = 'Country/region-specific func.';
 
     Permissions = tabledata "ABI/CAB Codes" = RIMD,
+#if not CLEAN29
                   tabledata "Activity Code" = RIMD,
+#endif
+                  tabledata "Business Activity" = RIMD,
                   tabledata "Appointment Code" = RIMD,
                   tabledata "Before Start Item Cost" = RIMD,
                   tabledata Bill = RIMD,

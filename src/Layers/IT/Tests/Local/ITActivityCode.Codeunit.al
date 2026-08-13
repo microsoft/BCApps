@@ -1,11 +1,11 @@
-codeunit 144003 "IT - Activity Code"
+codeunit 144003 "IT - Business Activity Code"
 {
     Subtype = Test;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
-        // [FEATURE] [Activity Code]
+        // [FEATURE] [Business Activity Code]
     end;
 
     var
@@ -25,16 +25,58 @@ codeunit 144003 "IT - Activity Code"
 
     [Test]
     [Scope('OnPrem')]
-    procedure MaximumLengthOfFieldActivityCodeOnActivityCodeTable()
+    procedure MaximumLengthOfBusinessActivityCodeField()
+    var
+        BusinessActivityCode: Record "Business Activity Code";
+    begin
+        // [SCENARIO 338450] Business Activity Code table stores codes of length 10
+        Initialize();
+
+        // [THEN] Verify the length of the Code field on Business Activity Code table.
+        Assert.AreEqual(
+          10, LibraryUtility.GetFieldLength(Database::"Business Activity Code", 1), StrSubstNo(IncorrectFieldLengthErr, BusinessActivityCode.FieldCaption(Code), 10));
+    end;
+
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure LegacyActivityCodeFieldKeepsMaximumLength()
     var
         ActivityCode: Record "Activity Code";
     begin
-        // [SCENARIO 338450] Activity Code's table has Activity Code field of length 6
         Initialize();
 
-        // [THEN] Verify the length of field 'Activity Code' on Activity Code table.
         Assert.AreEqual(
-          6, LibraryUtility.GetFieldLength(12124, 1), StrSubstNo(IncorrectFieldLengthErr, ActivityCode.FieldCaption(Code), 6));
+          6, LibraryUtility.GetFieldLength(Database::"Activity Code", 1), StrSubstNo(IncorrectFieldLengthErr, ActivityCode.FieldCaption(Code), 6));
+    end;
+#endif
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BusinessActivityCodeLongerThanSixCharactersIsNotValidInItaly()
+    var
+        BusinessActivityCode: Record "Business Activity Code";
+    begin
+        Initialize();
+
+        asserterror BusinessActivityCode.Validate(Code, '1234567');
+
+        Assert.ExpectedError('cannot be longer than 6 characters in Italy');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BusinessActivityCodeCanHaveTenCharactersOutsideItaly()
+    var
+        BusinessActivityCode: Record "Business Activity Code";
+        CompanyInformation: Record "Company Information";
+    begin
+        Initialize();
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := 'DE';
+        CompanyInformation.Modify();
+
+        BusinessActivityCode.Validate(Code, '1234567890');
     end;
 
     [Test]
@@ -56,7 +98,7 @@ codeunit 144003 "IT - Activity Code"
         // [THEN] Activity code error appears
         Assert.ExpectedError(
               StrSubstNo(
-                MissingActivityCodeOnJournalErr, GenJournalLine.FieldCaption("Activity Code"), GenJournalLine.TableCaption(), GenJournalLine.FieldCaption("Journal Template Name"),
+                MissingActivityCodeOnJournalErr, GenJournalLine.FieldCaption("Business Activity Code"), GenJournalLine.TableCaption(), GenJournalLine.FieldCaption("Journal Template Name"),
                 GenJournalLine."Journal Template Name", GenJournalLine.FieldCaption("Journal Batch Name"), GenJournalLine."Journal Batch Name", GenJournalLine.FieldCaption("Line No."), GenJournalLine."Line No."));
     end;
 
@@ -83,7 +125,7 @@ codeunit 144003 "IT - Activity Code"
         // [THEN] Activity code error appears
         Assert.ExpectedError(
               StrSubstNo(
-                MissingActivityCodeErr, PurchaseHeader.FieldCaption("Activity Code"), PurchaseHeader.TableCaption(), PurchaseHeader.FieldCaption("Document Type"), PurchaseHeader."Document Type",
+                MissingActivityCodeErr, PurchaseHeader.FieldCaption("Business Activity Code"), PurchaseHeader.TableCaption(), PurchaseHeader.FieldCaption("Document Type"), PurchaseHeader."Document Type",
                 PurchaseHeader.FieldCaption("No."), PurchaseHeader."No."));
     end;
 
@@ -102,7 +144,7 @@ codeunit 144003 "IT - Activity Code"
         SalesHeader.Validate(Ship, true);
         SalesHeader.Validate(Receive, true);
         SalesHeader.Validate(Invoice, true);
-        SalesHeader.Validate("Activity Code", '');
+        SalesHeader.Validate("Business Activity Code", '');
         SalesHeader.Modify(true);
 
         // [WHEN] Try post the document
@@ -111,7 +153,7 @@ codeunit 144003 "IT - Activity Code"
         // [THEN] Activity code error appears
         Assert.ExpectedError(
               StrSubstNo(
-                MissingActivityCodeErr, SalesHeader.FieldCaption("Activity Code"), SalesHeader.TableCaption(), SalesHeader.FieldCaption("Document Type"), SalesHeader."Document Type",
+                MissingActivityCodeErr, SalesHeader.FieldCaption("Business Activity Code"), SalesHeader.TableCaption(), SalesHeader.FieldCaption("Document Type"), SalesHeader."Document Type",
                 SalesHeader.FieldCaption("No."), SalesHeader."No."));
     end;
 
@@ -134,7 +176,7 @@ codeunit 144003 "IT - Activity Code"
         // [THEN] Activity code error appears
         Assert.ExpectedError(
               StrSubstNo(
-                MissingActivityCodeErr, ServiceHeader.FieldCaption("Activity Code"), ServiceHeader.TableCaption(), ServiceHeader.FieldCaption("Document Type"), ServiceHeader."Document Type",
+                MissingActivityCodeErr, ServiceHeader.FieldCaption("Business Activity Code"), ServiceHeader.TableCaption(), ServiceHeader.FieldCaption("Document Type"), ServiceHeader."Document Type",
                 ServiceHeader.FieldCaption("No."), ServiceHeader."No."));
     end;
 
@@ -150,14 +192,14 @@ codeunit 144003 "IT - Activity Code"
 
         // [GIVEN] General journal line was created with an activity code
         CreateGenJournalLine(GenJournalLine);
-        GenJournalLine.Validate("Activity Code", CreateActivityCode());
+        GenJournalLine.Validate("Business Activity Code", CreateBusinessActivityCode());
         GenJournalLine.Modify();
 
         // [WHEN] Post Gen. Journal line
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [THEN] Document is posted and VAT Entry has activity code
-        VerifyActivityCodeOnVATEntry(GenJournalLine."Document No.", GenJournalLine."Activity Code");
+        VerifyActivityCodeOnVATEntry(GenJournalLine."Document No.", GenJournalLine."Business Activity Code");
     end;
 
     [Test]
@@ -172,14 +214,14 @@ codeunit 144003 "IT - Activity Code"
 
         // [GIVEN] Recurring Gen. Journal line was created with an activity code
         CreateRecurringGenJournalLine(GenJournalLine);
-        GenJournalLine.Validate("Activity Code", CreateActivityCode());
+        GenJournalLine.Validate("Business Activity Code", CreateBusinessActivityCode());
         GenJournalLine.Modify();
 
         // [WHEN] Post Gen. Journal line
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [THEN] Line is posted and VAT Entry has activity code
-        VerifyActivityCodeOnVATEntry(GenJournalLine."Document No.", GenJournalLine."Activity Code");
+        VerifyActivityCodeOnVATEntry(GenJournalLine."Document No.", GenJournalLine."Business Activity Code");
     end;
 
     [Test]
@@ -195,15 +237,15 @@ codeunit 144003 "IT - Activity Code"
 
         // [GIVEN] Purchase header was created with an activity code
         CreatePurchaseDocument(PurchaseHeader);
-        PurchaseHeader.Validate("Activity Code", CreateActivityCode());
+        PurchaseHeader.Validate("Business Activity Code", CreateBusinessActivityCode());
         PurchaseHeader.Modify();
 
         // [GIVEN] Purchase header was posted
         PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         // [THEN] Document is posted and VAT Entry has activity code
-        VerifyActivityCodeOnVATEntry(PostedDocumentNo, PurchaseHeader."Activity Code");
-        VerifyActivityCodeOnPostedPurchaseInvoice(PostedDocumentNo, PurchaseHeader."Activity Code");
+        VerifyActivityCodeOnVATEntry(PostedDocumentNo, PurchaseHeader."Business Activity Code");
+        VerifyActivityCodeOnPostedPurchaseInvoice(PostedDocumentNo, PurchaseHeader."Business Activity Code");
     end;
 
     [Test]
@@ -219,15 +261,15 @@ codeunit 144003 "IT - Activity Code"
 
         // [GIVEN] Sales header was created with an activity code
         CreateSalesDocument(SalesHeader);
-        SalesHeader.Validate("Activity Code", CreateActivityCode());
+        SalesHeader.Validate("Business Activity Code", CreateBusinessActivityCode());
         SalesHeader.Modify();
 
         // [WHEN] Pos sales header
         PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [THEN] Document is posted and VAT Entry has activity code
-        VerifyActivityCodeOnVATEntry(PostedDocumentNo, SalesHeader."Activity Code");
-        VerifyActivityCodeOnPostedSalesInvoice(PostedDocumentNo, SalesHeader."Activity Code");
+        VerifyActivityCodeOnVATEntry(PostedDocumentNo, SalesHeader."Business Activity Code");
+        VerifyActivityCodeOnPostedSalesInvoice(PostedDocumentNo, SalesHeader."Business Activity Code");
     end;
 
     [Test]
@@ -243,7 +285,7 @@ codeunit 144003 "IT - Activity Code"
 
         // [GIVEN] Service header was created with an activity code
         CreateServiceDocument(ServiceHeader);
-        ServiceHeader.Validate("Activity Code", CreateActivityCode());
+        ServiceHeader.Validate("Business Activity Code", CreateBusinessActivityCode());
         ServiceHeader.Modify();
 
         // [WHEN] Post service header
@@ -252,7 +294,7 @@ codeunit 144003 "IT - Activity Code"
         CustLedgerEntry.FindFirst();
 
         // [THEN] Document is posted and VAT Entry has activity code
-        VerifyActivityCodeOnVATEntry(CustLedgerEntry."Document No.", ServiceHeader."Activity Code");
+        VerifyActivityCodeOnVATEntry(CustLedgerEntry."Document No.", ServiceHeader."Business Activity Code");
     end;
 
     [Test]
@@ -262,23 +304,23 @@ codeunit 144003 "IT - Activity Code"
         GenJournalLine: Record "Gen. Journal Line";
     begin
         // [FEATURE] [General Journal] [Post]
-        // [SCENARIO 405435] VAT Entry has activity code even when "Use Activity Code" option is disabled
+        // [SCENARIO 405435] VAT Entry has a business activity code even when "Use Business Activity Code" is disabled
 
         Initialize();
 
-        // [GIVEN] "Use Activity Code" is disabled in General Ledger Setup
+        // [GIVEN] "Use Business Activity Code" is disabled in General Ledger Setup
         SetUseActivityCodeOnGLSetup(false);
 
         // [GIVEN] General journal line was created with an activity code
         CreateGenJournalLine(GenJournalLine);
-        GenJournalLine.Validate("Activity Code", CreateActivityCode());
+        GenJournalLine.Validate("Business Activity Code", CreateBusinessActivityCode());
         GenJournalLine.Modify();
 
         // [WHEN] Post Gen. Journal line
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [THEN] Document is posted and VAT Entry has activity code
-        VerifyActivityCodeOnVATEntry(GenJournalLine."Document No.", GenJournalLine."Activity Code");
+        VerifyActivityCodeOnVATEntry(GenJournalLine."Document No.", GenJournalLine."Business Activity Code");
     end;
 
     [Test]
@@ -295,13 +337,13 @@ codeunit 144003 "IT - Activity Code"
         SetUseActivityCodeOnGLSetup(false);
 
         CreatePurchaseDocument(PurchaseHeader);
-        PurchaseHeader.Validate("Activity Code", CreateActivityCode());
+        PurchaseHeader.Validate("Business Activity Code", CreateBusinessActivityCode());
         PurchaseHeader.Modify(true);
 
         PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
-        VerifyActivityCodeOnPostedPurchaseInvoice(PostedDocumentNo, PurchaseHeader."Activity Code");
-        VerifyActivityCodeOnVATEntry(PostedDocumentNo, PurchaseHeader."Activity Code");
+        VerifyActivityCodeOnPostedPurchaseInvoice(PostedDocumentNo, PurchaseHeader."Business Activity Code");
+        VerifyActivityCodeOnVATEntry(PostedDocumentNo, PurchaseHeader."Business Activity Code");
     end;
 
     [Test]
@@ -318,13 +360,13 @@ codeunit 144003 "IT - Activity Code"
         SetUseActivityCodeOnGLSetup(false);
 
         CreateSalesDocument(SalesHeader);
-        SalesHeader.Validate("Activity Code", CreateActivityCode());
+        SalesHeader.Validate("Business Activity Code", CreateBusinessActivityCode());
         SalesHeader.Modify();
 
         PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        VerifyActivityCodeOnPostedSalesInvoice(PostedDocumentNo, SalesHeader."Activity Code");
-        VerifyActivityCodeOnVATEntry(PostedDocumentNo, SalesHeader."Activity Code");
+        VerifyActivityCodeOnPostedSalesInvoice(PostedDocumentNo, SalesHeader."Business Activity Code");
+        VerifyActivityCodeOnVATEntry(PostedDocumentNo, SalesHeader."Business Activity Code");
     end;
 
     local procedure Initialize()
@@ -400,19 +442,18 @@ codeunit 144003 "IT - Activity Code"
           PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
     end;
 
-    local procedure CreateActivityCode(): Code[6]
+        local procedure CreateBusinessActivityCode(): Code[10]
     var
-        ActivityCode: Record "Activity Code";
+                BusinessActivityCode: Record "Business Activity Code";
     begin
-        ActivityCode.Init();
-        ActivityCode.Validate(
+                BusinessActivityCode.Init();
+                BusinessActivityCode.Validate(
           Code,
-          CopyStr(LibraryUtility.GenerateRandomCode(ActivityCode.FieldNo(Code), DATABASE::"Activity Code"),
-            1, LibraryUtility.GetFieldLength(DATABASE::"Activity Code", ActivityCode.FieldNo(Code))));
-        ActivityCode.Insert(true);
-        ActivityCode.Validate(Description, ActivityCode.Code);
-        ActivityCode.Modify(true);
-        exit(ActivityCode.Code);
+                    CopyStr(LibraryUtility.GenerateRandomCode(BusinessActivityCode.FieldNo(Code), DATABASE::"Business Activity Code"), 1, 6));
+                BusinessActivityCode.Insert(true);
+                BusinessActivityCode.Validate(Description, BusinessActivityCode.Code);
+                BusinessActivityCode.Modify(true);
+                exit(BusinessActivityCode.Code);
     end;
 
     local procedure CreateRecurringGenJournalLine(var GenJournalLine: Record "Gen. Journal Line")
@@ -473,35 +514,35 @@ codeunit 144003 "IT - Activity Code"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.Validate("Use Activity Code", NewActivityCode);
+        GeneralLedgerSetup.Validate("Use Business Activity Code", NewActivityCode);
         GeneralLedgerSetup.Modify();
     end;
 
-    local procedure VerifyActivityCodeOnVATEntry(DocumentNo: Code[20]; ExpectedActivityCode: Code[6])
+    local procedure VerifyActivityCodeOnVATEntry(DocumentNo: Code[20]; ExpectedActivityCode: Code[10])
     var
         VATEntry: Record "VAT Entry";
     begin
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.FindSet();
         REPEAT
-            VATEntry.TestField("Activity Code", ExpectedActivityCode);
+            VATEntry.TestField("Business Activity Code", ExpectedActivityCode);
         UNTIL VATEntry.Next() = 0;
     end;
 
-    local procedure VerifyActivityCodeOnPostedPurchaseInvoice(DocumentNo: Code[20]; ExpectedActivityCode: Code[6])
+    local procedure VerifyActivityCodeOnPostedPurchaseInvoice(DocumentNo: Code[20]; ExpectedActivityCode: Code[10])
     var
         PurchInvHeader: Record "Purch. Inv. Header";
     begin
         PurchInvHeader.Get(DocumentNo);
-        PurchInvHeader.TestField("Activity Code", ExpectedActivityCode);
+        PurchInvHeader.TestField("Business Activity Code", ExpectedActivityCode);
     end;
 
-    local procedure VerifyActivityCodeOnPostedSalesInvoice(DocumentNo: Code[20]; ExpectedActivityCode: Code[6])
+    local procedure VerifyActivityCodeOnPostedSalesInvoice(DocumentNo: Code[20]; ExpectedActivityCode: Code[10])
     var
         PurchInvHeader: Record "Sales Invoice Header";
     begin
         PurchInvHeader.Get(DocumentNo);
-        PurchInvHeader.TestField("Activity Code", ExpectedActivityCode);
+        PurchInvHeader.TestField("Business Activity Code", ExpectedActivityCode);
     end;
 }
 

@@ -3,7 +3,7 @@ codeunit 135161 "Cloud Mig Country Tables"
     procedure GetTablesThatShouldBeCloudMigrated(var ListOfTablesToMigrate: List of [Integer])
     begin
         ListOfTablesToMigrate.Add(Database::"ABI/CAB Codes");
-        ListOfTablesToMigrate.Add(Database::"Activity Code");
+        ListOfTablesToMigrate.Add(Database::"Business Activity Code");
         ListOfTablesToMigrate.Add(Database::"Appointment Code");
         ListOfTablesToMigrate.Add(Database::"Before Start Item Cost");
         ListOfTablesToMigrate.Add(Database::"Bill Posting Group");
