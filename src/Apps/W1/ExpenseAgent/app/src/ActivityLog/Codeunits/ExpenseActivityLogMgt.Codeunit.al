@@ -91,6 +91,7 @@ codeunit 6926 "Expense Activity Log Mgt."
         EntryNumber: BigInteger;
     begin
         // Capture the primary keys before changing fields used by the source filter.
+        ExpenseActivityLogEntry.SetLoadFields("Entry No.");
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Expense Report Header");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", ExpenseReportHeader.SystemId);
         if ExpenseActivityLogEntry.FindSet(true) then

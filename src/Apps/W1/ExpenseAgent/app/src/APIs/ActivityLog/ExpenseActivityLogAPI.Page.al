@@ -16,6 +16,7 @@ page 7104 "Expense Activity Log API"
     PageType = API;
     SourceTable = "Expense Activity Log Entry";
     SourceTableView = sorting("Occurred At", "Entry No.") order(descending);
+    Permissions = tabledata "Expense Activity Log Entry" = r;
     ODataKeyFields = SystemId;
     DataAccessIntent = ReadOnly;
     Editable = false;
@@ -158,12 +159,20 @@ page 7104 "Expense Activity Log API"
         ReimbursementCurrencyCode: Code[10];
         HistoryActorRoleRequiredErr: Label 'The historyActorRole filter must be specified as Submitter or Approver.';
         ActivityScopeRequiredErr: Label 'Activity log entries must be requested through an expense report, posted expense report, or expense user.';
+        AgentAccessRequiredErr: Label 'Only the Expense Agent can access the activity log API.';
 
     trigger OnInit()
     var
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
+        if not ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent() then
+            Error(AgentAccessRequiredErr);
+    end;
+
+    trigger OnOpenPage()
+    begin
+        Rec.AddLoadFields("Reimbursement Currency Code");
     end;
 
     trigger OnAfterGetRecord()
