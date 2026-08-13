@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7100 "Expense Activity Log API"
+page 7104 "Expense Activity Log API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
