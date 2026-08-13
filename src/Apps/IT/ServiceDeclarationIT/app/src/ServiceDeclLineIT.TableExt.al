@@ -43,10 +43,12 @@ tableextension 12216 "Service Decl. Line IT" extends "Service Declaration Line"
         field(12216; "Export Line No."; Code[5])
         {
             Caption = 'Export Line No.';
+            DataClassification = CustomerContent;
         }
         field(12217; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
@@ -59,11 +61,13 @@ tableextension 12216 "Service Decl. Line IT" extends "Service Declaration Line"
         field(12218; "Document Date Code"; Code[8])
         {
             Caption = 'Document Date Code';
+            DataClassification = CustomerContent;
             Editable = false;
         }
         field(12219; "Source Entry No."; Integer)
         {
             Caption = 'Source Entry No.';
+            DataClassification = CustomerContent;
             TableRelation = "VAT Entry";
 
             trigger OnLookup()
@@ -88,47 +92,57 @@ tableextension 12216 "Service Decl. Line IT" extends "Service Declaration Line"
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             Caption = 'Amount';
+            DataClassification = CustomerContent;
         }
         field(12221; "Source Currency Amount"; Decimal)
         {
             AutoFormatExpression = "Currency Code";
             AutoFormatType = 1;
             Caption = 'Source Currency Amount';
+            DataClassification = CustomerContent;
         }
         field(12222; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            DataClassification = CustomerContent;
         }
         field(12223; "Statistics Period"; Code[10])
         {
             Caption = 'Statistics Period';
+            DataClassification = CustomerContent;
         }
         field(12224; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';
+            DataClassification = CustomerContent;
             TableRelation = "Service Tariff Number";
         }
         field(12225; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
+            DataClassification = CustomerContent;
             TableRelation = "Transport Method";
         }
         field(12226; "Payment Method"; Code[10])
         {
             Caption = 'Payment Method';
+            DataClassification = CustomerContent;
         }
         field(12227; "Country/Region of Payment Code"; Code[10])
         {
             Caption = 'Country/Region of Payment Code';
+            DataClassification = CustomerContent;
             TableRelation = "Country/Region";
         }
         field(12228; "Corrective Entry"; Boolean)
         {
             Caption = 'Corrective Entry';
+            DataClassification = CustomerContent;
         }
         field(12229; "Custom Office No."; Code[6])
         {
             Caption = 'Custom Office No.';
+            DataClassification = CustomerContent;
             TableRelation = "Customs Office";
 
             trigger OnValidate()
@@ -139,9 +153,12 @@ tableextension 12216 "Service Decl. Line IT" extends "Service Declaration Line"
                 end;
             end;
         }
+#pragma warning disable AL0468
         field(12230; "Corrected Service Declaration No."; Code[20])
+#pragma warning restore AL0468
         {
             Caption = 'Corrected Service Declaration No.';
+            DataClassification = CustomerContent;
 
             trigger OnLookup()
             var
@@ -170,6 +187,7 @@ tableextension 12216 "Service Decl. Line IT" extends "Service Declaration Line"
         field(12231; "Corrected Document No."; Code[20])
         {
             Caption = 'Corrected Document No.';
+            DataClassification = CustomerContent;
 
             trigger OnLookup()
             var
@@ -201,6 +219,7 @@ tableextension 12216 "Service Decl. Line IT" extends "Service Declaration Line"
         field(12232; "Reference Period"; Code[10])
         {
             Caption = 'Reference Period';
+            DataClassification = CustomerContent;
             Numeric = true;
         }
         field(12233; "Ref. File Disk No."; Code[20])
@@ -214,6 +233,7 @@ tableextension 12216 "Service Decl. Line IT" extends "Service Declaration Line"
         field(12234; "Progressive No."; Code[5])
         {
             Caption = 'Progressive No.';
+            DataClassification = CustomerContent;
         }
     }
 

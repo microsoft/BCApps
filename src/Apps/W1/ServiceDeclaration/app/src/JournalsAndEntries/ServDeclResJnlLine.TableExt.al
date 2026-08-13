@@ -14,11 +14,12 @@ tableextension 5038 "Serv. Decl. Res. Jnl. Line" extends "Res. Journal Line"
         {
             TableRelation = "Service Transaction Type";
             Caption = 'Service Transaction Type Code';
-
+            DataClassification = CustomerContent;
         }
         field(5011; "Applicable For Serv. Decl."; Boolean)
         {
             Caption = 'Applicable For Service Declaration';
+            DataClassification = CustomerContent;
         }
     }
 }
