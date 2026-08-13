@@ -249,6 +249,81 @@ codeunit 137500 "SCM Legacy Subcontracting"
 
     [Test]
     [Scope('OnPrem')]
+    procedure DatabaseHasDataWhenSubcontractingPurchaseOrderExists()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+    begin
+        // [SCENARIO] DatabaseHasLegacySubcontractingData returns true when a subcontracting purchase order (a purchase line linked to a production order) exists, even when "WIP Item" is not set
+        Initialize();
+
+        // [GIVEN] ManufacturingSetup."Legacy Subcontracting" = true
+        SetLegacySubcontracting(true);
+
+        // [GIVEN] Purchase Line linked to a production order but with "WIP Item" = false
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine."WIP Item" := false;
+        PurchaseLine."Prod. Order No." := 'TEST-LEGACYSUBC';
+        PurchaseLine."Prod. Order Line No." := 10000;
+        PurchaseLine.Modify();
+
+        // [WHEN] Check if data exists
+        // [THEN] DatabaseHasLegacySubcontractingData returns true (detects subcontracting POs without WIP)
+        Assert.IsTrue(LegacySubcFeatureHandler.DatabaseHasLegacySubcontractingData(),
+            'Should detect subcontracting purchase orders linked to a production order as legacy subcontracting data.');
+
+        // Cleanup
+        PurchaseLine.Delete();
+        PurchaseHeader.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DatabaseHasDataWhenSubcontractingTransferOrderExists()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+    begin
+        // [SCENARIO] DatabaseHasLegacySubcontractingData returns true when a subcontracting transfer order (a transfer line linked to a production order) exists, even when "WIP Item" is not set
+        Initialize();
+
+        // [GIVEN] ManufacturingSetup."Legacy Subcontracting" = true
+        SetLegacySubcontracting(true);
+
+        // [GIVEN] Transfer Line linked to a production order but with "WIP Item" = false
+        LibraryWarehouse.CreateLocation(LocationFrom);
+        LibraryWarehouse.CreateLocation(LocationTo);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, LocationInTransit.Code);
+        TransferLine.Init();
+        TransferLine."Document No." := TransferHeader."No.";
+        TransferLine."Line No." := 10000;
+        TransferLine."WIP Item" := false;
+        TransferLine."Prod. Order No." := 'TEST-LEGACYSUBC';
+        TransferLine.Insert();
+
+        // [WHEN] Check if data exists
+        // [THEN] DatabaseHasLegacySubcontractingData returns true (detects subcontracting transfers without WIP)
+        Assert.IsTrue(LegacySubcFeatureHandler.DatabaseHasLegacySubcontractingData(),
+            'Should detect subcontracting transfer orders linked to a production order as legacy subcontracting data.');
+
+        // Cleanup
+        TransferLine.Delete();
+        TransferHeader.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure DatabaseHasDataWhenSubcontractorPricesExist()
     var
         Item: Record Item;
@@ -414,7 +489,16 @@ codeunit 137500 "SCM Legacy Subcontracting"
         TransferLine.SetRange("WIP Item", true);
         if not TransferLine.IsEmpty() then
             TransferLine.DeleteAll();
+        TransferLine.Reset();
+        TransferLine.SetFilter("Prod. Order No.", '<>%1', '');
+        if not TransferLine.IsEmpty() then
+            TransferLine.DeleteAll();
         PurchaseLine.SetRange("WIP Item", true);
+        if not PurchaseLine.IsEmpty() then
+            PurchaseLine.DeleteAll();
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
         if not PurchaseLine.IsEmpty() then
             PurchaseLine.DeleteAll();
 
