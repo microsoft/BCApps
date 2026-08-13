@@ -1191,6 +1191,13 @@ table 115 "Sales Cr.Memo Line"
 
     internal procedure GetSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line")
     var
+        TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
+    begin
+        GetSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine);
+    end;
+
+    internal procedure GetSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line"; var TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary)
+    var
         ItemLedgerEntry: Record "Item Ledger Entry";
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         ValueEntry: Record "Value Entry";
@@ -1224,12 +1231,30 @@ table 115 "Sales Cr.Memo Line"
             SalesInvoiceLine.SetRange("Document No.", SalesCreditMemoHeader."Applies-to Doc. No.");
             SalesInvoiceLine.SetRange(Type, Type);
             SalesInvoiceLine.SetRange("No.", "No.");
+            SalesInvoiceLine.SetRange("Variant Code", "Variant Code");
+
+            SalesInvoiceLine.SetRange(Quantity, Quantity);
+            if FindUnusedSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine) then
+                exit;
             SalesInvoiceLine.SetFilter(Quantity, '>=%1', Quantity);
-            if SalesInvoiceLine.FindFirst() then
+            if FindUnusedSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine) then
                 exit;
             SalesInvoiceLine.SetRange(Quantity);
-            if SalesInvoiceLine.FindFirst() then;
+            if FindUnusedSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine) then
+                exit;
+
+            Clear(SalesInvoiceLine);
         end;
+    end;
+
+    local procedure FindUnusedSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line"; var TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary): Boolean
+    begin
+        if SalesInvoiceLine.FindSet() then
+            repeat
+                if not TempUsedSalesInvoiceLine.Get(SalesInvoiceLine."Document No.", SalesInvoiceLine."Line No.") then
+                    exit(true);
+            until SalesInvoiceLine.Next() = 0;
+        exit(false);
     end;
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
