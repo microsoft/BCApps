@@ -229,7 +229,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Day Book Vendor Ledger Entry';
                             RunObject = report "Day Book Vendor Ledger Entry";
-                            Tooltip = 'Run the Day Book Vendor Ledger Entry report.';
                         }
                     }
                 }
@@ -836,14 +835,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Cash Flow Date List';
                         RunObject = report "Cash Flow Date List";
-                        Tooltip = 'Run the Cash Flow Date List report.';
                     }
                     action("Dimensions - Detail1")
                     {
                         ApplicationArea = Dimensions;
                         Caption = 'Cash Flow Dimensions - Detail';
                         RunObject = report "Cash Flow Dimensions - Detail";
-                        Tooltip = 'Run the Cash Flow Dimensions - Detail report.';
                     }
                 }
                 group("Group19")
@@ -974,7 +971,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Allocations';
                             RunObject = report "Cost Allocations";
-                            Tooltip = 'Run the Cost Allocations report.';
                         }
                     }
                     group("Group24")
@@ -985,14 +981,12 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Journal';
                             RunObject = report "Cost Acctg. Journal";
-                            Tooltip = 'Run the Cost Acctg. Journal report.';
                         }
                         action("Account Details")
                         {
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Types Details';
                             RunObject = report "Cost Types Details";
-                            Tooltip = 'Run the Cost Types Details report.';
                         }
                     }
                     group("Group25")
@@ -1003,21 +997,18 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Statement';
                             RunObject = report "Cost Acctg. Statement";
-                            Tooltip = 'Run the Cost Acctg. Statement report.';
                         }
                         action("P/L Statement per Period")
                         {
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Stmt. per Period';
                             RunObject = report "Cost Acctg. Stmt. per Period";
-                            Tooltip = 'Run the Cost Acctg. Stmt. per Period report.';
                         }
                         action("Analysis")
                         {
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Analysis';
                             RunObject = report "Cost Acctg. Analysis";
-                            Tooltip = 'Run the Cost Acctg. Analysis report.';
                         }
                     }
                     group("Group26")
@@ -1028,14 +1019,12 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Statement/Budget';
                             RunObject = report "Cost Acctg. Statement/Budget";
-                            Tooltip = 'Run the Cost Acctg. Statement/Budget report.';
                         }
                         action("Cost Center")
                         {
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Balance/Budget';
                             RunObject = report "Cost Acctg. Balance/Budget";
-                            Tooltip = 'Run the Cost Acctg. Balance/Budget report.';
                         }
                     }
                 }
@@ -1585,42 +1574,36 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Purchase Statistics';
                         RunObject = report "Purchase Statistics";
-                        Tooltip = 'Run the Purchase Statistics report.';
                     }
                     action("Vendor Item Catalog")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor Item Catalog';
                         RunObject = report "Vendor Item Catalog";
-                        Tooltip = 'Run the Vendor Item Catalog report.';
                     }
                     action("Vendor Register")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor Register';
                         RunObject = report "Vendor Register";
-                        Tooltip = 'Run the Vendor Register report.';
                     }
                     action("Vendor - Balance to Date")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Balance to Date';
                         RunObject = report "Vendor - Balance to Date";
-                        Tooltip = 'Run the Vendor - Balance to Date report.';
                     }
                     action("Vendor - Detail Trial Balance")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Detail Trial Balance';
                         RunObject = report "Vendor - Detail Trial Balance";
-                        Tooltip = 'Run the Vendor - Detail Trial Balance report.';
                     }
                     action("Vendor - Labels")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Vendor - Labels';
                         RunObject = report "Vendor - Labels";
-                        Tooltip = 'Run the Vendor - Labels report.';
                     }
 #if not CLEAN28
                     action("Vendor - List")
@@ -1639,21 +1622,18 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Order Detail';
                         RunObject = report "Vendor - Order Detail";
-                        Tooltip = 'Run the Vendor - Order Detail report.';
                     }
                     action("Vendor - Order Summary")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Order Summary';
                         RunObject = report "Vendor - Order Summary";
-                        Tooltip = 'Run the Vendor - Order Summary report.';
                     }
                     action("Vendor - Purchase List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Purchase List';
                         RunObject = report "Vendor - Purchase List";
-                        Tooltip = 'Run the Vendor - Purchase List report.';
                     }
 #if not CLEAN28
                     action("Vendor - Summary Aging")
@@ -1682,14 +1662,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Trial Balance';
                         RunObject = report "Vendor - Trial Balance";
-                        Tooltip = 'Run the Vendor - Trial Balance report.';
                     }
                     action("Vendor/Item Purchases")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor/Item Purchases';
                         RunObject = report "Vendor/Item Purchases";
-                        Tooltip = 'Run the Vendor/Item Purchases report.';
                     }
                 }
                 group("Group41")
