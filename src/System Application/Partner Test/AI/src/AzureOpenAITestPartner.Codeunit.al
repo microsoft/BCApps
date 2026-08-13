@@ -7,7 +7,9 @@ namespace Partner.Test.AI;
 
 using System.AI;
 using System.Privacy;
+#if not CLEAN29
 using System.TestLibraries.AI;
+#endif
 using System.TestLibraries.Utilities;
 
 codeunit 139021 "Azure OpenAI Test Partner"
@@ -26,6 +28,7 @@ codeunit 139021 "Azure OpenAI Test Partner"
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
 #if not CLEAN29
+#pragma warning disable AL0432
     [Test]
     [Scope('OnPrem')]
     procedure GenerateTextCompletionsBillingTypeAuthorizationErr()
@@ -74,6 +77,7 @@ codeunit 139021 "Azure OpenAI Test Partner"
         ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Billing Type"::"Custom Billed");
         LibraryAssert.ExpectedError(ErrorMessage);
     end;
+#pragma warning restore AL0432
 #endif
 
     [Test]

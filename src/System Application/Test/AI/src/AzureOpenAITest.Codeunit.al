@@ -24,7 +24,9 @@ codeunit 132684 "Azure OpenAI Test"
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         EndpointTxt: Label 'https://resourcename.openai.azure.com/', Locked = true;
         DeploymentTxt: Label 'deploymentid', Locked = true;
+#if not CLEAN29
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
+#endif
 
     [Test]
     [HandlerFunctions('HandleCopilotNotAvailable')]
@@ -173,6 +175,7 @@ codeunit 132684 "Azure OpenAI Test"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432
     [Test]
     procedure GenerateTextCompletionsCopilotCapabilityNotSet()
     var
@@ -325,6 +328,7 @@ codeunit 132684 "Azure OpenAI Test"
         ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Billing Type"::"Custom Billed");
         LibraryAssert.ExpectedError(ErrorMessage);
     end;
+#pragma warning restore AL0432
 #endif
 
     [Test]
