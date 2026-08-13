@@ -254,7 +254,6 @@ report 99001501 "Subc. Create Transf. Order"
                                 SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code");
                                 UnbindSubscription(SubcProdOrdCompRes);
                             end;
-                            ProdOrderComponent.GetDefaultBin();
                         end;
                         ProdOrderComponent.Modify();
 

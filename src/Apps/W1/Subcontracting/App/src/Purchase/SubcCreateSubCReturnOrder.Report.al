@@ -247,10 +247,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
                         if ProdOrderComponent."Subc. Orig. Bin Code" = '' then
                             ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
-                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
+                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then
                             SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code");
-                            ProdOrderComponent.GetDefaultBin();
-                        end;
                         ProdOrderComponent.Modify();
 
                         SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
