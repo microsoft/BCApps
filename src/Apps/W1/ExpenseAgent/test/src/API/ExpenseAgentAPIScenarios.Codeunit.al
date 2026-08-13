@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.HumanResources.Employee;
+using Microsoft.HumanResources.Payables;
 
 /// <summary>
 /// Creates persistent Expense Agent API scenarios for end-to-end and manual UI verification.
@@ -29,9 +30,13 @@ codeunit 148340 "Expense Agent API Scenarios"
         SubmitActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReport', Locked = true;
         ApproveActionTok: Label 'Microsoft.NAV.approvedExpenseReport', Locked = true;
         RejectAndReopenActionTok: Label 'Microsoft.NAV.rejectAndReopenExpenseReport', Locked = true;
+        ApprovedScenarioPrefixTok: Label 'Activity APPROVED ', Locked = true;
+        PostedScenarioPrefixTok: Label 'Activity RESUBMITTED POSTED ', Locked = true;
+        SubmitterScenarioPrefixTok: Label 'Activity Submitter ', Locked = true;
+        ApproverScenarioPrefixTok: Label 'Activity Approver ', Locked = true;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    [HandlerFunctions('ExpensesModalPageHandler')]
     procedure CreatePersistentActivityScenarios()
     var
         SubmitterExpenseUser: Record "Expense User";
@@ -43,7 +48,6 @@ codeunit 148340 "Expense Agent API Scenarios"
         ResubmittedPostedReport: Record "Expense Report Header";
         PostedActivity: Record "Expense Activity Log Entry";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
-        ExpenseReportPost: Codeunit "Expense Report-Post";
         ResubmittedPostedSubjectID: Guid;
         RunToken: Code[8];
     begin
@@ -67,7 +71,8 @@ codeunit 148340 "Expense Agent API Scenarios"
         SubmitReport(ApprovedReport, SubmitterExpenseUser);
         ApproveReport(ApprovedReport, ApproverExpenseUser);
 
-        // [WHEN] The other report is rejected, resubmitted, approved, and posted.
+        // [WHEN] The other report is rejected, resubmitted, approved, and moved to a posted source fixture.
+        // Real financial posting and activity reassignment are covered by Expense Report Posting Test.
         SubmitReport(ResubmittedPostedReport, SubmitterExpenseUser);
         RejectAndReopenReport(
             ResubmittedPostedReport, ApproverExpenseUser, 'Persistent send back ' + RunToken);
@@ -75,7 +80,7 @@ codeunit 148340 "Expense Agent API Scenarios"
         ApproveReport(ResubmittedPostedReport, ApproverExpenseUser);
         ResubmittedPostedReport.Get(ResubmittedPostedReport."No.");
         ResubmittedPostedSubjectID := ResubmittedPostedReport.SystemId;
-        ExpenseReportPost.PostExpenseReport(ResubmittedPostedReport);
+        MoveReportToPostedScenario(ResubmittedPostedReport, PostedExpenseReportHeader);
         Commit();
 
         // [THEN] The active report is approved and the end-to-end report is posted.
@@ -101,6 +106,7 @@ codeunit 148340 "Expense Agent API Scenarios"
         VerifyApproverHistory(
             ApproverExpenseUser.SystemId,
             ApprovedReport.SystemId, ResubmittedPostedSubjectID);
+        VerifyOnlyCurrentScenariosRemain();
     end;
 
     local procedure Initialize()
@@ -108,6 +114,7 @@ codeunit 148340 "Expense Agent API Scenarios"
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         BindSubscription(APITestAuthHelper);
+        CleanupPreviousScenarios();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
 
@@ -134,14 +141,10 @@ codeunit 148340 "Expense Agent API Scenarios"
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         Employee: Record Employee;
     begin
-        SubmitterExpenseUser.SetRange("User Id For Approvals", UserId());
-        SubmitterExpenseUser.ModifyAll("User Id For Approvals", '');
-        SubmitterExpenseUser.Reset();
-
         LibraryExpense.CreateExpenseUser(SubmitterExpenseUser);
         SubmitterExpenseUser.Name := CopyStr('Activity Submitter ' + RunToken, 1, MaxStrLen(SubmitterExpenseUser.Name));
         SubmitterExpenseUser."User Id For Approvals" :=
-            CopyStr(UserId(), 1, MaxStrLen(SubmitterExpenseUser."User Id For Approvals"));
+            CopyStr('SUBMITTER-' + RunToken, 1, MaxStrLen(SubmitterExpenseUser."User Id For Approvals"));
         SubmitterExpenseUser.Modify();
 
         LibraryExpense.CreateExpenseUser(ApproverExpenseUser);
@@ -198,6 +201,117 @@ codeunit 148340 "Expense Agent API Scenarios"
             CopyStr('Activity ' + ScenarioName + ' ' + RunToken, 1, MaxStrLen(ExpenseReportHeader.Description));
         ExpenseReportHeader.Modify();
         CreateExpenseReport.AddExpensesToReport(ExpenseReportHeader);
+    end;
+
+    local procedure MoveReportToPostedScenario(
+        var ExpenseReportHeader: Record "Expense Report Header";
+        var PostedExpenseReportHeader: Record "Posted Expense Report Header"
+    )
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
+        PostedExpenseReportHeader.Init();
+        PostedExpenseReportHeader.TransferFields(ExpenseReportHeader);
+        PostedExpenseReportHeader.Insert();
+        ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Posted,
+            Enum::"Expense Activity Actor Role"::" ",
+            '');
+        ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(
+            ExpenseReportHeader, PostedExpenseReportHeader);
+        ExpenseReportHeader.Delete(true);
+    end;
+
+    local procedure CleanupPreviousScenarios()
+    var
+        Expense: Record Expense;
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        Employee: Record Employee;
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        CategoryCodes: List of [Code[20]];
+        EmployeeNumbers: List of [Code[20]];
+        ExpenseUserNumbers: List of [Code[20]];
+        CategoryCode: Code[20];
+        EmployeeNo: Code[20];
+        ExpenseUserNo: Code[20];
+    begin
+        ExpenseUser.SetFilter(
+            Name, '%1|%2',
+            SubmitterScenarioPrefixTok + '*',
+            ApproverScenarioPrefixTok + '*');
+        if ExpenseUser.FindSet() then
+            repeat
+                ExpenseUserNumbers.Add(ExpenseUser."No.");
+                if (ExpenseUser."Employee No." <> '') and
+                   (not EmployeeNumbers.Contains(ExpenseUser."Employee No."))
+                then
+                    EmployeeNumbers.Add(ExpenseUser."Employee No.");
+            until ExpenseUser.Next() = 0;
+
+        ExpenseActivityLogEntry.SetFilter(
+            "Document Description", '%1|%2',
+            ApprovedScenarioPrefixTok + '*',
+            PostedScenarioPrefixTok + '*');
+        ExpenseActivityLogEntry.DeleteAll();
+
+        ExpenseReportHeader.SetFilter(
+            Description, '%1|%2',
+            ApprovedScenarioPrefixTok + '*',
+            PostedScenarioPrefixTok + '*');
+        ExpenseReportHeader.DeleteAll(true);
+
+        PostedExpenseReportHeader.SetFilter(
+            Description, '%1|%2',
+            ApprovedScenarioPrefixTok + '*',
+            PostedScenarioPrefixTok + '*');
+        PostedExpenseReportHeader.DeleteAll(true);
+
+        foreach ExpenseUserNo in ExpenseUserNumbers do begin
+            Expense.SetRange("Expense User No.", ExpenseUserNo);
+            if Expense.FindSet() then
+                repeat
+                    if (Expense."Expense Category" <> '') and
+                       (not CategoryCodes.Contains(Expense."Expense Category"))
+                    then
+                        CategoryCodes.Add(Expense."Expense Category");
+                until Expense.Next() = 0;
+            Expense.ModifyAll("Expense Report No.", '');
+            Expense.DeleteAll(true);
+
+            ExpenseApprovalSetup.SetRange("Expense User No.", ExpenseUserNo);
+            ExpenseApprovalSetup.DeleteAll();
+            ExpenseApprovalSetup.Reset();
+            ExpenseApprovalSetup.SetRange("Approver No.", ExpenseUserNo);
+            ExpenseApprovalSetup.DeleteAll();
+            ExpenseApprovalSetup.Reset();
+
+            if ExpenseUser.Get(ExpenseUserNo) then
+                ExpenseUser.Delete(true);
+        end;
+
+        foreach EmployeeNo in EmployeeNumbers do begin
+            EmployeeLedgerEntry.SetRange("Employee No.", EmployeeNo);
+            if EmployeeLedgerEntry.IsEmpty() then
+                if Employee.Get(EmployeeNo) then
+                    Employee.Delete(true);
+            EmployeeLedgerEntry.Reset();
+        end;
+
+        foreach CategoryCode in CategoryCodes do begin
+            ExpenseSubcategory.SetRange("Expense Category Code", CategoryCode);
+            ExpenseSubcategory.DeleteAll(true);
+            if ExpenseCategory.Get(CategoryCode) then
+                ExpenseCategory.Delete(true);
+        end;
+
+        Commit();
     end;
 
     local procedure SubmitReport(var ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUser: Record "Expense User")
@@ -320,6 +434,31 @@ codeunit 148340 "Expense Agent API Scenarios"
                 'The API response does not contain the expected event type.');
     end;
 
+    local procedure VerifyOnlyCurrentScenariosRemain()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseUser: Record "Expense User";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+    begin
+        ExpenseReportHeader.SetFilter(
+            Description, '%1|%2',
+            ApprovedScenarioPrefixTok + '*',
+            PostedScenarioPrefixTok + '*');
+        Assert.RecordCount(ExpenseReportHeader, 1);
+
+        PostedExpenseReportHeader.SetFilter(
+            Description, '%1|%2',
+            ApprovedScenarioPrefixTok + '*',
+            PostedScenarioPrefixTok + '*');
+        Assert.RecordCount(PostedExpenseReportHeader, 1);
+
+        ExpenseUser.SetFilter(
+            Name, '%1|%2',
+            SubmitterScenarioPrefixTok + '*',
+            ApproverScenarioPrefixTok + '*');
+        Assert.RecordCount(ExpenseUser, 2);
+    end;
+
     local procedure CreateRunToken(): Code[8]
     begin
         exit(CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, 8));
@@ -331,9 +470,4 @@ codeunit 148340 "Expense Agent API Scenarios"
         Expenses.OK().Invoke();
     end;
 
-    [ConfirmHandler]
-    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := true;
-    end;
 }
