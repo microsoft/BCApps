@@ -6127,8 +6127,8 @@ codeunit 134920 "ERM General Journal UT"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
-        RecurringGeneralJournal: TestPage "Recurring General Journal";
         RecurringFrequency: DateFormula;
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
     begin
         // [SCENARIO] The Recurring Frequency field shows the formatted (localized) date formula that Edit in Excel exports.
         Initialize();
@@ -6155,8 +6155,8 @@ codeunit 134920 "ERM General Journal UT"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
-        RecurringGeneralJournal: TestPage "Recurring General Journal";
         ExpectedRecurringFrequency: DateFormula;
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
     begin
         // [SCENARIO] Entering a valid date formula text persists it as a DateFormula on the journal line.
         Initialize();
@@ -6183,8 +6183,8 @@ codeunit 134920 "ERM General Journal UT"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
-        RecurringGeneralJournal: TestPage "Recurring General Journal";
         RecurringFrequency: DateFormula;
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
     begin
         // [SCENARIO] Clearing the Recurring Frequency field empties the date formula without error.
         Initialize();
