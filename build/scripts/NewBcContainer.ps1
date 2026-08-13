@@ -15,6 +15,22 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
 Import-Module (Join-Path $PSScriptRoot 'PlatformHelper.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1') -Force
 
+function Invoke-AppRemoval {
+    Param(
+        [scriptblock] $ScriptBlock,
+        [string] $Operation
+    )
+
+    try {
+        & $ScriptBlock
+    }
+    catch {
+        Write-Warning "$Operation failed. Restarting container and retrying once. Error was: $($_.Exception.Message)"
+        Restart-BcContainer -containerName $parameters.ContainerName
+        & $ScriptBlock
+    }
+}
+
 $platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
 if ($platformVersion) {
     $platformVersion = Resolve-PlatformVersion -Version $platformVersion
@@ -33,11 +49,17 @@ $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName
 # Clean the container for all apps. Apps will be installed by AL-Go
 foreach($app in $installedApps) {
     Write-Host "Removing $($app.Name)"
-    UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
 
     if (($AppsToUnpublish -contains "All") -or ($AppsToUnpublish -contains $app.Name)) {
         Write-Host "Unpublishing $($app.Name)"
-        Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
+        Invoke-AppRemoval -Operation "Unpublishing $($app.Name)" -ScriptBlock {
+            Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
+        }
+    }
+    else {
+        Invoke-AppRemoval -Operation "Uninstalling $($app.Name)" -ScriptBlock {
+            UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
+        }
     }
 }
 
