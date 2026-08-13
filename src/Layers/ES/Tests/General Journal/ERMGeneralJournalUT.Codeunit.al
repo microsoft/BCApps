@@ -38,6 +38,7 @@ codeunit 134920 "ERM General Journal UT"
         ValidRecurringFrequencyTok: Label '1M', Locked = true;
         InvalidRecurringFrequencyTok: Label 'ABC', Locked = true;
         InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
+        RecurringFrequencyNotValidErr: Label 'The test recurring frequency must be a valid date formula.';
         GenJournalLineNotFoundErr: Label 'The general journal line was not found.';
         RecurringFrequencyNotDisplayedErr: Label 'Recurring Frequency should be displayed as the formatted date formula.';
         RecurringFrequencyNotPersistedErr: Label 'The entered recurring frequency was not persisted.';
@@ -6164,7 +6165,7 @@ codeunit 134920 "ERM General Journal UT"
 
         // [GIVEN] A recurring journal line with Recurring Frequency 1M
         CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
-        Assert.IsTrue(Evaluate(RecurringFrequency, ValidRecurringFrequencyTok), 'The test recurring frequency must be a valid date formula.');
+        Assert.IsTrue(Evaluate(RecurringFrequency, ValidRecurringFrequencyTok), RecurringFrequencyNotValidErr);
         GenJournalLine.Validate("Recurring Frequency", RecurringFrequency);
         GenJournalLine.Modify(true);
 
@@ -6189,7 +6190,7 @@ codeunit 134920 "ERM General Journal UT"
     begin
         // [SCENARIO] Entering a valid date formula text persists it as a DateFormula on the journal line.
         Initialize();
-        Assert.IsTrue(Evaluate(ExpectedRecurringFrequency, ValidRecurringFrequencyTok), 'The test recurring frequency must be a valid date formula.');
+        Assert.IsTrue(Evaluate(ExpectedRecurringFrequency, ValidRecurringFrequencyTok), RecurringFrequencyNotValidErr);
 
         // [GIVEN] A recurring journal line open on the Recurring General Journal page
         CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
@@ -6220,7 +6221,7 @@ codeunit 134920 "ERM General Journal UT"
 
         // [GIVEN] A recurring journal line with Recurring Frequency 1M open on the page
         CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
-        Assert.IsTrue(Evaluate(RecurringFrequency, ValidRecurringFrequencyTok), 'The test recurring frequency must be a valid date formula.');
+        Assert.IsTrue(Evaluate(RecurringFrequency, ValidRecurringFrequencyTok), RecurringFrequencyNotValidErr);
         GenJournalLine.Validate("Recurring Frequency", RecurringFrequency);
         GenJournalLine.Modify(true);
         RecurringGeneralJournal.Trap();
