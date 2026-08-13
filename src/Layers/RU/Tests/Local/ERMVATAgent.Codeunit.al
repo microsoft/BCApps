@@ -146,6 +146,7 @@ codeunit 144009 "ERM VAT Agent"
     [Scope('OnPrem')]
     procedure PrintFacturaInvoiceForVATAgentWithPrepayment()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         GenJournalLine: Record "Gen. Journal Line";
         PurchInvLine: Record "Purch. Inv. Line";
         LocalReportMgt: Codeunit "Local Report Management";
@@ -155,6 +156,7 @@ codeunit 144009 "ERM VAT Agent"
         InvAmount: Decimal;
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         // [FEATURE] [Prepayment]
         // [SCENARIO 377108] Print Posted Purchase Factura-Invoice report for VAT Agent of Non-resident type with Prepayment
         Initialize();
@@ -197,6 +199,7 @@ codeunit 144009 "ERM VAT Agent"
         // [THEN] Amount including VAT is printed '59,00'
         LibraryRUReports.VerifyFactura_AmountInclVAT(
           FileName, LocalReportMgt.FormatReportValue(PurchInvLine."Amount Including VAT (LCY)", 2), 0);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [Test]
@@ -1058,10 +1061,12 @@ codeunit 144009 "ERM VAT Agent"
 
     local procedure RunPstdPurchFacturaInvoiceReport(var PurchInvLine: Record "Purch. Inv. Line"; VendorNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchInvHeader: Record "Purch. Inv. Header";
         PstdPurchFacturaInvoice: Report "Pstd. Purch. Factura-Invoice";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         PurchInvHeader.SetRange("Buy-from Vendor No.", VendorNo);
         PurchInvHeader.FindFirst();
         PurchInvHeader.SetRecFilter();
@@ -1076,6 +1081,7 @@ codeunit 144009 "ERM VAT Agent"
         PstdPurchFacturaInvoice.SetFileNameSilent(FileName);
         PstdPurchFacturaInvoice.UseRequestPage(false);
         PstdPurchFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CalcExpectedAmount(DocNo: Code[20]; BaseAmount: Decimal): Decimal
