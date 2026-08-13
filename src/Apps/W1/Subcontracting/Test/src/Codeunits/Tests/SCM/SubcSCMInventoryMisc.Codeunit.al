@@ -25,7 +25,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 
-codeunit 149912 "Subc SCM Inventory Misc."
+codeunit 149923 "Subc SCM Inventory Misc."
 {
     Subtype = Test;
     TestPermissions = Disabled;
