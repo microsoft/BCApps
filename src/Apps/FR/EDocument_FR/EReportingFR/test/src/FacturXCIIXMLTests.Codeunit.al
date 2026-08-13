@@ -1420,8 +1420,8 @@ codeunit 148148 "Factur-X CII XML Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
-        SourceDocumentHeader: RecordRef;
         TempBlob: Codeunit "Temp Blob";
+        SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
         // [FEATURE] [AI test]
