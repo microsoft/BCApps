@@ -99,7 +99,7 @@ page 4316 "Agent List"
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
 
-                    if Rec.State <> Rec.State::Disabled then
+                    if Agent.IsActive(Rec."User Security ID") then
                         Error(DeactivateBeforeArchivingErr);
 
                     Rec.TestField("Display Name");
@@ -274,20 +274,23 @@ page 4316 "Agent List"
 
     local procedure SetCompanyFilter()
     begin
+        Rec.FilterGroup(2);
         if ShouldShowAllCompanies then
             Rec.SetRange("Can Access Current Company")
         else
             Rec.SetRange("Can Access Current Company", true);
+        Rec.FilterGroup(0);
         CurrPage.Update(false);
     end;
 
     local procedure SetAgentSubstateFilter()
     begin
-        // Hide archived agents from the default list; the Show all agents action reveals them.
+        Rec.FilterGroup(2);
         if ShouldShowAllAgents then
             Rec.SetRange(Substate)
         else
             Rec.SetRange(Substate, Rec.Substate::None);
+        Rec.FilterGroup(0);
         CurrPage.Update(false);
     end;
 

@@ -46,4 +46,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Consolidated Projects', Locked = true;
     }
+
+    /// <summary>
+    /// VAT specifications are available when VAT reclaim is enabled
+    /// </summary>
+    value(3; VATSpecifications)
+    {
+        Caption = 'VAT Specifications', Locked = true;
+    }
 }

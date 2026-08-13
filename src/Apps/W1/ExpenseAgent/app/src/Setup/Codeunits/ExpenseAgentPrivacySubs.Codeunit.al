@@ -77,6 +77,7 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Tenant Feedback Setting");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA KPI");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA KPI Entry");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::Traveler);
 
         // Corporate Card tables
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EACorpCard");

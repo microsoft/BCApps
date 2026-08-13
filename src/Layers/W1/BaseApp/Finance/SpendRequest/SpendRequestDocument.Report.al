@@ -21,9 +21,6 @@ report 6850 "Spend Request Document"
             column(No; "No.")
             {
             }
-            column(DocumentType; Type)
-            {
-            }
             column(Purpose; Purpose)
             {
             }

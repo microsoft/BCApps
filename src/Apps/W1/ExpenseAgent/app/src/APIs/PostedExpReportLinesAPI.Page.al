@@ -181,6 +181,14 @@ page 6913 "Posted Exp. Report Lines API"
                 {
                     Caption = 'Refundable';
                 }
+                field(spendRequestNo; Rec."Spend Request No.")
+                {
+                    Caption = 'Spend Request No.';
+                }
+                field(spendRequestClose; Rec."Spend Request Close")
+                {
+                    Caption = 'Spend Request Close';
+                }
                 field(purchaseInvoice; Rec."Purchase Invoice")
                 {
                     Caption = 'Purchase Invoice';
