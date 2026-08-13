@@ -19,7 +19,7 @@ report 1175 "Composite Layout Designs"
     }
 
     rendering
-    {
+    {/*
         layout(External_Default)
         {
             Type = Word;
@@ -109,5 +109,6 @@ report 1175 "Composite Layout Designs"
             Caption = 'Playful Theme';
             Summary = 'Dynamic and lively, a fresh take on a professional report. Styling-only theme: geometric Bahnschrift in semibold and regular for hierarchy, with backgrounds alternating between green and pink for an energetic, modern feel.';
         }
+        */
     }
 }
