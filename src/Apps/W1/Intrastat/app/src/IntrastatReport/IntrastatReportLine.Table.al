@@ -99,12 +99,11 @@ table 4812 "Intrastat Report Line"
                 IntrastatReportMgt: Codeunit IntrastatReportManagement;
             begin
                 if "Country/Region Code" = '' then begin
-                    "Intrastat Country/Region Code" := '';
+                    Validate("Intrastat Country/Region Code", '');
                     exit;
                 end;
 
-                Rec."Intrastat Country/Region Code" := IntrastatReportMgt.GetIntrastatCodeFromCountryRegion(Rec."Country/Region Code");
-            end;
+                Validate("Intrastat Country/Region Code", IntrastatReportMgt.GetIntrastatCodeFromCountryRegion("Country/Region Code"));
         }
         field(8; "Transaction Type"; Code[10])
         {
