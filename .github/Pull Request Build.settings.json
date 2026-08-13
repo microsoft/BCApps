@@ -6,8 +6,8 @@
       ],
       "settings": {
         "projects": [
-          "build/projects/Apps W1",
-          "build/projects/Test Apps W1"
+          "build\\projects\\Apps W1",
+          "build\\projects\\Test Apps W1"
         ],
         "incrementalBuilds": {
           "onPull_Request": false
