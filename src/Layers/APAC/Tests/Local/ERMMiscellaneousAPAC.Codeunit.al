@@ -832,7 +832,6 @@ codeunit 141008 "ERM - Miscellaneous APAC"
         // [FEATURE] [Purchase] [ACY]
         // [SCENARIO 641827] Vendor ACY is posted on the payables entry for a purchase invoice in LCY.
         Initialize();
-        LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
         UpdateGeneralLedgerSetupGSTReport();
 
         // [GIVEN] Vendor GST amounts in ACY are enabled and an Additional Reporting Currency is configured.

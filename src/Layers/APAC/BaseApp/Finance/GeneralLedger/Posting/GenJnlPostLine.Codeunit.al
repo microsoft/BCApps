@@ -8162,10 +8162,31 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     InitGLEntry(
                         GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true, TotalAmountAddCurr)
                 else
-                    InitGLEntry(
-                        GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true,
-                        CalcAmountSrcCurr(GenJnlLine, TotalAmountLCY));
+                    if VendorACYExchangeRateApplies() then
+                        // [641827] With "Enable Vendor GST Amount (ACY)" the aggregated amount is the vendor-calculated
+                        // ACY, which GLCalcAddCurrency keeps on the balancing entry. Derive the source-currency amount
+                        // from LCY so the reporting currency stays balanced instead of posting a separate residual entry.
+                        InitGLEntry(
+                            GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true,
+                            CalcAmountSrcCurr(GenJnlLine, TotalAmountLCY))
+                    else
+                        InitGLEntry(
+                            GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, 0, false, true, TotalAmountAddCurr);
         end;
+    end;
+
+    local procedure VendorACYExchangeRateApplies(): Boolean
+    var
+        PurchSetup: Record "Purchases & Payables Setup";
+    begin
+        // Mirrors the vendor-ACY branch in GLCalcAddCurrency: only then does the balancing entry keep the
+        // aggregated amount as its Additional-Currency Amount, so only then must the Source Currency Amount be
+        // derived from LCY. In every other case the original behavior (Source Currency Amount = aggregated amount)
+        // must be preserved to keep Source Currency Consistency balanced.
+        if (AddCurrencyCode = '') or (not UseVendExchRate) then
+            exit(false);
+        PurchSetup.Get();
+        exit(PurchSetup."Enable Vendor GST Amount (ACY)");
     end;
 
     local procedure PostDtldAdjustment(GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; AdjAmount: array[4] of Decimal; TotalAmountLCY: Decimal; TotalAmountAddCurr: Decimal; GLAcc: Code[20]; ArrayIndex: Integer): Boolean
