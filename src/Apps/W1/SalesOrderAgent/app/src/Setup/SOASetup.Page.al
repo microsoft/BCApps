@@ -464,6 +464,7 @@ page 4400 "SOA Setup"
     var
         AgentRec: Record Agent;
         SOASetupRec: Record "SOA Setup";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SOASetupCU: Codeunit "SOA Setup";
         UserSecurityIDFilter: Text;
@@ -479,6 +480,9 @@ page 4400 "SOA Setup"
         UserSecurityIDFilter := Rec.GetFilter("User Security ID");
         if not Evaluate(UserSecurityID, UserSecurityIDFilter) then
             Clear(UserSecurityID);
+
+        if not AgentSystemPermissions.CurrentUserCanManageAgent(UserSecurityID) then
+            Error(NotAuthorizedToConfigureAgentErr);
 
         if not IsNullGuid(UserSecurityID) then
             if SOASetupRec.GetBasedOnAgentUserSecurityID(UserSecurityID, false) then begin
@@ -798,6 +802,7 @@ page 4400 "SOA Setup"
         DailyEmailLimitErr: Label 'The daily email limit must be greater than zero.';
         EmailSignatureModifyLbl: Label 'Edit signature';
         SelectMailboxFirstMsg: Label 'Please select an email account first.';
+        NotAuthorizedToConfigureAgentErr: Label 'You do not have permission to configure the Sales Order Agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
         ConfiguredBy: Text[80];
         SOACreateTaskLbl: Label 'Create task for the agent';
         EnableAgentForTaskQst: Label 'Trying out the agent will activate it and turn off incoming email monitoring immediately.\\Do you want to continue?';
