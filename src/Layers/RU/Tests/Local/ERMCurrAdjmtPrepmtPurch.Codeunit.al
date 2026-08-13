@@ -526,6 +526,7 @@ codeunit 144002 "ERM Curr. Adjmt. Prepmt. Purch"
         GLSetup: Record "General Ledger Setup";
     begin
         GLSetup.Get();
+        GLSetup.Validate("Enable Russian Accounting", true);
         GLSetup.Validate("Enable Russian Tax Accounting", true);
         GLSetup.Validate("Cancel Curr. Prepmt. Adjmt.", NewCancelCurrAdjmtPrepmt);
         GLSetup.Validate("Currency Adjmt with Correction", false);
