@@ -1028,6 +1028,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
     begin
         SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
@@ -1036,9 +1037,12 @@ codeunit 1303 "Correct Posted Sales Invoice"
         if SalesCrMemoLine.FindSet() then
             repeat
                 Clear(SalesInvoiceLine);
-                SalesCrMemoLine.GetSalesInvoiceLine(SalesInvoiceLine);
-                if SalesInvoiceLine."Line No." <> 0 then
+                SalesCrMemoLine.GetSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine);
+                if SalesInvoiceLine."Line No." <> 0 then begin
                     UpdateSalesOrderLinesFromCreditMemo(SalesInvoiceLine, SalesCrMemoLine);
+                    TempUsedSalesInvoiceLine := SalesInvoiceLine;
+                    if TempUsedSalesInvoiceLine.Insert() then;
+                end;
             until SalesCrMemoLine.Next() = 0;
     end;
 
