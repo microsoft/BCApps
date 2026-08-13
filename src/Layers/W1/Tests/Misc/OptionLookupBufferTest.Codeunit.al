@@ -246,34 +246,32 @@ codeunit 134645 "Option Lookup Buffer Test"
 
     [Test]
     [Scope('OnPrem')]
-    procedure BlanketSalesOrderSupportsLongGermanLineTypeCaption()
+    procedure BlanketSalesOrderSupportsLongLineTypeCaption()
     var
         Customer: Record Customer;
         SalesLine: Record "Sales Line";
+        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
         BlanketSalesOrder: TestPage "Blanket Sales Order";
-        CurrentLanguage: Integer;
         LineTypeCaption: Text[30];
     begin
-        // [SCENARIO 644921] A long German line type caption can be selected on a blanket sales order
+        // [SCENARIO 644921] A line type caption longer than 20 characters can be selected on a blanket sales order
         Initialize();
 
-        // [GIVEN] German language and a blanket sales order
-        CurrentLanguage := GlobalLanguage;
-        GlobalLanguage(1031);
-        LineTypeCaption := Format(SalesLine.Type::"Charge (Item)");
-        Assert.IsTrue(StrLen(LineTypeCaption) > 20, 'The German line type caption must be longer than 20 characters.');
+        // [GIVEN] A custom line type with a long caption and a blanket sales order
+        BindSubscription(OptionLookupBufferTest);
+        LineTypeCaption := Format(SalesLine.Type::Test_Custom1);
+        Assert.IsTrue(StrLen(LineTypeCaption) > 20, 'The test line type caption must be longer than 20 characters.');
         LibrarySales.CreateCustomer(Customer);
         BlanketSalesOrder.OpenNew();
         BlanketSalesOrder."Sell-to Customer Name".SetValue(Customer.Name);
 
-        // [WHEN] Selecting Charge (Item) as the line type
+        // [WHEN] Selecting the custom line type
         BlanketSalesOrder.SalesLines.First();
         BlanketSalesOrder.SalesLines.FilteredTypeField.SetValue(LineTypeCaption);
 
-        // [THEN] The complete localized caption is displayed
+        // [THEN] The complete caption is displayed
         BlanketSalesOrder.SalesLines.FilteredTypeField.AssertEquals(LineTypeCaption);
         BlanketSalesOrder.Close();
-        GlobalLanguage(CurrentLanguage);
     end;
 
     [Test]
