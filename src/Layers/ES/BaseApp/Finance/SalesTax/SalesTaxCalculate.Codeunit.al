@@ -10,7 +10,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 /// Provides comprehensive sales tax calculation functionality for transactions.
 /// Handles complex tax scenarios including tax-on-tax calculations and multi-jurisdictional rates.
 /// </summary>
-#pragma warning disable AA0206
 codeunit 398 "Sales Tax Calculate"
 {
 
@@ -33,10 +32,6 @@ codeunit 398 "Sales Tax Calculate"
         FirstLine: Boolean;
         TaxOnTaxCalculated: Boolean;
         CalculationOrderViolation: Boolean;
-#if not CLEAN29
-        TotalAmountForTax: Decimal;
-        TotalLineAmountForTax: Decimal;
-#endif
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -574,8 +569,6 @@ codeunit 398 "Sales Tax Calculate"
     [Scope('OnPrem')]
     procedure SetAmount(TotalAmountForTax2: Decimal; TotalLineAmountForTax2: Decimal)
     begin
-        TotalAmountForTax := TotalAmountForTax2;
-        TotalLineAmountForTax := TotalLineAmountForTax2;
     end;
 #endif
 
