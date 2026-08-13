@@ -1120,10 +1120,25 @@ table 125 "Purch. Cr. Memo Line"
         end;
 
         if (ItemLedgerEntry."Entry No." = 0) and ("Order No." <> '') then begin
+            if IsInventoryItemLine() then
+                exit;
             PurchInvLine.SetRange("Order No.", "Order No.");
             PurchInvLine.SetRange("Order Line No.", "Order Line No.");
             if PurchInvLine.FindFirst() then;
         end;
+    end;
+
+    local procedure IsInventoryItemLine(): Boolean
+    var
+        Item: Record Item;
+    begin
+        if Rec.Type <> Rec.Type::Item then
+            exit(false);
+        if "No." = '' then
+            exit(false);
+        if not Item.Get("No.") then
+            exit(false);
+        exit(Item.Type = Item.Type::Inventory);
     end;
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
