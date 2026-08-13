@@ -19,27 +19,9 @@
       "action": "Warning"
     },
     {
-      "id": "AL0269",
-      "action": "Warning",
-      "justification": "Bug 472119"
-    },
-    {
-      "id": "AL0424",
-      "action": "Warning",
-      "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."
-    },
-    {
       "id": "AL0432",
       "action": "None",
       "justification": "Use pragma to remove obsolete warning."
-    },
-    {
-      "id": "AL0457",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0482",
-      "action": "Warning"
     },
     {
       "id": "AL0523",
@@ -50,23 +32,11 @@
       "action": "Warning"
     },
     {
-      "id": "AL0551",
-      "action": "Warning"
-    },
-    {
       "id": "AL0589",
       "action": "Warning"
     },
     {
-      "id": "AL0602",
-      "action": "Warning"
-    },
-    {
       "id": "AA0247",
-      "action": "Warning"
-    },
-    {
-      "id": "AA0604",
       "action": "Warning"
     },
     {
@@ -119,10 +89,6 @@
       "action": "Warning"
     },
     {
-      "id": "AL0775",
-      "action": "Warning"
-    },
-    {
       "id": "AS0059",
       "action": "Warning",
       "justification": "Will be fixed. Reserved database tables are read-only in a multi-tenant environment"
@@ -168,6 +134,11 @@
       "justification": "Action must have a value for the ApplicationArea property so that they are visible to users. From runtime 11.0, you can specify on the application object level the ApplicationArea to use as default for all its controls and actions."
     },
     {
+      "id": "AS0094",
+      "action": "Warning",
+      "justification": "Legacy extensionsPermissionSet.xml files in INTCS, INTDS and INTaxEngine must be converted to AL PermissionSet objects. Tracked by AB#640773."
+    },
+    {
       "id": "AS0099",
       "action": "Warning",
       "justification": "The ID '0' for the EnumValue 'Marketing Text' is not valid. It should be within the range '[1..2147483647]', which is allocated to the application, and outside the range '[50000..99999]', which is allocated to per-tenant customizations."
@@ -176,10 +147,6 @@
       "id": "AS0103",
       "action": "Warning",
       "justification": "Table is missing a matching permission set."
-    },
-    {
-      "id": "AA0013",
-      "action": "Warning"
     },
     {
       "id": "AA0021",
@@ -210,11 +177,6 @@
       "id": "AA0087",
       "action": "Warning",
       "justification": "Do only lower permissions inside procedures of type test."
-    },
-    {
-      "id": "AL0842",
-      "action": "Warning",
-      "justification": "Bug 498357. Blocking platform uptake"
     },
     {
       "id": "AA0100",
@@ -256,22 +218,9 @@
       "justification": "The FindSet() or Find() method on the record must be used only in connection with the Next() method."
     },
     {
-      "id": "AA0189",
-      "action": "Warning"
-    },
-    {
-      "id": "AA0194",
-      "action": "Warning",
-      "justification": "Remember to specify either the 'OnAction' trigger or the 'RunObject' property on an action."
-    },
-    {
       "id": "AA0198",
       "action": "Warning",
       "justification": "The name of the local variable is identical to a global variable."
-    },
-    {
-      "id": "AA0199",
-      "action": "Warning"
     },
     {
       "id": "AA0202",
@@ -520,7 +469,8 @@
     },
     {
       "id": "AL1026",
-      "action": "Warning"
+      "action": "Warning",
+      "justification": "RoleID exceeds the maximum length in the legacy extensionsPermissionSet.xml files of INTCS, INTDS and INTaxEngine. Tracked by AB#640773."
     },
     {
       "id": "AS0011",
@@ -531,29 +481,8 @@
       "action": "Warning"
     },
     {
-      "id": "AS0079",
-      "action": "Warning"
-    },
-    {
-      "id": "AS0094",
-      "action": "Warning"
-    },
-    {
       "id": "AS0104",
       "action": "Warning"
-    },
-    {
-      "id": "AS0111",
-      "action": "Warning"
-    },
-    {
-      "id": "AS0113",
-      "action": "Warning"
-    },
-    {
-      "id": "AS0126",
-      "action": "Warning",
-      "justification": "Tracked by #501904"
     },
     {
       "id": "PTE0010",
@@ -561,35 +490,16 @@
     },
     {
       "id": "PTE0014",
-      "action": "Warning"
+      "action": "Warning",
+      "justification": "Legacy extensionsPermissionSet.xml files in INTCS, INTDS and INTaxEngine must be converted to AL PermissionSet objects. Tracked by AB#640773."
     },
     {
       "id": "PTE0015",
       "action": "Warning"
     },
     {
-      "id": "PTE0017",
-      "action": "Warning"
-    },
-    {
-      "id": "AS0075",
-      "action": "Warning"
-    },
-    {
-      "id": "AA0230",
-      "action": "Warning"
-    },
-    {
-      "id": "AA0213",
-      "action": "Warning"
-    },
-    {
       "id": "AA0241",
       "action": "None"
-    },
-    {
-      "id": "AL0590",
-      "action": "Warning"
     },
     {
       "id": "AS0054",
