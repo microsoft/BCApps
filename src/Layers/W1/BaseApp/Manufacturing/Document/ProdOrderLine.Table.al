@@ -307,8 +307,12 @@ table 5406 "Prod. Order Line"
 
                 UpdateProdOrderComp(xRec."Qty. per Unit of Measure");
 
-                if CurrFieldNo <> 0 then
-                    Validate("Ending Time");
+                if CurrFieldNo <> 0 then begin
+                    IsHandled := false;
+                    OnValidateQuantityOnBeforeValidateEndingTime(Rec, IsHandled);
+                    if not IsHandled then
+                        Validate("Ending Time");
+                end;
                 "Cost Amount" := Round(Quantity * "Unit Cost");
             end;
         }
@@ -695,7 +699,10 @@ table 5406 "Prod. Order Line"
                 Validate(Quantity, "Quantity (Base)");
                 "Remaining Quantity" := Quantity - "Finished Quantity";
 
-                Validate("Ending Time");
+                IsHandled := false;
+                OnValidateQuantityBaseOnBeforeValidateEndingTime(Rec, IsHandled);
+                if not IsHandled then
+                    Validate("Ending Time");
 
                 "Cost Amount" := Round(Quantity * "Unit Cost");
             end;
@@ -2069,6 +2076,16 @@ table 5406 "Prod. Order Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateQuantityOnAfterCalcBaseQty(var ProdOrderLine: Record "Prod. Order Line"; xProdOrderLine: Record "Prod. Order Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateQuantityOnBeforeValidateEndingTime(var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateQuantityBaseOnBeforeValidateEndingTime(var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
     begin
     end;
 
