@@ -263,6 +263,33 @@ codeunit 132684 "Azure OpenAI Test"
     end;
 
     [Test]
+    procedure GetFastPromptFirstPartyAuthorizationContract()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIFastPromptResponse: Codeunit "AOAI Fast Prompt Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        Result: Boolean;
+    begin
+        // [SCENARIO] GetFastPrompt keeps return value and response fields consistent for first-party authorization
+
+        // [GIVEN] First-party chat authorization and capability are configured
+        PrivacyNotice.SetApprovalState(AzureOpenAiTxt, "Privacy Notice Approval State"::Agreed);
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", DeploymentTxt);
+        RegisterCapability(Enum::"Copilot Capability"::"Chat Capability");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Capability");
+
+        // [WHEN] GetFastPrompt is called
+        Result := AzureOpenAI.GetFastPrompt(Any.AlphanumericText(10), AOAIFastPromptResponse);
+
+        // [THEN] Return value follows the response contract
+        LibraryAssert.AreEqual(Result, AOAIFastPromptResponse.IsFastPrompt() and (not AOAIFastPromptResponse.GetTemplate().IsEmpty()), 'Return value and response fields should follow the contract.');
+        if Result then begin
+            LibraryAssert.AreEqual('', AOAIFastPromptResponse.GetErrorCode(), 'Error code should be empty when a fast prompt is resolved.');
+            LibraryAssert.AreEqual('', AOAIFastPromptResponse.GetErrorMessage(), 'Error message should be empty when a fast prompt is resolved.');
+        end;
+    end;
+
+    [Test]
     procedure GenerateTextCompletionsCopilotCapabilityNotSet()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";

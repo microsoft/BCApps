@@ -101,7 +101,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     begin
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
-        GuiCheck(ChatCompletionsAOAIAuthorization);
 
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
