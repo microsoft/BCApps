@@ -5,7 +5,9 @@
 namespace System.AI;
 
 using System;
+#if not CLEAN29
 using System.Azure.KeyVault;
+#endif
 using System.Environment;
 using System.Privacy;
 using System.Telemetry;
@@ -164,6 +166,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432
     [NonDebuggable]
     procedure GenerateTextCompletion(Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo): Text
     var
@@ -220,6 +223,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         FeatureTelemetry.LogUsage('0000KVL', GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         Result := AOAIOperationResponse.GetResult();
     end;
+#pragma warning restore AL0432
 #endif
 
     [NonDebuggable]

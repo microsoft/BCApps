@@ -166,6 +166,7 @@ codeunit 7771 "Azure OpenAI"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432
     /// <summary>
     /// Generates a text completion given a prompt.
     /// </summary>
@@ -241,6 +242,7 @@ codeunit 7771 "Azure OpenAI"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AzureOpenAIImpl.GenerateTextCompletion(Metaprompt, Prompt, AOAICompletionParams, AOAIOperationResponse, CallerModuleInfo));
     end;
+#pragma warning restore AL0432
 #endif
 
     /// <summary>
