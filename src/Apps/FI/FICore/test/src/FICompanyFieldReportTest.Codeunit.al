@@ -181,7 +181,7 @@ codeunit 148150 "FI Company Field Report Test"
         Commit();
     end;
 
-    local procedure CreateRefNumberSeries(StartingNo: Code[20]): Code[10]
+    local procedure CreateRefNumberSeries(StartingNo: Code[20]): Code[20]
     var
         NoSeries: Record "No. Series";
         NoSeriesLine: Record "No. Series Line";
@@ -197,17 +197,17 @@ codeunit 148150 "FI Company Field Report Test"
         exit(CreateSalesDocument(Type, false, false));
     end;
 
-    local procedure CreateSalesDocument(Type: Enum "Sales Document Type"; Post: Boolean): Text
+    local procedure CreateSalesDocument(Type: Enum "Sales Document Type"; Post: Boolean): Code[20]
     begin
         exit(CreateSalesDocument(Type, Post, true));
     end;
 
-    local procedure CreateSalesDocument(Type: Enum "Sales Document Type"; Post: Boolean; EnqueueDocumentNumber: Boolean): Text
+    local procedure CreateSalesDocument(Type: Enum "Sales Document Type"; Post: Boolean; EnqueueDocumentNumber: Boolean): Code[20]
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Customer: Record Customer;
-        DocumentNumber: Variant;
+        DocumentNumber: Code[20];
     begin
         LibrarySales.CreateCustomer(Customer);
         LibrarySales.CreateSalesHeader(SalesHeader, Type, Customer."No.");
@@ -401,7 +401,6 @@ codeunit 148150 "FI Company Field Report Test"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
-        CustLedgerEntry.SetFilter(Amount, '<>0');
         CustLedgerEntry.FindFirst();
         StatementReport."Start Date".SetValue(CustLedgerEntry."Posting Date");
         StatementReport."End Date".SetValue(CustLedgerEntry."Posting Date");
@@ -571,13 +570,13 @@ codeunit 148150 "FI Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure BlanketSalesOrderReportHandler(var BlanketSalesOrderReport: TestRequestPage "Blanket Sales Order")
+    procedure BlanketSalesOrderReportHandler(var BlanketSalesOrderRequestPage: TestRequestPage "Blanket Sales Order")
     var
         DocumentNumber: Variant;
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
-        BlanketSalesOrderReport."Sales Header".SetFilter("No.", Format(DocumentNumber));
-        BlanketSalesOrderReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        BlanketSalesOrderRequestPage."Sales Header".SetFilter("No.", Format(DocumentNumber));
+        BlanketSalesOrderRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [Test]
@@ -598,13 +597,13 @@ codeunit 148150 "FI Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure PurchaseQuoteReportHandler(var PurchaseQuoteReport: TestRequestPage "Purchase - Quote")
+    procedure PurchaseQuoteReportHandler(var PurchaseQuoteRequestPage: TestRequestPage "Purchase - Quote")
     var
         DocumentNumber: Variant;
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
-        PurchaseQuoteReport."Purchase Header".SetFilter("No.", Format(DocumentNumber));
-        PurchaseQuoteReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        PurchaseQuoteRequestPage."Purchase Header".SetFilter("No.", Format(DocumentNumber));
+        PurchaseQuoteRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [Test]
@@ -706,15 +705,15 @@ codeunit 148150 "FI Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure PurchaseReceiptReportHandler(var PurchaseReceiptReport: TestRequestPage "Purchase - Receipt")
+    procedure PurchaseReceiptReportHandler(var PurchaseReceiptRequestPage: TestRequestPage "Purchase - Receipt")
     var
         PurchInvHeader: Record "Purch. Inv. Header";
         DocumentNumber: Variant;
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         PurchInvHeader.Get(Format(DocumentNumber));
-        PurchaseReceiptReport."Purch. Rcpt. Header".SetFilter("Order No.", PurchInvHeader."Order No.");
-        PurchaseReceiptReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        PurchaseReceiptRequestPage."Purch. Rcpt. Header".SetFilter("Order No.", PurchInvHeader."Order No.");
+        PurchaseReceiptRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [Test]
@@ -816,13 +815,13 @@ codeunit 148150 "FI Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceInvoiceReportHandler(var ServiceInvoiceReport: TestRequestPage "Service - Invoice (FI)")
+    procedure ServiceInvoiceReportHandler(var ServiceInvoiceRequestPage: TestRequestPage "Service - Invoice (FI)")
     var
         DocumentNumber: Variant;
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
-        ServiceInvoiceReport."Service Invoice Header".SetFilter("No.", Format(DocumentNumber));
-        ServiceInvoiceReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ServiceInvoiceRequestPage."Service Invoice Header".SetFilter("No.", Format(DocumentNumber));
+        ServiceInvoiceRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [Test]
@@ -870,13 +869,13 @@ codeunit 148150 "FI Company Field Report Test"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ServiceContractQuoteReportHandler(var ServiceContractQuoteReport: TestRequestPage "Service Contract Quote (FI)")
+    procedure ServiceContractQuoteReportHandler(var ServiceContractQuoteRequestPage: TestRequestPage "Service Contract Quote (FI)")
     var
         DocumentNumber: Variant;
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
-        ServiceContractQuoteReport."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
-        ServiceContractQuoteReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ServiceContractQuoteRequestPage."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
+        ServiceContractQuoteRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [ConfirmHandler]
