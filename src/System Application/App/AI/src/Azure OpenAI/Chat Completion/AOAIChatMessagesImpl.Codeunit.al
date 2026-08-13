@@ -43,7 +43,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         TelemetryPrepromptRetrievalErr: Label 'Preprompt failed to be retrieved from Azure Key Vault.', Locked = true;
         TelemetryPostpromptRetrievalErr: Label 'Postprompt failed to be retrieved from Azure Key Vault.', Locked = true;
         WrongTypeErr: Label 'Wrong type when preparing sanitized message variant.', Locked = true;
-        IncompatibleModelErr: Label 'The current message history contains file content which is only compatible with the GPT-4.1 mini preview deployment.';
 
 
     [NonDebuggable]
@@ -458,22 +457,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
             else
                 Telemetry.LogMessage('0000LOA', TelemetryMetapromptEmptyTxt, Verbosity::Normal, DataClassification::SystemMetadata);
             SetPrimarySystemMessage(GetChatMetaprompt(UsingMicrosoftMetaprompt));
-        end;
-    end;
-
-    [NonDebuggable]
-    procedure CheckCompatibilityWithModel(Deployment: SecretText)
-    var
-        AOAIDeployments: Codeunit "AOAI Deployments";
-        AOAIUserMessage: Codeunit "AOAI User Message";
-        Counter: Integer;
-    begin
-        // For each content part in the history. If it contains file, then check
-        for Counter := 1 to HistoryUserMessages.Count() do begin
-            HistoryUserMessages.Get(Counter, AOAIUserMessage);
-            if AOAIUserMessage.HasFilePart() then
-                if Deployment.Unwrap() <> AOAIDeployments.GetGPT41MiniPreview() then
-                    Error(IncompatibleModelErr);
         end;
     end;
 

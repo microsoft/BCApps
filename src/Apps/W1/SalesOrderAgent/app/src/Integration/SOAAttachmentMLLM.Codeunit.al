@@ -117,7 +117,7 @@ codeunit 4421 "SOA Attachment MLLM"
         end;
         Prompt := SecretText.SecretStrSubstNo(PromptTemplate, SecurityPrompt);
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT55Preview());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         AOAIChatCompletionParams.SetTemperature(0);
@@ -255,6 +255,6 @@ codeunit 4421 "SOA Attachment MLLM"
 
     local procedure GetMaxTokens(): Integer
     begin
-        exit(32768); // Maximum output tokens supported by GPT-4.1 mini.
+        exit(50000); // Well within the output token limit of GPT-5.5.
     end;
 }

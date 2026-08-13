@@ -66,7 +66,6 @@ codeunit 7783 "AOAI User Message"
 
     /// <summary>
     /// Get if the user message contains file part. 
-    /// This is used to determine if the message is compatible with the deployment model, as some models do not support file content.
     /// </summary>
     internal procedure HasFilePart(): Boolean
     begin

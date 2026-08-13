@@ -279,8 +279,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         GuiCheck(ChatCompletionsAOAIAuthorization);
 
         AIAOResourceUtilization := ChatCompletionsAOAIAuthorization.GetResourceUtilization();
-        if AIAOResourceUtilization <> Enum::"AOAI Resource Utilization"::"Self-Managed" then
-            ChatMessages.CheckCompatibilityWithModel(ChatCompletionsAOAIAuthorization.GetManagedResourceDeployment());
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);

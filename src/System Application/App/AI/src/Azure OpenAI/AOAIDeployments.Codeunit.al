@@ -141,4 +141,16 @@ codeunit 7768 "AOAI Deployments"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetGPT53ChatPreview(CallerModuleInfo));
     end;
+
+    /// <summary>
+    /// Returns the name of the preview AOAI deployment model of GPT-5.5.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT55Preview(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT55Preview(CallerModuleInfo));
+    end;
 }
