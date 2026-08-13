@@ -1,4 +1,4 @@
-codeunit 134160 "ERM Derogatory Declaration NL"
+codeunit 144149 "ERM Derogatory Declaration NL"
 {
     Subtype = Test;
     TestPermissions = Disabled;
