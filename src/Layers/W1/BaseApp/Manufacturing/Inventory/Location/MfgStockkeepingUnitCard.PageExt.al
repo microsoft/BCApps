@@ -93,7 +93,7 @@ pageextension 99000754 "Mfg. Stockkeeping Unit Card" extends "Stockkeeping Unit 
         }
         addlast("F&unctions")
         {
-            action(RunProdDefinition)
+            action("Mfg. RunProdDefinition")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Production Definition';

@@ -166,7 +166,7 @@ pageextension 99000750 "Mfg. Item Card" extends "Item Card"
         }
         addafter("&Create Stockkeeping Unit")
         {
-            action(RunProdDefinition)
+            action("Mfg. RunProdDefinition")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Production Definition';

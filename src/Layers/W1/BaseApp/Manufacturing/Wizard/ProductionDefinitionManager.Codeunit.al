@@ -279,6 +279,7 @@ codeunit 99001017 "Production Definition Manager"
         BOMHeader.Modify(true);
 
         TempData.LoadBOMLines(BOMNo, '');
+        FeatureTelemetry.LogUsage('0000PDW4', ProdDefWizardFeatureNameTok, 'Production BOM created');
     end;
 
     local procedure CreateRoutingIfNotExists(var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLine: Record "Routing Line" temporary; var RoutingNo: Code[20])
@@ -316,6 +317,7 @@ codeunit 99001017 "Production Definition Manager"
         RoutingHeader.Modify(true);
 
         TempData.LoadRoutingLines(RoutingNo, '');
+        FeatureTelemetry.LogUsage('0000PDW5', ProdDefWizardFeatureNameTok, 'Routing created');
     end;
 
     local procedure SaveBOMVersionIfRequired(var TempBOMLine: Record "Production BOM Line" temporary; BOMNo: Code[20]; BOMVersionCode: Code[20])
@@ -486,6 +488,7 @@ codeunit 99001017 "Production Definition Manager"
         ManufacturingSetup: Record "Manufacturing Setup";
         ProdOrder: Record "Production Order";
         ProdOrderDirectCreator: Codeunit "Prod. Order Direct Creator";
+        FeatureWasUsed: Boolean;
     begin
         ManufacturingSetup.SetLoadFields("Always Save Modified Versions");
         ManufacturingSetup.Get();
@@ -493,17 +496,22 @@ codeunit 99001017 "Production Definition Manager"
         if (BomRtngSaveTarget <> BomRtngSaveTarget::Empty) or ManufacturingSetup."Always Save Modified Versions" then begin
             ProcessBOMAndRoutingData(ItemNo);
             FeatureTelemetry.LogUptake('0000PDW1', ProdDefWizardFeatureNameTok, Enum::"Feature Uptake Status"::"Set up");
+            FeatureWasUsed := true;
         end;
 
         if WizardMode = WizardMode::CreateProductionOrder then begin
             ProdOrderDirectCreator.CreateProductionOrderFromTempData(TempData, ProdOrder);
+            FeatureTelemetry.LogUsage('0000PDW6', ProdDefWizardFeatureNameTok, 'Production order created');
             ProdOrderDirectCreator.RefreshProductionOrder(ProdOrder);
             CreateReservationFromSalesLine(ProdOrder);
             FlushReleasedProdOrderForSalesSource(ProdOrder);
             SendProdOrderCreatedNotification(ProdOrder);
+            FeatureWasUsed := true;
         end;
 
-        FeatureTelemetry.LogUptake('0000PDW2', ProdDefWizardFeatureNameTok, Enum::"Feature Uptake Status"::Used);
+        if FeatureWasUsed then
+            FeatureTelemetry.LogUptake('0000PDW2', ProdDefWizardFeatureNameTok, Enum::"Feature Uptake Status"::Used);
+
         FeatureTelemetry.LogUsage('0000PDW3', ProdDefWizardFeatureNameTok, 'Production Definition Wizard completed');
 
         OnAfterPostWizardProcessing(TempData, ProdOrder);

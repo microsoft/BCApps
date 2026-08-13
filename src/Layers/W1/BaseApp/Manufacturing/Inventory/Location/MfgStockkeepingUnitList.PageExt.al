@@ -44,7 +44,7 @@ pageextension 99000755 "Mfg. Stockkeeping Unit List" extends "Stockkeeping Unit 
         }
         addlast("F&unctions")
         {
-            action(RunProdDefinition)
+            action("Mfg. RunProdDefinition")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Production Definition';

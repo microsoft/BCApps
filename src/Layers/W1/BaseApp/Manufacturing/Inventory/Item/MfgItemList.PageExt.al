@@ -178,7 +178,7 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
         }
         addafter("&Create Stockkeeping Unit")
         {
-            action(RunProdDefinition)
+            action("Mfg. RunProdDefinition")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Production Definition';
