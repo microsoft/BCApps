@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 134194 "UT Derogatory Linkage Upg."
+codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -726,7 +726,7 @@ codeunit 134194 "UT Derogatory Linkage Upg."
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure AllLinkageOutcomeCountsAreAvailableForTelemetry()
     var
-        EventSubscriber: Codeunit "UT Derogatory Linkage Upg.";
+        TelemetryLogger: Codeunit "UT Derogatory Linkage Upg.";
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
     begin
         InitializeLinkageTestData();
@@ -744,9 +744,9 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         CreateMaintenanceLedgerEntry(20, SourceDepreciationBookCode, 'MC3');
         EnsureDerogatoryLinkageUpgradeTagIsCleared();
 
-        BindSubscription(EventSubscriber);
+        BindSubscription(TelemetryLogger);
         asserterror UpgradeDerogatoryLinkage.RunAfterRelationshipTransfer(false);
-        UnbindSubscription(EventSubscriber);
+        UnbindSubscription(TelemetryLogger);
 
         Assert.ExpectedError('Derogatory linkage telemetry observed.');
     end;
@@ -1491,16 +1491,24 @@ codeunit 134194 "UT Derogatory Linkage Upg."
         FALedgerEntry.Insert();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Derogatory Linkage", 'OnAfterEmitLinkageTelemetry', '', false, false)]
-    local procedure OnAfterEmitLinkageTelemetry(EventId: Text; TelemetryDimensions: Dictionary of [Text, Text])
+    procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text])
     begin
         Assert.AreEqual('0000FRD', EventId, 'The linkage upgrade must emit the expected telemetry event.');
-        Assert.AreEqual('1', TelemetryDimensions.Get('FALinked'), 'The telemetry must report one linked FA source.');
-        Assert.AreEqual('1', TelemetryDimensions.Get('FAAmbiguous'), 'The telemetry must report one ambiguous FA source.');
-        Assert.AreEqual('1', TelemetryDimensions.Get('FAMissing'), 'The telemetry must report one missing FA source.');
-        Assert.AreEqual('1', TelemetryDimensions.Get('MaintenanceLinked'), 'The telemetry must report one linked maintenance source.');
-        Assert.AreEqual('1', TelemetryDimensions.Get('MaintenanceAmbiguous'), 'The telemetry must report one ambiguous maintenance source.');
-        Assert.AreEqual('1', TelemetryDimensions.Get('MaintenanceMissing'), 'The telemetry must report one missing maintenance source.');
+        Assert.AreEqual('1', CustomDimensions.Get('FALinked'), 'The telemetry must report one linked FA source.');
+        Assert.AreEqual('1', CustomDimensions.Get('FAAmbiguous'), 'The telemetry must report one ambiguous FA source.');
+        Assert.AreEqual('1', CustomDimensions.Get('FAMissing'), 'The telemetry must report one missing FA source.');
+        Assert.AreEqual('1', CustomDimensions.Get('MaintenanceLinked'), 'The telemetry must report one linked maintenance source.');
+        Assert.AreEqual('1', CustomDimensions.Get('MaintenanceAmbiguous'), 'The telemetry must report one ambiguous maintenance source.');
+        Assert.AreEqual('1', CustomDimensions.Get('MaintenanceMissing'), 'The telemetry must report one missing maintenance source.');
         Error('Derogatory linkage telemetry observed.');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Telemetry Loggers", 'OnRegisterTelemetryLogger', '', true, true)]
+    local procedure OnRegisterTelemetryLogger(var Sender: Codeunit "Telemetry Loggers")
+    var
+        TelemetryLogger: Codeunit "UT Derogatory Linkage Upg.";
+        TelemetryLoggerTestScope: Codeunit "Telemetry Logger Test Scope";
+    begin
+        TelemetryLoggerTestScope.RegisterFirstPartyLogger(Sender, TelemetryLogger);
     end;
 }

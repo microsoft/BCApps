@@ -72,5 +72,14 @@ codeunit 8708 "Telemetry Loggers"
     begin
         TelemetryLoggersImpl.Register(TelemetryLogger, Publisher);
     end;
-}
 
+    internal procedure ReplaceLoggerForTesting(TelemetryLogger: Interface "Telemetry Logger"; Publisher: Text)
+    var
+        CallStackPublishers: List of [Text];
+    begin
+        Clear(TelemetryLoggersImpl);
+        CallStackPublishers.Add(Publisher);
+        TelemetryLoggersImpl.SetCallStackPublishers(CallStackPublishers);
+        TelemetryLoggersImpl.Register(TelemetryLogger, Publisher);
+    end;
+}
