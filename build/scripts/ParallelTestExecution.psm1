@@ -566,33 +566,13 @@ function Merge-TenantTestResults {
 
 <#
 .SYNOPSIS
-    Serializes the FIRST test dispatch to warm the container's process-wide GDI+ state before the
-    parallel fan-out, mitigating a platform race. Returns the remaining apps still to dispatch.
+    Runs the first test app alone and awaits it before the parallel fan-out. Returns the remaining
+    apps still to dispatch.
 .DESCRIPTION
-    PLATFORM BUG MITIGATION (pipeline-level workaround; not an app/test bug).
-
-    On a fresh container the first test run intermittently fails. The client-side symptom is a
-    masked "InvokeInteractions failed with status code 500" / "Cannot open page 130455", but the
-    real root cause (server event log) is a GDI+/System.Drawing first-touch race: the encoder
-    registry (ImageCodecInfo) initializes lazily, once per NST process, on first use of Image.Save,
-    and is not thread-safe. The first company-open imports a media object (Codeunit 151 InitCompany
-    / Codeunit 20419 checklist) which calls NavMediaImage.Bytes() -> Image.Save -> GDI+. When
-    several tenants' company-opens make that first call CONCURRENTLY, encoder resolution returns
-    null -> System.ArgumentNullException('encoder'), terminating the server session. Once GDI+ is
-    warm, every later/retried open succeeds (that is why the existing one-retry path recovers).
-
-    A fixed delay is NOT sufficient and is already present: Start-TestAppDispatch sleeps 5s between
-    dispatches for exactly this reason, yet all tenants still raced at the same instant. The sleep
-    staggers dispatch START, not the asynchronous GDI+ moment inside the NST. The deterministic fix
-    is to let ONE company-open run alone and AWAIT it to completion, warming GDI+ single-threaded,
-    before any parallel open starts. This exercises the real 130455/company-open/media path by
-    running the first test app for real; its result is captured normally (a transient race on the
-    warmup app itself flows into $State.transient and the caller re-queues it).
-
-    Warm ONCE per container/NST (the state is process-wide) - never per tenant. No-op when there is
-    a single app (no fan-out) or a single tenant (already serial, so no race).
-
-    TODO: remove this serialization once the platform guards its first-touch GDI+ initialization.
+    Concurrent per-tenant company-opens can race on the first use of the container's process-wide
+    GDI+ state, so the first open is serialized: one app runs alone and is awaited to completion,
+    then the caller fans out the rest. Warms once per container - no-op for a single app or tenant.
+    A transient failure on the warmed-up app flows into $State.transient and is re-queued normally.
 .PARAMETER Pending
     The ordered list of app names still to dispatch. The first app is consumed for the warmup.
 .PARAMETER AppIdByName
@@ -604,7 +584,7 @@ function Merge-TenantTestResults {
 .OUTPUTS
     [string[]] The remaining app names to dispatch (first app removed if it was warmed up).
 #>
-function Invoke-GdiPlusWarmupDispatch {
+function Invoke-WarmupDispatch {
     param(
         [Parameter(Mandatory=$true)][Hashtable]$Parameters,
         [Parameter(Mandatory=$true)][AllowEmptyCollection()][string[]]$Pending,
@@ -615,8 +595,7 @@ function Invoke-GdiPlusWarmupDispatch {
         [Parameter(Mandatory=$true)]$State
     )
 
-    # Only serialize when there is a fan-out to protect: >1 app AND >1 tenant. A single tenant is
-    # already serial (no concurrency), and a single app never fans out.
+    # Only serialize when there is a fan-out to protect: >1 app AND >1 tenant.
     if ($Pending.Count -le 1 -or $Tenants.Count -le 1) {
         return @($Pending)
     }
@@ -624,19 +603,16 @@ function Invoke-GdiPlusWarmupDispatch {
     $warmupApp = $Pending[0]
     $warmupAppId = $AppIdByName[$warmupApp]
     if (-not $warmupAppId) {
-        # Leave the app in the queue so the main loop emits its usual "could not resolve appId"
-        # warning; just skip the warmup rather than silently dropping it.
+        # Leave the app in the queue so the main loop emits its usual appId warning.
         return @($Pending)
     }
 
-    Write-Host "GDI+ warmup: dispatching first app '$warmupApp' on '$($Tenants[0])' alone and awaiting completion before parallel fan-out (mitigates platform GDI+ first-touch race)."
+    Write-Host "Warming up: dispatching first app '$warmupApp' on '$($Tenants[0])' alone and awaiting completion before parallel fan-out."
     Start-TestAppDispatch -Parameters $Parameters -AppName $warmupApp -AppId $warmupAppId -Tenant $Tenants[0] `
         -ScriptPath $ScriptPath -TestType $TestType -State $State -Verb 'Dispatching'
 
-    # Await the single warmup job to completion so GDI+ is warm before anything runs in parallel.
-    # Wait-ForAllTestJobs receives the result (updating $State.hasFailures/transient) and clears
-    # $State.jobs. If the warmup app itself lost the race it now sits in $State.transient, and the
-    # caller's dispatch loop re-queues it via the normal one-retry path.
+    # Await the single job so the process is warm before anything runs in parallel. A transient
+    # failure here lands in $State.transient and the caller's loop re-queues it.
     if (-not (Wait-ForAllTestJobs -state $State)) { $State.hasFailures = $true }
 
     return @($Pending | Select-Object -Skip 1)
@@ -711,16 +687,14 @@ function Invoke-ParallelTestExecution {
     $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false; transient = @(); retried = @{} }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
-    # Single dispatch loop. $pending is processed FIFO and $appNamesToTest arrives ordered
-    # longest-first (see TestConfiguration.json), which is the LPT schedule that keeps the
-    # tail short. The retry cap lives in Receive-TestJobResult: an app already in
-    # $state.retried gets classified as Failed (not Transient) on a second failure.
+    # Single dispatch loop, FIFO. TestConfiguration.json lists the smallest app first (a cheap
+    # serial warmup) and the rest longest-first (LPT, keeps the tail short). The retry cap lives in
+    # Receive-TestJobResult: an app already in $state.retried is classified as Failed on a re-fail.
     $pending = @($appNamesToTest)
 
-    # PLATFORM GDI+ first-touch race mitigation: run the first app alone and await it so the NST's
-    # process-wide GDI+ encoder registry initializes single-threaded before the parallel fan-out.
-    # See Invoke-GdiPlusWarmupDispatch for the full rationale. No-op for single-app/single-tenant.
-    $pending = @(Invoke-GdiPlusWarmupDispatch -Parameters $parameters -Pending $pending -AppIdByName $appIdByName `
+    # Run the first app alone and await it to warm the container before parallelizing the rest.
+    # No-op for single-app/single-tenant.
+    $pending = @(Invoke-WarmupDispatch -Parameters $parameters -Pending $pending -AppIdByName $appIdByName `
         -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -State $state)
 
     while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
@@ -816,4 +790,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Invoke-GdiPlusWarmupDispatch
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Invoke-WarmupDispatch

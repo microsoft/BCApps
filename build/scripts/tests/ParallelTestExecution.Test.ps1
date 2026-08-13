@@ -140,15 +140,14 @@ Describe "ParallelTestExecution transient retry scheduling" {
     }
 }
 
-Describe "ParallelTestExecution GDI+ warmup (serialize-first)" {
+Describe "ParallelTestExecution warmup dispatch" {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
     }
 
     It "dispatches the first app alone and awaits it before fanning out the rest" {
-        # PLATFORM GDI+ first-touch race mitigation: the first company-open must run alone and be
-        # awaited to completion so the NST's process-wide GDI+ state warms single-threaded before
-        # any parallel open. This asserts exactly that ordering: dispatch(first) -> wait -> rest.
+        # The first app must run alone and be awaited before any parallel dispatch. This asserts
+        # exactly that ordering: dispatch(first) -> wait -> rest.
         InModuleScope ParallelTestExecution {
             $script:events = [System.Collections.Generic.List[string]]::new()
 
@@ -176,7 +175,7 @@ Describe "ParallelTestExecution GDI+ warmup (serialize-first)" {
         }
     }
 
-    It "skips the serial warmup when only one tenant is available (already serial, no race)" {
+    It "skips the warmup dispatch when only one tenant is available" {
         InModuleScope ParallelTestExecution {
             $script:events = [System.Collections.Generic.List[string]]::new()
 
@@ -195,10 +194,9 @@ Describe "ParallelTestExecution GDI+ warmup (serialize-first)" {
             $null = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
                 -testType 'Legacy' -appNamesToTest @('Big', 'Medium')
 
-            # No serial warmup: the two apps are dispatched by the normal loop with no leading
-            # solo dispatch+await. (Start-TestAppDispatch is mocked so no jobs accumulate, hence the
-            # loop's terminal Wait-ForAllTestJobs is not reached - the key point is no 'wait' was
-            # emitted by a warmup step.)
+            # No warmup dispatch: the two apps are dispatched by the normal loop with no leading
+            # solo dispatch+await. (Start-TestAppDispatch is mocked so no jobs accumulate, hence
+            # the loop's terminal Wait-ForAllTestJobs is not reached.)
             $script:events | Should -Be @('dispatch:Big', 'dispatch:Medium')
             $script:events | Should -Not -Contain 'wait'
         }
@@ -207,7 +205,7 @@ Describe "ParallelTestExecution GDI+ warmup (serialize-first)" {
     It "returns the pending list unchanged when there is a single tenant" {
         InModuleScope ParallelTestExecution {
             $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
-            $result = Invoke-GdiPlusWarmupDispatch -Parameters @{ containerName = 'c' } `
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
                 -Pending @('A', 'B', 'C') -AppIdByName @{ A = 'id-A'; B = 'id-B'; C = 'id-C' } `
                 -Tenants @('default') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
             $result | Should -Be @('A', 'B', 'C')
@@ -219,7 +217,7 @@ Describe "ParallelTestExecution GDI+ warmup (serialize-first)" {
             Mock Start-TestAppDispatch { }
             Mock Wait-ForAllTestJobs { $true }
             $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
-            $result = Invoke-GdiPlusWarmupDispatch -Parameters @{ containerName = 'c' } `
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
                 -Pending @('Only') -AppIdByName @{ Only = 'id-Only' } `
                 -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
             $result | Should -Be @('Only')

@@ -1,5 +1,6 @@
 {
   "LegacyTests-Bucket1": [
+    "Tests-Local",
     "Tests-Workflow",
     "AlCosting",
     "Tests-ERM-Application",
@@ -23,10 +24,10 @@
     "Tests-User",
     "Tests-Cash Flow",
     "Tests-Resource",
-    "Tests-Azure AI",
-    "Tests-Local"
+    "Tests-Azure AI"
   ],
   "LegacyTests-Bucket2": [
+    "Tests-Upgrade",
     "Tests-SCM-Assembly",
     "Tests-SCM",
     "Tests-SCM-Workflow",
@@ -49,7 +50,6 @@
     "Tests-Monitor Sensitive Fields",
     "Performance Toolkit Samples",
     "Tests-Integration-Internal",
-    "Tests-DotNet-Internal",
-    "Tests-Upgrade"
+    "Tests-DotNet-Internal"
   ]
 }
