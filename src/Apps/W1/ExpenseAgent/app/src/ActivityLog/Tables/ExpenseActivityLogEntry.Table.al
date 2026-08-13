@@ -211,6 +211,9 @@ table 7100 "Expense Activity Log Entry"
         key(SourceOccurred; "Source Table ID", "Occurred At", "Entry No.")
         {
         }
+        key(Event; "Event Type", "Occurred At", "Entry No.")
+        {
+        }
         key(Occurred; "Occurred At", "Entry No.")
         {
         }
