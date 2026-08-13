@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.HumanResources.Employee;
 
-codeunit 148339 "Expense Activity Log API Test"
+codeunit 148343 "Expense Activity Log API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
