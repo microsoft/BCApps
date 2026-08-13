@@ -1029,12 +1029,14 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         // candidate 3 even though source 1 is an equally valid match, and source 1 was never flagged ambiguous.
         InitializeLinkageTestData();
         EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared();
+        EnsureDerogatoryLinkageUpgradeTagIsCleared();
         CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
         CreateFALedgerEntry(2, SourceDepreciationBookCode, false, 0, 0);
         CreateFALedgerEntry(3, DerogatoryDepreciationBookCode, false, 0, 0);
         DerogatoryFALedgerEntry.Get(3);
         DerogatoryFALedgerEntry."Derogatory Source Entry No." := 2;
         DerogatoryFALedgerEntry.Modify();
+        EnsureDerogatoryLinkageUpgradeTagIsSet();
 
         UpgradeDerogatoryLinkage.RunCorrectiveUpgrade();
 
@@ -1044,6 +1046,80 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         FirstSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
         SecondSourceFALedgerEntry.Get(2);
         SecondSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CorrectiveUpgradePreservesAllLedgerInvariants()
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+        BeforeFALedgerEntry: Record "FA Ledger Entry" temporary;
+        MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        BeforeMaintenanceLedgerEntry: Record "Maintenance Ledger Entry" temporary;
+        GLEntry: Record "G/L Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        FALedgerEntryCount: Integer;
+        MaintenanceLedgerEntryCount: Integer;
+        GLEntryCount: Integer;
+    begin
+        InitializeLinkageTestData();
+        EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared();
+        EnsureDerogatoryLinkageUpgradeTagIsSet();
+
+        // Established links are authoritative for new centrally posted entries, even when legacy identity fields
+        // also match another source. The separate unique pairs ensure that the corrective run performs real work.
+        CreateFALedgerEntry(1, 'AUTH-FA', SourceDepreciationBookCode, false, 101, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 91, 90);
+        CreateFALedgerEntry(2, 'AUTH-FA', DerogatoryDepreciationBookCode, false, 101, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 191, 190);
+        CreateFALedgerEntry(3, 'AUTH-FA', SourceDepreciationBookCode, false, 101, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 92, 90);
+        CreateFALedgerEntry(10, 'CORRECT-FA', SourceDepreciationBookCode, false, 102, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 81, 80);
+        CreateFALedgerEntry(11, 'CORRECT-FA', DerogatoryDepreciationBookCode, false, 102, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 181, 180);
+        FALedgerEntry.Get(2);
+        FALedgerEntry."Derogatory Source Entry No." := 1;
+        FALedgerEntry.Modify();
+
+        CreateMaintenanceLedgerEntry(1, SourceDepreciationBookCode, 'AUTH-MAINT', 201, true, 71, 70);
+        CreateMaintenanceLedgerEntry(2, DerogatoryDepreciationBookCode, 'AUTH-MAINT', 201, true, 171, 170);
+        CreateMaintenanceLedgerEntry(3, SourceDepreciationBookCode, 'AUTH-MAINT', 201, true, 72, 70);
+        CreateMaintenanceLedgerEntry(10, SourceDepreciationBookCode, 'CORR-MAINT', 202, true, 61, 60);
+        CreateMaintenanceLedgerEntry(11, DerogatoryDepreciationBookCode, 'CORR-MAINT', 202, true, 161, 160);
+        MaintenanceLedgerEntry.Get(2);
+        MaintenanceLedgerEntry."Derogatory Source Entry No." := 1;
+        MaintenanceLedgerEntry.Modify();
+
+        FALedgerEntryCount := FALedgerEntry.Count();
+        MaintenanceLedgerEntryCount := MaintenanceLedgerEntry.Count();
+        GLEntryCount := GLEntry.Count();
+        if FALedgerEntry.FindSet() then
+            repeat
+                BeforeFALedgerEntry := FALedgerEntry;
+                BeforeFALedgerEntry.Insert();
+            until FALedgerEntry.Next() = 0;
+        if MaintenanceLedgerEntry.FindSet() then
+            repeat
+                BeforeMaintenanceLedgerEntry := MaintenanceLedgerEntry;
+                BeforeMaintenanceLedgerEntry.Insert();
+            until MaintenanceLedgerEntry.Next() = 0;
+
+        UpgradeDerogatoryLinkage.RunCorrectiveUpgrade();
+
+        Assert.AreEqual(FALedgerEntryCount, FALedgerEntry.Count(), 'The corrective upgrade must not change the FA ledger row count.');
+        Assert.AreEqual(MaintenanceLedgerEntryCount, MaintenanceLedgerEntry.Count(), 'The corrective upgrade must not change the maintenance ledger row count.');
+        Assert.AreEqual(GLEntryCount, GLEntry.Count(), 'The corrective upgrade must not create or remove G/L entries.');
+        AssertFALedgerInvariants(BeforeFALedgerEntry);
+        AssertMaintenanceLedgerInvariants(BeforeMaintenanceLedgerEntry);
+
+        FALedgerEntry.Get(2);
+        FALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        FALedgerEntry.Get(3);
+        FALedgerEntry.TestField("Legacy Derogatory Ambiguous", false);
+        FALedgerEntry.Get(11);
+        FALedgerEntry.TestField("Derogatory Source Entry No.", 10);
+        MaintenanceLedgerEntry.Get(2);
+        MaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        MaintenanceLedgerEntry.Get(3);
+        MaintenanceLedgerEntry.TestField("Legacy Derogatory Ambiguous", false);
+        MaintenanceLedgerEntry.Get(11);
+        MaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 10);
     end;
 
     [Test]
@@ -1082,11 +1158,13 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
     begin
         InitializeLinkageTestData();
         EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared();
+        EnsureDerogatoryLinkageUpgradeTagIsCleared();
         CreateFALedgerEntry(1, SourceDepreciationBookCode, false, 0, 0);
         CreateFALedgerEntry(2, DerogatoryDepreciationBookCode, false, 0, 0);
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry."Derogatory Source Entry No." := 1;
         DerogatoryFALedgerEntry.Modify();
+        EnsureDerogatoryLinkageUpgradeTagIsSet();
 
         // Corrupt the relationship setup so it becomes ambiguous: a second derogatory book also targets the source book.
         LibraryFixedAsset.CreateDepreciationBook(SecondTaxDepreciationBook);
@@ -1098,6 +1176,54 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         Assert.ExpectedError('More than one derogatory depreciation book is configured for depreciation book');
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+    end;
+
+    local procedure AssertFALedgerInvariants(var BeforeFALedgerEntry: Record "FA Ledger Entry" temporary)
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+        TempFieldToIgnore: Record Field temporary;
+        BeforeRecordRef: RecordRef;
+        AfterRecordRef: RecordRef;
+    begin
+        TempFieldToIgnore.TableNo := Database::"FA Ledger Entry";
+        TempFieldToIgnore."No." := FALedgerEntry.FieldNo("Derogatory Source Entry No.");
+        TempFieldToIgnore.Insert();
+        TempFieldToIgnore."No." := FALedgerEntry.FieldNo("Legacy Derogatory Ambiguous");
+        TempFieldToIgnore.Insert();
+
+        if BeforeFALedgerEntry.FindSet() then
+            repeat
+                FALedgerEntry.Get(BeforeFALedgerEntry."Entry No.");
+                BeforeRecordRef.GetTable(BeforeFALedgerEntry);
+                AfterRecordRef.GetTable(FALedgerEntry);
+                Assert.RecordsAreEqualExceptCertainFields(
+                    BeforeRecordRef, AfterRecordRef, TempFieldToIgnore,
+                    'The corrective upgrade may change only FA linkage metadata.');
+            until BeforeFALedgerEntry.Next() = 0;
+    end;
+
+    local procedure AssertMaintenanceLedgerInvariants(var BeforeMaintenanceLedgerEntry: Record "Maintenance Ledger Entry" temporary)
+    var
+        MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        TempFieldToIgnore: Record Field temporary;
+        BeforeRecordRef: RecordRef;
+        AfterRecordRef: RecordRef;
+    begin
+        TempFieldToIgnore.TableNo := Database::"Maintenance Ledger Entry";
+        TempFieldToIgnore."No." := MaintenanceLedgerEntry.FieldNo("Derogatory Source Entry No.");
+        TempFieldToIgnore.Insert();
+        TempFieldToIgnore."No." := MaintenanceLedgerEntry.FieldNo("Legacy Derogatory Ambiguous");
+        TempFieldToIgnore.Insert();
+
+        if BeforeMaintenanceLedgerEntry.FindSet() then
+            repeat
+                MaintenanceLedgerEntry.Get(BeforeMaintenanceLedgerEntry."Entry No.");
+                BeforeRecordRef.GetTable(BeforeMaintenanceLedgerEntry);
+                AfterRecordRef.GetTable(MaintenanceLedgerEntry);
+                Assert.RecordsAreEqualExceptCertainFields(
+                    BeforeRecordRef, AfterRecordRef, TempFieldToIgnore,
+                    'The corrective upgrade may change only maintenance linkage metadata.');
+            until BeforeMaintenanceLedgerEntry.Next() = 0;
     end;
 
     local procedure EnsureDerogatoryLinkageUpgradeTagIsSet()
@@ -1451,6 +1577,19 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         MaintenanceLedgerEntry."Posting Date" := WorkDate();
         MaintenanceLedgerEntry."Document Date" := WorkDate();
         MaintenanceLedgerEntry.Insert();
+    end;
+
+    local procedure CreateMaintenanceLedgerEntry(EntryNo: Integer; DepreciationBookCode: Code[10]; MaintenanceCode: Code[10]; TransactionNo: Integer; Reversed: Boolean; ReversedByEntryNo: Integer; ReversedEntryNo: Integer)
+    var
+        MaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+    begin
+        CreateMaintenanceLedgerEntry(EntryNo, DepreciationBookCode, MaintenanceCode);
+        MaintenanceLedgerEntry.Get(EntryNo);
+        MaintenanceLedgerEntry."Transaction No." := TransactionNo;
+        MaintenanceLedgerEntry.Reversed := Reversed;
+        MaintenanceLedgerEntry."Reversed by Entry No." := ReversedByEntryNo;
+        MaintenanceLedgerEntry."Reversed Entry No." := ReversedEntryNo;
+        MaintenanceLedgerEntry.Modify();
     end;
 
     local procedure CreateFALedgerEntry(EntryNo: Integer; FANo: Code[20]; DepreciationBookCode: Code[10]; AutomaticEntry: Boolean; TransactionNo: Integer; FAPostingType: Enum "FA Ledger Entry FA Posting Type"; Reversed: Boolean; ReversedByEntryNo: Integer; ReversedEntryNo: Integer)
