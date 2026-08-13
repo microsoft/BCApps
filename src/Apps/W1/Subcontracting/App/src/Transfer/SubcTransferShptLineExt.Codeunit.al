@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20537 "Subc. Transfer Shpt Line Ext."
 {
     [EventSubscriber(ObjectType::Table, Database::"Transfer Shipment Line", OnAfterCopyFromTransferLine, '', false, false)]
@@ -35,4 +34,3 @@ codeunit 20537 "Subc. Transfer Shpt Line Ext."
         TransferShipmentLine."Subc. Operation No." := TransferLine."Subc. Operation No.";
     end;
 }
-#pragma warning restore AS0072, AS0136

@@ -14,7 +14,6 @@ using System.Environment.Configuration;
 using System.Telemetry;
 using System.Utilities;
 
-#pragma warning disable AS0072, AS0136
 page 20505 "Subcontracting Setup Wizard"
 {
     ApplicationArea = All;
@@ -346,4 +345,3 @@ page 20505 "Subcontracting Setup Wizard"
                 TopBannerVisible := MediaResourcesStandard."Media Reference".HasValue() and MediaResourcesDone."Media Reference".HasValue();
     end;
 }
-#pragma warning restore AS0072, AS0136

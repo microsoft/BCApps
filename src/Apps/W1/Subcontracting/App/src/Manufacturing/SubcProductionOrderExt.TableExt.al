@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-#pragma warning disable AS0072, AS0136
 tableextension 20505 "Subc. Production Order Ext." extends "Production Order"
 {
     AllowInCustomizations = AsReadOnly;
@@ -20,4 +19,3 @@ tableextension 20505 "Subc. Production Order Ext." extends "Production Order"
         }
     }
 }
-#pragma warning restore AS0072, AS0136

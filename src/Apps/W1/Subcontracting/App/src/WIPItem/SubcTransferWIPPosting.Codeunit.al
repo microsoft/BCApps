@@ -17,7 +17,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Document;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20541 "Subc. Transfer WIP Posting"
 {
 
@@ -522,4 +521,3 @@ codeunit 20541 "Subc. Transfer WIP Posting"
     begin
     end;
 }
-#pragma warning restore AS0072, AS0136

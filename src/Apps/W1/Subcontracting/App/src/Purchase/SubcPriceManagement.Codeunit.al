@@ -19,7 +19,6 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20508 "Subc. Price Management"
 {
     var
@@ -591,4 +590,3 @@ codeunit 20508 "Subc. Price Management"
         exit(Round(PurchaseLine.Quantity * ItemUnitofMeasure."Qty. per Unit of Measure", 0.00001));
     end;
 }
-#pragma warning restore AS0072, AS0136

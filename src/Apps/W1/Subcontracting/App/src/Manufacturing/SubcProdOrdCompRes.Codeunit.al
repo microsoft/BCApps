@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-#pragma warning disable AS0072, AS0136
 codeunit 20530 "Subc. Prod. Ord. Comp. Res."
 {
     EventSubscriberInstance = Manual;
@@ -38,4 +37,3 @@ codeunit 20530 "Subc. Prod. Ord. Comp. Res."
         HasError := false;
     end;
 }
-#pragma warning restore AS0072, AS0136

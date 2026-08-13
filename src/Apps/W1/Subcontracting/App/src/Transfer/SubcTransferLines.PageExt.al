@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-#pragma warning disable AS0072, AS0136
 pageextension 20530 "Subc. Transfer Lines" extends "Transfer Lines"
 {
     layout
@@ -27,4 +26,3 @@ pageextension 20530 "Subc. Transfer Lines" extends "Transfer Lines"
         }
     }
 }
-#pragma warning restore AS0072, AS0136
