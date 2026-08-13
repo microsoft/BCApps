@@ -122,6 +122,43 @@ codeunit 4398 "SOA Task Message"
         exit(true);
     end;
 
+    internal procedure GetMessageCcRecipients(AgentTaskMessage: Record "Agent Task Message"): Text
+    var
+        SourceAgentTaskMessage: Record "Agent Task Message";
+        SOAEmail: Record "SOA Email";
+        EmailInbox: Record "Email Inbox";
+        EmailMessage: Codeunit "Email Message";
+        CcRecipients: List of [Text];
+        CcRecipient: Text;
+        CcRecipientsText: Text;
+    begin
+        SourceAgentTaskMessage := AgentTaskMessage;
+        if AgentTaskMessage.Type = AgentTaskMessage.Type::Output then
+            if not SourceAgentTaskMessage.Get(AgentTaskMessage."Task ID", AgentTaskMessage."Input Message ID") then
+                exit('');
+
+        SOAEmail.SetLoadFields("Email Inbox ID");
+        SOAEmail.SetRange("Task ID", SourceAgentTaskMessage."Task ID");
+        SOAEmail.SetRange("Task Message ID", SourceAgentTaskMessage.ID);
+        if not SOAEmail.FindFirst() then
+            exit('');
+
+        EmailInbox.SetLoadFields("Message Id");
+        if not EmailInbox.Get(SOAEmail."Email Inbox ID") then
+            exit('');
+        if not EmailMessage.Get(EmailInbox."Message Id") then
+            exit('');
+
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, CcRecipients);
+        foreach CcRecipient in CcRecipients do begin
+            if CcRecipientsText <> '' then
+                CcRecipientsText += ';';
+            CcRecipientsText += CcRecipient;
+        end;
+
+        exit(CcRecipientsText);
+    end;
+
     internal procedure MessageRequiresReview(SOASetup: Record "SOA Setup"; EmailInbox: Record "Email Inbox"; IsFirstMessageInTask: Boolean): Boolean
     var
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
