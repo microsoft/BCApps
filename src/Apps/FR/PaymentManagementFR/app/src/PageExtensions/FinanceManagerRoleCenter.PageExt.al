@@ -10,21 +10,25 @@ pageextension 10839 "Finance Manager Role Center" extends "Finance Manager Role 
 {
     actions
     {
-        addafter("Bank Account Journal")
+        addafter(Group11)
         {
-            action("GL/Cust. Ledger Reconciliation FR")
+            group("Group63_France")
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'GL/Cust. Ledger Reconciliation';
-                RunObject = report "GL/Cust Ledger Reconciliation";
-                Tooltip = 'Run the GL/Cust Ledger Reconciliation report.';
-            }
-            action("GL/Vend. Ledger Reconciliation FR")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'GL/Vend. Ledger Reconciliation';
-                RunObject = report "GL/Vend Ledger Reconciliation";
-                Tooltip = 'Run the GL/Vend Ledger Reconciliation report.';
+                Caption = 'France';
+                action("GL/Cust. Ledger Reconciliation FR")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'GL/Cust. Ledger Reconciliation';
+                    RunObject = report "GL/Cust Ledger Reconciliation";
+                    Tooltip = 'Run the GL/Cust Ledger Reconciliation report.';
+                }
+                action("GL/Vend. Ledger Reconciliation FR")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'GL/Vend. Ledger Reconciliation';
+                    RunObject = report "GL/Vend Ledger Reconciliation";
+                    Tooltip = 'Run the GL/Vend Ledger Reconciliation report.';
+                }
             }
         }
         addafter("Payment Registration")
