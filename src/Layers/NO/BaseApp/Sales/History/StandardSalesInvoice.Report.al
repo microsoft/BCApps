@@ -46,6 +46,8 @@ report 1306 "Standard Sales - Invoice"
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
     DefaultRenderingLayout = "StandardSalesInvoice.docx";
+    //DefaultHeaderFooterPart = External_Default_Detailed;
+    //DefaultThemePart = "BC Default Theme";
 
     dataset
     {
@@ -1290,40 +1292,89 @@ report 1306 "Standard Sales - Invoice"
             Caption = 'Standard Sales Invoice (RDLC)';
             Summary = 'The Standard Sales Invoice (RDLC) is the most detailed layout and provides most flexible layout options.';
         }
+#if not CLEAN32
         layout("StandardSalesInvoice.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesInvoice.docx';
             Caption = 'Standard Sales Invoice (Word)';
             Summary = 'The Standard Sales Invoice (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesInvoiceBlueSimple.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesInvoiceBlueSimple.docx';
             Caption = 'Standard Sales Invoice - Blue (Word)';
             Summary = 'The Standard Sales Invoice - Blue (Word) provides a simple layout with a blue theme.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesInvoiceBlueSimpleThemable.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesInvoiceBlueSimpleThemable.docx';
             Caption = 'Standard Sales Invoice - themable Word layout';
             Summary = 'The Standard Sales Invoice - Themable (Word) provides a simple Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesInvoiceVatSpec.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesInvoiceVatSpec.docx';
             Caption = 'Standard Sales Invoice - VAT Spec (Word)';
             Summary = 'The Standard Sales Invoice - VAT Spec (Word) provides a layout with VAT Specification.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+#endif
+#if not CLEAN32
         layout("StandardSalesInvoiceDefEmail.docx")
         {
             Type = Word;
             LayoutFile = './Sales/History/StandardSalesInvoiceDefEmail.docx';
             Caption = 'Standard Sales Invoice Email (Word)';
             Summary = 'The Standard Sales Invoice Email (Word) provides the default email body layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+#endif
+        layout("StandardSalesInvoiceBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesInvoiceBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice (Word)';
+            Summary = 'Portrait sales invoice. Customer and company address, header with dates, references, payment terms, shipping, and tracking, item lines with quantity, price, discount %, VAT %, and amount, and VAT-inclusive totals.';
+        }
+        layout("StandardSalesInvoiceVatSpecBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesInvoiceVatSpecBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice - VAT Spec (Word)';
+            Summary = 'Portrait sales invoice with VAT specification. Customer and company address, header, and item lines with price, discount %, VAT %, and amount, VAT-inclusive totals, and a VAT specification (base and amount per VAT identifier, in LCY).';
+        }
+        layout("StandardSalesInvoiceDefEmailBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesInvoiceDefEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice Email (Word)';
+            Summary = 'Portrait sales invoice email body. Company address and bill-to customer no., greeting, body, and closing text, document no., due date, total including VAT, and a payment-service logo. Cover text for the invoice email.';
         }
     }
 
