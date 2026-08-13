@@ -204,9 +204,9 @@ codeunit 10844 "Payment Data Migration FR"
 
     local procedure TargetRecordExists(var TargetRecRef: RecordRef; var ExistingRecRef: RecordRef): Boolean
     var
-        PrimaryKeyRef: KeyRef;
         PrimaryKeyFieldRef: FieldRef;
         ExistingFieldRef: FieldRef;
+        PrimaryKeyRef: KeyRef;
         FieldIndex: Integer;
     begin
         ExistingRecRef.Reset();
