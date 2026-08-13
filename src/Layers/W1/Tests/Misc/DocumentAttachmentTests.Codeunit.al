@@ -54,6 +54,8 @@ codeunit 134776 "Document Attachment Tests"
         OpportunityTwoLbl: Label 'Opportunity2';
         RenameCodeLbl: Label 'T';
         SecondAttachmentFileNameMismatchErr: Label 'Second file name not equal to saved attachment.';
+        SourceRecordNotResolvedErr: Label 'The source record must be resolved for the %1.', Comment = '%1 = Table Caption';
+        UnexpectedSourceTableErr: Label 'The RecordRef must be opened on the %1.', Comment = '%1 = Table Caption';
         TwoAttachmentsExpectedErr: Label 'Two attachments were expected for this record.';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
 
@@ -4524,6 +4526,100 @@ codeunit 134776 "Document Attachment Tests"
 
         // [THEN] Verify Sales Credit Memo lines have two document attachments (one per each line inserted from Sales Return Order).
         CheckDocAttachments(Database::"Sales Line", 2, CreditMemoNo, SalesHeaderReturnOrder."Document Type"::"Credit Memo".AsInteger(), 'SalesReturnLine');
+    end;
+
+    [Test]
+    procedure EnsureAttachmentCanBeUploadedOnPostedSalesShipment()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] Uploading a file from the Documents FactBox on Posted Sales Shipment must not fail with "The record is not open".
+        Initialize();
+
+        // [GIVEN] Create Customer and Item with Inventory Posting Setup for the blank Location, so the shipment can be posted.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
+
+        // [GIVEN] Create and post Sales Order to get a Posted Sales Shipment.
+        CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::Order);
+        SalesShipmentHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+
+        // [GIVEN] Document Attachment record as the Documents FactBox filters it on the Posted Sales Shipment page.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := SalesShipmentHeader."No.";
+
+        // [WHEN] The Documents FactBox resolves the source record before saving the uploaded file.
+        // [THEN] The source record is resolved and the RecordRef is opened on Sales Shipment Header.
+        Assert.IsTrue(
+            DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment),
+            StrSubstNo(SourceRecordNotResolvedErr, SalesShipmentHeader.TableCaption()));
+        Assert.AreEqual(
+            Database::"Sales Shipment Header",
+            RecRef.Number(),
+            StrSubstNo(UnexpectedSourceTableErr, SalesShipmentHeader.TableCaption()));
+
+        // [WHEN] The uploaded file is saved through the resolved RecordRef.
+        CreateDocAttach(RecRef, 'PostedSalesShipment.jpeg', false, false);
+
+        // [THEN] Verify the attachment is stored for the Posted Sales Shipment.
+        CheckDocAttachmentsForPostedDocs(Database::"Sales Shipment Header", 1, SalesShipmentHeader."No.", 'PostedSalesShipment');
+    end;
+
+    [Test]
+    procedure EnsureAttachmentCanBeUploadedOnPostedReturnReceipt()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReturnReceiptHeader: Record "Return Receipt Header";
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] Uploading a file from the Documents FactBox on Posted Return Receipt must not fail with "The record is not open".
+        Initialize();
+
+        // [GIVEN] Create Customer and Item with Inventory Posting Setup for the blank Location, so the return receipt can be posted.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
+
+        // [GIVEN] Create and post Sales Return Order to get a Posted Return Receipt.
+        CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::"Return Order");
+        ReturnReceiptHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+
+        // [GIVEN] Document Attachment record as the Documents FactBox filters it on the Posted Return Receipt page.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Return Receipt Header";
+        DocumentAttachment."No." := ReturnReceiptHeader."No.";
+
+        // [WHEN] The Documents FactBox resolves the source record before saving the uploaded file.
+        // [THEN] The source record is resolved and the RecordRef is opened on Return Receipt Header.
+        Assert.IsTrue(
+            DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment),
+            StrSubstNo(SourceRecordNotResolvedErr, ReturnReceiptHeader.TableCaption()));
+        Assert.AreEqual(
+            Database::"Return Receipt Header",
+            RecRef.Number(),
+            StrSubstNo(UnexpectedSourceTableErr, ReturnReceiptHeader.TableCaption()));
+
+        // [WHEN] The uploaded file is saved through the resolved RecordRef.
+        CreateDocAttach(RecRef, 'PostedReturnReceipt.jpeg', false, false);
+
+        // [THEN] Verify the attachment is stored for the Posted Return Receipt.
+        CheckDocAttachmentsForPostedDocs(Database::"Return Receipt Header", 1, ReturnReceiptHeader."No.", 'PostedReturnReceipt');
     end;
 
     local procedure Initialize()
