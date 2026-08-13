@@ -168,7 +168,6 @@ page 4410 "SOA Multi Items Availability"
                     trigger OnValidate()
                     begin
                         LocationFilter := LocationFilter.ToUpper();
-
                         Rec.SetFilter("Location Filter", LocationFilter);
                         CurrPage.Update(false);
                     end;
@@ -214,13 +213,6 @@ page 4410 "SOA Multi Items Availability"
                             SetAvailabilityFilter('UOM', InUOMCode);
                         CurrPage.Update(false);
                     end;
-                }
-                field(avaFilter; Rec.GetFilter("Item Availability Filter"))
-                {
-                    // Temporary field used to debug the agent logs
-                    Caption = 'AVA Filter';
-                    ToolTip = 'Specifies the item availability filter.';
-                    Editable = false;
                 }
                 field(CalculateEarliestShipmentDate; CalculateEarliestShipmentDate)
                 {
@@ -730,9 +722,6 @@ page 4410 "SOA Multi Items Availability"
     var
         OriginalFilterGroup: Integer;
     begin
-        if Rec.GetFilter("Location Filter") <> '' then
-            LocationFilter := Rec.GetFilter("Location Filter");
-
         LanguageCode := GetLanguageCode(ContactNo, CustomerNo);
         Rec.SetFilter("Location Filter", '%1', LocationFilter);
         Rec.SetRange("Drop Shipment Filter", false);
