@@ -1135,8 +1135,10 @@
         CustLedgerEntry.FindSet();
         for Counter := 1 to 3 do begin
             CustLedgerEntry.CalcFields("Remaining Amount");
+#pragma warning disable AA0217
             Assert.AreEqual(0, CustLedgerEntry."Remaining Amount",
                 StrSubstNo('Invoice %1 should be fully applied.', Counter));
+#pragma warning restore AA0217
             CustLedgerEntry.Next();
         end;
         CustLedgerEntry.CalcFields("Remaining Amount");
@@ -1223,8 +1225,10 @@
         CustLedgerEntry.FindSet();
         for Counter := 1 to 3 do begin
             CustLedgerEntry.CalcFields("Remaining Amount");
+#pragma warning disable AA0217
             Assert.AreEqual(InvoiceAmount, CustLedgerEntry."Remaining Amount",
                 StrSubstNo('Invoice %1 should remain open.', Counter));
+#pragma warning restore AA0217
             CustLedgerEntry.Next();
         end;
         CustLedgerEntry.CalcFields("Remaining Amount");

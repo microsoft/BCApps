@@ -330,7 +330,9 @@
         CreateAndPostGenJournalLine(
             GenJournalLine, Employee."No.", GenJournalLine."Document Type"::" ", -PaymentAmount * 5 / 2, WorkDate() + 1);
         EmployeeLedgerEntry.SetRange("Employee No.", Employee."No.");
+#pragma warning disable AA0210
         EmployeeLedgerEntry.SetRange("Document Type", EmployeeLedgerEntry."Document Type"::" ");
+#pragma warning restore AA0210
         EmployeeLedgerEntry.FindFirst();
         EmployeeLedgerEntry.CalcFields("Remaining Amount");
         Assert.AreEqual(-PaymentAmount * 5 / 2, EmployeeLedgerEntry."Remaining Amount",
@@ -347,9 +349,11 @@
         Assert.IsFalse(EmployeeLedgerEntry.Open, 'Expense should be closed.');
 
         // [THEN] The expense excess reduces the oldest payment only; the other payments are not consumed
+#pragma warning disable AA0210
         EmployeeLedgerEntry.SetRange("Document Type", EmployeeLedgerEntry."Document Type"::Payment);
         EmployeeLedgerEntry.SetCurrentKey("Posting Date");
         EmployeeLedgerEntry.SetAscending("Posting Date", true);
+#pragma warning restore AA0210
         EmployeeLedgerEntry.FindSet();
         EmployeeLedgerEntry.CalcFields("Remaining Amount");
         Assert.AreEqual(PaymentAmount / 2, EmployeeLedgerEntry."Remaining Amount",
