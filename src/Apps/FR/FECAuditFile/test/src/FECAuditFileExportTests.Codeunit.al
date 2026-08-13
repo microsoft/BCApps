@@ -2345,6 +2345,280 @@ codeunit 148017 "FEC Audit File Export Tests"
         VerifyExportGLEntriesReport(GLRegister, AuditFile, '', BankAccount."No.", BankAccount.Name);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PaymentDiscountLineHasCustomerInfo()
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        AuditFile: Record "Audit File";
+        iStream: InStream;
+        StartingDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        DiscountAmount: Decimal;
+        PmtDiscAccountNo: Code[20];
+        LineToRead: Text;
+    begin
+        // [SCENARIO 639574] CompAuxNum and CompAuxLib are informed for Payment Discount lines in the French Audit File
+        Initialize();
+        StartingDate := GetStartingDate();
+
+        // [GIVEN] Customer whose posting group has a Payment Disc. Debit Acc.
+        LibrarySales.CreateCustomer(Customer);
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        if CustomerPostingGroup."Payment Disc. Debit Acc." = '' then begin
+            CustomerPostingGroup.Validate("Payment Disc. Debit Acc.", LibraryERM.CreateGLAccountNo());
+            CustomerPostingGroup.Modify(true);
+        end;
+        PmtDiscAccountNo := CustomerPostingGroup."Payment Disc. Debit Acc.";
+
+        // [GIVEN] A posted sales invoice with a possible payment discount
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Customer, Customer."No.", InvoiceAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Pmt. Discount Date", CalcDate('<1M>', StartingDate));
+        GenJournalLine.Validate("Payment Discount %", LibraryRandom.RandIntInRange(2, 5));
+        GenJournalLine.Modify(true);
+        InvoiceDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        DiscountAmount := CustLedgerEntry."Original Pmt. Disc. Possible";
+        Assert.IsTrue(DiscountAmount > 0, 'The posted invoice should have a possible payment discount.');
+
+        // [GIVEN] A payment for (invoice amount - discount) applied to the invoice within the discount date, so the discount is granted
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Customer, Customer."No.", -(InvoiceAmount - DiscountAmount));
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", "Gen. Journal Document Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Export Audit File in FEC format for the Payment Disc. Debit Acc. only
+        RunFECExport(AuditFile, PmtDiscAccountNo, StartingDate, StartingDate, false);
+
+        // [THEN] The exported Payment Discount line has CompAuxNum = Customer No. and CompAuxLib = Customer Name
+        CreateReadStream(iStream, AuditFile);
+        iStream.ReadText(LineToRead); // header
+        VerifyFilePartyNoAndName(iStream, Customer."No.", Customer.Name);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PaymentDiscountLineHasVendorInfo()
+    var
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        AuditFile: Record "Audit File";
+        iStream: InStream;
+        StartingDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        DiscountAmount: Decimal;
+        PmtDiscAccountNo: Code[20];
+        LineToRead: Text;
+    begin
+        // [SCENARIO 639574] CompAuxNum and CompAuxLib are informed for purchase Payment Discount lines in the French Audit File
+        Initialize();
+        StartingDate := GetStartingDate();
+
+        // [GIVEN] Vendor whose posting group has a Payment Disc. Credit Acc.
+        LibraryPurchase.CreateVendor(Vendor);
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        if VendorPostingGroup."Payment Disc. Credit Acc." = '' then begin
+            VendorPostingGroup.Validate("Payment Disc. Credit Acc.", LibraryERM.CreateGLAccountNo());
+            VendorPostingGroup.Modify(true);
+        end;
+        PmtDiscAccountNo := VendorPostingGroup."Payment Disc. Credit Acc.";
+
+        // [GIVEN] A posted purchase invoice with a possible payment discount
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Vendor, Vendor."No.", -InvoiceAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Pmt. Discount Date", CalcDate('<1M>', StartingDate));
+        GenJournalLine.Validate("Payment Discount %", LibraryRandom.RandIntInRange(2, 5));
+        GenJournalLine.Modify(true);
+        InvoiceDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        DiscountAmount := VendorLedgerEntry."Original Pmt. Disc. Possible";
+        Assert.IsTrue(DiscountAmount < 0, 'The posted invoice should have a possible payment discount.');
+
+        // [GIVEN] A payment for (invoice amount - discount) applied to the invoice within the discount date, so the discount is granted
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Vendor, Vendor."No.", InvoiceAmount + DiscountAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", "Gen. Journal Document Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Export Audit File in FEC format for the Payment Disc. Credit Acc. only
+        RunFECExport(AuditFile, PmtDiscAccountNo, StartingDate, StartingDate, false);
+
+        // [THEN] The exported Payment Discount line has CompAuxNum = Vendor No. and CompAuxLib = Vendor Name
+        CreateReadStream(iStream, AuditFile);
+        iStream.ReadText(LineToRead); // header
+        VerifyFilePartyNoAndName(iStream, Vendor."No.", Vendor.Name);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PaymentDiscountAccountIsScopedToPostingGroup()
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        OtherCustomer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        AuditFile: Record "Audit File";
+        iStream: InStream;
+        StartingDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        DiscountAmount: Decimal;
+        SharedPmtDiscAccountNo: Code[20];
+        LineToRead: Text;
+    begin
+        // [SCENARIO 639574] A G/L account that is a payment discount account for one posting group must not add
+        // [SCENARIO] customer info to an unrelated line of another posting group that posts to the same account.
+        Initialize();
+        StartingDate := GetStartingDate();
+
+        // [GIVEN] Customer "C1" of a dedicated posting group whose Payment Disc. Debit Acc. is the shared account
+        SharedPmtDiscAccountNo := LibraryERM.CreateGLAccountNo();
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
+        CustomerPostingGroup.Validate("Receivables Account", LibraryERM.CreateGLAccountNo());
+        CustomerPostingGroup.Validate("Payment Disc. Debit Acc.", SharedPmtDiscAccountNo);
+        CustomerPostingGroup.Modify(true);
+        Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] A posted invoice and a payment with discount for "C1" -> discount line posts to the shared account
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Customer, Customer."No.", InvoiceAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Pmt. Discount Date", CalcDate('<1M>', StartingDate));
+        GenJournalLine.Validate("Payment Discount %", LibraryRandom.RandIntInRange(2, 5));
+        GenJournalLine.Modify(true);
+        InvoiceDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        DiscountAmount := CustLedgerEntry."Original Pmt. Disc. Possible";
+        Assert.IsTrue(DiscountAmount > 0, 'The posted invoice should have a possible payment discount.');
+
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Customer, Customer."No.", -(InvoiceAmount - DiscountAmount));
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", "Gen. Journal Document Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Another customer "C2" of a different posting group posts an unrelated entry to the same shared account
+        LibrarySales.CreateCustomer(OtherCustomer);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::" ", "Gen. Journal Account Type"::Customer, OtherCustomer."No.", LibraryRandom.RandDecInRange(100, 200, 2));
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Bal. Account Type", "Gen. Journal Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", SharedPmtDiscAccountNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Export Audit File in FEC format for the shared account
+        RunFECExport(AuditFile, SharedPmtDiscAccountNo, StartingDate, StartingDate, false);
+
+        // [THEN] "C1" payment discount line carries C1 info, but the unrelated "C2" line has blank CompAuxNum/CompAuxLib
+        CreateReadStream(iStream, AuditFile);
+        iStream.ReadText(LineToRead); // header
+        VerifyFilePartyNoAndName(iStream, Customer."No.", Customer.Name);
+        VerifyFilePartyNoAndName(iStream, '', '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PurchPmtDiscAccountDoesNotQualifyForCustomerLine()
+    var
+        Customer: Record Customer;
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        AuditFile: Record "Audit File";
+        VATCalculationType: Enum "Tax Calculation Type";
+        iStream: InStream;
+        StartingDate: Date;
+        IncomeAccountNo: Code[20];
+        LineToRead: Text;
+    begin
+        // [SCENARIO 639574] For a Customer entry only a Sales payment discount account qualifies; a Purchase payment
+        // [SCENARIO] discount account of the same general posting setup must not add customer info to the line.
+        Initialize();
+        StartingDate := GetStartingDate();
+
+        // [GIVEN] Dedicated posting groups and a VAT posting setup
+        LibraryERM.CreateGenBusPostingGroup(GenBusinessPostingGroup);
+        LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATCalculationType::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
+
+        // [GIVEN] An income G/L account that a customer sales line posts to
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Gen. Posting Type", GLAccount."Gen. Posting Type"::Sale);
+        GLAccount.Validate("Gen. Prod. Posting Group", GenProductPostingGroup.Code);
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+        IncomeAccountNo := GLAccount."No.";
+
+        // [GIVEN] The general posting setup uses that account as its Purch. Pmt. Disc. account (not the Sales one)
+        LibrarySetupStorage.Save(Database::"General Ledger Setup");
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Adjust for Payment Disc.", true);
+        GeneralLedgerSetup.Modify(true);
+        LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusinessPostingGroup.Code, GenProductPostingGroup.Code);
+        GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Pmt. Disc. Debit Acc.", IncomeAccountNo);
+        GeneralPostingSetup.Validate("Purch. Pmt. Disc. Credit Acc.", IncomeAccountNo);
+        GeneralPostingSetup.Modify(true);
+
+        // [GIVEN] A customer of that posting group posts a sales invoice line to the income (Purch. Pmt. Disc.) account
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Gen. Bus. Posting Group", GenBusinessPostingGroup.Code);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Posting Date", StartingDate);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", IncomeAccountNo, 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] Export Audit File in FEC format for the income (Purch. Pmt. Disc.) account
+        RunFECExport(AuditFile, IncomeAccountNo, StartingDate, StartingDate, false);
+
+        // [THEN] The customer sales line has blank CompAuxNum/CompAuxLib - a purchase discount account does not qualify for a customer
+        CreateReadStream(iStream, AuditFile);
+        iStream.ReadText(LineToRead); // header
+        VerifyFilePartyNoAndName(iStream, '', '');
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
