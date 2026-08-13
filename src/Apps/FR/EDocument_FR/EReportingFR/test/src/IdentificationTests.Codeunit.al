@@ -1117,6 +1117,11 @@ codeunit 148146 "Identification Tests"
         LibraryInventory.UpdateInventoryPostingSetup(Location);
         if not GeneralPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group") then
             LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
+        GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
         Customer.Get(SalesHeader."Sell-to Customer No.");
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
         Customer.Modify(true);

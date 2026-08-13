@@ -979,6 +979,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
     local procedure CreateAndPostSalesInvoiceWithItemLine(CustomerNo: Code[20]; KeepServiceLine: Boolean): Code[20]
     var
+        GeneralPostingSetup: Record "General Posting Setup";
         Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -992,6 +993,13 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         end;
 
         LibraryInventory.CreateItem(Item);
+        if not GeneralPostingSetup.Get(SalesHeader."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, SalesHeader."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
+        GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Modify(true);

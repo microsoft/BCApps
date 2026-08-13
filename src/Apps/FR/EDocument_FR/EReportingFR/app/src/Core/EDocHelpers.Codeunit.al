@@ -8,12 +8,22 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
+using Microsoft.Utilities;
 
 codeunit 10991 "EDoc. Helpers"
 {
     Access = Internal;
     Permissions = tabledata "E-Document" = m,
                   tabledata "E-Document Service Status" = m;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
+    local procedure ClassifyDataSensitivity()
+    var
+        DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
+    begin
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"FR E-Invoice Lifecycle");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"FR E-Invoice Lifecycle VAT");
+    end;
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document", 'OnBeforeModifyEvent', '', false, false)]
     local procedure SetClearanceDateOnModify(var Rec: Record "E-Document"; var xRec: Record "E-Document"; RunTrigger: Boolean)
