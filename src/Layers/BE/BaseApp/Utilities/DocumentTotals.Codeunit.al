@@ -785,6 +785,13 @@ codeunit 57 "Document Totals"
         if PurchHeader."No." = '' then
             exit(false);
 
+        PurchasesPayablesSetup.Get();
+        if not PurchasesPayablesSetup."Allow VAT Difference" then
+            exit(false);
+
+        if PurchHeader."Tax Liable" then
+            exit(false);
+
         PurchLine.CalcVATAmountLines(0, PurchHeader, PurchLine, TempVATAmountLine);
         GroupedVATAmount := TempVATAmountLine.GetTotalVATAmount();
         exit(true);
