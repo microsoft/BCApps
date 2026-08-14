@@ -155,12 +155,16 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
     local procedure AddVATBreakdown(var ReferenceDocumentElement: XmlElement; FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
     var
         FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
+        MissingVATBreakdownErrorInfo: ErrorInfo;
         SpecifiedDocumentStatusElement: XmlElement;
         CurrencyCode: Code[10];
     begin
         FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
-        if not FREInvoiceLifecycleVAT.FindSet() then
-            Error(VATBreakdownErr, FREInvoiceLifecycle."Entry No.");
+        if not FREInvoiceLifecycleVAT.FindSet() then begin
+            MissingVATBreakdownErrorInfo.ErrorType(ErrorType::Internal);
+            MissingVATBreakdownErrorInfo.Message(StrSubstNo(VATBreakdownErr, FREInvoiceLifecycle."Entry No."));
+            Error(MissingVATBreakdownErrorInfo);
+        end;
 
         CurrencyCode := ResolveCurrencyCode(FREInvoiceLifecycle."Currency Code");
         SpecifiedDocumentStatusElement := XmlElement.Create('SpecifiedDocumentStatus', RamNamespaceTok);
@@ -269,8 +273,7 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
             '0000TDP', StrSubstNo(UnsupportedLifecycleStatusErr, LifecycleStatus), Verbosity::Error,
             DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', LifecycleTelemetryCategoryTok);
         UnsupportedStatusErrorInfo.ErrorType(ErrorType::Internal);
-        UnsupportedStatusErrorInfo.Message(InternalLifecycleStatusErr);
-        UnsupportedStatusErrorInfo.DetailedMessage(StrSubstNo(UnsupportedLifecycleStatusErr, LifecycleStatus));
+        UnsupportedStatusErrorInfo.Message(StrSubstNo(UnsupportedLifecycleStatusErr, LifecycleStatus));
         Error(UnsupportedStatusErrorInfo);
     end;
 
@@ -278,7 +281,6 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         NoCapturedOccurrenceErr: Label 'No unprocessed French invoice lifecycle occurrence exists for E-Document entry %1.', Comment = '%1 = E-Document entry number';
         VATBreakdownErr: Label 'Lifecycle occurrence %1 does not have the VAT breakdown required for a French collected status message.', Comment = '%1 = lifecycle occurrence entry number';
         UnsupportedLifecycleStatusErr: Label 'Lifecycle status %1 is not supported by the French collected status message builder.', Comment = '%1 = lifecycle status';
-        InternalLifecycleStatusErr: Label 'An internal lifecycle status error occurred.';
         InternalLifecycleStateErr: Label 'An internal lifecycle processing error occurred.';
         LifecycleTelemetryCategoryTok: Label 'French E-Invoice Lifecycle', Locked = true;
         LifecycleMessageNameTok: Label 'Invoice lifecycle collected status', Locked = true;

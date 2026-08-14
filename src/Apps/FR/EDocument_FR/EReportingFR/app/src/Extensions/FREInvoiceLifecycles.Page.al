@@ -12,7 +12,7 @@ page 10970 "FR E-Invoice Lifecycles"
     InherentPermissions = X;
     PageType = List;
     SourceTable = "FR E-Invoice Lifecycle";
-    SourceTableView = sorting("Entry No.") order(descending);
+    SourceTableView = sorting("E-Document Entry No.", "Created At") order(descending);
     UsageCategory = History;
 
     layout

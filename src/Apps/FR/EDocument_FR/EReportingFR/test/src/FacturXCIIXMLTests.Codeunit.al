@@ -469,18 +469,18 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML buyer electronic address URIID has schemeID from customer setting
         Initialize();
 
-        // [GIVEN] Customer with FR Electronic Address and a SIRET electronic address scheme
+        // [GIVEN] Customer with FR Electronic Address and a French CTC electronic address scheme
         ElecAddress := '98765432101234';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress(ElecAddress));
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
-        Customer.Validate("FR Elec. Address Scheme", Customer."FR Elec. Address Scheme"::"0009");
+        Customer.Validate("FR Elec. Address Scheme", Customer."FR Elec. Address Scheme"::"0225");
         Customer.Modify(true);
 
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
         // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID/@schemeID = bare scheme code (not the enum caption)
-        Assert.AreEqual('0009',
+        Assert.AreEqual('0225',
             GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
     end;

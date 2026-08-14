@@ -78,13 +78,17 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         NamespaceMgr: XmlNamespaceManager;
         ElecAddress: Text[250];
         ElecAddressScheme: Enum "Electronic Address Scheme";
+        FrenchPostProcessingErrorInfo: ErrorInfo;
         HasElecAddress: Boolean;
     begin
         CompanyInformation.Get();
 
         TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
-        if not XmlDocument.ReadFrom(InStr, XmlDoc) then
-            Error(FrenchPostProcessingXmlErr);
+        if not XmlDocument.ReadFrom(InStr, XmlDoc) then begin
+            FrenchPostProcessingErrorInfo.ErrorType(ErrorType::Internal);
+            FrenchPostProcessingErrorInfo.Message(FrenchPostProcessingXmlErr);
+            Error(FrenchPostProcessingErrorInfo);
+        end;
 
         InitNamespaceManager(NamespaceMgr, XmlDoc);
 

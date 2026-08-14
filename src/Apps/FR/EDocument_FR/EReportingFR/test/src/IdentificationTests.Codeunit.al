@@ -51,6 +51,7 @@ codeunit 148146 "Identification Tests"
         LibraryUtility: Codeunit "Library - Utility";
         EDocHelpers: Codeunit "EDoc. Helpers";
         ImmutableLifecycleErr: Label 'The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.', Locked = true;
+        DeleteLifecycleErr: Label 'A French electronic invoice lifecycle occurrence cannot be deleted.', Locked = true;
         ImmutableLifecycleVATErr: Label 'A French electronic invoice lifecycle VAT breakdown cannot be changed.', Locked = true;
         WorkerFailureErr: Label 'Lifecycle worker test failure.', Locked = true;
         XmlNodeMissingErr: Label 'The payload must contain XML node %1.', Comment = '%1 = XML path', Locked = true;
@@ -705,7 +706,7 @@ codeunit 148146 "Identification Tests"
         asserterror FREInvoiceLifecycle.Delete(true);
 
         // [THEN] The deletion is rejected
-        Assert.ExpectedError(ImmutableLifecycleErr);
+        Assert.ExpectedError(DeleteLifecycleErr);
     end;
 
     [Test]

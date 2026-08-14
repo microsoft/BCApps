@@ -195,6 +195,8 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     end;
 
     local procedure GetVATEntryGrossAmount(VATEntry: Record "VAT Entry"; CurrencyCode: Code[10]): Decimal
+    var
+        VATEntryCurrencyErrorInfo: ErrorInfo;
     begin
         if VATEntry."Source Currency Code" = CurrencyCode then
             exit(-(VATEntry."Source Currency VAT Base" + VATEntry."Source Currency VAT Amount"));
@@ -202,7 +204,9 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         if VATEntry."Source Currency Code" = '' then
             exit(-(VATEntry.Base + VATEntry.Amount));
 
-        Error(VATEntryCurrencyErr, VATEntry."Entry No.", CurrencyCode);
+        VATEntryCurrencyErrorInfo.ErrorType(ErrorType::Internal);
+        VATEntryCurrencyErrorInfo.Message(StrSubstNo(VATEntryCurrencyErr, VATEntry."Entry No.", CurrencyCode));
+        Error(VATEntryCurrencyErrorInfo);
     end;
 
     local procedure AddVATRateAmount(var AmountByVATRate: Dictionary of [Decimal, Decimal]; var VATRates: List of [Decimal]; VATRate: Decimal; GrossAmount: Decimal)
@@ -298,6 +302,9 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::"Message Created";
         Clear(FREInvoiceLifecycle."Last Error");
         FREInvoiceLifecycle.Modify();
+        Session.LogMessage(
+            '0000TDS', LifecycleMessageCreatedTelemetryMsg, Verbosity::Normal,
+            DataClassification::SystemMetadata, TelemetryScope::All, 'Category', LifecycleTelemetryCategoryTok);
     end;
 
     internal procedure RetryLifecycleMessage(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
@@ -315,33 +322,33 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     begin
         EDocument.Get(EDocumentEntryNo);
         if IsNullGuid(SourceOccurrenceID) then
-            Error(SourceOccurrenceIDErr);
+            RaiseInternalError(SourceOccurrenceIDErr);
         if EventDate = 0D then
-            Error(EventDateErr);
+            RaiseInternalError(EventDateErr);
 
         case LifecycleStatus of
             LifecycleStatus::Collected:
                 begin
                     if ReportedAmount <= 0 then
-                        Error(CollectedAmountErr);
+                        RaiseInternalError(CollectedAmountErr);
                     if OriginalOccurrenceEntryNo <> 0 then
-                        Error(CollectedOriginalOccurrenceErr);
+                        RaiseInternalError(CollectedOriginalOccurrenceErr);
                 end;
             LifecycleStatus::"Negative Collected":
                 begin
                     if ReportedAmount >= 0 then
-                        Error(NegativeCollectedAmountErr);
+                        RaiseInternalError(NegativeCollectedAmountErr);
                     if not OriginalOccurrence.Get(OriginalOccurrenceEntryNo) then
-                        Error(OriginalOccurrenceErr);
+                        RaiseInternalError(OriginalOccurrenceErr);
                     OriginalOccurrence.TestField("E-Document Entry No.", EDocumentEntryNo);
                     OriginalOccurrence.TestField("Lifecycle Status", OriginalOccurrence."Lifecycle Status"::Collected);
                     if ReportedAmount <> -OriginalOccurrence."Reported Amount" then
-                        Error(ReversalAmountErr);
+                        RaiseInternalError(ReversalAmountErr);
                 end;
             else begin
                 UnsupportedStatusErrorInfo.ErrorType(ErrorType::Internal);
-                UnsupportedStatusErrorInfo.Message(InternalLifecycleStatusErr);
-                UnsupportedStatusErrorInfo.DetailedMessage(StrSubstNo(PaymentStatusErr, LifecycleStatus));
+                UnsupportedStatusErrorInfo.Message(StrSubstNo(PaymentStatusErr, LifecycleStatus));
+                UnsupportedStatusErrorInfo.DetailedMessage(InternalLifecycleStatusErr);
                 Error(UnsupportedStatusErrorInfo);
             end;
         end;
@@ -375,6 +382,18 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         TaskScheduler.CreateTask(
             Codeunit::"FR E-Invoice Lifecycle Worker", Codeunit::"FR E-Invoice Lifecycle Error", true,
             CompanyName(), CurrentDateTime(), FREInvoiceLifecycle.RecordId);
+        Session.LogMessage(
+            '0000TDR', LifecycleMessageQueuedTelemetryMsg, Verbosity::Normal,
+            DataClassification::SystemMetadata, TelemetryScope::All, 'Category', LifecycleTelemetryCategoryTok);
+    end;
+
+    local procedure RaiseInternalError(ErrorMessage: Text)
+    var
+        InternalErrorInfo: ErrorInfo;
+    begin
+        InternalErrorInfo.ErrorType(ErrorType::Internal);
+        InternalErrorInfo.Message(ErrorMessage);
+        Error(InternalErrorInfo);
     end;
 
     local procedure ResolveCurrencyCode(CurrencyCode: Code[10]): Code[10]
@@ -455,5 +474,8 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         VATBreakdownErr: Label 'A VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
         OriginalVATBreakdownErr: Label 'The VAT breakdown for original lifecycle occurrence %1 does not exist.', Comment = '%1 = lifecycle occurrence entry number';
+        LifecycleMessageCreatedTelemetryMsg: Label 'French e-invoice lifecycle message created.', Locked = true;
+        LifecycleMessageQueuedTelemetryMsg: Label 'French e-invoice lifecycle message creation queued.', Locked = true;
+        LifecycleTelemetryCategoryTok: Label 'French E-Invoice Lifecycle', Locked = true;
         SIRENSchemeTok: Label '0002', Locked = true;
 }

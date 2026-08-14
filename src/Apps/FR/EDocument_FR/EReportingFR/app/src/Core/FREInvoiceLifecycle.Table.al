@@ -197,7 +197,7 @@ table 10970 "FR E-Invoice Lifecycle"
 
     trigger OnDelete()
     begin
-        Error(ImmutableOccurrenceErr);
+        Error(DeleteOccurrenceErr);
     end;
 
     trigger OnRename()
@@ -234,5 +234,6 @@ table 10970 "FR E-Invoice Lifecycle"
     end;
 
     var
+        DeleteOccurrenceErr: Label 'A French electronic invoice lifecycle occurrence cannot be deleted.';
         ImmutableOccurrenceErr: Label 'The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.';
 }

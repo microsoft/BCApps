@@ -13,20 +13,20 @@ tableextension 10977 "E-Reporting E-Doc. Service" extends "E-Document Service"
         field(10970; "FR Sender Platform ID"; Text[50])
         {
             Caption = 'FR Sender Platform ID';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the identifier of the French approved platform that sends lifecycle messages.';
         }
         field(10971; "FR Sender Platform Scheme"; Code[4])
         {
             Caption = 'FR Sender Platform Scheme';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             InitValue = '0238';
             ToolTip = 'Specifies the identifier scheme of the French approved platform.';
         }
         field(10972; "FR Sender Platform Name"; Text[100])
         {
             Caption = 'FR Sender Platform Name';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the name of the French approved platform that sends lifecycle messages.';
         }
     }
