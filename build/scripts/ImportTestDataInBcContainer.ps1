@@ -154,7 +154,7 @@ function Measure-TenantRefresh {
         Write-Host "TENANT_REFRESH_TIMING tenant=$tenantId phase=dismount seconds=$([math]::Round($stopwatch.Elapsed.TotalSeconds, 3))"
 
         $stopwatch.Restart()
-        Remove-NAVDatabase -DatabaseName $databaseName -Force | Out-Null
+        Remove-NAVDatabase -DatabaseName $databaseName | Out-Null
         $stopwatch.Stop()
         Write-Host "TENANT_REFRESH_TIMING tenant=$tenantId phase=remove_database seconds=$([math]::Round($stopwatch.Elapsed.TotalSeconds, 3))"
 
