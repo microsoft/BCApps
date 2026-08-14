@@ -18,7 +18,7 @@ codeunit 5208 "Create G/L Account"
     var
         GLAccountCategory: Record "G/L Account Category";
         FinanceModuleSetup: Record "Finance Module Setup";
-        GLAccountIndent: Codeunit "W1 G/L Account Indent";
+        GLAccountIndent: Codeunit "G/L Account-Indent";
         CreatePostingGroup: Codeunit "Create Posting Groups";
         CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
         GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
