@@ -92,6 +92,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         InvalidNewNameErr: Label 'New name cannot be empty';
         InvalidFieldsErr: Label 'Fields JSON object cannot be empty';
         ItemBufferCollisionErr: Label 'The record already contains item %1 from a different list. Use a separate record variable per list.', Comment = '%1 = Item ID';
+        ItemBufferCollisionTelemetryErr: Label 'The record already contains item from a different list. Use a separate record variable per list.';
         FailedToRetrieveListItemErr: Label 'Failed to retrieve list item: %1', Comment = '%1 = Error message';
         FailedToParseListItemErr: Label 'Failed to parse list item details from response';
         FailedToUpdateListItemErr: Label 'Failed to update list item: %1', Comment = '%1 = Error message';
@@ -584,6 +585,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
+        Endpoint: Text;
         ErrorMessage: Text;
     begin
         EnsureInitialized();
@@ -606,14 +608,15 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if GraphListItem.Get(CopyStr(ItemId, 1, MaxStrLen(GraphListItem.Id))) and (GraphListItem.ListId <> ListId) then begin
             ErrorMessage := StrSubstNo(ItemBufferCollisionErr, ItemId);
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000UKD', ErrorMessage, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl, 'ListId');
+            Session.LogMessage('0000UKD', ItemBufferCollisionTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
+        Endpoint := SharePointGraphUriBuilder.GetListItemByIdEndpoint(ListId, ItemId);
         if not GraphOptionalParameters.GetODataQueryParameters().ContainsKey(Format(Enum::"Graph OData Query Parameter"::expand)) then
-            GraphOptionalParameters.SetODataQueryParameter(Enum::"Graph OData Query Parameter"::expand, 'fields');
+            Endpoint += '?$expand=fields';
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListItemByIdEndpoint(ListId, ItemId), JsonResponse, GraphOptionalParameters) then begin
+        if not SharePointGraphRequestHelper.Get(Endpoint, JsonResponse, GraphOptionalParameters) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveListItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
             Session.LogMessage('0000UKE', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
@@ -676,7 +679,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if GraphListItem.Get(CopyStr(ItemId, 1, MaxStrLen(GraphListItem.Id))) and (GraphListItem.ListId <> ListId) then begin
             ErrorMessage := StrSubstNo(ItemBufferCollisionErr, ItemId);
             SharePointGraphResponse.SetError(ErrorMessage);
-            Session.LogMessage('0000UKK', ErrorMessage, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            Session.LogMessage('0000UKK', ItemBufferCollisionTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 

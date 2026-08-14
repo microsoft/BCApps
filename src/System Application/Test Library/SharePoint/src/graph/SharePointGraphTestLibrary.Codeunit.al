@@ -27,11 +27,21 @@ codeunit 132975 "SharePoint Graph Test Library"
         MockHttpClientHandler.SetResponse(NewHttpResponseMessage);
     end;
 
+    /// <summary>
+    /// Gets the most recently sent request.
+    /// </summary>
+    /// <param name="OutHttpRequestMessage">The last request received by the mock handler.</param>
     procedure GetHttpRequestMessage(var OutHttpRequestMessage: Codeunit "Http Request Message")
     begin
         MockHttpClientHandler.GetHttpRequestMessage(OutHttpRequestMessage);
     end;
 
+    /// <summary>
+    /// Makes every subsequent request fail with the given error instead of returning a response.
+    /// The request is still recorded in the request history before failing.
+    /// Cleared by ResetMockHandler.
+    /// </summary>
+    /// <param name="ErrorText">The error that sending a request fails with.</param>
     procedure ExpectRequestToFailWithError(ErrorText: Text)
     begin
         MockHttpClientHandler.ExpectSendToFailWithError(ErrorText);
@@ -66,26 +76,49 @@ codeunit 132975 "SharePoint Graph Test Library"
         MockHttpClientHandler.AddResponse(NewHttpResponseMessage);
     end;
 
+    /// <summary>
+    /// Gets the URI of a recorded request.
+    /// </summary>
+    /// <param name="Index">The 1-based position of the request in the request history.</param>
+    /// <returns>The request URI, or an empty text if no request was recorded at the given index.</returns>
     procedure GetMockHttpRequestUri(Index: Integer): Text
     begin
         exit(MockHttpClientHandler.GetHttpRequestUri(Index));
     end;
 
+    /// <summary>
+    /// Gets the HTTP method of a recorded request.
+    /// </summary>
+    /// <param name="Index">The 1-based position of the request in the request history.</param>
+    /// <returns>The HTTP method (e.g. GET, POST), or an empty text if no request was recorded at the given index.</returns>
     procedure GetMockHttpRequestMethod(Index: Integer): Text
     begin
         exit(MockHttpClientHandler.GetHttpRequestMethod(Index));
     end;
 
+    /// <summary>
+    /// Gets the number of requests recorded by the mock handler.
+    /// </summary>
+    /// <returns>The number of requests sent since the last reset or SetMockResponse call.</returns>
     procedure GetMockRequestCount(): Integer
     begin
         exit(MockHttpClientHandler.GetRequestCount());
     end;
 
+    /// <summary>
+    /// Resets the mock handler to its initial state: clears the queued and fallback responses,
+    /// the recorded request history, and any error set with ExpectRequestToFailWithError.
+    /// </summary>
     procedure ResetMockHandler()
     begin
         this.MockHttpClientHandler.Reset();
     end;
 
+    /// <summary>
+    /// Gets the mock handler for injecting into the client under test,
+    /// so that its requests are answered with the configured mock responses.
+    /// </summary>
+    /// <returns>The mock Http Client Handler.</returns>
     procedure GetMockHandler(): Interface "Http Client Handler"
     begin
         exit(this.MockHttpClientHandler);
