@@ -6068,11 +6068,11 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure ShouldUseDocumentAmountForACY(): Boolean
     begin
         exit(
-        (ItemJnlLine."Source Currency Code" = GLSetup."Additional Reporting Currency") and
-        (Item."Costing Method" <> Item."Costing Method"::Standard) and
-        (ItemJnlLine."Discount Amount" = 0) and
-        (ItemJnlLine."Indirect Cost %" = 0) and
-        (ItemJnlLine."Overhead Rate" = 0));
+            (ItemJnlLine."Source Currency Code" = GLSetup."Additional Reporting Currency") and
+            (Item."Costing Method" <> Item."Costing Method"::Standard) and
+            (ItemJnlLine."Discount Amount" = 0) and
+            (ItemJnlLine."Indirect Cost %" = 0) and
+            (ItemJnlLine."Overhead Rate" = 0));
     end;
 
     [IntegrationEvent(false, false)]
