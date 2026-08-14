@@ -35,6 +35,9 @@ codeunit 134263 "Test Bank Payment Application"
         VendorHasOpenEntriesErr: Label 'Expected vendor %1 to have no open ledger entries after payment application, but open entries were found.', Comment = '%1 vendor no.';
         InvoiceNotOnPrimaryAccountErr: Label 'Expected invoice %1 to post to primary payables account %2, but no amount was found on that account.', Comment = '%1 document no., %2 account no.';
         MissingPrepaymentAdjustmentErr: Label 'Expected a non-zero pre-payment exchange adjustment on primary payables account %1 for document %2, but amount is %3.', Comment = '%1 account no., %2 document no., %3 amount';
+        PrimaryPayablesNotNetZeroErr: Label 'Invoice posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.', Comment = '%1 account no., %2 vendor no., %3 amount';
+        SecondaryPayablesNotNetZeroErr: Label 'Payment posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.', Comment = '%1 account no., %2 vendor no., %3 amount';
+        UnknownExchRateAdjmtErr: Label 'Unknown error while running exchange rate adjustment.';
 
     [Test]
     [Scope('OnPrem')]
@@ -2266,8 +2269,8 @@ codeunit 134263 "Test Bank Payment Application"
         AssertDocumentNoIsAvailableForTest(PaymentDocumentNo, JournalTemplateName, JournalBatchName);
 
         ConfigurePurchasesMultiplePostingGroupsSetupForTest();
-        LibraryPurch.CreateAltVendorPostingGroup(InvoiceVendorPostingGroup, PaymentVendorPostingGroup);
-        LibraryPurch.CreateAltVendorPostingGroup(PaymentVendorPostingGroup, InvoiceVendorPostingGroup);
+        LibraryPurch.CreateAltVendorPostingGroup(CopyStr(InvoiceVendorPostingGroup, 1, 10), CopyStr(PaymentVendorPostingGroup, 1, 10));
+        LibraryPurch.CreateAltVendorPostingGroup(CopyStr(PaymentVendorPostingGroup, 1, 10), CopyStr(InvoiceVendorPostingGroup, 1, 10));
 
         if not Vendor.Get(VendorNo) then
             Error(VendorDoesNotExistErr, VendorNo);
@@ -2412,39 +2415,39 @@ codeunit 134263 "Test Bank Payment Application"
 
     local procedure RunVendorExchangeRateAdjustmentForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; AdjustmentDocumentNo: Code[20]; StartDate: Date; PostingDate: Date)
     var
-        ExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters" temporary;
+        TempExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters" temporary;
         Currency: Record Currency;
         Vendor: Record Vendor;
         LastErr: Text;
     begin
-        ExchRateAdjmtParameters.Init();
-        ExchRateAdjmtParameters."Primary Key" := 'AUTO';
-        ExchRateAdjmtParameters."Start Date" := StartDate;
-        ExchRateAdjmtParameters."End Date" := PostingDate;
-        ExchRateAdjmtParameters."Posting Date" := PostingDate;
-        ExchRateAdjmtParameters."Posting Description" := 'AUTO FCY ADJ';
-        ExchRateAdjmtParameters."Document No." := AdjustmentDocumentNo;
-        ExchRateAdjmtParameters."Adjust Vendors" := true;
-        ExchRateAdjmtParameters."Adjust Customers" := false;
-        ExchRateAdjmtParameters."Adjust Bank Accounts" := false;
-        ExchRateAdjmtParameters."Adjust Employees" := false;
-        ExchRateAdjmtParameters."Adjust G/L Accounts" := false;
-        ExchRateAdjmtParameters."Hide UI" := true;
-        ExchRateAdjmtParameters."Preview Posting" := false;
-        ExchRateAdjmtParameters."Journal Template Name" := JournalTemplateName;
-        ExchRateAdjmtParameters."Journal Batch Name" := JournalBatchName;
+        TempExchRateAdjmtParameters.Init();
+        TempExchRateAdjmtParameters."Primary Key" := 'AUTO';
+        TempExchRateAdjmtParameters."Start Date" := StartDate;
+        TempExchRateAdjmtParameters."End Date" := PostingDate;
+        TempExchRateAdjmtParameters."Posting Date" := PostingDate;
+        TempExchRateAdjmtParameters."Posting Description" := 'AUTO FCY ADJ';
+        TempExchRateAdjmtParameters."Document No." := AdjustmentDocumentNo;
+        TempExchRateAdjmtParameters."Adjust Vendors" := true;
+        TempExchRateAdjmtParameters."Adjust Customers" := false;
+        TempExchRateAdjmtParameters."Adjust Bank Accounts" := false;
+        TempExchRateAdjmtParameters."Adjust Employees" := false;
+        TempExchRateAdjmtParameters."Adjust G/L Accounts" := false;
+        TempExchRateAdjmtParameters."Hide UI" := true;
+        TempExchRateAdjmtParameters."Preview Posting" := false;
+        TempExchRateAdjmtParameters."Journal Template Name" := JournalTemplateName;
+        TempExchRateAdjmtParameters."Journal Batch Name" := JournalBatchName;
 
         Currency.SetRange(Code, CurrencyCode);
-        ExchRateAdjmtParameters."Currency Filter" := Currency.GetView();
+        TempExchRateAdjmtParameters."Currency Filter" := CopyStr(Currency.GetView(), 1, MaxStrLen(TempExchRateAdjmtParameters."Currency Filter"));
 
         Vendor.SetRange("No.", VendorNo);
-        ExchRateAdjmtParameters."Vendor Filter" := Vendor.GetView();
+        TempExchRateAdjmtParameters."Vendor Filter" := CopyStr(Vendor.GetView(), 1, MaxStrLen(TempExchRateAdjmtParameters."Vendor Filter"));
 
         ClearLastError();
-        if not Codeunit.Run(Codeunit::"Exch. Rate Adjmt. Process", ExchRateAdjmtParameters) then begin
+        if not Codeunit.Run(Codeunit::"Exch. Rate Adjmt. Process", TempExchRateAdjmtParameters) then begin
             LastErr := GetLastErrorText();
             if LastErr = '' then
-                LastErr := 'Unknown error while running exchange rate adjustment.';
+                LastErr := UnknownExchRateAdjmtErr;
             Error(ExchRateAdjmtFailedErr, AdjustmentDocumentNo, LastErr);
         end;
     end;
@@ -2529,16 +2532,12 @@ codeunit 134263 "Test Bank Payment Application"
         PrimaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom, PostingDateTo, PrimaryPayablesAccountNo);
         Assert.AreEqual(
           0, Round(PrimaryNetAmount, 0.01),
-          StrSubstNo(
-            'Invoice posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.',
-            PrimaryPayablesAccountNo, VendorNo, PrimaryNetAmount));
+          StrSubstNo(PrimaryPayablesNotNetZeroErr, PrimaryPayablesAccountNo, VendorNo, PrimaryNetAmount));
 
         SecondaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom, PostingDateTo, SecondaryPayablesAccountNo);
         Assert.AreEqual(
           0, Round(SecondaryNetAmount, 0.01),
-          StrSubstNo(
-            'Payment posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.',
-            SecondaryPayablesAccountNo, VendorNo, SecondaryNetAmount));
+          StrSubstNo(SecondaryPayablesNotNetZeroErr, SecondaryPayablesAccountNo, VendorNo, SecondaryNetAmount));
     end;
 
     local procedure VerifyVendorFcyApplicationExpectedDistributionForTest(
@@ -2547,9 +2546,9 @@ codeunit 134263 "Test Bank Payment Application"
         PrePaymentAdjustmentDocumentNo: Code[20];
         PrimaryPayablesAccountNo: Code[20])
     var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
         InvoicePrimaryAmount: Decimal;
         PrePaymentAdjustmentPrimaryAmount: Decimal;
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
         VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
         VendorLedgerEntry.SetRange(Open, true);
