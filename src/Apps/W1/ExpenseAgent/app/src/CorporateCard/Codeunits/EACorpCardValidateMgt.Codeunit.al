@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.GeneralLedger.Setup;
+
 codeunit 7225 "EA Corp Card Validate Mgt"
 {
     Access = Internal;
@@ -23,6 +25,8 @@ codeunit 7225 "EA Corp Card Validate Mgt"
 
     internal procedure ValidateTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ValidationReason: Text[250]): Boolean
     begin
+        NormalizeCurrencyCode(CorpCardTrans."Currency Code");
+
         if CorpCardTrans."Provider Code" = '' then begin
             ValidationReason := MissingProviderCodeErr;
             exit(false);
@@ -43,5 +47,17 @@ codeunit 7225 "EA Corp Card Validate Mgt"
         ValidationReason := '';
 
         exit(true);
+    end;
+
+    internal procedure NormalizeCurrencyCode(var CurrencyCode: Code[10])
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        if CurrencyCode = '' then
+            exit;
+
+        GeneralLedgerSetup.Get();
+        if CurrencyCode = GeneralLedgerSetup."LCY Code" then
+            CurrencyCode := '';
     end;
 }

@@ -352,6 +352,7 @@ codeunit 7224 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
                     if not FindFieldMapping(DataExchFieldPerLine, DataExchFieldMapping) then
                         continue;
 
+                    NormalizeMappedCurrencyCode(DataExchFieldMapping, DataExchFieldPerLine, CorpCardTrans, CorpCardValidateMgt);
                     ProcessDataExch.SetField(CorpCardRecRef, DataExchFieldMapping, DataExchFieldPerLine, TempFieldIdsToNegate);
                 until DataExchFieldPerLine.Next() = 0;
 
@@ -391,6 +392,18 @@ codeunit 7224 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         until DataExchField.Next() = 0;
 
         CorpCardBatch.Modify();
+    end;
+
+    local procedure NormalizeMappedCurrencyCode(DataExchFieldMapping: Record "Data Exch. Field Mapping"; var DataExchField: Record "Data Exch. Field"; CorpCardTrans: Record "EA Corp Card Trans"; CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt")
+    var
+        CurrencyCode: Code[10];
+    begin
+        if DataExchFieldMapping."Field ID" <> CorpCardTrans.FieldNo("Currency Code") then
+            exit;
+
+        CurrencyCode := CopyStr(DataExchField.GetValue(), 1, MaxStrLen(CurrencyCode));
+        CorpCardValidateMgt.NormalizeCurrencyCode(CurrencyCode);
+        DataExchField.SetValueWithoutModifying(CurrencyCode);
     end;
 
     local procedure ImportLevel3DetailsFromDataExch(CorpCardBatch: Record "EA Corp Card Batch"; CorpCardProvider: Record "EA Corp Card Provider"; DataExch: Record "Data Exch.")
