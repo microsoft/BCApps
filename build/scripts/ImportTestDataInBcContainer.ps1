@@ -130,6 +130,52 @@ function New-AdditionalTenants {
     Wait-ForTenantReady -ContainerName $ContainerName
 }
 
+function Measure-TenantRefresh {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$TenantId
+    )
+
+    if (-not (Test-IsMultitenant -ContainerName $ContainerName)) {
+        return
+    }
+
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($tenantId)
+        $sourceDatabaseName = "default"
+        $tenant = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $tenantId
+        $databaseName = $tenant.DatabaseName
+        $totalStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+        Dismount-NAVTenant -ServerInstance $ServerInstance -Tenant $tenantId -Force | Out-Null
+        $stopwatch.Stop()
+        Write-Host "TENANT_REFRESH_TIMING tenant=$tenantId phase=dismount seconds=$([math]::Round($stopwatch.Elapsed.TotalSeconds, 3))"
+
+        $stopwatch.Restart()
+        Remove-NAVDatabase -DatabaseName $databaseName -Force | Out-Null
+        $stopwatch.Stop()
+        Write-Host "TENANT_REFRESH_TIMING tenant=$tenantId phase=remove_database seconds=$([math]::Round($stopwatch.Elapsed.TotalSeconds, 3))"
+
+        $stopwatch.Restart()
+        Copy-NAVDatabase -SourceDatabaseName $sourceDatabaseName -DestinationDatabaseName $databaseName -DatabaseServer "." | Out-Null
+        $stopwatch.Stop()
+        Write-Host "TENANT_REFRESH_TIMING tenant=$tenantId phase=copy_database seconds=$([math]::Round($stopwatch.Elapsed.TotalSeconds, 3))"
+
+        $stopwatch.Restart()
+        Mount-NAVTenant -ServerInstance $ServerInstance -Id $tenantId -DatabaseServer "." -DatabaseName $databaseName -OverwriteTenantIdInDatabase -Force
+        while ((Get-NAVTenant -ServerInstance $ServerInstance -Tenant $tenantId).State -eq "Mounting") {
+            Start-Sleep -Milliseconds 250
+        }
+        $stopwatch.Stop()
+        Write-Host "TENANT_REFRESH_TIMING tenant=$tenantId phase=mount_and_ready seconds=$([math]::Round($stopwatch.Elapsed.TotalSeconds, 3))"
+
+        $totalStopwatch.Stop()
+        Write-Host "TENANT_REFRESH_TIMING tenant=$tenantId phase=total seconds=$([math]::Round($totalStopwatch.Elapsed.TotalSeconds, 3))"
+    } -argumentList $TenantId
+}
+
 <#
 .SYNOPSIS
     Tests whether a BC container is configured for multitenancy.
@@ -978,6 +1024,11 @@ if ($null -eq $numberOfTenants -or $numberOfTenants -lt 1) {
     throw "AL-Go setting 'numberOfTenantsForTesting' is missing or invalid. Set it to a positive integer in .github/AL-Go-Settings.json."
 }
 New-AdditionalTenants -ContainerName $parameters.ContainerName -NumberOfTenants $numberOfTenants
+
+# Temporary W1 CI benchmark. Remove after collecting tenant refresh timings.
+if ($numberOfTenants -gt 1) {
+    Measure-TenantRefresh -ContainerName $parameters.ContainerName -TenantId "tenant$numberOfTenants"
+}
 
 # Force-sync apps on every tenant so lazy schema objects (e.g. posting-preview number sequences)
 # are created before tests run. Without this, SCM Item Journal Post Preview tests fail with
