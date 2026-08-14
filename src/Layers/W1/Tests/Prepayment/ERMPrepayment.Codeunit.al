@@ -2621,6 +2621,30 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure CannotReducePurchaseOrderQuantityToInvoicedQuantityAfterPrepayment()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 646136] Reduce Purchase Order quantity after prepayment and partial invoicing
+        // [GIVEN] Posted 50% Prepayment Invoice for Purchase Order
+        InitPurchasePrepaymentScenario(PurchaseHeader, PurchaseLine, false, 50, '');
+        LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+
+        // [GIVEN] Order is partially received and invoiced
+        PostPartialPurchaseInvoice(PurchaseHeader, PurchaseLine);
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseLine.Find();
+
+        // [WHEN] Reduce Quantity to the invoiced quantity
+        asserterror PurchaseLine.Validate(Quantity, PurchaseLine."Quantity Invoiced");
+
+        // [THEN] Error occurs because the posted prepayment exceeds the new line amount
+        Assert.ExpectedError(PurchaseLine.FieldCaption("Prepmt. Line Amount"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure DeletePurchaseOrderAfterPrepaymentCrMemo()
     var
         PurchaseHeader: Record "Purchase Header";
