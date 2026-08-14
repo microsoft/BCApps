@@ -188,8 +188,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         HadWHTEntryNo: Boolean;
         NextNo: Integer;
         UseVendExchRate: Boolean;
-        VendGSTAmountACYEnabled: Boolean;
-        VendGSTAmountACYRead: Boolean;
         Text28000: Label 'No Matching Document';
         CheckRem: Boolean;
         IsReversal: Boolean;
@@ -8164,7 +8162,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     InitGLEntry(
                         GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true, TotalAmountAddCurr)
                 else
-                    if VendorACYExchangeRateApplies() then
+                    if VendorACYExchangeRateApplies(GenJnlLine) then
                         // [641827] GLCalcAddCurrency keeps the vendor ACY here, so derive Source Currency Amount from LCY.
                         InitGLEntry(
                             GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true,
@@ -8175,25 +8173,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure VendorACYExchangeRateApplies(): Boolean
+    local procedure VendorACYExchangeRateApplies(GenJnlLine: Record "Gen. Journal Line"): Boolean
+    var
+        PurchSetup: Record "Purchases & Payables Setup";
     begin
         // Mirrors GLCalcAddCurrency's vendor-ACY branch so the balancing entry's Source Currency Amount matches its ACY.
         if (AddCurrencyCode = '') or (not UseVendExchRate) then
             exit(false);
-        exit(GetVendGSTAmountACYEnabled());
-    end;
-
-    local procedure GetVendGSTAmountACYEnabled(): Boolean
-    var
-        PurchSetup: Record "Purchases & Payables Setup";
-    begin
-        if not VendGSTAmountACYRead then begin
-            PurchSetup.SetLoadFields("Enable Vendor GST Amount (ACY)");
-            PurchSetup.Get();
-            VendGSTAmountACYEnabled := PurchSetup."Enable Vendor GST Amount (ACY)";
-            VendGSTAmountACYRead := true;
-        end;
-        exit(VendGSTAmountACYEnabled);
+        if GenJnlLine."Additional-Currency Posting" <> GenJnlLine."Additional-Currency Posting"::None then
+            exit(false);
+        // Read fresh, like GLCalcAddCurrency, so a mid-batch setup change is not masked by a cached value.
+        PurchSetup.SetLoadFields("Enable Vendor GST Amount (ACY)");
+        PurchSetup.Get();
+        exit(PurchSetup."Enable Vendor GST Amount (ACY)");
     end;
 
     local procedure PostDtldAdjustment(GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; AdjAmount: array[4] of Decimal; TotalAmountLCY: Decimal; TotalAmountAddCurr: Decimal; GLAcc: Code[20]; ArrayIndex: Integer): Boolean
