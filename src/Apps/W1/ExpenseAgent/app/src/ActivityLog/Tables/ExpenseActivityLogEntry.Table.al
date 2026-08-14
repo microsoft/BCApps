@@ -160,11 +160,6 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Receipt Count';
             DataClassification = SystemMetadata;
         }
-        field(53; "Policy Status"; Enum "Expense Activity Policy Status")
-        {
-            Caption = 'Policy Status';
-            DataClassification = CustomerContent;
-        }
         field(100; "History Actor Table ID Filter"; Integer)
         {
             Caption = 'History Actor Table ID Filter';
@@ -209,9 +204,6 @@ table 7100 "Expense Activity Log Entry"
         {
         }
         key(SourceOccurred; "Source Table ID", "Occurred At", "Entry No.")
-        {
-        }
-        key(ActivityEvent; "Event Type", "Occurred At", "Entry No.")
         {
         }
         key(Occurred; "Occurred At", "Entry No.")

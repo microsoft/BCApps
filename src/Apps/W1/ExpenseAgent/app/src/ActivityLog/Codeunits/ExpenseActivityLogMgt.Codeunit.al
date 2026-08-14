@@ -104,7 +104,7 @@ codeunit 6926 "Expense Activity Log Mgt."
             ExpenseActivityLogEntry.Get(EntryNumber);
             ExpenseActivityLogEntry."Source Table ID" := Database::"Posted Expense Report Header";
             ExpenseActivityLogEntry."Source Record System ID" := PostedExpenseReportHeader.SystemId;
-            ExpenseActivityLogEntry.Modify();
+            ExpenseActivityLogEntry.Modify(false);
         end;
     end;
 

@@ -187,8 +187,9 @@ codeunit 148302 "Expense Report Posting Test"
         Assert.RecordCount(ExpenseActivityLogEntry, 2);
         ExpenseActivityLogEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
         ExpenseActivityLogEntry.SetRange("Subject System ID", OriginalSubjectSystemID);
-        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Posted);
-        ExpenseActivityLogEntry.FindFirst();
+        ExpenseActivityLogEntry.SetCurrentKey("Subject Table ID", "Subject System ID", "Occurred At", "Entry No.");
+        ExpenseActivityLogEntry.FindLast();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Posted, ExpenseActivityLogEntry."Event Type", 'The latest activity entry must be Posted.');
         Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'Posting must identify the current BC User actor.');
         Assert.IsFalse(IsNullGuid(ExpenseActivityLogEntry."Actor Record System ID"), 'Posting must persist the BC User SystemId.');
         Assert.AreEqual(Amount, ExpenseActivityLogEntry."Amount (LCY)", 'Posted activity must preserve the report amount snapshot.');

@@ -26,22 +26,18 @@ page 7123 "Expense Activity Log FactBox"
             {
                 field("Event Type"; Rec."Event Type")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies what happened to the expense report.';
                 }
                 field("Occurred At"; Rec."Occurred At")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies when the activity occurred.';
                 }
                 field("Actor Display Name"; Rec."Actor Display Name")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the person who performed the activity, when there was one.';
                 }
                 field(Comment; Rec.Comment)
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the message recorded with the activity.';
                 }
             }
