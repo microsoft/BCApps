@@ -3711,7 +3711,9 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         LibraryVariableStorage.Enqueue(Question);
         case true of
-            Question.Contains('Do you want to create a production order from'):
+            Question.Contains('Do you really want to change Inventory Account although value entries exist?'),
+            Question.Contains('Do you want to create a production order from'),
+            Question.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?'):
                 Reply := true;
             else
                 Reply := false;
