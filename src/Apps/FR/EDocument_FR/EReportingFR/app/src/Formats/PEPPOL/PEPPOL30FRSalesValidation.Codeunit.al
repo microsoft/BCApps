@@ -57,6 +57,7 @@ codeunit 10992 "PEPPOL30 FR Sales Validation" implements "PEPPOL30 Validation"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         DataTypeMgt: Codeunit "Data Type Management";
         RecordRef: RecordRef;
+        UnsupportedDocumentErrorInfo: ErrorInfo;
     begin
         if not DataTypeMgt.GetRecordRef(RecordVariant, RecordRef) then
             exit;
@@ -72,8 +73,11 @@ codeunit 10992 "PEPPOL30 FR Sales Validation" implements "PEPPOL30 Validation"
                     SalesCrMemoHeader := RecordVariant;
                     CheckSalesCreditMemo(SalesCrMemoHeader);
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                UnsupportedDocumentErrorInfo.Message(UnsupportedDocumentErr);
+                UnsupportedDocumentErrorInfo.ErrorType := ErrorType::Internal;
+                Error(UnsupportedDocumentErrorInfo);
+            end;
         end;
     end;
 

@@ -69,7 +69,12 @@ codeunit 10978 "CII XML Builder"
         BusinessProcessElement: XmlElement;
         GuidelineElement: XmlElement;
         IdElement: XmlElement;
+        IsHandled: Boolean;
     begin
+        OnBeforeAddExchangedDocumentContext(RootElement, SourceDocumentLines, IsHandled);
+        if IsHandled then
+            exit;
+
         ContextElement := XmlElement.Create('ExchangedDocumentContext', RsmNamespaceTok);
 
         BusinessProcessElement := XmlElement.Create('BusinessProcessSpecifiedDocumentContextParameter', RamNamespaceTok);
@@ -83,6 +88,7 @@ codeunit 10978 "CII XML Builder"
         ContextElement.Add(GuidelineElement);
 
         RootElement.Add(ContextElement);
+        OnAfterAddExchangedDocumentContext(RootElement, SourceDocumentLines);
     end;
 
     local procedure AddExchangedDocument(var RootElement: XmlElement; var EDocument: Record "E-Document"; TypeCode: Text)
@@ -475,6 +481,8 @@ codeunit 10978 "CII XML Builder"
                 begin
                     SourceDocumentHeader.SetTable(SalesCrMemoHeader);
                     ReferencedDocumentNo := SalesCrMemoHeader."Applies-to Doc. No.";
+                    if ReferencedDocumentNo = '' then
+                        exit;
                     SalesInvoiceHeader.SetLoadFields("Document Date");
                     if SalesInvoiceHeader.Get(ReferencedDocumentNo) then
                         ReferencedDocumentDate := SalesInvoiceHeader."Document Date";
@@ -483,13 +491,15 @@ codeunit 10978 "CII XML Builder"
                 begin
                     SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
                     ReferencedDocumentNo := ServiceCrMemoHeader."Applies-to Doc. No.";
+                    if ReferencedDocumentNo = '' then
+                        exit;
                     ServiceInvoiceHeader.SetLoadFields("Document Date");
                     if ServiceInvoiceHeader.Get(ReferencedDocumentNo) then
                         ReferencedDocumentDate := ServiceInvoiceHeader."Document Date";
                 end;
         end;
 
-        if (ReferencedDocumentNo = '') or (ReferencedDocumentDate = 0D) then
+        if ReferencedDocumentDate = 0D then
             exit;
 
         ReferenceElement := XmlElement.Create('InvoiceReferencedDocument', RamNamespaceTok);
@@ -568,25 +578,38 @@ codeunit 10978 "CII XML Builder"
         BaseAmount: Decimal;
         NetBaseAmount: Decimal;
         AmountIncludingVAT: Decimal;
+        HasVATPercentField: Boolean;
+        HasAmountField: Boolean;
+        HasAmountIncludingVATField: Boolean;
+        HasTaxCategoryField: Boolean;
+        HasVATBusPostingGroupField: Boolean;
+        HasVATProdPostingGroupField: Boolean;
     begin
+        HasVATPercentField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT %', VATPercentFieldRef);
+        HasAmountField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Amount', AmountFieldRef);
+        HasAmountIncludingVATField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Amount Including VAT', AmountIncludingVATFieldRef);
+        HasTaxCategoryField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Tax Category', TaxCategoryFieldRef);
+        HasVATBusPostingGroupField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Bus. Posting Group', VATBusPostingGroupFieldRef);
+        HasVATProdPostingGroupField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Prod. Posting Group', VATProdPostingGroupFieldRef);
+
         if SourceDocumentLines.FindSet() then
             repeat
-                if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT %', VATPercentFieldRef) then begin
+                if HasVATPercentField then begin
                     BaseAmount := GetLineAmountBeforeInvoiceDiscount(SourceDocumentLines);
                     if not IsNonFinancialTextLine(SourceDocumentLines, BaseAmount) then begin
                         VATPercent := VATPercentFieldRef.Value();
 
-                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Tax Category', TaxCategoryFieldRef) then
+                        if HasTaxCategoryField then
                             TaxCategory := TaxCategoryFieldRef.Value()
                         else
                             Clear(TaxCategory);
 
-                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Bus. Posting Group', VATBusPostingGroupFieldRef) then
+                        if HasVATBusPostingGroupField then
                             VATBusPostingGroup := VATBusPostingGroupFieldRef.Value()
                         else
                             Clear(VATBusPostingGroup);
 
-                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Prod. Posting Group', VATProdPostingGroupFieldRef) then
+                        if HasVATProdPostingGroupField then
                             VATProdPostingGroup := VATProdPostingGroupFieldRef.Value()
                         else
                             Clear(VATProdPostingGroup);
@@ -595,10 +618,10 @@ codeunit 10978 "CII XML Builder"
                         VATAggregationKey := GetVATAggregationKey(VATPercent, VATCategoryCode);
 
                         NetBaseAmount := BaseAmount;
-                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Amount', AmountFieldRef) then
+                        if HasAmountField then
                             NetBaseAmount := AmountFieldRef.Value();
 
-                        if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Amount Including VAT', AmountIncludingVATFieldRef) then begin
+                        if HasAmountIncludingVATField then begin
                             AmountIncludingVAT := AmountIncludingVATFieldRef.Value();
                             VATAmount := AmountIncludingVAT - NetBaseAmount;
                         end
@@ -620,6 +643,16 @@ codeunit 10978 "CII XML Builder"
                     end;
                 end;
             until SourceDocumentLines.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeAddExchangedDocumentContext(var RootElement: XmlElement; var SourceDocumentLines: RecordRef; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAddExchangedDocumentContext(var RootElement: XmlElement; var SourceDocumentLines: RecordRef)
+    begin
     end;
 
     local procedure AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount: Decimal; var LineBaseAmounts: Dictionary of [Text, Decimal]; var AllocatedDiscountByKey: Dictionary of [Text, Decimal])

@@ -62,6 +62,7 @@ codeunit 10993 "PEPPOL30 FR Service Validation" implements "PEPPOL30 Validation"
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         DataTypeMgt: Codeunit "Data Type Management";
         RecordRef: RecordRef;
+        UnsupportedDocumentErrorInfo: ErrorInfo;
     begin
         if not DataTypeMgt.GetRecordRef(RecordVariant, RecordRef) then
             exit;
@@ -77,8 +78,11 @@ codeunit 10993 "PEPPOL30 FR Service Validation" implements "PEPPOL30 Validation"
                     ServiceCrMemoHeader := RecordVariant;
                     CheckServiceCreditMemo(ServiceCrMemoHeader);
                 end;
-            else
-                Error(UnsupportedDocumentErr);
+            else begin
+                UnsupportedDocumentErrorInfo.Message(UnsupportedDocumentErr);
+                UnsupportedDocumentErrorInfo.ErrorType := ErrorType::Internal;
+                Error(UnsupportedDocumentErrorInfo);
+            end;
         end;
     end;
 

@@ -125,7 +125,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ElecAddress: Text[250];
         ElecAddressScheme: Enum "Electronic Address Scheme";
         HasElecAddress: Boolean;
+        IsHandled: Boolean;
     begin
+        OnBeforeInjectFrenchElements(TempBlob, SourceDocumentHeader, SourceDocumentLines, EDocumentService, IsHandled);
+        if IsHandled then
+            exit;
+
         CompanyInformation.Get();
 
         TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
@@ -147,6 +152,18 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
         XmlDoc.WriteTo(OutStr);
+
+        OnAfterInjectFrenchElements(TempBlob, SourceDocumentHeader, SourceDocumentLines, EDocumentService);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInjectFrenchElements(var TempBlob: Codeunit "Temp Blob"; SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; EDocumentService: Record "E-Document Service"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInjectFrenchElements(var TempBlob: Codeunit "Temp Blob"; SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; EDocumentService: Record "E-Document Service")
+    begin
     end;
 
     local procedure SetFrenchBillingMode(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; var SourceDocumentLines: RecordRef)

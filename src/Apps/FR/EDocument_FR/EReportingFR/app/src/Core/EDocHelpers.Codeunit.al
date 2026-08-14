@@ -49,7 +49,9 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Registration No." = '' then
-            Error(SIRENRequiredErr, CompanyInformation.FieldCaption("Registration No."), CompanyInformation.TableCaption());
+            RaiseCompanyInformationError(
+                StrSubstNo(SIRENRequiredErr, CompanyInformation.FieldCaption("Registration No."), CompanyInformation.TableCaption()),
+                CompanyInformation);
     end;
 
     procedure CheckSIRETNotEmpty()
@@ -58,7 +60,9 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."SIRET No." = '' then
-            Error(SIRETRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.TableCaption());
+            RaiseCompanyInformationError(
+                StrSubstNo(SIRETRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.TableCaption()),
+                CompanyInformation);
     end;
 
     procedure CheckSellerElectronicAddress(EDocumentServiceCode: Code[20])
@@ -77,7 +81,9 @@ codeunit 10991 "EDoc. Helpers"
         if (CompanyInformation.GetVATRegistrationNumber() <> '') and IsFrenchCompany(CompanyInformation) then
             exit;
 
-        Error(SellerElectronicAddressRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.FieldCaption("Registration No."), CompanyInformation.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), CompanyInformation.TableCaption());
+        RaiseCompanyInformationError(
+            StrSubstNo(SellerElectronicAddressRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.FieldCaption("Registration No."), CompanyInformation.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), CompanyInformation.TableCaption()),
+            CompanyInformation);
     end;
 
     internal procedure IsFrenchCompany(CompanyInformation: Record "Company Information"): Boolean
@@ -99,7 +105,9 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Country/Region Code" = '' then
-            Error(SellerCountryCodeRequiredErr, CompanyInformation.FieldCaption("Country/Region Code"), CompanyInformation.TableCaption());
+            RaiseCompanyInformationError(
+                StrSubstNo(SellerCountryCodeRequiredErr, CompanyInformation.FieldCaption("Country/Region Code"), CompanyInformation.TableCaption()),
+                CompanyInformation);
     end;
 
     procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef)
@@ -108,6 +116,19 @@ codeunit 10991 "EDoc. Helpers"
     end;
 
     procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20])
+    var
+        IsHandled: Boolean;
+    begin
+        OnBeforeCheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentServiceCode, IsHandled);
+        if IsHandled then
+            exit;
+
+        CheckBuyerElectronicAddressCore(SourceDocumentHeader, EDocumentServiceCode);
+
+        OnAfterCheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentServiceCode);
+    end;
+
+    local procedure CheckBuyerElectronicAddressCore(var SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20])
     var
         Customer: Record Customer;
         ServiceParticipant: Record "Service Participant";
@@ -137,20 +158,31 @@ codeunit 10991 "EDoc. Helpers"
             exit;
         end;
 
-        Error(BuyerElectronicAddressRequiredErr, Customer.FieldCaption("FR Electronic Address"), Customer.FieldCaption("Registration Number"), Customer.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), Customer.TableCaption(), Customer."No.");
+        RaiseCustomerError(
+            StrSubstNo(BuyerElectronicAddressRequiredErr, Customer.FieldCaption("FR Electronic Address"), Customer.FieldCaption("Registration Number"), Customer.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), Customer.TableCaption(), Customer."No."),
+            Customer);
     end;
 
-    procedure GetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text[250]): Boolean
+    internal procedure GetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text[250]) Result: Boolean
+    var
+        IsHandled: Boolean;
     begin
+        OnBeforeGetBuyerElectronicAddress(Customer, BuyerElectronicAddress, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         BuyerElectronicAddress := Customer."FR Electronic Address";
         if BuyerElectronicAddress <> '' then
-            exit(true);
+            Result := true
+        else begin
+            BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 9);
+            if BuyerElectronicAddress <> '' then
+                Result := true
+            else
+                Result := GetSIRENFromFrenchVATRegistrationNo(Customer."VAT Registration No.", BuyerElectronicAddress);
+        end;
 
-        BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 9);
-        if BuyerElectronicAddress <> '' then
-            exit(true);
-
-        exit(GetSIRENFromFrenchVATRegistrationNo(Customer."VAT Registration No.", BuyerElectronicAddress));
+        OnAfterGetBuyerElectronicAddress(Customer, BuyerElectronicAddress, Result);
     end;
 
     local procedure GetSIRENFromFrenchVATRegistrationNo(VATRegistrationNo: Text; var SIREN: Text[250]): Boolean
@@ -169,11 +201,14 @@ codeunit 10991 "EDoc. Helpers"
     end;
 
     local procedure CheckBuyerElectronicAddressValue(ElectronicAddress: Text; FieldCaption: Text; CustomerNo: Code[20])
+    var
+        Customer: Record Customer;
     begin
         if IsValidBuyerElectronicAddress(ElectronicAddress) then
             exit;
 
-        Error(BuyerElectronicAddressInvalidErr, FieldCaption, CustomerNo);
+        Customer.Get(CustomerNo);
+        RaiseCustomerError(StrSubstNo(BuyerElectronicAddressInvalidErr, FieldCaption, CustomerNo), Customer);
     end;
 
     local procedure IsValidBuyerElectronicAddress(ElectronicAddress: Text): Boolean
@@ -191,26 +226,14 @@ codeunit 10991 "EDoc. Helpers"
             (DelChr(CopyStr(ElectronicAddress, 11), '<>', ' ') <> ''));
     end;
 
-    procedure IsFrenchCustomer(Customer: Record Customer): Boolean
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        if Customer."Country/Region Code" = '' then
-            exit(true);
-
-        CompanyInformation.SetLoadFields("Country/Region Code");
-        CompanyInformation.Get();
-        exit(Customer."Country/Region Code" = CompanyInformation."Country/Region Code");
-    end;
-
-    procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]): Boolean
+    internal procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]): Boolean
     var
         ServiceParticipant: Record "Service Participant";
     begin
         exit(HasServiceParticipantAddress(EDocumentServiceCode, ParticipantType, ParticipantNo, ServiceParticipant));
     end;
 
-    procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ServiceParticipant: Record "Service Participant"): Boolean
+    internal procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ServiceParticipant: Record "Service Participant"): Boolean
     var
         ParticipantAddressErrorInfo: ErrorInfo;
         HasIdentifier: Boolean;
@@ -232,6 +255,48 @@ codeunit 10991 "EDoc. Helpers"
         end;
 
         exit(HasIdentifier);
+    end;
+
+    local procedure RaiseCompanyInformationError(ErrorMessage: Text; CompanyInformation: Record "Company Information")
+    var
+        SetupErrorInfo: ErrorInfo;
+    begin
+        SetupErrorInfo.Message(ErrorMessage);
+        SetupErrorInfo.RecordId(CompanyInformation.RecordId());
+        SetupErrorInfo.PageNo(Page::"Company Information");
+        SetupErrorInfo.AddNavigationAction(ShowCompanyInformationLbl);
+        Error(SetupErrorInfo);
+    end;
+
+    local procedure RaiseCustomerError(ErrorMessage: Text; Customer: Record Customer)
+    var
+        SetupErrorInfo: ErrorInfo;
+    begin
+        SetupErrorInfo.Message(ErrorMessage);
+        SetupErrorInfo.RecordId(Customer.RecordId());
+        SetupErrorInfo.PageNo(Page::"Customer Card");
+        SetupErrorInfo.AddNavigationAction(ShowCustomerLbl);
+        Error(SetupErrorInfo);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text[250]; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text[250]; var Result: Boolean)
+    begin
     end;
 
     internal procedure GetSIRENRequiredError(): Text
@@ -291,5 +356,7 @@ codeunit 10991 "EDoc. Helpers"
         BuyerElectronicAddressInvalidErr: Label '%1 for customer %2 must contain a nine-digit SIREN, optionally followed by an underscore and a suffix.', Comment = '%1 = Electronic address field caption, %2 = Customer No.';
         SellerCountryCodeRequiredErr: Label '%1 must be specified in %2 for French e-invoicing.', Comment = '%1 = Country/Region Code field caption, %2 = Company Information table caption';
         ServiceParticipantAddressIncompleteErr: Label '%1 and %2 must both be specified for French electronic invoicing.', Comment = '%1 = Participant Identifier field caption, %2 = French Identifier Scheme field caption';
+        ShowCompanyInformationLbl: Label 'Show Company Information';
+        ShowCustomerLbl: Label 'Show Customer';
         ShowServiceParticipantLbl: Label 'Show Service Participant';
 }
