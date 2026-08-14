@@ -4074,6 +4074,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         IsHandled: Boolean;
         Result: Boolean;
         SufficientEntriesFound: Boolean;
+        NextStep: Integer;
     begin
         IsHandled := false;
         OnBeforePrepareTempCustledgEntry(GenJnlLine, NewCVLedgEntryBuf, Cust, ApplyingDate, Result, IsHandled, TempOldCustLedgEntry);
@@ -4148,7 +4149,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if TempOldCustLedgEntry.Find('-') then begin
                 RemainingAmount := NewCVLedgEntryBuf."Remaining Amount";
                 TempOldCustLedgEntry.SetRange(Positive);
-                TempOldCustLedgEntry.Find('-');
+                // Weigh the entries of the same sign as the new document before the opposite-sign ones.
+                // The sign decision below is a property of the whole open-entry set, so the early exit
+                // must not stop before the opposite-sign entries have settled that sign.
+                if NewCVLedgEntryBuf."Remaining Amount" > 0 then begin
+                    TempOldCustLedgEntry.Find('+');
+                    NextStep := -1;
+                end else begin
+                    TempOldCustLedgEntry.Find('-');
+                    NextStep := 1;
+                end;
                 repeat
                     TempOldCustLedgEntry.CalcFields("Remaining Amount");
                     TempOldCustLedgEntry.RecalculateAmounts(
@@ -4157,10 +4167,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         TempOldCustLedgEntry."Remaining Amount" -= TempOldCustLedgEntry.GetRemainingPmtDiscPossible(NewCVLedgEntryBuf."Posting Date");
                     RemainingAmount += TempOldCustLedgEntry."Remaining Amount";
                     if (Cust."Application Method" = Cust."Application Method"::"Apply to Oldest") and
-                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" <= 0)
+                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" < 0)
                     then
                         SufficientEntriesFound := true;
-                until (TempOldCustLedgEntry.Next() = 0) or SufficientEntriesFound;
+                until (TempOldCustLedgEntry.Next(NextStep) = 0) or SufficientEntriesFound;
                 TempOldCustLedgEntry.SetRange(Positive, RemainingAmount < 0);
             end else
                 TempOldCustLedgEntry.SetRange(Positive);
@@ -4942,6 +4952,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         IsHandled: Boolean;
         Result: Boolean;
         SufficientEntriesFound: Boolean;
+        NextStep: Integer;
     begin
         IsHandled := false;
         OnBeforePrepareTempVendLedgEntry(GenJnlLine, NewCVLedgEntryBuf, TempOldVendLedgEntry, Vend, ApplyingDate, Result, IsHandled);
@@ -5011,7 +5022,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if TempOldVendLedgEntry.Find('-') then begin
                 RemainingAmount := NewCVLedgEntryBuf."Remaining Amount";
                 TempOldVendLedgEntry.SetRange(Positive);
-                TempOldVendLedgEntry.Find('-');
+                // Weigh the entries of the same sign as the new document before the opposite-sign ones.
+                // The sign decision below is a property of the whole open-entry set, so the early exit
+                // must not stop before the opposite-sign entries have settled that sign.
+                if NewCVLedgEntryBuf."Remaining Amount" > 0 then begin
+                    TempOldVendLedgEntry.Find('+');
+                    NextStep := -1;
+                end else begin
+                    TempOldVendLedgEntry.Find('-');
+                    NextStep := 1;
+                end;
                 repeat
                     TempOldVendLedgEntry.CalcFields("Remaining Amount");
                     TempOldVendLedgEntry.RecalculateAmounts(
@@ -5020,10 +5040,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         TempOldVendLedgEntry."Remaining Amount" -= TempOldVendLedgEntry.GetRemainingPmtDiscPossible(NewCVLedgEntryBuf."Posting Date");
                     RemainingAmount += TempOldVendLedgEntry."Remaining Amount";
                     if (Vend."Application Method" = Vend."Application Method"::"Apply to Oldest") and
-                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" <= 0)
+                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" < 0)
                     then
                         SufficientEntriesFound := true;
-                until (TempOldVendLedgEntry.Next() = 0) or SufficientEntriesFound;
+                until (TempOldVendLedgEntry.Next(NextStep) = 0) or SufficientEntriesFound;
                 TempOldVendLedgEntry.SetRange(Positive, RemainingAmount < 0);
             end else
                 TempOldVendLedgEntry.SetRange(Positive);
@@ -5041,6 +5061,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         IsHandled: Boolean;
         Result: Boolean;
         SufficientEntriesFound: Boolean;
+        NextStep: Integer;
     begin
         IsHandled := false;
         OnBeforePrepareTempEmplLedgEntry(GenJnlLine, NewCVLedgEntryBuf, TempOldEmplLedgEntry, Employee, ApplyingDate, Result, IsHandled);
@@ -5096,7 +5117,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if TempOldEmplLedgEntry.Find('-') then begin
                 RemainingAmount := NewCVLedgEntryBuf."Remaining Amount";
                 TempOldEmplLedgEntry.SetRange(Positive);
-                TempOldEmplLedgEntry.Find('-');
+                // Weigh the entries of the same sign as the new document before the opposite-sign ones.
+                // The sign decision below is a property of the whole open-entry set, so the early exit
+                // must not stop before the opposite-sign entries have settled that sign.
+                if NewCVLedgEntryBuf."Remaining Amount" > 0 then begin
+                    TempOldEmplLedgEntry.Find('+');
+                    NextStep := -1;
+                end else begin
+                    TempOldEmplLedgEntry.Find('-');
+                    NextStep := 1;
+                end;
                 repeat
                     TempOldEmplLedgEntry.CalcFields("Remaining Amount");
                     TempOldEmplLedgEntry.RecalculateAmounts(
@@ -5104,10 +5134,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     OnPrepareTempEmplLedgEntryOnBeforeUpdateRemainingAmount(TempOldEmplLedgEntry, NewCVLedgEntryBuf);
                     RemainingAmount += TempOldEmplLedgEntry."Remaining Amount";
                     if (Employee."Application Method" = Employee."Application Method"::"Apply to Oldest") and
-                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" <= 0)
+                       (RemainingAmount * NewCVLedgEntryBuf."Remaining Amount" < 0)
                     then
                         SufficientEntriesFound := true;
-                until (TempOldEmplLedgEntry.Next() = 0) or SufficientEntriesFound;
+                until (TempOldEmplLedgEntry.Next(NextStep) = 0) or SufficientEntriesFound;
                 TempOldEmplLedgEntry.SetRange(Positive, RemainingAmount < 0);
             end else
                 TempOldEmplLedgEntry.SetRange(Positive);
