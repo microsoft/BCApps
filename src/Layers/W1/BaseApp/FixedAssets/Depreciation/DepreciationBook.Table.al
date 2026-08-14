@@ -400,10 +400,12 @@ table 5611 "Depreciation Book"
                         if DeprBook."Derogatory Calc." <> '' then
                             Error(Text10804, "Derogatory Calc.");
 
-                        DeprBook.Reset();
-                        DeprBook.SetRange("Derogatory Calc.", Code);
-                        if not DeprBook.IsEmpty() then
-                            Error(Text10800, Code);
+                        if Code <> '' then begin
+                            DeprBook.Reset();
+                            DeprBook.SetRange("Derogatory Calc.", Code);
+                            if not DeprBook.IsEmpty() then
+                                Error(Text10800, Code);
+                        end;
                     end;
                 end;
 

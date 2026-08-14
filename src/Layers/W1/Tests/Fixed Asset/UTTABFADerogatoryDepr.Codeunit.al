@@ -33,6 +33,23 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure OnValidateDerogatoryCalcBeforeCodeAssignmentSucceeds()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+
+        TaxDepreciationBook.Init();
+        TaxDepreciationBook.Validate("Derogatory Calc.", NormalDepreciationBook.Code);
+        TaxDepreciationBook.Code := LibraryUTUtility.GetNewCode10();
+        TaxDepreciationBook.Insert();
+
+        TaxDepreciationBook.TestField("Derogatory Calc.", NormalDepreciationBook.Code);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure OnValidateDerogatoryCalcRelationshipChangeToUsedBookErrors()
     var
         NormalDepreciationBook: Record "Depreciation Book";
