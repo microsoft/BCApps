@@ -661,7 +661,7 @@ codeunit 148343 "Expense Activity Log API Test"
         PostedExpenseReportHeader.DeleteAll(true);
 
         foreach ExpenseUserNo in ExpenseUserNumbers do begin
-            Expense.SetLoadFields("Expense Category");
+            Expense.SetLoadFields("Expense Category", "Expense Report No.");
             Expense.SetRange("Expense User No.", ExpenseUserNo);
             if Expense.FindSet() then
                 repeat
