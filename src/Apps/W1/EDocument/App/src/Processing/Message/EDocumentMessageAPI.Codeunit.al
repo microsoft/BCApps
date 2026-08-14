@@ -10,7 +10,7 @@ using System.Utilities;
 /// <summary>
 /// Provides public operations for E-Document messages.
 /// </summary>
-codeunit 6436 "E-Document Message API"
+codeunit 6532 "E-Document Message API"
 {
     Access = Public;
     InherentEntitlements = X;
