@@ -9,6 +9,7 @@ using System;
 using System.Azure.KeyVault;
 using System.Integration;
 using System.Security.AccessControl;
+using System.Text;
 
 codeunit 131022 "Library - Graph Auth Mgt."
 {
@@ -36,7 +37,7 @@ codeunit 131022 "Library - Graph Auth Mgt."
         if ContainerPasswordFileExists() then begin
             if not TryGetContainerPassword(Password) then
                 Error(ContainerPasswordReadErr, ApiTestPasswordFileTok);
-            HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
+            AddUserPasswordAuthentication(HttpWebRequestMgt, Password);
             exit;
         end;
 
@@ -46,7 +47,18 @@ codeunit 131022 "Library - Graph Auth Mgt."
         if not TryGetNavEnlistmentPassword(Password) then
             Error(KeyVaultPasswordReadErr, NavServerUserPasswordKeyTok);
 
+        AddUserPasswordAuthentication(HttpWebRequestMgt, Password);
+    end;
+
+    [NonDebuggable]
+    local procedure AddUserPasswordAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; Password: SecretText)
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+    begin
         HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
+        HttpWebRequestMgt.AddHeader(
+            'Authorization',
+            SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', UserId(), Password))));
     end;
 
     [Scope('OnPrem')]
