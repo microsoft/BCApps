@@ -1580,56 +1580,6 @@
     "method": "TestViewAggregatePermissionsSetsByUser"
   },
   {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestPurchaseInvoicesBufferRecordsAreCreatedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestPurchaseInvoicesBufferRecordsAreDeletedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestSalesCreditMemoAggregateRecordsAreCreatedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestSalesCreditMemoAggregateRecordsAreDeletedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestSalesInvoiceAgregatesAreDeletedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestSalesInvoicesAreCreatedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestSalesOrderBufferRecordsAreCreatedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestSalesOrderBufferRecordsAreDeletedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestSalesQuoteEntityBufferRecordsAreCreatedOnAPISetup"
-  },
-  {
-    "codeunitId": 134636,
-    "codeunitName": "API Setup UT",
-    "method": "TestSalesQuoteEntityBufferRecordsAreDeletedOnAPISetup"
-  },
-  {
     "codeunitId": 134826,
     "codeunitName": "UT Contact Table",
     "method": "TestGetContNoGetContactByName_CaseSensitive"

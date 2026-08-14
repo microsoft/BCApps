@@ -143,10 +143,5 @@
     "codeunitId": 136612,
     "codeunitName": "ERM RS Process Data",
     "method": "ShipSalesOrder"
-  },
-  {
-    "codeunitId": 138401,
-    "codeunitName": "RS Pack Evaluation Api Setup",
-    "method": "EntityTablesAreNotEmpty"
   }
 ]
