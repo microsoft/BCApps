@@ -847,7 +847,7 @@ report 1308 "Standard Sales - Shipment"
             Caption = 'Standard Sales Shipment (RDLC)';
             Summary = 'The Standard Sales Shipment (RDLC) provides a detailed layout.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout("StandardSalesShipment.docx")
         {
             Type = Word;
@@ -858,8 +858,8 @@ report 1308 "Standard Sales - Shipment"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardSalesShipmentBlue.docx")
         {
             Type = Word;
@@ -870,8 +870,8 @@ report 1308 "Standard Sales - Shipment"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardSalesShipmentBlueThemable.docx")
         {
             Type = Word;
@@ -882,7 +882,7 @@ report 1308 "Standard Sales - Shipment"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("StandardSalesShipmentBody.docx")
         {
             Type = Word;

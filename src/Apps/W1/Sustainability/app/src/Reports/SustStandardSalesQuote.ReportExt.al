@@ -55,7 +55,7 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
     }
     rendering
     {
-#if not CLEAN32
+//#if not CLEAN32
         layout("StandardESGSalesQuote.docx")
         {
             Type = Word;
@@ -66,8 +66,8 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardESGSalesQuoteBlue.docx")
         {
             Type = Word;
@@ -78,7 +78,7 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("StandardESGSalesQuoteBody.docx")
         {
             Type = Word;

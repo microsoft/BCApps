@@ -1162,7 +1162,7 @@ report 1322 "Standard Purchase - Order"
 
     rendering
     {
-#if not CLEAN32
+//#if not CLEAN32
         layout("StandardPurchaseOrder.docx")
         {
             Type = Word;
@@ -1173,8 +1173,8 @@ report 1322 "Standard Purchase - Order"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardPurchaseOrderThemable.docx")
         {
             Type = Word;
@@ -1185,8 +1185,8 @@ report 1322 "Standard Purchase - Order"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardPurchaseOrderEmail.docx")
         {
             Type = Word;
@@ -1197,8 +1197,8 @@ report 1322 "Standard Purchase - Order"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif  
-#if not CLEAN32
+//#endif  
+//#if not CLEAN32
         layout("StandardPurchaseOrderBlue.docx")
         {
             Type = Word;
@@ -1209,7 +1209,7 @@ report 1322 "Standard Purchase - Order"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif  
+//#endif  
         layout("StandardPurchaseOrderBody.docx")
         {
             Type = Word;

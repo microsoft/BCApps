@@ -1100,7 +1100,7 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation (RDLC)';
             Summary = 'Detailed layout with all fields.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout("StandardSalesOrderConf.docx")
         {
             Type = Word;
@@ -1111,8 +1111,8 @@ report 1305 "Standard Sales - Order Conf."
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif  
-#if not CLEAN32
+//#endif  
+//#if not CLEAN32
         layout("StandardSalesOrderConfThemable.docx")
         {
             Type = Word;
@@ -1123,8 +1123,8 @@ report 1305 "Standard Sales - Order Conf."
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif  
-#if not CLEAN32
+//#endif  
+//#if not CLEAN32
         layout("StandardOrderConfirmationEmail.docx")
         {
             Type = Word;
@@ -1135,8 +1135,8 @@ report 1305 "Standard Sales - Order Conf."
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-        #endif  
-#if not CLEAN32
+        //#endif  
+//#if not CLEAN32
         layout("StandardSalesOrderConfBlue.docx")
         {
             Type = Word;
@@ -1147,7 +1147,7 @@ report 1305 "Standard Sales - Order Conf."
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-         #endif
+         //#endif
         layout("StandardSalesOrderConfBody.docx")
         {
             Type = Word;

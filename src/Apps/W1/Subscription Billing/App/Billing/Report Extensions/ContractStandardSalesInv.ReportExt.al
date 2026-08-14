@@ -184,7 +184,7 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
             Caption = 'Sales Invoice for Subscription Billing (RDLC)';
             Summary = 'The Sales Invoice for Subscription Billing (RDLC) is the most detailed layout and provides most flexible layout options.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout("SalesInvoiceForSubscriptionBilling.docx")
         {
             Type = Word;
@@ -195,7 +195,7 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("SalesInvoiceForSubscriptionBillingBody.docx")
         {
             Type = Word;

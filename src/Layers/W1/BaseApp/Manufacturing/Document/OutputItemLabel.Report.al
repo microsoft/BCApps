@@ -105,7 +105,7 @@ report 99000769 "Output Item Label"
 
     rendering
     {
-#if not CLEAN32
+//#if not CLEAN32
         layout(Word)
         {
             Type = Word;
@@ -115,7 +115,7 @@ report 99000769 "Output Item Label"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout(WordBody)
         {
             Type = Word;

@@ -873,7 +873,7 @@ report 117 Reminder
             Caption = 'Reminder (RDLC)';
             Summary = 'The Reminder (RDLC) provides a detailed layout.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout("DefaultReminderEmail.docx")
         {
             Type = Word;
@@ -884,7 +884,7 @@ report 117 Reminder
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("DefaultReminderEmailBody.docx")
         {
             Type = Word;

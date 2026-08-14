@@ -983,7 +983,7 @@ report 1304 "Standard Sales - Quote"
             Caption = 'Standard Sales Quote (RDLC)';
             Summary = 'The Standard Sales Quote (RDLC) provides a detailed layout.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout("StandardSalesQuote.docx")
         {
             Type = Word;
@@ -994,8 +994,8 @@ report 1304 "Standard Sales - Quote"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardSalesQuoteBlue.docx")
         {
             Type = Word;
@@ -1006,8 +1006,8 @@ report 1304 "Standard Sales - Quote"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardSalesQuoteBlueThemable.docx")
         {
             Type = Word;
@@ -1018,8 +1018,8 @@ report 1304 "Standard Sales - Quote"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardSalesQuoteEmail.docx")
         {
             Type = Word;
@@ -1030,7 +1030,7 @@ report 1304 "Standard Sales - Quote"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("StandardSalesQuoteBody.docx")
         {
             Type = Word;

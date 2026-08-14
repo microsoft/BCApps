@@ -24,7 +24,7 @@ reportextension 6166 "PostedSalesInvoiceWithQR" extends "Standard Sales - Invoic
 
     rendering
     {
-#if not CLEAN32
+//#if not CLEAN32
         layout("StandardSalesInvoice.docx")
         {
             Type = Word;
@@ -35,7 +35,7 @@ reportextension 6166 "PostedSalesInvoiceWithQR" extends "Standard Sales - Invoic
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("StandardSalesInvoiceBody.docx")
         {
             Type = Word;

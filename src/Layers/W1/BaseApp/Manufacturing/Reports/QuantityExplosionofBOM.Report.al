@@ -264,7 +264,7 @@ report 99000753 "Quantity Explosion of BOM"
 
     rendering
     {
-#if not CLEAN32
+//#if not CLEAN32
         layout(WordLayout)
         {
             Caption = 'Quantity Explosion of BOM Word';
@@ -275,7 +275,7 @@ report 99000753 "Quantity Explosion of BOM"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout(ExcelLayout)
         {
             Caption = 'Quantity Explosion of BOM Excel';

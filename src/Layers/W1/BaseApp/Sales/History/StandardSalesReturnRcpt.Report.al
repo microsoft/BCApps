@@ -609,7 +609,7 @@ report 1309 "Standard Sales - Return Rcpt."
             Caption = 'Standard Sales Return Receipt (RDLC)';
             Summary = 'The Standard Sales Return Receipt (RDLC) provides a detailed layout.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout("StandardSalesReturnRcpt.docx")
         {
             Type = Word;
@@ -620,8 +620,8 @@ report 1309 "Standard Sales - Return Rcpt."
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardSalesReturnRcptBlue.docx")
         {
             Type = Word;
@@ -632,8 +632,8 @@ report 1309 "Standard Sales - Return Rcpt."
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
-#if not CLEAN32
+//#endif
+//#if not CLEAN32
         layout("StandardSalesReturnRcptBlueThemable.docx")
         {
             Type = Word;
@@ -644,7 +644,7 @@ report 1309 "Standard Sales - Return Rcpt."
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("StandardSalesReturnRcptBody.docx")
         {
             Type = Word;

@@ -113,7 +113,7 @@ reportextension 8011 "Contract Standard Sales Quote" extends "Standard Sales - Q
             Caption = 'Sales Quote for Subscription Billing (RDLC)';
             Summary = 'The Sales Quote for Subscription Billing (RDLC) is the most detailed layout and provides most flexible layout options.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout("SalesQuoteForSubscriptionBilling.docx")
         {
             Type = Word;
@@ -124,7 +124,7 @@ reportextension 8011 "Contract Standard Sales Quote" extends "Standard Sales - Q
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("SalesQuoteForSubscriptionBillingBody.docx")
         {
             Type = Word;

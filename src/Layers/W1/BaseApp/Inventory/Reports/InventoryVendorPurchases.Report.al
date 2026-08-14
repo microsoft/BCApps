@@ -216,7 +216,7 @@ report 714 "Inventory - Vendor Purchases"
             LayoutFile = './Inventory/Reports/InventoryVendorPurchases.xlsx';
             Summary = 'Built in layout for the Inventory - Vendor Purchases Excel report.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout(Word)
         {
             Caption = 'Inventory - Vendor Purchases Word';
@@ -227,7 +227,7 @@ report 714 "Inventory - Vendor Purchases"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
 #if not CLEAN28
         layout(RDLC)
         {

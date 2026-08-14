@@ -114,7 +114,7 @@ reportextension 8010 "Contract Sales Order Conf." extends "Standard Sales - Orde
             Caption = 'Sales Order Confirmation for Subscription Billing (RDLC)';
             Summary = 'The Sales Order Confirmation for Subscription Billing (RDLC) is the most detailed layout and provides most flexible layout options.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout("SalesOrderConfForSubscriptionBilling.docx")
         {
             Type = Word;
@@ -125,7 +125,7 @@ reportextension 8010 "Contract Sales Order Conf." extends "Standard Sales - Orde
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("SalesOrderConfForSubscriptionBillingBody.docx")
         {
             Type = Word;

@@ -243,7 +243,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
 
     rendering
     {
-        #if not CLEAN32
+        //#if not CLEAN32
         layout(SampleInvoiceLayout1)
         {
             Type = Word;
@@ -254,8 +254,8 @@ report 6102 "E-Doc Sample Purchase Invoice"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-        #endif
-        #if not CLEAN32
+        //#endif
+        //#if not CLEAN32
         layout(SampleInvoiceLayout2)
         {
             Type = Word;
@@ -266,8 +266,8 @@ report 6102 "E-Doc Sample Purchase Invoice"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-        #endif
-        #if not CLEAN32
+        //#endif
+        //#if not CLEAN32
         layout(SampleInvoiceLayout3)
         {
             Type = Word;
@@ -278,7 +278,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-        #endif
+        //#endif
         layout(SampleInvoiceLayoutBody)
         {
             Type = Word;

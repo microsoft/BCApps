@@ -474,7 +474,7 @@ report 5802 "Inventory Valuation - WIP"
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.xlsx';
             Summary = 'Built in layout for the Production Order - WIP Excel report.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout(Word)
         {
             Caption = 'Production Order - WIP Word';
@@ -486,7 +486,7 @@ report 5802 "Inventory Valuation - WIP"
             ObsoleteTag = '32.0';
 
         }
-#endif
+//#endif
 #if not CLEAN28
         layout(RDLC)
         {

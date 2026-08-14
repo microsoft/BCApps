@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -358,7 +358,7 @@ report 99000788 "Prod. Order - Shortage List"
 
     rendering
     {
-#if not CLEAN32
+//#if not CLEAN32
         layout(Word)
         {
             Caption = 'Prod. Order - Shortage List Word';
@@ -369,7 +369,7 @@ report 99000788 "Prod. Order - Shortage List"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout(Excel)
         {
             Caption = 'Prod. Order - Shortage List Excel';

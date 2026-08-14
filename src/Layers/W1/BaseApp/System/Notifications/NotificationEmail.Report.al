@@ -1,4 +1,4 @@
-﻿namespace System.Environment.Configuration;
+namespace System.Environment.Configuration;
 
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -133,7 +133,7 @@ report 1320 "Notification Email"
 
     rendering
     {
-#if not CLEAN32
+//#if not CLEAN32
         layout("NotificationEmail.docx")
         {
             Type = Word;
@@ -142,7 +142,7 @@ report 1320 "Notification Email"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
         layout("NotificationEmailBody.docx")
         {
             Type = Word;

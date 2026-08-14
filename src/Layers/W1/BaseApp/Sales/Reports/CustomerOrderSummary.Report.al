@@ -463,7 +463,7 @@ report 107 "Customer - Order Summary"
             Type = Excel;
             Summary = 'Built in layout for the Customer Order Summary excel report.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout(Word)
         {
             Caption = 'Customer Order Summary Word';
@@ -474,7 +474,7 @@ report 107 "Customer - Order Summary"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
 #if not CLEAN27
         layout(RDLC)
         {

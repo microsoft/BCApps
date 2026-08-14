@@ -279,7 +279,7 @@ report 1700 "Deferral Summary - G/L"
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN32
+//#if not CLEAN32
         layout(Word)
         {
             Caption = 'Deferral Summary G/L Word';
@@ -290,7 +290,7 @@ report 1700 "Deferral Summary - G/L"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-#endif
+//#endif
 #if not CLEAN27
         layout(RDLC)
         {
