@@ -236,9 +236,6 @@ page 9660 "Report Layouts"
                 var
                     NewEditedLayoutName: Text;
                 begin
-                    // Both user-defined and extension-installed layouts can be edited here. For an
-                    // extension layout the dialog writes a Tenant Report Layout Override record
-                    // (Description / IsObsolete) instead of copying the layout.
                     ReportLayoutsImpl.EditReportLayout(Rec, NewEditedLayoutName);
                     SetFocusedRecord(Rec."Report ID", NewEditedLayoutName);
                 end;
@@ -476,11 +473,8 @@ page 9660 "Report Layouts"
                 }
             }
 
-            // Status changes apply to both user-defined layouts (updated in place in Tenant Report
-            // Layout) and extension-installed layouts (written to Tenant Report Layout Override). The
-            // platform's BaseSystemPermissionSet grants both tables together, so gating on
-            // Tenant Report Layout = M correctly represents "may manage layout status" and matches the
-            // page's own Tenant Report Layout permission.
+            // BaseSystemPermissionSet grants Tenant Report Layout and its override table together, so
+            // gating on Tenant Report Layout = M covers both.
             action(SetApproved)
             {
                 ApplicationArea = Basic, Suite;
@@ -732,8 +726,7 @@ page 9660 "Report Layouts"
         IsMultiSelect := SelectedReportLayoutList.Count() > 1;
         ShareOptionsVisible := DocumentSharing.ShareEnabled(Enum::"Document Sharing Source"::System);
         ShareOptionsEnabled := LayoutIsSelected and (not IsMultiSelect) and Rec."User Defined" and (Rec."Layout Format" <> Rec."Layout Format"::RDLC);
-        // Both user-defined and extension-installed layouts can have their status changed: user-defined
-        // layouts are updated in place, extension layouts via a Tenant Report Layout Override record.
+        // Extension layouts can now have their status changed too, via an override record.
         CanModifyStatus := LayoutIsSelected;
         UpdateUserDisplayName();
     end;
