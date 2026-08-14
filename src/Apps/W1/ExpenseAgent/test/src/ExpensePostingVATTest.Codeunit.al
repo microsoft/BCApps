@@ -427,6 +427,7 @@ codeunit 148330 "Expense Posting VAT Test"
         VATSetup.Modify(true);
 
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
+        LibraryERMCountryData.UpdateLocalData();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
         LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
