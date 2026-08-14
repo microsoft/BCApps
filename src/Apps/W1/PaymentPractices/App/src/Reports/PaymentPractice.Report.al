@@ -78,7 +78,7 @@ report 685 "Payment Practice"
 
     rendering
     {
-//#if not CLEAN32
+        //#if not CLEAN32
         layout(PaymentPractice_PeriodLayout)
         {
             Type = Word;
