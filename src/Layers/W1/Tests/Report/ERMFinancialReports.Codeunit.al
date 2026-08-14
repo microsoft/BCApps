@@ -1527,6 +1527,7 @@ codeunit 134982 "ERM Financial Reports"
         Amount3: Decimal;
         OldAdditionalReportingCurrency: Code[10];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO 646076] Close Income Statement consolidates multiple G/L entries into one journal line per account when no dimensions are selected and ARC is not enabled.
         Initialize();
 
@@ -1605,6 +1606,7 @@ codeunit 134982 "ERM Financial Reports"
         Amount2: Decimal;
         Amount3: Decimal;
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO 646077] Close Income Statement consolidates multiple G/L entries into one journal line per account when no dimensions are selected and ARC is enabled.
         Initialize();
 
