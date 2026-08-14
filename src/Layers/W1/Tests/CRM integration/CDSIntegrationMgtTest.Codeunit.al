@@ -1404,7 +1404,7 @@ codeunit 139195 "CDS Integration Mgt Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure CleanCDSIntegrationTruncatesCRMIntegrationRecordsForCurrentCompany()
     var
@@ -1429,7 +1429,7 @@ codeunit 139195 "CDS Integration Mgt Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure TruncateIsSupportedForCRMIntegrationRecordTable()
     var
@@ -1449,6 +1449,7 @@ codeunit 139195 "CDS Integration Mgt Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure CleanCDSIntegrationCleansCompanySelectedViaChangeCompany()
     var
@@ -1487,7 +1488,7 @@ codeunit 139195 "CDS Integration Mgt Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure CleanCDSIntegrationFallsBackToDeleteAllWhenTruncateUnsupported()
     var
