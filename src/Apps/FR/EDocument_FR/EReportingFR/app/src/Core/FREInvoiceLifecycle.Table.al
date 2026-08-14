@@ -98,6 +98,7 @@ table 10970 "FR E-Invoice Lifecycle"
         {
             Caption = 'E-Document Message Entry No.';
             DataClassification = SystemMetadata;
+            TableRelation = "E-Document Message"."Entry No.";
             ToolTip = 'Specifies the related E-Document message entry.';
         }
         field(13; "Processing Status"; Enum "FR E-Invoice Lifecycle Proc.")
@@ -139,7 +140,7 @@ table 10970 "FR E-Invoice Lifecycle"
         field(19; "Sender Platform Scheme"; Code[4])
         {
             Caption = 'Sender Platform Scheme';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the identifier scheme of the sender platform.';
         }
         field(20; "Sender Platform Name"; Text[100])
@@ -157,7 +158,7 @@ table 10970 "FR E-Invoice Lifecycle"
         field(22; "Invoice Issuer Scheme"; Code[4])
         {
             Caption = 'Invoice Issuer Scheme';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the identifier scheme of the invoice issuer.';
         }
         field(23; "Invoice Issuer Name"; Text[100])

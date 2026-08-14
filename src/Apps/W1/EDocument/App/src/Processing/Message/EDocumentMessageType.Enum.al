@@ -17,6 +17,7 @@ enum 6436 "E-Document Message Type" implements IEDocMessageBuilder
 {
     Extensible = true;
     DefaultImplementation = IEDocMessageBuilder = "E-Doc. Unspecified Impl.";
+    UnknownValueImplementation = IEDocMessageBuilder = "E-Doc. Unspecified Impl.";
 
     value(0; Unknown)
     {

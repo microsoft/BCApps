@@ -35,6 +35,7 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
                 var
                     FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
                 begin
+                    FREInvoiceLifecycle.SetCurrentKey("E-Document Entry No.", "Created At");
                     FREInvoiceLifecycle.SetRange("E-Document Entry No.", Rec."Entry No");
                     Page.Run(Page::"FR E-Invoice Lifecycles", FREInvoiceLifecycle);
                 end;

@@ -17,10 +17,10 @@ codeunit 10985 "FR E-Invoice Lifecycle Error"
         Rec.TestField("E-Document Message Entry No.", 0);
         Session.LogMessage(
             '0000TDQ', LifecycleWorkerFailedTelemetryMsg, Verbosity::Error,
-            DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
+            DataClassification::SystemMetadata, TelemetryScope::All,
             'Category', LifecycleTelemetryCategoryTok, 'ErrorCallStack', GetLastErrorCallStack());
         Rec."Processing Status" := Rec."Processing Status"::Failed;
-        Rec."Last Error" := CopyStr(GetLastErrorText(), 1, MaxStrLen(Rec."Last Error"));
+        Rec."Last Error" := CopyStr(GetLastErrorText(true), 1, MaxStrLen(Rec."Last Error"));
         Rec.Modify();
     end;
 

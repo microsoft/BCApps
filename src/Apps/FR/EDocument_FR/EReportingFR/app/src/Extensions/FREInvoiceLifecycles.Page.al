@@ -73,6 +73,7 @@ page 10970 "FR E-Invoice Lifecycles"
         {
             action(RetryMessageCreation)
             {
+                AccessByPermission = tabledata "FR E-Invoice Lifecycle" = M;
                 ApplicationArea = Basic, Suite;
                 Caption = 'Retry Message Creation';
                 Enabled = Rec."Processing Status" = Rec."Processing Status"::Failed;
