@@ -1130,8 +1130,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
         ProdPostingGroup1, ProdPostingGroup2 : Code[20];
         VATBusPostingGroup1, VATBusPostingGroup2 : Code[20];
@@ -2497,6 +2497,76 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             ExpectedDescription2, RequisitionLine."Description 2",
             'Description 2 must be populated on the Requisition Line from the subcontracting Work Center');
+    end;
+
+    [Test]
+    procedure ChangingVendorKeepsProdOrderRoutingLineDescriptions()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        LibraryUtility: Codeunit "Library - Utility";
+        ExpectedDescription: Text[100];
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor on a subcontracting requisition line keeps the production routing descriptions
+        Initialize();
+
+        // [GIVEN] A released production order with custom descriptions on its subcontracting routing line
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ExpectedDescription := 'Custom subcontracting operation';
+        ExpectedDescription2 := 'Custom operation details';
+        ProdOrderRoutingLine.Description := ExpectedDescription;
+        ProdOrderRoutingLine."Description 2" := ExpectedDescription2;
+        ProdOrderRoutingLine.Modify();
+
+        // [GIVEN] The production routing line is suggested on the subcontracting worksheet
+        ReqWkshTemplate.DeleteAll(true);
+        ReqWkshTemplate.Name := SelectRequisitionTemplateName();
+        RequisitionWkshName.Init();
+        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
+        RequisitionWkshName.Validate(
+            Name,
+            CopyStr(
+                LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
+                1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
+        RequisitionWkshName.Insert(true);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] Both descriptions still come from the production order routing line
+        Assert.AreEqual(ExpectedDescription, RequisitionLine.Description, 'The routing line description must be kept when the vendor changes.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The routing line description 2 must be kept when the vendor changes.');
     end;
 
     [Test]
