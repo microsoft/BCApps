@@ -14,7 +14,7 @@ report 6625 "Item GTIN Label"
     WordMergeDataItem = Items;
     DefaultRenderingLayout = Word;
     //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
 
     dataset
     {

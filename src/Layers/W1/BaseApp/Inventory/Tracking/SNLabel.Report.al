@@ -15,7 +15,7 @@ report 6627 "SN Label"
     WordMergeDataItem = "Serial No. Information";
     DefaultRenderingLayout = Word;
     //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
 
     dataset
     {

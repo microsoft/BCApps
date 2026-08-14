@@ -20,7 +20,7 @@ report 1702 "Deferral Summary - Purchasing"
     Caption = 'Deferral Summary - Purchasing';
     DefaultRenderingLayout = Excel;
     //DefaultHeaderFooterPart = Internal_Default;
-    //DefaultThemePart = BC_Default_Theme;
+    //DefaultThemePart = "BC Default";
     UsageCategory = ReportsAndAnalysis;
 
     dataset

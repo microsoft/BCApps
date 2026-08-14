@@ -18,7 +18,7 @@ report 718 "Inventory - Sales Back Orders"
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
     //DefaultHeaderFooterPart = Internal_Default;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
 
     dataset
     {

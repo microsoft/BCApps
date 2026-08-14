@@ -48,7 +48,7 @@ report 1306 "Standard Sales - Invoice"
     WordMergeDataItem = Header;
     DefaultRenderingLayout = "StandardSalesInvoice.docx";
     //DefaultHeaderFooterPart = External_Default_Detailed;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
 
     dataset
     {

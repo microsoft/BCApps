@@ -31,7 +31,7 @@ report 117 Reminder
     Caption = 'Reminder';
     DefaultRenderingLayout = "Reminder.rdlc";
     //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
     WordMergeDataItem = "Issued Reminder Header";
 
     dataset

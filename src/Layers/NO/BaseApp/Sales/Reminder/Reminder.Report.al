@@ -33,7 +33,7 @@ report 117 Reminder
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = "Reminder.rdlc";
     //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
     WordMergeDataItem = "Issued Reminder Header";
 
     dataset

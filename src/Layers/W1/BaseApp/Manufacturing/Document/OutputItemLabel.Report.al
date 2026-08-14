@@ -16,7 +16,7 @@ report 99000769 "Output Item Label"
     WordMergeDataItem = ItemLedgerEntry;
     DefaultRenderingLayout = Word;
     //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
     Caption = 'Production Output Item Label';
 
     dataset

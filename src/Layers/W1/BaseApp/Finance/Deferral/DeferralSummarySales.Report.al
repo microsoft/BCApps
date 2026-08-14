@@ -20,7 +20,7 @@ report 1701 "Deferral Summary - Sales"
     Caption = 'Deferral Summary - Sales';
     DefaultRenderingLayout = Excel;
     //DefaultHeaderFooterPart = Internal_Default;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
     UsageCategory = ReportsAndAnalysis;
 
     dataset

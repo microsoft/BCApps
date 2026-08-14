@@ -15,7 +15,7 @@ report 6628 "Lot No Label"
     WordMergeDataItem = "Lot No. Information";
     DefaultRenderingLayout = Word;
     //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
 
     dataset
     {

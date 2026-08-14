@@ -38,7 +38,7 @@ report 1303 "Standard Sales - Draft Invoice"
     Caption = 'Draft Invoice';
     DefaultRenderingLayout = "StandardSalesDraftInvoice.docx";
     //DefaultHeaderFooterPart = External_Default;
-    //DefaultThemePart = "BC Default Theme";
+    //DefaultThemePart = "BC Default";
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 
