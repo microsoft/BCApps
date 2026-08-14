@@ -9,7 +9,6 @@ page 7123 "Expense Activity Log FactBox"
     PageType = ListPart;
     SourceTable = "Expense Activity Log Entry";
     SourceTableView = sorting("Source Table ID", "Source Record System ID", "Occurred At", "Entry No.") order(descending);
-    Permissions = tabledata "Expense Activity Log Entry" = r;
     Caption = 'Activity Log';
     ApplicationArea = Basic, Suite;
     Editable = false;
