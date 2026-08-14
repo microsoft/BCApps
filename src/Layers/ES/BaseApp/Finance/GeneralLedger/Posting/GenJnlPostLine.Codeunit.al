@@ -220,7 +220,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AppliesToDocType: Enum "Gen. Journal Document Type";
         IsCreditMemo: Boolean;
         OriginalEntryExist: Boolean;
-        TotalAmountForTax: Decimal;
         ForceDocBalance: Boolean;
         BillSettlementGainLoss: Boolean;
         Text1100013: Label 'You do not have permissions to apply or unapply documents in the Cartera Module.';
@@ -9026,11 +9025,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
+#if not CLEAN29
+    [Obsolete('Not used in ES.', '29.0')]
     [Scope('OnPrem')]
     procedure SetTotalAmountForTax(TotalAmountForTax2: Decimal)
     begin
-        TotalAmountForTax := TotalAmountForTax2;
     end;
+#endif
 
     local procedure GetVendOriginalAmtLCY(UnrealVendLedgEntry: Record "Vendor Ledger Entry"; BillVendLedgEntry: Record "Vendor Ledger Entry"; InvVendLedgEntry: Record "Vendor Ledger Entry"): Decimal
     begin
