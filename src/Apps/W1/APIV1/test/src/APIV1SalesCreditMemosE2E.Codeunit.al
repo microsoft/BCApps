@@ -3,6 +3,7 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

@@ -1,6 +1,7 @@
 codeunit 139919 "APIV2 PstdApprovalEntries E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 

@@ -1,6 +1,7 @@
 codeunit 139917 "APIV2 - Approval Entries E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 

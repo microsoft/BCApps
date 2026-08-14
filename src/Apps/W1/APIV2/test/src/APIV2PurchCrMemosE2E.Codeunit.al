@@ -3,6 +3,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

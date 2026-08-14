@@ -3,6 +3,7 @@ codeunit 139720 "APIV1 - Aged AR E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

@@ -1,6 +1,7 @@
 codeunit 139918 "APIV2 - Approval UserSetup E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 

@@ -3,6 +3,7 @@ codeunit 139731 "APIV1 - Automation RS Package"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

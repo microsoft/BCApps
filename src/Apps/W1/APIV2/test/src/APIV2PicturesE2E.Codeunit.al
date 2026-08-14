@@ -1,6 +1,7 @@
 codeunit 139842 "APIV2 - Pictures E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

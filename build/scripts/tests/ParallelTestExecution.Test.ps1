@@ -259,6 +259,22 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
     }
 
+    Describe "API test isolation metadata" {
+        It "marks every APIV1 and APIV2 test codeunit for clean Disabled-isolation execution" {
+            $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+            foreach ($apiVersion in @('APIV1', 'APIV2')) {
+                $testSource = Join-Path $repoRoot "src\Apps\W1\$apiVersion\test\src"
+                foreach ($file in (Get-ChildItem $testSource -Filter '*.al' -File)) {
+                    $content = Get-Content $file.FullName -Raw
+                    if ($content -match 'Subtype\s*=\s*Test\s*;') {
+                        $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
+                            -Because "$($file.Name) performs API calls through another server session"
+                    }
+                }
+            }
+        }
+    }
+
     It "dispatches one codeunit with Disabled isolation after requesting a tenant refresh" {
         InModuleScope ParallelTestExecution {
             $script:capturedParameters = $null
