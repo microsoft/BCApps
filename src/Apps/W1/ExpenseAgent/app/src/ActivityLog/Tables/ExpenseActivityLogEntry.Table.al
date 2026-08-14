@@ -160,6 +160,11 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Receipt Count';
             DataClassification = SystemMetadata;
         }
+        field(53; "Compliance Status"; Enum "Expense Activity Compliance")
+        {
+            Caption = 'Compliance Status';
+            DataClassification = CustomerContent;
+        }
         field(100; "History Actor Table ID Filter"; Integer)
         {
             Caption = 'History Actor Table ID Filter';

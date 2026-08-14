@@ -138,6 +138,10 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'Receipt Count';
                 }
+                field(complianceStatus; Rec."Compliance Status")
+                {
+                    Caption = 'Compliance Status';
+                }
                 field(historyActorRole; Rec."History Actor Role Filter")
                 {
                     Caption = 'History Actor Role';
