@@ -1,6 +1,7 @@
 codeunit 134634 "Graph Collect Mgt Journal Line"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

@@ -1,6 +1,7 @@
 codeunit 134920 "ERM General Journal UT"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 
