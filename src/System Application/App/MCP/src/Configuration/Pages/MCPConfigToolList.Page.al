@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-using System.Reflection;
+using System.Integration;
 
 page 8352 "MCP Config Tool List"
 {
@@ -40,26 +40,22 @@ page 8352 "MCP Config Tool List"
                     end;
 
                     trigger OnValidate()
-                    var
-                        PageMetadata: Record "Page Metadata";
-                        QueryMetadata: Record "Query Metadata";
-                        CodeunitMetadata: Record "CodeUnit Metadata";
                     begin
                         case Rec."Object Type" of
                             Rec."Object Type"::Page:
                                 begin
-                                    PageMetadata := MCPConfigImplementation.ValidateAPIPageTool(Rec."Object Id", true);
-                                    Rec."API Version" := MCPConfigImplementation.GetHighestAPIPageVersion(PageMetadata);
+                                    MCPConfigImplementation.ValidateAPIPageTool(Rec."Object Id", true);
+                                    Rec."API Version" := MCPConfigImplementation.GetHighestAPIPageVersion(Rec."Object Id");
                                 end;
                             Rec."Object Type"::Query:
                                 begin
-                                    QueryMetadata := MCPConfigImplementation.ValidateAPIQueryTool(Rec."Object Id");
-                                    Rec."API Version" := MCPConfigImplementation.GetHighestAPIQueryVersion(QueryMetadata);
+                                    MCPConfigImplementation.ValidateAPIQueryTool(Rec."Object Id");
+                                    Rec."API Version" := MCPConfigImplementation.GetHighestAPIQueryVersion(Rec."Object Id");
                                 end;
                             Rec."Object Type"::Codeunit:
                                 begin
-                                    CodeunitMetadata := MCPConfigImplementation.ValidateAPICodeunitTool(Rec."Object Id");
-                                    Rec."API Version" := MCPConfigImplementation.GetHighestAPICodeunitVersion(CodeunitMetadata);
+                                    MCPConfigImplementation.ValidateAPICodeunitTool(Rec."Object Id");
+                                    Rec."API Version" := MCPConfigImplementation.GetHighestAPICodeunitVersion(Rec."Object Id");
                                     Rec."Allow Read" := false;
                                     Rec."Allow Bound Actions" := true;
                                 end;
@@ -224,18 +220,21 @@ page 8352 "MCP Config Tool List"
 
     local procedure SetPermissions()
     var
-        PageMetadata: Record "Page Metadata";
+        ApiWebService: Record "Api Web Service";
     begin
         AllowCreateEditable := false;
         AllowModifyEditable := false;
         AllowDeleteEditable := false;
 
-        if not PageMetadata.Get(Rec."Object Id") then
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        ApiWebService.SetRange("Object ID", Rec."Object Id");
+        ApiWebService.SetRange(Published, true);
+        if not ApiWebService.FindFirst() then
             exit;
 
-        AllowCreateEditable := PageMetadata.InsertAllowed;
-        AllowModifyEditable := PageMetadata.ModifyAllowed;
-        AllowDeleteEditable := PageMetadata.DeleteAllowed;
+        AllowCreateEditable := ApiWebService.InsertAllowed;
+        AllowModifyEditable := ApiWebService.ModifyAllowed;
+        AllowDeleteEditable := ApiWebService.DeleteAllowed;
     end;
 
     local procedure GetAllowCreateUpdateDeleteTools(): Boolean

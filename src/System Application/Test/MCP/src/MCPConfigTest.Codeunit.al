@@ -7,7 +7,6 @@ namespace System.Test.MCP;
 
 using System.AI;
 using System.MCP;
-using System.Reflection;
 using System.TestLibraries.AI;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
@@ -393,14 +392,11 @@ codeunit 130130 "MCP Config Test"
     [Test]
     procedure TestGetHighestAPIVersionSingleVersion()
     var
-        PageMetadata: Record "Page Metadata";
         HighestVersion: Text[30];
     begin
-        // [GIVEN] A page metadata with single API version
-        PageMetadata.Get(Page::"Mock API");
-
+        // [GIVEN] An API page with a single API version
         // [WHEN] GetHighestAPIVersion is called
-        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(PageMetadata);
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(Page::"Mock API");
 
         // [THEN] The single version is returned
         Assert.AreEqual('v0.1', HighestVersion, 'Should return the single version');
@@ -409,14 +405,11 @@ codeunit 130130 "MCP Config Test"
     [Test]
     procedure TestGetHighestAPIVersionMultipleVersions()
     var
-        PageMetadata: Record "Page Metadata";
         HighestVersion: Text[30];
     begin
-        // [GIVEN] A page metadata with multiple API versions (v1.0,v2.0,beta)
-        PageMetadata.Get(Page::"Mock API Multi Version");
-
+        // [GIVEN] An API page with multiple API versions (v1.0,v2.0,beta)
         // [WHEN] GetHighestAPIVersion is called
-        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(PageMetadata);
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(Page::"Mock API Multi Version");
 
         // [THEN] The highest version is returned
         Assert.AreEqual('v2.0', HighestVersion, 'Should return v2.0 as highest version');

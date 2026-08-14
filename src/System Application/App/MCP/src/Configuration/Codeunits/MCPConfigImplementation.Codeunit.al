@@ -8,6 +8,7 @@ namespace System.MCP;
 using System.Azure.Identity;
 using System.Environment;
 using System.Feedback;
+using System.Integration;
 using System.Reflection;
 using System.Text;
 using System.Utilities;
@@ -482,7 +483,6 @@ codeunit 8351 "MCP Config Implementation"
     var
         MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        PageMetadata: Record "Page Metadata";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             Error(ConfigurationNotFoundErr);
@@ -490,13 +490,13 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
 
-        PageMetadata := ValidateAPIPageTool(APIPageId, ValidateAPIPublisher);
+        ValidateAPIPageTool(APIPageId, ValidateAPIPublisher);
 
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Object ID" := APIPageId;
         MCPConfigurationTool."Allow Read" := true;
-        MCPConfigurationTool."API Version" := GetHighestAPIPageVersion(PageMetadata);
+        MCPConfigurationTool."API Version" := GetHighestAPIPageVersion(APIPageId);
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
@@ -516,7 +516,6 @@ codeunit 8351 "MCP Config Implementation"
     var
         MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        QueryMetadata: Record "Query Metadata";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             Error(ConfigurationNotFoundErr);
@@ -524,13 +523,13 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
 
-        QueryMetadata := ValidateAPIQueryTool(QueryAPIId);
+        ValidateAPIQueryTool(QueryAPIId);
 
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Query;
         MCPConfigurationTool."Object ID" := QueryAPIId;
         MCPConfigurationTool."Allow Read" := true;
-        MCPConfigurationTool."API Version" := GetHighestAPIQueryVersion(QueryMetadata);
+        MCPConfigurationTool."API Version" := GetHighestAPIQueryVersion(QueryAPIId);
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
@@ -539,7 +538,6 @@ codeunit 8351 "MCP Config Implementation"
     var
         MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        CodeunitMetadata: Record "CodeUnit Metadata";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             Error(ConfigurationNotFoundErr);
@@ -547,13 +545,13 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
 
-        CodeunitMetadata := ValidateAPICodeunitTool(CodeunitAPIId);
+        ValidateAPICodeunitTool(CodeunitAPIId);
 
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Codeunit;
         MCPConfigurationTool."Object ID" := CodeunitAPIId;
         MCPConfigurationTool."Allow Bound Actions" := true;
-        MCPConfigurationTool."API Version" := GetHighestAPICodeunitVersion(CodeunitMetadata);
+        MCPConfigurationTool."API Version" := GetHighestAPICodeunitVersion(CodeunitAPIId);
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
@@ -673,71 +671,74 @@ codeunit 8351 "MCP Config Implementation"
 
     local procedure PopulateAPIObjects(var MCPAPIObjectBuffer: Record "MCP API Object Buffer")
     var
-        PageMetadata: Record "Page Metadata";
-        QueryMetadata: Record "Query Metadata";
-        CodeunitMetadata: Record "CodeUnit Metadata";
-        Regex: Codeunit Regex;
+        ApiWebService: Record "Api Web Service";
     begin
         MCPAPIObjectBuffer.Reset();
         MCPAPIObjectBuffer.DeleteAll();
 
         // API pages
-        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
-        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
-        if PageMetadata.FindSet() then
-            repeat
-                MCPAPIObjectBuffer.Init();
-                MCPAPIObjectBuffer."Object Type" := MCPAPIObjectBuffer."Object Type"::Page;
-                MCPAPIObjectBuffer."Object ID" := PageMetadata.ID;
-                MCPAPIObjectBuffer.Name := CopyStr(PageMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
-                MCPAPIObjectBuffer."Entity Name" := CopyStr(PageMetadata.EntityName, 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
-                MCPAPIObjectBuffer."API Publisher" := CopyStr(PageMetadata.APIPublisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
-                MCPAPIObjectBuffer."API Group" := CopyStr(PageMetadata.APIGroup, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
-                MCPAPIObjectBuffer."API Version" := CopyStr(PageMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
-                if MCPAPIObjectBuffer.Insert() then;
-            until PageMetadata.Next() = 0;
+        SetAPIPageFilters(ApiWebService);
+        AddAPIObjectsFromWebService(ApiWebService, MCPAPIObjectBuffer, MCPAPIObjectBuffer."Object Type"::Page, true);
 
         // API queries
-        QueryMetadata.SetFilter(EntityName, '<>%1', '');
-        QueryMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
-        QueryMetadata.SetFilter(ID, '<>%1&<>%2', 5480, 5481); // Exclude beta customer and vendor queries from Base Application, as they are already part of API v2.0
-        if QueryMetadata.FindSet() then
-            repeat
-                MCPAPIObjectBuffer.Init();
-                MCPAPIObjectBuffer."Object Type" := MCPAPIObjectBuffer."Object Type"::Query;
-                MCPAPIObjectBuffer."Object ID" := QueryMetadata.ID;
-                MCPAPIObjectBuffer.Name := CopyStr(QueryMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
-                MCPAPIObjectBuffer."Entity Name" := CopyStr(QueryMetadata.EntityName, 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
-                MCPAPIObjectBuffer."API Publisher" := CopyStr(QueryMetadata.APIPublisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
-                MCPAPIObjectBuffer."API Group" := CopyStr(QueryMetadata.APIGroup, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
-                MCPAPIObjectBuffer."API Version" := CopyStr(QueryMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
-                if MCPAPIObjectBuffer.Insert() then;
-            until QueryMetadata.Next() = 0;
+        Clear(ApiWebService);
+        SetAPIQueryFilters(ApiWebService);
+        AddAPIObjectsFromWebService(ApiWebService, MCPAPIObjectBuffer, MCPAPIObjectBuffer."Object Type"::Query, false);
 
         // API codeunits
-        // TODO(AB#641822): interim — match API codeunits by namespace until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
-        CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
-        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
+        Clear(ApiWebService);
+        SetAPICodeunitFilters(ApiWebService);
+        AddAPIObjectsFromWebService(ApiWebService, MCPAPIObjectBuffer, MCPAPIObjectBuffer."Object Type"::Codeunit, false);
+    end;
 
-        if CodeunitMetadata.FindSet() then
-            repeat
-                MCPAPIObjectBuffer.Init();
-                MCPAPIObjectBuffer."Object Type" := MCPAPIObjectBuffer."Object Type"::Codeunit;
-                MCPAPIObjectBuffer."Object ID" := CodeunitMetadata.ID;
-                MCPAPIObjectBuffer.Name := CopyStr(CodeunitMetadata.Name, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
+    local procedure AddAPIObjectsFromWebService(var ApiWebService: Record "Api Web Service"; var MCPAPIObjectBuffer: Record "MCP API Object Buffer"; BufferObjectType: Option; ExcludeMicrosoftBeta: Boolean)
+    begin
+        if not ApiWebService.FindSet() then
+            exit;
 
-                // TODO(AB#641822): interim fixed values until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
-                MCPAPIObjectBuffer."Entity Name" := CopyStr(Regex.Replace(CodeunitMetadata.Name, '[^A-Za-z0-9]', ''), 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
-                MCPAPIObjectBuffer."API Publisher" := 'microsoft';
-                MCPAPIObjectBuffer."API Group" := 'codeunits';
-                MCPAPIObjectBuffer."API Version" := 'beta';
-                // MCPAPIObjectBuffer."Entity Name" := CopyStr(CodeunitMetadata.EntityName, 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
-                // MCPAPIObjectBuffer."API Publisher" := CopyStr(CodeunitMetadata.APIPublisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
-                // MCPAPIObjectBuffer."API Group" := CopyStr(CodeunitMetadata.APIGroup, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
-                // MCPAPIObjectBuffer."API Version" := CopyStr(CodeunitMetadata.APIVersion, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
-                if MCPAPIObjectBuffer.Insert() then;
-            until CodeunitMetadata.Next() = 0;
+        repeat
+            if not (ExcludeMicrosoftBeta and IsMicrosoftBetaAPI(ApiWebService)) then
+                if MCPAPIObjectBuffer.Get(BufferObjectType, ApiWebService."Object ID") then begin
+                    MCPAPIObjectBuffer."API Version" := CopyStr(MCPAPIObjectBuffer."API Version" + ',' + ApiWebService.Version, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
+                    MCPAPIObjectBuffer.Modify();
+                end else begin
+                    MCPAPIObjectBuffer.Init();
+                    MCPAPIObjectBuffer."Object Type" := BufferObjectType;
+                    MCPAPIObjectBuffer."Object ID" := ApiWebService."Object ID";
+                    MCPAPIObjectBuffer.Name := CopyStr(ApiWebService.ObjectName, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
+                    MCPAPIObjectBuffer."Entity Name" := CopyStr(ApiWebService."Service Name", 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
+                    MCPAPIObjectBuffer."API Publisher" := CopyStr(ApiWebService.Publisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
+                    MCPAPIObjectBuffer."API Group" := CopyStr(ApiWebService.Group, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
+                    MCPAPIObjectBuffer."API Version" := CopyStr(ApiWebService.Version, 1, MaxStrLen(MCPAPIObjectBuffer."API Version"));
+                    MCPAPIObjectBuffer.Insert();
+                end;
+        until ApiWebService.Next() = 0;
+    end;
+
+    local procedure SetAPIPageFilters(var ApiWebService: Record "Api Web Service")
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        ApiWebService.SetRange(Published, true);
+        ApiWebService.SetFilter(ALNamespace, '<>%1', 'Microsoft.API.V1');
+    end;
+
+    local procedure SetAPIQueryFilters(var ApiWebService: Record "Api Web Service")
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Query);
+        ApiWebService.SetRange(Published, true);
+        ApiWebService.SetFilter(ALNamespace, '<>%1', 'Microsoft.API.V1');
+        ApiWebService.SetFilter("Object ID", '<>%1&<>%2', 5480, 5481); // Exclude beta customer and vendor queries from Base Application, as they are already part of API v2.0
+    end;
+
+    local procedure SetAPICodeunitFilters(var ApiWebService: Record "Api Web Service")
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Codeunit);
+        ApiWebService.SetRange(Published, true);
+    end;
+
+    local procedure IsMicrosoftBetaAPI(var ApiWebService: Record "Api Web Service"): Boolean
+    begin
+        exit((ApiWebService.Version = 'beta') and (ApiWebService.Publisher in ['microsoft', '']));
     end;
 
     internal procedure GetAPIPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
@@ -749,70 +750,61 @@ codeunit 8351 "MCP Config Implementation"
 
     local procedure GetAPIPagePublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
     var
-        PageMetadata: Record "Page Metadata";
+        ApiWebService: Record "Api Web Service";
     begin
-        PageMetadata.SetLoadFields(PageType, APIPublisher, APIGroup);
-        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(APIPublisher, '<>%1', '');
-        PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
-        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
+        SetAPIPageFilters(ApiWebService);
+        ApiWebService.SetFilter(Publisher, '<>%1', '');
 
-        if not PageMetadata.FindSet() then
+        if not ApiWebService.FindSet() then
             exit;
 
         repeat
-            if MCPAPIPublisherGroup.Get(PageMetadata.APIPublisher, PageMetadata.APIGroup) then
+            if IsMicrosoftBetaAPI(ApiWebService) then
                 continue;
-            MCPAPIPublisherGroup."API Publisher" := PageMetadata.APIPublisher;
-            MCPAPIPublisherGroup."API Group" := PageMetadata.APIGroup;
+            if MCPAPIPublisherGroup.Get(ApiWebService.Publisher, ApiWebService.Group) then
+                continue;
+            MCPAPIPublisherGroup."API Publisher" := ApiWebService.Publisher;
+            MCPAPIPublisherGroup."API Group" := ApiWebService.Group;
             MCPAPIPublisherGroup.Insert();
-        until PageMetadata.Next() = 0;
+        until ApiWebService.Next() = 0;
     end;
 
     local procedure GetAPIQueryPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
     var
-        QueryMetadata: Record "Query Metadata";
+        ApiWebService: Record "Api Web Service";
     begin
-        QueryMetadata.SetLoadFields(EntityName, APIPublisher, APIGroup);
-        QueryMetadata.SetFilter(EntityName, '<>%1', '');
-        QueryMetadata.SetFilter(APIPublisher, '<>%1', '');
-        QueryMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+        SetAPIQueryFilters(ApiWebService);
+        ApiWebService.SetFilter(Publisher, '<>%1', '');
 
-        if not QueryMetadata.FindSet() then
+        if not ApiWebService.FindSet() then
             exit;
 
         repeat
-            if MCPAPIPublisherGroup.Get(QueryMetadata.APIPublisher, QueryMetadata.APIGroup) then
+            if MCPAPIPublisherGroup.Get(ApiWebService.Publisher, ApiWebService.Group) then
                 continue;
-            MCPAPIPublisherGroup."API Publisher" := QueryMetadata.APIPublisher;
-            MCPAPIPublisherGroup."API Group" := QueryMetadata.APIGroup;
+            MCPAPIPublisherGroup."API Publisher" := ApiWebService.Publisher;
+            MCPAPIPublisherGroup."API Group" := ApiWebService.Group;
             MCPAPIPublisherGroup.Insert();
-        until QueryMetadata.Next() = 0;
+        until ApiWebService.Next() = 0;
     end;
 
     local procedure GetAPICodeunitPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
     var
-        CodeunitMetadata: Record "CodeUnit Metadata";
+        ApiWebService: Record "Api Web Service";
     begin
-        // TODO(AB#641822): interim — all API codeunits are under microsoft/codeunits until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
-        CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
-        if CodeunitMetadata.IsEmpty() then
+        SetAPICodeunitFilters(ApiWebService);
+        ApiWebService.SetFilter(Publisher, '<>%1', '');
+
+        if not ApiWebService.FindSet() then
             exit;
-        MCPAPIPublisherGroup."API Publisher" := 'microsoft';
-        MCPAPIPublisherGroup."API Group" := 'codeunits';
-        MCPAPIPublisherGroup.Insert();
-        // CodeunitMetadata.SetLoadFields(EntityName, APIPublisher, APIGroup);
-        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
-        // CodeunitMetadata.SetFilter(APIPublisher, '<>%1', '');
-        // if not CodeunitMetadata.FindSet() then
-        //     exit;
-        // repeat
-        //     if MCPAPIPublisherGroup.Get(CodeunitMetadata.APIPublisher, CodeunitMetadata.APIGroup) then
-        //         continue;
-        //     MCPAPIPublisherGroup."API Publisher" := CodeunitMetadata.APIPublisher;
-        //     MCPAPIPublisherGroup."API Group" := CodeunitMetadata.APIGroup;
-        //     MCPAPIPublisherGroup.Insert();
-        // until CodeunitMetadata.Next() = 0;
+
+        repeat
+            if MCPAPIPublisherGroup.Get(ApiWebService.Publisher, ApiWebService.Group) then
+                continue;
+            MCPAPIPublisherGroup."API Publisher" := ApiWebService.Publisher;
+            MCPAPIPublisherGroup."API Group" := ApiWebService.Group;
+            MCPAPIPublisherGroup.Insert();
+        until ApiWebService.Next() = 0;
     end;
 
     internal procedure LookupAPIPublisher(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; var APIPublisher: Text; var APIGroup: Text)
@@ -857,58 +849,64 @@ codeunit 8351 "MCP Config Implementation"
             APIPublisher := MCPAPIPublisherGroup."API Publisher";
     end;
 
-    internal procedure ValidateAPIPageTool(PageId: Integer; ValidateAPIPublisher: Boolean): Record "Page Metadata"
+    internal procedure ValidateAPIPageTool(PageId: Integer; ValidateAPIPublisher: Boolean)
     var
-        PageMetadata: Record "Page Metadata";
+        ApiWebService: Record "Api Web Service";
+        AllObjWithCaption: Record AllObjWithCaption;
     begin
-        if not PageMetadata.Get(PageId) then
+        if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Page, PageId) then
             Error(PageNotFoundErr);
 
-        if PageMetadata.PageType <> PageMetadata.PageType::API then
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        ApiWebService.SetRange("Object ID", PageId);
+        ApiWebService.SetRange(Published, true);
+        if not ApiWebService.FindFirst() then
             Error(InvalidPageTypeErr);
 
         if not ValidateAPIPublisher then
-            exit(PageMetadata);
+            exit;
 
-        if PageMetadata."AL Namespace" = 'Microsoft.API.V1' then
+        if ApiWebService.ALNamespace = 'Microsoft.API.V1' then
             Error(APIToolNotSupportedErr);
 
-        if PageMetadata.APIVersion = 'beta' then
-            Error(APIToolNotSupportedErr);
-
-        exit(PageMetadata);
+        if ApiWebService.Publisher in ['microsoft', ''] then begin
+            ApiWebService.SetFilter(Version, '<>%1', 'beta');
+            if ApiWebService.IsEmpty() then
+                Error(APIToolNotSupportedErr);
+        end;
     end;
 
-    internal procedure ValidateAPIQueryTool(QueryId: Integer): Record "Query Metadata"
+    internal procedure ValidateAPIQueryTool(QueryId: Integer)
     var
-        QueryMetadata: Record "Query Metadata";
+        ApiWebService: Record "Api Web Service";
+        AllObjWithCaption: Record AllObjWithCaption;
     begin
-        if not QueryMetadata.Get(QueryId) then
+        if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Query, QueryId) then
             Error(QueryNotFoundErr);
 
-        if QueryMetadata.EntityName = '' then
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Query);
+        ApiWebService.SetRange("Object ID", QueryId);
+        ApiWebService.SetRange(Published, true);
+        if not ApiWebService.FindFirst() then
             Error(InvalidQueryTypeErr);
 
-        if QueryMetadata."AL Namespace" = 'Microsoft.API.V1' then
+        if ApiWebService.ALNamespace = 'Microsoft.API.V1' then
             Error(InvalidAPIVersionErr);
-
-        exit(QueryMetadata);
     end;
 
-    internal procedure ValidateAPICodeunitTool(CodeunitId: Integer): Record "CodeUnit Metadata"
+    internal procedure ValidateAPICodeunitTool(CodeunitId: Integer)
     var
-        CodeunitMetadata: Record "CodeUnit Metadata";
+        ApiWebService: Record "Api Web Service";
+        AllObjWithCaption: Record AllObjWithCaption;
     begin
-        if not CodeunitMetadata.Get(CodeunitId) then
+        if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Codeunit, CodeunitId) then
             Error(CodeunitNotFoundErr);
 
-        // TODO(AB#641822): interim — validate by namespace until "CodeUnit Metadata" exposes the API subtype. Restore the commented code below when it ships.
-        if CodeunitMetadata."AL Namespace" <> 'Microsoft.API.Codeunits' then
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Codeunit);
+        ApiWebService.SetRange("Object ID", CodeunitId);
+        ApiWebService.SetRange(Published, true);
+        if ApiWebService.IsEmpty() then
             Error(InvalidCodeunitTypeErr);
-        // if CodeunitMetadata.SubType <> CodeunitMetadata.SubType::API then
-        //     Error(InvalidCodeunitTypeErr);
-
-        exit(CodeunitMetadata);
     end;
 
     internal procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -934,106 +932,85 @@ codeunit 8351 "MCP Config Implementation"
 
     local procedure AddAPIPageTools(ConfigId: Guid; APIPublisher: Text; APIGroup: Text)
     var
-        PageMetadata: Record "Page Metadata";
+        ApiWebService: Record "Api Web Service";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(APIPublisher, APIPublisher);
-        PageMetadata.SetFilter(APIGroup, APIGroup);
-        PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
-        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
+        SetAPIPageFilters(ApiWebService);
+        ApiWebService.SetRange(Publisher, APIPublisher);
+        ApiWebService.SetRange(Group, APIGroup);
 
-        if not PageMetadata.FindSet() then
+        if not ApiWebService.FindSet() then
             exit;
 
         repeat
-            if CheckAPIToolExists(ConfigId, PageMetadata.ID, MCPConfigurationTool."Object Type"::Page) then
+            if IsMicrosoftBetaAPI(ApiWebService) then
                 continue;
-            CreateAPIPageTool(ConfigId, PageMetadata.ID, false);
-        until PageMetadata.Next() = 0;
+            if not CheckAPIToolExists(ConfigId, ApiWebService."Object ID", MCPConfigurationTool."Object Type"::Page) then
+                CreateAPIPageTool(ConfigId, ApiWebService."Object ID", false);
+        until ApiWebService.Next() = 0;
     end;
 
     local procedure AddAPIQueryTools(ConfigId: Guid; APIPublisher: Text; APIGroup: Text)
     var
-        QueryMetadata: Record "Query Metadata";
+        ApiWebService: Record "Api Web Service";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        QueryMetadata.SetFilter(EntityName, '<>%1', '');
-        QueryMetadata.SetFilter(APIPublisher, APIPublisher);
-        QueryMetadata.SetFilter(APIGroup, APIGroup);
-        if not QueryMetadata.FindSet() then
+        SetAPIQueryFilters(ApiWebService);
+        ApiWebService.SetRange(Publisher, APIPublisher);
+        ApiWebService.SetRange(Group, APIGroup);
+
+        if not ApiWebService.FindSet() then
             exit;
 
         repeat
-            if CheckAPIToolExists(ConfigId, QueryMetadata.ID, MCPConfigurationTool."Object Type"::Query) then
-                continue;
-            CreateAPIQueryTool(ConfigId, QueryMetadata.ID);
-        until QueryMetadata.Next() = 0;
+            if not CheckAPIToolExists(ConfigId, ApiWebService."Object ID", MCPConfigurationTool."Object Type"::Query) then
+                CreateAPIQueryTool(ConfigId, ApiWebService."Object ID");
+        until ApiWebService.Next() = 0;
     end;
 
     local procedure AddAPICodeunitTools(ConfigId: Guid; APIPublisher: Text; APIGroup: Text)
     var
-        CodeunitMetadata: Record "CodeUnit Metadata";
+        ApiWebService: Record "Api Web Service";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        // TODO(AB#641822): interim — only the microsoft/codeunits group exists; match by namespace until "CodeUnit Metadata" exposes the API fields. Restore the commented code below when it ships.
-        if (APIPublisher <> 'microsoft') or (APIGroup <> 'codeunits') then
-            exit;
-        CodeunitMetadata.SetRange("AL Namespace", 'Microsoft.API.Codeunits');
-        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
-        // CodeunitMetadata.SetFilter(APIPublisher, APIPublisher);
-        // CodeunitMetadata.SetFilter(APIGroup, APIGroup);
+        SetAPICodeunitFilters(ApiWebService);
+        ApiWebService.SetRange(Publisher, APIPublisher);
+        ApiWebService.SetRange(Group, APIGroup);
 
-        if not CodeunitMetadata.FindSet() then
+        if not ApiWebService.FindSet() then
             exit;
 
         repeat
-            if CheckAPIToolExists(ConfigId, CodeunitMetadata.ID, MCPConfigurationTool."Object Type"::Codeunit) then
-                continue;
-            CreateAPICodeunitTool(ConfigId, CodeunitMetadata.ID);
-        until CodeunitMetadata.Next() = 0;
+            if not CheckAPIToolExists(ConfigId, ApiWebService."Object ID", MCPConfigurationTool."Object Type"::Codeunit) then
+                CreateAPICodeunitTool(ConfigId, ApiWebService."Object ID");
+        until ApiWebService.Next() = 0;
     end;
 
     internal procedure AddStandardAPITools(ConfigId: Guid)
     var
-        PageMetadata: Record "Page Metadata";
-        QueryMetadata: Record "Query Metadata";
-        // CodeunitMetadata: Record "CodeUnit Metadata";
+        ApiWebService: Record "Api Web Service";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(APIPublisher, '=%1', '');
-        PageMetadata.SetFilter(APIGroup, '=%1', '');
-        PageMetadata.SetRange(APIVersion, 'v2.0');
-        if PageMetadata.FindSet() then
+        SetAPIPageFilters(ApiWebService);
+        ApiWebService.SetRange(Publisher, '');
+        ApiWebService.SetRange(Group, '');
+        ApiWebService.SetRange(Version, 'v2.0');
+        if ApiWebService.FindSet() then
             repeat
-                if CheckAPIToolExists(ConfigId, PageMetadata.ID, MCPConfigurationTool."Object Type"::Page) then
-                    continue;
-                CreateAPIPageTool(ConfigId, PageMetadata.ID, false);
-            until PageMetadata.Next() = 0;
+                if not CheckAPIToolExists(ConfigId, ApiWebService."Object ID", MCPConfigurationTool."Object Type"::Page) then
+                    CreateAPIPageTool(ConfigId, ApiWebService."Object ID", false);
+            until ApiWebService.Next() = 0;
 
-        QueryMetadata.SetFilter(EntityName, '<>%1', '');
-        QueryMetadata.SetFilter(APIPublisher, '=%1', '');
-        QueryMetadata.SetFilter(APIGroup, '=%1', '');
-        QueryMetadata.SetRange(APIVersion, 'v2.0');
-        if QueryMetadata.FindSet() then
+        Clear(ApiWebService);
+        SetAPIQueryFilters(ApiWebService);
+        ApiWebService.SetRange(Publisher, '');
+        ApiWebService.SetRange(Group, '');
+        ApiWebService.SetRange(Version, 'v2.0');
+        if ApiWebService.FindSet() then
             repeat
-                if CheckAPIToolExists(ConfigId, QueryMetadata.ID, MCPConfigurationTool."Object Type"::Query) then
-                    continue;
-                CreateAPIQueryTool(ConfigId, QueryMetadata.ID);
-            until QueryMetadata.Next() = 0;
-
-        // TODO(AB#641822): standard API codeunits are intentionally NOT added here in the first version. Once "CodeUnit Metadata" exposes the API fields, decide whether "Add all standard APIs" should include them and restore the commented code below.
-        // CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::API);
-        // CodeunitMetadata.SetFilter(APIPublisher, '=%1', '');
-        // CodeunitMetadata.SetFilter(APIGroup, '=%1', '');
-        // CodeunitMetadata.SetRange(APIVersion, 'v2.0');
-        // if CodeunitMetadata.FindSet() then
-        //     repeat
-        //         if CheckAPIToolExists(ConfigId, CodeunitMetadata.ID, MCPConfigurationTool."Object Type"::Codeunit) then
-        //             continue;
-        //         CreateAPICodeunitTool(ConfigId, CodeunitMetadata.ID);
-        //     until CodeunitMetadata.Next() = 0;
+                if not CheckAPIToolExists(ConfigId, ApiWebService."Object ID", MCPConfigurationTool."Object Type"::Query) then
+                    CreateAPIQueryTool(ConfigId, ApiWebService."Object ID");
+            until ApiWebService.Next() = 0;
     end;
 
     internal procedure CheckAPIToolExists(ConfigId: Guid; ObjectId: Integer; ObjectType: Option): Boolean
@@ -1071,132 +1048,143 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure ValidateAPIPageVersion(ObjectId: Integer; APIVersion: Text)
     var
-        PageMetadata: Record "Page Metadata";
+        ApiWebService: Record "Api Web Service";
         Versions: List of [Text];
     begin
-        if not PageMetadata.Get(ObjectId) then
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        Versions := CollectAPIObjectVersions(ApiWebService, ObjectId, true);
+        if Versions.Count() = 0 then
             exit;
 
-        Versions := PageMetadata.APIVersion.Split(',');
         if not Versions.Contains(APIVersion) then
             Error(VersionNotValidErr);
     end;
 
     internal procedure ValidateAPIQueryVersion(ObjectId: Integer; APIVersion: Text)
     var
-        QueryMetadata: Record "Query Metadata";
+        ApiWebService: Record "Api Web Service";
         Versions: List of [Text];
     begin
-        if not QueryMetadata.Get(ObjectId) then
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Query);
+        Versions := CollectAPIObjectVersions(ApiWebService, ObjectId, false);
+        if Versions.Count() = 0 then
             exit;
 
-        Versions := QueryMetadata.APIVersion.Split(',');
         if not Versions.Contains(APIVersion) then
             Error(VersionNotValidErr);
     end;
 
     internal procedure ValidateAPICodeunitVersion(ObjectId: Integer; APIVersion: Text)
     var
-        CodeunitMetadata: Record "CodeUnit Metadata";
-    // Versions: List of [Text];
+        ApiWebService: Record "Api Web Service";
+        Versions: List of [Text];
     begin
-        if not CodeunitMetadata.Get(ObjectId) then
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Codeunit);
+        Versions := CollectAPIObjectVersions(ApiWebService, ObjectId, false);
+        if Versions.Count() = 0 then
             exit;
 
-        // TODO(AB#641822): interim — API codeunits are always 'beta' until "CodeUnit Metadata" exposes APIVersion. Restore the commented code below when it ships.
-        if APIVersion <> 'beta' then
+        if not Versions.Contains(APIVersion) then
             Error(VersionNotValidErr);
-        // Versions := CodeunitMetadata.APIVersion.Split(',');
-        // if not Versions.Contains(APIVersion) then
-        //     Error(VersionNotValidErr);
     end;
 
     internal procedure LookupAPIPageVersions(PageId: Integer; var APIVersion: Text[30])
     var
-        PageMetadata: Record "Page Metadata";
-        TempMCPAPIVersion: Record "MCP API Version";
-        Versions: List of [Text];
-        Version: Text[30];
+        ApiWebService: Record "Api Web Service";
     begin
-        if not PageMetadata.Get(PageId) then
-            exit;
-
-        Versions := PageMetadata.APIVersion.Split(',');
-        foreach Version in Versions do begin
-            TempMCPAPIVersion."API Version" := Version;
-            TempMCPAPIVersion.Insert();
-        end;
-
-        if Page.RunModal(Page::"MCP API Version Lookup", TempMCPAPIVersion) = Action::LookupOK then
-            APIVersion := TempMCPAPIVersion."API Version";
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        LookupAPIObjectVersions(ApiWebService, PageId, APIVersion, true);
     end;
 
     internal procedure LookupAPIQueryVersions(QueryId: Integer; var APIVersion: Text[30])
     var
-        QueryMetadata: Record "Query Metadata";
+        ApiWebService: Record "Api Web Service";
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Query);
+        LookupAPIObjectVersions(ApiWebService, QueryId, APIVersion, false);
+    end;
+
+    internal procedure LookupAPICodeunitVersions(CodeunitId: Integer; var APIVersion: Text[30])
+    var
+        ApiWebService: Record "Api Web Service";
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Codeunit);
+        LookupAPIObjectVersions(ApiWebService, CodeunitId, APIVersion, false);
+    end;
+
+    internal procedure GetHighestAPIPageVersion(PageId: Integer): Text[30]
+    var
+        ApiWebService: Record "Api Web Service";
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        exit(GetHighestAPIObjectVersion(ApiWebService, PageId, true));
+    end;
+
+    internal procedure GetHighestAPIQueryVersion(QueryId: Integer): Text[30]
+    var
+        ApiWebService: Record "Api Web Service";
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Query);
+        exit(GetHighestAPIObjectVersion(ApiWebService, QueryId, false));
+    end;
+
+    internal procedure GetHighestAPICodeunitVersion(CodeunitId: Integer): Text[30]
+    var
+        ApiWebService: Record "Api Web Service";
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Codeunit);
+        exit(GetHighestAPIObjectVersion(ApiWebService, CodeunitId, false));
+    end;
+
+    internal procedure IsAPIPage(PageId: Integer): Boolean
+    var
+        ApiWebService: Record "Api Web Service";
+    begin
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        ApiWebService.SetRange("Object ID", PageId);
+        ApiWebService.SetRange(Published, true);
+        exit(not ApiWebService.IsEmpty());
+    end;
+
+    local procedure GetHighestAPIObjectVersion(var ApiWebService: Record "Api Web Service"; ObjectId: Integer; ExcludeMicrosoftBeta: Boolean): Text[30]
+    var
+        Versions: List of [Text];
+    begin
+        Versions := CollectAPIObjectVersions(ApiWebService, ObjectId, ExcludeMicrosoftBeta);
+        if Versions.Count() = 0 then
+            exit('');
+
+        exit(GetHighestVersion(Versions));
+    end;
+
+    local procedure LookupAPIObjectVersions(var ApiWebService: Record "Api Web Service"; ObjectId: Integer; var APIVersion: Text[30]; ExcludeMicrosoftBeta: Boolean)
+    var
         TempMCPAPIVersion: Record "MCP API Version";
         Versions: List of [Text];
-        Version: Text[30];
+        VersionText: Text;
     begin
-        if not QueryMetadata.Get(QueryId) then
-            exit;
-
-        Versions := QueryMetadata.APIVersion.Split(',');
-        foreach Version in Versions do begin
-            TempMCPAPIVersion."API Version" := Version;
-            TempMCPAPIVersion.Insert();
+        Versions := CollectAPIObjectVersions(ApiWebService, ObjectId, ExcludeMicrosoftBeta);
+        foreach VersionText in Versions do begin
+            TempMCPAPIVersion."API Version" := CopyStr(VersionText, 1, MaxStrLen(TempMCPAPIVersion."API Version"));
+            if TempMCPAPIVersion.Insert() then;
         end;
 
         if Page.RunModal(Page::"MCP API Version Lookup", TempMCPAPIVersion) = Action::LookupOK then
             APIVersion := TempMCPAPIVersion."API Version";
     end;
 
-    internal procedure LookupAPICodeunitVersions(CodeunitId: Integer; var APIVersion: Text[30])
+    local procedure CollectAPIObjectVersions(var ApiWebService: Record "Api Web Service"; ObjectId: Integer; ExcludeMicrosoftBeta: Boolean): List of [Text]
     var
-        CodeunitMetadata: Record "CodeUnit Metadata";
-        TempMCPAPIVersion: Record "MCP API Version";
-    // Versions: List of [Text];
-    // Version: Text[30];
+        Versions: List of [Text];
     begin
-        if not CodeunitMetadata.Get(CodeunitId) then
-            exit;
-
-        // TODO(AB#641822): interim — API codeunits expose only 'beta' until "CodeUnit Metadata" exposes APIVersion. Restore the commented code below when it ships.
-        TempMCPAPIVersion."API Version" := 'beta';
-        TempMCPAPIVersion.Insert();
-        // Versions := CodeunitMetadata.APIVersion.Split(',');
-        // foreach Version in Versions do begin
-        //     TempMCPAPIVersion."API Version" := Version;
-        //     TempMCPAPIVersion.Insert();
-        // end;
-
-        if Page.RunModal(Page::"MCP API Version Lookup", TempMCPAPIVersion) = Action::LookupOK then
-            APIVersion := TempMCPAPIVersion."API Version";
-    end;
-
-    internal procedure GetHighestAPIPageVersion(PageMetadata: Record "Page Metadata"): Text[30]
-    begin
-        if PageMetadata.APIVersion = '' then
-            exit('');
-
-        exit(GetHighestVersion(PageMetadata.APIVersion.Split(',')));
-    end;
-
-    internal procedure GetHighestAPIQueryVersion(QueryMetadata: Record "Query Metadata"): Text[30]
-    begin
-        if QueryMetadata.APIVersion = '' then
-            exit('');
-
-        exit(GetHighestVersion(QueryMetadata.APIVersion.Split(',')));
-    end;
-
-    internal procedure GetHighestAPICodeunitVersion(CodeunitMetadata: Record "CodeUnit Metadata"): Text[30]
-    begin
-        // TODO(AB#641822): interim — API codeunits are always 'beta' until "CodeUnit Metadata" exposes APIVersion. Restore the commented code below when it ships.
-        exit('beta');
-        // if CodeunitMetadata.APIVersion = '' then
-        //     exit('');
-        // exit(GetHighestVersion(CodeunitMetadata.APIVersion.Split(',')));
+        ApiWebService.SetRange("Object ID", ObjectId);
+        ApiWebService.SetRange(Published, true);
+        if ApiWebService.FindSet() then
+            repeat
+                if not (ExcludeMicrosoftBeta and IsMicrosoftBetaAPI(ApiWebService)) then
+                    Versions.Add(ApiWebService.Version);
+            until ApiWebService.Next() = 0;
+        exit(Versions);
     end;
 
     local procedure GetHighestVersion(Versions: List of [Text]): Text[30]
