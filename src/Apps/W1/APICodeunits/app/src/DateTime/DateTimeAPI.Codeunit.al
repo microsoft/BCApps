@@ -101,28 +101,12 @@ codeunit 6012 "Date Time API"
         exit(TimeZone.IsDaylightSavingTime(DateTimeToCheck, TimeZoneId));
     end;
 
-    /// <summary>Returns the current Unix timestamp in seconds.</summary>
-    procedure CreateTimestampSeconds(): BigInteger
-    var
-        UnixTimestamp: Codeunit "Unix Timestamp";
-    begin
-        exit(UnixTimestamp.CreateTimestampSeconds());
-    end;
-
     /// <summary>Returns the Unix timestamp in seconds for the given date/time.</summary>
     procedure CreateTimestampSeconds(DateTimeFrom: DateTime): BigInteger
     var
         UnixTimestamp: Codeunit "Unix Timestamp";
     begin
         exit(UnixTimestamp.CreateTimestampSeconds(DateTimeFrom));
-    end;
-
-    /// <summary>Returns the current Unix timestamp in milliseconds.</summary>
-    procedure CreateTimestampMilliseconds(): BigInteger
-    var
-        UnixTimestamp: Codeunit "Unix Timestamp";
-    begin
-        exit(UnixTimestamp.CreateTimestampMilliseconds());
     end;
 
     /// <summary>Returns the Unix timestamp in milliseconds for the given date/time.</summary>

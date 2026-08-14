@@ -18,33 +18,6 @@ codeunit 6008 "Approvals API"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    /// <summary>Approves the specified workflow step instance.</summary>
-    /// <param name="WorkflowStepInstanceId">The workflow step instance to approve.</param>
-    procedure Approve(WorkflowStepInstanceId: Guid)
-    var
-        WorkflowWebhookSubscription: Codeunit "Workflow Webhook Subscription";
-    begin
-        WorkflowWebhookSubscription.Approve(WorkflowStepInstanceId);
-    end;
-
-    /// <summary>Rejects the specified workflow step instance.</summary>
-    /// <param name="WorkflowStepInstanceId">The workflow step instance to reject.</param>
-    procedure Reject(WorkflowStepInstanceId: Guid)
-    var
-        WorkflowWebhookSubscription: Codeunit "Workflow Webhook Subscription";
-    begin
-        WorkflowWebhookSubscription.Reject(WorkflowStepInstanceId);
-    end;
-
-    /// <summary>Cancels the specified workflow step instance.</summary>
-    /// <param name="WorkflowStepInstanceId">The workflow step instance to cancel.</param>
-    procedure Cancel(WorkflowStepInstanceId: Guid)
-    var
-        WorkflowWebhookSubscription: Codeunit "Workflow Webhook Subscription";
-    begin
-        WorkflowWebhookSubscription.Cancel(WorkflowStepInstanceId);
-    end;
-
     /// <summary>Returns the email address of the direct approver for the given requestor.</summary>
     /// <param name="RequestorEmailAddress">The requestor's email address.</param>
     /// <returns>The direct approver's email address.</returns>
