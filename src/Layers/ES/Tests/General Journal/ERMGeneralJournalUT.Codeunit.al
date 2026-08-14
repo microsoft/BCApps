@@ -43,6 +43,8 @@ codeunit 134920 "ERM General Journal UT"
         RecurringFrequencyNotDisplayedErr: Label 'Recurring Frequency should be displayed as the formatted date formula.';
         RecurringFrequencyNotPersistedErr: Label 'The entered recurring frequency was not persisted.';
         RecurringFrequencyNotClearedErr: Label 'The recurring frequency should be cleared.';
+        YearlyRecurringFrequencyTok: Label '1Y', Locked = true;
+        RecurringFrequencyNotLocalizedErr: Label 'The recurring frequency should be displayed using the localized date formula tokens.';
         IsInitialized: Boolean;
 
     [Test]
@@ -6258,6 +6260,47 @@ codeunit 134920 "ERM General Journal UT"
 
         // [THEN] A date formula validation error is raised
         Assert.ExpectedError(StrSubstNo(InvalidRecurringFrequencyErr, InvalidRecurringFrequencyTok));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RecurringFrequencyDisplaysLocalizedGermanDateFormula()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        RecurringFrequency: DateFormula;
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+        PreviousGlobalLanguage: Integer;
+        InvariantRecurringFrequency: Text;
+        LocalizedRecurringFrequency: Text;
+        ExpectedLocalizedRecurringFrequency: Text;
+    begin
+        // [SCENARIO 646602] In a German session the Recurring Frequency field exposes the localized date formula token (1J for a year) that Edit in Excel exports, not the invariant token (1Y).
+        Initialize();
+
+        // [GIVEN] A recurring journal line with a yearly Recurring Frequency stored while the session is English (invariant tokens)
+        CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
+        Assert.IsTrue(Evaluate(RecurringFrequency, YearlyRecurringFrequencyTok), RecurringFrequencyNotValidErr);
+        GenJournalLine.Validate("Recurring Frequency", RecurringFrequency);
+        GenJournalLine.Modify(true);
+        InvariantRecurringFrequency := Format(GenJournalLine."Recurring Frequency");
+
+        // [GIVEN] The session language is German (DEU)
+        PreviousGlobalLanguage := GlobalLanguage();
+        GlobalLanguage(1031);
+
+        // [WHEN] The Recurring General Journal page is opened on the line
+        RecurringGeneralJournal.Trap();
+        Page.Run(Page::"Recurring General Journal", GenJournalLine);
+        LocalizedRecurringFrequency := RecurringGeneralJournal."Recurring Frequency".Value;
+        RecurringGeneralJournal.Close();
+
+        // [THEN] The field shows the German localized date formula (1J), matching Format() in the German session and differing from the invariant token (1Y)
+        ExpectedLocalizedRecurringFrequency := Format(GenJournalLine."Recurring Frequency");
+        GlobalLanguage(PreviousGlobalLanguage);
+        Assert.AreEqual(ExpectedLocalizedRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
+        Assert.AreNotEqual(InvariantRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
     end;
 
     local procedure CreateRecurringGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalTemplate: Record "Gen. Journal Template"; var GenJournalBatch: Record "Gen. Journal Batch")
