@@ -6147,7 +6147,8 @@ codeunit 142051 "ERM Sales/Purchase Tax II"
         ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
         ValueEntry.SetRange("Document No.", DocumentNo);
         ValueEntry.CalcSums("Cost Amount (Actual)");
-        Assert.AreEqual(ExpectedAmount, ValueEntry."Cost Amount (Actual)", WrongValueEntryAmountErr);
+        Assert.AreNearlyEqual(
+          ExpectedAmount, ValueEntry."Cost Amount (Actual)", LibraryERM.GetAmountRoundingPrecision(), WrongValueEntryAmountErr);
     end;
 
     local procedure VerifyUnitCostWithTaxInJobLedgEntry(PurchLine: Record "Purchase Line"; DocNo: Code[20])

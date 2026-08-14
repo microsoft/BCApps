@@ -25,7 +25,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         SubcontractingAppIdTok: Label '1f32a50d-0057-4b95-b5df-cc04d7e89470', Locked = true;
         SubcontractingAppInstalledErr: Label 'Cannot activate legacy subcontracting while the Subcontracting app is installed. Use the Subcontracting app features instead.';
         OpenSubcontractingTransfersExistErr: Label 'There are still open transfer orders with WIP Items. All subcontracting transfer orders must be completed before disabling Legacy Subcontracting.';
-        OpenWIPPurchaseOrdersExistErr: Label 'There are still open subcontracting purchase orders. All subcontracting purchase orders must be completed before disabling Legacy Subcontracting.';
+        OpenWIPPurchaseOrdersExistErr: Label 'There are still open purchase orders with WIP Items. All purchase orders with WIP Items must be completed before disabling Legacy Subcontracting.';
         MigrationNotAllowedInProductionErr: Label 'To help you migrate safely, disabling Legacy Subcontracting and moving to the Subcontracting app is currently limited to sandbox environments. Test the migration in a sandbox copy of this environment first to validate the transition. Production environments will be enabled in a future release.';
         InstallSubcontractingAppQst: Label 'The Subcontracting app is required to disable Legacy Subcontracting. Do you want to install it now?';
         InstallITMigrationAppQst: Label 'The IT Subcontracting Migration app is needed to migrate your data. Do you want to install it now?';
@@ -59,7 +59,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         if not IsMigrationAllowedInCurrentEnvironment() then
             Error(MigrationNotAllowedInProductionErr);
 
-        if OpenSubcontractingTransfersExist() then
+        if OpenWIPTransfersExist() then
             Error(OpenSubcontractingTransfersExistErr);
 
         if OpenWIPPurchaseLinesExist() then
@@ -98,14 +98,20 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
     end;
 
     /// <summary>
-    /// Returns whether the database contains Legacy Subcontracting data based on the presence of WIP Item related data in open transfer orders, open purchase orders, or capacity ledger entries.
+    /// Returns whether the database contains Legacy Subcontracting data based on the presence of subcontracting purchase orders, subcontracting transfer orders, WIP Item related data, capacity ledger entries, or subcontracting prices.
     /// </summary>
     internal procedure DatabaseHasLegacySubcontractingData(): Boolean
     begin
+        if SubcontractingPurchaseOrdersExist() then
+            exit(true);
+
+        if SubcontractingTransferOrdersExist() then
+            exit(true);
+
         if WIPItemCapacityLedgerEntriesExist() then
             exit(true);
 
-        if OpenSubcontractingTransfersExist() then
+        if OpenWIPTransfersExist() then
             exit(true);
 
         if OpenWIPPurchaseLinesExist() then
@@ -178,12 +184,30 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         exit(Result);
     end;
 
-    local procedure OpenSubcontractingTransfersExist(): Boolean
+    local procedure OpenWIPTransfersExist(): Boolean
     var
         TransferLine: Record "Transfer Line";
     begin
         TransferLine.SetRange("WIP Item", true);
         TransferLine.SetFilter("WIP Outstanding Qty.", '<>%1', 0);
+        exit(not TransferLine.IsEmpty());
+    end;
+
+    local procedure SubcontractingPurchaseOrdersExist(): Boolean
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
+        PurchaseLine.SetFilter("Prod. Order Line No.", '<>%1', 0);
+        exit(not PurchaseLine.IsEmpty());
+    end;
+
+    local procedure SubcontractingTransferOrdersExist(): Boolean
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.SetFilter("Prod. Order No.", '<>%1', '');
         exit(not TransferLine.IsEmpty());
     end;
 

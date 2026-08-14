@@ -91,8 +91,13 @@ table 30130 "Shpfy Order Shipping Charges"
 
     trigger OnDelete()
     var
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         DataCapture: Record "Shpfy Data Capture";
     begin
+        OrderTaxLine.SetRange("Parent Id", Rec."Shopify Shipping Line Id");
+        if not OrderTaxLine.IsEmpty() then
+            OrderTaxLine.DeleteAll(false);
+
         DataCapture.SetRange("Linked To Table", Database::"Shpfy Order Shipping Charges");
         DataCapture.SetRange("Linked To Id", Rec.SystemId);
         if not DataCapture.IsEmpty then

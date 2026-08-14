@@ -206,7 +206,8 @@ table 98 "General Ledger Setup"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                 "Initial Entry Due Date" = field("Date Filter")));
+                                                                                 "Initial Entry Due Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Cust. Balances Due';
             Editable = false;
             FieldClass = FlowField;
@@ -220,7 +221,8 @@ table 98 "General Ledger Setup"
             AutoFormatType = 1;
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Initial Entry Due Date" = field("Date Filter")));
+                                                                                   "Initial Entry Due Date" = field("Date Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Vendor Balances Due';
             Editable = false;
             FieldClass = FlowField;
@@ -443,6 +445,16 @@ table 98 "General Ledger Setup"
             Caption = 'Bank Account Nos.';
             ToolTip = 'Specifies the code for the number series that will be used to assign numbers to bank accounts.';
             TableRelation = "No. Series";
+        }
+        /// <summary>
+        /// Number series used for assigning spend request numbers during spend request creation.
+        /// </summary>
+        field(64; "Spend Request No. Series"; Code[20])
+        {
+            Caption = 'Spend Request No. Series';
+            ToolTip = 'Specifies the code for the number series that will be used to assign numbers to spend requests.';
+            TableRelation = "No. Series";
+            DataClassification = CustomerContent;
         }
         /// <summary>
         /// Combines G/L entries with identical account, posting date, and dimensions into summary entries.

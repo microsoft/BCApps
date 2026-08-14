@@ -483,7 +483,8 @@ table 23 Vendor
             CalcFormula = - sum("Detailed Vendor Ledg. Entry".Amount where("Vendor No." = field("No."),
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Balance';
             Editable = false;
             FieldClass = FlowField;
@@ -495,7 +496,8 @@ table 23 Vendor
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Balance (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -508,7 +510,8 @@ table 23 Vendor
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                            "Posting Date" = field("Date Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Net Change';
             Editable = false;
             FieldClass = FlowField;
@@ -521,7 +524,8 @@ table 23 Vendor
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                    "Posting Date" = field("Date Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Net Change (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -574,7 +578,8 @@ table 23 Vendor
                                                                            "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Balance Due';
             Editable = false;
             FieldClass = FlowField;
@@ -587,7 +592,8 @@ table 23 Vendor
                                                                                    "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Balance Due (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -1274,6 +1280,18 @@ table 23 Vendor
         {
             Caption = 'Self-Billing Agreement';
             ToolTip = 'Specifies the value of the Self-Billing Agreement field.';
+
+            trigger OnValidate()
+            begin
+                if not Rec."Self-Billing Agreement" then
+                    Rec.TestField("Self-Billing Invoice Nos.", '');
+            end;
+        }
+        field(181; "Self-Billing Invoice Nos."; Code[20])
+        {
+            Caption = 'Self-Billing Invoice Nos.';
+            ToolTip = 'Specifies the number series that is used to assign numbers to self-billed purchase invoices for this vendor. If it is empty, the number series from the Posted Self-Billing Inv. Nos. field in Purchases & Payables Setup is used.';
+            TableRelation = "No. Series";
         }
         field(288; "Preferred Bank Account Code"; Code[20])
         {

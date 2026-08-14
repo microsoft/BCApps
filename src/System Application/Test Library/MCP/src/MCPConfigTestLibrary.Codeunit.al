@@ -13,9 +13,11 @@ codeunit 130131 "MCP Config Test Library"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
 
-    procedure LookupAPIPageTools(var PageMetadata: Record "Page Metadata"): Boolean
+    procedure LookupAPIObjects(): Boolean
+    var
+        TempMCPAPIObjectBuffer: Record "MCP API Object Buffer";
     begin
-        exit(MCPConfigImplementation.LookupAPIPageTools(PageMetadata));
+        exit(MCPConfigImplementation.LookupAPIObjects(TempMCPAPIObjectBuffer));
     end;
 
     procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -26,11 +28,6 @@ codeunit 130131 "MCP Config Test Library"
     procedure AddStandardAPITools(ConfigId: Guid)
     begin
         MCPConfigImplementation.AddStandardAPITools(ConfigId);
-    end;
-
-    procedure LookupAPIQueryTools(var QueryMetadata: Record "Query Metadata"): Boolean
-    begin
-        exit(MCPConfigImplementation.LookupAPIQueryTools(QueryMetadata));
     end;
 
     procedure LookupAPIPublisher(var APIPublisher: Text; var APIGroup: Text)

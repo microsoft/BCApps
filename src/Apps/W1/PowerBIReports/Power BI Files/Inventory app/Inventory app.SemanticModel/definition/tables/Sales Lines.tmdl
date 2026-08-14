@@ -50,15 +50,33 @@ table 'Sales Lines'
 			VAR Endpoint = "&page=516&"
 			VAR BaseLink = [Base Link] & Endpoint
 			VAR OrderBaseLink = BaseLink & "filter='Sales Line'.'Document Type' IS 'Order'"
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Sales Lines'[Item No.]),'Sales Lines'[Item No.], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Sales Lines'[dimensionSetID]), 'Sales Lines'[dimensionSetID], "|")
-			
-			VAR ItemFilter = " AND 'Sales Line'.'No.' IS '" & Items & "'"
-			VAR DateFilter = " AND 'Sales Line'.'Shipment Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Sales Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( OrderBaseLink )
+			    + LEN ( " AND 'Sales Line'.'No.' IS ''" )
+			    + SUMX ( VALUES ( 'Sales Lines'[Item No.] ), LEN ( 'Sales Lines'[Item No.] ) + 1 )
+			    + LEN ( " AND 'Sales Line'.'Shipment Date' IS ''" ) + ProjectedRangedLength
+			    + LEN ( " AND 'Sales Line'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Sales Lines'[dimensionSetID] ), LEN ( 'Sales Lines'[dimensionSetID] ) + 1 )
 			RETURN
-			OrderBaseLink & ItemFilter & DateFilter & DimensionFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        OrderBaseLink
+			            & " AND 'Sales Line'.'No.' IS '" & CONCATENATEX(VALUES('Sales Lines'[Item No.]),'Sales Lines'[Item No.], "|") & "'"
+			            & " AND 'Sales Line'.'Shipment Date' IS '" & [Ranged] & "'"
+			            & " AND 'Sales Line'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Sales Lines'[dimensionSetID]), 'Sales Lines'[dimensionSetID], "|") & "'",
+			        BaseLink
+			    )
 		displayFolder: _Back Link
 		lineageTag: 717f4d77-4e83-4aaf-8df1-8fc0fc408401
 
@@ -67,15 +85,33 @@ table 'Sales Lines'
 			VAR Endpoint = "&page=516&"
 			VAR BaseLink = [Base Link] & Endpoint
 			VAR OrderBaseLink = BaseLink & "filter='Sales Line'.'Document Type' IS 'Return Order'"
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Sales Lines'[Item No.]),'Sales Lines'[Item No.], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Sales Lines'[dimensionSetID]), 'Sales Lines'[dimensionSetID], "|")
-			
-			VAR ItemFilter = " AND 'Sales Line'.'No.' IS '" & Items & "'"
-			VAR DateFilter = " AND 'Sales Line'.'Shipment Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Sales Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( OrderBaseLink )
+			    + LEN ( " AND 'Sales Line'.'No.' IS ''" )
+			    + SUMX ( VALUES ( 'Sales Lines'[Item No.] ), LEN ( 'Sales Lines'[Item No.] ) + 1 )
+			    + LEN ( " AND 'Sales Line'.'Shipment Date' IS ''" ) + ProjectedRangedLength
+			    + LEN ( " AND 'Sales Line'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Sales Lines'[dimensionSetID] ), LEN ( 'Sales Lines'[dimensionSetID] ) + 1 )
 			RETURN
-			OrderBaseLink & ItemFilter & DateFilter & DimensionFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        OrderBaseLink
+			            & " AND 'Sales Line'.'No.' IS '" & CONCATENATEX(VALUES('Sales Lines'[Item No.]),'Sales Lines'[Item No.], "|") & "'"
+			            & " AND 'Sales Line'.'Shipment Date' IS '" & [Ranged] & "'"
+			            & " AND 'Sales Line'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Sales Lines'[dimensionSetID]), 'Sales Lines'[dimensionSetID], "|") & "'",
+			        BaseLink
+			    )
 		displayFolder: _Back Link
 		lineageTag: d051088a-53de-4963-883d-6c6c34714bcf
 
