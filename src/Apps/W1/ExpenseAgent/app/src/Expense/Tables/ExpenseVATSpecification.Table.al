@@ -249,6 +249,7 @@ table 6918 "Expense VAT Specification"
         field(43; Recalculate; Boolean)
         {
             Caption = 'Recalculate';
+            InitValue = true;
             ToolTip = 'Specifies whether the VAT specification line should be recalculated automatically.';
         }
     }
