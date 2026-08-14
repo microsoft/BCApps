@@ -27,8 +27,7 @@ codeunit 6243 "Sust. Entry Reverse Mgt."
         CreateReversalEntry(SustLedgEntry, NewSustLedgEntry);
         UpdateOriginalEntry(SustLedgEntry, NewSustLedgEntry."Entry No.");
 
-        // TODO: replace '0000ZZZ' with a telemetry event ID allocated for the reversal feature.
-        FeatureTelemetry.LogUsage('0000ZZZ', SustainabilityTelemetryFeatureLbl, LedgerEntryReversedTelemetryLbl);
+        FeatureTelemetry.LogUsage('0000V2Q', SustainabilityTelemetryFeatureLbl, LedgerEntryReversedTelemetryLbl);
 
         OnAfterReverseEntry(SustLedgEntry, NewSustLedgEntry);
     end;
