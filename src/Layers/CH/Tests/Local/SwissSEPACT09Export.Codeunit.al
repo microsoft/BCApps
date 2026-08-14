@@ -898,7 +898,6 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
     procedure XMLExport_PaymentType22_CHF_BlankClearingNo()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        CHMgt: Codeunit CHMgt;
         LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         ExportFile: File;
         XMLInStream: InStream;
@@ -912,9 +911,8 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
 
         // [GIVEN] Vendor with bank account having "Payment Form" = "Bank Payment Domestic", blank "Clearing No." and "SWIFT Code", and a domestic IBAN
         VendorNo := CreateVendorWithBankAccount(PaymentFormGbl::"Bank Payment Domestic", '', '', '', GetIBAN(true));
-        // [GIVEN] The clearing number can be derived from IBAN positions 5-9
-        ExpectedMmbId := CHMgt.GetClearingNoFromIBAN(GetIBAN(true));
-        Assert.AreNotEqual('', ExpectedMmbId, 'Derived clearing number should not be blank');
+        // [GIVEN] Positions 5-9 of the domestic IBAN 'CH3808888123456789012' yield clearing member id '8888'
+        ExpectedMmbId := '8888';
 
         // [GIVEN] Vendor payment journal line with "Currency Code" = ""
         CreatePaymentJournalLine(GenJournalLine, VendorNo, '', '',
