@@ -10,6 +10,7 @@ codeunit 148222 "Sust. Reversal Tests"
 
     var
         Assert: Codeunit Assert;
+        LibrarySustainability: Codeunit "Library - Sustainability";
         IsInitialized: Boolean;
 
     [Test]
@@ -104,6 +105,48 @@ codeunit 148222 "Sust. Reversal Tests"
         // [THEN] An error is thrown telling to use corrective document
         asserterror SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
         Assert.ExpectedError('posted from a document');
+    end;
+
+    [Test]
+    procedure ReverseBlockedAccountThrowsError()
+    var
+        SustLedgEntry: Record "Sustainability Ledger Entry";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
+    begin
+        // [SCENARIO] Reversal mirrors posting and cannot reverse into a blocked account
+        // [GIVEN] A sustainability entry whose account has since been blocked
+        Initialize();
+        CreateSustLedgerEntry(SustLedgEntry, 'SUSTJNL', 'DEFAULT');
+        SustainabilityAccount.Get(SustLedgEntry."Account No.");
+        SustainabilityAccount.Validate(Blocked, true);
+        SustainabilityAccount.Modify(true);
+
+        // [WHEN] The user tries to reverse it
+        // [THEN] An error is thrown because the account is blocked
+        asserterror SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
+        Assert.ExpectedError('Blocked');
+    end;
+
+    [Test]
+    procedure ReverseNonDirectPostingAccountThrowsError()
+    var
+        SustLedgEntry: Record "Sustainability Ledger Entry";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
+    begin
+        // [SCENARIO] Reversal mirrors posting and cannot reverse into an account that no longer allows direct posting
+        // [GIVEN] A sustainability entry whose account no longer allows direct posting
+        Initialize();
+        CreateSustLedgerEntry(SustLedgEntry, 'SUSTJNL', 'DEFAULT');
+        SustainabilityAccount.Get(SustLedgEntry."Account No.");
+        SustainabilityAccount.Validate("Direct Posting", false);
+        SustainabilityAccount.Modify(true);
+
+        // [WHEN] The user tries to reverse it
+        // [THEN] An error is thrown because direct posting is not allowed
+        asserterror SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
+        Assert.ExpectedError('Direct Posting');
     end;
 
     [Test]
@@ -300,6 +343,24 @@ codeunit 148222 "Sust. Reversal Tests"
         IsInitialized := true;
     end;
 
+    local procedure GetReadyToPostAccountNo(): Code[20]
+    var
+        SustainabilityAccount: Record "Sustainability Account";
+    begin
+        // Reuse an existing ready-to-post account so the fixed codes created by the
+        // library helper are not inserted twice within the same test transaction.
+        SustainabilityAccount.SetRange("Account Type", SustainabilityAccount."Account Type"::Posting);
+        SustainabilityAccount.SetRange(Blocked, false);
+        SustainabilityAccount.SetRange("Direct Posting", true);
+        SustainabilityAccount.SetFilter(Category, '<>%1', '');
+        SustainabilityAccount.SetFilter(Subcategory, '<>%1', '');
+        if SustainabilityAccount.FindFirst() then
+            exit(SustainabilityAccount."No.");
+
+        SustainabilityAccount := LibrarySustainability.GetAReadyToPostAccount();
+        exit(SustainabilityAccount."No.");
+    end;
+
     local procedure CreateSustLedgerEntry(var SustLedgEntry: Record "Sustainability Ledger Entry"; JournalTemplateName: Code[10]; BatchName: Code[10])
     var
         NextEntryNo: Integer;
@@ -312,6 +373,7 @@ codeunit 148222 "Sust. Reversal Tests"
 
         SustLedgEntry.Init();
         SustLedgEntry."Entry No." := NextEntryNo;
+        SustLedgEntry."Account No." := GetReadyToPostAccountNo();
         SustLedgEntry."Posting Date" := WorkDate();
         SustLedgEntry."Document No." := CopyStr(Format(CreateGuid()), 1, 20);
         SustLedgEntry."Journal Template Name" := JournalTemplateName;
@@ -336,6 +398,7 @@ codeunit 148222 "Sust. Reversal Tests"
 
         SustLedgEntry.Init();
         SustLedgEntry."Entry No." := NextEntryNo;
+        SustLedgEntry."Account No." := GetReadyToPostAccountNo();
         SustLedgEntry."Posting Date" := WorkDate();
         SustLedgEntry."Document No." := CopyStr(Format(CreateGuid()), 1, 20);
         SustLedgEntry."Journal Template Name" := 'SUSTJNL';

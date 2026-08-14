@@ -1,5 +1,8 @@
 namespace Microsoft.Sustainability.Ledger;
 
+using Microsoft.Finance.Dimension;
+using Microsoft.Sustainability.Account;
+using System.Telemetry;
 using System.Utilities;
 
 codeunit 6243 "Sust. Entry Reverse Mgt."
@@ -11,15 +14,23 @@ codeunit 6243 "Sust. Entry Reverse Mgt."
         DocumentEntryErr: Label 'Entry No. %1 was posted from a document and cannot be reversed from here. Use a corrective document instead.', Comment = '%1 = Entry No.';
         ConfirmReverseQst: Label 'Do you want to reverse the selected sustainability ledger entry?';
         ConfirmReverseMultipleQst: Label 'Do you want to reverse %1 sustainability ledger entries?', Comment = '%1 = Count';
+        SustainabilityTelemetryFeatureLbl: Label 'Sustainability', Locked = true;
+        LedgerEntryReversedTelemetryLbl: Label 'Sustainability Ledger Entry Reversed', Locked = true;
 
     procedure ReverseEntry(var SustLedgEntry: Record "Sustainability Ledger Entry")
     var
         NewSustLedgEntry: Record "Sustainability Ledger Entry";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         ValidateEntryForReversal(SustLedgEntry);
 
         CreateReversalEntry(SustLedgEntry, NewSustLedgEntry);
         UpdateOriginalEntry(SustLedgEntry, NewSustLedgEntry."Entry No.");
+
+        // TODO: replace '0000ZZZ' with a telemetry event ID allocated for the reversal feature.
+        FeatureTelemetry.LogUsage('0000ZZZ', SustainabilityTelemetryFeatureLbl, LedgerEntryReversedTelemetryLbl);
+
+        OnAfterReverseEntry(SustLedgEntry, NewSustLedgEntry);
     end;
 
     procedure ReverseEntries(var SustLedgEntry: Record "Sustainability Ledger Entry"): Integer
@@ -44,7 +55,7 @@ codeunit 6243 "Sust. Entry Reverse Mgt."
 
         // Validate all entries first (all-or-nothing)
         SustLedgEntryToReverse.Copy(SustLedgEntry);
-        SustLedgEntryToReverse.SetLoadFields("Entry No.", Reversed, "Journal Template Name");
+        SustLedgEntryToReverse.SetLoadFields("Entry No.", Reversed, "Journal Template Name", "Account No.", "Dimension Set ID");
         if SustLedgEntryToReverse.FindSet() then
             repeat
                 ValidateEntryForReversal(SustLedgEntryToReverse);
@@ -60,12 +71,35 @@ codeunit 6243 "Sust. Entry Reverse Mgt."
     end;
 
     local procedure ValidateEntryForReversal(SustLedgEntry: Record "Sustainability Ledger Entry")
+    var
+        SustainabilityAccount: Record "Sustainability Account";
+        DimMgt: Codeunit DimensionManagement;
+        TableID: array[10] of Integer;
+        No: array[10] of Code[20];
     begin
         if SustLedgEntry.Reversed then
             Error(AlreadyReversedErr, SustLedgEntry."Entry No.");
 
         if SustLedgEntry."Journal Template Name" = '' then
             Error(DocumentEntryErr, SustLedgEntry."Entry No.");
+
+        // Keep the reversal consistent with posting. The checks below mirror those that
+        // "Sustainability Jnl.-Check" runs during posting, so we cannot reverse into a state
+        // that posting itself would reject (e.g. a now-blocked account, an account that no
+        // longer allows direct posting, or a blocked dimension combination).
+        // IMPORTANT: if you add or change checks/side-effects in "Sustainability Post Mgt" or
+        // "Sustainability Jnl.-Check", revisit this codeunit so posting and reversal stay in sync.
+        SustainabilityAccount.Get(SustLedgEntry."Account No.");
+        SustainabilityAccount.CheckAccountReadyForPosting();
+        SustainabilityAccount.TestField("Direct Posting");
+
+        if not DimMgt.CheckDimIDComb(SustLedgEntry."Dimension Set ID") then
+            Error(DimMgt.GetDimCombErr());
+
+        TableID[1] := Database::"Sustainability Account";
+        No[1] := SustLedgEntry."Account No.";
+        if not DimMgt.CheckDimValuePosting(TableID, No, SustLedgEntry."Dimension Set ID") then
+            Error(DimMgt.GetDimValuePostingErr());
     end;
 
     local procedure CreateReversalEntry(OriginalEntry: Record "Sustainability Ledger Entry"; var NewEntry: Record "Sustainability Ledger Entry")
@@ -97,6 +131,7 @@ codeunit 6243 "Sust. Entry Reverse Mgt."
         NewEntry."Reversed Entry No." := OriginalEntry."Entry No.";
         NewEntry."Reversed by Entry No." := 0;
 
+        OnBeforeInsertReversalSustainabilityLedgerEntry(NewEntry, OriginalEntry);
         NewEntry.Insert(true);
     end;
 
@@ -105,5 +140,15 @@ codeunit 6243 "Sust. Entry Reverse Mgt."
         OriginalEntry.Reversed := true;
         OriginalEntry."Reversed by Entry No." := ReversalEntryNo;
         OriginalEntry.Modify(true);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertReversalSustainabilityLedgerEntry(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; OriginalSustainabilityLedgerEntry: Record "Sustainability Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterReverseEntry(OriginalSustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; ReversalSustainabilityLedgerEntry: Record "Sustainability Ledger Entry")
+    begin
     end;
 }
