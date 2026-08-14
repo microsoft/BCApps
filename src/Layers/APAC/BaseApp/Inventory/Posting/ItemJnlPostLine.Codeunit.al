@@ -3694,9 +3694,7 @@ codeunit 22 "Item Jnl.-Post Line"
                     if Expected then
                         DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine.Quantity + RoundingResidualAmountACY
                     else
-                        DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity";
-                    OvhdCostACY := 0;
-                    PurchVarACY := 0;
+                        DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity"
                 end else begin
                 DirCostACY := ACYMgt.CalcACYAmt(DirCost, ItemJnlLine."Posting Date", false);
                 OvhdCostACY := ACYMgt.CalcACYAmt(OvhdCost, ItemJnlLine."Posting Date", false);
@@ -3707,6 +3705,7 @@ codeunit 22 "Item Jnl.-Post Line"
                       CurrExchRate.ExchangeRate(
                         ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency")),
                     Currency."Unit-Amount Rounding Precision");
+                PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
                 end;
             end else begin
                 DirCostACY := ACYMgt.CalcACYAmt(DirCost, ItemJnlLine."Posting Date", false);
@@ -3719,7 +3718,6 @@ codeunit 22 "Item Jnl.-Post Line"
                         ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency")),
                     Currency."Unit-Amount Rounding Precision");
             end;
-                PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
             end;
         CalcUnitCost := (DirCost <> 0) and (ItemJnlLine."Unit Cost" = 0);
 
@@ -6086,6 +6084,10 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure ShouldUseDocumentAmountForACY(): Boolean
     begin
+        // Only when the document currency equals the Additional Reporting Currency, and there are no
+        // cost components ("Unit Cost (ACY)" * Quantity would otherwise not equal the document ACY
+        // amount): overhead/indirect cost splits the amount, a discount makes it net, and Standard
+        // costing carries the standard (not the actual document) cost in "Unit Cost (ACY)".
         exit(
         (ItemJnlLine."Source Currency Code" = GLSetup."Additional Reporting Currency") and
         (Item."Costing Method" <> Item."Costing Method"::Standard) and
