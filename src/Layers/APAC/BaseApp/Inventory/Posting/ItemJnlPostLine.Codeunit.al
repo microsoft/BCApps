@@ -6087,10 +6087,6 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure ShouldUseDocumentAmountForACY(): Boolean
     begin
-        // Only when the document currency equals the Additional Reporting Currency, and there are no
-        // cost components ("Unit Cost (ACY)" * Quantity would otherwise not equal the document ACY
-        // amount): overhead/indirect cost splits the amount, a discount makes it net, and Standard
-        // costing carries the standard (not the actual document) cost in "Unit Cost (ACY)".
         exit(
         (ItemJnlLine."Source Currency Code" = GLSetup."Additional Reporting Currency") and
         (Item."Costing Method" <> Item."Costing Method"::Standard) and
