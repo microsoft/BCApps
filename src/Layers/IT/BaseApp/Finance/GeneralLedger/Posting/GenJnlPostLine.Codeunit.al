@@ -5855,10 +5855,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     AccNo2 := GetCustDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
                                     AccNo3 := GetCustomerReceivablesAccount(GenJournalLine, CustomerPostingGroup);
                                 end;
-                            // Bug 643355: Vendors are intentionally not handled here. In a multi-posting-group FCY
-                            // application the unrealized gain/loss must not be transferred between the invoice's and the
-                            // payment's payables accounts; both posting groups' control accounts already net to zero. No
-                            // compensating pair is posted for vendors, so AccNo2/AccNo3 are left blank and the guard below skips.
                             GenJournalLine."Account Type"::Employee:
                                 begin
                                     EmployeePostingGroup.Get(GenJournalLine."Posting Group");
