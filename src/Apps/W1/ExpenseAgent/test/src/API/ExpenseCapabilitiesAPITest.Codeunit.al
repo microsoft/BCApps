@@ -178,6 +178,8 @@ codeunit 148318 "Expense Capabilities API Test"
         if ValueArray.Count() = 0 then
             exit(false);
         for CapabilityIndex := 0 to ValueArray.Count() - 1 do begin
+            Clear(CapabilityToken);
+            Clear(CapabilityObject);
             ValueArray.Get(CapabilityIndex, CapabilityToken);
             CapabilityObject := CapabilityToken.AsObject();
             if LowerCase(CapabilityObject.GetText('capabilityName')) = LowerCase(CapabilityName) then
