@@ -23,10 +23,12 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
+using Microsoft.Warehouse.InventoryDocument;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Worksheet;
+using System.Environment.Configuration;
 
 codeunit 149920 "Subc. Invt. Put-away E2E WIP"
 {
@@ -43,6 +45,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -55,9 +58,13 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         IsInitialized: Boolean;
 
     local procedure Initialize()
+    var
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Invt. Put-away E2E WIP");
         LibrarySetupStorage.Restore();
+        LibraryApplicationArea.EnablePremiumSetup();
+        ApplicationAreaMgmtFacade.RefreshExperienceTierCurrentCompany();
 
         if IsInitialized then
             exit;
@@ -294,6 +301,394 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         Assert.AreNotEqual(0, SubcWarehouseLibrary.GetPostedInvtPutAwayLineCountForTransferOrder(ReturnTransferHeader."No."),
             'The tracked WIP return must create a posted inventory put-away line.');
     end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    procedure WipTransferInventoryPickCreationAllowsBlankBinWithAccordingToBin()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        InTransitLocation: Record Location;
+        ProductionLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        ForwardTransferHeader: Record "Transfer Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO TP-001] A WIP Inventory Pick is created with a blank bin when Special Equipment is According to Bin.
+        Initialize();
+        Quantity := 7;
+
+        // [GIVEN] Bin-mandatory production location with Require Pick and According to Bin setup, but no default bin.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.SetTransferWIPItemOnRoutingLine(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithBinMandatoryOnly(ProductionLocation);
+        ProductionLocation."Require Pick" := true;
+        ProductionLocation."Special Equipment" := ProductionLocation."Special Equipment"::"According to Bin";
+        ProductionLocation.Modify(true);
+        LibraryWarehouse.CreateBin(Bin, ProductionLocation.Code, 'PICK', '', '');
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, ProductionLocation.Code, true);
+
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Location Code" := ProductionLocation.Code;
+        Vendor.Modify(true);
+        SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer(ProductionLocation.Code, Vendor."Subc. Location Code", InTransitLocation.Code);
+
+        // [GIVEN] Released production order, subcontracting purchase order, and WIP transfer with no source bin.
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, ProductionLocation.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader);
+        SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ForwardTransferHeader);
+
+        TransferLine.SetRange("Document No.", ForwardTransferHeader."No.");
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.FindFirst();
+        TransferLine.Validate("Transfer-from Bin Code", '');
+        TransferLine.Modify(true);
+
+        // [WHEN] An Inventory Pick is created for the released WIP transfer.
+        SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(ForwardTransferHeader, WarehouseActivityHeader);
+
+        // [THEN] Creation succeeds with one WIP activity line and no prefilled bin or Special Equipment Code.
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.FindFirst();
+        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
+        Assert.AreEqual("Subc. Purchase Line Type"::None, WarehouseActivityLine."Subc. Purchase Line Type", 'A transfer WIP line must not have a purchase line type.');
+        Assert.AreEqual('', WarehouseActivityLine."Bin Code", 'The WIP activity line must keep its bin code blank.');
+        Assert.AreEqual('', WarehouseActivityLine."Special Equipment Code", 'A blank WIP bin must not require special equipment.');
+        Assert.AreEqual(Quantity, WarehouseActivityLine.Quantity, 'The WIP activity line must retain the transfer quantity.');
+        Assert.AreEqual(0, WarehouseActivityLine."Qty. (Base)", 'The WIP activity line must retain zero base quantity semantics.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    procedure WipTransferInventoryPickPostingPreservesPostedMetadata()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        InTransitLocation: Record Location;
+        ProductionLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        Vendor: Record Vendor;
+        ForwardTransferHeader: Record "Transfer Header";
+        PostedInvtPickLine: Record "Posted Invt. Pick Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseEntry: Record "Warehouse Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+        ItemLedgerEntryCountBefore: Integer;
+        WarehouseEntryCountBefore: Integer;
+    begin
+        // [SCENARIO TP-002] Posted WIP Inventory Pick metadata preserves zero-base and no-physical-entry behavior.
+        Initialize();
+        Quantity := 7;
+
+        // [GIVEN] Bin-mandatory production location with Require Pick and According to Bin setup, but no default bin.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.SetTransferWIPItemOnRoutingLine(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithBinMandatoryOnly(ProductionLocation);
+        ProductionLocation."Require Pick" := true;
+        ProductionLocation."Special Equipment" := ProductionLocation."Special Equipment"::"According to Bin";
+        ProductionLocation.Modify(true);
+        LibraryWarehouse.CreateBin(Bin, ProductionLocation.Code, 'PICK', '', '');
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, ProductionLocation.Code, true);
+
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Location Code" := ProductionLocation.Code;
+        Vendor.Modify(true);
+        SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer(ProductionLocation.Code, Vendor."Subc. Location Code", InTransitLocation.Code);
+
+        // [GIVEN] Released production order, subcontracting purchase order, and WIP transfer with no source bin.
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, ProductionLocation.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader);
+        SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ForwardTransferHeader);
+
+        TransferLine.SetRange("Document No.", ForwardTransferHeader."No.");
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.FindFirst();
+        TransferLine.Validate("Transfer-from Bin Code", '');
+        TransferLine.Modify(true);
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntryCountBefore := ItemLedgerEntry.Count();
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntryCountBefore := WarehouseEntry.Count();
+
+        // [WHEN] The WIP Inventory Pick is created, autofilled, and posted.
+        SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(ForwardTransferHeader, WarehouseActivityHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
+        Assert.AreEqual('', WarehouseActivityLine."Bin Code", 'The WIP activity line must keep its bin code blank.');
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        // [THEN] Transfer shipment and posted Inventory Pick line retain WIP metadata and zero-base semantics.
+        TransferShipmentHeader.SetRange("Transfer Order No.", ForwardTransferHeader."No.");
+        Assert.RecordCount(TransferShipmentHeader, 1);
+        PostedInvtPickLine.SetRange("Source Type", Database::"Transfer Line");
+        PostedInvtPickLine.SetRange("Source No.", ForwardTransferHeader."No.");
+        Assert.RecordCount(PostedInvtPickLine, 1);
+        PostedInvtPickLine.FindFirst();
+        Assert.IsTrue(PostedInvtPickLine."Transfer WIP Item", 'The posted Inventory Pick line must be marked as a WIP transfer line.');
+        Assert.AreEqual("Subc. Purchase Line Type"::None, PostedInvtPickLine."Subc. Purchase Line Type", 'A posted WIP transfer line must have no purchase line type.');
+        Assert.AreEqual(Quantity, PostedInvtPickLine.Quantity, 'The posted Inventory Pick line must preserve the handled non-base quantity.');
+        Assert.AreEqual(0, PostedInvtPickLine."Qty. (Base)", 'The posted WIP Inventory Pick line must retain zero base quantity semantics.');
+
+        // [THEN] WIP posting does not create physical Item Ledger or Warehouse Entries.
+        Assert.AreEqual(ItemLedgerEntryCountBefore, ItemLedgerEntry.Count(), 'WIP pick posting must not create item ledger entries.');
+        Assert.AreEqual(WarehouseEntryCountBefore, WarehouseEntry.Count(), 'WIP pick posting must not create warehouse entries.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    procedure WipTransferInventoryPutAwayCreationAllowsBlankBinWithAccordingToBin()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        InTransitLocation: Record Location;
+        ProductionLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WorkCenter: array[2] of Record "Work Center";
+        ForwardTransferHeader: Record "Transfer Header";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO TP-003] A WIP Inventory Put-away is created with a blank bin when Special Equipment is According to Bin.
+        Initialize();
+        Quantity := 7;
+
+        // [GIVEN] Bin-mandatory production location with Require Pick, Require Put-away, and According to Bin setup.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.SetTransferWIPItemOnRoutingLine(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithBinMandatoryOnly(ProductionLocation);
+        ProductionLocation."Require Pick" := true;
+        ProductionLocation."Require Put-away" := true;
+        ProductionLocation."Always Create Put-away Line" := true;
+        ProductionLocation."Special Equipment" := ProductionLocation."Special Equipment"::"According to Bin";
+        ProductionLocation.Modify(true);
+        LibraryWarehouse.CreateBin(Bin, ProductionLocation.Code, 'PUT', '', '');
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, ProductionLocation.Code, true);
+
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Location Code" := ProductionLocation.Code;
+        Vendor.Modify(true);
+        SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer(ProductionLocation.Code, Vendor."Subc. Location Code", InTransitLocation.Code);
+
+        // [GIVEN] Released production order, subcontracting purchase order, and completed forward WIP transfer.
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, ProductionLocation.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader);
+        SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ForwardTransferHeader);
+        SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(ForwardTransferHeader, WarehouseActivityHeader);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+        LibraryWarehouse.PostTransferOrder(ForwardTransferHeader, false, true);
+
+        // [GIVEN] Released WIP return transfer with an explicitly blank destination bin.
+        SubcWarehouseLibrary.CreateReturnTransferWithSubcContext(
+            PurchaseHeader, PurchaseLine,
+            Vendor."Subc. Location Code", ProductionLocation.Code, InTransitLocation.Code,
+            Quantity, ReturnTransferHeader);
+        TransferLine.SetRange("Document No.", ReturnTransferHeader."No.");
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.FindFirst();
+        TransferLine.Validate("Transfer-to Bin Code", '');
+        TransferLine.Modify(true);
+        LibraryWarehouse.ReleaseTransferOrder(ReturnTransferHeader);
+        LibraryWarehouse.PostTransferOrder(ReturnTransferHeader, true, false);
+
+        // [WHEN] An Inventory Put-away is created for the received WIP return transfer.
+        SubcWarehouseLibrary.CreateInvtPutAwayFromTransferOrder(ReturnTransferHeader, WarehouseActivityHeader);
+
+        // [THEN] Creation succeeds with one WIP activity line, no prefilled bin, and zero base quantity.
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.FindFirst();
+        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
+        Assert.AreEqual("Subc. Purchase Line Type"::None, WarehouseActivityLine."Subc. Purchase Line Type", 'A transfer WIP line must not have a purchase line type.');
+        Assert.AreEqual('', WarehouseActivityLine."Bin Code", 'The WIP activity line must keep its bin code blank.');
+        Assert.AreEqual(Quantity, WarehouseActivityLine.Quantity, 'The WIP activity line must retain the transfer quantity.');
+        Assert.AreEqual(0, WarehouseActivityLine."Qty. (Base)", 'The WIP activity line must retain zero base quantity semantics.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    procedure WipTransferInventoryPutAwayPostingPreservesPostedMetadata()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        InTransitLocation: Record Location;
+        ProductionLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferReceiptHeader: Record "Transfer Receipt Header";
+        Vendor: Record Vendor;
+        ForwardTransferHeader: Record "Transfer Header";
+        PostedInvtPutAwayLine: Record "Posted Invt. Put-away Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseEntry: Record "Warehouse Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+        ItemLedgerEntryCountBefore: Integer;
+        WarehouseEntryCountBefore: Integer;
+    begin
+        // [SCENARIO TP-004] Posted WIP Inventory Put-away metadata preserves zero-base and no-physical-entry behavior.
+        Initialize();
+        Quantity := 7;
+
+        // [GIVEN] Bin-mandatory production location with Require Pick, Require Put-away, and According to Bin setup.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.SetTransferWIPItemOnRoutingLine(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithBinMandatoryOnly(ProductionLocation);
+        ProductionLocation."Require Pick" := true;
+        ProductionLocation."Require Put-away" := true;
+        ProductionLocation."Always Create Put-away Line" := true;
+        ProductionLocation."Special Equipment" := ProductionLocation."Special Equipment"::"According to Bin";
+        ProductionLocation.Modify(true);
+        LibraryWarehouse.CreateBin(Bin, ProductionLocation.Code, 'PUT', '', '');
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, ProductionLocation.Code, true);
+
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Location Code" := ProductionLocation.Code;
+        Vendor.Modify(true);
+        SubcWarehouseLibrary.CreateTransferRoutesForWIPTransfer(ProductionLocation.Code, Vendor."Subc. Location Code", InTransitLocation.Code);
+
+        // [GIVEN] Released production order, subcontracting purchase order, and completed forward WIP transfer.
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, ProductionLocation.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader);
+        SubcWarehouseLibrary.FindSubcontractingTransferHeader(PurchaseHeader, false, ForwardTransferHeader);
+        LibraryWarehouse.ReleaseTransferOrder(ForwardTransferHeader);
+        SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(ForwardTransferHeader, WarehouseActivityHeader);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+        LibraryWarehouse.PostTransferOrder(ForwardTransferHeader, false, true);
+
+        // [GIVEN] Released WIP return transfer with an explicitly blank destination bin.
+        SubcWarehouseLibrary.CreateReturnTransferWithSubcContext(
+            PurchaseHeader, PurchaseLine,
+            Vendor."Subc. Location Code", ProductionLocation.Code, InTransitLocation.Code,
+            Quantity, ReturnTransferHeader);
+        TransferLine.SetRange("Document No.", ReturnTransferHeader."No.");
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.FindFirst();
+        TransferLine.Validate("Transfer-to Bin Code", '');
+        TransferLine.Modify(true);
+        LibraryWarehouse.ReleaseTransferOrder(ReturnTransferHeader);
+        LibraryWarehouse.PostTransferOrder(ReturnTransferHeader, true, false);
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntryCountBefore := ItemLedgerEntry.Count();
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntryCountBefore := WarehouseEntry.Count();
+
+        // [WHEN] The WIP Inventory Put-away is created, autofilled, and posted.
+        SubcWarehouseLibrary.CreateInvtPutAwayFromTransferOrder(ReturnTransferHeader, WarehouseActivityHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
+        Assert.AreEqual('', WarehouseActivityLine."Bin Code", 'The WIP activity line must keep its bin code blank.');
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        // [THEN] Transfer receipt and posted Inventory Put-away line retain WIP metadata and zero-base semantics.
+        TransferReceiptHeader.SetRange("Transfer Order No.", ReturnTransferHeader."No.");
+        Assert.RecordCount(TransferReceiptHeader, 1);
+        PostedInvtPutAwayLine.SetRange("Source Type", Database::"Transfer Line");
+        PostedInvtPutAwayLine.SetRange("Source No.", ReturnTransferHeader."No.");
+        Assert.RecordCount(PostedInvtPutAwayLine, 1);
+        PostedInvtPutAwayLine.FindFirst();
+        Assert.IsTrue(PostedInvtPutAwayLine."Transfer WIP Item", 'The posted Inventory Put-away line must be marked as a WIP transfer line.');
+        Assert.AreEqual("Subc. Purchase Line Type"::None, PostedInvtPutAwayLine."Subc. Purchase Line Type", 'A posted WIP transfer line must have no purchase line type.');
+        Assert.AreEqual(Quantity, PostedInvtPutAwayLine.Quantity, 'The posted Inventory Put-away line must preserve the handled non-base quantity.');
+        Assert.AreEqual(0, PostedInvtPutAwayLine."Qty. (Base)", 'The posted WIP Inventory Put-away line must retain zero base quantity semantics.');
+
+        // [THEN] WIP posting does not create physical Item Ledger or Warehouse Entries.
+        Assert.AreEqual(ItemLedgerEntryCountBefore, ItemLedgerEntry.Count(), 'WIP put-away posting must not create item ledger entries.');
+        Assert.AreEqual(WarehouseEntryCountBefore, WarehouseEntry.Count(), 'WIP put-away posting must not create warehouse entries.');
+    end;
+
 
     [Test]
     [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]

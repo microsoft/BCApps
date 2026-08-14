@@ -103,6 +103,19 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
             IsHandled := true;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", OnBeforePostItemJnlLine, '', false, false)]
+    local procedure HandleWipTransferOnBeforePostItemJnlLine(var TransferReceiptHeader: Record "Transfer Receipt Header"; var IsHandled: Boolean; TransferReceiptLine: Record "Transfer Receipt Line")
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if TransferReceiptLine."Transfer WIP Item" then
+            IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", OnBeforeCheckEmptyQuantity, '', false, false)]
     local procedure HandleWipTransferOnBeforeCheckEmptyQuantity(ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
     var

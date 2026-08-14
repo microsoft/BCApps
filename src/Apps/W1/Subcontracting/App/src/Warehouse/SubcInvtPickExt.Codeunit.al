@@ -48,6 +48,30 @@ codeunit 99001573 "Subc. Invt. Pick Ext"
             IsHandled := true;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", OnBeforeSetLineData, '', false, false)]
+    local procedure SetLineDataForWipItemPickLine_OnBeforeSetLineData(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; TakeBinCode: Code[20]; var NextLineNo: Integer; Location: Record Location; var LineCreated: Boolean; var IsHandled: Boolean)
+    begin
+        if not WarehouseActivityLine."Transfer WIP Item" then
+            exit;
+        if not Location."Bin Mandatory" then
+            exit;
+        if TakeBinCode <> '' then
+            exit;
+
+        IsHandled := true;
+        WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
+        WarehouseActivityLine."Line No." := NextLineNo;
+        WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::Take;
+        WarehouseActivityLine."Bin Code" := TakeBinCode;
+        WarehouseActivityLine."Special Equipment Code" := '';
+        WarehouseActivityLine."Qty. to Handle" := 0;
+        WarehouseActivityLine."Qty. to Handle (Base)" := 0;
+        WarehouseActivityLine."Qty. Rounding Precision" := 0;
+        WarehouseActivityLine.Insert();
+        LineCreated := true;
+        NextLineNo := NextLineNo + 10000;
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", OnBeforeValidateQtyToHandle, '', false, false)]
     local procedure AllowNonBaseQtyToHandleForWipItemPickLine_OnBeforeValidateQtyToHandle(var WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
     begin
