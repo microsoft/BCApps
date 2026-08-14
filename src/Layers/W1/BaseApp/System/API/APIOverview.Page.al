@@ -120,10 +120,6 @@ page 812 "API Overview"
         Rec.Reset();
         Rec.DeleteAll();
 
-        // All API objects (pages, queries and codeunits) are sourced from the published web services,
-        // consistent with the MCP configuration. This is the only source that exposes the API publisher,
-        // group, version and entity (service) name for every object type, including API codeunits.
-        // An object published under several versions is listed once, with its versions aggregated.
         ApiWebService.SetRange(Published, true);
 
         ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
