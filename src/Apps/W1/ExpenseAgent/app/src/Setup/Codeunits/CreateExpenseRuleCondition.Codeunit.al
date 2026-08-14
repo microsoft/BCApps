@@ -16,9 +16,6 @@ codeunit 7105 "Create Expense Rule Condition"
     end;
 
     internal procedure CreateExpenseRuleConditions(var ExpenseRulecondition: Record "Expense Rule Condition")
-    var
-        CreateExpenseCategories: Codeunit "Create Expense Categories";
-        CreateExpenseLocation: Codeunit "Create Expense Location";
     begin
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetENTERTAINTxt(), '', 0D, 10000, Enum::"Expense Rule Condition Type"::"At Least Justification Needed", 500);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetENTERTAINTxt(), '', 0D, 20000, Enum::"Expense Rule Condition Type"::"Max Amount", 1000);
@@ -282,17 +279,25 @@ codeunit 7105 "Create Expense Rule Condition"
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.USAOther(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
     end;
 
-    local procedure InsertExpenseRuleCondition(var ExpenseRuleCondition: Record "Expense Rule Condition"; ExpenseCategoryCode: Code[20]; ExpenseLocationCode: Code[20]; EffectiveDate: Date; LineNo: Integer; ConditionType: Enum "Expense Rule Condition Type"; Value: Decimal)
+    internal procedure InsertExpenseRuleCondition(var ExpenseRuleCondition: Record "Expense Rule Condition"; ExpenseCategoryCode: Code[20]; ExpenseLocationCode: Code[20]; EffectiveDate: Date; LineNo: Integer; ConditionType: Enum "Expense Rule Condition Type"; Value: Decimal)
+    var
+        IsHandled: Boolean;
     begin
+        CreateExpenseCategories.OnBeforeAddRuleConditionSeed(ExpenseRuleCondition, ExpenseCategoryCode, ExpenseLocationCode, ConditionType, Value, IsHandled);
+        if IsHandled then
+            exit;
         if ExpenseRuleCondition.Get(ExpenseCategoryCode, ExpenseLocationCode, EffectiveDate, LineNo) then
             exit;
-        ExpenseRuleCondition.Validate("Expense Category Code", ExpenseCategoryCode);
-        ExpenseRuleCondition.Validate("Expense Location", ExpenseLocationCode);
-        ExpenseRuleCondition.Validate("Effective Date", EffectiveDate);
-        ExpenseRuleCondition.Validate("Line No.", LineNo);
-        ExpenseRuleCondition.Validate("Condition Type", ConditionType);
-        ExpenseRuleCondition.Validate(Value, Value);
+        ExpenseRuleCondition."Expense Category Code" := ExpenseCategoryCode;
+        ExpenseRuleCondition."Expense Location" := ExpenseLocationCode;
+        ExpenseRuleCondition."Effective Date" := EffectiveDate;
+        ExpenseRuleCondition."Line No." := LineNo;
+        ExpenseRuleCondition."Condition Type" := ConditionType;
+        ExpenseRuleCondition.Value := Value;
         ExpenseRuleCondition.Insert(true);
     end;
 
+    var
+        CreateExpenseCategories: Codeunit "Create Expense Categories";
+        CreateExpenseLocation: Codeunit "Create Expense Location";
 }

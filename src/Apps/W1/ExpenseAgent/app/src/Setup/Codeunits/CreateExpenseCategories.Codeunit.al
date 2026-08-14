@@ -907,50 +907,6 @@ codeunit 6973 "Create Expense Categories"
             until TempConditionSeed.Next() = 0;
     end;
 
-    internal procedure AddRuleSeed(var TempRuleHeader: Record "Expense Rule Header" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; CurrencyCode: Code[10]; JustificationRequired: Enum "Expense Justification")
-    var
-        IsHandled: Boolean;
-    begin
-        OnBeforeAddRuleSeed(TempRuleHeader, CategoryCode, ExpenseLocationCode, CurrencyCode, JustificationRequired, IsHandled);
-        if IsHandled then
-            exit;
-
-        TempRuleHeader.Init();
-        TempRuleHeader."Expense Category Code" := CategoryCode;
-        TempRuleHeader."Expense Location" := ExpenseLocationCode;
-        TempRuleHeader."Currency Code" := CurrencyCode;
-        TempRuleHeader."Justification Required" := JustificationRequired;
-        OnBeforeInsertRuleSeed(TempRuleHeader);
-        TempRuleHeader.Insert();
-    end;
-
-    internal procedure AddRuleConditionSeed(var TempRuleCondition: Record "Expense Rule Condition" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; ConditionType: Enum "Expense Rule Condition Type"; Value: Decimal)
-    var
-        NextLineNo: Integer;
-        IsHandled: Boolean;
-    begin
-        OnBeforeAddRuleConditionSeed(TempRuleCondition, CategoryCode, ExpenseLocationCode, ConditionType, Value, IsHandled);
-        if IsHandled then
-            exit;
-
-        TempRuleCondition.Reset();
-        TempRuleCondition.SetRange("Expense Category Code", CategoryCode);
-        TempRuleCondition.SetRange("Expense Location", ExpenseLocationCode);
-        if TempRuleCondition.FindLast() then
-            NextLineNo := TempRuleCondition."Line No." + 1
-        else
-            NextLineNo := 1;
-        TempRuleCondition.Reset();
-
-        TempRuleCondition.Init();
-        TempRuleCondition."Expense Category Code" := CategoryCode;
-        TempRuleCondition."Expense Location" := ExpenseLocationCode;
-        TempRuleCondition."Line No." := NextLineNo;
-        TempRuleCondition."Condition Type" := ConditionType;
-        TempRuleCondition.Value := Value;
-        TempRuleCondition.Insert();
-    end;
-
     local procedure InsertDefaultExpenseGroups()
     begin
         InsertExpenseGroup(XTRAVELTxt, XTravelExpensesDescTxt);
@@ -1409,11 +1365,6 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertRuleSeed(var TempRuleHeader: Record "Expense Rule Header" temporary)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
     local procedure OnBeforeAddCategorySeed(Code: Code[20]; Description: Text[250]; PostingDescription: Text[100]; ExpenseGroupCode: Code[20]; PostingGroupCode: Code[20]; PaymentMethod: Code[10]; IsRefundable: Boolean; IsPrepayment: Boolean; AttachmentEnforcement: Enum "Expense Attachment Enforcement"; DetailRequired: Enum "Expense Detail Needed"; var IsHandled: Boolean)
     begin
     end;
@@ -1424,12 +1375,12 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddRuleSeed(var TempRuleHeader: Record "Expense Rule Header" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; CurrencyCode: Code[10]; JustificationRequired: Enum "Expense Justification"; var IsHandled: Boolean)
+    internal procedure OnBeforeAddRuleSeed(var ExpenseRuleHeader: Record "Expense Rule Header"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var CurrencyCode: Code[10]; var JustificationRequired: Enum "Expense Justification"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddRuleConditionSeed(var TempRuleCondition: Record "Expense Rule Condition" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; ConditionType: Enum "Expense Rule Condition Type"; Value: Decimal; var IsHandled: Boolean)
+    internal procedure OnBeforeAddRuleConditionSeed(var RuleCondition: Record "Expense Rule Condition"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var ConditionType: Enum "Expense Rule Condition Type"; var Value: Decimal; var IsHandled: Boolean)
     begin
     end;
 }

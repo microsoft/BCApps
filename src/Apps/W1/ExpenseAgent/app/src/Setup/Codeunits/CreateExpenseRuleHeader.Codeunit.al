@@ -16,9 +16,6 @@ codeunit 7107 "Create Expense Rule Header"
     end;
 
     internal procedure InsertExpenseRuleHeaders(var ExpenseRuleHeader: Record "Expense Rule Header")
-    var
-        CreateExpenseCategories: Codeunit "Create Expense Categories";
-        CreateExpenseLocation: Codeunit "Create Expense Location";
     begin
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetENTERTAINTxt(), '', 0D, Enum::"Expense Justification"::"Against Conditions", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetHOTELSTxt(), '', 0D, Enum::"Expense Justification"::" ", false, '', '', '');
@@ -284,7 +281,12 @@ codeunit 7107 "Create Expense Rule Header"
     end;
 
     local procedure InsertExpenseRuleHeader(var ExpenseRuleHeader: Record "Expense Rule Header"; ExpenseCategoryCode: Code[20]; ExpenseLocationCode: Code[20]; EffectiveDate: Date; JustificationRequired: Enum "Expense Justification"; RequiredSpecificMerchant: Boolean; SpecificMerchantName: Text[100]; CurrencyCode: Code[10]; UnitOfMeasureCode: Code[10])
+    var
+        IsHandled: Boolean;
     begin
+        CreateExpenseCategories.OnBeforeAddRuleSeed(ExpenseRuleHeader, ExpenseCategoryCode, ExpenseLocationCode, CurrencyCode, JustificationRequired, IsHandled);
+        if IsHandled then
+            exit;
         if ExpenseRuleHeader.Get(ExpenseCategoryCode, ExpenseLocationCode, EffectiveDate) then
             exit;
         ExpenseRuleHeader.Validate("Expense Category Code", ExpenseCategoryCode);
@@ -298,4 +300,7 @@ codeunit 7107 "Create Expense Rule Header"
         ExpenseRuleHeader.Insert(true);
     end;
 
+    var
+        CreateExpenseCategories: Codeunit "Create Expense Categories";
+        CreateExpenseLocation: Codeunit "Create Expense Location";
 }
