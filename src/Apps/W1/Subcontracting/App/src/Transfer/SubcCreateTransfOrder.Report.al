@@ -198,6 +198,7 @@ report 99001501 "Subc. Create Transf. Order"
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SubcProdOrdCompRes: Codeunit "Subc. Prod. Ord. Comp. Res.";
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         TransferFromLocationCode: Code[10];
         QtyPerUom: Decimal;
@@ -280,16 +281,14 @@ report 99001501 "Subc. Create Transf. Order"
                             Error(ExcessReservationsErr, TransferLine."Quantity (Base)", SubcTransferManagement.GetComponentReservedQtyBase(ProdOrderComponent), ProdOrderComponent."Item No.");
 
                         SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
-                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
+                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then
                             if Item."Order Tracking Policy" = Item."Order Tracking Policy"::None then
-                                ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code")
+                                SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code")
                             else begin
                                 BindSubscription(SubcProdOrdCompRes);
-                                ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code");
+                                SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code");
                                 UnbindSubscription(SubcProdOrdCompRes);
                             end;
-                            ProdOrderComponent.GetDefaultBin();
-                        end;
                         ProdOrderComponent.Modify();
 
                         SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
