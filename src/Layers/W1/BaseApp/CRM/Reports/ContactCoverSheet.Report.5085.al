@@ -231,18 +231,23 @@ report 5085 "Contact Cover Sheet"
             LayoutFile = './CRM/Reports/ContactCoverSheet.5085.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
+//#if not CLEAN32
         layout(WordLayout)
         {
             Type = Word;
             LayoutFile = './CRM/Reports/ContactCoverSheet.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+//#endif
         layout(WordLayoutBody)
         {
             Type = Word;
-            //Subtype = 'Body'
+            //Subtype = Body;
             LayoutFile = './CRM/Reports/ContactCoverSheetBody.docx';
-            Caption = 'Body-Only: Contact Cover Sheet (Word)';
+            Caption = 'Body-only: Contact Cover Sheet (Word)';
             Summary = 'Portrait contact cover sheet. Contact and company address blocks plus company VAT reg. no., giro no., and bank details, closing with a regards line.';
         }
     }

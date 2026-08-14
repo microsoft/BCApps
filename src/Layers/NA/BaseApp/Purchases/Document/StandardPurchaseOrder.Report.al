@@ -1213,7 +1213,7 @@ report 1322 "Standard Purchase - Order"
         layout("StandardPurchaseOrderBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Purchases/Document/StandardPurchaseOrderBody.docx';
             Caption = 'Body-only: Standard Purchase Order (Word)';
             Summary = 'The Standard Purchase Order (Word) provides a basic layout.';

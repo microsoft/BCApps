@@ -37,6 +37,8 @@ report 1304 "Standard Sales - Quote"
 {
     Caption = 'Sales - Quote';
     DefaultRenderingLayout = "StandardSalesQuote.docx";
+    //DefaultHeaderFooterPart = External_Default;
+    //DefaultThemePart = BC_Default_Theme;
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 
@@ -1032,33 +1034,71 @@ report 1304 "Standard Sales - Quote"
             Caption = 'Standard Sales Quote (RDLC)';
             Summary = 'The Standard Sales Quote (RDLC) provides a detailed layout.';
         }
+//#if not CLEAN32
         layout("StandardSalesQuote.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Document/StandardSalesQuote.docx';
             Caption = 'Standard Sales Quote (Word)';
             Summary = 'The Standard Sales Quote (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+//#endif
+//#if not CLEAN32
         layout("StandardSalesQuoteBlue.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Document/StandardSalesQuoteBlue.docx';
             Caption = 'Standard Sales Quote - Blue (Word)';
             Summary = 'The Standard Sales Quote - Blue (Word) provides a basic layout with a blue theme.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+//#endif
+//#if not CLEAN32
         layout("StandardSalesQuoteBlueThemable.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Document/StandardSalesQuoteBlueThemable.docx';
             Caption = 'Standard Sales Quote - blue themable Word layout';
             Summary = 'The Standard Sales Quote - Themable (Word) provides a basic Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
         }
+//#endif
+//#if not CLEAN32
         layout("StandardSalesQuoteEmail.docx")
         {
             Type = Word;
             LayoutFile = './Sales/Document/StandardSalesQuoteEmail.docx';
             Caption = 'Standard Sales Quote Email (Word)';
             Summary = 'The Standard Sales Quote Email (Word) provides an email body layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '32.0';
+        }
+//#endif
+        layout("StandardSalesQuoteBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            LayoutFile = './Sales/Document/StandardSalesQuoteBody.docx';
+            Caption = 'Body-only: Standard Sales Quote (Word)';
+            Summary = 'Portrait sales quote. Customer and company address, header (document no., your reference, valid-to date, salesperson, payment terms, shipment method), item lines with price, discount %, VAT %, and amount, and VAT-inclusive totals.';
+        }
+
+        layout("StandardSalesQuoteEmailBody.docx")
+        {
+            Type = Word;
+            //Subtype = Body;
+            //HeaderFooterPart = '';
+            LayoutFile = './Sales/Document/StandardSalesQuoteEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Quote Email (Word)';
+            Summary = 'Portrait sales quote email body. Company address and bill-to customer no., greeting, body, and closing text, document no., due date, and total including VAT. Cover text for the quote email.';
         }
     }
 
