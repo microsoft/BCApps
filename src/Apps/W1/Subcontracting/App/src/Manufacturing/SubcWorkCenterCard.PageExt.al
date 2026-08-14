@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
 
 pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
 {
@@ -49,11 +50,23 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                     RunPageLink = "Work Center No." = field("No.");
                     ToolTip = 'View the Subcontracting WIP Entries that track work-in-progress quantities at this work center''s subcontracting location.';
                 }
+                action("Subcontractor Dispatch List")
+                {
+                    ApplicationArea = Subcontracting;
+                    Caption = 'Subcontractor - Dispatch List';
+                    Enabled = IsSubcontractingWorkCenter;
+                    Image = Print;
+                    ToolTip = 'Print the dispatching list for the subcontractor assigned to this work center.';
+
+                    trigger OnAction()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
+                    begin
+                        PurchaseHeader.SetRange("Buy-from Vendor No.", Rec."Subcontractor No.");
+                        Report.Run(Report::"Subc. Dispatching List", true, false, PurchaseHeader);
+                    end;
+                }
             }
-        }
-        modify("Subcontractor - Dispatch List")
-        {
-            Enabled = IsSubcontractingWorkCenter;
         }
     }
 
@@ -77,6 +90,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
     end;
 
     var
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -84,5 +98,4 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
         SubcontractingEnabled: Boolean;
 #endif
         IsSubcontractingWorkCenter: Boolean;
-        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
 }
