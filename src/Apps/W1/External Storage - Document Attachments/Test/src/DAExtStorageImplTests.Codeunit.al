@@ -785,11 +785,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Assert.IsTrue(TenantMedia.Get(SharedMediaId), 'Shared Tenant Media should not be deleted');
 
         // [THEN] The copied attachment still has its content
-        CopiedDocumentAttachment.Find();
+        RefreshAttachment(CopiedDocumentAttachment);
         Assert.IsTrue(CopiedDocumentAttachment."Document Reference ID".HasValue(), 'Copied attachment should still have content');
 
         // [THEN] The original has released its own reference
-        DocumentAttachment.Find();
+        RefreshAttachment(DocumentAttachment);
         Assert.IsFalse(DocumentAttachment."Document Reference ID".HasValue(), 'Original attachment should have released its media reference');
         Assert.IsFalse(DocumentAttachment."Stored Internally", 'Original should not be marked as stored internally');
     end;
@@ -839,19 +839,19 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
 
         // [GIVEN] The source attachment has been moved to external storage
         Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'Upload of the source should succeed');
-        DocumentAttachment.Find();
+        RefreshAttachment(DocumentAttachment);
         Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Delete from internal should succeed for the source');
 
         // [WHEN] The copied attachment is uploaded
-        CopiedDocumentAttachment.Find();
+        RefreshAttachment(CopiedDocumentAttachment);
         Assert.IsTrue(CopiedDocumentAttachment."Document Reference ID".HasValue(), 'Copied attachment should still have content');
 
         // [THEN] The upload succeeds
         Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(CopiedDocumentAttachment), 'Upload of the copied attachment should succeed');
 
         // [THEN] Both attachments are stored externally, each in its own file
-        DocumentAttachment.Find();
-        CopiedDocumentAttachment.Find();
+        RefreshAttachment(DocumentAttachment);
+        RefreshAttachment(CopiedDocumentAttachment);
         Assert.IsTrue(CopiedDocumentAttachment."Stored Externally", 'Copied attachment should be marked as stored externally');
         Assert.AreNotEqual(DocumentAttachment."External File Path", CopiedDocumentAttachment."External File Path", 'Each attachment should have its own external file');
     end;
@@ -978,6 +978,16 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment."External File Path" := 'test/environment/Document_Attachment/file-' + Format(CreateGuid()) + '.txt';
         DocumentAttachment."External Upload Date" := CurrentDateTime();
         DocumentAttachment.Modify();
+    end;
+
+    local procedure RefreshAttachment(var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.Get(
+            DocumentAttachment."Table ID",
+            DocumentAttachment."No.",
+            DocumentAttachment."Document Type",
+            DocumentAttachment."Line No.",
+            DocumentAttachment.ID);
     end;
 
     [ConfirmHandler]
