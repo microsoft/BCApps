@@ -828,6 +828,7 @@ codeunit 141008 "ERM - Miscellaneous APAC"
         PostedDocumentNo: Code[20];
         ExpectedACYAmount: Decimal;
         NonPayablesACY: Decimal;
+        OriginalVendorGSTAmountACY: Boolean;
     begin
         // [FEATURE] [Purchase] [ACY]
         // [SCENARIO 641827] Vendor ACY is posted on the payables entry for a purchase invoice in LCY.
@@ -838,6 +839,7 @@ codeunit 141008 "ERM - Miscellaneous APAC"
         CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
         Currency.Get(CurrencyCode);
         PurchasesPayablesSetup.Get();
+        OriginalVendorGSTAmountACY := PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)";
         PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)" := true;
         PurchasesPayablesSetup.Modify();
         LibraryERM.SetAddReportingCurrency(CurrencyCode);
@@ -892,6 +894,11 @@ codeunit 141008 "ERM - Miscellaneous APAC"
         GLEntry.SetFilter(
           "G/L Account No.", '%1|%2', Currency."Residual Gains Account", Currency."Residual Losses Account");
         Assert.RecordCount(GLEntry, 0);
+
+        // The flag is not registered in setup storage, so restore its original value to avoid leaking into later tests.
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)" := OriginalVendorGSTAmountACY;
+        PurchasesPayablesSetup.Modify();
     end;
 
     [Test]
