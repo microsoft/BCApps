@@ -54,7 +54,7 @@ using Microsoft.eServices.EDocument;
 /// the legacy lookup intact.
 /// </para>
 /// </summary>
-codeunit 11039 "ZUGFeRD Export Context"
+codeunit 11042 "ZUGFeRD Export Context"
 {
     EventSubscriberInstance = Manual;
     Access = Public;

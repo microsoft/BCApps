@@ -16,6 +16,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -58,7 +59,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportXRechnungDocument: Codeunit "Export XRechnung Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
-        TooManyDecimalPlacesErr: Label 'Expected at most %1 decimal places but found %2 in %3', Locked = true;
+        UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -344,6 +345,73 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created with 2 invoice lines
         VerifyInvoiceLine(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatIncludesGTIN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        GTIN: Code[14];
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung item identification contains the item's GTIN and GS1 scheme
+        Initialize();
+        GTIN := '4006381333931';
+
+        // [GIVEN] A posted item invoice where the item has a GTIN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SetItemGTIN(SalesInvoiceHeader, GTIN);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification contains the GTIN with scheme 0160
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatOmitsBlankGTIN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung item identification omits a blank GTIN
+        Initialize();
+
+        // [GIVEN] A posted item invoice where the item has no GTIN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification does not exist
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatOmitsGTINForNonItemLine()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung item identification omits GTIN for a non-item line
+        Initialize();
+
+        // [GIVEN] A posted invoice with a non-item line
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::"G/L Account", false));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification does not exist
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
     [Test]
@@ -904,6 +972,73 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created
         VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatIncludesGTIN()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        GTIN: Code[14];
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung credit-memo item identification contains the item's GTIN and GS1 scheme
+        Initialize();
+        GTIN := '4006381333931';
+
+        // [GIVEN] A posted item credit memo where the item has a GTIN
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        SetItemGTIN(SalesCrMemoHeader, GTIN);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification contains the GTIN with scheme 0160
+        Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatOmitsBlankGTIN()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung credit-memo item identification omits a blank GTIN
+        Initialize();
+
+        // [GIVEN] A posted item credit memo where the item has no GTIN
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification does not exist
+        Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatOmitsGTINForNonItemLine()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung credit-memo item identification omits GTIN for a non-item line
+        Initialize();
+
+        // [GIVEN] A posted credit memo with a non-item line
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::"G/L Account", false));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification does not exist
+        Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
     [Test]
@@ -1570,23 +1705,49 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
-    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyInvoiceDiscountMultiplierHasTwoDecimals();
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyInvoiceDiscountMultiplierHasFiveDecimals();
     var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
+        SalesCalcDiscountByType: Codeunit "Sales - Calc Discount By Type";
         MultiplierFactorTok: Label '/ubl:Invoice/cac:AllowanceCharge/cbc:MultiplierFactorNumeric', Locked = true;
+        ExpectedMultiplierFactor: Text;
     begin
-        // [SCENARIO 588110] Document discount MultiplierFactorNumeric is exported with at most 2 decimal places
+        // [SCENARIO 588110] Document discount MultiplierFactorNumeric is exported with at most 5 decimal places
         Initialize();
 
-        // [GIVEN] Create and Post Sales Invoice with invoice discount
-        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithTwoLines("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, true));
+        // [GIVEN] Create sales invoice with a deterministic invoice discount that results in a multiplier with > 2 decimals
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindSet();
+        SalesLine.Validate(Quantity, 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        SalesLine.Next();
+        SalesLine.Validate(Quantity, 1);
+        SalesLine.Validate("Unit Price", 23.45);
+        SalesLine.Modify(true);
+
+        LibrarySales.SetCalcInvDiscount(true);
+        SalesHeader.CalcFields(Amount);
+        SalesCalcDiscountByType.ApplyInvDiscBasedOnAmt(10, SalesHeader);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
         // [WHEN] Export XRechnung Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] MultiplierFactorNumeric has at most 2 decimal places
-        VerifyMaxDecimalPlaces(GetNodeByPathWithError(TempXMLBuffer, MultiplierFactorTok), 2);
+        // [THEN] MultiplierFactorNumeric matches the exact five-decimal-formatted expected value (detects truncation to 2 decimals)
+        SalesInvoiceHeader.CalcFields(Amount, "Invoice Discount Amount");
+        ExpectedMultiplierFactor :=
+            ExportXRechnungDocument.FormatFiveDecimal(
+                100 * SalesInvoiceHeader."Invoice Discount Amount" / (SalesInvoiceHeader."Invoice Discount Amount" + SalesInvoiceHeader.Amount));
+        Assert.AreEqual(ExpectedMultiplierFactor, GetNodeByPathWithError(TempXMLBuffer, MultiplierFactorTok), StrSubstNo(IncorrectValueErr, MultiplierFactorTok));
     end;
     #endregion
 
@@ -2091,18 +2252,51 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesLine: Record "Sales Line";
         UnitOfMeasure: Record "Unit of Measure";
+        LineNo: Code[20];
     begin
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         UnitOfMeasure."International Standard Code" := LibraryUtility.GenerateGUID();
         UnitOfMeasure.Modify(true);
+        if LineType = LineType::"G/L Account" then
+            LineNo := LibraryERM.CreateGLAccountWithSalesSetup()
+        else
+            LineNo := LibraryInventory.CreateItemNo();
         LibrarySales.CreateSalesLine(
-        SalesLine, SalesHeader, LineType, LibraryInventory.CreateItemNo(), LibraryRandom.RandDecInRange(10, 20, 5));
+        SalesLine, SalesHeader, LineType, LineNo, LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
         SalesLine.Validate("Unit of Measure", UnitOfMeasure.Code);
         SalesLine.Validate("Tax Category", LibraryRandom.RandText(2));
         if LineDiscount then
             SalesLine.Validate("Line Discount %", LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Modify(true);
+    end;
+
+    local procedure SetItemGTIN(SalesInvoiceHeader: Record "Sales Invoice Header"; GTIN: Code[14])
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.FindFirst();
+        SetItemGTIN(SalesInvoiceLine."No.", GTIN);
+    end;
+
+    local procedure SetItemGTIN(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; GTIN: Code[14])
+    var
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.FindFirst();
+        SetItemGTIN(SalesCrMemoLine."No.", GTIN);
+    end;
+
+    local procedure SetItemGTIN(ItemNo: Code[20]; GTIN: Code[14])
+    var
+        Item: Record Item;
+    begin
+        Item.Get(ItemNo);
+        Item.Validate(GTIN, GTIN);
+        Item.Modify(true);
     end;
 
     local procedure CreateServiceDocumentWithLine(): Code[20]
@@ -2760,7 +2954,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:AllowanceChargeReason';
         Assert.AreEqual('LineDiscount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:MultiplierFactorNumeric';
-        Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesInvoiceLine."Line Discount %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportXRechnungDocument.FormatFiveDecimal(SalesInvoiceLine."Line Discount %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:Amount';
         Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesInvoiceLine."Line Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:BaseAmount';
@@ -2776,7 +2970,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:AllowanceChargeReason';
         Assert.AreEqual('Document discount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:MultiplierFactorNumeric';
-        Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(100 * SalesInvoiceHeader."Invoice Discount Amount" / (SalesInvoiceHeader."Invoice Discount Amount" + SalesInvoiceHeader.Amount)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportXRechnungDocument.FormatFiveDecimal(100 * SalesInvoiceHeader."Invoice Discount Amount" / (SalesInvoiceHeader."Invoice Discount Amount" + SalesInvoiceHeader.Amount)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:Amount';
         Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesInvoiceHeader."Invoice Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:BaseAmount';
@@ -2854,7 +3048,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:AllowanceChargeReason';
         Assert.AreEqual('LineDiscount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:MultiplierFactorNumeric';
-        Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesCrMemoLine."Line Discount %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportXRechnungDocument.FormatFiveDecimal(SalesCrMemoLine."Line Discount %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:Amount';
         Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesCrMemoLine."Line Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:BaseAmount';
@@ -2870,7 +3064,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:AllowanceChargeReason';
         Assert.AreEqual('Document discount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:MultiplierFactorNumeric';
-        Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(100 * SalesCrMemoHeader."Invoice Discount Amount" / (SalesCrMemoHeader."Invoice Discount Amount" + SalesCrMemoHeader.Amount)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportXRechnungDocument.FormatFiveDecimal(100 * SalesCrMemoHeader."Invoice Discount Amount" / (SalesCrMemoHeader."Invoice Discount Amount" + SalesCrMemoHeader.Amount)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:Amount';
         Assert.AreEqual(ExportXRechnungDocument.FormatDecimal(SalesCrMemoHeader."Invoice Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:BaseAmount';
@@ -3062,6 +3256,14 @@ codeunit 13918 "XRechnung XML Document Tests"
         Error('Node not found: %1', XPath);
     end;
 
+    local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        exit(TempXMLBuffer.FindFirst());
+    end;
+
     local procedure GetLastNodeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
     begin
         TempXMLBuffer.Reset();
@@ -3089,19 +3291,6 @@ codeunit 13918 "XRechnung XML Document Tests"
                 exit(TempXMLBufferAttribute.Value);
         end;
         Error(AttributeNotFoundErr, AttributeName, ElementXPath);
-    end;
-
-    local procedure VerifyMaxDecimalPlaces(NumberText: Text; MaxDecimals: Integer)
-    var
-        DecimalSeparatorPosition: Integer;
-        DecimalCount: Integer;
-    begin
-        DecimalSeparatorPosition := StrPos(NumberText, '.');
-        if DecimalSeparatorPosition = 0 then
-            DecimalCount := 0
-        else
-            DecimalCount := StrLen(NumberText) - DecimalSeparatorPosition;
-        Assert.IsTrue(DecimalCount <= MaxDecimals, StrSubstNo(TooManyDecimalPlacesErr, MaxDecimals, DecimalCount, NumberText));
     end;
 
     local procedure GetVATRegistrationNo(VATRegistrationNo: Text[20]; CountryRegionCode: Code[10]): Text[30];

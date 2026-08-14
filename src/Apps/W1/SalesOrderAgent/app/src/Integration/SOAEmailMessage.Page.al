@@ -184,10 +184,26 @@ page 4404 "SOA Email Message"
                                     Editable = false;
                                 }
                             }
+
+                            group(SendingStatusGroup)
+                            {
+                                ShowCaption = false;
+                                Visible = RetrySendingVisible;
+
+                                field(SendingStatus; SendingStatusTxt)
+                                {
+                                    ApplicationArea = All;
+                                    Caption = 'Sending status';
+                                    ToolTip = 'Specifies that the reply could not be sent after all retry attempts.';
+                                    Editable = false;
+                                    Style = Unfavorable;
+                                }
+                            }
                         }
                     }
                 }
             }
+
             group(Message)
             {
                 Caption = 'Message';
@@ -244,6 +260,44 @@ page 4404 "SOA Email Message"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(RetrySending)
+            {
+                ApplicationArea = All;
+                Caption = 'Retry sending';
+                Image = Refresh;
+                ToolTip = 'Reset the failed sending attempts so the reply is retried during the next agent run.';
+                Visible = RetrySendingVisible;
+
+                trigger OnAction()
+                var
+                    SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
+                begin
+                    if not Confirm(RetrySendingQst) then
+                        exit;
+
+                    SOAReplyRetryMgt.ResetAttempts(Rec."Task ID", Rec.ID);
+                    Message(RetrySendingScheduledMsg);
+                    UpdateControls();
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(RetrySending_Promoted; RetrySending)
+                {
+                }
+            }
+        }
+    }
+
     trigger OnAfterGetRecord()
     begin
         UpdateControls();
@@ -256,11 +310,17 @@ page 4404 "SOA Email Message"
 
     local procedure UpdateControls()
     var
+        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
         EmailAddress: Text;
     begin
         UpdatePageCaption();
         UpdateEmailFields(EmailAddress);
         UpdateContactInformation(EmailAddress);
+        RetrySendingVisible := (Rec.Type = Rec.Type::Output) and (Rec.Status = Rec.Status::Reviewed) and SOAReplyRetryMgt.IsExhausted(Rec."Task ID", Rec.ID);
+        if RetrySendingVisible then
+            SendingStatusTxt := SendingFailedTxt
+        else
+            Clear(SendingStatusTxt);
         CurrPage.Attachments.Page.LoadRecords(Rec);
     end;
 
@@ -352,19 +412,14 @@ page 4404 "SOA Email Message"
         else
             TaskMessageID := Rec.ID;
 
-        if SOATaskContactOverride.Get(Rec."Task ID", TaskMessageID) then
+        if SOATaskContactOverride.Get(Rec."Task ID", TaskMessageID) and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             if SOATaskContactOverride."Contact No." <> '' then
                 if Contact.Get(SOATaskContactOverride."Contact No.") then begin
                     ContactCount := 1;
                     exit(true);
                 end;
 
-        Contact.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(EmailAddress));
-        ContactCount := Contact.Count();
-        if not Contact.FindFirst() then
-            exit(false);
-
-        exit(true);
+        exit(SOAFiltersImpl.FindContactByEmail(Contact, EmailAddress, ContactCount));
     end;
 
     local procedure GetSOAEmail(var AgentTaskMessage: Record "Agent Task Message"): Boolean
@@ -422,8 +477,13 @@ page 4404 "SOA Email Message"
         ShowAttachmentTxt: Text;
         AttachmentsVisible: Boolean;
         BlockedStatusVisible: Boolean;
+        RetrySendingVisible: Boolean;
+        SendingStatusTxt: Text;
         OutgoingMessageTxt: Label 'Outgoing email';
         IncomingMessageTxt: Label 'Incoming email';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
         ShowAttachmentLbl: Label 'Show attachments (%1)', Comment = '%1 = Attachment count';
+        SendingFailedTxt: Label 'Failed to send';
+        RetrySendingQst: Label 'Do you want to retry sending this reply?';
+        RetrySendingScheduledMsg: Label 'The reply will be retried during the next agent run.';
 }

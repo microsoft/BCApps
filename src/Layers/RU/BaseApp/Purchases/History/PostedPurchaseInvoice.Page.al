@@ -203,6 +203,12 @@ page 138 "Posted Purchase Invoice"
                     Editable = false;
                     Importance = Promoted;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    Importance = Additional;
+                }
                 field("Vendor Order No."; Rec."Vendor Order No.")
                 {
                     ApplicationArea = Basic, Suite;
