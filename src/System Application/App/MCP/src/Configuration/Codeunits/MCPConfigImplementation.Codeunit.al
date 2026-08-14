@@ -705,7 +705,7 @@ codeunit 8351 "MCP Config Implementation"
                     MCPAPIObjectBuffer.Init();
                     MCPAPIObjectBuffer."Object Type" := BufferObjectType;
                     MCPAPIObjectBuffer."Object ID" := ApiWebService."Object ID";
-                    MCPAPIObjectBuffer.Name := CopyStr(ApiWebService.ObjectName, 1, MaxStrLen(MCPAPIObjectBuffer.Name));
+                    MCPAPIObjectBuffer.Name := CopyStr(ApiWebService."Object Name", 1, MaxStrLen(MCPAPIObjectBuffer.Name));
                     MCPAPIObjectBuffer."Entity Name" := CopyStr(ApiWebService."Service Name", 1, MaxStrLen(MCPAPIObjectBuffer."Entity Name"));
                     MCPAPIObjectBuffer."API Publisher" := CopyStr(ApiWebService.Publisher, 1, MaxStrLen(MCPAPIObjectBuffer."API Publisher"));
                     MCPAPIObjectBuffer."API Group" := CopyStr(ApiWebService.Group, 1, MaxStrLen(MCPAPIObjectBuffer."API Group"));
@@ -719,14 +719,14 @@ codeunit 8351 "MCP Config Implementation"
     begin
         ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
         ApiWebService.SetRange(Published, true);
-        ApiWebService.SetFilter(ALNamespace, '<>%1', 'Microsoft.API.V1');
+        ApiWebService.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
     end;
 
     local procedure SetAPIQueryFilters(var ApiWebService: Record "Api Web Service")
     begin
         ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Query);
         ApiWebService.SetRange(Published, true);
-        ApiWebService.SetFilter(ALNamespace, '<>%1', 'Microsoft.API.V1');
+        ApiWebService.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
         ApiWebService.SetFilter("Object ID", '<>%1&<>%2', 5480, 5481); // Exclude beta customer and vendor queries from Base Application, as they are already part of API v2.0
     end;
 
@@ -866,7 +866,7 @@ codeunit 8351 "MCP Config Implementation"
         if not ValidateAPIPublisher then
             exit;
 
-        if ApiWebService.ALNamespace = 'Microsoft.API.V1' then
+        if ApiWebService."AL Namespace" = 'Microsoft.API.V1' then
             Error(APIToolNotSupportedErr);
 
         if ApiWebService.Publisher in ['microsoft', ''] then begin
@@ -890,7 +890,7 @@ codeunit 8351 "MCP Config Implementation"
         if not ApiWebService.FindFirst() then
             Error(InvalidQueryTypeErr);
 
-        if ApiWebService.ALNamespace = 'Microsoft.API.V1' then
+        if ApiWebService."AL Namespace" = 'Microsoft.API.V1' then
             Error(InvalidAPIVersionErr);
     end;
 

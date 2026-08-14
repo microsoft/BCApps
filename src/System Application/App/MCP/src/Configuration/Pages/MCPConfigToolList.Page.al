@@ -232,9 +232,9 @@ page 8352 "MCP Config Tool List"
         if not ApiWebService.FindFirst() then
             exit;
 
-        AllowCreateEditable := ApiWebService.InsertAllowed;
-        AllowModifyEditable := ApiWebService.ModifyAllowed;
-        AllowDeleteEditable := ApiWebService.DeleteAllowed;
+        AllowCreateEditable := ApiWebService."Insert Allowed";
+        AllowModifyEditable := ApiWebService."Modify Allowed";
+        AllowDeleteEditable := ApiWebService."Delete Allowed";
     end;
 
     local procedure GetAllowCreateUpdateDeleteTools(): Boolean
