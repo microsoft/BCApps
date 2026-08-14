@@ -650,6 +650,7 @@ codeunit 148330 "Expense Posting VAT Test"
         RecordRef: RecordRef;
     begin
         ExpenseVATSpecification.Init();
+        ExpenseVATSpecification.Recalculate := true;
         ExpenseVATSpecification.Validate("Expense No.", Expense."No.");
         RecordRef.GetTable(ExpenseVATSpecification);
         ExpenseVATSpecification.Validate("Line No.", LibraryUtility.GetNewLineNo(RecordRef, ExpenseVATSpecification.FieldNo("Line No.")));
@@ -657,7 +658,6 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseVATSpecification.Validate("Expense Category", ExpenseCategoryCode);
         ExpenseVATSpecification.Validate("Expense Subcategory", ExpenseSubcategoryCode);
         ExpenseVATSpecification.Validate(Amount, Amount);
-        ExpenseVATSpecification.Recalculate := true;
         ExpenseVATSpecification.Insert(true);
     end;
 
