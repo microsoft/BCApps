@@ -737,7 +737,9 @@ page 4410 "SOA Multi Items Availability"
         end else begin
             if Rec.GetFilter("Item Availability Filter") <> '' then begin
                 ParseAvailabilityFilter();
+                Rec.SetRange("Item Availability Filter");
                 MultiItemsAvailability.InitPage(CustomerNo, ContactNo, DateFilter, LocationFilter, QuantityFilter, InUOMCode);
+                MultiItemsAvailability.SetTableView(Rec);
                 MultiItemsAvailability.Run();
                 Error('');
             end;
