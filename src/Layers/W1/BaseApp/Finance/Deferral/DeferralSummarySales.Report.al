@@ -357,7 +357,7 @@ report 1701 "Deferral Summary - Sales"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-//#ENDIF
+//#endif
 #if not CLEAN27
         layout(RDLC)
         {
