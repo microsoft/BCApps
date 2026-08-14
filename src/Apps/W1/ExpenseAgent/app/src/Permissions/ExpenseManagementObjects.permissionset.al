@@ -150,7 +150,6 @@ permissionset 6904 "Expense Management - Objects"
 #endif
         page "Expense Report FactBox" = X,
         page "Expense Activity Log FactBox" = X,
-        page "Expense Activity Log API" = X,
         page "Expense Approval Setups Part" = X,
         page "Expense Picture" = X,
         page Travelers = X,
