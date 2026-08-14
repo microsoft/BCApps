@@ -27,6 +27,7 @@ codeunit 8362 FinReportExportNameHandler
     begin
         if ReportID = Report::"Account Schedule" then begin
             Filename := FileMgt.CreateFileNameWithExtension(OutputFilename, FileMgt.GetExtension(Filename));
+            Filename := FileMgt.StripNotsupportChrInFileName(Filename);
             Success := true;
         end;
     end;
