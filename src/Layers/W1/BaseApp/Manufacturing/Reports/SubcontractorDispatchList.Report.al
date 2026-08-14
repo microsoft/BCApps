@@ -12,7 +12,7 @@ using Microsoft.Purchases.Vendor;
 report 99000789 "Subcontractor - Dispatch List"
 {
     DefaultRenderingLayout = ExcelLayout;
-    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultHeaderFooterPart = "Internal Default";
     //DefaultThemePart = "BC Default";
     ApplicationArea = Manufacturing;
     Caption = 'Subcontractor - Dispatch List';

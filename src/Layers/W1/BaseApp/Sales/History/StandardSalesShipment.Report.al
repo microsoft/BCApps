@@ -35,7 +35,7 @@ report 1308 "Standard Sales - Shipment"
 {
     Caption = 'Sales - Shipment';
     DefaultRenderingLayout = "StandardSalesShipment.docx";
-    //DefaultHeaderFooterPart = External_Default_Detailed;
+    //DefaultHeaderFooterPart = "External Default Detailed";
     //DefaultThemePart = "BC Default";
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;

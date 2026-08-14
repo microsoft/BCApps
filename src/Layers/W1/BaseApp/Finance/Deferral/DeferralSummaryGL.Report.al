@@ -18,7 +18,7 @@ report 1700 "Deferral Summary - G/L"
     ApplicationArea = Basic, Suite;
     Caption = 'Deferral Summary - G/L';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultHeaderFooterPart = "Internal Default";
     //DefaultThemePart = "BC Default";
     UsageCategory = ReportsAndAnalysis;
 

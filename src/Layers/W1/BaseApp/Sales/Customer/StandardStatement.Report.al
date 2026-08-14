@@ -24,7 +24,7 @@ report 1316 "Standard Statement"
 {
     Caption = 'Customer Statement';
     DefaultRenderingLayout = "StandardStatement.docx";
-    //DefaultHeaderFooterPart = External_Modern;
+    //DefaultHeaderFooterPart = "External Modern";
     //DefaultThemePart = "BC Default";
     WordMergeDataItem = Customer;
 

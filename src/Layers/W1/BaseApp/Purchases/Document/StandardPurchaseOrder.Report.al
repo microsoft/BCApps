@@ -29,7 +29,7 @@ report 1322 "Standard Purchase - Order"
 {
     Caption = 'Purchase - Order';
     DefaultRenderingLayout = "StandardPurchaseOrder.docx";
-    //DefaultHeaderFooterPart = External_Modern_Logo;
+    //DefaultHeaderFooterPart = "External Modern Logo";
     //DefaultThemePart = "BC Default";
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;

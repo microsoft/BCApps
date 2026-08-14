@@ -19,7 +19,7 @@ report 1701 "Deferral Summary - Sales"
     ApplicationArea = Suite;
     Caption = 'Deferral Summary - Sales';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultHeaderFooterPart = "Internal Default";
     //DefaultThemePart = "BC Default";
     UsageCategory = ReportsAndAnalysis;
 

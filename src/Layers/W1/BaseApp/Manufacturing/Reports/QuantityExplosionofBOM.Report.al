@@ -12,7 +12,7 @@ using System.Utilities;
 report 99000753 "Quantity Explosion of BOM"
 {
     DefaultRenderingLayout = ExcelLayout;
-    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultHeaderFooterPart = "Internal Default";
     //DefaultThemePart = "BC Default";
     ApplicationArea = Manufacturing;
     Caption = 'Quantity Explosion of BOM';

@@ -19,7 +19,7 @@ report 5085 "Contact Cover Sheet"
     PreviewMode = PrintLayout;
     WordMergeDataItem = TempSegmentLine;
     DefaultRenderingLayout = WordLayout;
-    //DefaultHeaderFooterPart = Internal_Minimalistic_Centered;
+    //DefaultHeaderFooterPart = "Internal Minimalistic Centered";
 
     dataset
     {

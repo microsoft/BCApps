@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Document;
 report 99000788 "Prod. Order - Shortage List"
 {
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultHeaderFooterPart = "Internal Default";
     //DefaultThemePart = "BC Default";
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Shortage List';

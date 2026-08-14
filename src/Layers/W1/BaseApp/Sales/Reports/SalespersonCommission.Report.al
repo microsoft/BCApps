@@ -19,7 +19,7 @@ report 115 "Salesperson - Commission"
     Caption = 'Salesperson - Commission';
     ToolTip = 'View a list of invoices for each salesperson for a selected period. The following information is shown for each invoice: Customer number, sales amount, profit amount, and the commission on sales amount and profit amount. The report also shows the adjusted profit and the adjusted profit commission, which are the profit figures that reflect any changes to the original costs of the goods sold.';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = Internal_Default;
+    //DefaultHeaderFooterPart = "Internal Default";
     //DefaultThemePart = "BC Default";
     UsageCategory = ReportsAndAnalysis;
 

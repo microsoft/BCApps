@@ -17,7 +17,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
 {
     Caption = 'E-Doc Sample Purchase Invoice';
     DefaultRenderingLayout = SampleInvoiceLayout1;
-    //DefaultHeaderFooterPart = External_Default_Detailed;
+    //DefaultHeaderFooterPart = "External Default Detailed";
     //DefaultThemePart = "BC Default";
 
     dataset

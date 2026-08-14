@@ -37,7 +37,7 @@ report 1304 "Standard Sales - Quote"
 {
     Caption = 'Sales - Quote';
     DefaultRenderingLayout = "StandardSalesQuote.docx";
-    //DefaultHeaderFooterPart = External_Default;
+    //DefaultHeaderFooterPart = "External Default";
     //DefaultThemePart = "BC Default";
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
