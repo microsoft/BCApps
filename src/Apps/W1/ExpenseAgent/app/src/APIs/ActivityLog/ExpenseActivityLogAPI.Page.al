@@ -15,7 +15,6 @@ page 7122 "Expense Activity Log API"
     EntitySetName = 'expenseActivityLogEntries';
     PageType = API;
     SourceTable = "Expense Activity Log Entry";
-    SourceTableView = sorting("Occurred At", "Entry No.") order(descending);
     ODataKeyFields = SystemId;
     DataAccessIntent = ReadOnly;
     Editable = false;
@@ -152,7 +151,7 @@ page 7122 "Expense Activity Log API"
         CurrencyLCY: Code[10];
         HistoryScopeApplied: Boolean;
         ReimbursementCurrencyCode: Code[10];
-        HistoryActorRoleRequiredErr: Label 'The historyActorRole filter must be specified as Submitter or Approver.';
+        HistoryActorRoleRequiredErr: Label 'The historyActorRole filter must be specified as Submitter or Approver.', Locked = true;
         ActivityScopeRequiredErr: Label 'Activity log entries must be requested through an expense report, posted expense report, or expense user.';
 
     trigger OnInit()
@@ -207,12 +206,17 @@ page 7122 "Expense Activity Log API"
             HistoryActorRoleFilter := Rec.GetFilter("History Actor Role Filter");
         Rec.FilterGroup(0);
         if HasHistoryActorFilters then begin
-            if HistoryActorRoleFilter <> '' then
+            if HistoryActorRoleFilter <> '' then begin
+                Rec.SetCurrentKey("Occurred At", "Entry No.");
+                Rec.Ascending(false);
                 Rec.SetRange("History Subject Match", true)
-            else
+            end else
                 Error(HistoryActorRoleRequiredErr);
         end else
-            if not HasSourceFilters then
+            if HasSourceFilters then begin
+                Rec.SetCurrentKey("Source Table ID", "Source Record System ID", "Occurred At", "Entry No.");
+                Rec.Ascending(false);
+            end else
                 Error(ActivityScopeRequiredErr);
         Rec.FilterGroup(OriginalFilterGroup);
         HistoryScopeApplied := true;

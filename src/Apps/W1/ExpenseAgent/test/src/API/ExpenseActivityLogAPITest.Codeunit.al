@@ -357,13 +357,11 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler')]
     procedure E2EActivityLogScenario()
     var
         SubmitterExpenseUser: Record "Expense User";
         ApproverExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
-        ExpenseSubCategory: Record "Expense Subcategory";
         ExpensePaymentMethod: Record "Expense Payment Method";
         ExpenseReportHeader: Record "Expense Report Header";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
@@ -375,10 +373,10 @@ codeunit 148343 "Expense Activity Log API Test"
         RunToken := CreateRunToken();
         CreateE2ESetup(
             SubmitterExpenseUser, ApproverExpenseUser,
-            ExpenseCategory, ExpenseSubCategory, ExpensePaymentMethod, RunToken);
+            ExpenseCategory, ExpensePaymentMethod, RunToken);
         CreateE2EReport(
             ExpenseReportHeader, SubmitterExpenseUser,
-            ExpenseCategory, ExpenseSubCategory, ExpensePaymentMethod, RunToken);
+            ExpenseCategory, ExpensePaymentMethod, RunToken);
         Commit();
 
         // [WHEN] The report is submitted, rejected/reopened, resubmitted, and approved through API actions.
@@ -422,7 +420,6 @@ codeunit 148343 "Expense Activity Log API Test"
         var SubmitterExpenseUser: Record "Expense User";
         var ApproverExpenseUser: Record "Expense User";
         var ExpenseCategory: Record "Expense Category";
-        var ExpenseSubCategory: Record "Expense Subcategory";
         var ExpensePaymentMethod: Record "Expense Payment Method";
         RunToken: Code[8]
     )
@@ -446,7 +443,9 @@ codeunit 148343 "Expense Activity Log API Test"
             ExpenseCategory,
             ExpenseCategory."Reimbursement Type"::"Employee Paid",
             ExpenseCategory."Expense Detail Required"::" ");
-        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        ExpenseCategory.Description :=
+            CopyStr(TestDescriptionPrefixLbl + RunToken, 1, MaxStrLen(ExpenseCategory.Description));
+        ExpenseCategory.Modify();
         LibraryExpense.FindExpensePaymentMethod(
             ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
     end;
@@ -455,34 +454,25 @@ codeunit 148343 "Expense Activity Log API Test"
         var ExpenseReportHeader: Record "Expense Report Header";
         SubmitterExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
-        ExpenseSubCategory: Record "Expense Subcategory";
         ExpensePaymentMethod: Record "Expense Payment Method";
         RunToken: Code[8]
     )
     var
-        Expense: Record Expense;
-        CreateExpenseReport: Codeunit "Create Expense Report";
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        ExpenseReportLine: Record "Expense Report Line";
     begin
-        LibraryExpense.CreateExpenseWithZeroVATPostingSetup(
-            Expense,
-            SubmitterExpenseUser."No.",
-            ExpenseCategory.Code,
-            ExpenseSubCategory.Code,
-            '',
-            true,
-            '',
-            100);
-        Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
-        Expense.Modify();
-        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
-
-        LibraryExpense.CreateExpenseReport(
-            ExpenseReportHeader, SubmitterExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, SubmitterExpenseUser."No.", '', '');
         ExpenseReportHeader.Description :=
             CopyStr(TestDescriptionPrefixLbl + 'E2E ' + RunToken, 1, MaxStrLen(ExpenseReportHeader.Description));
         ExpenseReportHeader.Modify();
-        CreateExpenseReport.AddExpensesToReport(ExpenseReportHeader);
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine,
+            ExpenseReportHeader,
+            SubmitterExpenseUser."No.",
+            ExpenseCategory.Code,
+            ExpensePaymentMethod.Code,
+            true,
+            '',
+            100);
     end;
 
     local procedure CreateActorRequestBody(PropertyName: Text; ExpenseUserNo: Code[20]) RequestBody: JsonObject
@@ -648,6 +638,13 @@ codeunit 148343 "Expense Activity Log API Test"
                     EmployeeNumbers.Add(ExpenseUser."Employee No.");
             until ExpenseUser.Next() = 0;
 
+        ExpenseCategory.SetFilter(Description, TestDescriptionPrefixLbl + '*');
+        if ExpenseCategory.FindSet() then
+            repeat
+                if not CategoryCodes.Contains(ExpenseCategory.Code) then
+                    CategoryCodes.Add(ExpenseCategory.Code);
+            until ExpenseCategory.Next() = 0;
+
         ExpenseActivityLogEntry.SetFilter("Document Description", TestDescriptionPrefixLbl + '*');
         ExpenseActivityLogEntry.DeleteAll();
 
@@ -690,12 +687,6 @@ codeunit 148343 "Expense Activity Log API Test"
             if ExpenseCategory.Get(CategoryCode) then
                 ExpenseCategory.Delete(true);
         end;
-    end;
-
-    [ModalPageHandler]
-    procedure ExpensesModalPageHandler(var Expenses: TestPage Expenses)
-    begin
-        Expenses.OK().Invoke();
     end;
 
 }

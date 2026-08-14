@@ -153,6 +153,8 @@ codeunit 148318 "Expense Capabilities API Test"
 
     local procedure Initialize()
     begin
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        Commit();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Capabilities API Test");
         if IsInitialized then
             exit;
