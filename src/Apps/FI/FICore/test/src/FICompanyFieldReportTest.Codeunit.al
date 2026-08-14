@@ -64,12 +64,16 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Quote Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Blanket Order Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Posted Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Posted Shipment Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Reminder Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Issued Reminder Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Fin. Chrg. Memo Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Issued Fin. Chrg. M. Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Blanket Order Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Posted Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Posted Receipt Nos."));
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Credit Memo Nos."));
 
         SalesAndReceivablesSetup.Get();
@@ -117,6 +121,7 @@ codeunit 148150 "FI Company Field Report Test"
         // [Scenario] Test FI Core extension subscriber for Finnish company fields in the VIES declaration.
         Initialize();
         SetVATVIESDeclarationFeature(true);
+        CreateVATVIESEntry();
 
         // [WHEN] The VAT VIES declaration report is run.
         VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
@@ -140,6 +145,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         // [Scenario] Finnish company fields are not added to the VIES declaration when the feature is disabled.
         Initialize();
+        CreateVATVIESEntry();
 
         // [WHEN] The VAT VIES declaration report is run.
         VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
@@ -186,6 +192,29 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryUtility.CreateNoSeries(NoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(NoSeriesLine, NoSeries.Code, StartingNo, '9999');
         exit(NoSeries.Code);
+    end;
+
+    local procedure CreateVATVIESEntry()
+    var
+        CountryRegion: Record "Country/Region";
+        VATEntry: Record "VAT Entry";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        CountryRegion.Code := LibraryUtility.GenerateRandomCode(CountryRegion.FieldNo(Code), Database::"Country/Region");
+        CountryRegion."EU Country/Region Code" := CountryRegion.Code;
+        CountryRegion.Insert();
+
+        VATEntry.FindLast();
+        VATEntry.Init();
+        VATEntry."Entry No." += 1;
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."Posting Date" := WorkDate();
+        VATEntry."VAT Reporting Date" := WorkDate();
+        VATEntry."Country/Region Code" := CountryRegion.Code;
+        VATEntry."VAT Registration No." := LibraryUtility.GenerateGUID();
+        VATEntry."Bill-to/Pay-to No." := LibraryUtility.GenerateGUID();
+        VATEntry.Base := LibraryRandom.RandDec(1000, 2);
+        VATEntry.Insert();
     end;
 
     local procedure CreateSalesDocument(Type: Enum "Sales Document Type"): Code[20]
@@ -383,9 +412,11 @@ codeunit 148150 "FI Company Field Report Test"
     [Scope('OnPrem')]
     procedure TestStatementReport()
     var
+        SalesHeader: Record "Sales Header";
         StatementReport: Report Statement;
     begin
         Initialize();
+        CreateSalesDocument(SalesHeader."Document Type"::Invoice, true, false);
         StatementReport.UseRequestPage(true);
         StatementReport.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
@@ -476,7 +507,7 @@ codeunit 148150 "FI Company Field Report Test"
 
         Commit();
         CreateFinanceChargeMemos.UseRequestPage(false);
-        CreateFinanceChargeMemos.InitializeRequest(SalesInvoiceHeader."Posting Date", SalesInvoiceHeader."Posting Date");
+        CreateFinanceChargeMemos.InitializeRequest(CalcDate('<1Y>', SalesInvoiceHeader."Posting Date"), CalcDate('<1Y>', SalesInvoiceHeader."Posting Date"));
         CreateFinanceChargeMemos.Run();
         IssueFinanceChargeMemos.UseRequestPage(false);
         IssueFinanceChargeMemos.Run();
@@ -752,7 +783,7 @@ codeunit 148150 "FI Company Field Report Test"
         CreateServiceDocument(ServiceHeader."Document Type"::Order, false);
         ServiceOrder.UseRequestPage(true);
         ServiceOrder.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -806,7 +837,7 @@ codeunit 148150 "FI Company Field Report Test"
         CreateServiceDocument(ServiceHeader."Document Type"::Invoice, true);
         ServiceInvoice.UseRequestPage(true);
         ServiceInvoice.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        AssertCompanyFields('CompanyInfoBusinessIDCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -821,7 +852,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServiceContractReportHandler,ConfirmUIHandler')]
+    [HandlerFunctions('ServiceContractReportHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractReport()
     var
