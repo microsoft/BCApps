@@ -114,6 +114,7 @@ codeunit 148150 "FI Company Field Report Test"
 
     [Test]
     [HandlerFunctions('VATVIESDeclarationTaxAuthReportRequestPageHandler')]
+    [Scope('OnPrem')]
     procedure CompanyFieldsInVATVIESDeclaration()
     var
         VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
@@ -139,6 +140,7 @@ codeunit 148150 "FI Company Field Report Test"
 
     [Test]
     [HandlerFunctions('VATVIESDeclarationTaxAuthReportRequestPageHandler')]
+    [Scope('OnPrem')]
     procedure CompanyFieldsNotInVATVIESDeclarationWhenFeatureDisabled()
     var
         VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
@@ -339,6 +341,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup, VATProductPostingGroup.Code);
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT Identifier", VATProductPostingGroup.Code);
         VATPostingSetup.Validate("VAT %", LibraryRandom.RandIntInRange(1, 25));
         VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
         VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
@@ -918,6 +921,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [RequestPageHandler]
+    [Scope('OnPrem')]
     procedure VATVIESDeclarationTaxAuthReportRequestPageHandler(var VATVIESDeclarationTaxAuthReport: TestRequestPage "VAT- VIES Declaration Tax Auth")
     begin
         VATVIESDeclarationTaxAuthReport.SaveAsXml(
