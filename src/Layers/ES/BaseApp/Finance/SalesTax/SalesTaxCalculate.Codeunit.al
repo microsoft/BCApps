@@ -565,7 +565,7 @@ codeunit 398 "Sales Tax Calculate"
     end;
 
 #if not CLEAN29
-    [Obsolete('Sales Tax is not used in Spain.')]
+    [Obsolete('Sales Tax is not used in Spain.', '29.0')]
     [Scope('OnPrem')]
     procedure SetAmount(TotalAmountForTax2: Decimal; TotalLineAmountForTax2: Decimal)
     begin
