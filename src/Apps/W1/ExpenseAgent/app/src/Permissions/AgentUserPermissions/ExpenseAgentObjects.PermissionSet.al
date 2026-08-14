@@ -124,6 +124,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Attachment Mgt." = X,
                   codeunit "Expense Auto Population" = X,
                   codeunit "Expense Capabilities Provider" = X,
+                  codeunit "Expense Activity Retention" = X,
                   codeunit "Expense Activity Log Mgt." = X,
                   codeunit "Expense Projects Builder" = X,
                   codeunit "Expense Consumption Handler" = X,
