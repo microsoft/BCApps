@@ -32,10 +32,6 @@ codeunit 398 "Sales Tax Calculate"
         FirstLine: Boolean;
         TaxOnTaxCalculated: Boolean;
         CalculationOrderViolation: Boolean;
-#if not CLEAN29
-        TotalAmountForTax: Decimal;
-        TotalLineAmountForTax: Decimal;
-#endif
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -573,8 +569,6 @@ codeunit 398 "Sales Tax Calculate"
     [Scope('OnPrem')]
     procedure SetAmount(TotalAmountForTax2: Decimal; TotalLineAmountForTax2: Decimal)
     begin
-        TotalAmountForTax := TotalAmountForTax2;
-        TotalLineAmountForTax := TotalLineAmountForTax2;
     end;
 #endif
 
