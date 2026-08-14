@@ -4533,7 +4533,6 @@ codeunit 134776 "Document Attachment Tests"
     var
         Customer: Record Customer;
         Item: Record Item;
-        Location: Record Location;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesShipmentHeader: Record "Sales Shipment Header";
@@ -4544,10 +4543,10 @@ codeunit 134776 "Document Attachment Tests"
         // [SCENARIO 646549] Uploading a file from the Documents FactBox on Posted Sales Shipment must not fail with "The record is not open".
         Initialize();
 
-        // [GIVEN] Create Customer and Item with Inventory Posting Setup for the blank Location, so the shipment can be posted.
+        // [GIVEN] Create Customer and Item with a new Inventory Posting Setup for the blank Location, so the shipment can be posted.
         LibrarySales.CreateCustomer(Customer);
         LibraryInventory.CreateItem(Item);
-        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
+        CreateInventoryPostingSetupForItem(Item);
 
         // [GIVEN] Create and post Sales Order to get a Posted Sales Shipment.
         CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::Order);
@@ -4580,7 +4579,6 @@ codeunit 134776 "Document Attachment Tests"
     var
         Customer: Record Customer;
         Item: Record Item;
-        Location: Record Location;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         ReturnReceiptHeader: Record "Return Receipt Header";
@@ -4591,10 +4589,10 @@ codeunit 134776 "Document Attachment Tests"
         // [SCENARIO 646549] Uploading a file from the Documents FactBox on Posted Return Receipt must not fail with "The record is not open".
         Initialize();
 
-        // [GIVEN] Create Customer and Item with Inventory Posting Setup for the blank Location, so the return receipt can be posted.
+        // [GIVEN] Create Customer and Item with a new Inventory Posting Setup for the blank Location, so the return receipt can be posted.
         LibrarySales.CreateCustomer(Customer);
         LibraryInventory.CreateItem(Item);
-        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
+        CreateInventoryPostingSetupForItem(Item);
 
         // [GIVEN] Create and post Sales Return Order to get a Posted Return Receipt.
         CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::"Return Order");
@@ -5266,6 +5264,21 @@ codeunit 134776 "Document Attachment Tests"
         ChangeStatusOfProductionBOM(ProdBOMHeader, ProdBOMHeader.Status::Certified);
         RecRef.GetTable(ProdBOMHeader);
         CreateDocAttachProductionImageType(RecRef, StrSubstNo(AttachmentFileNameLbl, LibraryRandom.RandText(5)), true);
+    end;
+
+    local procedure CreateInventoryPostingSetupForItem(var Item: Record Item)
+    var
+        InventoryPostingGroup: Record "Inventory Posting Group";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+    begin
+        LibraryInventory.CreateInventoryPostingGroup(InventoryPostingGroup);
+        LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, '', InventoryPostingGroup.Code);
+        InventoryPostingSetup.Validate("Inventory Account", LibraryERM.CreateGLAccountNo());
+        InventoryPostingSetup.Validate("Inventory Account (Interim)", LibraryERM.CreateGLAccountNo());
+        InventoryPostingSetup.Modify(true);
+
+        Item.Validate("Inventory Posting Group", InventoryPostingGroup.Code);
+        Item.Modify(true);
     end;
 
     [ModalPageHandler]
