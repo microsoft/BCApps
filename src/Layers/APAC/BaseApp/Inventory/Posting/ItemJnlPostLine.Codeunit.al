@@ -3689,6 +3689,7 @@ codeunit 22 "Item Jnl.-Post Line"
                     DirCostACY := Round(DirCost * ItemJnlLine."Vendor Exchange Rate (ACY)");
                     OvhdCostACY := Round(OvhdCost * ItemJnlLine."Vendor Exchange Rate (ACY)");
                     ItemJnlLine."Unit Cost (ACY)" := Round(ItemJnlLine."Unit Cost" * ItemJnlLine."Vendor Exchange Rate (ACY)");
+                    PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
                 end else begin
                     if ShouldUseDocumentAmountForACY() then begin
                         if Expected then
@@ -3720,6 +3721,7 @@ codeunit 22 "Item Jnl.-Post Line"
                       CurrExchRate.ExchangeRate(
                         ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency")),
                     Currency."Unit-Amount Rounding Precision");
+                PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
             end;
         end;
         CalcUnitCost := (DirCost <> 0) and (ItemJnlLine."Unit Cost" = 0);
