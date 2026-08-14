@@ -180,12 +180,8 @@ codeunit 148318 "Expense Capabilities API Test"
         for CapabilityIndex := 0 to ValueArray.Count() - 1 do begin
             ValueArray.Get(CapabilityIndex, CapabilityToken);
             CapabilityObject := CapabilityToken.AsObject();
-            if CapabilityObject.Get('capabilityName', PropertyToken) then
-                if LowerCase(PropertyToken.AsValue().AsText()) = LowerCase(CapabilityName) then begin
-                    if not CapabilityObject.Get('isEnabled', PropertyToken) then
-                        exit(false);
-                    exit(PropertyToken.AsValue().AsBoolean() = ExpectedEnabled);
-                end;
+            if LowerCase(CapabilityObject.GetText('capabilityName')) = LowerCase(CapabilityName) then
+                exit(CapabilityObject.GetBoolean('isEnabled') = ExpectedEnabled);
         end;
 
         exit(false);
