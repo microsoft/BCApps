@@ -902,6 +902,9 @@ codeunit 144352 "Swiss SEPA CT Export"
     var
         GenJournalLine: Record "Gen. Journal Line";
         CHMgt: Codeunit CHMgt;
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+        ExportFile: File;
+        XMLInStream: InStream;
         FileName: Text;
         VendorNo: Code[20];
         ExpectedMmbId: Code[5];
@@ -924,14 +927,17 @@ codeunit 144352 "Swiss SEPA CT Export"
         FileName := GenJournalLine_XMLExport(GenJournalLine);
 
         // [THEN] The payment is classified as Swiss Payment Type "2.2" (LclInstrm = "CH03")
-        LibraryXMLRead.Initialize(FileName);
-        LibraryXMLRead.VerifyNodeValueInSubtree('PmtTpInf', 'LclInstrm', 'CH03');
+        ExportFile.Open(FileName);
+        ExportFile.CreateInStream(XMLInStream);
+        LibraryXPathXMLReader.InitializeXml(XMLInStream, 'http://www.six-interbank-clearing.com/de/pain.001.001.03.ch.02.xsd');
+        ExportFile.Close();
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:PmtTpInf//ns:LclInstrm', 'CH03');
         // [THEN] The creditor agent uses the CHBCC clearing system with MmbId = the IID derived from the IBAN, and no BIC
-        LibraryXMLRead.VerifyNodeAbsenceInSubtree('CdtrAgt', 'BIC');
-        LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAgt', 'Cd', 'CHBCC');
-        LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAgt', 'MmbId', ExpectedMmbId);
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//ns:CdtrAgt//ns:BIC');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:CdtrAgt//ns:Cd', 'CHBCC');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:CdtrAgt//ns:MmbId', ExpectedMmbId);
         // [THEN] The creditor account holds the IBAN
-        LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAcct', 'IBAN', GetIBAN(true));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:CdtrAcct//ns:IBAN', GetIBAN(true));
     end;
 
     [Test]
