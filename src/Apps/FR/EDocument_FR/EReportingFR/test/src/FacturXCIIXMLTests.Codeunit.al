@@ -1783,11 +1783,12 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer: Record Customer;
         GeneralPostingSetup: Record "General Posting Setup";
         GLAccount: Record "G/L Account";
+        Item: Record Item;
+        Location: Record Location;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
         CustomerNo: Code[20];
-        ItemNo: Code[20];
     begin
         LibraryUtility.UpdateSetupNoSeriesCode(
             Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
@@ -1805,10 +1806,11 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
         Customer.Modify(true);
-        ItemNo := LibraryInventory.CreateItemNoWithPostingSetup(
-            GLAccount."Gen. Prod. Posting Group", GLAccount."VAT Prod. Posting Group");
+        Item.Get(LibraryInventory.CreateItemNoWithPostingSetup(
+            GLAccount."Gen. Prod. Posting Group", GLAccount."VAT Prod. Posting Group"));
+        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, 1);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Modify(true);
         if IncludeGLAccountLine then begin

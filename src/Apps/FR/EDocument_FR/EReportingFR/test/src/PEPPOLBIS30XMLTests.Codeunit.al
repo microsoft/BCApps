@@ -1576,6 +1576,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         GLAccount: Record "G/L Account";
         ServiceLine: Record "Service Line";
     begin
+        LibraryService.SetupServiceMgtNoSeries();
         CreateDirectPostingGLAccountWithSalesSetup(GLAccount);
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
