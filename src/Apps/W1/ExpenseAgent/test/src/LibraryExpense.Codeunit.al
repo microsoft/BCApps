@@ -19,6 +19,8 @@ using System.Security.User;
 
 codeunit 148300 "Library - Expense"
 {
+    Permissions = tabledata "Expense Activity Log Entry" = rimd;
+
     var
         LibraryUtility: Codeunit "Library - Utility";
         LibraryERM: Codeunit "Library - ERM";

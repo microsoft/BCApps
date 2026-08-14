@@ -129,6 +129,21 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         CheckApproverPermissions(ExpenseReportHeader);
         ApproverExpenseUserNo := GetExpenseUserNo();
+        ReopenApproved(ExpenseReportHeader, ApproverExpenseUserNo);
+    end;
+
+    internal procedure ReopenApproved(
+        var ExpenseReportHeader: Record "Expense Report Header";
+        ApproverExpenseUserNo: Code[20]
+    )
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        if ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval" then
+            exit;
+
+        ExpenseUser.Get(ApproverExpenseUserNo);
+        CheckApproverPermissions(ExpenseUser);
         ExpenseReportHeader.UpdateApproverID();
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Pending Approval";
         ExpenseReportHeader.Modify(true);
