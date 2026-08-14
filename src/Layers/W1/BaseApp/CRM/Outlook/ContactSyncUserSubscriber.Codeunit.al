@@ -18,7 +18,7 @@ codeunit 7100 "Contact Sync User Subscriber"
     [EventSubscriber(ObjectType::Table, Database::"Contact Sync User", 'OnBeforeModifyEvent', '', false, false)]
     local procedure OnBeforeModifyContactSyncUser(var Rec: Record "Contact Sync User"; var xRec: Record "Contact Sync User"; RunTrigger: Boolean)
     begin
-        Session.LogMessage('0000V1Z', StrSubstNo(OnBeforeModifyTelemetryMsgUserId, xRec."User ID", Rec."User ID"), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
+        Session.LogMessage('0000V1Z', StrSubstNo(UserModifiedMsg, xRec."User ID", Rec."User ID"), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
 
         // Allow upgrade/data-fix updates on legacy rows unless Delta Url is being changed.
         if Session.GetExecutionContext() in [ExecutionContext::Install, ExecutionContext::Upgrade] then
@@ -31,5 +31,5 @@ codeunit 7100 "Contact Sync User Subscriber"
 
     var
         OnBeforeModifyTelemetryMsg: Label 'Contact Sync User OnBeforeModifyEvent was triggered. xRec Delta URL: %1; Rec Delta URL: %2', Locked = true, Comment = '%1 = existing record delta URL (xRec), %2 = incoming record delta URL (Rec)';
-        OnBeforeModifyTelemetryMsgUserId: Label 'Contact Sync User OnBeforeModifyEvent was triggered. xRec User ID: %1; Rec User ID: %2', Locked = true, Comment = '%1 = existing record user ID (xRec), %2 = incoming record user ID (Rec)';
+        UserModifiedMsg: Label 'Contact Sync User OnBeforeModifyEvent was triggered. xRec User ID: %1; Rec User ID: %2', Locked = true, Comment = '%1 = existing record user ID (xRec), %2 = incoming record user ID (Rec)';
 }
