@@ -596,6 +596,49 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ReusedInstanceResetsProvidedServiceBetweenExports()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempFirstRunExportBuffer: Record "Record Export Buffer" temporary;
+        TempSecondRunExportBuffer: Record "Record Export Buffer" temporary;
+        ReusedExportXRechnungDocument: Codeunit "Export XRechnung Document";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] A reused Export XRechnung Document instance must not carry the service provided for
+        // an earlier export into a later export that provides none: the per-instance state is reset after each
+        // run, so a second export without a provided service falls back to the legacy FindLast lookup.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] A trailing XRechnung service that sorts after the triggering service, which FindLast would resolve
+        TrailingServiceCode := CreateTrailingXRechnungService(false);
+
+        // [GIVEN] A first export on this instance provides the triggering service through SetEDocumentService
+        TempFirstRunExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempFirstRunExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempFirstRunExportBuffer.Insert();
+        ReusedExportXRechnungDocument.SetEDocumentService(EDocumentService);
+        ReusedExportXRechnungDocument.Run(TempFirstRunExportBuffer);
+
+        // [WHEN] The same instance runs a second export without providing a service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        TempSecondRunExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempSecondRunExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempSecondRunExportBuffer.Insert();
+        ReusedExportXRechnungDocument.Run(TempSecondRunExportBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The second run fell back to the FindLast lookup (trailing service), not the stale service
+        // provided for the first export
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Reused instance must reset the provided service so the second export falls back to FindLast');
+        Assert.AreNotEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Reused instance must not carry the previous triggering service into a later export');
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatVerifySellerAddressFromRespCenter();
     var
         ResponsibilityCenter: Record "Responsibility Center";
@@ -972,6 +1015,32 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created
         VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoUsesTriggeringServiceWithPDFEmbedding()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] On the non-invoice Sales Cr.Memo path the export also uses the E-Document Service
+        // that triggered the export, not the last matching service by format.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Credit Memo.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The triggering XRechnung service has PDF embedding enabled
+        SetEdocumentServiceEmbedPDFInExport(true);
+        // [GIVEN] A second XRechnung service that sorts last has PDF embedding disabled
+        CreateTrailingXRechnungService(false);
+
+        // [WHEN] Export XRechnung Electronic Document using the triggering service.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] PDF is embedded in the XML because the triggering service enables it, not the trailing one
+        VerifyCrMemoPDFEmbeddedToXML(TempXMLBuffer);
     end;
 
     [Test]

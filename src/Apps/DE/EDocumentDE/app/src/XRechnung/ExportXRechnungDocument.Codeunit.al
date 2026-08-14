@@ -69,6 +69,7 @@ codeunit 13916 "Export XRechnung Document"
             Database::"Service Cr.Memo Header":
                 ExportServiceCreditMemo(Rec);
         end;
+        ResetProvidedService();
     end;
 
     procedure ExportSalesInvoice(var RecordExportBuffer: Record "Record Export Buffer")
@@ -1511,6 +1512,16 @@ codeunit 13916 "Export XRechnung Document"
         EDocumentService := NewEDocumentService;
 #if not CLEAN29
         EDocumentServiceProvided := true;
+#endif
+    end;
+
+    local procedure ResetProvidedService()
+    begin
+        // Clear the per-instance service state at the end of every run so a reused instance never carries
+        // the service provided for an earlier export into a later export that does not provide one.
+        Clear(EDocumentService);
+#if not CLEAN29
+        EDocumentServiceProvided := false;
 #endif
     end;
 

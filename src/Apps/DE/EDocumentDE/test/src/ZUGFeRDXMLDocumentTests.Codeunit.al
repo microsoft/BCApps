@@ -923,6 +923,34 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDUsesTriggeringServiceWithSecondServicePresent()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] On the non-invoice Sales Cr.Memo report-extension path the ZUGFeRD export threads the
+        // triggering service through the ZUGFeRD Export Context: with a second (later-sorting) ZUGFeRD service
+        // present the export uses the triggering service, not the one a FindLast lookup would resolve.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Credit Memo and a trailing ZUGFeRD service.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        CreateTrailingZUGFeRDService();
+
+        // [WHEN] Export through the format, which sets the context with the triggering service.
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] The document is produced and the Cr.Memo report extension pushed the triggering service
+        // through the context, so the export used it rather than the trailing one from a FindLast lookup.
+        VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+        Assert.AreEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Report extension must push the triggering service through the context on the Cr.Memo path');
+    end;
+
+    [Test]
     procedure ExportPostedSalesCrMemoInZUGFeRDFormatIncludesGTIN()
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";

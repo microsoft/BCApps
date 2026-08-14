@@ -32,6 +32,7 @@ codeunit 13925 "Library - E-Doc DE"
     /// <summary>
     /// Returns the Code of the E-Document Service carried by the last OnAfterFindEDocumentService event.
     /// </summary>
+    /// <returns>The Code of the E-Document Service carried by the last captured event.</returns>
     procedure GetCapturedEDocumentServiceCode(): Code[20]
     begin
         exit(CapturedEDocumentServiceCode);
@@ -40,6 +41,7 @@ codeunit 13925 "Library - E-Doc DE"
     /// <summary>
     /// Returns how many times OnAfterFindEDocumentService was raised while bound.
     /// </summary>
+    /// <returns>The number of OnAfterFindEDocumentService events captured while the subscriber was bound.</returns>
     procedure GetEDocumentServiceEventCount(): Integer
     begin
         exit(EDocumentServiceEventCount);
