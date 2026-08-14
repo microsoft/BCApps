@@ -282,12 +282,7 @@ codeunit 6926 "Expense Activity Log Mgt."
             until ExpenseReportLine.Next() = 0;
 
         ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportNo);
-        if ExpenseReportRuleViolation.IsEmpty() then
-            ExpenseActivityLogEntry."Compliance Status" :=
-                Enum::"Expense Activity Compliance"::Compliant
-        else
-            ExpenseActivityLogEntry."Compliance Status" :=
-                Enum::"Expense Activity Compliance"::NonCompliant;
+        ExpenseActivityLogEntry."Rule Violation Count" := ExpenseReportRuleViolation.Count();
 
         ExpenseActivityLogEntry.Categories :=
             CopyStr(CategoriesText, 1, MaxStrLen(ExpenseActivityLogEntry.Categories));

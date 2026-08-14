@@ -160,10 +160,10 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Receipt Count';
             DataClassification = SystemMetadata;
         }
-        field(53; "Compliance Status"; Enum "Expense Activity Compliance")
+        field(53; "Rule Violation Count"; Integer)
         {
-            Caption = 'Compliance Status';
-            DataClassification = CustomerContent;
+            Caption = 'Rule Violation Count';
+            DataClassification = SystemMetadata;
         }
         field(100; "History Actor Table ID Filter"; Integer)
         {

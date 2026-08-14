@@ -80,8 +80,8 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.AreNotEqual(0, StrPos(ResponseText, '"currencylcy"'), 'Response must identify the LCY used by LCY amount fields.');
         Assert.AreNotEqual(
             0,
-            StrPos(ResponseText, '"compliancestatus":"compliant"'),
-            'Response must contain the report compliance snapshot.');
+            StrPos(ResponseText, '"ruleviolationcount":0'),
+            'Response must contain the report rule violation snapshot.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"comment":"submitted for approval"'), 'Response must contain the event comment.');
         CompleteTest();
     end;

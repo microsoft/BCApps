@@ -138,9 +138,9 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'Receipt Count';
                 }
-                field(complianceStatus; Rec."Compliance Status")
+                field(ruleViolationCount; Rec."Rule Violation Count")
                 {
-                    Caption = 'Compliance Status';
+                    Caption = 'Rule Violation Count';
                 }
                 field(historyActorRole; Rec."History Actor Role Filter")
                 {
