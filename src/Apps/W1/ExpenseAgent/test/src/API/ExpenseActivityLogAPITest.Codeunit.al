@@ -25,6 +25,9 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         TestDescriptionPrefixLbl: Label 'ACTIVITY API TEST ', Locked = true;
+        SubmitActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReport', Locked = true;
+        ApproveActionTok: Label 'Microsoft.NAV.approvedExpenseReport', Locked = true;
+        RejectAndReopenActionTok: Label 'Microsoft.NAV.rejectAndReopenExpenseReport', Locked = true;
 
     [Test]
     procedure ActivityLogEntryIsExposedThroughReadOnlyAPI()
@@ -353,6 +356,222 @@ codeunit 148343 "Expense Activity Log API Test"
         CompleteTest();
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure E2EActivityLogScenario()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        SubjectSystemID: Guid;
+        RunToken: Code[8];
+    begin
+        // [SCENARIO] A complete approval round trip is exposed through active, posted, and user-history APIs.
+        Initialize();
+        RunToken := CreateRunToken();
+        CreateE2ESetup(
+            SubmitterExpenseUser, ApproverExpenseUser,
+            ExpenseCategory, ExpenseSubCategory, ExpensePaymentMethod, RunToken);
+        CreateE2EReport(
+            ExpenseReportHeader, SubmitterExpenseUser,
+            ExpenseCategory, ExpenseSubCategory, ExpensePaymentMethod, RunToken);
+        Commit();
+
+        // [WHEN] The report is submitted, rejected/reopened, resubmitted, and approved through API actions.
+        InvokeReportAction(
+            ExpenseReportHeader.SystemId, SubmitActionTok,
+            CreateActorRequestBody('submitterExpenseUserNo', SubmitterExpenseUser."No."));
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        InvokeReportAction(
+            ExpenseReportHeader.SystemId, RejectAndReopenActionTok,
+            CreateRejectRequestBody(ApproverExpenseUser."No.", 'E2E send back ' + RunToken));
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        InvokeReportAction(
+            ExpenseReportHeader.SystemId, SubmitActionTok,
+            CreateActorRequestBody('submitterExpenseUserNo', SubmitterExpenseUser."No."));
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        InvokeReportAction(
+            ExpenseReportHeader.SystemId, ApproveActionTok,
+            CreateActorRequestBody('approverExpenseUserNo', ApproverExpenseUser."No."));
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+
+        // [THEN] The active report timeline contains the approval.
+        VerifyReportActivity(
+            ExpenseReportHeader.SystemId, Page::"Expense Reports API",
+            ExpenseReportsServiceNameTok, Enum::"Expense Activity Event Type"::Approved);
+
+        // [WHEN] The approved report is moved to a posted source fixture.
+        SubjectSystemID := ExpenseReportHeader.SystemId;
+        MoveReportToPostedSource(ExpenseReportHeader, PostedExpenseReportHeader);
+        Commit();
+
+        // [THEN] Posted and user-scoped APIs expose the complete timeline.
+        VerifyReportActivity(
+            PostedExpenseReportHeader.SystemId, Page::"Posted Expense Reports API",
+            'postedExpenseReports', Enum::"Expense Activity Event Type"::Posted);
+        VerifyUserHistory(SubmitterExpenseUser.SystemId, 'Submitter', SubjectSystemID);
+        VerifyUserHistory(ApproverExpenseUser.SystemId, 'Approver', SubjectSystemID);
+        CompleteTest();
+    end;
+
+    local procedure CreateE2ESetup(
+        var SubmitterExpenseUser: Record "Expense User";
+        var ApproverExpenseUser: Record "Expense User";
+        var ExpenseCategory: Record "Expense Category";
+        var ExpenseSubCategory: Record "Expense Subcategory";
+        var ExpensePaymentMethod: Record "Expense Payment Method";
+        RunToken: Code[8]
+    )
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        CreateTestExpenseUser(SubmitterExpenseUser);
+        SubmitterExpenseUser."User Id For Approvals" :=
+            CopyStr('SUBMITTER-' + RunToken, 1, MaxStrLen(SubmitterExpenseUser."User Id For Approvals"));
+        SubmitterExpenseUser.Modify();
+
+        CreateTestExpenseUser(ApproverExpenseUser);
+        ApproverExpenseUser."Can Approve" := true;
+        ApproverExpenseUser."User Id For Approvals" :=
+            CopyStr('APPROVER-' + RunToken, 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ApproverExpenseUser.Modify();
+        LibraryExpense.CreateExpenseApprovalSetup(
+            ExpenseApprovalSetup, SubmitterExpenseUser."No.", ApproverExpenseUser."No.");
+
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory,
+            ExpenseCategory."Reimbursement Type"::"Employee Paid",
+            ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.FindExpensePaymentMethod(
+            ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+    end;
+
+    local procedure CreateE2EReport(
+        var ExpenseReportHeader: Record "Expense Report Header";
+        SubmitterExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        RunToken: Code[8]
+    )
+    var
+        Expense: Record Expense;
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        LibraryExpense.CreateExpenseWithZeroVATPostingSetup(
+            Expense,
+            SubmitterExpenseUser."No.",
+            ExpenseCategory.Code,
+            ExpenseSubCategory.Code,
+            '',
+            true,
+            '',
+            100);
+        Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        Expense.Modify();
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+
+        LibraryExpense.CreateExpenseReport(
+            ExpenseReportHeader, SubmitterExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        ExpenseReportHeader.Description :=
+            CopyStr(TestDescriptionPrefixLbl + 'E2E ' + RunToken, 1, MaxStrLen(ExpenseReportHeader.Description));
+        ExpenseReportHeader.Modify();
+        CreateExpenseReport.AddExpensesToReport(ExpenseReportHeader);
+    end;
+
+    local procedure CreateActorRequestBody(PropertyName: Text; ExpenseUserNo: Code[20]) RequestBody: JsonObject
+    begin
+        RequestBody.Add(PropertyName, ExpenseUserNo);
+    end;
+
+    local procedure CreateRejectRequestBody(ApproverExpenseUserNo: Code[20]; RejectReason: Text) RequestBody: JsonObject
+    begin
+        RequestBody.Add('approverExpenseUserNo', ApproverExpenseUserNo);
+        RequestBody.Add('rejectReason', RejectReason);
+    end;
+
+    local procedure InvokeReportAction(ReportSystemID: Guid; ActionName: Text; RequestBody: JsonObject)
+    var
+        ResponseText: Text;
+        RequestBodyText: Text;
+        TargetURL: Text;
+    begin
+        RequestBody.WriteTo(RequestBodyText);
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(ReportSystemID), Page::"Expense Reports API", ExpenseReportsServiceNameTok, ActionName);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 200);
+    end;
+
+    local procedure MoveReportToPostedSource(
+        var ExpenseReportHeader: Record "Expense Report Header";
+        var PostedExpenseReportHeader: Record "Posted Expense Report Header"
+    )
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
+        PostedExpenseReportHeader.Init();
+        PostedExpenseReportHeader.TransferFields(ExpenseReportHeader);
+        PostedExpenseReportHeader.Insert();
+        ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Posted,
+            Enum::"Expense Activity Actor Role"::" ",
+            '');
+        ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(
+            ExpenseReportHeader, PostedExpenseReportHeader);
+        ExpenseReportHeader.Delete(true);
+    end;
+
+    local procedure VerifyReportActivity(
+        ReportSystemID: Guid;
+        ParentPageID: Integer;
+        ParentServiceName: Text;
+        ExpectedEventType: Enum "Expense Activity Event Type"
+    )
+    var
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(ReportSystemID), ParentPageID, ParentServiceName, ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.AreNotEqual(
+            0,
+            StrPos(LowerCase(ResponseText), LowerCase(Format(ExpectedEventType))),
+            'The report activity response does not contain the expected event type.');
+    end;
+
+    local procedure VerifyUserHistory(ExpenseUserSystemID: Guid; HistoryRole: Text; SubjectSystemID: Guid)
+    var
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(ExpenseUserSystemID),
+            Page::"Expense Users API",
+            ExpenseUsersServiceNameTok,
+            ServiceNameTok);
+        TargetURL += '?$filter=historyActorRole eq ''' + HistoryRole + '''';
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.AreNotEqual(
+            0,
+            StrPos(
+                LowerCase(ResponseText),
+                LowerCase(LibraryGraphMgt.StripBrackets(Format(SubjectSystemID)))),
+            'The user history response does not contain the expected subject.');
+    end;
+
+    local procedure CreateRunToken(): Code[8]
+    begin
+        exit(CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, 8));
+    end;
+
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -369,8 +588,11 @@ codeunit 148343 "Expense Activity Log API Test"
             ExpenseAgentSetup.Insert();
         end;
         ExpenseAgentSetup."Enable Agent" := true;
+        ExpenseAgentSetup."Enable Approval Workflow" := false;
+        ExpenseAgentSetup."Use Rules" := false;
         ExpenseAgentSetup.Modify();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibraryExpense.InitializeExpenseSourceCode();
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
@@ -400,14 +622,32 @@ codeunit 148343 "Expense Activity Log API Test"
 
     local procedure CleanupTestData()
     var
+        Expense: Record Expense;
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseCategory: Record "Expense Category";
         ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseSubcategory: Record "Expense Subcategory";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseUser: Record "Expense User";
         Employee: Record Employee;
+        CategoryCodes: List of [Code[20]];
         EmployeeNumbers: List of [Code[20]];
+        ExpenseUserNumbers: List of [Code[20]];
+        CategoryCode: Code[20];
         EmployeeNo: Code[20];
+        ExpenseUserNo: Code[20];
     begin
+        ExpenseUser.SetFilter(Name, TestDescriptionPrefixLbl + '*');
+        if ExpenseUser.FindSet() then
+            repeat
+                ExpenseUserNumbers.Add(ExpenseUser."No.");
+                if (ExpenseUser."Employee No." <> '') and
+                   (not EmployeeNumbers.Contains(ExpenseUser."Employee No."))
+                then
+                    EmployeeNumbers.Add(ExpenseUser."Employee No.");
+            until ExpenseUser.Next() = 0;
+
         ExpenseActivityLogEntry.SetFilter("Document Description", TestDescriptionPrefixLbl + '*');
         ExpenseActivityLogEntry.DeleteAll();
 
@@ -417,17 +657,45 @@ codeunit 148343 "Expense Activity Log API Test"
         PostedExpenseReportHeader.SetFilter(Description, TestDescriptionPrefixLbl + '*');
         PostedExpenseReportHeader.DeleteAll(true);
 
-        ExpenseUser.SetFilter(Name, TestDescriptionPrefixLbl + '*');
-        if ExpenseUser.FindSet() then
-            repeat
-                if ExpenseUser."Employee No." <> '' then
-                    EmployeeNumbers.Add(ExpenseUser."Employee No.");
-            until ExpenseUser.Next() = 0;
-        ExpenseUser.DeleteAll(true);
+        foreach ExpenseUserNo in ExpenseUserNumbers do begin
+            Expense.SetRange("Expense User No.", ExpenseUserNo);
+            if Expense.FindSet() then
+                repeat
+                    if (Expense."Expense Category" <> '') and
+                       (not CategoryCodes.Contains(Expense."Expense Category"))
+                    then
+                        CategoryCodes.Add(Expense."Expense Category");
+                until Expense.Next() = 0;
+            Expense.ModifyAll("Expense Report No.", '');
+            Expense.DeleteAll(true);
+
+            ExpenseApprovalSetup.SetRange("Expense User No.", ExpenseUserNo);
+            ExpenseApprovalSetup.DeleteAll();
+            ExpenseApprovalSetup.Reset();
+            ExpenseApprovalSetup.SetRange("Approver No.", ExpenseUserNo);
+            ExpenseApprovalSetup.DeleteAll();
+            ExpenseApprovalSetup.Reset();
+
+            if ExpenseUser.Get(ExpenseUserNo) then
+                ExpenseUser.Delete(true);
+        end;
 
         foreach EmployeeNo in EmployeeNumbers do
             if Employee.Get(EmployeeNo) then
                 Employee.Delete(true);
+
+        foreach CategoryCode in CategoryCodes do begin
+            ExpenseSubcategory.SetRange("Expense Category Code", CategoryCode);
+            ExpenseSubcategory.DeleteAll(true);
+            if ExpenseCategory.Get(CategoryCode) then
+                ExpenseCategory.Delete(true);
+        end;
+    end;
+
+    [ModalPageHandler]
+    procedure ExpensesModalPageHandler(var Expenses: TestPage Expenses)
+    begin
+        Expenses.OK().Invoke();
     end;
 
 }

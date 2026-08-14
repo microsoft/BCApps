@@ -55,9 +55,9 @@
     "method": "ApproverHistoryReturnsCompleteTimelinesForActedOnReports"
   },
   {
-    "codeunitId": 148340,
-    "codeunitName": "Expense Agent API Scenarios",
-    "method": "CreatePersistentActivityScenarios"
+    "codeunitId": 148343,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "E2EActivityLogScenario"
   },
   {
     "codeunitId": 148333,
