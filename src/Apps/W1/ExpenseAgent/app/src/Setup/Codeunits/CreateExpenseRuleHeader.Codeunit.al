@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 codeunit 7107 "Create Expense Rule Header"
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     TableNo = "Expense Rule Header";

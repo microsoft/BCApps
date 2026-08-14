@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 codeunit 7104 "Create Expense Location"
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     TableNo = "Expense Location";

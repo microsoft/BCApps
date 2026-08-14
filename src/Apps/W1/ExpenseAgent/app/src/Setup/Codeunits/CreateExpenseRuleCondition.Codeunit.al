@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 codeunit 7105 "Create Expense Rule Condition"
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     TableNo = "Expense Rule Condition";
