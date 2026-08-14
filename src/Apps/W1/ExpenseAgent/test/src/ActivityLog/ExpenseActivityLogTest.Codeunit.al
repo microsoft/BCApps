@@ -99,7 +99,6 @@ codeunit 148342 "Expense Activity Log Test"
                     Assert.AreEqual('USD', ExpenseActivityLogEntry."Reimbursement Currency Code", 'Reimbursement currency code must be persisted.');
                     Assert.AreEqual(1.25, ExpenseActivityLogEntry."Reimbursement Currency Factor", 'Reimbursement currency factor must be persisted.');
                     Assert.AreNotEqual('', ExpenseActivityLogEntry.Categories, 'Snapshot events must persist categories.');
-                    Assert.AreEqual(0, ExpenseActivityLogEntry."Rule Violation Count", 'A compliant report must have no snapshotted rule violations.');
                 end else begin
                     Assert.AreEqual(0, ExpenseActivityLogEntry."Amount (LCY)", 'Non-snapshot events must not duplicate financial values.');
                     Assert.AreEqual(0, ExpenseActivityLogEntry."Non-Refundable Amount (LCY)", 'Non-snapshot events must not duplicate financial values.');
@@ -111,40 +110,11 @@ codeunit 148342 "Expense Activity Log Test"
                     Assert.AreEqual('', ExpenseActivityLogEntry."Reimbursement Currency Code", 'Non-snapshot events must not duplicate currency values.');
                     Assert.AreEqual(0, ExpenseActivityLogEntry."Reimbursement Currency Factor", 'Non-snapshot events must not duplicate currency values.');
                     Assert.AreEqual('', ExpenseActivityLogEntry.Categories, 'Non-snapshot events must not duplicate categories.');
-                    Assert.AreEqual(0, ExpenseActivityLogEntry."Rule Violation Count", 'Non-snapshot events must not duplicate rule violations.');
                 end;
             end;
         end;
 
         Assert.AreEqual(3, SnapshotEventCount, 'Exactly three activity event types must capture snapshots.');
-    end;
-
-    [Test]
-    procedure SnapshotCapturesNonCompliantReport()
-    var
-        ExpenseUser: Record "Expense User";
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
-        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
-        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
-        EntryNo: BigInteger;
-    begin
-        // [SCENARIO] Submission snapshots the report-level compliance derived from rule violations.
-        Initialize();
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
-        ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportHeader."No.", 10000, 'Rule violation');
-
-        EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
-            ExpenseReportHeader,
-            Enum::"Expense Activity Event Type"::Submitted,
-            Enum::"Expense Activity Initiator"::User,
-            Enum::"Expense Activity Actor Role"::Submitter,
-            ExpenseUser."No.",
-            '');
-
-        ExpenseActivityLogEntry.Get(EntryNo);
-        Assert.AreEqual(1, ExpenseActivityLogEntry."Rule Violation Count", 'The snapshot must contain the report rule violation count.');
     end;
 
     [Test]

@@ -78,10 +78,6 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.AreNotEqual(0, StrPos(ResponseText, '"actorid"'), 'Response must identify the actor record.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"eventtype":"submitted"'), 'Response must contain the stable submitted enum member name.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"currencylcy"'), 'Response must identify the LCY used by LCY amount fields.');
-        Assert.AreNotEqual(
-            0,
-            StrPos(ResponseText, '"ruleviolationcount":0'),
-            'Response must contain the report rule violation snapshot.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"comment":"submitted for approval"'), 'Response must contain the event comment.');
         CompleteTest();
     end;

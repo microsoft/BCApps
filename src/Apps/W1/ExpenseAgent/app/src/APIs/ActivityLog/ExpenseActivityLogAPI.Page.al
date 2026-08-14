@@ -138,10 +138,6 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'Receipt Count';
                 }
-                field(ruleViolationCount; Rec."Rule Violation Count")
-                {
-                    Caption = 'Rule Violation Count';
-                }
                 field(historyActorRole; Rec."History Actor Role Filter")
                 {
                     Caption = 'History Actor Role';

@@ -244,7 +244,6 @@ codeunit 6926 "Expense Activity Log Mgt."
     )
     var
         ExpenseReportLine: Record "Expense Report Line";
-        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
         Categories: JsonArray;
         CategoryCodes: List of [Code[20]];
         CategoriesText: Text;
@@ -280,9 +279,6 @@ codeunit 6926 "Expense Activity Log Mgt."
                     CategoriesText := CandidateCategoriesText;
                 end;
             until ExpenseReportLine.Next() = 0;
-
-        ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportNo);
-        ExpenseActivityLogEntry."Rule Violation Count" := ExpenseReportRuleViolation.Count();
 
         ExpenseActivityLogEntry.Categories :=
             CopyStr(CategoriesText, 1, MaxStrLen(ExpenseActivityLogEntry.Categories));
