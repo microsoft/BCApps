@@ -106,8 +106,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         if (RequisitionLine."Prod. Order No." <> '') and
            (RequisitionLine."Prod. Order Line No." <> 0) and
-           (RequisitionLine."Operation No." <> '') and
-           (RequisitionLine."Routing Reference No." <> 0)
+              (RequisitionLine."Operation No." <> '')
         then begin
             ProdOrderLine.SetLoadFields(Description, "Description 2");
             ProdOrderLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Prod. Order Line No.");
@@ -139,8 +138,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     begin
         if (RequisitionLine."Prod. Order No." = '') or
            (RequisitionLine."Operation No." = '') or
-           (RequisitionLine."Routing No." = '') or
-           (RequisitionLine."Routing Reference No." = 0)
+              (RequisitionLine."Routing No." = '')
         then
             exit;
 
@@ -158,6 +156,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         ProdOrderRoutingComment.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderRoutingComment.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderRoutingComment.SetFilter("Prod. Order Line No.", '%1|0', RequisitionLine."Prod. Order Line No.");
         ProdOrderRoutingComment.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         ProdOrderRoutingComment.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         ProdOrderRoutingComment.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
@@ -192,8 +191,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
             exit;
         if (RequisitionLine."Prod. Order No." = '') or
            (RequisitionLine."Prod. Order Line No." = 0) or
-           (RequisitionLine."Operation No." = '') or
-           (RequisitionLine."Routing Reference No." = 0)
+              (RequisitionLine."Operation No." = '')
         then
             exit;
         if not ProdOrderRoutingLine.Get(

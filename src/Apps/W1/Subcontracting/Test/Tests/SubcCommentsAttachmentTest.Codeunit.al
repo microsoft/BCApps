@@ -9,9 +9,12 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
@@ -20,7 +23,7 @@ using System.Email;
 using System.TestLibraries.Email;
 using System.Utilities;
 
-codeunit 139994 "Subc. Comments & Attachments"
+codeunit 139994 "Subc. Comments Attachment Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -134,6 +137,7 @@ codeunit 139994 "Subc. Comments & Attachments"
         StandardTask: Record "Standard Task";
         SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
         SubcStandardTaskComment: Record "Subc. Standard Task Comment";
+        Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
         CurrentSetupComment1Lbl: Label 'Current setup comment 1';
         CurrentSetupComment2Lbl: Label 'Current setup comment 2';
@@ -146,6 +150,9 @@ codeunit 139994 "Subc. Comments & Attachments"
         // [GIVEN] A Standard Task with two dedicated comments and a routing with a stale dedicated comment
         LibraryManufacturing.CreateStandardTask(StandardTask);
         LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        LibraryPurchase.CreateVendor(Vendor);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
         LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
         LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, WorkCenter."No.", '010', 1, 1);
         LibraryManufacturing.CreateRoutingLineSetup(OtherRoutingLine, RoutingHeader, WorkCenter."No.", '020', 1, 1);
@@ -198,6 +205,395 @@ codeunit 139994 "Subc. Comments & Attachments"
         // [THEN] Ordinary routing comments on other operations remain separate and unchanged
         RoutingCommentLine.Get(OtherRoutingLine."Routing No.", OtherRoutingLine."Version Code", OtherRoutingLine."Operation No.", 10000);
         Assert.AreEqual('Ordinary routing comment', RoutingCommentLine.Comment, 'An ordinary routing comment on another operation must remain unchanged.');
+    end;
+
+    [Test]
+    procedure StandardTaskCommentsTransferToSubcontractingRoutingLine()
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        StandardTask: Record "Standard Task";
+        SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO TP-032] Validating a Standard Task Code copies dedicated comments to a subcontracting Routing Line.
+        Initialize();
+
+        // [GIVEN] A subcontracting Work Center and a Standard Task with two dedicated comments
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+        LibraryManufacturing.CreateStandardTask(StandardTask);
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 10000, 'Subcontracting comment 1', 'Subcontracting detail 1');
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 20000, 'Subcontracting comment 2', 'Subcontracting detail 2');
+
+        // [GIVEN] A Routing Line that uses the subcontracting Work Center
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, WorkCenter."No.", '010', 1, 1);
+        RoutingLine.CalcFields(Subcontracting);
+        Assert.IsTrue(RoutingLine.Subcontracting, 'The Routing Line should evaluate as subcontracting.');
+
+        // [WHEN] The Standard Task Code is validated on the Routing Line
+        RoutingLine.Validate("Standard Task Code", StandardTask.Code);
+
+        // [THEN] The dedicated Routing Line comments exactly match the Standard Task comments
+        SubcRoutingCommentLine.SetRange("Routing No.", RoutingLine."Routing No.");
+        SubcRoutingCommentLine.SetRange("Version Code", RoutingLine."Version Code");
+        SubcRoutingCommentLine.SetRange("Operation No.", RoutingLine."Operation No.");
+        Assert.AreEqual(2, SubcRoutingCommentLine.Count(), 'The subcontracting Routing Line should contain both Standard Task comments.');
+
+        SubcRoutingCommentLine.Get(RoutingLine."Routing No.", RoutingLine."Version Code", RoutingLine."Operation No.", 10000);
+        Assert.AreEqual('Subcontracting comment 1', SubcRoutingCommentLine.Description, 'The first Standard Task comment should be transferred.');
+        Assert.AreEqual('Subcontracting detail 1', SubcRoutingCommentLine."Description 2", 'The first Standard Task detail should be transferred.');
+
+        SubcRoutingCommentLine.Get(RoutingLine."Routing No.", RoutingLine."Version Code", RoutingLine."Operation No.", 20000);
+        Assert.AreEqual('Subcontracting comment 2', SubcRoutingCommentLine.Description, 'The second Standard Task comment should be transferred.');
+        Assert.AreEqual('Subcontracting detail 2', SubcRoutingCommentLine."Description 2", 'The second Standard Task detail should be transferred.');
+    end;
+
+    [Test]
+    procedure StandardTaskCommentsAreNotTransferredToNonSubcontractingRoutingLine()
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        StandardTask: Record "Standard Task";
+        SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
+        SubcStandardTaskComment: Record "Subc. Standard Task Comment";
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO TP-034] Validating a Standard Task Code does not copy dedicated comments to a non-subcontracting Routing Line.
+        Initialize();
+
+        // [GIVEN] A regular Work Center and a Standard Task with two dedicated comments
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        LibraryManufacturing.CreateStandardTask(StandardTask);
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 10000, 'Regular operation comment 1', 'Regular operation detail 1');
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 20000, 'Regular operation comment 2', 'Regular operation detail 2');
+
+        // [GIVEN] A Routing Line that uses the regular Work Center
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, WorkCenter."No.", '010', 1, 1);
+        RoutingLine.CalcFields(Subcontracting);
+        Assert.IsFalse(RoutingLine.Subcontracting, 'The Routing Line should evaluate as non-subcontracting.');
+
+        // [WHEN] The Standard Task Code is validated on the Routing Line
+        RoutingLine.Validate("Standard Task Code", StandardTask.Code);
+
+        // [THEN] No dedicated Routing Line comments are inserted
+        SubcRoutingCommentLine.SetRange("Routing No.", RoutingLine."Routing No.");
+        SubcRoutingCommentLine.SetRange("Version Code", RoutingLine."Version Code");
+        SubcRoutingCommentLine.SetRange("Operation No.", RoutingLine."Operation No.");
+        Assert.AreEqual(0, SubcRoutingCommentLine.Count(), 'A non-subcontracting Routing Line must not receive Standard Task comments.');
+
+        // [THEN] The Standard Task source comments remain unchanged
+        SubcStandardTaskComment.SetRange("Standard Task Code", StandardTask.Code);
+        Assert.AreEqual(2, SubcStandardTaskComment.Count(), 'The Standard Task comments must remain available as the source set.');
+    end;
+
+    [Test]
+    procedure StandardTaskCommentsTransferToSubcontractingProdOrderRoutingLine()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        StandardTask: Record "Standard Task";
+        SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO TP-033] Validating a Standard Task Code copies dedicated comments to a subcontracting production operation.
+        Initialize();
+
+        // [GIVEN] A released production order with a subcontracting operation
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
+
+        Vendor.Get(WorkCenter[1]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 10, Location.Code);
+
+        LibraryManufacturing.CreateStandardTask(StandardTask);
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 10000, 'Production subcontracting comment 1', 'Production subcontracting detail 1');
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 20000, 'Production subcontracting comment 2', 'Production subcontracting detail 2');
+
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.CalcFields(Subcontracting);
+        Assert.IsTrue(ProdOrderRoutingLine.Subcontracting, 'The production operation should evaluate as subcontracting.');
+
+        // [WHEN] The Standard Task Code is validated on the production operation
+        ProdOrderRoutingLine.Validate("Standard Task Code", StandardTask.Code);
+
+        // [THEN] The dedicated production comments exactly match the Standard Task comments
+        SubcProdRtngComment.SetRange(Status, ProdOrderRoutingLine.Status);
+        SubcProdRtngComment.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        SubcProdRtngComment.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        SubcProdRtngComment.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        SubcProdRtngComment.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        SubcProdRtngComment.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        Assert.AreEqual(2, SubcProdRtngComment.Count(), 'The subcontracting production operation should contain both Standard Task comments.');
+
+        SubcProdRtngComment.Get(
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
+        Assert.AreEqual('Production subcontracting comment 1', SubcProdRtngComment.Description, 'The first Standard Task comment should be transferred.');
+        Assert.AreEqual('Production subcontracting detail 1', SubcProdRtngComment."Description 2", 'The first Standard Task detail should be transferred.');
+
+        SubcProdRtngComment.Get(
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 20000);
+        Assert.AreEqual('Production subcontracting comment 2', SubcProdRtngComment.Description, 'The second Standard Task comment should be transferred.');
+        Assert.AreEqual('Production subcontracting detail 2', SubcProdRtngComment."Description 2", 'The second Standard Task detail should be transferred.');
+    end;
+
+    [Test]
+    procedure StandardTaskCommentsAreNotTransferredToNonSubcontractingProdOrderRoutingLine()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        StandardTask: Record "Standard Task";
+        SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";
+        SubcStandardTaskComment: Record "Subc. Standard Task Comment";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO TP-035] Validating a Standard Task Code does not copy dedicated comments to a non-subcontracting production operation.
+        Initialize();
+
+        // [GIVEN] A released production order with a regular operation
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, false);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 10, Location.Code);
+
+        LibraryManufacturing.CreateStandardTask(StandardTask);
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 10000, 'Regular production comment 1', 'Regular production detail 1');
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 20000, 'Regular production comment 2', 'Regular production detail 2');
+
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.CalcFields(Subcontracting);
+        Assert.IsFalse(ProdOrderRoutingLine.Subcontracting, 'The production operation should evaluate as non-subcontracting.');
+
+        // [WHEN] The Standard Task Code is validated on the production operation
+        ProdOrderRoutingLine.Validate("Standard Task Code", StandardTask.Code);
+
+        // [THEN] No dedicated production comments are inserted
+        SubcProdRtngComment.SetRange(Status, ProdOrderRoutingLine.Status);
+        SubcProdRtngComment.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        SubcProdRtngComment.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        SubcProdRtngComment.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        SubcProdRtngComment.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        SubcProdRtngComment.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        Assert.AreEqual(0, SubcProdRtngComment.Count(), 'A non-subcontracting production operation must not receive Standard Task comments.');
+
+        // [THEN] The Standard Task source comments remain unchanged
+        SubcStandardTaskComment.SetRange("Standard Task Code", StandardTask.Code);
+        Assert.AreEqual(2, SubcStandardTaskComment.Count(), 'The Standard Task comments must remain available as the source set.');
+    end;
+
+    [Test]
+    procedure RemovingSubcontractorPreservesRoutingLineComments()
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO TP-036] Removing a subcontractor preserves existing Routing Line comments without an error.
+        Initialize();
+
+        // [GIVEN] A subcontracting Work Center, Routing Line, and dedicated comment
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, WorkCenter."No.", '010', 1, 1);
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, 'Preserved routing comment', 'Preserved routing detail');
+
+        // [WHEN] The subcontractor is cleared through the normal Work Center record trigger path
+        WorkCenter.Validate("Subcontractor No.", '');
+        WorkCenter.Modify(true);
+
+        // [THEN] The Work Center is no longer subcontracting and the existing comment remains
+        WorkCenter.Get(WorkCenter."No.");
+        RoutingLine.Get(RoutingLine."Routing No.", RoutingLine."Version Code", RoutingLine."Operation No.");
+        RoutingLine.CalcFields(Subcontracting);
+        Assert.IsFalse(RoutingLine.Subcontracting, 'The Routing Line should evaluate as non-subcontracting after removal.');
+
+        SubcRoutingCommentLine.Get(RoutingLine."Routing No.", RoutingLine."Version Code", RoutingLine."Operation No.", 10000);
+        Assert.AreEqual('Preserved routing comment', SubcRoutingCommentLine.Description, 'The existing Routing Line comment should be preserved.');
+        Assert.AreEqual('Preserved routing detail', SubcRoutingCommentLine."Description 2", 'The existing Routing Line detail should be preserved.');
+    end;
+
+    [Test]
+    procedure RemovingSubcontractorPreservesProdOrderRoutingLineComments()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO TP-037] Removing a subcontractor preserves existing production comments without an error.
+        Initialize();
+
+        // [GIVEN] A released production operation with a subcontractor and a dedicated comment
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
+
+        Vendor.Get(WorkCenter[1]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 10, Location.Code);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        LibraryMfgManagement.CreateProdOrderSubcComment(
+            ProdOrderRoutingLine, 10000, 'Preserved production comment', 'Preserved production detail');
+
+        // [WHEN] The subcontractor is cleared through the normal Work Center record trigger path
+        WorkCenter[2].Get(WorkCenter[2]."No.");
+        WorkCenter[2].Validate("Subcontractor No.", '');
+        WorkCenter[2].Modify(true);
+
+        // [THEN] The production operation is no longer subcontracting and its existing comment remains
+        WorkCenter[2].Get(WorkCenter[2]."No.");
+        ProdOrderRoutingLine.Reset();
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ProdOrderRoutingLine.CalcFields(Subcontracting);
+        Assert.IsFalse(ProdOrderRoutingLine.Subcontracting, 'The production operation should evaluate as non-subcontracting after removal.');
+
+        SubcProdRtngComment.Get(
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
+        Assert.AreEqual('Preserved production comment', SubcProdRtngComment.Description, 'The existing production comment should be preserved.');
+        Assert.AreEqual('Preserved production detail', SubcProdRtngComment."Description 2", 'The existing production detail should be preserved.');
+    end;
+
+    [Test]
+    procedure RemovedSubcontractorDoesNotTransferCommentsToPurchaseLine()
+    var
+        AttachedPurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        NextLineNo: Integer;
+    begin
+        // [SCENARIO TP-038] Preserved production comments are not transferred to Purchase Lines after subcontractor removal.
+        Initialize();
+
+        // [GIVEN] A released subcontracting production operation with a dedicated comment
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
+
+        Vendor.Get(WorkCenter[1]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 10, Location.Code);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        LibraryMfgManagement.CreateProdOrderSubcComment(
+            ProdOrderRoutingLine, 10000, 'Preserved purchase source comment', 'Preserved purchase source detail');
+
+        // [GIVEN] The Work Center is no longer subcontracting while the source comment remains
+        WorkCenter[2].Get(WorkCenter[2]."No.");
+        WorkCenter[2].Validate("Subcontractor No.", '');
+        WorkCenter[2].Modify(true);
+
+        // [GIVEN] A parent item Purchase Line and Requisition Line reference the production operation
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine."Prod. Order No." := ProductionOrder."No.";
+        PurchaseLine."Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+        PurchaseLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+        PurchaseLine."Routing No." := ProdOrderRoutingLine."Routing No.";
+        PurchaseLine."Operation No." := ProdOrderRoutingLine."Operation No.";
+        PurchaseLine.Modify();
+
+        RequisitionLine."Prod. Order No." := ProductionOrder."No.";
+        RequisitionLine."Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+        RequisitionLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+        RequisitionLine."Routing No." := ProdOrderRoutingLine."Routing No.";
+        RequisitionLine."Operation No." := ProdOrderRoutingLine."Operation No.";
+        NextLineNo := PurchaseLine."Line No.";
+
+        // [WHEN] The production comments are transferred through the public purchase-order creator path
+        SubcPurchaseOrderCreator.InsertSubcontractingProdOrderComments(PurchaseLine, RequisitionLine, NextLineNo);
+
+        // [THEN] No attached blank Purchase Line is created for the preserved comment
+        AttachedPurchaseLine.SetRange("Document Type", PurchaseLine."Document Type");
+        AttachedPurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
+        AttachedPurchaseLine.SetRange(Type, AttachedPurchaseLine.Type::" ");
+        AttachedPurchaseLine.SetRange("Attached to Line No.", PurchaseLine."Line No.");
+        Assert.AreEqual(0, AttachedPurchaseLine.Count(), 'A removed subcontractor must not transfer a preserved comment to a Purchase Line.');
+
+        // [THEN] The original production comment remains unchanged
+        SubcProdRtngComment.SetRange(Status, ProdOrderRoutingLine.Status);
+        SubcProdRtngComment.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        SubcProdRtngComment.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        SubcProdRtngComment.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        SubcProdRtngComment.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        SubcProdRtngComment.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        Assert.AreEqual(1, SubcProdRtngComment.Count(), 'The preserved production comment should remain as the source row.');
+        SubcProdRtngComment.FindFirst();
+        Assert.AreEqual('Preserved purchase source comment', SubcProdRtngComment.Description, 'The source production comment should remain unchanged.');
+        Assert.AreEqual('Preserved purchase source detail', SubcProdRtngComment."Description 2", 'The source production detail should remain unchanged.');
     end;
 
     [Test]
@@ -357,13 +753,13 @@ codeunit 139994 "Subc. Comments & Attachments"
         Assert.AreEqual(2, SubcProdRtngComment.Count(), 'The production-order operation should contain exactly the two dedicated routing setup comments.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
         Assert.AreEqual('Routing setup comment 1', SubcProdRtngComment.Description, 'The first dedicated routing comment should be copied to the production order.');
         Assert.AreEqual('Routing setup detail 1', SubcProdRtngComment."Description 2", 'The first dedicated routing detail should be copied to the production order.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 20000);
         Assert.AreEqual('Routing setup comment 2', SubcProdRtngComment.Description, 'The second dedicated routing comment should be copied to the production order.');
         Assert.AreEqual('Routing setup detail 2', SubcProdRtngComment."Description 2", 'The second dedicated routing detail should be copied to the production order.');
@@ -446,13 +842,13 @@ codeunit 139994 "Subc. Comments & Attachments"
         Assert.AreEqual(2, SubcProdRtngComment.Count(), 'The Released operation should contain both transferred subcontracting comments.');
 
         SubcProdRtngComment.Get(
-            ReleasedProdOrderRoutingLine.Status, ReleasedProdOrderRoutingLine."Prod. Order No.", ReleasedProdOrderRoutingLine."Routing Reference No.",
+            ReleasedProdOrderRoutingLine.Status, ReleasedProdOrderRoutingLine."Prod. Order No.", ReleasedProdOrderRoutingLine."Routing Reference No.", ReleasedProdOrderRoutingLine."Routing Reference No.",
             ReleasedProdOrderRoutingLine."Routing No.", ReleasedProdOrderRoutingLine."Operation No.", 10000);
         Assert.AreEqual('Status change comment 1', SubcProdRtngComment.Description, 'The first subcontracting comment should be transferred to Released.');
         Assert.AreEqual('Status change detail 1', SubcProdRtngComment."Description 2", 'The first subcontracting comment detail should be transferred to Released.');
 
         SubcProdRtngComment.Get(
-            ReleasedProdOrderRoutingLine.Status, ReleasedProdOrderRoutingLine."Prod. Order No.", ReleasedProdOrderRoutingLine."Routing Reference No.",
+            ReleasedProdOrderRoutingLine.Status, ReleasedProdOrderRoutingLine."Prod. Order No.", ReleasedProdOrderRoutingLine."Routing Reference No.", ReleasedProdOrderRoutingLine."Routing Reference No.",
             ReleasedProdOrderRoutingLine."Routing No.", ReleasedProdOrderRoutingLine."Operation No.", 20000);
         Assert.AreEqual('Status change comment 2', SubcProdRtngComment.Description, 'The second subcontracting comment should be transferred to Released.');
         Assert.AreEqual('Status change detail 2', SubcProdRtngComment."Description 2", 'The second subcontracting comment detail should be transferred to Released.');
@@ -523,13 +919,13 @@ codeunit 139994 "Subc. Comments & Attachments"
         Assert.AreEqual(2, SubcProdRtngComment.Count(), 'Routing refresh should leave exactly the current setup comment set.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
         Assert.AreEqual('Original routing comment', SubcProdRtngComment.Description, 'The unchanged setup comment should remain after refresh.');
         Assert.AreEqual('Original routing detail', SubcProdRtngComment."Description 2", 'The unchanged setup detail should remain after refresh.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 30000);
         Assert.AreEqual('New routing comment', SubcProdRtngComment.Description, 'The new setup comment should replace the removed and order-specific rows.');
         Assert.AreEqual('New routing detail', SubcProdRtngComment."Description 2", 'The new setup detail should be transferred during refresh.');
@@ -589,13 +985,13 @@ codeunit 139994 "Subc. Comments & Attachments"
         Assert.AreEqual(2, SubcProdRtngComment.Count(), 'Revalidation should leave exactly the current Standard Task comments.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
         Assert.AreEqual('Revalidated comment 1', SubcProdRtngComment.Description, 'The first Standard Task comment should remain after revalidation.');
         Assert.AreEqual('Revalidated detail 1', SubcProdRtngComment."Description 2", 'The first Standard Task detail should remain after revalidation.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 20000);
         Assert.AreEqual('Revalidated comment 2', SubcProdRtngComment.Description, 'The second Standard Task comment should remain after revalidation.');
         Assert.AreEqual('Revalidated detail 2', SubcProdRtngComment."Description 2", 'The second Standard Task detail should remain after revalidation.');
@@ -651,7 +1047,7 @@ codeunit 139994 "Subc. Comments & Attachments"
         Assert.AreEqual(2, SubcProdRtngComment.Count(), 'The operation should contain the setup and order-specific comments.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 20000);
         Assert.AreEqual('Order-specific comment', SubcProdRtngComment.Description, 'The order-specific Description should be stored unchanged.');
         Assert.AreEqual('Order-specific detail', SubcProdRtngComment."Description 2", 'The order-specific Description 2 should be stored unchanged.');
@@ -692,7 +1088,7 @@ codeunit 139994 "Subc. Comments & Attachments"
 
         // [WHEN] The user edits both description fields on the existing comment
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
         SubcProdRtngComment.Validate(Description, 'Edited comment');
         SubcProdRtngComment.Validate("Description 2", 'Edited detail');
@@ -707,7 +1103,7 @@ codeunit 139994 "Subc. Comments & Attachments"
         SubcProdRtngComment.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
         Assert.AreEqual(1, SubcProdRtngComment.Count(), 'Editing a comment should not create a duplicate line.');
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
         Assert.AreEqual('Edited comment', SubcProdRtngComment.Description, 'The edited Description should be persisted on the same line.');
         Assert.AreEqual('Edited detail', SubcProdRtngComment."Description 2", 'The edited Description 2 should be persisted on the same line.');
@@ -749,14 +1145,14 @@ codeunit 139994 "Subc. Comments & Attachments"
 
         // [WHEN] The user deletes the comment that should not be sent to the vendor
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 20000);
         SubcProdRtngComment.Delete(true);
 
         // [THEN] Only the remaining comment stays linked to the same operation
         Assert.IsFalse(
             SubcProdRtngComment.Get(
-                ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+                ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
                 ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 20000),
             'The excluded production-order comment should no longer exist.');
 
@@ -1056,6 +1452,181 @@ codeunit 139994 "Subc. Comments & Attachments"
             until AttachedPurchaseLine.Next() = 0;
         Assert.AreEqual(1, FirstCommentCount, 'The first production comment should be copied by the worksheet path.');
         Assert.AreEqual(1, SecondCommentCount, 'The second production comment should be copied by the worksheet path.');
+    end;
+
+    [Test]
+    procedure FamilySubcontractingPurchaseCreationTransfersCommentsAndAttachments()
+    var
+        AttachedPurchaseLine: Record "Purchase Line";
+        DocumentAttachment: Record "Document Attachment";
+        Family: Record Family;
+        FamilyLine: array[2] of Record "Family Line";
+        GeneralPurchaseLine: Record "Purchase Line";
+        Item: array[2] of Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProdOrderLine: array[2] of Record "Prod. Order Line";
+        ProdOrderLineFilter: Record "Prod. Order Line";
+        ProdOrderRoutingLine: array[2] of Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        AttachmentBaseNames: array[2] of Text[250];
+        CommentDescriptions: array[2] of Text[100];
+        CommentDetails: array[2] of Text[50];
+        ItemIndex: Integer;
+        OriginalCreateProdOrderInfoLine: Boolean;
+    begin
+        // [SCENARIO TP-030] Family subcontracting purchase creation keeps each output's comments and attachments on its related Purchase Line.
+        Initialize();
+
+        ManufacturingSetup.Get();
+        OriginalCreateProdOrderInfoLine := ManufacturingSetup."Create Prod. Order Info Line";
+
+        // [GIVEN] A Family with two output items and one shared subcontracting routing operation
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        LibraryManufacturing.CreateFamily(Family);
+        LibraryInventory.CreateItem(Item[1]);
+        LibraryInventory.CreateItem(Item[2]);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine[1], Family."No.", Item[1]."No.", 1);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine[2], Family."No.", Item[2]."No.", 1);
+        CreateFamilyRoutingWithSubcontractingWorkCenter(Family, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithWarehouseHandling(Location);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        // [GIVEN] A released Family production order with one production-order line per output item
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Family, Family."No.", 1, Location.Code);
+
+        AttachmentBaseNames[1] := 'TP-030-family-output-1';
+        AttachmentBaseNames[2] := 'TP-030-family-output-2';
+        CommentDescriptions[1] := 'Family output 1 operation comment';
+        CommentDescriptions[2] := 'Family output 2 operation comment';
+        CommentDetails[1] := 'Family output 1 operation detail';
+        CommentDetails[2] := 'Family output 2 operation detail';
+
+        ProdOrderLineFilter.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLineFilter.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.AreEqual(2, ProdOrderLineFilter.Count(), 'The Family production order should contain exactly two output lines.');
+
+        for ItemIndex := 1 to 2 do begin
+            ProdOrderLine[ItemIndex].SetRange(Status, "Production Order Status"::Released);
+            ProdOrderLine[ItemIndex].SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderLine[ItemIndex].SetRange("Item No.", Item[ItemIndex]."No.");
+            ProdOrderLine[ItemIndex].FindFirst();
+
+            ProdOrderRoutingLine[ItemIndex].SetRange(Status, "Production Order Status"::Released);
+            ProdOrderRoutingLine[ItemIndex].SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderRoutingLine[ItemIndex].SetRange("Work Center No.", WorkCenter[2]."No.");
+            if ItemIndex = 1 then
+                ProdOrderRoutingLine[ItemIndex].FindFirst()
+            else
+                ProdOrderRoutingLine[ItemIndex].FindLast();
+
+            LibraryMfgManagement.CreateProdOrderSubcCommentForLine(
+                ProdOrderRoutingLine[ItemIndex], ProdOrderLine[ItemIndex]."Line No.", 10000,
+                CommentDescriptions[ItemIndex], CommentDetails[ItemIndex]);
+            CreateEligibleProdOrderLineAttachment(ProdOrderLine[ItemIndex], AttachmentBaseNames[ItemIndex]);
+        end;
+
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Create Prod. Order Info Line" := true;
+        ManufacturingSetup.Modify(true);
+
+        // [WHEN] The subcontracting requisition worksheet is calculated and carried out
+        SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
+
+        // [THEN] Each Family output creates exactly one related item Purchase Line
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.AreEqual(2, PurchaseLine.Count(), 'The Family purchase order should contain exactly one item line per output.');
+
+        for ItemIndex := 1 to 2 do begin
+            PurchaseLine.Reset();
+            PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+            PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+            PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+            PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            PurchaseLine.SetRange("No.", Item[ItemIndex]."No.");
+            Assert.AreEqual(1, PurchaseLine.Count(), 'Each Family output should have exactly one related item Purchase Line.');
+            PurchaseLine.FindFirst();
+            Assert.AreEqual(
+                ProdOrderLine[ItemIndex]."Line No.", PurchaseLine."Prod. Order Line No.",
+                'The Purchase Line must retain its Family output production-order-line scope.');
+
+            GeneralPurchaseLine.Reset();
+            GeneralPurchaseLine.SetRange("Document Type", PurchaseLine."Document Type");
+            GeneralPurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
+            GeneralPurchaseLine.SetRange(Type, GeneralPurchaseLine.Type::" ");
+            GeneralPurchaseLine.SetRange("Attached to Line No.", 0);
+            GeneralPurchaseLine.SetFilter("Line No.", '<%1', PurchaseLine."Line No.");
+            Assert.IsTrue(
+                GeneralPurchaseLine.FindLast(),
+                'Each Family output item line should have a standalone production-description line before it.');
+            Assert.AreEqual(
+                ProdOrderLine[ItemIndex].Description, GeneralPurchaseLine.Description,
+                'The Family output description should be copied to the standalone line before its item line.');
+            Assert.AreEqual(
+                ProdOrderLine[ItemIndex]."Description 2", GeneralPurchaseLine."Description 2",
+                'The Family output secondary description should be copied to the standalone line before its item line.');
+
+            DocumentAttachment.Reset();
+            DocumentAttachment.SetRange("Table ID", Database::"Purchase Line");
+            DocumentAttachment.SetRange("No.", PurchaseLine."Document No.");
+            DocumentAttachment.SetRange("Line No.", PurchaseLine."Line No.");
+            Assert.AreEqual(1, DocumentAttachment.Count(), 'Each Family output Purchase Line should have exactly one attachment.');
+            DocumentAttachment.SetRange("File Name", AttachmentBaseNames[ItemIndex]);
+            Assert.AreEqual(1, DocumentAttachment.Count(), 'Each Purchase Line should receive its own output attachment.');
+            DocumentAttachment.SetRange("File Name", AttachmentBaseNames[3 - ItemIndex]);
+            Assert.AreEqual(0, DocumentAttachment.Count(), 'A Purchase Line must not receive the other Family output attachment.');
+
+            AttachedPurchaseLine.Reset();
+            AttachedPurchaseLine.SetRange("Document Type", PurchaseLine."Document Type");
+            AttachedPurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
+            AttachedPurchaseLine.SetRange(Type, AttachedPurchaseLine.Type::" ");
+            AttachedPurchaseLine.SetRange("Attached to Line No.", PurchaseLine."Line No.");
+            Assert.AreEqual(1, AttachedPurchaseLine.Count(), 'Each Family output should have exactly one attached comment Purchase Line.');
+            AttachedPurchaseLine.FindFirst();
+            Assert.AreEqual(CommentDescriptions[ItemIndex], AttachedPurchaseLine.Description, 'The operation comment should be copied to the related Purchase Line.');
+            Assert.AreEqual(CommentDetails[ItemIndex], AttachedPurchaseLine."Description 2", 'The operation comment detail should be copied to the related Purchase Line.');
+
+            // [THEN] The source comment and attachment remain on the Family output scope
+            SubcProdRtngComment.Reset();
+            SubcProdRtngComment.SetRange(Status, ProdOrderRoutingLine[ItemIndex].Status);
+            SubcProdRtngComment.SetRange("Prod. Order No.", ProdOrderRoutingLine[ItemIndex]."Prod. Order No.");
+            SubcProdRtngComment.SetRange("Prod. Order Line No.", ProdOrderLine[ItemIndex]."Line No.");
+            SubcProdRtngComment.SetRange("Routing Reference No.", ProdOrderRoutingLine[ItemIndex]."Routing Reference No.");
+            SubcProdRtngComment.SetRange("Routing No.", ProdOrderRoutingLine[ItemIndex]."Routing No.");
+            SubcProdRtngComment.SetRange("Operation No.", ProdOrderRoutingLine[ItemIndex]."Operation No.");
+            Assert.AreEqual(1, SubcProdRtngComment.Count(), 'The source operation should retain its dedicated comment.');
+            SubcProdRtngComment.FindFirst();
+            Assert.AreEqual(CommentDescriptions[ItemIndex], SubcProdRtngComment.Description, 'The source operation comment should remain unchanged.');
+            Assert.AreEqual(CommentDetails[ItemIndex], SubcProdRtngComment."Description 2", 'The source operation comment detail should remain unchanged.');
+
+            DocumentAttachment.Reset();
+            DocumentAttachment.SetRange("Table ID", Database::"Prod. Order Line");
+            DocumentAttachment.SetRange("No.", ProductionOrder."No.");
+            DocumentAttachment.SetRange("Line No.", ProdOrderLine[ItemIndex]."Line No.");
+            DocumentAttachment.SetRange("File Name", AttachmentBaseNames[ItemIndex]);
+            Assert.AreEqual(1, DocumentAttachment.Count(), 'The source output attachment should remain on its production-order line.');
+        end;
+
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Create Prod. Order Info Line" := OriginalCreateProdOrderInfoLine;
+        ManufacturingSetup.Modify(true);
     end;
 
     [Test]
@@ -1813,7 +2384,7 @@ codeunit 139994 "Subc. Comments & Attachments"
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         ConnectorMock: Codeunit "Connector Mock";
-        DocumentMailingTests: Codeunit "Subc. Comments & Attachments";
+        DocumentMailingTests: Codeunit "Subc. Comments Attachment Test";
         LibraryEmail: Codeunit "Library - Email";
         RoutingHeaderRecRef: RecordRef;
     begin
@@ -1926,13 +2497,13 @@ codeunit 139994 "Subc. Comments & Attachments"
         Assert.AreEqual(2, SubcProdRtngComment.Count(), 'Clearing Standard Task Code must not rebuild or remove existing subcontracting comments.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
         Assert.AreEqual('Cleared code comment 1', SubcProdRtngComment.Description, 'The first existing comment should remain after clearing the code.');
         Assert.AreEqual('Cleared code detail 1', SubcProdRtngComment."Description 2", 'The first existing comment detail should remain after clearing the code.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 20000);
         Assert.AreEqual('Cleared code comment 2', SubcProdRtngComment.Description, 'The second existing comment should remain after clearing the code.');
         Assert.AreEqual('Cleared code detail 2', SubcProdRtngComment."Description 2", 'The second existing comment detail should remain after clearing the code.');
@@ -2044,6 +2615,36 @@ codeunit 139994 "Subc. Comments & Attachments"
         DocumentAttachment.Modify(true);
     end;
 
+    local procedure CreateEligibleProdOrderLineAttachment(ProdOrderLine: Record "Prod. Order Line"; FileName: Text[250])
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        ProdOrderLineRecRef: RecordRef;
+        AttachmentOutStream: OutStream;
+    begin
+        ProdOrderLineRecRef.GetTable(ProdOrderLine);
+        TempBlob.CreateOutStream(AttachmentOutStream);
+        AttachmentOutStream.WriteText(FileName);
+        DocumentAttachment.SaveAttachment(ProdOrderLineRecRef, FileName + '.txt', TempBlob);
+        DocumentAttachment.Validate("Document Flow Production", true);
+        DocumentAttachment.Validate("Document Flow Purchase", true);
+        DocumentAttachment.Modify(true);
+    end;
+
+    local procedure CreateFamilyRoutingWithSubcontractingWorkCenter(var Family: Record Family; WorkCenterNo: Code[20])
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenterNo);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        Family.Validate("Routing No.", RoutingHeader."No.");
+        Family.Modify(true);
+    end;
+
     local procedure EnsureGeneralPostingSetupIsValid(var GeneralPostingSetup: Record "General Posting Setup"; GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
     begin
         if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
@@ -2111,13 +2712,13 @@ codeunit 139994 "Subc. Comments & Attachments"
         Assert.AreEqual(2, SubcProdRtngComment.Count(), 'The production-order routing operation should contain exactly two selected Standard Task comments.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 10000);
         Assert.AreEqual('Current production comment 1', SubcProdRtngComment.Description, 'The first Standard Task comment should replace the stale production comment.');
         Assert.AreEqual('Current production detail 1', SubcProdRtngComment."Description 2", 'The first Standard Task detail should be transferred to the production order.');
 
         SubcProdRtngComment.Get(
-            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.",
             ProdOrderRoutingLine."Routing No.", ProdOrderRoutingLine."Operation No.", 20000);
         Assert.AreEqual('Current production comment 2', SubcProdRtngComment.Description, 'The second Standard Task comment should be transferred to the production order.');
         Assert.AreEqual('Current production detail 2', SubcProdRtngComment."Description 2", 'The second Standard Task detail should be transferred to the production order.');
@@ -2125,7 +2726,7 @@ codeunit 139994 "Subc. Comments & Attachments"
 
     local procedure Initialize()
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Comments & Attachments");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Comments Attachment Test");
         LibrarySetupStorage.Restore();
         LibraryPurchase.SetOrderNoSeriesInSetup();
 
@@ -2134,7 +2735,7 @@ codeunit 139994 "Subc. Comments & Attachments"
 
         if IsInitialized then
             exit;
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Comments & Attachments");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Comments Attachment Test");
 
         SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
@@ -2143,7 +2744,7 @@ codeunit 139994 "Subc. Comments & Attachments"
         IsInitialized := true;
         Commit();
 
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Comments & Attachments");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Comments Attachment Test");
     end;
 
     var

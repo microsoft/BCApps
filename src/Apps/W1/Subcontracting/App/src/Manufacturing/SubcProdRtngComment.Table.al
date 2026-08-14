@@ -26,7 +26,15 @@ table 99001574 "Subc. Prod. Rtng. Comment"
             TableRelation = "Production Order"."No." where(Status = field(Status));
             ToolTip = 'Specifies the production order number for the subcontracting comment.';
         }
-        field(3; "Routing Reference No."; Integer)
+        field(3; "Prod. Order Line No."; Integer)
+        {
+            Caption = 'Prod. Order Line No.';
+            Editable = false;
+            TableRelation = "Prod. Order Line"."Line No." where(Status = field(Status), "Prod. Order No." = field("Prod. Order No."));
+            ValidateTableRelation = false;
+            ToolTip = 'Specifies the production order line for the subcontracting comment.';
+        }
+        field(4; "Routing Reference No."; Integer)
         {
             Caption = 'Routing Reference No.';
             Editable = false;
@@ -37,14 +45,15 @@ table 99001574 "Subc. Prod. Rtng. Comment"
             ValidateTableRelation = false;
             ToolTip = 'Specifies the routing reference number for the subcontracting comment.';
         }
-        field(4; "Routing No."; Code[20])
+        field(5; "Routing No."; Code[20])
         {
             Caption = 'Routing No.';
             Editable = false;
+            NotBlank = true;
             TableRelation = "Routing Header";
             ToolTip = 'Specifies the routing number for the subcontracting comment.';
         }
-        field(5; "Operation No."; Code[10])
+        field(6; "Operation No."; Code[10])
         {
             Caption = 'Operation No.';
             Editable = false;
@@ -54,18 +63,18 @@ table 99001574 "Subc. Prod. Rtng. Comment"
                                                                                "Routing No." = field("Routing No."));
             ToolTip = 'Specifies the operation number for the subcontracting comment.';
         }
-        field(6; "Line No."; Integer)
+        field(7; "Line No."; Integer)
         {
             Caption = 'Line No.';
             Editable = false;
             ToolTip = 'Specifies the line number of the subcontracting comment.';
         }
-        field(7; Description; Text[100])
+        field(8; Description; Text[100])
         {
             Caption = 'Description';
             ToolTip = 'Specifies the description of the subcontracting comment.';
         }
-        field(8; "Description 2"; Text[50])
+        field(9; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
             ToolTip = 'Specifies the description 2 of the subcontracting comment.';
@@ -74,9 +83,30 @@ table 99001574 "Subc. Prod. Rtng. Comment"
 
     keys
     {
-        key(PK; Status, "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.", "Line No.")
+        key(PK; Status, "Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Line No.")
         {
             Clustered = true;
         }
     }
+
+    trigger OnInsert()
+    begin
+        if "Prod. Order Line No." = 0 then
+            "Prod. Order Line No." := "Routing Reference No.";
+    end;
+
+    trigger OnDelete()
+    begin
+        if Status = Status::Finished then
+            Error(ModifyInsertOnFinishedErr, Status, TableCaption);
+    end;
+
+    trigger OnModify()
+    begin
+        if Status = Status::Finished then
+            Error(ModifyInsertOnFinishedErr, Status, TableCaption);
+    end;
+
+    var
+        ModifyInsertOnFinishedErr: Label 'A %1 %2 cannot be inserted, modified, or deleted.', Comment = '%1=Production Order Status, %2=TableCaption';
 }

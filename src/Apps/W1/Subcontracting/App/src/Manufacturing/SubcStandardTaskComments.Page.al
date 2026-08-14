@@ -35,6 +35,7 @@ page 99001575 "Subc. Standard Task Comments"
                 }
                 field("Description 2"; Rec."Description 2")
                 {
+                    Visible = false;
                 }
             }
         }

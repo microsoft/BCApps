@@ -54,6 +54,7 @@ pageextension 99001509 "Subc. Routing Version Lines" extends "Routing Version Li
             {
                 ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Comments';
+                Enabled = TransferWIPItemEnabled;
                 Image = ViewComments;
                 RunObject = Page "Subc. Routing Comments";
                 RunPageLink = "Routing No." = field("Routing No."),

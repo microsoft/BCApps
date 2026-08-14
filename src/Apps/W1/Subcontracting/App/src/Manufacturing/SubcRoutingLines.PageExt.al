@@ -37,7 +37,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
                 ApplicationArea = Subcontracting;
-                Enabled = TransferWIPItemEnabled;
+                Enabled = SubcontractingUIEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
@@ -60,6 +60,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
             {
                 ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Comments';
+                Enabled = SubcontractingUIEnabled;
                 Image = ViewComments;
                 RunObject = Page "Subc. Routing Comments";
                 RunPageLink = "Routing No." = field("Routing No."),
@@ -121,12 +122,12 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 #pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
-        TransferWIPItemEnabled: Boolean;
+        SubcontractingUIEnabled: Boolean;
 
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        TransferWIPItemEnabled := Rec.Subcontracting;
+        SubcontractingUIEnabled := Rec.Subcontracting;
     end;
 
     procedure ShowRelatedSubcontractorPrices()

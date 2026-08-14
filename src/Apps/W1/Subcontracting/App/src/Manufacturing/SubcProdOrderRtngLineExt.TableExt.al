@@ -249,8 +249,14 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         if Rec.IsTemporary then
             exit;
         SubcPriceManagement.GetSubcPriceList(Rec);
-        if "Standard Task Code" <> '' then
-            Rec.TransferStandardTaskComments("Standard Task Code");
+        if "Standard Task Code" = '' then
+            exit;
+
+        CalcFields(Subcontracting);
+        if not Subcontracting then
+            exit;
+
+        Rec.TransferStandardTaskComments("Standard Task Code");
     end;
 
     local procedure ValidateTransferWIPItemForSubcontracting()
@@ -273,6 +279,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
     begin
         ProdOrderRoutingComment.SetRange(Status, Rec.Status);
         ProdOrderRoutingComment.SetRange("Prod. Order No.", Rec."Prod. Order No.");
+        ProdOrderRoutingComment.SetRange("Prod. Order Line No.", Rec."Routing Reference No.");
         ProdOrderRoutingComment.SetRange("Routing Reference No.", Rec."Routing Reference No.");
         ProdOrderRoutingComment.SetRange("Routing No.", Rec."Routing No.");
         ProdOrderRoutingComment.SetRange("Operation No.", Rec."Operation No.");
@@ -287,6 +294,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
                 ProdOrderRoutingComment.Init();
                 ProdOrderRoutingComment.Status := Rec.Status;
                 ProdOrderRoutingComment."Prod. Order No." := Rec."Prod. Order No.";
+                ProdOrderRoutingComment."Prod. Order Line No." := Rec."Routing Reference No.";
                 ProdOrderRoutingComment."Routing Reference No." := Rec."Routing Reference No.";
                 ProdOrderRoutingComment."Routing No." := Rec."Routing No.";
                 ProdOrderRoutingComment."Operation No." := Rec."Operation No.";
@@ -311,6 +319,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
     begin
         ProdOrderRoutingComment.SetRange(Status, Rec.Status);
         ProdOrderRoutingComment.SetRange("Prod. Order No.", Rec."Prod. Order No.");
+        ProdOrderRoutingComment.SetRange("Prod. Order Line No.", Rec."Routing Reference No.");
         ProdOrderRoutingComment.SetRange("Routing Reference No.", Rec."Routing Reference No.");
         ProdOrderRoutingComment.SetRange("Routing No.", Rec."Routing No.");
         ProdOrderRoutingComment.SetRange("Operation No.", Rec."Operation No.");
@@ -321,6 +330,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
                 ProdOrderRoutingComment.Init();
                 ProdOrderRoutingComment.Status := Rec.Status;
                 ProdOrderRoutingComment."Prod. Order No." := Rec."Prod. Order No.";
+                ProdOrderRoutingComment."Prod. Order Line No." := Rec."Routing Reference No.";
                 ProdOrderRoutingComment."Routing Reference No." := Rec."Routing Reference No.";
                 ProdOrderRoutingComment."Routing No." := Rec."Routing No.";
                 ProdOrderRoutingComment."Operation No." := Rec."Operation No.";

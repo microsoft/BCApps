@@ -136,6 +136,10 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
         if "Standard Task Code" = '' then
             exit;
 
+        CalcFields(Subcontracting);
+        if not Subcontracting then
+            exit;
+
         Rec.TransferStandardTaskComments("Standard Task Code");
     end;
 
