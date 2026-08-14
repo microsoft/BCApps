@@ -393,7 +393,7 @@ codeunit 7232 "EA Create Corp Card Setup"
                                     '<RmtInf><Ustrd>' + CardId + '</Ustrd></RmtInf>' +
                                     '<AmtDtls><TxAmt><Amt Ccy="USD">19.63</Amt></TxAmt></AmtDtls>' +
                                     '<RltdPties><Cdtr><Nm>Contoso Air</Nm><PstlAdr><Ctry>US</Ctry></PstlAdr></Cdtr></RltdPties>' +
-                                    '<AddtlTxInf>4511</AddtlTxInf>' +
+                                    '<AddtlTxInf>MCC=4511; TransDate=2026-06-03</AddtlTxInf>' +
                                 '</TxDtls>' +
                             '</NtryDtls>' +
                         '</Ntry>' +

@@ -51,6 +51,21 @@ codeunit 148340 EACorpCardImportBasicTests
         Assert.ExpectedError(NoParsedLinesErr);
     end;
 
+    [Test]
+    procedure Camt054ImportNormalizesTaggedMcc()
+    var
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        Initialize();
+
+        CorpCardTestLib.RunImportAndGetLastBatch(CorpCardCamt054ProviderCodeTok, CorpCardBatch);
+        CorpCardTestLib.FindTransInBatchByProviderTransId(CorpCardBatch."Batch No.", CorpCardCamt054ProviderCodeTok, Camt054ProviderTransIdTok, CorpCardTrans);
+
+        Assert.AreEqual(CorpCardBatch.Status::Completed, CorpCardBatch.Status, 'CAMT054 import batch must complete successfully.');
+        Assert.AreEqual(Camt054MccTok, CorpCardTrans.MCC, 'CAMT054 import must remove the MCC tag before validating the transaction field.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -76,5 +91,8 @@ codeunit 148340 EACorpCardImportBasicTests
 
     var
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', Locked = true;
+        CorpCardCamt054ProviderCodeTok: Label 'CORPCAMT054', Locked = true;
+        Camt054ProviderTransIdTok: Label 'CAMT54TXN001', Locked = true;
+        Camt054MccTok: Label '4511', Locked = true;
         NoParsedLinesErr: Label 'No transaction lines were parsed from file', Locked = true;
 }

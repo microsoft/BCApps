@@ -81,22 +81,24 @@ codeunit 7227 "EA Corp Card Map Mgt"
     local procedure OnSetFieldOnBeforeFieldRefValidate(TransformedValue: Text; var DataExchField: Record "Data Exch. Field"; DataExchFieldMapping: Record "Data Exch. Field Mapping"; FieldRef: FieldRef; DataExchColumnDef: Record "Data Exch. Column Def"; var IsHandled: Boolean)
     var
         CorpCardTrans: Record "EA Corp Card Trans";
-        NormalizedCardId: Text;
+        NormalizedValue: Text;
     begin
         if DataExchFieldMapping."Table ID" <> Database::"EA Corp Card Trans" then
             exit;
 
-        if DataExchFieldMapping."Field ID" <> CorpCardTrans.FieldNo("Card Id") then
+        case DataExchFieldMapping."Field ID" of
+            CorpCardTrans.FieldNo("Card Id"):
+                NormalizedValue := ExtractTaggedValueCaseInsensitive(TransformedValue, 'CARDID=');
+            CorpCardTrans.FieldNo(MCC):
+                NormalizedValue := ExtractTaggedValueCaseInsensitive(TransformedValue, 'MCC=');
+            else
+                exit;
+        end;
+
+        if NormalizedValue = '' then
             exit;
 
-        if StrPos(UpperCase(TransformedValue), 'CARDID=') = 0 then
-            exit;
-
-        NormalizedCardId := ExtractTaggedValueCaseInsensitive(TransformedValue, 'CARDID=');
-        if NormalizedCardId = '' then
-            exit;
-
-        FieldRef.Value := CopyStr(NormalizedCardId, 1, FieldRef.Length);
+        FieldRef.Value := CopyStr(NormalizedValue, 1, FieldRef.Length);
         FieldRef.Validate();
         IsHandled := true;
     end;
