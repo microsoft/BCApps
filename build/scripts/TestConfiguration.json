@@ -1,6 +1,6 @@
 {
   "LegacyTests-Bucket1": [
-    "Tests-Local",
+    "Tests-Resource",
     "Tests-Workflow",
     "AlCosting",
     "Tests-ERM-Application",
@@ -11,6 +11,7 @@
     "Tests-SINGLESERVER",
     "Tests-Job",
     "Tests-ERM-Purchase",
+    "Tests-Local",
     "Tests-ERM-Sales",
     "Tests-ERM-Finance",
     "Tests-Dimension",
@@ -23,7 +24,6 @@
     "Tests-Cost Accounting",
     "Tests-User",
     "Tests-Cash Flow",
-    "Tests-Resource",
     "Tests-Azure AI"
   ],
   "LegacyTests-Bucket2": [
