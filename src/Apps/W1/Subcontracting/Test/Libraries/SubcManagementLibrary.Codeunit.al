@@ -54,7 +54,7 @@ codeunit 139983 "Subc. Management Library"
     begin
         LibraryPurchase.CreateSubcontractor(Vendor);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Vendor."Subc. Location Code" := Location.Code;
+        Vendor.Validate("Subc. Location Code", Location.Code);
         Vendor.Modify();
     end;
 
@@ -139,7 +139,7 @@ codeunit 139983 "Subc. Management Library"
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subc. Location Code" := Location.Code;
+        Vendor.Validate("Subc. Location Code", Location.Code);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
