@@ -47,7 +47,6 @@ codeunit 148318 "Expense Capabilities API Test"
         // [WHEN] The expenseCapabilities collection is fetched through the API.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := LowerCase(ResponseText);
 
         // [THEN] The Projects capability is enabled, regardless of other capability states.
         Assert.IsTrue(
@@ -100,7 +99,6 @@ codeunit 148318 "Expense Capabilities API Test"
         // [WHEN] The expenseCapabilities collection is fetched through the API.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := LowerCase(ResponseText);
 
         // [THEN] The Projects capability is disabled.
         Assert.IsTrue(
@@ -132,7 +130,6 @@ codeunit 148318 "Expense Capabilities API Test"
 
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := LowerCase(ResponseText);
 
         // [THEN] Consolidated Projects is enabled, regardless of other capability states.
         Assert.IsTrue(
@@ -182,8 +179,14 @@ codeunit 148318 "Expense Capabilities API Test"
             Clear(CapabilityObject);
             ValueArray.Get(CapabilityIndex, CapabilityToken);
             CapabilityObject := CapabilityToken.AsObject();
-            if LowerCase(CapabilityObject.GetText('capabilityName')) = LowerCase(CapabilityName) then
-                exit(CapabilityObject.GetBoolean('isEnabled') = ExpectedEnabled);
+            Clear(PropertyToken);
+            if CapabilityObject.Get('capabilityName', PropertyToken) then
+                if LowerCase(PropertyToken.AsValue().AsText()) = LowerCase(CapabilityName) then begin
+                    Clear(PropertyToken);
+                    if not CapabilityObject.Get('isEnabled', PropertyToken) then
+                        exit(false);
+                    exit(PropertyToken.AsValue().AsBoolean() = ExpectedEnabled);
+                end;
         end;
 
         exit(false);
