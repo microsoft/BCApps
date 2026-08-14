@@ -199,10 +199,22 @@ codeunit 3307 "Payables Agent Setup"
     /// <param name="Agent">Record where the Agent is loaded, if it exists</param>
     /// <returns>True if an Agent was found, false otherwise</returns>
     procedure GetAgent(var Agent: Record Agent): Boolean
+    begin
+        exit(GetAgent(Agent, true));
+    end;
+
+    /// <summary>
+    /// Retrieves the agent record if configured in the database, and optionally ensures that the Payables Agent setup record is updated with the correct user security id. 
+    /// </summary>
+    /// <param name="Agent">Record where the Agent is loaded, if it exists</param>
+    /// <param name="UpdateSetup">If true, the Payables Agent Setup record will be updated with the correct user security id if it was not configured or was invalid</param>
+    /// <returns>True if an Agent was found, false otherwise</returns>
+    procedure GetAgent(var Agent: Record Agent; UpdateSetup: Boolean): Boolean
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
     begin
-        PayablesAgentSetup.GetSetup();
+        // When the setup record does not exist and we are not allowed to create it, we continue with a blank record, so the agent can still be located by user name.
+        if PayablesAgentSetup.GetSetup(UpdateSetup) then;
         // We attempt to find the agent by the security id stored in the setup record.
         if Agent.Get(PayablesAgentSetup."User Security Id") then
             exit(true);
@@ -213,7 +225,8 @@ codeunit 3307 "Payables Agent Setup"
         Agent.SetRange("User Name", AgentUserName());
         if Agent.FindFirst() then
             PayablesAgentSetup."User Security Id" := Agent."User Security ID";
-        PayablesAgentSetup.Modify();
+        if UpdateSetup then
+            PayablesAgentSetup.Modify();
         exit(not IsNullGuid(Agent."User Security ID"));
     end;
 
@@ -287,7 +300,6 @@ codeunit 3307 "Payables Agent Setup"
         end;
     end;
 
-
     /// <summary>
     /// Returns true if a new Payables Agent can be created.
     /// Blocked if an agent already exists. Otherwise allowed for SUPER users
@@ -307,7 +319,7 @@ codeunit 3307 "Payables Agent Setup"
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
 
-        if PayablesAgentSetup.GetAgent(Agent) then
+        if PayablesAgentSetup.GetAgent(Agent, false) then
             exit(false);
 
         // No payables agent exists
