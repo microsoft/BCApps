@@ -21,11 +21,7 @@ codeunit 148318 "Expense Capabilities API Test"
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
-        ProjectsCapabilityNameTok: Label '"capabilityname":"projects"', Locked = true;
-        ConsolidatedCapabilityNameTok: Label '"capabilityname":"consolidatedprojects"', Locked = true;
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
-        IsEnabledTrueTok: Label '"isenabled":true', Locked = true;
-        IsEnabledFalseTok: Label '"isenabled":false', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -53,13 +49,10 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
-        // [THEN] A 'projects' row is present with isEnabled = true.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsCapabilityNameTok),
-            'Response must contain a projects capability row.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, IsEnabledTrueTok),
-            'Response must contain at least one isEnabled=true value.');
-        Assert.AreEqual(0, StrPos(ResponseText, IsEnabledFalseTok),
-            'Response must NOT contain any isEnabled=false value when Projects is the only capability and it is enabled.');
+        // [THEN] The Projects capability is enabled, regardless of other capability states.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'projects', true),
+            'Response must contain an enabled projects capability row.');
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
     end;
@@ -79,7 +72,7 @@ codeunit 148318 "Expense Capabilities API Test"
 
         // [THEN] ActivityLog is present and enabled.
         Assert.IsTrue(
-            ResponseContainsEnabledCapability(ResponseText, ActivityLogCapabilityNameTok),
+            ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
             'Response must contain an enabled activityLog capability row.');
     end;
 
@@ -109,11 +102,10 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
-        // [THEN] The 'projects' row is present and isEnabled = false.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsCapabilityNameTok),
-            'Response must contain a projects capability row.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, IsEnabledFalseTok),
-            'Projects row must be reported as isEnabled = false when Enable Project Fields is false.');
+        // [THEN] The Projects capability is disabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'projects', false),
+            'Response must contain a disabled projects capability row.');
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
     end;
@@ -142,11 +134,10 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
-        // [THEN] A 'consolidatedAssignedProjects' row is present and no isEnabled=false values exist.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ConsolidatedCapabilityNameTok),
-            'Response must contain a consolidatedAssignedProjects capability row.');
-        Assert.AreEqual(0, StrPos(ResponseText, IsEnabledFalseTok),
-            'No capability must be reported disabled when project fields are enabled.');
+        // [THEN] Consolidated Projects is enabled, regardless of other capability states.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'consolidatedProjects', true),
+            'Response must contain an enabled consolidatedProjects capability row.');
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
     end;
@@ -166,7 +157,11 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Capabilities API Test");
     end;
 
-    local procedure ResponseContainsEnabledCapability(ResponseText: Text; CapabilityName: Text): Boolean
+    local procedure ResponseContainsCapabilityState(
+        ResponseText: Text;
+        CapabilityName: Text;
+        ExpectedEnabled: Boolean
+    ): Boolean
     var
         RootObject: JsonObject;
         CapabilityObject: JsonObject;
@@ -189,7 +184,7 @@ codeunit 148318 "Expense Capabilities API Test"
                 if LowerCase(PropertyToken.AsValue().AsText()) = LowerCase(CapabilityName) then begin
                     if not CapabilityObject.Get('isEnabled', PropertyToken) then
                         exit(false);
-                    exit(PropertyToken.AsValue().AsBoolean());
+                    exit(PropertyToken.AsValue().AsBoolean() = ExpectedEnabled);
                 end;
         end;
 
