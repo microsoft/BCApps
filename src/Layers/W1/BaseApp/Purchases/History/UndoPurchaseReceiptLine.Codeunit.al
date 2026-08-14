@@ -71,6 +71,7 @@ codeunit 5813 "Undo Purchase Receipt Line"
 #pragma warning restore AA0074
         NoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
         AlreadyReversedErr: Label 'This receipt has already been reversed.';
+        AmbiguousDropShipmentLinkErr: Label 'The posted sales shipment line for drop shipment line %1 in posted purchase receipt %2 cannot be identified, because sales order %3 has more than one matching posted shipment line. Undo the shipment from the posted sales shipment instead.', Comment = '%1 - Purch. Rcpt. Line No., %2 - Purch. Rcpt. Header No., %3 - Sales Order No.';
 
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
@@ -626,8 +627,13 @@ codeunit 5813 "Undo Purchase Receipt Line"
                 SalesShipmentLine.SetRange("Document No.", OutboundItemLedgerEntry."Document No.");
                 SalesShipmentLine.SetRange("Line No.", OutboundItemLedgerEntry."Document Line No.");
 
-                if (OutboundItemLedgerEntry."Lot No." = '') and (OutboundItemLedgerEntry."Serial No." = '') then
+                if (OutboundItemLedgerEntry."Lot No." = '') and (OutboundItemLedgerEntry."Serial No." = '') then begin
                     SalesShipmentLine.SetRange("Item Shpt. Entry No.", OutboundItemLedgerEntry."Entry No.");
+                    if SalesShipmentLine.FindFirst() then
+                        exit;
+
+                    SalesShipmentLine.SetRange("Item Shpt. Entry No.");
+                end;
 
                 if SalesShipmentLine.FindFirst() then
                     exit;
@@ -647,6 +653,10 @@ codeunit 5813 "Undo Purchase Receipt Line"
         SalesShipLine.SetRange("Drop Shipment", true);
         SalesShipLine.SetRange(Correction, false);
         SalesShipLine.SetRange(Quantity, PurchReceiptLine.Quantity);
+
+        if SalesShipLine.Count() > 1 then
+            Error(AmbiguousDropShipmentLinkErr, PurchReceiptLine."Line No.", PurchReceiptLine."Document No.", PurchReceiptLine."Sales Order No.");
+
         SalesShipLine.FindFirst();
     end;
 
