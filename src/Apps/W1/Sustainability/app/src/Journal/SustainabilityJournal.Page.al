@@ -704,6 +704,7 @@ page 6219 "Sustainability Journal"
 
     var
         SustApprovalMgmt: Codeunit "Sust. Approvals Mgmt.";
+        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
         CurrentJournalBatchName: Code[10];
         ShortcutDimCode: array[8] of Code[20];
         DimVisible1, DimVisible2, DimVisible3, DimVisible4, DimVisible5, DimVisible6, DimVisible7, DimVisible8 : Boolean;
@@ -824,8 +825,6 @@ page 6219 "Sustainability Journal"
     end;
 
     local procedure SetFormulaInputEditability()
-    var
-        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
     begin
         SustainabilityCalcMgt.GetFormulaInputEditability(Rec, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
     end;

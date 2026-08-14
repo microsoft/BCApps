@@ -8,6 +8,8 @@ using Microsoft.Sustainability.Journal;
 codeunit 6218 "Sustainability Calc. Mgt."
 {
     var
+        EmissionScopeCache: Dictionary of [Code[20], Enum "Emission Scope"];
+        CalculationFoundationCache: Dictionary of [Code[20], Enum "Calculation Foundation"];
         FromToFilterLbl: Label '%1..%2', Locked = true;
 
     internal procedure CalculationEmissions(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
@@ -136,7 +138,8 @@ codeunit 6218 "Sustainability Calc. Mgt."
 
     local procedure GetFormulaInputEditability(AccountCategoryCode: Code[20]; PurchaseSurface: Boolean; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
     var
-        SustainAccountCategory: Record "Sustain. Account Category";
+        EmissionScope: Enum "Emission Scope";
+        CalculationFoundation: Enum "Calculation Foundation";
     begin
         Clear(FuelElectricityEditable);
         Clear(DistanceEditable);
@@ -144,12 +147,12 @@ codeunit 6218 "Sustainability Calc. Mgt."
         Clear(InstallationMultiplierEditable);
         Clear(TimeFactorEditable);
 
-        if not SustainAccountCategory.Get(AccountCategoryCode) then
+        if not GetCalculationParameters(AccountCategoryCode, EmissionScope, CalculationFoundation) then
             exit;
 
-        case SustainAccountCategory."Emission Scope" of
+        case EmissionScope of
             Enum::"Emission Scope"::"Scope 1":
-                case SustainAccountCategory."Calculation Foundation" of
+                case CalculationFoundation of
                     Enum::"Calculation Foundation"::"Fuel/Electricity":
                         FuelElectricityEditable := true;
                     Enum::"Calculation Foundation"::Distance:
@@ -162,14 +165,14 @@ codeunit 6218 "Sustainability Calc. Mgt."
                         end;
                 end;
             Enum::"Emission Scope"::"Scope 2":
-                case SustainAccountCategory."Calculation Foundation" of
+                case CalculationFoundation of
                     Enum::"Calculation Foundation"::"Fuel/Electricity":
                         FuelElectricityEditable := true;
                     Enum::"Calculation Foundation"::Custom:
                         CustomAmountEditable := true;
                 end;
             Enum::"Emission Scope"::"Scope 3":
-                case SustainAccountCategory."Calculation Foundation" of
+                case CalculationFoundation of
                     Enum::"Calculation Foundation"::"Fuel/Electricity":
                         FuelElectricityEditable := true;
                     Enum::"Calculation Foundation"::Distance:
@@ -181,9 +184,27 @@ codeunit 6218 "Sustainability Calc. Mgt."
                         CustomAmountEditable := true;
                 end;
             Enum::"Emission Scope"::"Water/Waste":
-                if (not PurchaseSurface) and (SustainAccountCategory."Calculation Foundation" = Enum::"Calculation Foundation"::Custom) then
+                if (not PurchaseSurface) and (CalculationFoundation = Enum::"Calculation Foundation"::Custom) then
                     CustomAmountEditable := true;
         end;
+    end;
+
+    local procedure GetCalculationParameters(AccountCategoryCode: Code[20]; var EmissionScope: Enum "Emission Scope"; var CalculationFoundation: Enum "Calculation Foundation"): Boolean
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+    begin
+        if EmissionScopeCache.Get(AccountCategoryCode, EmissionScope) and CalculationFoundationCache.Get(AccountCategoryCode, CalculationFoundation) then
+            exit(true);
+
+        SustainAccountCategory.SetLoadFields("Emission Scope", "Calculation Foundation");
+        if not SustainAccountCategory.Get(AccountCategoryCode) then
+            exit(false);
+
+        EmissionScope := SustainAccountCategory."Emission Scope";
+        CalculationFoundation := SustainAccountCategory."Calculation Foundation";
+        EmissionScopeCache.Set(AccountCategoryCode, EmissionScope);
+        CalculationFoundationCache.Set(AccountCategoryCode, CalculationFoundation);
+        exit(true);
     end;
 
     /// <summary>

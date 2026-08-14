@@ -154,13 +154,12 @@ pageextension 6211 "Sust. Purch. Order Subform" extends "Purchase Order Subform"
     end;
 
     local procedure SetFormulaInputEditability()
-    var
-        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
     begin
         SustainabilityCalcMgt.GetFormulaInputEditability(Rec, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
     end;
 
     var
+        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
         SustainabilityVisible: Boolean;
         SustainabilityFormulasFieldVisible: Boolean;
         FuelElectricityEditable, DistanceEditable, CustomAmountEditable : Boolean;
