@@ -152,6 +152,7 @@ codeunit 148342 "Expense Activity Log Test"
     var
         SubmitterExpenseUser: Record "Expense User";
         ApproverExpenseUser: Record "Expense User";
+        CurrentUserExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
@@ -306,14 +307,19 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
     begin
         // [SCENARIO] Reopening an approved report records the approver lifecycle action.
-        // [GIVEN] An approved report with an explicit approver.
+        // [GIVEN] An approved report whose approver is the only Expense User mapped to the current BC user.
         Initialize();
         CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        CurrentUserExpenseUser.SetRange("User Id For Approvals", UserId());
+        CurrentUserExpenseUser.ModifyAll("User Id For Approvals", '');
+        ApproverExpenseUser."User Id For Approvals" :=
+            CopyStr(UserId(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ApproverExpenseUser.Modify();
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
         ExpenseReportApprovalMgt.Approve(ExpenseReportHeader, ApproverExpenseUser."No.");
 
         // [WHEN] The approver reopens the approved report.
-        ExpenseReportApprovalMgt.ReopenApproved(ExpenseReportHeader, ApproverExpenseUser."No.");
+        ExpenseReportApprovalMgt.ReopenApproved(ExpenseReportHeader);
 
         // [THEN] ReopenedByApprover is the latest activity.
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
