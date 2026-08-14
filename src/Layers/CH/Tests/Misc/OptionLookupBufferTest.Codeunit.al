@@ -18,6 +18,14 @@
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         InvalidTypeErr: Label 'is not a valid type for this document';
+        LongFormattedTypeTxt: Label 'Formatted Type Longer Than 20';
+#if not CLEAN29
+        LegacyFormattedTypeTxt: Label 'Legacy Format Type';
+        HandleLegacySalesLineFormatType: Boolean;
+        HandleLegacyPurchaseLineFormatType: Boolean;
+#endif
+        HandleSalesLineFormatTypeAsText: Boolean;
+        HandlePurchaseLineFormatTypeAsText: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -37,7 +45,7 @@
         Assert.RecordCount(TempOptionLookupBuffer, 11);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(SalesLine.FormatType());
+        TempOptionLookupBuffer.Get(SalesLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(SalesLine.Type::"G/L Account"));
@@ -67,7 +75,7 @@
         Assert.RecordCount(TempOptionLookupBuffer, 12);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(SalesLine.FormatType());
+        TempOptionLookupBuffer.Get(SalesLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(SalesLine.Type::"G/L Account"));
@@ -82,6 +90,286 @@
         // [THEN] Buffer table has no entry for 'Test Custom2'
         assert.IsFalse(TempOptionLookupBuffer.Get(Format(SalesLine.Type::Test_Custom2)), 'Custom2 should not be found');
     end;
+
+    [Test]
+    procedure FormatSalesLineTypeLongerThan20Characters()
+    var
+        SalesLine: Record "Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized sales line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A sales line type with a caption longer than 20 characters
+        SalesLine.Type := SalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(SalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The sales line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, SalesLine.FormatTypeAsText(), 'The formatted sales line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatPurchaseLineTypeLongerThan20Characters()
+    var
+        PurchaseLine: Record "Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized purchase line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A purchase line type with a caption longer than 20 characters
+        PurchaseLine.Type := PurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(PurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The purchase line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, PurchaseLine.FormatTypeAsText(), 'The formatted purchase line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatStandardSalesLineTypeLongerThan20Characters()
+    var
+        StandardSalesLine: Record "Standard Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized standard sales line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A standard sales line type with a caption longer than 20 characters
+        StandardSalesLine.Type := StandardSalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(StandardSalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard sales line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, StandardSalesLine.FormatTypeAsText(), 'The formatted standard sales line type was truncated.');
+    end;
+
+    [Test]
+    procedure FormatStandardPurchaseLineTypeLongerThan20Characters()
+    var
+        StandardPurchaseLine: Record "Standard Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [SCENARIO] A localized standard purchase line type caption can be longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A standard purchase line type with a caption longer than 20 characters
+        StandardPurchaseLine.Type := StandardPurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(StandardPurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard purchase line type is formatted
+        // [THEN] The complete localized caption is returned
+        Assert.AreEqual(ExpectedTypeCaption, StandardPurchaseLine.FormatTypeAsText(), 'The formatted standard purchase line type was truncated.');
+    end;
+
+#if not CLEAN29
+    [Test]
+    procedure LegacyFormatSalesLineTypeTruncatesTo20Characters()
+    var
+        SalesLine: Record "Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] The legacy sales line formatter preserves its Text[20] contract
+        Initialize();
+
+        // [GIVEN] A sales line type with a caption longer than 20 characters
+        SalesLine.Type := SalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(SalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The sales line type is formatted through the legacy procedure
+        // [THEN] The caption is truncated to 20 characters
+        Assert.AreEqual(CopyStr(ExpectedTypeCaption, 1, 20), SalesLine.FormatType(), 'The legacy sales line type was not truncated.');
+    end;
+
+    [Test]
+    procedure LegacyFormatPurchaseLineTypeTruncatesTo20Characters()
+    var
+        PurchaseLine: Record "Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] The legacy purchase line formatter preserves its Text[20] contract
+        Initialize();
+
+        // [GIVEN] A purchase line type with a caption longer than 20 characters
+        PurchaseLine.Type := PurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(PurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The purchase line type is formatted through the legacy procedure
+        // [THEN] The caption is truncated to 20 characters
+        Assert.AreEqual(CopyStr(ExpectedTypeCaption, 1, 20), PurchaseLine.FormatType(), 'The legacy purchase line type was not truncated.');
+    end;
+
+    [Test]
+    procedure LegacyFormatStandardSalesLineTypeTruncatesTo20Characters()
+    var
+        StandardSalesLine: Record "Standard Sales Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] The legacy standard sales line formatter preserves its Text[20] contract
+        Initialize();
+
+        // [GIVEN] A standard sales line type with a caption longer than 20 characters
+        StandardSalesLine.Type := StandardSalesLine.Type::Test_Custom1;
+        ExpectedTypeCaption := Format(StandardSalesLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard sales line type is formatted through the legacy procedure
+        // [THEN] The caption is truncated to 20 characters
+        Assert.AreEqual(CopyStr(ExpectedTypeCaption, 1, 20), StandardSalesLine.FormatType(), 'The legacy standard sales line type was not truncated.');
+    end;
+
+    [Test]
+    procedure LegacyFormatStandardPurchaseLineTypeTruncatesTo20Characters()
+    var
+        StandardPurchaseLine: Record "Standard Purchase Line";
+        ExpectedTypeCaption: Text[30];
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] The legacy standard purchase line formatter preserves its Text[20] contract
+        Initialize();
+
+        // [GIVEN] A standard purchase line type with a caption longer than 20 characters
+        StandardPurchaseLine.Type := StandardPurchaseLine.Type::Test_Custom_Long;
+        ExpectedTypeCaption := Format(StandardPurchaseLine.Type);
+        Assert.IsTrue(StrLen(ExpectedTypeCaption) > 20, 'The test caption must be longer than 20 characters.');
+
+        // [WHEN] The standard purchase line type is formatted through the legacy procedure
+        // [THEN] The caption is truncated to 20 characters
+        Assert.AreEqual(CopyStr(ExpectedTypeCaption, 1, 20), StandardPurchaseLine.FormatType(), 'The legacy standard purchase line type was not truncated.');
+    end;
+#endif
+
+    [Test]
+    procedure FormatSalesLineTypeFromSubscriberLongerThan20Characters()
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO] A subscriber can format a sales line type with text longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A subscriber that handles sales line type formatting with text longer than 20 characters
+        HandleSalesLineFormatTypeAsText := true;
+        BindSubscription(this);
+        Assert.IsTrue(StrLen(LongFormattedTypeTxt) > 20, 'The test text must be longer than 20 characters.');
+
+        // [WHEN] The sales line type is formatted
+        // [THEN] The complete subscriber-provided text is returned
+        Assert.AreEqual(LongFormattedTypeTxt, SalesLine.FormatTypeAsText(), 'The subscriber-provided sales line type was truncated.');
+        UnbindSubscription(this);
+    end;
+
+    [Test]
+    procedure FormatPurchaseLineTypeFromSubscriberLongerThan20Characters()
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO] A subscriber can format a purchase line type with text longer than 20 characters
+        Initialize();
+
+        // [GIVEN] A subscriber that handles purchase line type formatting with text longer than 20 characters
+        HandlePurchaseLineFormatTypeAsText := true;
+        BindSubscription(this);
+        Assert.IsTrue(StrLen(LongFormattedTypeTxt) > 20, 'The test text must be longer than 20 characters.');
+
+        // [WHEN] The purchase line type is formatted
+        // [THEN] The complete subscriber-provided text is returned
+        Assert.AreEqual(LongFormattedTypeTxt, PurchaseLine.FormatTypeAsText(), 'The subscriber-provided purchase line type was truncated.');
+        UnbindSubscription(this);
+    end;
+
+#if not CLEAN29
+    [Test]
+    procedure FormatSalesLineTypeFromLegacySubscriber()
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] A handled legacy sales line formatting event takes precedence over the replacement event
+        Initialize();
+
+        // [GIVEN] Both legacy and replacement sales line formatting subscribers are enabled
+        HandleLegacySalesLineFormatType := true;
+        HandleSalesLineFormatTypeAsText := true;
+        BindSubscription(this);
+
+        // [WHEN] The sales line type is formatted
+        // [THEN] The legacy subscriber-provided text is returned
+        Assert.AreEqual(LegacyFormattedTypeTxt, SalesLine.FormatTypeAsText(), 'The handled legacy sales line type was not returned.');
+        UnbindSubscription(this);
+    end;
+
+    [Test]
+    procedure FormatPurchaseLineTypeFromLegacySubscriber()
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [FEATURE] [Option Lookup]
+        // [SCENARIO] A handled legacy purchase line formatting event takes precedence over the replacement event
+        Initialize();
+
+        // [GIVEN] Both legacy and replacement purchase line formatting subscribers are enabled
+        HandleLegacyPurchaseLineFormatType := true;
+        HandlePurchaseLineFormatTypeAsText := true;
+        BindSubscription(this);
+
+        // [WHEN] The purchase line type is formatted
+        // [THEN] The legacy subscriber-provided text is returned
+        Assert.AreEqual(LegacyFormattedTypeTxt, PurchaseLine.FormatTypeAsText(), 'The handled legacy purchase line type was not returned.');
+        UnbindSubscription(this);
+    end;
+#endif
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeFormatTypeAsText', '', false, false)]
+    local procedure OnBeforeSalesLineFormatTypeAsText(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
+    begin
+        if not HandleSalesLineFormatTypeAsText then
+            exit;
+
+        FormattedType := LongFormattedTypeTxt;
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeFormatTypeAsText', '', false, false)]
+    local procedure OnBeforePurchaseLineFormatTypeAsText(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
+    begin
+        if not HandlePurchaseLineFormatTypeAsText then
+            exit;
+
+        FormattedType := LongFormattedTypeTxt;
+        IsHandled := true;
+    end;
+
+#if not CLEAN29
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeFormatType', '', false, false)]
+    local procedure OnBeforeSalesLineFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    begin
+        if not HandleLegacySalesLineFormatType then
+            exit;
+
+        FormattedType := LegacyFormattedTypeTxt;
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeFormatType', '', false, false)]
+    local procedure OnBeforePurchaseLineFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    begin
+        if not HandleLegacyPurchaseLineFormatType then
+            exit;
+
+        FormattedType := LegacyFormattedTypeTxt;
+        IsHandled := true;
+    end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Option Lookup Buffer", 'OnBeforeIncludeOption', '', false, false)]
     local procedure OnBeforeIncludeOption(OptionLookupBuffer: Record "Option Lookup Buffer"; LookupType: Option; Option: Integer; var Handled: Boolean; var Result: Boolean);
@@ -113,7 +401,7 @@
         Assert.RecordCount(TempOptionLookupBuffer, 7);
 
         // [THEN] Buffer table has entry for 'Comment'
-        TempOptionLookupBuffer.Get(PurchaseLine.FormatType());
+        TempOptionLookupBuffer.Get(PurchaseLine.FormatTypeAsText());
 
         // [THEN] Buffer table has entry for 'G/L Account'
         TempOptionLookupBuffer.Get(Format(PurchaseLine.Type::"G/L Account"));
@@ -131,7 +419,7 @@
     var
         TempReferenceOptionLookupBuffer: Record "Option Lookup Buffer" temporary;
         TempOptionLookupBuffer: Record "Option Lookup Buffer" temporary;
-        InputText: Text[20];
+        InputText: Text[30];
         ExpectedText: Text[30];
     begin
         // [SCENARIO] Autocompleting a partial Option Caption
@@ -143,7 +431,7 @@
         repeat
             // [WHEN] Trying to autocomplete an incomplete option
             ExpectedText := TempReferenceOptionLookupBuffer."Option Caption";
-            InputText := CopyStr(ExpectedText, 1, StrLen(ExpectedText) - 1);
+            InputText := CopyStr(CopyStr(ExpectedText, 1, StrLen(ExpectedText) - 1), 1, MaxStrLen(InputText));
             TempOptionLookupBuffer.AutoCompleteLookup(InputText, TempOptionLookupBuffer."Lookup Type"::Purchases);
 
             // [THEN] The correct option is returned
@@ -278,9 +566,9 @@
         SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.Type::Resource));
 
         // [WHEN] Setting the Subtype on the Sales Line to co
-        SalesInvoice.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatType(), 1, 2));
+        SalesInvoice.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to Comment
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -299,12 +587,12 @@
         // [WHEN] Setting the Subtype on the Sales Line to ' '
         SalesInvoice.SalesLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
 
         // [WHEN] Setting the Subtype on the Sales Line to ''
         SalesInvoice.SalesLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -556,9 +844,9 @@
         PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.Type::Item));
 
         // [WHEN] Setting the Subtype on the purchase line to 'co'
-        PurchaseOrder.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatType(), 1, 2));
+        PurchaseOrder.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to "Comment"
-        PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.FormatType()));
+        PurchaseOrder.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.FormatTypeAsText()));
     end;
 
     [ModalPageHandler]
@@ -587,6 +875,12 @@
         ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(ExperienceTierSetup.FieldCaption(Essential));
         LibraryVariableStorage.Clear();
         LibrarySales.DisableWarningOnCloseUnpostedDoc();
+#if not CLEAN29
+        HandleLegacySalesLineFormatType := false;
+        HandleLegacyPurchaseLineFormatType := false;
+#endif
+        HandleSalesLineFormatTypeAsText := false;
+        HandlePurchaseLineFormatTypeAsText := false;
     end;
 }
 

@@ -346,6 +346,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         TempEDocumentPOMatchWarnings: Record "E-Doc PO Match Warning";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        EDocumentNotification: Codeunit "E-Document Notification";
         AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr, MatchedEntityName : Text;
         LineAmount: Decimal;
         DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
@@ -382,6 +383,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
         SetVATProductPostingGroupVisibility();
     end;
 
+    trigger OnDeleteRecord(): Boolean
+    begin
+        EDocumentNotification.RefreshAndShowSubTotalMismatchAfterLineDeletion(Rec);
+        exit(true);
+    end;
+
     internal procedure SetEDocumentPurchaseHeader(EDocPurchHeader: Record "E-Document Purchase Header")
     begin
         EDocumentPurchaseHeader := EDocPurchHeader;
@@ -407,10 +414,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
         VATProdPostGroupIsVisible := PurchSetup."Resolve VAT Group Purch EDoc";
     end;
 
-    local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
+    local procedure UpdateCalculatedAmounts(UserModifiedAmount: Boolean)
     var
-        TotalEDocPurchaseLine: Record "E-Document Purchase Line";
-        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineSubtotal: Decimal;
         DiscountExceedsSubtotalErr: Label 'Discount should not exceed the subtotal of the line';
     begin
@@ -423,19 +428,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
         else
             if Rec."Total Discount" / LineSubtotal > 1 then
                 Error(DiscountExceedsSubtotalErr);
-        if not UpdateParentRecord then
+        if not UserModifiedAmount then
             exit;
-        if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
-            exit;
-        EDocumentPurchaseHeader."Sub Total" := 0;
-        TotalEDocPurchaseLine.SetRange("E-Document Entry No.", Rec."E-Document Entry No.");
-        if TotalEDocPurchaseLine.FindSet() then
-            repeat
-                EDocumentPurchaseHeader."Sub Total" += Round(TotalEDocPurchaseLine.Quantity * TotalEDocPurchaseLine."Unit Price", EDocumentImportHelper.GetCurrencyRoundingPrecision(EDocumentPurchaseHeader."Currency Code")) - TotalEDocPurchaseLine."Total Discount";
-            until TotalEDocPurchaseLine.Next() = 0;
-        EDocumentPurchaseHeader.Total := EDocumentPurchaseHeader."Sub Total" + EDocumentPurchaseHeader."Total VAT" - EDocumentPurchaseHeader."Total Discount";
-        EDocumentPurchaseHeader.Modify();
-        CurrPage.Update();
+        EDocumentNotification.RefreshAndShowSubTotalMismatchAfterLineEdit(Rec);
     end;
 
     local procedure SetHasAdditionalColumns()
