@@ -13,6 +13,8 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
