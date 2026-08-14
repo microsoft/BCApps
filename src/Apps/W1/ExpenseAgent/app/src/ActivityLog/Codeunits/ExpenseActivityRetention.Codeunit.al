@@ -9,6 +9,8 @@ using System.DataAdministration;
 codeunit 6927 "Expense Activity Retention"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reten. Pol. Allowed Tables", OnRefreshAllowedTables, '', false, false)]
     local procedure AddActivityLogToAllowedTables()
