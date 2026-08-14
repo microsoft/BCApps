@@ -182,6 +182,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetDepreciationBooksGLIntegrationUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLegacySubcontractingUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
@@ -1272,6 +1273,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetLegacySubcontractingUpgradeTag(): Code[250]
     begin
         exit('MS-406123-LegacySubcontracting-20260507');
+    end;
+
+    internal procedure GetRemittanceAdviceReportSelectionUpgradeTag(): Code[250]
+    begin
+        exit('MS-RemittanceAdviceReportSelection-20260723');
     end;
 
     internal procedure GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag(): Code[250]

@@ -1693,6 +1693,7 @@ codeunit 442 "Sales-Post Prepayments"
             SalesHeader."Last Prepmt. Cr. Memo No." := GenJnlLineDocNo;
             SalesHeader."Prepmt. Cr. Memo No." := '';
             SalesLine.SetFilter("Prepmt. Amt. Inv.", '<>0');
+            OnUpdateSalesDocumentOnBeforeFindSetCreditMemoSalesLine(SalesHeader, SalesLine);
             if SalesLine.FindSet(true) then
                 repeat
                     SalesLine."Prepmt. Amt. Inv." := SalesLine."Prepmt Amt Deducted";
@@ -2005,8 +2006,9 @@ codeunit 442 "Sales-Post Prepayments"
     begin
         if HasInvoiceDiscount and (SalesHeader."Prepayment %" <> 0) then begin
             Currency.Initialize(SalesHeader."Currency Code");
-            SalesHeader.CalcFields(Amount);
-            PrepmtAmt := Round(SalesHeader.Amount * SalesHeader."Prepayment %" / 100, Currency."Amount Rounding Precision");
+
+            PrepmtAmt := CalcPrepmtAmount(SalesHeader, Currency);
+
             if TotalPrepmtInvLineBuffer.Amount > PrepmtAmt then begin
                 DifferenceAmt := TotalPrepmtInvLineBuffer.Amount - PrepmtAmt;
 
@@ -2019,6 +2021,20 @@ codeunit 442 "Sales-Post Prepayments"
                 end;
             end;
         end;
+    end;
+
+    local procedure CalcPrepmtAmount(SalesHeader: Record "Sales Header"; Currency: Record Currency): Decimal
+    var
+        SalesLine: Record "Sales Line";
+        PrepmtAmt: Decimal;
+    begin
+        ApplyFilter(SalesHeader, 2, SalesLine);
+        SalesLine.SetLoadFields(Amount, "Prepayment %");
+        if SalesLine.FindSet() then
+            repeat
+                PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;
+            until SalesLine.Next() = 0;
+        exit(Round(PrepmtAmt, Currency."Amount Rounding Precision"));
     end;
 
     /// <summary>
@@ -2624,6 +2640,16 @@ codeunit 442 "Sales-Post Prepayments"
     /// <param name="TotalPrepmtInvLineBufLCY">The total prepayment invoice line buffer in LCY.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountsOnBeforeIncrAmounts(SalesHeader: Record "Sales Header"; var PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBufLCY: Record "Prepayment Inv. Line Buffer")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before finding the credit memo sales lines during prepayment document update.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales lines to be filtered.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateSalesDocumentOnBeforeFindSetCreditMemoSalesLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
     end;
 

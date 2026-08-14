@@ -1229,7 +1229,7 @@ page 508 "Blanket Sales Order Subform"
         if not TypeAsTextFieldVisible then
             exit;
 
-        TypeAsText := Rec.FormatType();
+        TypeAsText := Rec.FormatTypeAsText();
     end;
 
     /// <summary>

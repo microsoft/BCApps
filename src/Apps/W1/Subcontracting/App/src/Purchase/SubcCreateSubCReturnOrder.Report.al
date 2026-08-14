@@ -166,6 +166,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         SubcFromLocationCode: Code[10];
         AvailableToReturn: Decimal;
@@ -246,10 +247,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
                         if ProdOrderComponent."Subc. Orig. Bin Code" = '' then
                             ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
-                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
-                            ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code");
-                            ProdOrderComponent.GetDefaultBin();
-                        end;
+                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then
+                            SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code");
                         ProdOrderComponent.Modify();
 
                         SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
