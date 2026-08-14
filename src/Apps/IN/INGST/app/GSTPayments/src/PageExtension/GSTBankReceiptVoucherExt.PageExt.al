@@ -197,7 +197,13 @@ pageextension 18244 "GST Bank Receipt Voucher Ext" extends "Bank Receipt Voucher
     local procedure CallTaxEngine()
     var
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
+        CalculateTax.RunOnBeforeUpdateTaxAmountOnGenJnlLine(Rec, xRec, IsHandled);
+        if IsHandled then
+            exit;
+
+        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

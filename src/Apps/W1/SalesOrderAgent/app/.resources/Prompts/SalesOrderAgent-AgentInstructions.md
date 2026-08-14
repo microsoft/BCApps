@@ -95,11 +95,19 @@
 						},
 						"{% endif -%}",
 						{
+							"name": "item_availability_off",
+							"value": "Item availability checking is disabled. Ignore requested quantity availability, availability level, earliest shipment date, and inventory notifications. Never treat an item as unavailable and never request assistance because of availability, stock, or quantity."
+						},
+						{
 							"name": "capable_to_promise",
 							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved. Exception: if a search for a customer-requested specific variant returns no item result, follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step instead of requesting assistance."
 						},						
 						{
-							"value": "If one or more of the requested items are not available or if there is no item to be searched, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'. Exception: when the customer requested a specific variant and the item search returns no result for that request, do not request assistance. Treat this as an unavailable requested item and variant with no safe alternative, and follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step.",
+							"value": "If there is no item to be searched, or if the item search returns no result for a requested item, then request for assistance, by mentioning those items and adding 'Please make such items available or stop the task and handle manually.'. Exception: when the customer requested a specific variant and the item search returns no result for that request, do not request assistance. Treat this as an unavailable requested item and variant with no safe alternative, and follow the variant-specific no-result instructions in the \"Send Items Request to Customer\" step."
+						},
+						{
+							"name": "item_availability",
+							"value": "If one or more of the requested items are not available in the requested quantity, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'.",
 							"steps_include_numbering": "true",
 							"steps": [
 								{
@@ -143,25 +151,26 @@
 					"steps_include_numbering": "true",
 					"steps": [
 						{
-							"value": "Navigate to the contact list page and use the search function to find the contact.",
+							"value": "Navigate to the contact list page. **If there is only one contact record displayed, select it directly without using the search function. If there are multiple contacts, use the search function to find the correct contact.**",
 							"steps_include_numbering": "true",
 							"steps": [
 								"{% if page.id == 5052 -%}",
 								"Use information available to you from the conversation history one by one, starting with the email address, sender's name, company name, phone number, etc.",
-								"Do not select a contact without performing a search first.",
+								"If there are multiple contacts, do not select a contact without performing a search first.",
 								"{% endif -%}"
 							]
 						},
 						{
-							"value": "If the contact is not found, navigate to the customer list page and use the search function to find the customer.",
+							"value": "If the contact is not found, navigate to the customer list page. **If there is only one customer record displayed, select it directly without using the search function. If there are multiple customers, use the search function to find the correct customer.**",
 							"steps_include_numbering": "true",
 							"steps": [
 								"{% if page.id == 22 -%}",
 								"Use information available to you from the conversation history one by one, starting with the email address, sender's name, company name, phone number, etc.",
-								"Do not select a customer without performing a search first.",
+								"If there are multiple customers, do not select a customer without performing a search first.",
 								"{% endif -%}"
 							]
 						},
+						"**Important:** Once you have selected a contact or customer record from the search results, proceed with sales quote creation even if the contact's or customer's name or email address does not exactly match the conversation history. Incoming emails can be mapped to another contact for response routing. The selected record is authoritative; do not request assistance only because of this mismatch.",
 						"If neither the contact nor the customer is found, then request for assistance."
 					]
 				},
