@@ -14,6 +14,7 @@ using System.TestLibraries.Utilities;
 codeunit 139589 "Shpfy Customer API Test"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
     TestHttpRequestPolicy = BlockOutboundRequests;
 
