@@ -130,36 +130,6 @@
     "method": "TestModifyValidExperinceTier"
   },
   {
-    "codeunitId": 139807,
-    "codeunitName": "APIV2 - Item Categories E2E",
-    "method": "TestDeleteItemCategory"
-  },
-  {
-    "codeunitId": 139808,
-    "codeunitName": "APIV2 - Tax Groups E2E",
-    "method": "TestCreateTaxGroup"
-  },
-  {
-    "codeunitId": 139808,
-    "codeunitName": "APIV2 - Tax Groups E2E",
-    "method": "TestDeleteTaxGroup"
-  },
-  {
-    "codeunitId": 139808,
-    "codeunitName": "APIV2 - Tax Groups E2E",
-    "method": "TestGetTaxGroup"
-  },
-  {
-    "codeunitId": 139808,
-    "codeunitName": "APIV2 - Tax Groups E2E",
-    "method": "TestGetTaxGroups"
-  },
-  {
-    "codeunitId": 139808,
-    "codeunitName": "APIV2 - Tax Groups E2E",
-    "method": "TestModifyTaxGroup"
-  },
-  {
     "codeunitId": 139809,
     "codeunitName": "APIV2 - Sales Invoices E2E",
     "method": "TestActionCancelAndSendInvoice"
@@ -290,26 +260,6 @@
     "method": "TestPostInvoiceWithEmail"
   },
   {
-    "codeunitId": 139810,
-    "codeunitName": "APIV2 - Countries/Regions E2E",
-    "method": "TestCreateCountriesRegions"
-  },
-  {
-    "codeunitId": 139810,
-    "codeunitName": "APIV2 - Countries/Regions E2E",
-    "method": "TestDeleteCountriesRegions"
-  },
-  {
-    "codeunitId": 139810,
-    "codeunitName": "APIV2 - Countries/Regions E2E",
-    "method": "TestGetCountriesRegions"
-  },
-  {
-    "codeunitId": 139810,
-    "codeunitName": "APIV2 - Countries/Regions E2E",
-    "method": "TestModifyCountriesRegions"
-  },
-  {
     "codeunitId": 139811,
     "codeunitName": "APIV2 - Sales Orders E2E",
     "method": "TestActionShipAndInvoice"
@@ -380,81 +330,6 @@
     "method": "TestPostOrderWithCurrency"
   },
   {
-    "codeunitId": 139812,
-    "codeunitName": "APIV2 - UofM E2E",
-    "method": "TestDeleteUnitOfMeasure"
-  },
-  {
-    "codeunitId": 139812,
-    "codeunitName": "APIV2 - UofM E2E",
-    "method": "TestGetUnitOfMeasure"
-  },
-  {
-    "codeunitId": 139812,
-    "codeunitName": "APIV2 - UofM E2E",
-    "method": "TestInsertUnitOfMeasure"
-  },
-  {
-    "codeunitId": 139812,
-    "codeunitName": "APIV2 - UofM E2E",
-    "method": "TestModifyUnitOfMeasure"
-  },
-  {
-    "codeunitId": 139813,
-    "codeunitName": "APIV2 - Currencies E2E",
-    "method": "TestCreateCurrency"
-  },
-  {
-    "codeunitId": 139813,
-    "codeunitName": "APIV2 - Currencies E2E",
-    "method": "TestDeleteCurrency"
-  },
-  {
-    "codeunitId": 139813,
-    "codeunitName": "APIV2 - Currencies E2E",
-    "method": "TestGetCurrencies"
-  },
-  {
-    "codeunitId": 139813,
-    "codeunitName": "APIV2 - Currencies E2E",
-    "method": "TestModifyCurrency"
-  },
-  {
-    "codeunitId": 139814,
-    "codeunitName": "APIV2 - Payment Methods E2E",
-    "method": "TestCreatePaymentMethods"
-  },
-  {
-    "codeunitId": 139814,
-    "codeunitName": "APIV2 - Payment Methods E2E",
-    "method": "TestDeletePaymentMethods"
-  },
-  {
-    "codeunitId": 139814,
-    "codeunitName": "APIV2 - Payment Methods E2E",
-    "method": "TestGetPaymentMethods"
-  },
-  {
-    "codeunitId": 139814,
-    "codeunitName": "APIV2 - Payment Methods E2E",
-    "method": "TestModifyPaymentMethods"
-  },
-  {
-    "codeunitId": 139815,
-    "codeunitName": "APIV2 - Balance Sheet E2E",
-    "method": "TestGetBalanceSheetRecords"
-  },
-  {
-    "codeunitId": 139816,
-    "codeunitName": "APIV2 - Income Statement E2E",
-    "method": "TestGetIncomeStatementRecords"
-  },
-  {
-    "codeunitId": 139817,
-    "codeunitName": "APIV2 - CashFlow Statement E2E",
-    "method": "TestGetCashFlowRecords"
-  },
-  {
     "codeunitId": 139818,
     "codeunitName": "APIV2 - Trial Balance E2E",
     "method": "TestGetTrialBalanceRecords"
@@ -468,31 +343,6 @@
     "codeunitId": 139820,
     "codeunitName": "APIV2 - Aged AR E2E",
     "method": "TestGetAgedARRecords"
-  },
-  {
-    "codeunitId": 139821,
-    "codeunitName": "APIV2 - Ret. Earnings E2E",
-    "method": "TestRetainedEarningsStatementRecords"
-  },
-  {
-    "codeunitId": 139822,
-    "codeunitName": "APIV2 - Employees E2E",
-    "method": "TestCreateEmployee"
-  },
-  {
-    "codeunitId": 139822,
-    "codeunitName": "APIV2 - Employees E2E",
-    "method": "TestDeleteEmployee"
-  },
-  {
-    "codeunitId": 139822,
-    "codeunitName": "APIV2 - Employees E2E",
-    "method": "TestGetEmployee"
-  },
-  {
-    "codeunitId": 139822,
-    "codeunitName": "APIV2 - Employees E2E",
-    "method": "TestModifyEmployee"
   },
   {
     "codeunitId": 139823,
@@ -2425,39 +2275,9 @@
     "method": "TestSingleGetCurrencyExchangeRate"
   },
   {
-    "codeunitId": 139859,
-    "codeunitName": "APIV2 - Accounting Periods E2E",
-    "method": "TestGetAccountingPeriods"
-  },
-  {
     "codeunitId": 139860,
     "codeunitName": "APIV2 - G/L Setup E2E",
     "method": "TestGetGLSetup"
-  },
-  {
-    "codeunitId": 139861,
-    "codeunitName": "APIV2JobQueueLogEntriesE2E",
-    "method": "TestGetJobQueueLogEntry"
-  },
-  {
-    "codeunitId": 139862,
-    "codeunitName": "APIV2JobQueueEntriesE2E",
-    "method": "TestGetCorrespondingJobQueueLogEntryFromExpand"
-  },
-  {
-    "codeunitId": 139862,
-    "codeunitName": "APIV2JobQueueEntriesE2E",
-    "method": "TestGetCorrespondingJobQueueLogEntryFromSubPage"
-  },
-  {
-    "codeunitId": 139862,
-    "codeunitName": "APIV2JobQueueEntriesE2E",
-    "method": "TestGetJobQueueEntry"
-  },
-  {
-    "codeunitId": 139862,
-    "codeunitName": "APIV2JobQueueEntriesE2E",
-    "method": "TestRescheduleJobQueueEntry"
   },
   {
     "codeunitId": 139865,
@@ -2585,26 +2405,6 @@
     "method": "TestModifyLocationWithAddress"
   },
   {
-    "codeunitId": 139869,
-    "codeunitName": "APIV2 - Cust. Ret. Reasons E2E",
-    "method": "TestCreateReasonCode"
-  },
-  {
-    "codeunitId": 139869,
-    "codeunitName": "APIV2 - Cust. Ret. Reasons E2E",
-    "method": "TestDeleteReasonCode"
-  },
-  {
-    "codeunitId": 139869,
-    "codeunitName": "APIV2 - Cust. Ret. Reasons E2E",
-    "method": "TestGetReasonCode"
-  },
-  {
-    "codeunitId": 139869,
-    "codeunitName": "APIV2 - Cust. Ret. Reasons E2E",
-    "method": "TestModifyReasonCode"
-  },
-  {
     "codeunitId": 139874,
     "codeunitName": "APIV2 - Purch. Cr.M. Lines E2E",
     "method": "TestCreateLineThroughPageAndAPI"
@@ -2688,26 +2488,6 @@
     "codeunitId": 139874,
     "codeunitName": "APIV2 - Purch. Cr.M. Lines E2E",
     "method": "TestPostingCommentLine"
-  },
-  {
-    "codeunitId": 139882,
-    "codeunitName": "APIV2 - Salesperson/Purch E2E",
-    "method": "CreateSalespersonPurchaser"
-  },
-  {
-    "codeunitId": 139882,
-    "codeunitName": "APIV2 - Salesperson/Purch E2E",
-    "method": "DeleteSalespersonPurchaser"
-  },
-  {
-    "codeunitId": 139882,
-    "codeunitName": "APIV2 - Salesperson/Purch E2E",
-    "method": "GetSalespersonPurchaser"
-  },
-  {
-    "codeunitId": 139882,
-    "codeunitName": "APIV2 - Salesperson/Purch E2E",
-    "method": "ModifySalespersonPurchaserJobTitle"
   },
   {
     "codeunitId": 139899,
@@ -2903,46 +2683,6 @@
     "codeunitId": 139899,
     "codeunitName": "APIV2 - Document Attach. E2E",
     "method": "TestUpdateCustomerAttachmentBinaryContent"
-  },
-  {
-    "codeunitId": 139906,
-    "codeunitName": "APIV2 - FA Locations E2E",
-    "method": "TestCreateFALocation"
-  },
-  {
-    "codeunitId": 139906,
-    "codeunitName": "APIV2 - FA Locations E2E",
-    "method": "TestDeleteFALocation"
-  },
-  {
-    "codeunitId": 139906,
-    "codeunitName": "APIV2 - FA Locations E2E",
-    "method": "TestGetFALocation"
-  },
-  {
-    "codeunitId": 139906,
-    "codeunitName": "APIV2 - FA Locations E2E",
-    "method": "TestModifyFALocation"
-  },
-  {
-    "codeunitId": 139907,
-    "codeunitName": "APIV2 - Fixed Assets E2E",
-    "method": "TestCreateFixedAsset"
-  },
-  {
-    "codeunitId": 139907,
-    "codeunitName": "APIV2 - Fixed Assets E2E",
-    "method": "TestDeleteFixedAsset"
-  },
-  {
-    "codeunitId": 139907,
-    "codeunitName": "APIV2 - Fixed Assets E2E",
-    "method": "TestGetFixedAsset"
-  },
-  {
-    "codeunitId": 139907,
-    "codeunitName": "APIV2 - Fixed Assets E2E",
-    "method": "TestModifyFixedAsset"
   },
   {
     "codeunitId": 139908,
