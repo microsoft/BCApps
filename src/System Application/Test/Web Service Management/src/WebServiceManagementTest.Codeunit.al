@@ -14,6 +14,7 @@ using System.TestLibraries.Utilities;
 codeunit 139043 "Web Service Management Test"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
 
     var
         WebServiceManagement: Codeunit "Web Service Management";

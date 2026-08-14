@@ -1,6 +1,7 @@
 codeunit 135547 "Webhook Logs E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

@@ -17,6 +17,7 @@ using System.TestLibraries.Utilities;
 codeunit 132912 "Azure AD Plan Tests"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 

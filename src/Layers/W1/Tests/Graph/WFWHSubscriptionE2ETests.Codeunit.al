@@ -1,6 +1,7 @@
 codeunit 135528 "WFWH Subscription E2E Tests"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

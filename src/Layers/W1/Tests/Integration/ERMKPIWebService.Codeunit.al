@@ -1,6 +1,7 @@
 codeunit 134401 "ERM KPI Web Service"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = NonRestrictive;
 
     trigger OnRun()

@@ -1,6 +1,7 @@
 codeunit 135548 "API Routes E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

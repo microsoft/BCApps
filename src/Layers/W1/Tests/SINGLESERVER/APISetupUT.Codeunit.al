@@ -1,6 +1,7 @@
 codeunit 134636 "API Setup UT"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

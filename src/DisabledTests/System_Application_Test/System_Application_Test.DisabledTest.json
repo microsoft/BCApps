@@ -560,6 +560,111 @@
     "method": "TestCodeunitRunUserNotFirstLogin"
   },
   {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestEnsureAuthenticationEmailIsNotInUse"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetGraphUserForANewUserWithInvalidObjectId"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetGraphUserForANewUserWithValidObjectId"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetGraphUserForAnInexistentUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetGraphUserForTheCurrentUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetObjectIdForANewUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetObjectIdForAnInexistentUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetObjectIdForCurrentUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetUserAuthenticationObjectIdForANewUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetUserAuthenticationObjectIdForAnInexistentUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetUserAuthenticationObjectIdForAnInexistentUserProperty"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestGetUserAuthenticationObjectIdForTheCurrentUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestTryGetUserAuthenticationObjectIdForANewUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestTryGetUserAuthenticationObjectIdForAnInexistentUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestTryGetUserAuthenticationObjectIdForAnInexistentUserProperty"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestTryGetUserAuthenticationObjectIdForTheCurrentUser"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestUpdateUserFromAzureGraphForAValidUserWithoutUpdates"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedAuthenticationEmail"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedContactEmail"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedFullName"
+  },
+  {
+    "codeunitId": 132911,
+    "codeunitName": "Azure AD Graph User Test",
+    "method": "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedState"
+  },
+  {
     "codeunitId": 132912,
     "codeunitName": "Azure AD Plan Tests",
     "method": "GetAvailablePlansCount"
@@ -693,6 +798,11 @@
     "codeunitId": 132928,
     "codeunitName": "Azure AD User Sync Test",
     "method": "*"
+  },
+  {
+    "codeunitId": 132985,
+    "codeunitName": "SharePoint Graph Advanced Test",
+    "method": "TestCopyItemByPath"
   },
   {
     "codeunitId": 133100,
