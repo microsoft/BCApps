@@ -1272,7 +1272,6 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         Resource: Record "Resource";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         FixedAsset: Record "Fixed Asset";
-        LibraryERM: Codeunit "Library - ERM";
         LibraryResource: Codeunit "Library - Resource";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
     begin
@@ -1296,7 +1295,6 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 
