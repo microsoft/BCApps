@@ -1,7 +1,6 @@
 namespace Microsoft.API;
 
 using System.Integration;
-using System.Reflection;
 
 page 812 "API Overview"
 {
@@ -114,8 +113,6 @@ page 812 "API Overview"
     local procedure LoadAPIs()
     var
         TempAPILine: Record "API Overview Buffer" temporary;
-        PageMetadata: Record "Page Metadata";
-        QueryMetadata: Record "Query Metadata";
         ApiWebService: Record "Api Web Service";
         LineNo: Integer;
         EntryNo: Integer;
@@ -123,68 +120,22 @@ page 812 "API Overview"
         Rec.Reset();
         Rec.DeleteAll();
 
-        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        if PageMetadata.FindSet() then
-            repeat
-                LineNo += 1;
-                TempAPILine.Init();
-                TempAPILine."Entry No." := LineNo;
-                TempAPILine."Object Type" := TempAPILine."Object Type"::Page;
-                TempAPILine."Object ID" := PageMetadata.ID;
-                TempAPILine.Description := PageMetadata.Name;
-                TempAPILine."Entity Name" := PageMetadata.EntityName;
-                TempAPILine."API Publisher" := PageMetadata.APIPublisher;
-                TempAPILine."API Group" := PageMetadata.APIGroup;
-                TempAPILine."API Version" := PageMetadata.APIVersion;
-                TempAPILine.Insert();
-            until PageMetadata.Next() = 0;
-
-        QueryMetadata.SetFilter(EntityName, '<>%1', '');
-        if QueryMetadata.FindSet() then
-            repeat
-                LineNo += 1;
-                TempAPILine.Init();
-                TempAPILine."Entry No." := LineNo;
-                TempAPILine."Object Type" := TempAPILine."Object Type"::Query;
-                TempAPILine."Object ID" := QueryMetadata.ID;
-                TempAPILine.Description := QueryMetadata.Name;
-                TempAPILine."Entity Name" := QueryMetadata.EntityName;
-                TempAPILine."API Publisher" := QueryMetadata.APIPublisher;
-                TempAPILine."API Group" := QueryMetadata.APIGroup;
-                TempAPILine."API Version" := QueryMetadata.APIVersion;
-                TempAPILine.Insert();
-            until QueryMetadata.Next() = 0;
-
-        // API codeunits: sourced from the published web services, consistent with the MCP configuration,
-        // because "CodeUnit Metadata" does not expose the API publisher, group, version and entity fields.
-        // A codeunit published under several versions is listed once, with its versions aggregated.
-        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Codeunit);
+        // All API objects (pages, queries and codeunits) are sourced from the published web services,
+        // consistent with the MCP configuration. This is the only source that exposes the API publisher,
+        // group, version and entity (service) name for every object type, including API codeunits.
+        // An object published under several versions is listed once, with its versions aggregated.
         ApiWebService.SetRange(Published, true);
-        if ApiWebService.FindSet() then
-            repeat
-                TempAPILine.Reset();
-                TempAPILine.SetRange("Object Type", TempAPILine."Object Type"::Codeunit);
-                TempAPILine.SetRange("Object ID", ApiWebService."Object ID");
-                if TempAPILine.FindFirst() then begin
-                    TempAPILine."API Version" := CopyStr(TempAPILine."API Version" + ',' + ApiWebService.Version, 1, MaxStrLen(TempAPILine."API Version"));
-                    TempAPILine.Modify();
-                end else begin
-                    LineNo += 1;
-                    TempAPILine.Init();
-                    TempAPILine."Entry No." := LineNo;
-                    TempAPILine."Object Type" := TempAPILine."Object Type"::Codeunit;
-                    TempAPILine."Object ID" := ApiWebService."Object ID";
-                    TempAPILine.Description := CopyStr(ApiWebService."Object Name", 1, MaxStrLen(TempAPILine.Description));
-                    TempAPILine."Entity Name" := CopyStr(ApiWebService."Service Name", 1, MaxStrLen(TempAPILine."Entity Name"));
-                    TempAPILine."API Publisher" := CopyStr(ApiWebService.Publisher, 1, MaxStrLen(TempAPILine."API Publisher"));
-                    TempAPILine."API Group" := CopyStr(ApiWebService.Group, 1, MaxStrLen(TempAPILine."API Group"));
-                    TempAPILine."API Version" := CopyStr(ApiWebService.Version, 1, MaxStrLen(TempAPILine."API Version"));
-                    TempAPILine.Insert();
-                end;
-            until ApiWebService.Next() = 0;
+
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        AddAPIObjects(ApiWebService, TempAPILine, TempAPILine."Object Type"::Page, LineNo);
+
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Query);
+        AddAPIObjects(ApiWebService, TempAPILine, TempAPILine."Object Type"::Query, LineNo);
+
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Codeunit);
+        AddAPIObjects(ApiWebService, TempAPILine, TempAPILine."Object Type"::Codeunit, LineNo);
 
         TempAPILine.Reset();
-
         TempAPILine.SetCurrentKey("API Publisher", "API Group", Description);
         if TempAPILine.FindSet() then
             repeat
@@ -195,6 +146,34 @@ page 812 "API Overview"
             until TempAPILine.Next() = 0;
 
         if Rec.FindFirst() then;
+    end;
+
+    local procedure AddAPIObjects(var ApiWebService: Record "Api Web Service"; var TempAPILine: Record "API Overview Buffer" temporary; BufferObjectType: Option; var LineNo: Integer)
+    begin
+        if not ApiWebService.FindSet() then
+            exit;
+
+        repeat
+            TempAPILine.Reset();
+            TempAPILine.SetRange("Object Type", BufferObjectType);
+            TempAPILine.SetRange("Object ID", ApiWebService."Object ID");
+            if TempAPILine.FindFirst() then begin
+                TempAPILine."API Version" := CopyStr(TempAPILine."API Version" + ',' + ApiWebService.Version, 1, MaxStrLen(TempAPILine."API Version"));
+                TempAPILine.Modify();
+            end else begin
+                LineNo += 1;
+                TempAPILine.Init();
+                TempAPILine."Entry No." := LineNo;
+                TempAPILine."Object Type" := BufferObjectType;
+                TempAPILine."Object ID" := ApiWebService."Object ID";
+                TempAPILine.Description := CopyStr(ApiWebService."Object Name", 1, MaxStrLen(TempAPILine.Description));
+                TempAPILine."Entity Name" := CopyStr(ApiWebService."Service Name", 1, MaxStrLen(TempAPILine."Entity Name"));
+                TempAPILine."API Publisher" := CopyStr(ApiWebService.Publisher, 1, MaxStrLen(TempAPILine."API Publisher"));
+                TempAPILine."API Group" := CopyStr(ApiWebService.Group, 1, MaxStrLen(TempAPILine."API Group"));
+                TempAPILine."API Version" := CopyStr(ApiWebService.Version, 1, MaxStrLen(TempAPILine."API Version"));
+                TempAPILine.Insert();
+            end;
+        until ApiWebService.Next() = 0;
     end;
 
     local procedure GetApiUrl(APIBuffer: Record "API Overview Buffer"): Text
