@@ -201,7 +201,6 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense OAuth Client" = X,
         codeunit "Expense API Currency Helper" = X,
         codeunit "Expense Capabilities Provider" = X,
-        codeunit "Expense Activity Retention" = X,
         codeunit "Expense Activity Log Mgt." = X,
         codeunit "Expense Projects Builder" = X,
         codeunit "Import Expense User" = X,

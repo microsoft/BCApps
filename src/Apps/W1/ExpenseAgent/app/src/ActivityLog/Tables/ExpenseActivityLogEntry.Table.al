@@ -203,9 +203,6 @@ table 7100 "Expense Activity Log Entry"
         key(Actor; "Actor Table ID", "Actor Record System ID", "Actor Role", "Subject Table ID", "Subject System ID", "Occurred At", "Entry No.")
         {
         }
-        key(SourceOccurred; "Source Table ID", "Occurred At", "Entry No.")
-        {
-        }
         key(Occurred; "Occurred At", "Entry No.")
         {
         }
