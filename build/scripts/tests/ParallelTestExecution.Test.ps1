@@ -1,5 +1,20 @@
 $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 
+if (-not (Get-Command Get-TestsFromBcContainer -ErrorAction SilentlyContinue)) {
+    function global:Get-TestsFromBcContainer {
+        param(
+            [string]$containerName,
+            [string]$tenant,
+            [string]$extensionId,
+            [string]$requiredTestIsolation,
+            [string]$testType,
+            [array]$disabledTests
+        )
+        $null = $containerName, $tenant, $extensionId, $requiredTestIsolation, $testType, $disabledTests
+        throw "Get-TestsFromBcContainer stub should never be called; a Pester mock must intercept it."
+    }
+}
+
 Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 
 Describe "ParallelTestExecution app-name resolution" {
