@@ -7,6 +7,10 @@ using System.Threading;
 
 codeunit 40032 "Migration Validation"
 {
+    Permissions = tabledata "Migration Validation Error" = RIMD,
+        tabledata "Validation Progress" = RIMD,
+        tabledata "Hybrid Company Status" = RM;
+
     trigger OnRun()
     begin
         RunTests(false);
