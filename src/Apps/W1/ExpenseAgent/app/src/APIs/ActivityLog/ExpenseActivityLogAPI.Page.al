@@ -14,6 +14,7 @@ page 7122 "Expense Activity Log API"
     EntityName = 'expenseActivityLogEntry';
     EntitySetName = 'expenseActivityLogEntries';
     PageType = API;
+    DelayedInsert = true;
     SourceTable = "Expense Activity Log Entry";
     ODataKeyFields = SystemId;
     DataAccessIntent = ReadOnly;
@@ -155,7 +156,7 @@ page 7122 "Expense Activity Log API"
         CurrencyLCY: Code[10];
         HistoryScopeApplied: Boolean;
         ReimbursementCurrencyCode: Code[10];
-        HistoryActorRoleRequiredErr: Label 'The historyActorRole filter must be specified as Submitter or Approver.', Locked = true;
+        HistoryActorRoleRequiredErr: Label 'The historyActorRole filter must be specified as Submitter or Approver.';
         ActivityScopeRequiredErr: Label 'Activity log entries must be requested through an expense report, posted expense report, or expense user.';
 
     trigger OnInit()

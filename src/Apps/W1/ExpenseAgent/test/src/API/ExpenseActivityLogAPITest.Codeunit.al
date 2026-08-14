@@ -25,6 +25,8 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         TestDescriptionPrefixLbl: Label 'ACTIVITY API TEST ', Locked = true;
+        MethodNotAllowedResponseErr: Label 'Response code is 405', Locked = true;
+        BadRequestResponseErr: Label 'Response code is 400', Locked = true;
         SubmitActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReport', Locked = true;
         ApproveActionTok: Label 'Microsoft.NAV.approvedExpenseReport', Locked = true;
         RejectAndReopenActionTok: Label 'Microsoft.NAV.rejectAndReopenExpenseReport', Locked = true;
@@ -123,17 +125,17 @@ codeunit 148343 "Expense Activity Log API Test"
         // [WHEN] A POST is attempted.
         // [THEN] The API rejects it with Method Not Allowed.
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(CollectionURL, '{}', ResponseText, 405);
-        Assert.ExpectedError('POST request failed. Response code is 405');
+        Assert.ExpectedError(MethodNotAllowedResponseErr);
 
         // [WHEN] A PATCH is attempted.
         // [THEN] The API rejects it with Method Not Allowed.
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(EntryURL, '{"comment":"changed"}', ResponseText, 405);
-        Assert.ExpectedError('PATCH request failed. Response code is 405');
+        Assert.ExpectedError(MethodNotAllowedResponseErr);
 
         // [WHEN] A DELETE is attempted.
         // [THEN] The API rejects it with Method Not Allowed.
         asserterror LibraryGraphMgt.DeleteFromWebServiceAndCheckResponseCode(EntryURL, '', ResponseText, 400);
-        Assert.ExpectedError('DELETE request failed. Response code is 400');
+        Assert.ExpectedError(BadRequestResponseErr);
         CompleteTest();
     end;
 
@@ -630,6 +632,7 @@ codeunit 148343 "Expense Activity Log API Test"
         EmployeeNo: Code[20];
         ExpenseUserNo: Code[20];
     begin
+        ExpenseUser.SetLoadFields("No.", "Employee No.");
         ExpenseUser.SetFilter(Name, TestDescriptionPrefixLbl + '*');
         if ExpenseUser.FindSet() then
             repeat
@@ -640,6 +643,7 @@ codeunit 148343 "Expense Activity Log API Test"
                     EmployeeNumbers.Add(ExpenseUser."Employee No.");
             until ExpenseUser.Next() = 0;
 
+        ExpenseCategory.SetLoadFields(Code);
         ExpenseCategory.SetFilter(Description, TestDescriptionPrefixLbl + '*');
         if ExpenseCategory.FindSet() then
             repeat
@@ -657,6 +661,7 @@ codeunit 148343 "Expense Activity Log API Test"
         PostedExpenseReportHeader.DeleteAll(true);
 
         foreach ExpenseUserNo in ExpenseUserNumbers do begin
+            Expense.SetLoadFields("Expense Category");
             Expense.SetRange("Expense User No.", ExpenseUserNo);
             if Expense.FindSet() then
                 repeat
