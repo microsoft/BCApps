@@ -7,6 +7,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
@@ -83,6 +85,27 @@ report 20501 "Subc. Create Transf. Order"
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
+        CannotCreateTransferErr: Label 'Cannot create a transfer from location %1 to location %2 because location %1 requires warehousing. Set up an in-transit transfer route between the locations, or set Direct Transfer Posting to Direct Transfer in Inventory Setup.', Comment = '%1=Transfer-from location code, %2=Transfer-to location code';
+
+    local procedure CheckDirectTransferAllowed(TransferFromLocation: Code[10]; TransferToLocation: Code[10])
+    var
+        Location: Record Location;
+    begin
+        if IsOneStepDirectTransfer() then
+            exit;
+
+        if Location.RequirePicking(TransferFromLocation) or Location.RequireShipment(TransferFromLocation) then
+            Error(CannotCreateTransferErr, TransferFromLocation, TransferToLocation);
+    end;
+
+    local procedure IsOneStepDirectTransfer(): Boolean
+    var
+        InventorySetup: Record "Inventory Setup";
+    begin
+        InventorySetup.SetLoadFields("Direct Transfer Posting");
+        InventorySetup.GetRecordOnce();
+        exit(InventorySetup."Direct Transfer Posting" = InventorySetup."Direct Transfer Posting"::"Direct Transfer");
+    end;
 
     local procedure InsertTransferHeader(TransferFromLocation: Code[10])
     var
@@ -106,8 +129,10 @@ report 20501 "Subc. Create Transf. Order"
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", TransferFromLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
-            if not TransferRoute.Get(TransferFromLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
+            if not TransferRoute.Get(TransferFromLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then begin
+                CheckDirectTransferAllowed(TransferFromLocation, TransferToLocationCode);
                 TransferHeader.Validate("Direct Transfer", true);
+            end;
 
             TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
