@@ -139,23 +139,22 @@ codeunit 4421 "SOA Attachment MLLM"
         end;
 
         ExtractedContent := AOAIOperationResponse.GetResult();
-        if not ValidateAndNormalizeResponse(ExtractedContent, FailureReason) then
-            Error(FailureReason);
+        ValidateAndNormalizeResponse(ExtractedContent, FailureReason);
     end;
 
-    local procedure ValidateAndNormalizeResponse(var ExtractedContent: Text; var FailureReason: Text): Boolean
+    local procedure ValidateAndNormalizeResponse(var ExtractedContent: Text; var FailureReason: Text)
     var
         ContentToken: JsonToken;
         ResponseJson: JsonObject;
     begin
         if ExtractedContent = '' then begin
             FailureReason := ExtractionResponseEmptyErr;
-            exit(false);
+            Error(ExtractionResponseEmptyErr);
         end;
 
         if not ResponseJson.ReadFrom(ExtractedContent) then begin
             FailureReason := ExtractionResponseInvalidJsonErr;
-            exit(false);
+            Error(ExtractionResponseInvalidJsonErr);
         end;
 
         if ResponseJson.Get('content', ContentToken) and ContentToken.IsValue() and not ContentToken.AsValue().IsNull() then begin
@@ -163,17 +162,16 @@ codeunit 4421 "SOA Attachment MLLM"
             Clear(ResponseJson);
             if not ResponseJson.ReadFrom(ExtractedContent) then begin
                 FailureReason := ExtractionResponseInvalidJsonErr;
-                exit(false);
+                Error(ExtractionResponseInvalidJsonErr);
             end;
         end;
 
         if not HasExpectedSchema(ResponseJson) then begin
             FailureReason := ExtractionResponseInvalidSchemaErr;
-            exit(false);
+            Error(ExtractionResponseInvalidSchemaErr);
         end;
 
         ResponseJson.WriteTo(ExtractedContent);
-        exit(true);
     end;
 
     local procedure IsCanonicalContent(Content: Text; AttachmentSystemId: Guid): Boolean

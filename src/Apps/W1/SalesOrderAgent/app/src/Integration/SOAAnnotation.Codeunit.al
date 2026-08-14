@@ -31,6 +31,8 @@ codeunit 4399 "SOA Annotation"
         AnnotationAgentTaskSendRepliesFailureLbl: Label 'The agent can''t currently send email replies from the selected mailbox. Please ensure the mailbox has the proper ''send as'' permissions in the Exchange admin portal.';
         AnnotationIrrelevantLbl: Label 'All or parts of this message may not be relevant for %1', Comment = '%1 = Agent Name';
         IrrelevanceSecurityPromptTok: Label 'SalesOrderAgent-Irrelevance-SecurityPromptV28', Locked = true;
+        IndividualTok: Label 'Individual', Locked = true;
+        CumulativeTok: Label 'Cumulative', Locked = true;
 
     internal procedure GetAgentAnnotations(AgentUserId: Guid; var Annotations: Record "Agent Annotation")
     var
@@ -265,8 +267,6 @@ codeunit 4399 "SOA Annotation"
         ExtractionFailureReason: Text;
         IrrelevanceReason: Text;
         AttachmentContentTxt: Text;
-        IndividualTok: Label 'Individual', Locked = true;
-        CumulativeTok: Label 'Cumulative', Locked = true;
         AttachmentContentLength: Integer;
     begin
         if not AgentTaskMessageAttachment.GetBySystemId(AttachmentSystemId) then
