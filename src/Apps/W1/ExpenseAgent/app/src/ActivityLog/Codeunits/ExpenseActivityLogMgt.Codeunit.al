@@ -254,8 +254,9 @@ codeunit 6926 "Expense Activity Log Mgt."
         ExpenseReportLine.SetRange("Document No.", ExpenseReportNo);
         if ExpenseReportLine.FindSet() then
             repeat
+                ExpenseActivityLogEntry."Expense Count" += 1;
                 if ExpenseReportLine."Receipt Attached" then
-                    ExpenseActivityLogEntry."Receipt Count" += 1;
+                    ExpenseActivityLogEntry."Attached Receipt Count" += 1;
 
                 // Add the category to the list if it is not already present and if it fits within the maximum length of the Categories field.
                 if (not CategoriesTruncated) and

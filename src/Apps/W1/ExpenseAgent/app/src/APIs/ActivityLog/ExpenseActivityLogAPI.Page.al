@@ -134,9 +134,13 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'Categories';
                 }
-                field(receiptCount; Rec."Receipt Count")
+                field(attachedReceiptCount; Rec."Attached Receipt Count")
                 {
-                    Caption = 'Receipt Count';
+                    Caption = 'Attached Receipt Count';
+                }
+                field(expenseCount; Rec."Expense Count")
+                {
+                    Caption = 'Expense Count';
                 }
                 field(historyActorRole; Rec."History Actor Role Filter")
                 {

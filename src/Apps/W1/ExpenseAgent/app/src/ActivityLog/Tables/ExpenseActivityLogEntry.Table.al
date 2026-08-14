@@ -155,9 +155,14 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Categories';
             DataClassification = CustomerContent;
         }
-        field(52; "Receipt Count"; Integer)
+        field(52; "Attached Receipt Count"; Integer)
         {
-            Caption = 'Receipt Count';
+            Caption = 'Attached Receipt Count';
+            DataClassification = SystemMetadata;
+        }
+        field(53; "Expense Count"; Integer)
+        {
+            Caption = 'Expense Count';
             DataClassification = SystemMetadata;
         }
         field(100; "History Actor Table ID Filter"; Integer)

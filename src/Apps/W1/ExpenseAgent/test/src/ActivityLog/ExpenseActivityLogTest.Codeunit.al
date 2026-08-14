@@ -95,7 +95,8 @@ codeunit 148342 "Expense Activity Log Test"
                     Assert.AreEqual(75, ExpenseActivityLogEntry."Reimbursable Amount (LCY)", 'Reimbursable amount in LCY must be persisted.');
                     Assert.AreEqual(25, ExpenseActivityLogEntry."Refundable Amount", 'Refundable amount must be persisted.');
                     Assert.AreEqual(25, ExpenseActivityLogEntry."Refundable Amount (LCY)", 'Refundable amount in LCY must be persisted.');
-                    Assert.AreEqual(1, ExpenseActivityLogEntry."Receipt Count", 'Receipt count must include only report lines with an attached receipt.');
+                    Assert.AreEqual(2, ExpenseActivityLogEntry."Expense Count", 'Expense count must include every report line.');
+                    Assert.AreEqual(1, ExpenseActivityLogEntry."Attached Receipt Count", 'Attached receipt count must include only report lines with an attached receipt.');
                     Assert.AreEqual('USD', ExpenseActivityLogEntry."Reimbursement Currency Code", 'Reimbursement currency code must be persisted.');
                     Assert.AreEqual(1.25, ExpenseActivityLogEntry."Reimbursement Currency Factor", 'Reimbursement currency factor must be persisted.');
                     Assert.AreNotEqual('', ExpenseActivityLogEntry.Categories, 'Snapshot events must persist categories.');
@@ -106,7 +107,8 @@ codeunit 148342 "Expense Activity Log Test"
                     Assert.AreEqual(0, ExpenseActivityLogEntry."Reimbursable Amount (LCY)", 'Non-snapshot events must not duplicate financial values.');
                     Assert.AreEqual(0, ExpenseActivityLogEntry."Refundable Amount", 'Non-snapshot events must not duplicate financial values.');
                     Assert.AreEqual(0, ExpenseActivityLogEntry."Refundable Amount (LCY)", 'Non-snapshot events must not duplicate financial values.');
-                    Assert.AreEqual(0, ExpenseActivityLogEntry."Receipt Count", 'Non-snapshot events must not duplicate receipt counts.');
+                    Assert.AreEqual(0, ExpenseActivityLogEntry."Expense Count", 'Non-snapshot events must not duplicate expense counts.');
+                    Assert.AreEqual(0, ExpenseActivityLogEntry."Attached Receipt Count", 'Non-snapshot events must not duplicate attached receipt counts.');
                     Assert.AreEqual('', ExpenseActivityLogEntry."Reimbursement Currency Code", 'Non-snapshot events must not duplicate currency values.');
                     Assert.AreEqual(0, ExpenseActivityLogEntry."Reimbursement Currency Factor", 'Non-snapshot events must not duplicate currency values.');
                     Assert.AreEqual('', ExpenseActivityLogEntry.Categories, 'Non-snapshot events must not duplicate categories.');
@@ -264,7 +266,7 @@ codeunit 148342 "Expense Activity Log Test"
         Assert.IsTrue(Categories.ReadFrom(ExpenseActivityLogEntry.Categories), 'Categories must remain valid JSON.');
         Categories.Get(Categories.Count() - 1, LastCategory);
         Assert.AreEqual('...', LastCategory.AsValue().AsText(), 'An overflowing category snapshot must end with an ellipsis.');
-        Assert.AreEqual(1, ExpenseActivityLogEntry."Receipt Count", 'Receipt counting must continue after the category snapshot overflows.');
+        Assert.AreEqual(1, ExpenseActivityLogEntry."Attached Receipt Count", 'Attached receipt counting must continue after the category snapshot overflows.');
     end;
 
     [Test]
