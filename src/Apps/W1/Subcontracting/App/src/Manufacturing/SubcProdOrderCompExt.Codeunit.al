@@ -445,7 +445,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         end else
             if xProdOrderComponent."Routing Link Code" <> '' then
                 if ProdOrderComponent."Subc. Original Location Code" <> '' then begin
-                    ProdOrderComponent.Validate("Location Code", ProdOrderComponent."Subc. Original Location Code");
+                    SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, ProdOrderComponent."Subc. Original Location Code");
                     ProdOrderComponent."Subc. Original Location Code" := '';
                     if ProdOrderComponent."Subc. Orig. Bin Code" <> '' then begin
                         ProdOrderComponent.Validate("Bin Code", ProdOrderComponent."Subc. Orig. Bin Code");
