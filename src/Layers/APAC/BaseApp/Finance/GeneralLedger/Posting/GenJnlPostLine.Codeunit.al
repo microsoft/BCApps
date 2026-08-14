@@ -8163,9 +8163,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true, TotalAmountAddCurr)
                 else
                     if VendorACYExchangeRateApplies() then
-                        // [641827] With "Enable Vendor GST Amount (ACY)" the aggregated amount is the vendor-calculated
-                        // ACY, which GLCalcAddCurrency keeps on the balancing entry. Derive the source-currency amount
-                        // from LCY so the reporting currency stays balanced instead of posting a separate residual entry.
+                        // [641827] GLCalcAddCurrency keeps the vendor ACY here, so derive Source Currency Amount from LCY.
                         InitGLEntry(
                             GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true,
                             CalcAmountSrcCurr(GenJnlLine, TotalAmountLCY))
@@ -8179,12 +8177,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         PurchSetup: Record "Purchases & Payables Setup";
     begin
-        // Mirrors the vendor-ACY branch in GLCalcAddCurrency: only then does the balancing entry keep the
-        // aggregated amount as its Additional-Currency Amount, so only then must the Source Currency Amount be
-        // derived from LCY. In every other case the original behavior (Source Currency Amount = aggregated amount)
-        // must be preserved to keep Source Currency Consistency balanced.
+        // Mirrors GLCalcAddCurrency's vendor-ACY branch so the balancing entry's Source Currency Amount matches its ACY.
         if (AddCurrencyCode = '') or (not UseVendExchRate) then
             exit(false);
+        PurchSetup.SetLoadFields("Enable Vendor GST Amount (ACY)");
         PurchSetup.Get();
         exit(PurchSetup."Enable Vendor GST Amount (ACY)");
     end;
@@ -8456,6 +8452,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry: Record "G/L Entry";
         IsHandled: Boolean;
     begin
+        // General balancing entries are never the vendor-ACY case; clear the transient flag so leftover state cannot select it.
+        UseVendExchRate := false;
         HandleDtldAdjustment(GenJnlLine, GLEntry, AdjAmountBuf, Amount, AmountACY, GLAccNo);
         GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
         GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
