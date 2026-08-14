@@ -1406,7 +1406,7 @@ codeunit 139195 "CDS Integration Mgt Test"
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
-    procedure CleanCDSIntegrationTruncatesCRMIntegrationRecordsForCurrentCompany()
+    procedure CleanCDSIntegrationRemovesCRMIntegrationRecordsForCurrentCompany()
     var
         CRMIntegrationRecord: Record "CRM Integration Record";
         CDSConnectionSetup: Record "CDS Connection Setup";
@@ -1428,25 +1428,6 @@ codeunit 139195 "CDS Integration Mgt Test"
         Assert.IsTrue(CDSConnectionSetup.IsEmpty(), 'CDS Connection Setup was not removed.');
     end;
 
-    [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
-    [Scope('OnPrem')]
-    procedure TruncateIsSupportedForCRMIntegrationRecordTable()
-    var
-        CRMIntegrationRecord: Record "CRM Integration Record";
-    begin
-        // [FEATURE] [Environment Cleanup]
-        // [SCENARIO 646451] Truncate is supported for CRM Integration Record so cleanup avoids row-by-row deletion
-        Initialize();
-
-        // [GIVEN] Several CRM Integration Records in the current company
-        SeedCRMIntegrationRecords(3);
-
-        // [WHEN] Truncating the table
-        // [THEN] Truncate is supported (returns true) and removes all rows
-        Assert.IsTrue(CRMIntegrationRecord.Truncate(), 'Truncate should be supported for CRM Integration Record.');
-        Assert.AreEqual(0, CRMIntegrationRecord.Count(), 'Truncate should remove all CRM Integration Records.');
-    end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
