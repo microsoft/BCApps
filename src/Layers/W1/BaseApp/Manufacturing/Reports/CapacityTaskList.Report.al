@@ -267,7 +267,7 @@ report 99000780 "Capacity Task List"
             //Subtype = Body;
             LayoutFile = './Manufacturing/Reports/CapacityTaskListBody.docx';
             Caption = 'Body-only: Capacity Task List (Word)';
-            Summary = 'Landscape capacity task list. Per production order routing line: order and operation no., item, work/machine centre, input quantity, start, and end date/time, expected capacity need, and unit of measure.';
+            Summary = 'Landscape orientated. Shows order and operation number, item, work or machine center, input quantity, start and end date and time, expected capacity need, and unit of measure for each production order routing line.';
         }
     }
 

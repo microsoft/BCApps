@@ -287,7 +287,7 @@ report 99000789 "Subcontractor - Dispatch List"
             //Subtype = Body;
             LayoutFile = './Manufacturing/Reports/SubcontractorDispatchListBody.docx';
             Caption = 'Subcontractor Dispatch List (Word)';
-            Summary = 'Landscape subcontractor dispatch list. Per vendor and work centre: routing line with operation, dates, remaining, and outstanding purchase quantity, unit of measure, and the components needed.';
+            Summary = 'Landscape orientated. Shows the routing line for each vendor and work center with operation, dates, remaining and outstanding purchase quantity, and unit of measure, together with the components that are needed.';
         }
     }
 

@@ -1135,7 +1135,7 @@ report 1307 "Standard Sales - Credit Memo"
             //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesCreditMemoNABody.docx';
             Caption = 'Body-only: Standard Sales Credit Memo NA (Word)';
-            Summary = 'Portrait sales credit memo (North America). Customer, ship-to, and company address, header (date, salesperson, applies-to document, due date), item lines with quantity, price, and amount, total including VAT, and sales-tax split (taxable/exempt).';
+            Summary = 'Portrait orientated. Shows the customer, ship-to, and company address, a header with date, salesperson, applies-to document, and due date, and item lines with quantity, price, and amount. Adds total including VAT and a taxable and exempt tax split.';
         }
     }
 

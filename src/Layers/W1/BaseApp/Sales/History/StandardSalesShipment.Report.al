@@ -889,7 +889,7 @@ report 1308 "Standard Sales - Shipment"
             //subtype = Body;
             LayoutFile = './Sales/History/StandardSalesShipmentBody.docx';
             Caption = 'Body-only: Standard Sales Shipment (Word)';
-            Summary = 'Portrait sales shipment. Customer and company address, header (document no., date, shipping agent, tracking no., job no.), item lines with quantity, and unit of measure, and item tracking (lot/serial numbers).';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with document number, date, shipping agent, tracking number, and project number. Item lines list quantity and unit of measure, with item tracking by lot or serial number.';
         }
     }
 

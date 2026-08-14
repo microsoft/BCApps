@@ -1216,7 +1216,7 @@ report 1322 "Standard Purchase - Order"
             //Subtype = Body;
             LayoutFile = './Purchases/Document/StandardPurchaseOrderBody.docx';
             Caption = 'Body-only: Standard Purchase Order (Word)';
-            Summary = 'The Standard Purchase Order (Word) provides a basic layout.';
+            Summary = 'Portrait orientated. Shows the buy-from, ship-to, and company address and a header with order number, date, payment terms, buyer, shipment method, and vendor invoice number. Item lines list cost, VAT %, and amount, with VAT totals.';
         }
     }
 

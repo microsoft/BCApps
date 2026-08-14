@@ -1382,7 +1382,7 @@ report 1306 "Standard Sales - Invoice"
             //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesInvoiceBody.docx';
             Caption = 'Body-only: Standard Sales Invoice (Word)';
-            Summary = 'Portrait sales invoice. Customer and company address, header with dates, references, payment terms, shipping, and tracking, item lines with quantity, price, discount %, VAT %, and amount, and VAT-inclusive totals.';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with dates, references, payment terms, shipping, and tracking. Item lines list quantity, price, discount %, VAT %, and amount, with VAT-inclusive totals.';
         }
         layout("StandardSalesInvoiceVatSpecBody.docx")
         {
@@ -1390,7 +1390,7 @@ report 1306 "Standard Sales - Invoice"
             //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesInvoiceVatSpecBody.docx';
             Caption = 'Body-only: Standard Sales Invoice - VAT Spec (Word)';
-            Summary = 'Portrait sales invoice with VAT specification. Customer and company address, header, and item lines with price, discount %, VAT %, and amount, VAT-inclusive totals, and a VAT specification (base and amount per VAT identifier, in LCY).';
+            Summary = 'Portrait orientated. Shows the customer and company address, a header, and item lines with price, discount %, VAT %, and amount. Adds VAT-inclusive totals and a VAT specification with base and amount for each VAT identifier, in LCY.';
         }
         layout("StandardSalesInvoiceDefEmailBody.docx")
         {
@@ -1398,7 +1398,7 @@ report 1306 "Standard Sales - Invoice"
             //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesInvoiceDefEmailBody.docx';
             Caption = 'Body-only: Standard Sales Invoice Email (Word)';
-            Summary = 'Portrait sales invoice email body. Company address and bill-to customer no., greeting, body, and closing text, document no., due date, total including VAT, and a payment-service logo. Cover text for the invoice email.';
+            Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, total including VAT, and a payment service logo. Use it as cover text for the email.';
         }
     }
 

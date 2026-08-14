@@ -440,7 +440,7 @@ report 1302 "Standard Sales - Pro Forma Inv"
             Caption = 'Standard Sales Proforma Invoice (RDLC)';
             Summary = 'The Standard Sales Proforma Invoice (RDLC) provides a detailed layout.';
         }
-//#if not CLEAN32
+        //#if not CLEAN32
         layout("StandardSalesProFormaInv.docx")
         {
             Type = Word;
@@ -451,14 +451,14 @@ report 1302 "Standard Sales - Pro Forma Inv"
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-//#endif
+        //#endif
         layout("StandardSalesProFormaInvBody.docx")
         {
             Type = Word;
             //Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesProFormaInvBody.docx';
             Caption = 'Body-only: Standard Sales Proforma Invoice (Word)';
-            Summary = 'Portrait pro forma invoice. Customer and company address, VAT reg. nos., reference, and shipment method, item lines with country of origin, tariff, quantity, price, net weight, VAT, and amount, and total weight, and VAT.';
+            Summary = 'Portrait orientated. Shows the customer and company address, VAT registration numbers, reference, and shipment method. Item lines list country of origin, tariff number, quantity, price, net weight, VAT, and amount, with total weight and VAT.';
         }
     }
 

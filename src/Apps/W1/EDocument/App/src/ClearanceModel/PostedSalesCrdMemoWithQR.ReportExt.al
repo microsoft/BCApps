@@ -41,7 +41,7 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
             //Subtype = Body;
             LayoutFile = './.resources/Template/StandardSalesCreditMemowithQRBody.docx';
             Caption = 'Body-only: Standard Sales - Credit Memo - E-Document (Word)';
-            Summary = 'Portrait sales credit memo with QR code. Customer and company address, header (reference, salesperson, applies-to document, due date), item lines with price, discount %, VAT %, and amount, VAT-inclusive totals, and a QR code.';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with reference, salesperson, applies-to document, and due date. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals and a QR code.';
         }
     }
 }

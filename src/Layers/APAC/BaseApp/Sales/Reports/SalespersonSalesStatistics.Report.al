@@ -187,7 +187,7 @@ report 114 "Salesperson - Sales Statistics"
             //Subtype = Body;
             LayoutFile = './Sales/Reports/SalespersonSalesStatisticsBody.docx';
             Caption = 'Body-only: Salesperson Sales Statistics Word';
-            Summary = 'Landscape salesperson sales statistics. Per salesperson: sales, profit and adjusted profit (LCY and %), invoice discount, payment discount given, and tolerance, with column totals.';
+            Summary = 'Landscape orientated. Shows sales, profit, and adjusted profit in LCY and as a percentage for each salesperson, together with invoice discount, payment discount given, and payment tolerance. Includes column totals.';
         }
     }
 

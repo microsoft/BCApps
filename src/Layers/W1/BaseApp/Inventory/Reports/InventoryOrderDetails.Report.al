@@ -324,7 +324,7 @@ report 708 "Inventory Order Details"
             //Subtype = Body;
             LayoutFile = '.\Inventory\Reports\InventoryOrderDetailsBody.docx';
             Caption = 'Body-only: Inventory Order Details Word';
-            Summary = 'Landscape inventory order details. Per item: sales order no., bill-to name, shipment date, quantity, outstanding, and back-order quantity, unit price, discount, and outstanding amount, with totals.';
+            Summary = 'Landscape orientated. Lists the orders for each item with sales order number, bill-to name, shipment date, quantity, outstanding and back order quantity, unit price, discount, and outstanding amount. Includes totals.';
         }
     }
 

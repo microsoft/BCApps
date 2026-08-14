@@ -906,7 +906,7 @@ report 117 Reminder
             //Subtype = Body;
             LayoutFile = './Sales/Reminder/DefaultReminderEmailBody.docx';
             Caption = 'Body-only: Default Reminder Email (Word)';
-            Summary = 'Portrait reminder email body. Greeting and body text with amount due, reminder lines (document no./type, description, due date and remaining amount), total including VAT, closing text, and company address.';
+            Summary = 'Portrait orientated. Email body with a greeting, body text, and the amount due. Lines show document number and type, description, due date, and remaining amount, followed by the total including VAT, closing text, and company address.';
         }
     }
 

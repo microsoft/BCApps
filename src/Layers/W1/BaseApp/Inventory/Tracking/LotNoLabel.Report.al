@@ -94,7 +94,7 @@ report 6628 "Lot No Label"
             //Subtype = Body;
             LayoutFile = './Inventory/Tracking/LotNoLabelBody.docx';
             Caption = 'Body-only: Lot No Label (Word)';
-            Summary = 'Portrait item tracking label. Item description and number with the lot number as text and a 2D barcode. For labelling lot-tracked items.';
+            Summary = 'Portrait orientated. Shows the item description and number with the lot number as text and as a 2D barcode. Use it to print labels for lot tracked items.';
         }
     }
 

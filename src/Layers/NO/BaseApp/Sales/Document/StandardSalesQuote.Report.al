@@ -1042,7 +1042,7 @@ report 1304 "Standard Sales - Quote"
             //Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesQuoteBody.docx';
             Caption = 'Body-only: Standard Sales Quote (Word)';
-            Summary = 'Portrait sales quote. Customer and company address, header (document no., your reference, valid-to date, salesperson, payment terms, shipment method), item lines with price, discount %, VAT %, and amount, and VAT-inclusive totals.';
+            Summary = 'Portrait orientated. Shows the customer and company address, a header with document number, your reference, valid-to date, salesperson, and payment terms, and item lines with price, discount %, VAT %, and amount. Adds VAT-inclusive totals.';
         }
 
         layout("StandardSalesQuoteEmailBody.docx")
@@ -1052,7 +1052,7 @@ report 1304 "Standard Sales - Quote"
             //HeaderFooterPart = '';
             LayoutFile = './Sales/Document/StandardSalesQuoteEmailBody.docx';
             Caption = 'Body-only: Standard Sales Quote Email (Word)';
-            Summary = 'Portrait sales quote email body. Company address and bill-to customer no., greeting, body, and closing text, document no., due date, and total including VAT. Cover text for the quote email.';
+            Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, and total including VAT. Use it as cover text for the email.';
         }
     }
 

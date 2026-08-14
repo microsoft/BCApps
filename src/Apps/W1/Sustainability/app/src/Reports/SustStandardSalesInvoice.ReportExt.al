@@ -55,7 +55,7 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
     }
     rendering
     {
-//#if not CLEAN32
+        //#if not CLEAN32
         layout("StandardESGSalesInvoice.docx")
         {
             Type = Word;
@@ -66,8 +66,8 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-//#endif
-//#if not CLEAN32
+        //#endif
+        //#if not CLEAN32
         layout("StandardESGSalesInvoiceBlueSimple.docx")
         {
             Type = Word;
@@ -78,14 +78,14 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-//#endif
+        //#endif
         layout("StandardESGSalesInvoiceBody.docx")
         {
             Type = Word;
             //Subtype = Body;
             LayoutFile = 'src\Reports\StandardESGSalesInvoiceBody.docx';
             Caption = 'Body-only: Standard ESG Sales Invoice (Word)';
-            Summary = 'Portrait ESG sales invoice. Customer and company address, header (dates, references, payment/shipping, tracking), item lines with CO2e per unit, quantity, price, discount %, VAT %, and amount, and VAT-inclusive totals with total CO2e.';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with dates, references, and payment details. Item lines list CO2e per unit, quantity, price, discount %, VAT %, and amount, with VAT-inclusive totals and total CO2e.';
         }
 
     }

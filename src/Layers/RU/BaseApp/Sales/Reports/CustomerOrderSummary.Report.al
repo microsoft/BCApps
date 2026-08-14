@@ -494,7 +494,7 @@ report 107 "Customer - Order Summary"
             //Subtype = Body;
             LayoutFile = '.\Sales\Reports\CustomerOrderSummaryBody.docx';
             Caption = 'Body-only: Customer Order Summary Word';
-            Summary = 'Landscape customer order summary. Per customer and currency: outstanding sales order amounts split across time periods (before, dated periods, after) with a line total, plus overall totals. Amounts in LCY.';
+            Summary = 'Landscape orientated. Groups outstanding sales order amounts by customer and currency, split across the periods before, within, and after the date range. Shows a total for each line and overall totals, in LCY.';
         }
     }
     labels

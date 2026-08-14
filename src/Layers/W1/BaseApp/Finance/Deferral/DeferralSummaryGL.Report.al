@@ -309,7 +309,7 @@ report 1700 "Deferral Summary - G/L"
             //Subtype = Body;
             LayoutFile = './Finance/Deferral/DeferralSummaryGLBody.docx';
             Caption = 'Deferral Summary G/L Word';
-            Summary = 'Landscape G/L deferral summary. Per G/L account: posting date, document, deferral account, start date, and periods, with amount recognised, remaining, and total deferred, plus totals.';
+            Summary = 'Landscape orientated. Shows posting date, document, deferral account, start date, and number of periods for each G/L account, together with the amount recognized, the remaining amount, and the total deferred. Includes totals.';
         }
     }
 

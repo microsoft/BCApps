@@ -301,7 +301,7 @@ report 99000753 "Quantity Explosion of BOM"
             //Subtype = Body;
             LayoutFile = './Manufacturing/Reports/QuantityExplosionofBOMBody.docx';
             Caption = 'Body-only: Quantity Explosion of BOM Word';
-            Summary = 'Portrait quantity explosion of BOM. For a calculation date: the item''s indented BOM component levels with number, description, quantity, unit of measure, and total BOM quantity.';
+            Summary = 'Portrait orientated. For a chosen calculation date, shows the indented component levels of the BOM for an item with number, description, quantity, unit of measure, and the total BOM quantity.';
         }
     }
 

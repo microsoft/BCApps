@@ -120,7 +120,7 @@ report 685 "Payment Practice"
             //Subtype = Body;
             LayoutFile = 'src/Reports/Payment Practice by PeriodBody.docx';
             Caption = 'Body-only: Payment Practice by Period';
-            Summary = 'Portrait payment practices report by period. Reporting period and aggregation, average agreed, and actual payment periods, and % paid on time, with lines per payment period showing the share paid, and amount.';
+            Summary = 'Portrait orientated. Shows the reporting period and aggregation, the average agreed and actual payment periods, and the percentage paid on time. A line for each payment period shows the share paid and the amount.';
 
         }
         layout(PaymentPractice_SmallBusinessLayoutBody)
@@ -129,7 +129,7 @@ report 685 "Payment Practice"
             //Subtype = Body;
             LayoutFile = 'src/Reports/Payment Practice Small BusinessBody.docx';
             Caption = 'Body-only: Payment Practice Small Business';
-            Summary = 'Portrait payment practices report (small business). Reporting period and aggregation, agreed/actual payment periods, % paid on time, median/mode/percentile times, Peppol, and small-business share, with per-period lines.';
+            Summary = 'Portrait orientated. Shows the reporting period and aggregation, the agreed and actual payment periods, the percentage paid on time, median, mode, and percentile payment times, Peppol use, and the small business share, with a line for each period.';
         }
         layout(PaymentPractice_VendorSizeLayoutBody)
         {
@@ -137,7 +137,7 @@ report 685 "Payment Practice"
             //Subtype = Body;
             LayoutFile = 'src/Reports/Payment Practice by Vendor SizeBody.docx';
             Caption = 'Body-only: Payment Practice by Vendor Size';
-            Summary = 'Portrait payment practices report by vendor size. Reporting period and aggregation with overall averages, and lines per company-size code showing average agreed, and actual payment periods, and % paid on time.';
+            Summary = 'Portrait orientated. Shows the reporting period, the aggregation, and the overall averages. A line for each company size code shows the average agreed payment period, the average actual payment period, and the percentage paid on time.';
         }
     }
 }

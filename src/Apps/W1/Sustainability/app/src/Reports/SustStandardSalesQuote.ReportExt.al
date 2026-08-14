@@ -55,7 +55,7 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
     }
     rendering
     {
-//#if not CLEAN32
+        //#if not CLEAN32
         layout("StandardESGSalesQuote.docx")
         {
             Type = Word;
@@ -66,8 +66,8 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-//#endif
-//#if not CLEAN32
+        //#endif
+        //#if not CLEAN32
         layout("StandardESGSalesQuoteBlue.docx")
         {
             Type = Word;
@@ -78,14 +78,14 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '32.0';
         }
-//#endif
+        //#endif
         layout("StandardESGSalesQuoteBody.docx")
         {
             Type = Word;
             //Subtype = Body;
             LayoutFile = 'src\Reports\StandardESGSalesQuoteBody.docx';
             Caption = 'Body-only: Standard ESG Sales Quote (Word)';
-            Summary = 'Portrait ESG sales quote. Customer and company address, header (dates, reference, valid-to, salesperson, terms), item lines with CO2e per unit, quantity, price, discount %, VAT %, and amount, VAT-inclusive totals, and total CO2e.';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with dates, valid-to date, and payment terms. Item lines list CO2e per unit, quantity, price, discount %, VAT %, and amount, with VAT-inclusive totals and total CO2e.';
         }
 
     }
