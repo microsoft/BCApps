@@ -9,6 +9,12 @@ using System.DataAdministration;
 codeunit 6927 "Expense Activity Retention"
 {
     Access = Internal;
+    Subtype = Install;
+
+    trigger OnInstallAppPerCompany()
+    begin
+        AddActivityLogToAllowedTables();
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reten. Pol. Allowed Tables", OnRefreshAllowedTables, '', false, false)]
     local procedure AddActivityLogToAllowedTables()
