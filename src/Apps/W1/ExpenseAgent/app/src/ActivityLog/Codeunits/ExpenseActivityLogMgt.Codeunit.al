@@ -9,7 +9,8 @@ using System.Security.AccessControl;
 codeunit 6926 "Expense Activity Log Mgt."
 {
     Access = Internal;
-    Permissions = tabledata "Expense Activity Log Entry" = rimd;
+    Permissions = tabledata "Expense Activity Log Entry" = rimd,
+                  tabledata User = r;
 
     /// <summary>
     /// Appends an activity entry for an in-flight expense report.
