@@ -1362,5 +1362,6 @@ table 25 "Vendor Ledger Entry"
     local procedure OnBeforeCheckBillSituation(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
+
 }
 

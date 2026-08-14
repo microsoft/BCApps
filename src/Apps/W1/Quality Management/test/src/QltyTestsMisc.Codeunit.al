@@ -57,8 +57,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
-        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6 %7, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=Lot No., %6=Serial No., %7=Package No.';
-        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of Lot No., Serial No. and Package No.';
+        WarehouseEntryTypeBlockedErr: Label '"%1" warehouse transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
+        EntryTypeBlockedErr: Label '"%1" transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
         LotSerialTrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no', Locked = true;
@@ -136,6 +136,47 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.AreEqual(true, QltyInspectionUtility.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'thousands separator decimal min');
         LibraryAssert.AreEqual(1234567890.99, Max, 'thousands separator decimal max');
+    end;
+
+    [Test]
+    [HandlerFunctions('SampleSizeCappedMessageHandler')]
+    procedure SampleSizeCalculationDoesNotOverflowForLargeSourceQuantity()
+    var
+        SampleSize: Integer;
+    begin
+        // [SCENARIO] Calculating the sample size from a percentage of a very large source quantity does not overflow the Integer "Sample Size" field.
+
+        Initialize();
+
+        // [GIVEN] A template using "Percent of Quantity" at 100% and an inspection whose source quantity exceeds the maximum Integer value
+        // [WHEN] The sample size is recalculated from the source quantity
+        SampleSize := QltyInspectionUtility.CalculateSampleSizeUsingPercentSource(100, 3000000000.0);
+
+        // [THEN] The sample size is clamped to the maximum Integer value instead of raising an overflow error
+        LibraryAssert.AreEqual(2147483647, SampleSize, 'Sample size should be clamped to the maximum integer value to avoid overflow.');
+    end;
+
+    [Test]
+    procedure SampleSizeCalculationSupportsIntegerMaxBoundary()
+    var
+        SampleSize: Integer;
+    begin
+        // [SCENARIO] Calculating sample size at the Integer maximum boundary returns a valid value without overflow.
+
+        Initialize();
+
+        // [GIVEN] A template using "Percent of Quantity" at 100% and a source quantity at Integer maximum.
+        // [WHEN] The sample size is recalculated from the source quantity.
+        SampleSize := QltyInspectionUtility.CalculateSampleSizeUsingPercentSource(100, 2147483647.0);
+
+        // [THEN] The sample size is exactly Integer maximum.
+        LibraryAssert.AreEqual(2147483647, SampleSize, 'Sample size should remain at Integer maximum at the exact boundary.');
+    end;
+
+    [MessageHandler]
+    procedure SampleSizeCappedMessageHandler(Message: Text[1024])
+    begin
+        // [THEN] A message informs the user that the calculated sample size was reduced
     end;
 
     [Test]
@@ -1846,11 +1887,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] An error is raised indicating assembly consumption is blocked by the result
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, StrSubstNo(
             EntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Consumption",
             ComponentItem."No.",
-            LotNo));
+            LotNo,
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -1920,11 +1961,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] An error is raised indicating purchase is blocked by the result on the highest re-inspection
         asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
         LibraryAssert.ExpectedError(StrSubstNo(EntryTypeBlockedErr,
-            ReQltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::Purchase,
             PurchaseLine."No.",
-            ReservationEntry."Package No."));
+            ReservationEntry."Package No.",
+            ReQltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2085,11 +2126,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Output",
             AssemblyHeader."Item No.",
-            StrSubstNo(LotSerialTrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No.")));
+            StrSubstNo(LotSerialTrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No."),
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2170,13 +2211,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2249,13 +2288,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2354,13 +2391,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2497,13 +2532,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror LibraryWarehouse.RegisterWhseActivity(InventoryMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            ReQltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Movement",
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            ReQltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2638,13 +2671,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror LibraryWarehouse.RegisterWhseActivity(WhseMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::Movement,
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]

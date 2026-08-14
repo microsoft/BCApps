@@ -954,7 +954,6 @@ page 7201 "CDS Connection Setup Wizard"
         ConsentStepVisible: Boolean;
         ShowDifferentTenantWarning: Boolean;
         InitialSynchRecommendations: Dictionary of [Code[20], Integer];
-        ScopesLbl: Label 'https://globaldisco.crm.dynamics.com/user_impersonation', Locked = true;
         OpenCoupleSalespeoplePageQst: Label 'The Person ownership model requires that you couple salespeople in Business Central with users in Dataverse before you synchronize data. Otherwise, synchronization will not be successful.\\ Do you want to want to couple salespeople and users now?';
         SynchronizationRecommendationsLbl: Label 'Show synchronization recommendations';
         ConsentLbl: Label 'By enabling this feature, you consent to your data being shared with a Microsoft service that might be outside of your organization''s selected geographic boundaries and might have different compliance and security standards than Microsoft Dynamics Business Central. Your privacy is important to us, and you can choose whether to share data with the service. To learn more, follow the link below.';
@@ -993,15 +992,17 @@ page 7201 "CDS Connection Setup Wizard"
     local procedure GetCDSEnvironment()
     var
         OAuth2: Codeunit OAuth2;
+        Endpoints: Interface "Dataverse Cloud Endpoints";
         Scopes: List of [Text];
         Token: SecretText;
         RedirectUrl: Text;
     begin
+        Endpoints := Rec.GetDataverseCloudEndpoints();
         if SoftwareAsAService then
             RedirectUrl := CDSIntegrationImpl.GetRedirectURL()
         else
             RedirectUrl := Rec."Redirect URL";
-        Scopes.Add(ScopesLbl);
+        Scopes.Add(Endpoints.GetGlobalDiscoveryScope());
         OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, Token);
         CDSEnvironment.SelectTenantEnvironment(Rec, Token, false);
     end;

@@ -15,6 +15,7 @@ codeunit 11034 IntrastatReportDEUpgrade
     begin
         UpdateLinesType();
         UpdateDefaultDataExchangeDef();
+        UpdateDataExchangeDefCountryOfOriginGrouping();
     end;
 
     local procedure UpdateLinesType()
@@ -53,6 +54,21 @@ codeunit 11034 IntrastatReportDEUpgrade
         UpgradeTag.SetUpgradeTag(GetIntrastatDERcptPartnerIDRemovalTag());
     end;
 
+    local procedure UpdateDataExchangeDefCountryOfOriginGrouping()
+    var
+        DataExchDef: Record "Data Exch. Def";
+        IntrastatReportManagementDE: Codeunit IntrastatReportManagementDE;
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetIntrastatDECountryOfOriginGroupingTag()) then
+            exit;
+
+        if DataExchDef.Get('INTRA-2022-DE') then
+            IntrastatReportManagementDE.CreateDefaultDataExchangeDef();
+
+        UpgradeTag.SetUpgradeTag(GetIntrastatDECountryOfOriginGroupingTag());
+    end;
+
     internal procedure GetIntrastatTypeUpdateTag(): Code[250]
     begin
         exit('MS-481518-IntrastatTypeUpdateDE-20230818');
@@ -63,9 +79,15 @@ codeunit 11034 IntrastatReportDEUpgrade
         exit('MS-622161-IntrastatDERcptPartnerIDRemoval-20260301');
     end;
 
+    internal procedure GetIntrastatDECountryOfOriginGroupingTag(): Code[250]
+    begin
+        exit('MS-624364-IntrastatDECountryOfOriginGrouping-20260703');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetIntrastatDERcptPartnerIDRemovalTag());
+        PerCompanyUpgradeTags.Add(GetIntrastatDECountryOfOriginGroupingTag());
     end;
 }

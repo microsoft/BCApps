@@ -754,8 +754,8 @@ table 30102 "Shpfy Shop"
         }
         field(120; "Auto Create Catalog"; Boolean)
         {
-            Caption = 'Auto Create Catalog';
-            ToolTip = 'Specifies whether a catalog is automatically created for new companies.';
+            Caption = 'Auto Create B2B Catalog';
+            ToolTip = 'Specifies whether a B2B catalog is automatically created for new companies.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()

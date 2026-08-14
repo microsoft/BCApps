@@ -137,6 +137,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         LineNumber: Integer;
         DiscountPct: Decimal;
         RoundingPrecision: Decimal;
+        QuantityProvided: Boolean;
     begin
         TempLine.DeleteAll();
 
@@ -158,17 +159,22 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                         GetDecimal(NestedObj2, 'percent', TempLine."VAT Rate");
                 end;
 
+                QuantityProvided := false;
                 if GetNestedObject(LineObj, 'invoiced_quantity', NestedObj) then begin
-                    GetDecimal(NestedObj, 'value', TempLine.Quantity);
+                    QuantityProvided := GetDecimal(NestedObj, 'value', TempLine.Quantity);
                     GetString(NestedObj, 'unit_code', MaxStrLen(TempLine."Unit of Measure"), TempLine."Unit of Measure");
                 end;
-                if TempLine.Quantity <= 0 then
-                    TempLine.Quantity := 1;
 
                 if GetNestedObject(LineObj, 'price', NestedObj) then
                     GetDecimal(NestedObj, 'price_amount', TempLine."Unit Price");
 
                 GetDecimal(LineObj, 'line_extension_amount', TempLine."Sub Total");
+
+                if not QuantityProvided then
+                    TempLine.Quantity := 1
+                else
+                    if TempLine.Quantity < 0 then
+                        TempLine.Quantity := 0;
 
                 if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then begin
                     if GetNestedObject(NestedObj, 'amount', NestedObj2) then
@@ -218,20 +224,22 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
             FieldValue := DateValue;
     end;
 
-    local procedure GetDecimal(JsonObj: JsonObject; PropertyName: Text; var FieldValue: Decimal)
+    local procedure GetDecimal(JsonObj: JsonObject; PropertyName: Text; var FieldValue: Decimal): Boolean
     var
         JsonToken: JsonToken;
         DecimalValue: Decimal;
         DecimalParseFailedLbl: Label 'Could not parse decimal value returned by the model for property %1.', Comment = '%1 = JSON property name';
     begin
         if not JsonObj.Get(PropertyName, JsonToken) then
-            exit;
+            exit(false);
         if JsonToken.AsValue().IsNull() then
-            exit;
-        if Evaluate(DecimalValue, JsonToken.AsValue().AsText(), 9) then
-            FieldValue := DecimalValue
-        else
-            Session.LogMessage('0000UAR', StrSubstNo(DecimalParseFailedLbl, PropertyName), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+            exit(false);
+        if Evaluate(DecimalValue, JsonToken.AsValue().AsText(), 9) then begin
+            FieldValue := DecimalValue;
+            exit(true);
+        end;
+        Session.LogMessage('0000UAR', StrSubstNo(DecimalParseFailedLbl, PropertyName), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+        exit(false);
     end;
 
     local procedure GetNestedObject(JsonObj: JsonObject; PropertyName: Text; var NestedObj: JsonObject): Boolean

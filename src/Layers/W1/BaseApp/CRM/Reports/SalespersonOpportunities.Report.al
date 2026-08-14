@@ -10,6 +10,7 @@ report 5058 "Salesperson - Opportunities"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson Opportunities';
+    ToolTip = 'View information about the opportunities handled by one or several salespeople.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
