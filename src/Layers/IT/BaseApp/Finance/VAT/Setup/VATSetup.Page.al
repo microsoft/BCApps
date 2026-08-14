@@ -45,23 +45,10 @@ page 187 "VAT Setup"
                     Editable = false;
                     Visible = false;
                 }
-#if not CLEAN29
                 field("Per Activity Code Settl. Entry"; Rec."Per Activity Code Settl. Entry")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if Calculate and Post VAT Settlement produces separate entries for each activity code.';
-#if not CLEAN27
-                    Visible = PerActivityCodeSettlEntryEnabled;
-#endif
-                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
-                }
-#endif
-                field("Per Business Activity Code Settl. Entry"; Rec."Per Business Activity Code Settl. Entry")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether Calculate and Post VAT Settlement produces separate entries for each business activity code.';
 #if not CLEAN27
                     Visible = PerActivityCodeSettlEntryEnabled;
 #endif
@@ -267,7 +254,6 @@ page 187 "VAT Setup"
         }
     }
 
-
     trigger OnOpenPage()
     var
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
@@ -290,6 +276,5 @@ page 187 "VAT Setup"
         PerActivityCodeSettlEntryEnabled: Boolean;
 #endif
         IsVATDateEnabled: Boolean;
-
 }
 

@@ -154,13 +154,7 @@ page 12216 "Periodic VAT Settl. List"
                     PeriodicVATSettlement: Codeunit "Periodic VAT Settlement";
                 begin
                     VATSetup.Get();
-                    if VATSetup."Per Business Activity Code Settl. Entry" then
-                        VATSetup.TestField("Per Business Activity Code Settl. Entry")
-#if not CLEAN29
-                    else
-                        VATSetup.TestField("Per Activity Code Settl. Entry")
-#endif
-                    ;
+                    VATSetup.TestField("Per Activity Code Settl. Entry");
                     if PeriodicVATSettlement.CheckIfSplitIsNeeded(Rec."VAT Period") then
                         PeriodicVATSettlement.CreateSeparateEntries(Rec."VAT Period");
                     Commit();

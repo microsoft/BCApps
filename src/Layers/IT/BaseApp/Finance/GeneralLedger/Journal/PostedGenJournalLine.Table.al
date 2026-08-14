@@ -1861,7 +1861,7 @@ table 181 "Posted Gen. Journal Line"
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
-            TableRelation = "Activity Code".Code;
+            TableRelation = Microsoft.Utilities."Activity Code".Code;
             ObsoleteReason = 'Replaced by the Business Activity Code field.';
             ObsoleteState = Pending;
             ObsoleteTag = '29.0';

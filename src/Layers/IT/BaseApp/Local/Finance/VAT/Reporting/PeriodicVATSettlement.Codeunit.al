@@ -19,13 +19,8 @@ codeunit 12195 "Periodic VAT Settlement"
     begin
         PeriodicVATSettlementEntry.SetRange("VAT Period", Period);
         VATSetup.Get();
-        if VATSetup."Per Business Activity Code Settl. Entry" then
-            PeriodicVATSettlementEntry.SetRange("Business Activity Code", '')
-#if not CLEAN29
-        else
-            PeriodicVATSettlementEntry.SetRange("Activity Code", '')
-#endif
-        ;
+        if VATSetup."Per Activity Code Settl. Entry" then
+            PeriodicVATSettlementEntry.SetRange("Activity Code", '');
         exit(not PeriodicVATSettlementEntry.IsEmpty());
 
     end;
@@ -40,7 +35,7 @@ codeunit 12195 "Periodic VAT Settlement"
         VATSetup: Record "VAT Setup";
     begin
         VATSetup.Get();
-        if VATSetup."Per Business Activity Code Settl. Entry" then begin
+        if VATSetup."Per Activity Code Settl. Entry" then begin
             if BusinessActivity.FindSet() then
                 repeat
                     InsertPeriodicVATSettlementEntry(PeriodicVATSettlementEntry, Period, BusinessActivity.Code);
@@ -66,22 +61,12 @@ codeunit 12195 "Periodic VAT Settlement"
     begin
         VATSetup.Get();
         PeriodicVATSettlementEntry.SetRange("VAT Period", VATPeriod);
-        if VATSetup."Per Business Activity Code Settl. Entry" then
-            PeriodicVATSettlementEntry.SetRange("Business Activity Code", '')
-#if not CLEAN29
-        else
-            PeriodicVATSettlementEntry.SetRange("Activity Code", '')
-#endif
-        ;
+        if VATSetup."Per Activity Code Settl. Entry" then
+            PeriodicVATSettlementEntry.SetRange("Activity Code", '');
         PeriodicVATSettlementEntry.FindFirst();
         PeriodicVATSettlementEntry2.SetRange("VAT Period", VATPeriod);
-        if VATSetup."Per Business Activity Code Settl. Entry" then
-            PeriodicVATSettlementEntry2.SetFilter("Business Activity Code", '<>%1', '')
-#if not CLEAN29
-        else
-            PeriodicVATSettlementEntry2.SetFilter("Activity Code", '<>%1', '')
-#endif
-        ;
+        if VATSetup."Per Activity Code Settl. Entry" then
+            PeriodicVATSettlementEntry2.SetFilter("Activity Code", '<>%1', '');
         if PeriodicVATSettlementEntry2.FindSet() then
             repeat
                 PriorPeriodOutputVAT += PeriodicVATSettlementEntry2."Prior Period Output VAT";
