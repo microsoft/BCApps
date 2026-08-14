@@ -93,6 +93,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         // [SCENARIO] Create posted and unposted Sales credit memos and use HTTP POST to delete them
         // [GIVEN] 2 credit memos, one posted and one unposted
 
+        LibraryERM.SetWorkDate();
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
         LibrarySales.CreateCustomerWithAddress(BillToCustomer);
         CustomerNo := SellToCustomer."No.";
@@ -288,6 +289,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
+        LibraryERM.SetWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibrarySales.CreateCustomer(SellToCustomer);

@@ -33,7 +33,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     local procedure Initialize()
     begin
-        WorkDate := Today();
+        LibraryERM.SetWorkDate();
     end;
 
     [Test]
@@ -94,8 +94,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         ShipToVendor.Modify(true);
         Commit();
         VendorNo := BuyFromVendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a JSON text with an order that contains the vendor and an address
         OrderJSON := CreateOrderJSONWithAddress(BuyFromVendor, PayToVendor, ShipToVendor, OrderDate, PostingDate);
@@ -145,8 +145,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         LibraryPurchase.CreateVendorWithAddress(BuyFromVendor);
         LibraryPurchase.CreateVendorWithAddress(PayToVendor);
         VendorNo := BuyFromVendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a JSON text with an order that contains the vendor and an address
         OrderJSON := CreateOrderJSONWithoutShipTo(BuyFromVendor, PayToVendor, OrderDate, PostingDate);
@@ -404,8 +404,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         // [GIVEN] a customer
         LibraryPurchase.CreateVendor(Vendor);
         VendorNo := Vendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a json describing our new order
         OrderJSON := CreateOrderJSONWithAddress(Vendor, Vendor, Vendor, OrderDate, PostingDate);

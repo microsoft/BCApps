@@ -22,6 +22,7 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         LibraryGraphDocumentTools: Codeunit "Library - Graph Document Tools";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryERM: Codeunit "Library - ERM";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryApplicationArea: Codeunit "Library - Application Area";
         IsInitialized: Boolean;
@@ -31,6 +32,8 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryERM.SetWorkDate();
+
         if IsInitialized then
             exit;
 

@@ -102,6 +102,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
     begin
         // [SCENARIO] Create sales quotes JSON and use HTTP POST to create them
 
+        LibraryERM.SetWorkDate();
+
         // [GIVEN] a customer
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
         LibrarySales.CreateCustomerWithAddress(ShipToCustomer);
@@ -318,6 +320,7 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         QuoteExists: Boolean;
     begin
         // [SCENARIO] Create a quote both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
+        LibraryERM.SetWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
