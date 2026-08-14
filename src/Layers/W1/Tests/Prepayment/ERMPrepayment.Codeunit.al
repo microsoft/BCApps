@@ -4194,11 +4194,11 @@
         SalesLine: Record "Sales Line";
     begin
         // [SCENARIO 646136] Reduce Sales Order quantity after prepayment and partial invoicing
-        
+
         // [GIVEN] Posted 50% Prepayment Invoice for Sales Order
         InitSalesPrepaymentScenario(SalesHeader, SalesLine, false, 50, '');
         LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
-        
+
         // [GIVEN] Order is partially shipped and invoiced
         PostPartialSalesInvoice(SalesHeader, SalesLine);
         LibrarySales.ReopenSalesDocument(SalesHeader);
