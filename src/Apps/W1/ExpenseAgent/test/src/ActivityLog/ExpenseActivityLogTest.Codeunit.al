@@ -152,7 +152,6 @@ codeunit 148342 "Expense Activity Log Test"
     var
         SubmitterExpenseUser: Record "Expense User";
         ApproverExpenseUser: Record "Expense User";
-        CurrentUserExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
@@ -302,6 +301,7 @@ codeunit 148342 "Expense Activity Log Test"
     var
         SubmitterExpenseUser: Record "Expense User";
         ApproverExpenseUser: Record "Expense User";
+        CurrentUserExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
