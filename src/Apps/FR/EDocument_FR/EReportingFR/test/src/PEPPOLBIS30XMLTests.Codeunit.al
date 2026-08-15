@@ -1555,19 +1555,29 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     local procedure CreateAndPostServiceInvoice(CustomerNo: Code[20]): Code[20]
     var
         ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServicePost: Codeunit "Service-Post";
+        PostedDocumentVariant: Variant;
     begin
         CreateServiceDocument(ServiceHeader, ServiceHeader."Document Type"::Invoice, CustomerNo);
         Codeunit.Run(Codeunit::"Service-Post", ServiceHeader);
-        exit(ServiceHeader."Last Posting No.");
+        ServicePost.GetPostedDocumentRecord(ServiceHeader, PostedDocumentVariant);
+        ServiceInvoiceHeader := PostedDocumentVariant;
+        exit(ServiceInvoiceHeader."No.");
     end;
 
     local procedure CreateAndPostServiceCreditMemo(CustomerNo: Code[20]): Code[20]
     var
         ServiceHeader: Record "Service Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServicePost: Codeunit "Service-Post";
+        PostedDocumentVariant: Variant;
     begin
         CreateServiceDocument(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo", CustomerNo);
         Codeunit.Run(Codeunit::"Service-Post", ServiceHeader);
-        exit(ServiceHeader."Last Posting No.");
+        ServicePost.GetPostedDocumentRecord(ServiceHeader, PostedDocumentVariant);
+        ServiceCrMemoHeader := PostedDocumentVariant;
+        exit(ServiceCrMemoHeader."No.");
     end;
 
     local procedure CreateServiceDocument(var ServiceHeader: Record "Service Header"; DocumentType: Enum "Service Document Type"; CustomerNo: Code[20])
