@@ -194,10 +194,10 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Determines whether the current user can auto-assign inspections and suppresses prompting.
+    /// Determines whether auto-assignment should occur based on user permissions.
     /// </summary>
-    /// <param name="ShouldPrompt">Set to false to suppress prompting.</param>
-    /// <returns>True if the current user can write inspection headers; otherwise, false.</returns>
+    /// <param name="ShouldPrompt">Set to true when GUI is available and prompting is enabled.</param>
+    /// <returns>True if auto-assignment should occur; otherwise, false.</returns>
     internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
