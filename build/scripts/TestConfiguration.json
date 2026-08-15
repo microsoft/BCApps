@@ -1,4 +1,8 @@
 {
+  "CleanTenantRequiredDisabled": [
+    "_Exclude_APIV1_ Tests",
+    "_Exclude_APIV2_ Tests"
+  ],
   "LegacyTests-Bucket1": [
     "Tests-Workflow",
     "AlCosting",

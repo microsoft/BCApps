@@ -136,6 +136,7 @@ Describe "ParallelTestExecution transient retry scheduling" {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
                 }
             }
+            Mock Get-CleanTenantTestAppNames { @() }
             Mock Get-RequiredDisabledWorkItems { @() }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Wait-ForAllTestJobs { $true }
@@ -242,6 +243,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             Mock Get-BcContainerAppInfo {
                 @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
             }
+            Mock Get-CleanTenantTestAppNames { @() }
             Mock Get-RequiredDisabledWorkItems { @() }
             Mock New-BcTestTenantTemplate { throw 'Template must not be created' }
             Mock Wait-ForFreeTenant { 'default' }
@@ -259,6 +261,43 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
     }
 
+    Describe "ParallelTestExecution result metadata" {
+        BeforeAll {
+            Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+        }
+
+        It "adds app properties to clean-codeunit JUnit suites" {
+            InModuleScope ParallelTestExecution {
+                $resultFile = Join-Path ([System.IO.Path]::GetTempPath()) "junit-$([guid]::NewGuid().ToString('N')).xml"
+                try {
+                    @(
+                        '<?xml version="1.0" encoding="UTF-8"?>'
+                        '<testsuites>'
+                        '  <testsuite name="139800 APIV2 - Items E2E" tests="1" failures="0">'
+                        '    <testcase name="TestGetItem" />'
+                        '  </testsuite>'
+                        '</testsuites>'
+                    ) | Set-Content -Path $resultFile -Encoding utf8
+
+                    Add-MissingJUnitTestProperties -ResultFile $resultFile -WorkItems @(
+                        [PSCustomObject]@{
+                            CodeunitId = '139800'
+                            AppId = 'app-id'
+                            AppName = '_Exclude_APIV2_ Tests'
+                        }
+                    )
+
+                    [xml]$xml = Get-Content $resultFile -Raw
+                    $properties = @($xml.testsuites.testsuite.properties.property)
+                    ($properties | Where-Object name -eq 'extensionid').value | Should -Be 'app-id'
+                    ($properties | Where-Object name -eq 'appName').value | Should -Be '_Exclude_APIV2_ Tests'
+                } finally {
+                    Remove-Item $resultFile -Force -ErrorAction SilentlyContinue
+                }
+            }
+        }
+    }
+
     Describe "API test isolation metadata" {
         It "marks every APIV1 and APIV2 test codeunit for clean Disabled-isolation execution" {
             $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
@@ -272,6 +311,26 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                     }
                 }
             }
+        }
+    }
+
+    It "defers the automatic Unit disabled pass only for clean-tenant apps" {
+        InModuleScope ParallelTestExecution {
+            $script:skipValues = [System.Collections.Generic.List[bool]]::new()
+            Mock Start-Sleep { }
+            Mock Start-TestJob {
+                $script:skipValues.Add($skipAutomaticDisabledPass.IsPresent)
+                [PSCustomObject]@{ Id = $script:skipValues.Count }
+            }
+
+            $state = [PSCustomObject]@{ jobs = @() }
+            Start-TestAppDispatch -Parameters @{} -AppName 'Normal Tests' -AppId 'normal-id' `
+                -Tenant 'default' -ScriptPath 'runner.ps1' -TestType 'UnitTest' -State $state
+            Start-TestAppDispatch -Parameters @{} -AppName 'API Tests' -AppId 'api-id' `
+                -Tenant 'tenant2' -ScriptPath 'runner.ps1' -TestType 'UnitTest' -State $state `
+                -SkipAutomaticDisabledPass
+
+            $script:skipValues | Should -Be @($false, $true)
         }
     }
 
@@ -354,6 +413,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             Mock Get-BcContainerAppInfo {
                 @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
             }
+            Mock Get-CleanTenantTestAppNames { @('Tests') }
             Mock Get-RequiredDisabledWorkItems {
                 @([PSCustomObject]@{
                     Key = 'Tests::500'

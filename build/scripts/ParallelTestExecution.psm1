@@ -94,7 +94,6 @@ function Get-RequiredDisabledWorkItems {
         [Hashtable]$Parameters,
         [Parameter(Mandatory=$true)]
         [string]$TestType,
-        [Parameter(Mandatory=$true)]
         [string[]]$AppNamesToTest,
         [Parameter(Mandatory=$true)]
         [Hashtable]$AppIdByName
@@ -268,6 +267,16 @@ function Get-AppNamesForBucket {
         if ($prop -like "LegacyTests-*") { $allLegacyTestApps += $testConfig.$prop }
     }
     return @($InstalledTestAppNames | Where-Object { $_ -notin $allLegacyTestApps })
+}
+
+function Get-CleanTenantTestAppNames {
+    $testConfigPath = Join-Path (Get-BaseFolder) "build\scripts\TestConfiguration.json"
+    if (-not (Test-Path $testConfigPath)) {
+        return @()
+    }
+
+    $testConfig = Get-Content $testConfigPath -Raw | ConvertFrom-Json
+    return @($testConfig.CleanTenantRequiredDisabled)
 }
 
 <#
@@ -576,6 +585,7 @@ function Start-TestAppDispatch {
         [string]$ScriptPath,
         [string]$TestType,
         $State,
+        [switch]$SkipAutomaticDisabledPass,
         [string]$Verb = 'Dispatching'
     )
 
@@ -586,7 +596,8 @@ function Start-TestAppDispatch {
     $appParams['extensionId'] = $AppId
     $appParams.Remove('ReRun') | Out-Null
 
-    $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType -skipAutomaticDisabledPass
+    $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType `
+        -skipAutomaticDisabledPass:$SkipAutomaticDisabledPass
     $State.jobs = @($State.jobs) + @([PSCustomObject]@{ jobId = $job.Id; tenant = $Tenant; appName = $AppName })
 
     Start-Sleep -Seconds 5
@@ -881,6 +892,59 @@ function Wait-ForAllTestJobs {
     return $allPassed
 }
 
+function Add-MissingJUnitTestProperties {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ResultFile,
+        [array]$WorkItems = @()
+    )
+
+    if (-not (Test-Path $ResultFile) -or $WorkItems.Count -eq 0) {
+        return
+    }
+
+    $workItemByCodeunitId = @{}
+    foreach ($workItem in $WorkItems) {
+        $workItemByCodeunitId[[string]$workItem.CodeunitId] = $workItem
+    }
+
+    $xml = [xml](Get-Content $ResultFile -Raw)
+    $changed = $false
+    foreach ($suite in @($xml.testsuites.testsuite)) {
+        if ($suite.properties) {
+            continue
+        }
+
+        $codeunitId = ([string]$suite.name -split ' ', 2)[0]
+        $workItem = $workItemByCodeunitId[$codeunitId]
+        if (-not $workItem) {
+            continue
+        }
+
+        $properties = $xml.CreateElement("properties")
+        foreach ($propertyValue in @{
+            extensionid = $workItem.AppId
+            appName = $workItem.AppName
+        }.GetEnumerator()) {
+            $property = $xml.CreateElement("property")
+            $property.SetAttribute("name", $propertyValue.Key)
+            $property.SetAttribute("value", [string]$propertyValue.Value)
+            $properties.AppendChild($property) | Out-Null
+        }
+
+        if ($suite.FirstChild) {
+            $suite.InsertBefore($properties, $suite.FirstChild) | Out-Null
+        } else {
+            $suite.AppendChild($properties) | Out-Null
+        }
+        $changed = $true
+    }
+
+    if ($changed) {
+        $xml.Save($ResultFile)
+    }
+}
+
 <#
 .SYNOPSIS
     Merges per-tenant test result files into the single file expected by Run-AlPipeline.
@@ -892,7 +956,8 @@ function Wait-ForAllTestJobs {
 function Merge-TenantTestResults {
     param(
         [Hashtable]$parameters,
-        [string[]]$tenants
+        [string[]]$tenants,
+        [array]$workItems = @()
     )
 
     foreach ($resultKey in @("XUnitResultFileName", "JUnitResultFileName")) {
@@ -903,6 +968,11 @@ function Merge-TenantTestResults {
             $ext = [System.IO.Path]::GetExtension($origFile)
 
             $tenantFiles = @($tenants | ForEach-Object { Join-Path $dir "$name-$_$ext" })
+            if ($resultKey -eq "JUnitResultFileName") {
+                foreach ($tenantFile in $tenantFiles) {
+                    Add-MissingJUnitTestProperties -ResultFile $tenantFile -WorkItems $workItems
+                }
+            }
             Merge-TestResultFiles -targetFile $origFile -sourceFiles $tenantFiles
 
             # Clean up per-tenant files
@@ -976,9 +1046,13 @@ function Invoke-ParallelTestExecution {
         Where-Object { $_.IsInstalled } |
         ForEach-Object { $appIdByName[$_.Name] = $_.AppId }
 
+    $cleanTenantAppNames = @(
+        Get-CleanTenantTestAppNames |
+            Where-Object { $_ -in $appNamesToTest }
+    )
     $requiredDisabledWorkItems = @(
         Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
-            -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
+            -AppNamesToTest $cleanTenantAppNames -AppIdByName $appIdByName
     )
     $templateDatabaseName = ""
     if ($requiredDisabledWorkItems.Count -gt 0) {
@@ -1026,7 +1100,8 @@ function Invoke-ParallelTestExecution {
             $verb = if ($state.retried.ContainsKey($appName)) { 'Re-dispatching' } else { 'Dispatching' }
             $tenant = Wait-ForFreeTenant -state $state -tenants $tenants
             Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
-                -ScriptPath $scriptPath -TestType $testType -State $state -Verb $verb
+                -ScriptPath $scriptPath -TestType $testType -State $state `
+                -SkipAutomaticDisabledPass:($appName -in $cleanTenantAppNames) -Verb $verb
         } else {
             # Nothing left to dispatch; drain any still-running jobs. New transient failures
             # discovered here will be re-queued at the top of the next loop iteration.
@@ -1051,7 +1126,7 @@ function Invoke-ParallelTestExecution {
 
     $allPassed = -not $state.hasFailures
 
-    Merge-TenantTestResults -parameters $parameters -tenants $tenants
+    Merge-TenantTestResults -parameters $parameters -tenants $tenants -workItems $requiredDisabledWorkItems
 
     # Persist final result and mark complete so subsequent override invocations short-circuit
     # to this value (and not the placeholder we wrote before dispatch).
