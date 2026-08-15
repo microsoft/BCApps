@@ -858,9 +858,14 @@ codeunit 130618 "Library - Graph Mgt"
     var
         TargetURL: Text;
     begin
-        TargetURL := GetODataTargetURL(ObjectType::Page, PageNumber);
-        TargetURL := AppendSubpageToTargetURL(ID, TargetURL, ServiceNameTxt, ServiceSubPageTxt);
-        exit(AppendSubpageToTargetURL(SubPageID, TargetURL, ServiceSubPageTxt, ServiceSubSubPageTxt));
+        TargetURL := CreateTargetURL(ID, PageNumber, ServiceNameTxt);
+        TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubPageTxt);
+        if SubPageID <> '' then
+            TargetURL := AppendPathToTargetURL(
+                TargetURL, '(' + StripBrackets(SubPageID) + ')');
+        if ServiceSubSubPageTxt <> '' then
+            TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubSubPageTxt);
+        exit(TargetURL);
     end;
 
     [IntegrationEvent(false, false)]
