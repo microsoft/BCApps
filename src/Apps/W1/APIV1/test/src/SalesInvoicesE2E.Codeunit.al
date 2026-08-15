@@ -597,6 +597,7 @@ codeunit 139709 "Sales Invoices E2E"
         // [SCENARIO 184721] When an invoice is created,the GET Method should update the invoice and assign a total
 
         // [GIVEN] 2 invoices, one posted and one unposted without totals assigned
+        LibraryApplicationArea.EnableFoundationSetup();
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(
           SalesHeader, DiscountPct, SalesHeader."Document Type"::Invoice);
         SalesHeader.CALCFIELDS("Recalculate Invoice Disc.");

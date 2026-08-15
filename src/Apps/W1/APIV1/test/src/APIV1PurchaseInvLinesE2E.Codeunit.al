@@ -713,6 +713,8 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         InvoiceLineJSON: Text;
+        LineNoFromJSON: Text;
+        LineNo: Integer;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -733,8 +735,13 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, InvoiceLineJSON, ResponseText);
 
         // [THEN] Line of type Item is created
-        FindFirstPurchaseLine(PurchaseHeader, PurchaseLine);
-        PurchaseLine.FINDLAST();
+        Assert.IsTrue(
+          LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'sequence', LineNoFromJSON), 'Could not find sequence');
+        EVALUATE(LineNo, LineNoFromJSON);
+        PurchaseLine.SETRANGE("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SETRANGE("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SETRANGE("Line No.", LineNo);
+        PurchaseLine.FINDFIRST();
         Assert.AreEqual('', PurchaseLine."No.", 'No should be blank');
         Assert.AreEqual(PurchaseLine.Type, PurchaseLine.Type::Item, 'Wrong type is set');
 
