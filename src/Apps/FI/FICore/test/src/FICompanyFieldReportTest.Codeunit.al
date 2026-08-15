@@ -188,20 +188,30 @@ codeunit 148150 "FI Company Field Report Test"
         FeatureKey: Record "Feature Key";
         FeatureKeyUpdateStatus: Record "Feature Data Update Status";
     begin
-        if FeatureKey.Get(FeatureIdTok) then begin
-            if Enable then
-                FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
-            else
-                FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
+        if not FeatureKey.Get(FeatureIdTok) then begin
+            FeatureKey.Init();
+            FeatureKey.ID := FeatureIdTok;
+            FeatureKey."Data Update Required" := false;
+            FeatureKey.Insert();
         end;
-        if FeatureKeyUpdateStatus.Get(FeatureIdTok, CompanyName()) then begin
-            if Enable then
-                FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Enabled
-            else
-                FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
+        if Enable then
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+        else
+            FeatureKey.Enabled := FeatureKey.Enabled::None;
+        FeatureKey.Modify();
+
+        if not FeatureKeyUpdateStatus.Get(FeatureIdTok, CompanyName()) then begin
+            FeatureKeyUpdateStatus.Init();
+            FeatureKeyUpdateStatus."Feature Key" := FeatureIdTok;
+            FeatureKeyUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureKeyUpdateStatus."Company Name"));
+            FeatureKeyUpdateStatus."Data Update Required" := false;
+            FeatureKeyUpdateStatus.Insert();
         end;
+        if Enable then
+            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Enabled
+        else
+            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
+        FeatureKeyUpdateStatus.Modify();
         Commit();
     end;
 
@@ -462,6 +472,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.Dequeue(PostingDate);
         StatementReport."Start Date".SetValue(PostingDate);
         StatementReport."End Date".SetValue(PostingDate);
+        StatementReport.IncludeAllCustomerswithLE.SetValue(true);
         StatementReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -541,7 +552,7 @@ codeunit 148150 "FI Company Field Report Test"
         Customer.SetRecFilter();
         CreateFinanceChargeMemos.SetTableView(Customer);
         CreateFinanceChargeMemos.UseRequestPage(false);
-        CreateFinanceChargeMemos.InitializeRequest(CalcDate('<1Y>', SalesInvoiceHeader."Posting Date"), CalcDate('<1Y>', SalesInvoiceHeader."Posting Date"));
+        CreateFinanceChargeMemos.InitializeRequest(SalesInvoiceHeader."Posting Date", SalesInvoiceHeader."Posting Date");
         CreateFinanceChargeMemos.Run();
         FinanceChargeMemoHeader.SetRange("Customer No.", Customer."No.");
         FinanceChargeMemoHeader.FindFirst();
