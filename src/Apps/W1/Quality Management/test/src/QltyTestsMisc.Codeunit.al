@@ -2867,6 +2867,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] A quality inspection is created from a purchase line for an untracked item
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
         QltyInspectionGenRule.Delete();
+        LibraryVariableStorage.Clear();
 
         // [GIVEN] The inspection has no Assigned User ID (bypass OnModify to reset the state, then re-fetch so xRec matches)
         QltyInspectionHeader."Assigned User ID" := '';
