@@ -277,7 +277,7 @@ report 12102 Contribution
                     Payment.SetRange(Month, ParamMonth);
 
                     if Payment.FindFirst() then begin
-                        if not Confirm(Text1033, false, ParamMonth, ParamYear) then
+                        if not Confirm(PeriodAlreadyPrintedQst, false, ParamMonth, ParamYear) then
                             CurrReport.Quit();
                         Payment.DeleteAll();
                         case ContributionType of
@@ -290,7 +290,7 @@ report 12102 Contribution
                 end;
 
                 if ParamMonth = 0 then
-                    Error(Text1034);
+                    Error(MissingMonthErr);
 
                 Clear(Payment);
 
@@ -617,8 +617,8 @@ report 12102 Contribution
     end;
 
     var
-        Text1033: Label 'Period %1/%2 has already been printed. Do you want to print it again?';
-        Text1034: Label 'Please enter a month.';
+        PeriodAlreadyPrintedQst: Label 'Period %1/%2 has already been printed. Do you want to print it again?', Comment = '%1 - Month, %2 - Year';
+        MissingMonthErr: Label 'Please enter a month.';
         Vend: Record Vendor;
         Payment: Record "Contribution Payment";
         NoEnt: Integer;

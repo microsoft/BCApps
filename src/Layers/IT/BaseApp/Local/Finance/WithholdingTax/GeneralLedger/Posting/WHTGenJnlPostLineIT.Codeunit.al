@@ -12,7 +12,7 @@ using Microsoft.Purchases.Payables;
 codeunit 12138 "WHT Gen. Jnl.-Post Line IT"
 {
     var
-        Text1130023: Label 'Because this invoice includes Withholding Tax, it should not be applied directly. Please use the function Payment Journals -> Payments -> Withh.Tax-Soc.Sec.';
+        LineApplyErr: Label 'Because this invoice includes Withholding Tax, it should not be applied directly. Please use the function Payment Journals -> Payments -> Withh.Tax-Soc.Sec.';
 
     [Scope('OnPrem')]
     procedure CheckWithholdTax(DocType: Option " ",,Invoice,"Credit Memo"; DocNo: Code[20]; GenJnlLine: Record "Gen. Journal Line"; ApplyInGenJnlLine: Boolean)
@@ -42,7 +42,7 @@ codeunit 12138 "WHT Gen. Jnl.-Post Line IT"
                         if (GenJnlLine."Bal. Account Type" <> GenJnlLine."Bal. Account Type"::"G/L Account") and
                            (GenJnlLine."Payment Method Code" = '')
                         then
-                            Error(Text1130023);
+                            Error(LineApplyErr);
             end;
         end;
     end;

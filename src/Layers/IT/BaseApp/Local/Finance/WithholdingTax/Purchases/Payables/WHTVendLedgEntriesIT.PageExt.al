@@ -24,7 +24,7 @@ pageextension 12113 "WHTVendLedgEntriesIT" extends "Vendor Ledger Entries"
                     WithholdingTax: Record "Withholding Tax";
                 begin
                     if Rec."Document Type" <> Rec."Document Type"::Payment then
-                        Error(Text12100, Rec."Entry No.", Rec."Document Type");
+                        Error(CannotCreateEntryErr, Rec."Entry No.", Rec."Document Type");
                     WithholdingTax.CheckWithhEntryExist(Rec);
                     WithholdingTax.InsertWithholdTax(Rec);
                 end;
@@ -40,5 +40,5 @@ pageextension 12113 "WHTVendLedgEntriesIT" extends "Vendor Ledger Entries"
     }
 
     var
-        Text12100: Label 'You cannot create the withhold entry from entry %1 because it''s an %2 Document.';
+        CannotCreateEntryErr: Label 'You cannot create the withhold entry from entry %1 because it''s an %2 Document.', Comment = '%1 - entry number, %2 - document type';
 }
