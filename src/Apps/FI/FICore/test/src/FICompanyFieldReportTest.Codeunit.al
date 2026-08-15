@@ -39,6 +39,7 @@ codeunit 148150 "FI Company Field Report Test"
         CompanyInformation."VAT Registration No." := 'FI12345678';
         CompanyInformation."Business Identity Code" := BusinessIdentityCodeTxt;
         CompanyInformation."Registered Home City" := RegisteredHomeCityTxt;
+        CompanyInformation."Allow Blank Payment Info." := true;
         CompanyInformation.Modify();
 
         LibrarySales.SetCreditWarningsToNoWarnings();
@@ -55,26 +56,45 @@ codeunit 148150 "FI Company Field Report Test"
             FeatureKeyUpdateStatus.Modify();
         end;
 
-        LibrarySales.SetOrderNoSeriesInSetup();
-        LibrarySales.SetPostedNoSeriesInSetup();
-        LibraryPurchase.SetQuoteNoSeriesInSetup();
-        LibraryPurchase.SetOrderNoSeriesInSetup();
-        LibraryPurchase.SetPostedNoSeriesInSetup();
+        SalesAndReceivablesSetup.Get();
+        PurchasesAndPayablesSetup.Get();
+        if SalesAndReceivablesSetup."Order Nos." = '' then
+            LibrarySales.SetOrderNoSeriesInSetup();
+        if (SalesAndReceivablesSetup."Posted Invoice Nos." = '') or (SalesAndReceivablesSetup."Posted Shipment Nos." = '') or
+           (SalesAndReceivablesSetup."Posted Credit Memo Nos." = '')
+        then
+            LibrarySales.SetPostedNoSeriesInSetup();
+        if PurchasesAndPayablesSetup."Quote Nos." = '' then
+            LibraryPurchase.SetQuoteNoSeriesInSetup();
+        if PurchasesAndPayablesSetup."Order Nos." = '' then
+            LibraryPurchase.SetOrderNoSeriesInSetup();
+        if (PurchasesAndPayablesSetup."Posted Invoice Nos." = '') or (PurchasesAndPayablesSetup."Posted Receipt Nos." = '') or
+           (PurchasesAndPayablesSetup."Posted Credit Memo Nos." = '')
+        then
+            LibraryPurchase.SetPostedNoSeriesInSetup();
 
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Quote Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Blanket Order Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Invoice Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Posted Invoice Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Posted Shipment Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Reminder Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Issued Reminder Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Fin. Chrg. Memo Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Issued Fin. Chrg. M. Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Blanket Order Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Invoice Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Posted Invoice Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Posted Receipt Nos."));
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Credit Memo Nos."));
+        SalesAndReceivablesSetup.Get();
+        PurchasesAndPayablesSetup.Get();
+        if SalesAndReceivablesSetup."Quote Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Quote Nos."));
+        if SalesAndReceivablesSetup."Blanket Order Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Blanket Order Nos."));
+        if SalesAndReceivablesSetup."Invoice Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Invoice Nos."));
+        if SalesAndReceivablesSetup."Reminder Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Reminder Nos."));
+        if SalesAndReceivablesSetup."Issued Reminder Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Issued Reminder Nos."));
+        if SalesAndReceivablesSetup."Fin. Chrg. Memo Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Fin. Chrg. Memo Nos."));
+        if SalesAndReceivablesSetup."Issued Fin. Chrg. M. Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Issued Fin. Chrg. M. Nos."));
+        if PurchasesAndPayablesSetup."Blanket Order Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Blanket Order Nos."));
+        if PurchasesAndPayablesSetup."Invoice Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Invoice Nos."));
+        if PurchasesAndPayablesSetup."Credit Memo Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Credit Memo Nos."));
 
         SalesAndReceivablesSetup.Get();
         SalesAndReceivablesSetup."Reference Nos." := CreateRefNumberSeries('1000');
@@ -206,7 +226,7 @@ codeunit 148150 "FI Company Field Report Test"
         CountryRegion."EU Country/Region Code" := CountryRegion.Code;
         CountryRegion.Insert();
 
-        VATEntry.FindLast();
+        if VATEntry.FindLast() then;
         VATEntry.Init();
         VATEntry."Entry No." += 1;
         VATEntry.Type := VATEntry.Type::Sale;
@@ -415,11 +435,19 @@ codeunit 148150 "FI Company Field Report Test"
     [Scope('OnPrem')]
     procedure TestStatementReport()
     var
+        Customer: Record Customer;
         SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         StatementReport: Report Statement;
+        PostedDocumentNo: Code[20];
     begin
         Initialize();
-        CreateSalesDocument(SalesHeader."Document Type"::Invoice, true, false);
+        PostedDocumentNo := CreateSalesDocument(SalesHeader."Document Type"::Invoice, true, false);
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.SetRecFilter();
+        StatementReport.SetTableView(Customer);
+        LibraryVariableStorage.Enqueue(SalesInvoiceHeader."Posting Date");
         StatementReport.UseRequestPage(true);
         StatementReport.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
@@ -429,11 +457,11 @@ codeunit 148150 "FI Company Field Report Test"
     [Scope('OnPrem')]
     procedure StatementReportHandler(var StatementReport: TestRequestPage Statement)
     var
-        CustLedgerEntry: Record "Cust. Ledger Entry";
+        PostingDate: Variant;
     begin
-        CustLedgerEntry.FindFirst();
-        StatementReport."Start Date".SetValue(CustLedgerEntry."Posting Date");
-        StatementReport."End Date".SetValue(CustLedgerEntry."Posting Date");
+        LibraryVariableStorage.Dequeue(PostingDate);
+        StatementReport."Start Date".SetValue(PostingDate);
+        StatementReport."End Date".SetValue(PostingDate);
         StatementReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -490,12 +518,13 @@ codeunit 148150 "FI Company Field Report Test"
     procedure FinanceChargeMemoReport()
     var
         FinanceChargeTerms: Record "Finance Charge Terms";
+        FinanceChargeMemoHeader: Record "Finance Charge Memo Header";
+        IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header";
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         FinanceChargeMemo: Report "Finance Charge Memo";
         CreateFinanceChargeMemos: Report "Create Finance Charge Memos";
-        IssueFinanceChargeMemos: Report "Issue Finance Charge Memos";
         LibraryFinanceChargeMemo: Codeunit "Library - Finance Charge Memo";
         PostedDocumentNo: Code[20];
     begin
@@ -509,11 +538,17 @@ codeunit 148150 "FI Company Field Report Test"
         Customer.Modify();
 
         Commit();
+        Customer.SetRecFilter();
+        CreateFinanceChargeMemos.SetTableView(Customer);
         CreateFinanceChargeMemos.UseRequestPage(false);
         CreateFinanceChargeMemos.InitializeRequest(CalcDate('<1Y>', SalesInvoiceHeader."Posting Date"), CalcDate('<1Y>', SalesInvoiceHeader."Posting Date"));
         CreateFinanceChargeMemos.Run();
-        IssueFinanceChargeMemos.UseRequestPage(false);
-        IssueFinanceChargeMemos.Run();
+        FinanceChargeMemoHeader.SetRange("Customer No.", Customer."No.");
+        FinanceChargeMemoHeader.FindFirst();
+        LibraryERM.IssueFinanceChargeMemo(FinanceChargeMemoHeader);
+        IssuedFinChargeMemoHeader.SetRange("Customer No.", Customer."No.");
+        IssuedFinChargeMemoHeader.FindFirst();
+        LibraryVariableStorage.Enqueue(IssuedFinChargeMemoHeader."No.");
         FinanceChargeMemo.UseRequestPage(true);
         FinanceChargeMemo.Run();
         AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
@@ -523,6 +558,7 @@ codeunit 148150 "FI Company Field Report Test"
     [Scope('OnPrem')]
     procedure FinanceChargeMemoReportHandler(var FinanceChargeMemoRequestPage: TestRequestPage "Finance Charge Memo")
     begin
+        FinanceChargeMemoRequestPage."Issued Fin. Charge Memo Header".SetFilter("No.", LibraryVariableStorage.DequeueText());
         FinanceChargeMemoRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -882,7 +918,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServiceContractQuoteReportHandler,ConfirmUIHandler')]
+    [HandlerFunctions('ServiceContractQuoteReportHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractQuoteReport()
     var
@@ -906,13 +942,6 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceContractQuoteRequestPage."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
         ServiceContractQuoteRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [ConfirmHandler]
-    [Scope('OnPrem')]
-    procedure ConfirmUIHandler(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := false;
     end;
 
     [RequestPageHandler]
