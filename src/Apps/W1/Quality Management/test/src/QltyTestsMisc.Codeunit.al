@@ -2911,6 +2911,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Precondition: the inspection must start unassigned');
 
+        // [GIVEN] The notifications raised while setting up the inspection are discarded
+        LibraryVariableStorage.Clear();
+
         // [WHEN] A user-modifiable field is changed and the inspection is modified (which runs OnModify)
         QltyInspectionHeader.Validate(Description, 'x');
         QltyInspectionHeader.Modify(true);
