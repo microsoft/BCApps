@@ -22,7 +22,6 @@ codeunit 139829 "APIV2 - Purchase Invoices E2E"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryERM: Codeunit "Library - ERM";
         InvoiceServiceNameTxt: Label 'purchaseInvoices';
         PostedInvoiceIdServiceNameTxt: Label 'postedSalesInvoices';
         ActionPostTxt: Label 'Microsoft.NAV.post', Locked = true;
