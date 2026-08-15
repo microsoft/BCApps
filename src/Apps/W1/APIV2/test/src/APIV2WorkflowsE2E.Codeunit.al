@@ -1,13 +1,12 @@
 codeunit 139921 "APIV2 - Workflows E2E"
 {
     Subtype = Test;
-    RequiredTestIsolation = Disabled;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.BindAuthentication();
     end;
 
     var

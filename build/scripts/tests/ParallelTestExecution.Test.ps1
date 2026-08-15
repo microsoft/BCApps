@@ -303,15 +303,33 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
             foreach ($apiVersion in @('APIV1', 'APIV2')) {
                 $testSource = Join-Path $repoRoot "src\Apps\W1\$apiVersion\test\src"
+                $disabledManifest = Join-Path $repoRoot "src\DisabledTests\_Exclude_${apiVersion}__Tests\_Exclude_${apiVersion}__Tests.DisabledTest.json"
+                $disabledCodeunitIds = @(
+                    Get-Content $disabledManifest -Raw |
+                        ConvertFrom-Json |
+                        Where-Object method -eq '*' |
+                        ForEach-Object { [int]$_.codeunitId }
+                )
+                $enabledCodeunitCount = 0
                 foreach ($file in (Get-ChildItem $testSource -Filter '*.al' -File)) {
                     $content = Get-Content $file.FullName -Raw
                     if ($content -match 'Subtype\s*=\s*Test\s*;') {
+                        $codeunitId = [int]([regex]::Match($content, 'codeunit\s+(\d+)').Groups[1].Value)
+                        if ($codeunitId -in $disabledCodeunitIds) {
+                            continue
+                        }
+
+                        $enabledCodeunitCount++
                         $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
                             -Because "$($file.Name) performs API calls through another server session"
                         $content | Should -Match 'LibraryGraphMgt\.InitializeApiTest\(\);' `
                             -Because "$($file.Name) must bind authentication and use a license-safe work date"
                     }
                 }
+
+                $expectedEnabledCodeunits = if ($apiVersion -eq 'APIV1') { 44 } else { 68 }
+                $enabledCodeunitCount | Should -Be $expectedEnabledCodeunits `
+                    -Because "$apiVersion must match NAV's WEBSERVICEEXTENSIONTEST bucket"
             }
         }
     }
