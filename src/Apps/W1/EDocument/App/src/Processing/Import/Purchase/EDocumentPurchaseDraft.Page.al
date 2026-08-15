@@ -797,5 +797,6 @@ page 6181 "E-Document Purchase Draft"
         FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
-        PageEditable, HasPDFSource, IsCreditMemo : Boolean;
+        PageEditable, HasPDFSource, IsCreditMemo, ApplyVATDiffEnabled : Boolean;
+        AppliedVATAmountDiff: Decimal;
 }
