@@ -2224,7 +2224,7 @@ codeunit 134344 "Document Totals Pages"
         LibraryERM.CreateVATPostingSetup(VATPostingSetup[2], VATPostingSetup[1]."VAT Bus. Posting Group", VATProductPostingGroup.Code);
         VATPostingSetup[2].Validate("VAT Calculation Type", VATPostingSetup[2]."VAT Calculation Type"::"Normal VAT");
         VATPostingSetup[2].Validate("VAT %", LibraryRandom.RandIntInRange(16, 25));
-        VATPostingSetup[2].Validate("VAT Identifier", VATProductPostingGroup.Code);
+        VATPostingSetup[2].Validate("VAT Identifier", CopyStr(VATProductPostingGroup.Code, 1, MaxStrLen(VATPostingSetup[2]."VAT Identifier")));
         VATPostingSetup[2]."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
         VATPostingSetup[2].Modify(true);
 
