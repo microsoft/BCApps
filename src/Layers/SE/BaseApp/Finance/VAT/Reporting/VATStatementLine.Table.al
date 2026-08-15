@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -221,7 +221,6 @@ table 256 "VAT Statement Line"
             Caption = 'Box No.';
             ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
         }
-
 #if not CLEANSCHEMA26
         field(11200; "EU 3-Party Trade"; Boolean)
         {

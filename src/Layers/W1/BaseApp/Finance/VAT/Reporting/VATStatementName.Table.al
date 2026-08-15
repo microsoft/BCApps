@@ -52,11 +52,6 @@ table 257 "VAT Statement Name"
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
-        field(395; "Business Activity Code Filter"; Code[10])
-        {
-            Caption = 'Business Activity Code Filter';
-            TableRelation = "Business Activity".Code;
-        }
     }
 
     keys

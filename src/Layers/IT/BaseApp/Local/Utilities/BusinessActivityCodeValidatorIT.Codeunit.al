@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.AuditCodes;
 
-codeunit 12105 "Bus. Activity Code Valid. IT" implements "Business Activity Validator"
+codeunit 12105 "Business Activity Validator IT" implements "Business Activity Validator"
 {
     procedure Validate(Code: Code[10])
     begin

@@ -11,8 +11,8 @@ codeunit 12102 "Business Activity Code Mgt."
     procedure Validate(Code: Code[10])
     var
         CompanyInformation: Record "Company Information";
+        BusActivityValidatorDef: Codeunit "Bus. Activity Validator Def.";
         BusinessActivityValidator: Interface "Business Activity Validator";
-        BusActivityCodeValidatorDefault: Codeunit "Bus. Activity Validator Def.";
         IsHandled: Boolean;
     begin
         if Code = '' then
@@ -21,7 +21,7 @@ codeunit 12102 "Business Activity Code Mgt."
         CompanyInformation.Get();
         OnGetValidator(CompanyInformation."Country/Region Code", BusinessActivityValidator, IsHandled);
         if not IsHandled then
-            BusinessActivityValidator := BusActivityCodeValidatorDefault;
+            BusinessActivityValidator := BusActivityValidatorDef;
 
         BusinessActivityValidator.Validate(Code);
     end;
