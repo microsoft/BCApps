@@ -90,6 +90,8 @@ codeunit 4398 "SOA Task Message"
         SentAgentTaskMessage: Record "Agent Task Message";
         SOATaskContactOverride: Record "SOA Task Contact Override";
         OverrideContact: Record Contact;
+        SOAFiltersImpl: Codeunit "SOA Filters Impl.";
+        ContactCount: Integer;
     begin
         Clear(ToAddress);
         if OutputAgentTaskMessage.Type <> OutputAgentTaskMessage.Type::Output then
@@ -100,7 +102,7 @@ codeunit 4398 "SOA Task Message"
         if SentAgentTaskMessage.From = '' then
             exit(false);
 
-        if SOATaskContactOverride.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then
+        if SOATaskContactOverride.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             if SOATaskContactOverride."Contact No." <> '' then begin
                 OverrideContact.SetLoadFields("E-Mail");
                 if OverrideContact.Get(SOATaskContactOverride."Contact No.") then
@@ -110,13 +112,18 @@ codeunit 4398 "SOA Task Message"
                     end;
             end;
 
+        if SOAFiltersImpl.FindContactByEmail(OverrideContact, SentAgentTaskMessage.From, ContactCount) and (ContactCount = 1) then
+            if OverrideContact."E-Mail" <> '' then begin
+                ToAddress := OverrideContact."E-Mail";
+                exit(true);
+            end;
+
         ToAddress := SentAgentTaskMessage.From;
         exit(true);
     end;
 
     internal procedure MessageRequiresReview(SOASetup: Record "SOA Setup"; EmailInbox: Record "Email Inbox"; IsFirstMessageInTask: Boolean): Boolean
     var
-        Contact: Record Contact;
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         SOAInputMessageReview: Enum "SOA Input Message Review";
     begin
@@ -124,15 +131,12 @@ codeunit 4398 "SOA Task Message"
         // then we can skip trying to find the contact.
         if SOASetup."Known Sender In. Msg. Review" = SOASetup."Unknown Sender In. Msg. Review" then
             SOAInputMessageReview := SOASetup."Known Sender In. Msg. Review"
-        else begin
+        else
             // Check if the sender is a registered contact
-            Contact.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(EmailInbox."Sender Address"));
-            Contact.ReadIsolation := IsolationLevel::ReadCommitted;
-            if Contact.IsEmpty() then
+            if not SOAFiltersImpl.ContactExistsByEmail(EmailInbox."Sender Address") then
                 SOAInputMessageReview := SOASetup."Unknown Sender In. Msg. Review"
             else
                 SOAInputMessageReview := SOASetup."Known Sender In. Msg. Review";
-        end;
 
         case SOAInputMessageReview of
             SOAInputMessageReview::"All Messages":
