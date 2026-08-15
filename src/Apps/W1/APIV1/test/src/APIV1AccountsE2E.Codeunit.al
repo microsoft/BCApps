@@ -8,7 +8,7 @@ codeunit 139701 "APIV1 - Accounts E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Account]
     end;
 

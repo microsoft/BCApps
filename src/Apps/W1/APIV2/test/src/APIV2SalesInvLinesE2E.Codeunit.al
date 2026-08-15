@@ -9,7 +9,7 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 

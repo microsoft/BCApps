@@ -9,7 +9,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Vendor]
     end;
 

@@ -9,7 +9,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Attachment]
     end;
 

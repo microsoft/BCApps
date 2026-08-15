@@ -5,7 +5,7 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
     end;
 
     var

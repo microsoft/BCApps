@@ -9,7 +9,7 @@ codeunit 139830 "APIV2 - GLEntries E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [G/L Entry]
     end;
 

@@ -9,7 +9,7 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Inventory] [Transfer]
     end;
 

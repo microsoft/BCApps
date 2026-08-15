@@ -8,7 +8,7 @@ codeunit 139820 "APIV2 - Aged AR E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Aged Report]
     end;
 

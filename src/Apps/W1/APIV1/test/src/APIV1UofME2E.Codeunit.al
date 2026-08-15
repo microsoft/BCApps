@@ -8,7 +8,7 @@ codeunit 139712 "APIV1 - UofM E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Unit of Measure]
     end;
 

@@ -7,7 +7,7 @@ codeunit 139744 "APIV1 - PDF Document E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [PDF]
     end;
 

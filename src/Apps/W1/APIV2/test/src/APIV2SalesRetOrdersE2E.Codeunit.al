@@ -9,7 +9,7 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Return Order]
     end;
 

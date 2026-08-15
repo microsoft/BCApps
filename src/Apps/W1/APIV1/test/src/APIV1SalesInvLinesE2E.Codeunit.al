@@ -9,7 +9,7 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 

@@ -9,7 +9,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Opportunity]
     end;
 

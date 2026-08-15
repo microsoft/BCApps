@@ -6,7 +6,7 @@ codeunit 139861 "APIV2JobQueueLogEntriesE2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [JobQueue] [JobQueueLogEntry]
     end;
 

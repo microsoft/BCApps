@@ -8,7 +8,7 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Tax Group]
     end;
 

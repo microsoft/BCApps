@@ -9,7 +9,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Purchase] [Order]
     end;
 

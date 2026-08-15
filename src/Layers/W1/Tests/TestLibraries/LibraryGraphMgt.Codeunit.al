@@ -23,6 +23,14 @@ codeunit 130618 "Library - Graph Mgt"
         IsAuthenticationBound := BindSubscription(LibraryGraphAuthMgt);
     end;
 
+    procedure InitializeApiTest()
+    var
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        BindAuthentication();
+        LibraryERM.SetWorkDate();
+    end;
+
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
     var
         WebService: Record "Web Service";

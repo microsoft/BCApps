@@ -9,7 +9,7 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Order]
     end;
 

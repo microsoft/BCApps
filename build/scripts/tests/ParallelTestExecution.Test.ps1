@@ -308,6 +308,8 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                     if ($content -match 'Subtype\s*=\s*Test\s*;') {
                         $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
                             -Because "$($file.Name) performs API calls through another server session"
+                        $content | Should -Match 'LibraryGraphMgt\.InitializeApiTest\(\);' `
+                            -Because "$($file.Name) must bind authentication and use a license-safe work date"
                     }
                 }
             }

@@ -9,7 +9,7 @@ codeunit 139731 "APIV1 - Automation RS Package"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Config. Package]
     end;
 

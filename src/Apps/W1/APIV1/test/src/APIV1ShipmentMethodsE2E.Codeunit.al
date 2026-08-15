@@ -8,7 +8,7 @@ codeunit 139705 "APIV1 - Shipment Methods E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Shipment Method]
     end;
 

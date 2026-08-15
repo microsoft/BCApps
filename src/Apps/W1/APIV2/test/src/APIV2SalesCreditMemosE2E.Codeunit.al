@@ -9,7 +9,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 

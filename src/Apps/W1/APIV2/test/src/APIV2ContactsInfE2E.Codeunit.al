@@ -9,7 +9,7 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Contact]
     end;
 

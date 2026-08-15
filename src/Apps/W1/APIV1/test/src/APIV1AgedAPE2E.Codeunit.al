@@ -8,7 +8,7 @@ codeunit 139719 "APIV1 - Aged AP E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Purchase] [Aged Report]
     end;
 

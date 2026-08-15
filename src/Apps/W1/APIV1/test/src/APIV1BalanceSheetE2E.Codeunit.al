@@ -8,7 +8,7 @@ codeunit 139715 "APIV1 - Balance Sheet E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Balance Sheet]
     end;
 

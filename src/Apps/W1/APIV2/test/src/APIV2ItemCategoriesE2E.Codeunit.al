@@ -8,7 +8,7 @@ codeunit 139807 "APIV2 - Item Categories E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Item Category]
     end;
 

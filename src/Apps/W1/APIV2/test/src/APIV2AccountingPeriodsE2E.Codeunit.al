@@ -5,7 +5,7 @@ codeunit 139859 "APIV2 - Accounting Periods E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
     end;
 
     var

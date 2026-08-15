@@ -7,7 +7,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Customer Payments]
     end;
 

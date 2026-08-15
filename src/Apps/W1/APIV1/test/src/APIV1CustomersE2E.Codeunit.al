@@ -9,7 +9,7 @@ codeunit 139702 "APIV1 - Customers E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Customer]
     end;
 

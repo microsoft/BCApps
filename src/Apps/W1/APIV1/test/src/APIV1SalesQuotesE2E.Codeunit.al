@@ -9,7 +9,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Quote]
     end;
 

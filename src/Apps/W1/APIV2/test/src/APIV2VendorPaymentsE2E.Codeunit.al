@@ -7,7 +7,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Vendor Payments]
     end;
 

@@ -8,7 +8,7 @@ codeunit 139722 "APIV1 - Employees E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Employee]
     end;
 

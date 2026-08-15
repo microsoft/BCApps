@@ -8,7 +8,7 @@ codeunit 139824 "APIV2 - Dimensions E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Dimension]
     end;
 

@@ -9,7 +9,7 @@ codeunit 139829 "APIV2 - Purchase Invoices E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Purchase] [Invoice]
     end;
 

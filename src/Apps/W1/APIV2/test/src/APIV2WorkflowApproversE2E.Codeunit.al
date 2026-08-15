@@ -7,7 +7,7 @@ codeunit 139920 "APIV2 - Workflow Approvers E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
     end;
 
     var

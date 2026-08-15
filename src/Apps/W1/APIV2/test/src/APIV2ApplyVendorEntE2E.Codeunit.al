@@ -7,7 +7,7 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Vendor Payments] [Apply Vendor Entries]
     end;
 
