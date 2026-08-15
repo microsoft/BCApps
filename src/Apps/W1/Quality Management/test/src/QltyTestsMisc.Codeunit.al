@@ -59,8 +59,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
-        WarehouseEntryTypeBlockedErr: Label '"%1" warehouse transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
-        EntryTypeBlockedErr: Label '"%1" transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
+        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6 %7, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=Lot No., %6=Serial No., %7=Package No.';
+        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of Lot No., Serial No. and Package No.';
+        InspectionCreatedMsgFragmentTok: Label 'has been created', Locked = true;
         YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
