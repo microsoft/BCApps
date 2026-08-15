@@ -150,7 +150,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         // [SCENARIO 184721] Create posted and unposted Sales invoices and use HTTP POST to delete them
         // [GIVEN] 2 invoices, one posted and one unposted
 
-        LibraryERM.SetWorkDate();
+        LibraryGraphMgt.SetApiTestWorkDate();
         LibrarySales.CreateCustomer(SellToCustomer);
         LibrarySales.CreateCustomer(BillToCustomer);
         LibrarySales.CreateCustomer(ShipToCustomer);
@@ -298,7 +298,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     begin
         // [SCENARIO 184721] Create unposted with specific document and due date set and use HTTP POST to create them
 
-        LibraryERM.SetWorkDate();
+        LibraryGraphMgt.SetApiTestWorkDate();
 
         // [GIVEN] an Invoice with a document and due date set
         LibrarySales.CreateCustomer(Customer);
@@ -567,7 +567,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         // [SCENARIO 184721] Create an invoice both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted invoice
-        LibraryERM.SetWorkDate();
+        LibraryGraphMgt.SetApiTestWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
         LibraryApplicationArea.DisableApplicationAreaSetup();
 

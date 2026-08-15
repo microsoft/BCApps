@@ -886,7 +886,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
 
     local procedure Initialize()
     begin
-        LibraryERM.SetWorkDate();
+        LibraryGraphMgt.SetApiTestWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Vendor Payments E2E");
 
         if not isInitialized then

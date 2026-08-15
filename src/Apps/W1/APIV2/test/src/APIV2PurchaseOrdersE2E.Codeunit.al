@@ -33,7 +33,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     local procedure Initialize()
     begin
-        LibraryERM.SetWorkDate();
+        LibraryGraphMgt.SetApiTestWorkDate();
     end;
 
     [Test]

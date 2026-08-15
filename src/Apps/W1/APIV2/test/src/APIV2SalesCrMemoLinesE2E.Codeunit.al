@@ -32,7 +32,7 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
 
     local procedure Initialize()
     begin
-        LibraryERM.SetWorkDate();
+        LibraryGraphMgt.SetApiTestWorkDate();
 
         if IsInitialized then
             exit;

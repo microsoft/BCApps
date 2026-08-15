@@ -332,6 +332,8 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                                 -Because "$($file.Name) runs in a NAV Disabled-isolation path"
                             $content | Should -Match 'LibraryGraphMgt\.InitializeApiTest\(\);' `
                                 -Because "$($file.Name) must bind authentication and use a license-safe work date"
+                            $content | Should -Not -Match 'LibraryERM\.SetWorkDate\(\);' `
+                                -Because "$($file.Name) must not overwrite the API test license-safe work date"
                         }
                     }
                 }

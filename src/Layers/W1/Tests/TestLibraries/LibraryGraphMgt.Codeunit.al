@@ -24,11 +24,14 @@ codeunit 130618 "Library - Graph Mgt"
     end;
 
     procedure InitializeApiTest()
-    var
-        LibraryERM: Codeunit "Library - ERM";
     begin
         BindAuthentication();
-        LibraryERM.SetWorkDate();
+        SetApiTestWorkDate();
+    end;
+
+    procedure SetApiTestWorkDate()
+    begin
+        WorkDate := DMY2Date(15, 1, Date2DMY(Today, 3));
     end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
