@@ -92,6 +92,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ResultCode2Tok: Label '"|\/?&*()';
         CannotBeRemovedExistingInspectionErr: Label 'This result cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this result consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the result.';
         TestAddedExactlyOnceErr: Label 'Test %1 should be added exactly once.', Comment = '%1 = quality test code';
+        AssignToSelfQstFragmentTok: Label 'would you like to assign it to yourself', Locked = true;
+        AssignToSelfNotificationSeen: Boolean;
         IsInitialized: Boolean;
 
     [Test]
@@ -1637,6 +1639,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
+    [HandlerFunctions('AssignToSelfNotificationHandler')]
     procedure Table_InspectionAssignSelfOnModify()
     var
         Location: Record Location;
@@ -1648,7 +1651,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] Inspection is automatically assigned to current user on modification
+        // [SCENARIO] Modifying an unassigned inspection prompts the current user to assign it to themselves instead of assigning it silently
 
         Initialize();
 
@@ -1666,14 +1669,18 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] Inspection has no assigned user initially
         LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not have assigned user.');
+        AssignToSelfNotificationSeen := false;
 
         // [WHEN] Inspection is modified by changing source quantity
         QltyInspectionHeader."Source Quantity (Base)" := 99;
         QltyInspectionHeader.Modify(true);
 
-        // [THEN] Inspection is automatically assigned to current user
+        // [THEN] The current user is notified and asked whether the inspection should be assigned to them
+        LibraryAssert.IsTrue(AssignToSelfNotificationSeen, 'Should be asked to assign the inspection to the current user.');
+
+        // [THEN] The inspection stays unassigned until the notification action is used
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
-        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
+        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not be assigned to current user without confirming the notification.');
     end;
 
     [Test]
@@ -4679,6 +4686,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [MessageHandler]
     procedure MessageHandler(MessageText: Text)
     begin
+    end;
+
+    [SendNotificationHandler]
+    procedure AssignToSelfNotificationHandler(var NotificationToShow: Notification): Boolean
+    begin
+        if StrPos(NotificationToShow.Message(), AssignToSelfQstFragmentTok) > 0 then
+            AssignToSelfNotificationSeen := true;
     end;
 
     [ModalPageHandler]
