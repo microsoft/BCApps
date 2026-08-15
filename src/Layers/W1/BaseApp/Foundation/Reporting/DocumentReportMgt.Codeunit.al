@@ -194,8 +194,6 @@ codeunit 9651 "Document Report Mgt."
         exit(ReportChangeLogCollection.Count > 0);
     end;
 
-    // Only reachable from the obsoleted upgrade path above, so it goes with it - otherwise it is a
-    // method declared and never used once that path is compiled out.
     local procedure ProcessUpgradeLog(var ReportChangeLogCollection: DotNet IReportChangeLogCollection)
     var
         ReportLayoutUpdateLog: Codeunit "Report Layout Update Log";

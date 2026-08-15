@@ -1029,8 +1029,6 @@ codeunit 8800 "Custom Layout Reporting"
         exit(CustomLayoutReporting.CallReportSaveAs(ReportID, RequestParameterText, ReportFormatValue, FileStream, RecRef))
     end;
 
-    // The layout-code parameter is only consulted on the legacy path below, so in the Clean build it is
-    // unread. The signature stays for the three call sites, which still pass a code.
 #pragma warning disable AA0137
     local procedure IsWordLayout(ReportID: Integer; CustomReportLayoutCode: Code[20]): Boolean
 #pragma warning restore AA0137
@@ -1043,8 +1041,6 @@ codeunit 8800 "Custom Layout Reporting"
         ReportManagementHelper: Codeunit "Report Management Helper";
     begin
 #if not CLEAN29
-        // Legacy path only: a custom layout code resolves against the obsoleted table. Without it the
-        // modern layout selection below answers for every report, which is what remains in the Clean build.
         if CustomReportLayoutCode <> '' then begin
             CustomReportLayout.Code := CustomReportLayoutCode;
             if CustomReportLayout.Find('=') then

@@ -2788,7 +2788,6 @@
         if not OldReportSelections.FindFirst() then
             CreateReportSelection(OldReportSelections.Usage::"P.Order", '2', REPORT::Order);
 
-        // the vendor path never sets a custom layout - it only needs an empty layout code
         UpdateReportSelections(
           OldReportSelections.Usage::"P.Order", GetReportIDForPurchaseOrder(), UseForEmailAttachment, UseForEmailBody, '');
     end;

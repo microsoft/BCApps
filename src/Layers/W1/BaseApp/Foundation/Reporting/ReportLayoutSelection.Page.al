@@ -116,7 +116,6 @@ page 9652 "Report Layout Selection"
                         end else
                             ValidateBuiltInReportLayoutDescription();
 #else
-                        // Custom layouts no longer exist; every layout validates as built-in.
                         ValidateBuiltInReportLayoutDescription();
 #endif
                         CurrPage.Update(false);
@@ -384,9 +383,6 @@ page 9652 "Report Layout Selection"
 
         CustomLayoutDescription := Rec."Report Layout Description";
 #else
-        // Field 7 was only a staging buffer between the layout source and the displayed variable, and
-        // the control binds to the variable. Without the custom-layout branch the modern sources fill
-        // it directly.
         if TenantReportLayoutSelection.Get(Rec."Report ID", SelectedCompany) then
             CustomLayoutDescription := TenantReportLayoutSelection."Layout Name"
         else

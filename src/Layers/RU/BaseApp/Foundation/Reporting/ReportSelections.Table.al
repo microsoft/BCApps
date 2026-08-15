@@ -109,6 +109,8 @@ table 77 "Report Selections"
             else
             if ("Email Body Layout Type" = const("HTML Layout")) "O365 HTML Template".Code;
 #pragma warning restore AL0432, AS0105
+#else
+            TableRelation = if ("Email Body Layout Type" = const("HTML Layout")) "O365 HTML Template".Code;
 #endif
             ToolTip = 'Specifies the ID of the custom email body layout that is used.';
 

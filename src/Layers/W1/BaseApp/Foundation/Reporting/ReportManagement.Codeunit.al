@@ -242,8 +242,6 @@ codeunit 44 ReportManagement
         TempInStream: InStream;
 #endif
     begin
-        // The integration event is raised in both configurations: subscribers must keep their hook once
-        // the legacy lookup below is gone, so the platform can serve the layout instead.
         OnFetchReportLayoutByCode(ObjectId, LayoutCode, TargetStream, Success);
         if Success then
             exit;

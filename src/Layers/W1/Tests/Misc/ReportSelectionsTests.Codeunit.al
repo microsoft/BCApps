@@ -2935,7 +2935,6 @@ codeunit 134421 "Report Selections Tests"
         OldReportSelections.SetRange(Usage, OldReportSelections.Usage::"P.Order");
         OldReportSelections.FindFirst();
 
-        // the vendor path never sets a custom layout - it only needs an empty layout code
         UpdateReportSelections(
           OldReportSelections.Usage::"P.Order", GetReportIDForPurchaseOrder(), UseForEmailAttachment, UseForEmailBody, '');
     end;
