@@ -924,12 +924,12 @@ codeunit 144352 "Swiss SEPA CT Export"
         // [WHEN] Export payments to file
         FileName := GenJournalLine_XMLExport(GenJournalLine);
 
-        // [THEN] The payment is classified as Swiss Payment Type "2.2" (LclInstrm = "CH03")
+        // [THEN] The payment is classified as Swiss Payment Type "2.2" (LclInstrm/Prtry = "CH03")
         ExportFile.Open(FileName);
         ExportFile.CreateInStream(XMLInStream);
         LibraryXPathXMLReader.InitializeXml(XMLInStream, 'http://www.six-interbank-clearing.com/de/pain.001.001.03.ch.02.xsd');
         ExportFile.Close();
-        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:PmtTpInf//ns:LclInstrm', 'CH03');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:PmtTpInf//ns:LclInstrm/ns:Prtry', 'CH03');
         // [THEN] The creditor agent uses the CHBCC clearing system with MmbId = the IID derived from the IBAN, and no BIC
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//ns:CdtrAgt//ns:BIC');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:CdtrAgt//ns:Cd', 'CHBCC');
