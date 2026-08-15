@@ -5,9 +5,11 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
@@ -127,6 +129,8 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
                     AmountRoundingPrecision);
             until EDocPurchLine.Next() = 0;
         exit(TotalLineAmount);
+    end;
+
     procedure CreatePurchaseLineFromDraft(PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; HasTotalDiscount: Boolean; LineNo: Integer)
     var
         PurchaseLine: Record "Purchase Line";
