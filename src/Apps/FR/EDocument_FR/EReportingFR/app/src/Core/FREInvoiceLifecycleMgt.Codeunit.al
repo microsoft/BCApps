@@ -323,28 +323,28 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     begin
         EDocument.Get(EDocumentEntryNo);
         if IsNullGuid(SourceOccurrenceID) then
-            RaiseInternalError(SourceOccurrenceIDErr);
+            RaiseClientError(SourceOccurrenceIDErr);
         if EventDate = 0D then
-            RaiseInternalError(EventDateErr);
+            RaiseClientError(EventDateErr);
 
         case LifecycleStatus of
             LifecycleStatus::Collected:
                 begin
                     if ReportedAmount <= 0 then
-                        RaiseInternalError(CollectedAmountErr);
+                        RaiseClientError(CollectedAmountErr);
                     if OriginalOccurrenceEntryNo <> 0 then
-                        RaiseInternalError(CollectedOriginalOccurrenceErr);
+                        RaiseClientError(CollectedOriginalOccurrenceErr);
                 end;
             LifecycleStatus::"Negative Collected":
                 begin
                     if ReportedAmount >= 0 then
-                        RaiseInternalError(NegativeCollectedAmountErr);
+                        RaiseClientError(NegativeCollectedAmountErr);
                     if not OriginalOccurrence.Get(OriginalOccurrenceEntryNo) then
-                        RaiseInternalError(OriginalOccurrenceErr);
+                        RaiseClientError(OriginalOccurrenceErr);
                     OriginalOccurrence.TestField("E-Document Entry No.", EDocumentEntryNo);
                     OriginalOccurrence.TestField("Lifecycle Status", OriginalOccurrence."Lifecycle Status"::Collected);
                     if ReportedAmount <> -OriginalOccurrence."Reported Amount" then
-                        RaiseInternalError(ReversalAmountErr);
+                        RaiseClientError(ReversalAmountErr);
                 end;
             else begin
                 UnsupportedStatusErrorInfo.ErrorType(ErrorType::Internal);
@@ -388,13 +388,13 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
             DataClassification::SystemMetadata, TelemetryScope::All, 'Category', LifecycleTelemetryCategoryTok);
     end;
 
-    local procedure RaiseInternalError(ErrorMessage: Text)
+    local procedure RaiseClientError(ErrorMessage: Text)
     var
-        InternalErrorInfo: ErrorInfo;
+        ClientErrorInfo: ErrorInfo;
     begin
-        InternalErrorInfo.ErrorType(ErrorType::Internal);
-        InternalErrorInfo.Message(ErrorMessage);
-        Error(InternalErrorInfo);
+        ClientErrorInfo.ErrorType(ErrorType::Client);
+        ClientErrorInfo.Message(ErrorMessage);
+        Error(ClientErrorInfo);
     end;
 
     local procedure ResolveCurrencyCode(CurrencyCode: Code[10]): Code[10]
