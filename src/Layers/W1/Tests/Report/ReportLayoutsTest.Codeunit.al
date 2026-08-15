@@ -499,6 +499,9 @@ codeunit 139595 "Report Layouts Test"
 
         TenantReportLayoutOverride.SetRange("Report ID", 139595);
         TenantReportLayoutOverride.DeleteAll();
+
+        // A test failing between Enqueue and Dequeue would otherwise leak into the next one.
+        LibraryVariableStorage.Clear();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Layouts Impl.", 'OnBeforeUpload', '', false, false)]
@@ -1106,6 +1109,7 @@ codeunit 139595 "Report Layouts Test"
             TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'The global obsolete override should still exist.');
         Assert.IsTrue(TenantReportLayoutOverride.IsObsolete, 'The layout must still be obsolete.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -1273,6 +1277,110 @@ codeunit 139595 "Report Layouts Test"
 
         TenantReportLayoutOverride.SetRange("Report ID", 139595);
         Assert.IsTrue(TenantReportLayoutOverride.IsEmpty(), 'Copying must not write an override record.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('EditExtensionToggleCopyOffHandler')]
+    procedure TestUntickingCopyRestoresAllCompaniesScope()
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Ticking "Save Changes to a Copy", choosing company-only, then unticking it must put
+        // the scope back to all companies. Otherwise the field shows a read-only No while the in-place
+        // edit writes an all-companies override - the dialog would contradict what is written.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Act - tick Copy, select company-only, untick Copy, then edit the description and save
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.EditLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - the dialog showed Yes again, and the override it wrote is global
+        Assert.AreEqual(
+            'Yes', LibraryVariableStorage.DequeueText(),
+            'Unticking Save Changes to a Copy must restore the all-companies scope shown in the dialog.');
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            'A global override should have been written.');
+        Assert.IsFalse(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'No company-specific override should exist.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [ModalPageHandler]
+    procedure EditExtensionToggleCopyOffHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
+    begin
+        ReportLayoutEditDialog.CreateCopy.SetValue(true);
+        ReportLayoutEditDialog.AvailableInAllCompanies.SetValue(false);
+        ReportLayoutEditDialog.CreateCopy.SetValue(false);
+        LibraryVariableStorage.Enqueue(ReportLayoutEditDialog.AvailableInAllCompanies.Value);
+        ReportLayoutEditDialog.Description.SetValue(EditedLayoutNameTxt);
+        ReportLayoutEditDialog.OK().Invoke();
+    end;
+
+    [Test]
+    [HandlerFunctions('CopyObsoleteExtensionLayoutHandler')]
+    procedure TestCopyOfObsoleteExtensionLayoutCanClearObsolete()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] The one-way obsolete lock belongs to the in-place override path only. Taking a copy
+        // of an obsolete extension layout must re-enable the field, because the copy is an ordinary
+        // tenant layout - otherwise the copy is stuck obsolete and the old copy flow regresses.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Make the layout resolve to obsolete, the way the everyday edit path would
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride.IsObsolete := true;
+        TenantReportLayoutOverride."Override IsObsolete" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // Act - Edit info -> tick Copy; the handler records whether the obsolete field became editable
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.EditLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - copy mode unlocked the field, and the copy exists
+        Assert.IsTrue(
+            LibraryVariableStorage.DequeueBoolean(),
+            'Mark layout as obsolete must be editable again once Save Changes to a Copy is selected.');
+        Assert.IsTrue(
+            TenantReportLayout.Get(139595, EditedLayoutNameTxt, EmptyGuid),
+            'The copy should exist in Tenant Report Layout under its new name.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [ModalPageHandler]
+    procedure CopyObsoleteExtensionLayoutHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
+    begin
+        ReportLayoutEditDialog.CreateCopy.SetValue(true);
+        LibraryVariableStorage.Enqueue(ReportLayoutEditDialog.IsObsolete.Editable());
+        ReportLayoutEditDialog.LayoutName.SetValue(EditedLayoutNameTxt);
+        ReportLayoutEditDialog.OK().Invoke();
     end;
 
     [ModalPageHandler]

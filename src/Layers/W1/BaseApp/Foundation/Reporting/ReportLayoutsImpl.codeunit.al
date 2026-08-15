@@ -71,8 +71,6 @@ codeunit 9660 "Report Layouts Impl."
         TenantReportLayout: Record "Tenant Report Layout";
     begin
         if not ReportLayoutList."User Defined" then begin
-            // Extension layouts live in the read-only App database, so the status is overridden here
-            // rather than written. Mixed-scope selections are rejected by SetLayoutStatusBatch first.
             UpsertLayoutOverride(ReportLayoutList, LayoutStatusIsGlobalScope(ReportLayoutList), false, '', true, NewStatus, false, false);
             exit(true);
         end;
@@ -98,10 +96,6 @@ codeunit 9660 "Report Layouts Impl."
         exit(true);
     end;
 
-    /// <summary>
-    /// Creates or updates a "Tenant Report Layout Override". Only fields flagged by their Apply*
-    /// parameter are written; MakeGlobal writes an empty Company Name. IsObsolete is one-way.
-    /// </summary>
     local procedure UpsertLayoutOverride(ReportLayoutList: Record "Report Layout List"; MakeGlobal: Boolean; ApplyDescription: Boolean; NewDescription: Text[250]; ApplyStatus: Boolean; NewStatus: Enum "Report Layout Status"; ApplyObsolete: Boolean; NewIsObsolete: Boolean)
     var
         TenantReportLayoutOverride: Record "Tenant Report Layout Override";
@@ -171,11 +165,9 @@ codeunit 9660 "Report Layouts Impl."
                     HasCompanyScope := true;
         until ReportLayoutList.Next() = 0;
 
-        // Keep each run to a single scope so the effect is unambiguous.
         if HasGlobalScope and HasCompanyScope then
             Error(MixedScopeErr);
 
-        // Second pass: apply the status change.
         ReportLayoutList.FindSet();
         repeat
             if SetLayoutStatus(ReportLayoutList, NewStatus) then
@@ -710,8 +702,6 @@ codeunit 9660 "Report Layouts Impl."
             AvailableInAllCompanies := ReportLayoutEditDialog.SelectedAvailableInAllCompanies();
             NewIsObsolete := ReportLayoutEditDialog.SelectedIsObsolete();
 
-            // In-place edit of an extension layout: write an override, and only for what changed, so
-            // pressing OK without editing writes nothing. IsObsolete is one-way.
             if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
                 // All companies, which is what the read-only Yes in the dialog states.
                 AvailableInAllCompanies := true;
@@ -724,8 +714,6 @@ codeunit 9660 "Report Layouts Impl."
 
                 UpsertLayoutOverride(SelectedReportLayoutList, AvailableInAllCompanies, ApplyDescription, NewDescription, false, Enum::"Report Layout Status"::Draft, ApplyObsolete, NewIsObsolete);
 
-                // Own event id: the user-defined Edit path logs a different custom-dimension schema
-                // under 0000N0H, and reusing it would change the meaning of an id existing queries read.
                 CustomDimensions.Add('ReportId', Format(SelectedReportLayoutList."Report ID"));
                 CustomDimensions.Add('LayoutName', SelectedReportLayoutList.Name);
                 CustomDimensions.Add('DescriptionChanged', Format(ApplyDescription));

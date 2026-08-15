@@ -75,10 +75,16 @@ page 9661 "Report Layout Edit Dialog"
 
                 trigger OnValidate()
                 begin
-                    // A copy is a normal tenant layout, so it needs its own name and company scope.
                     if OverrideMode then begin
                         LayoutNameEditable := CreateCopy;
                         AvailableInAllCompaniesEditable := CreateCopy;
+                        IsObsoleteEditable := CreateCopy or (not ObsoleteInMetadata);
+                        if not CreateCopy then begin
+                            // Back to an in-place override: restore the values it will actually write,
+                            // so a locked field never displays something the write contradicts.
+                            AvailableInAllCompanies := true;
+                            IsObsolete := ObsoleteInMetadata;
+                        end;
                     end else
                         if CreateCopy then
                             AvailableInAllCompaniesEditable := true
@@ -128,6 +134,7 @@ page 9661 "Report Layout Edit Dialog"
         LayoutNameEditable: Boolean;
         IsObsoleteEditable: Boolean;
         OverrideMode: Boolean;
+        ObsoleteInMetadata: Boolean;
 
     internal procedure SelectedLayoutDescription(): Text[250]
     begin
@@ -167,14 +174,13 @@ page 9661 "Report Layout Edit Dialog"
         OverrideMode := false;
 
         if not ReportLayoutList."User Defined" then begin
-            // Extension layout: the name is fixed and IsObsolete is one-way, so neither can be re-edited.
             OverrideMode := true;
+            ObsoleteInMetadata := ReportLayoutList.IsObsolete;
             CreateCopy := false;
             CreateCopyEditable := true;
             LayoutNameEditable := false;
-            IsObsoleteEditable := not ReportLayoutList.IsObsolete;
+            IsObsoleteEditable := not ObsoleteInMetadata;
 
-            // Read-only Yes: the override scope for an in-place edit. Ticking Copy unlocks it.
             AvailableInAllCompanies := true;
             AvailableInAllCompaniesEditable := false;
         end else begin

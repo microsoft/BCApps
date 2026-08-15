@@ -726,7 +726,6 @@ page 9660 "Report Layouts"
         IsMultiSelect := SelectedReportLayoutList.Count() > 1;
         ShareOptionsVisible := DocumentSharing.ShareEnabled(Enum::"Document Sharing Source"::System);
         ShareOptionsEnabled := LayoutIsSelected and (not IsMultiSelect) and Rec."User Defined" and (Rec."Layout Format" <> Rec."Layout Format"::RDLC);
-        // Extension layouts can now have their status changed too, via an override record.
         CanModifyStatus := LayoutIsSelected;
         UpdateUserDisplayName();
     end;
