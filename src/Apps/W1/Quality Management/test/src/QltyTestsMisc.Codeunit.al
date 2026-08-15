@@ -53,13 +53,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Any: Codeunit Any;
+        AssignToSelfNotification: Notification;
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
-        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6 %7, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=Lot No., %6=Serial No., %7=Package No.';
-        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of Lot No., Serial No. and Package No.';
+        WarehouseEntryTypeBlockedErr: Label '"%1" warehouse transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
+        EntryTypeBlockedErr: Label '"%1" transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
         YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
@@ -2839,56 +2840,82 @@ codeunit 139964 "Qlty. Tests - Misc."
     [HandlerFunctions('AssignToSelfNotificationHandler')]
     procedure ModifyUnassignedInspection_SendsAssignToSelfNotification()
     var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        // [SCENARIO] Modifying an unassigned Quality Inspection sends the "assign to yourself" notification
+        // instead of silently auto-assigning the current user.
+
+        // [GIVEN] An unassigned quality inspection
+        CreateUnassignedInspection(QltyInspectionHeader);
+
+        // [GIVEN] The expected assign-to-self notification is queued
+        Clear(AssignToSelfNotification);
+        LibraryVariableStorage.Enqueue(StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."));
+
+        // [WHEN] A user-modifiable field is changed and the inspection is modified (which runs OnModify)
+        QltyInspectionHeader.Validate(Description, 'x');
+        QltyInspectionHeader.Modify(true);
+
+        // [THEN] The inspection remains unassigned because the user was prompted
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'The inspection should not be silently assigned when the user is prompted');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AssignToSelfNotificationHandler')]
+    procedure ModifyUnassignedInspection_AcceptAssignToSelfNotificationAssignsCurrentUser()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        // [SCENARIO] Accepting the assign-to-self notification assigns the inspection to the current user
+
+        // [GIVEN] An unassigned quality inspection
+        CreateUnassignedInspection(QltyInspectionHeader);
+
+        // [GIVEN] The expected assign-to-self notification is queued
+        Clear(AssignToSelfNotification);
+        LibraryVariableStorage.Enqueue(StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."));
+
+        // [WHEN] The inspection is modified and the user accepts the assign-to-self notification
+        QltyInspectionHeader.Validate(Description, 'x');
+        QltyInspectionHeader.Modify(true);
+        QltyInspectionUtility.HandleNotificationActionAssignToSelf(AssignToSelfNotification);
+
+        // [THEN] The inspection is assigned to the current user
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'The inspection should be assigned to the current user after accepting the notification');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure CreateUnassignedInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
     begin
-        // [SCENARIO] Modifying an unassigned Quality Inspection sends the "assign to yourself" notification
-        // instead of silently auto-assigning the current user. Regression coverage for
-        // Qlty. Permission Mgmt. GetShouldAutoAssign hardcoding ShouldPrompt := false, which made
-        // the OnModify trigger always call AssignToSelf and never reach the notification path.
-
-        // [GIVEN] Quality management setup with location, item, and inspection template are configured
         Initialize();
-
         QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        // [GIVEN] A quality inspection is created from a purchase line for an untracked item
+        LibraryVariableStorage.Enqueue(InspectionCreatedMsgFragmentTok);
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
         QltyInspectionGenRule.Delete();
-        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.AssertEmpty();
 
-        // [GIVEN] The inspection has no Assigned User ID (bypass OnModify to reset the state, then re-fetch so xRec matches)
         QltyInspectionHeader."Assigned User ID" := '';
         QltyInspectionHeader.Modify(false);
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Precondition: the inspection must start unassigned');
-
-        // [GIVEN] The notifications raised while setting up the inspection are discarded
-        LibraryVariableStorage.Clear();
-
-        // [WHEN] A user-modifiable field is changed and the inspection is modified (which runs OnModify)
-        QltyInspectionHeader.Validate(Description, 'x');
-        QltyInspectionHeader.Modify(true);
-
-        // [THEN] Exactly one "assign to yourself" notification was sent with the correct message
-        LibraryAssert.AreEqual(StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."), LibraryVariableStorage.DequeueText(), 'The correct assign-to-yourself notification should have been sent');
-        LibraryVariableStorage.AssertEmpty();
-
-        // [THEN] The Assigned User ID remained blank because the user was prompted (not silently auto-assigned)
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
-        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'The inspection should not be silently auto-assigned when the notification prompt is available');
     end;
 
     local procedure Initialize()
@@ -2928,8 +2955,13 @@ codeunit 139964 "Qlty. Tests - Misc."
 
     [SendNotificationHandler]
     procedure AssignToSelfNotificationHandler(var NotificationToShow: Notification): Boolean
+    var
+        ExpectedMessage: Text;
     begin
-        LibraryVariableStorage.Enqueue(NotificationToShow.Message());
+        ExpectedMessage := LibraryVariableStorage.DequeueText();
+        LibraryAssert.ExpectedMessage(ExpectedMessage, NotificationToShow.Message());
+        if ExpectedMessage <> InspectionCreatedMsgFragmentTok then
+            AssignToSelfNotification := NotificationToShow;
     end;
 
     [ModalPageHandler]
