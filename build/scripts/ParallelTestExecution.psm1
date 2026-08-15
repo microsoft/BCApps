@@ -406,6 +406,28 @@ function Remove-BcTestTenantTemplate {
     } -argumentList $TemplateDatabaseName
 }
 
+function Enable-BcTestTaskScheduler {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+        Write-Host "Enabling Task Scheduler for clean RequiredTestIsolation=Disabled execution..."
+        Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName "EnableTaskScheduler" -KeyValue "true" -WarningAction SilentlyContinue
+        Set-NAVServerInstance -ServerInstance $ServerInstance -Restart
+
+        $maxWaitSeconds = 300
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+        while (Get-NAVTenant $ServerInstance | Where-Object { $_.State -eq "Mounting" }) {
+            if ($stopwatch.Elapsed.TotalSeconds -ge $maxWaitSeconds) {
+                throw "Tenants did not finish mounting within $maxWaitSeconds seconds after enabling Task Scheduler."
+            }
+            Start-Sleep -Milliseconds 250
+        }
+    }
+}
+
 <#
 .SYNOPSIS
     Merges multiple test result XML files into a single file.
@@ -1112,6 +1134,7 @@ function Invoke-ParallelTestExecution {
 
     if ($requiredDisabledWorkItems.Count -gt 0) {
         try {
+            Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
             $requiredDisabledPassed = Invoke-RequiredDisabledTestExecution -Parameters $parameters `
                 -WorkItems $requiredDisabledWorkItems -TenantInfo $tenantInfo `
                 -TemplateDatabaseName $templateDatabaseName -ScriptPath $scriptPath -TestType $testType

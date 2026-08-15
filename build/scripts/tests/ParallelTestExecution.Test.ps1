@@ -461,6 +461,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             Mock Wait-ForAllTestJobs { $true }
             Mock Invoke-RequiredDisabledTestExecution { $true }
             Mock Remove-BcTestTenantTemplate { }
+            Mock Enable-BcTestTaskScheduler { }
             Mock Merge-TenantTestResults { }
 
             $result = Invoke-ParallelTestExecution -parameters @{
@@ -470,6 +471,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
 
             $result | Should -BeTrue
             Should -Invoke New-BcTestTenantTemplate -Times 1
+            Should -Invoke Enable-BcTestTaskScheduler -Times 1
             Should -Invoke Invoke-RequiredDisabledTestExecution -Times 1 -ParameterFilter {
                 $TemplateDatabaseName -eq 'default-test-template' -and $WorkItems.Count -eq 1
             }

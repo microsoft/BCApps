@@ -616,8 +616,8 @@ codeunit 139736 "APIV1 - Sales Quote Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         QuoteLineJSON: Text;
-        LineNoFromJSON: Text;
-        LineNo: Integer;
+        LineIdFromJSON: Text;
+        LineId: Guid;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -639,12 +639,9 @@ codeunit 139736 "APIV1 - Sales Quote Lines E2E"
 
         // [THEN] Line of type Item is created
         Assert.IsTrue(
-          LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'sequence', LineNoFromJSON), 'Could not find sequence');
-        EVALUATE(LineNo, LineNoFromJSON);
-        SalesLine.SETRANGE("Document Type", SalesHeader."Document Type");
-        SalesLine.SETRANGE("Document No.", SalesHeader."No.");
-        SalesLine.SETRANGE("Line No.", LineNo);
-        SalesLine.FINDFIRST();
+          LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', LineIdFromJSON), 'Could not find line id');
+        EVALUATE(LineId, LineIdFromJSON);
+        SalesLine.GetBySystemId(LineId);
         Assert.AreEqual('', SalesLine."No.", 'No should be blank');
         Assert.AreEqual(SalesLine.Type, SalesLine.Type::Item, 'Wrong type is set');
 
@@ -955,7 +952,6 @@ codeunit 139736 "APIV1 - Sales Quote Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 
