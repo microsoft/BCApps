@@ -1,15 +1,5 @@
 [
   {
-    "codeunitId": 139917,
-    "codeunitName": "APIV2 - Approval Entries E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139918,
-    "codeunitName": "APIV2 - Approval UserSetup E2E",
-    "method": "*"
-  },
-  {
     "codeunitId": 139925,
     "codeunitName": "APIV2 - Assembly Orders E2E",
     "method": "*"
@@ -22,21 +12,6 @@
   {
     "codeunitId": 139909,
     "codeunitName": "APIV2 - Bl. Sales Orders E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139906,
-    "codeunitName": "APIV2 - FA Locations E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139907,
-    "codeunitName": "APIV2 - Fixed Assets E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139919,
-    "codeunitName": "APIV2 PstdApprovalEntries E2E",
     "method": "*"
   },
   {
@@ -67,16 +42,6 @@
   {
     "codeunitId": 139926,
     "codeunitName": "APIV2 - Transfer Orders E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139920,
-    "codeunitName": "APIV2 - Workflow Approvers E2E",
-    "method": "*"
-  },
-  {
-    "codeunitId": 139921,
-    "codeunitName": "APIV2 - Workflows E2E",
     "method": "*"
   }
 ]

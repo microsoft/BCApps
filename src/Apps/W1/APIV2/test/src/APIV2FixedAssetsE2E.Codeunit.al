@@ -8,7 +8,7 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Customer]
     end;
 

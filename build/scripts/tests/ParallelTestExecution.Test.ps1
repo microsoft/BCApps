@@ -299,8 +299,9 @@ Describe "ParallelTestExecution clean tenant scheduling" {
     }
 
     Describe "API test isolation metadata" {
-        It "marks every APIV1 and APIV2 test codeunit for clean Disabled-isolation execution" {
+        It "matches every NAV API execution path and its isolation mode" {
             $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+            $typedIntegrationCodeunits = @(139917, 139918, 139919, 139920, 139921)
             foreach ($apiVersion in @('APIV1', 'APIV2')) {
                 $testSource = Join-Path $repoRoot "src\Apps\W1\$apiVersion\test\src"
                 $disabledManifest = Join-Path $repoRoot "src\DisabledTests\_Exclude_${apiVersion}__Tests\_Exclude_${apiVersion}__Tests.DisabledTest.json"
@@ -320,16 +321,24 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                         }
 
                         $enabledCodeunitCount++
-                        $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
-                            -Because "$($file.Name) performs API calls through another server session"
-                        $content | Should -Match 'LibraryGraphMgt\.InitializeApiTest\(\);' `
-                            -Because "$($file.Name) must bind authentication and use a license-safe work date"
+                        if ($codeunitId -in $typedIntegrationCodeunits) {
+                            $content | Should -Match 'TestType\s*=\s*IntegrationTest\s*;' `
+                                -Because "$($file.Name) runs through NAV's typed Integration task"
+                            $content | Should -Not -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
+                                -Because "$($file.Name) runs with normal Codeunit isolation in NAV"
+                            $content | Should -Match 'LibraryGraphMgt\.BindAuthentication\(\);'
+                        } else {
+                            $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
+                                -Because "$($file.Name) runs in a NAV Disabled-isolation path"
+                            $content | Should -Match 'LibraryGraphMgt\.InitializeApiTest\(\);' `
+                                -Because "$($file.Name) must bind authentication and use a license-safe work date"
+                        }
                     }
                 }
 
-                $expectedEnabledCodeunits = if ($apiVersion -eq 'APIV1') { 44 } else { 68 }
+                $expectedEnabledCodeunits = if ($apiVersion -eq 'APIV1') { 44 } else { 75 }
                 $enabledCodeunitCount | Should -Be $expectedEnabledCodeunits `
-                    -Because "$apiVersion must match NAV's WEBSERVICEEXTENSIONTEST bucket"
+                    -Because "$apiVersion must match the union of NAV's web-service and typed test tasks"
             }
         }
     }
