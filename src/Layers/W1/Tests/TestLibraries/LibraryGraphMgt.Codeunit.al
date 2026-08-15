@@ -303,6 +303,25 @@ codeunit 130618 "Library - Graph Mgt"
         exit(TargetURL);
     end;
 
+    procedure AppendPathToTargetURL(TargetURL: Text; Path: Text): Text
+    var
+        QueryPosition: Integer;
+    begin
+        QueryPosition := StrPos(TargetURL, '?');
+        if QueryPosition = 0 then
+            exit(TargetURL + Path);
+
+        exit(CopyStr(TargetURL, 1, QueryPosition - 1) + Path + CopyStr(TargetURL, QueryPosition));
+    end;
+
+    procedure AppendQueryParameterToTargetURL(TargetURL: Text; QueryParameter: Text): Text
+    begin
+        if StrPos(TargetURL, '?') = 0 then
+            exit(TargetURL + '?' + QueryParameter);
+
+        exit(TargetURL + '&' + QueryParameter);
+    end;
+
     [Normal]
     procedure STRREPLACE(String: Text; ReplaceWhat: Text; ReplaceWith: Text): Text
     var
