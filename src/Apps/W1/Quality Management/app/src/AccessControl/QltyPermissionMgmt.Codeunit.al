@@ -198,12 +198,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="ShouldPrompt">Set to true when a GUI is available and the user should be prompted; otherwise, false.</param>
     /// <returns>True if the current user has write permission for inspection headers; otherwise, false.</returns>
-    internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean): Boolean
+    internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         ShouldPrompt := GuiAllowed();
-        exit(QltyInspectionHeader.WritePermission());
+        ShouldAssign := QltyInspectionHeader.WritePermission();
     end;
 
     #region Verify Permissions

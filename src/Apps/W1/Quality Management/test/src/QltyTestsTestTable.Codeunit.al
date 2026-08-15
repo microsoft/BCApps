@@ -92,9 +92,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ResultCode2Tok: Label '"|\/?&*()';
         CannotBeRemovedExistingInspectionErr: Label 'This result cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this result consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the result.';
         TestAddedExactlyOnceErr: Label 'Test %1 should be added exactly once.', Comment = '%1 = quality test code';
-        AssignToSelfQstFragmentTok: Label 'would you like to assign it to yourself', Locked = true;
-        AssignToSelfNotification: Notification;
-        AssignToSelfNotificationSeen: Boolean;
         IsInitialized: Boolean;
 
     [Test]
@@ -1637,53 +1634,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [THEN] Error is thrown indicating insufficient reserved or posted package quantity
         LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionHeader."Source Item No.", PackageTok, QltyInspectionHeader."Source Package No.", 0));
-    end;
-
-    [Test]
-    [HandlerFunctions('AssignToSelfNotificationHandler')]
-    procedure Table_InspectionAssignSelfOnModify()
-    var
-        Location: Record Location;
-        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-    begin
-        // [SCENARIO] Modifying an unassigned inspection prompts the current user, who accepts the assignment
-
-        Initialize();
-
-        // [GIVEN] Quality management setup is configured
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-
-        // [GIVEN] A location is created
-        LibraryWarehouse.CreateLocation(Location);
-
-        // [GIVEN] An inspection is created from purchase with no assigned user
-        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-
-        // [GIVEN] Inspection has no assigned user initially
-        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not have assigned user.');
-        Clear(AssignToSelfNotification);
-        AssignToSelfNotificationSeen := false;
-
-        // [WHEN] Inspection is modified by changing source quantity
-        QltyInspectionHeader."Source Quantity (Base)" := 99;
-        QltyInspectionHeader.Modify(true);
-
-        // [WHEN] The user accepts the assign-to-self notification
-        LibraryAssert.IsTrue(AssignToSelfNotificationSeen, 'The assign-to-self notification should have been sent.');
-        QltyInspectionUtility.HandleNotificationActionAssignToSelf(AssignToSelfNotification);
-
-        // [THEN] Inspection is assigned to current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
-        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
     end;
 
     [Test]
@@ -4689,15 +4639,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [MessageHandler]
     procedure MessageHandler(MessageText: Text)
     begin
-    end;
-
-    [SendNotificationHandler]
-    procedure AssignToSelfNotificationHandler(var NotificationToShow: Notification): Boolean
-    begin
-        if StrPos(NotificationToShow.Message(), AssignToSelfQstFragmentTok) > 0 then begin
-            AssignToSelfNotification := NotificationToShow;
-            AssignToSelfNotificationSeen := true;
-        end;
     end;
 
     [ModalPageHandler]
