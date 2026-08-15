@@ -639,6 +639,9 @@ page 20479 "Qlty. Test Card"
         exit(true);
     end;
 
+    /// <summary>
+    /// Updates value-type controls and loads promoted result conditions for the current test.
+    /// </summary>
     local procedure UpdateRowData()
     var
         DummyMatrixArrayCaptionSet: array[10] of Text;
@@ -657,6 +660,10 @@ page 20479 "Qlty. Test Card"
         IsExpressionFormulaEditable := Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Text Expression";
     end;
 
+    /// <summary>
+    /// Persists a condition to an existing test condition or creates it from a default result slot.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
@@ -683,6 +690,10 @@ page 20479 "Qlty. Test Card"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Persists a condition description for an existing test condition.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -709,7 +720,7 @@ page 20479 "Qlty. Test Card"
     /// <summary>
     /// Starts the assist edit dialog for condition.
     /// </summary>
-    /// <param name="Matrix"></param>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -726,7 +737,7 @@ page 20479 "Qlty. Test Card"
     /// <summary>
     /// Starts the assist-edit dialog for the condition description.
     /// </summary>
-    /// <param name="Matrix"></param>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
