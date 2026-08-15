@@ -55,7 +55,6 @@ codeunit 131022 "Library - Graph Auth Mgt."
     var
         Base64Convert: Codeunit "Base64 Convert";
     begin
-        HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
         HttpWebRequestMgt.AddHeader(
             'Authorization',
             SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', UserId(), Password))));
