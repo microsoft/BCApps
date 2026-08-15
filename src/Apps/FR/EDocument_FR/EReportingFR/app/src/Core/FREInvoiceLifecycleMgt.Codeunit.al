@@ -242,7 +242,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
                 RemainingAmount -= AllocatedAmount;
             end;
 
-            InsertVATBreakdown(FREInvoiceLifecycleVAT, FREInvoiceLifecycle."Entry No.", LineNo, VATRate, AllocatedAmount);
+            InsertVATBreakdown(FREInvoiceLifecycleVAT, FREInvoiceLifecycle."Entry No.", LineNo, VATRate, AllocatedAmount, CurrencyCode);
         end;
     end;
 
@@ -271,17 +271,18 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         repeat
             InsertVATBreakdown(
                 ReversalLifecycleVAT, FREInvoiceLifecycle."Entry No.", OriginalLifecycleVAT."Line No.", OriginalLifecycleVAT."VAT %",
-                -OriginalLifecycleVAT."Reported Amount");
+                -OriginalLifecycleVAT."Reported Amount", FREInvoiceLifecycle."Currency Code");
         until OriginalLifecycleVAT.Next() = 0;
     end;
 
-    local procedure InsertVATBreakdown(var FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT"; LifecycleEntryNo: Integer; LineNo: Integer; VATRate: Decimal; ReportedAmount: Decimal)
+    local procedure InsertVATBreakdown(var FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT"; LifecycleEntryNo: Integer; LineNo: Integer; VATRate: Decimal; ReportedAmount: Decimal; CurrencyCode: Code[10])
     begin
         FREInvoiceLifecycleVAT.Init();
         FREInvoiceLifecycleVAT."Lifecycle Entry No." := LifecycleEntryNo;
         FREInvoiceLifecycleVAT."Line No." := LineNo;
         FREInvoiceLifecycleVAT."VAT %" := VATRate;
         FREInvoiceLifecycleVAT."Reported Amount" := ReportedAmount;
+        FREInvoiceLifecycleVAT."Currency Code" := CurrencyCode;
         FREInvoiceLifecycleVAT.Insert();
     end;
 

@@ -28,6 +28,7 @@ table 10971 "FR E-Invoice Lifecycle VAT"
         }
         field(3; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
@@ -35,10 +36,17 @@ table 10971 "FR E-Invoice Lifecycle VAT"
         }
         field(4; "Reported Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Reported Amount';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the amount reported for this VAT rate.';
+        }
+        field(5; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the currency code for the reported amount.';
         }
     }
 
