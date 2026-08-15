@@ -18,7 +18,6 @@ codeunit 139831 "APIV2 - Automation RS Package"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit "Assert";
-        IsInitialized: Boolean;
         SamplePackageFile: Text;
         PackageCodeTxt: Label 'code', Locked = true;
         ActionImportTxt: Label 'Microsoft.NAV.import';
@@ -33,11 +32,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     begin
         TenantConfigPackageFile.DELETEALL(true);
 
-        if IsInitialized then
-            exit;
-
         SamplePackageFile := GenerateSamplePackageFile();
-        IsInitialized := true;
     end;
 
     [Test]
@@ -144,11 +139,12 @@ codeunit 139831 "APIV2 - Automation RS Package"
         StartTime := CurrentDateTime();
 
         repeat
+            SelectLatestVersion();
             ConfigPackage.Find();
         until (not IsImportPending(ConfigPackage)) or
               (CurrentDateTime() - StartTime > 180000);
 
-        Assert.AreEqual(ConfigPackage."Import Status", ConfigPackage."Import Status"::Completed, 'Import Status should be completed.');
+        Assert.AreEqual(ConfigPackage."Import Status"::Completed, ConfigPackage."Import Status", 'Import Status should be completed.');
 
         // clean up after the test
         LibraryRapidStart.CleanUp(ConfigPackage.Code);
@@ -192,11 +188,12 @@ codeunit 139831 "APIV2 - Automation RS Package"
         StartTime := CurrentDateTime();
 
         repeat
+            SelectLatestVersion();
             ConfigPackage.Find();
         until (not IsImportPending(ConfigPackage)) or
               (CurrentDateTime() - StartTime > 180000);
 
-        Assert.AreEqual(ConfigPackage."Import Status", ConfigPackage."Import Status"::Error, 'Import Status should be error.');
+        Assert.AreEqual(ConfigPackage."Import Status"::Error, ConfigPackage."Import Status", 'Import Status should be error.');
 
         // clean up after the test
         LibraryRapidStart.CleanUp(ConfigPackage.Code);
@@ -242,11 +239,12 @@ codeunit 139831 "APIV2 - Automation RS Package"
         StartTime := CurrentDateTime();
 
         repeat
+            SelectLatestVersion();
             ConfigPackage.Find();
         until (not IsApplyPending(ConfigPackage)) or
               (CurrentDateTime() - StartTime > 180000);
 
-        Assert.AreEqual(ConfigPackage."Apply Status", ConfigPackage."Apply Status"::Completed, 'Apply Status should be completed.');
+        Assert.AreEqual(ConfigPackage."Apply Status"::Completed, ConfigPackage."Apply Status", 'Apply Status should be completed.');
         Assert.AreEqual(0, ConfigPackage."No. of Errors", 'There should be no errors.');
 
         // clean up after the test
@@ -325,7 +323,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
 
     local procedure IsApplyPending(var ConfigPackage: Record "Config. Package"): Boolean
     begin
-        exit(ConfigPackage."Apply Status" IN [ConfigPackage."Import Status"::Scheduled, ConfigPackage."Apply Status"::InProgress]);
+        exit(ConfigPackage."Apply Status" IN [ConfigPackage."Apply Status"::Scheduled, ConfigPackage."Apply Status"::InProgress]);
     end;
 
     local procedure CreateTestPackage(var ConfigPackage: Record "Config. Package")
