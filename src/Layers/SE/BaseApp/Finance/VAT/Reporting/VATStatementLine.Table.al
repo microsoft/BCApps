@@ -7,7 +7,6 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 
 /// <summary>
