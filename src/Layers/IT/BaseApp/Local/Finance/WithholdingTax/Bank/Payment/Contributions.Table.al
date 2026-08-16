@@ -269,7 +269,7 @@ table 12117 Contributions
         }
         key(Key9; "Vendor No.", "Related Date")
         {
-            IncludedFields = "Gross Amount";
+            SumIndexFields = "Gross Amount";
         }
     }
 
