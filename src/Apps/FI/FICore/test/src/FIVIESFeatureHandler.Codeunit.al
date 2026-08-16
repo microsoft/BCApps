@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-codeunit 148151 "FI VIES Feature Handler"
+codeunit 148152 "FI VIES Feature Handler"
 {
     Access = Internal;
     SingleInstance = true;
