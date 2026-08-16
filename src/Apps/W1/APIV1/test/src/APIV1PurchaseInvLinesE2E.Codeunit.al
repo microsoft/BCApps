@@ -714,7 +714,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         ResponseText: Text;
         InvoiceLineJSON: Text;
         LineIdFromJSON: Text;
-        LineId: Guid;
+        LineNo: Integer;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -737,8 +737,11 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         // [THEN] Line of type Item is created
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', LineIdFromJSON), 'Could not find line id');
-        EVALUATE(LineId, LibraryGraphMgt.StripBrackets(LineIdFromJSON));
-        PurchaseLine.GetBySystemId(LineId);
+        EVALUATE(LineNo, CopyStr(LineIdFromJSON, 38));
+        PurchaseLine.SETRANGE("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SETRANGE("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SETRANGE("Line No.", LineNo);
+        PurchaseLine.FINDFIRST();
         Assert.AreEqual('', PurchaseLine."No.", 'No should be blank');
         Assert.AreEqual(PurchaseLine.Type, PurchaseLine.Type::Item, 'Wrong type is set');
 
@@ -1086,7 +1089,6 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 

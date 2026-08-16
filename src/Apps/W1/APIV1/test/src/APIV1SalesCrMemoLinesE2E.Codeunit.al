@@ -701,7 +701,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
         ResponseText: Text;
         CreditMemoLineJSON: Text;
         LineIdFromJSON: Text;
-        LineId: Guid;
+        LineNo: Integer;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -724,8 +724,11 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
         // [THEN] Line of type Item is created
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', LineIdFromJSON), 'Could not find line id');
-        EVALUATE(LineId, LibraryGraphMgt.StripBrackets(LineIdFromJSON));
-        SalesLine.GetBySystemId(LineId);
+        EVALUATE(LineNo, CopyStr(LineIdFromJSON, 38));
+        SalesLine.SETRANGE("Document Type", SalesHeader."Document Type");
+        SalesLine.SETRANGE("Document No.", SalesHeader."No.");
+        SalesLine.SETRANGE("Line No.", LineNo);
+        SalesLine.FINDFIRST();
         Assert.AreEqual('', SalesLine."No.", 'No should be blank');
         Assert.AreEqual(SalesLine.Type, SalesLine.Type::Item, 'Wrong type is set');
 
@@ -1284,7 +1287,6 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 

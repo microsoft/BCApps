@@ -667,9 +667,9 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     begin
         PurchaseOrder.OpenNew();
         PurchaseOrder."Buy-from Vendor No.".SetValue(Vendor."No.");
-        PurchaseOrder."Order Date".SetValue(DocumentDate);
         PurchaseOrder."Document Date".SetValue(DocumentDate);
         PurchaseOrder."Posting Date".SetValue(PostingDate);
+        PurchaseOrder."Order Date".SetValue(DocumentDate);
     end;
 
     local procedure CheckShippingDetailsNotEmpty(var PurchaseHeader: Record "Purchase Header")
