@@ -961,7 +961,7 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         // [THEN] Line of type Item is created
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', LineIdFromJSON), 'Could not find line id');
-        EVALUATE(LineId, LineIdFromJSON);
+        EVALUATE(LineId, LibraryGraphMgt.StripBrackets(LineIdFromJSON));
         SalesLine.GetBySystemId(LineId);
         Assert.AreEqual('', SalesLine."No.", 'No should be blank');
         Assert.AreEqual(SalesLine.Type, SalesLine.Type::Item, 'Wrong type is set');

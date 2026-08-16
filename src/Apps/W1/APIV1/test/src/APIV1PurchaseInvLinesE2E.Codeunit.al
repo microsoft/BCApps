@@ -737,7 +737,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         // [THEN] Line of type Item is created
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', LineIdFromJSON), 'Could not find line id');
-        EVALUATE(LineId, LineIdFromJSON);
+        EVALUATE(LineId, LibraryGraphMgt.StripBrackets(LineIdFromJSON));
         PurchaseLine.GetBySystemId(LineId);
         Assert.AreEqual('', PurchaseLine."No.", 'No should be blank');
         Assert.AreEqual(PurchaseLine.Type, PurchaseLine.Type::Item, 'Wrong type is set');
@@ -1086,7 +1086,6 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 
