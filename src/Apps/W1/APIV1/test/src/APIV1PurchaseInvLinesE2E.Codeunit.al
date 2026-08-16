@@ -722,7 +722,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
 
         COMMIT();
 
-        LineDescription := LibraryUtility.GenerateGUID();
+        LineDescription := Format(CreateGuid());
         InvoiceLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line

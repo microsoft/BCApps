@@ -723,7 +723,7 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
 
         COMMIT();
 
-        LineDescription := LibraryUtility.GenerateGUID();
+        LineDescription := Format(CreateGuid());
         OrderLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line

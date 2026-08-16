@@ -625,7 +625,7 @@ codeunit 139736 "APIV1 - Sales Quote Lines E2E"
 
         COMMIT();
 
-        LineDescription := LibraryUtility.GenerateGUID();
+        LineDescription := Format(CreateGuid());
         QuoteLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line
