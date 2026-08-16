@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-
 /// <summary>
 /// Defines named VAT statement configurations within templates for organizing different VAT calculation scenarios.
 /// Groups VAT statement lines under named categories for various reporting and calculation purposes.
