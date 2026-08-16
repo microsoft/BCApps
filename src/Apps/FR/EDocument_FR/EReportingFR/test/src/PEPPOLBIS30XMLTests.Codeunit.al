@@ -1171,6 +1171,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceCode: Code[20];
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
+        LibrarySetupStorage.Restore();
         ServiceParticipant.SetRange(Service, EDocumentService.Code);
         ServiceParticipant.DeleteAll();
         InitializeCompanyIdentity();
@@ -1394,6 +1395,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
         if Customer."Post Code" = '' then
             Customer.Validate("Post Code", '75001');
+        Customer.Validate(City, 'Paris');
         Customer."VAT Registration No." := 'FR12345678901';
         Customer."Registration Number" := '123456789';
 
