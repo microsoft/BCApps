@@ -713,8 +713,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         InvoiceLineJSON: Text;
-        LineIdFromJSON: Text;
-        LineNo: Integer;
+        LineDescription: Text;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -723,7 +722,8 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
 
         COMMIT();
 
-        InvoiceLineJSON := '{"description":"test"}';
+        LineDescription := LibraryUtility.GenerateGUID();
+        InvoiceLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line
         TargetURL := LibraryGraphMgt
@@ -735,12 +735,9 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, InvoiceLineJSON, ResponseText);
 
         // [THEN] Line of type Item is created
-        Assert.IsTrue(
-          LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', LineIdFromJSON), 'Could not find line id');
-        EVALUATE(LineNo, CopyStr(LineIdFromJSON, 38));
         PurchaseLine.SETRANGE("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SETRANGE("Document No.", PurchaseHeader."No.");
-        PurchaseLine.SETRANGE("Line No.", LineNo);
+        PurchaseLine.SETRANGE(Description, LineDescription);
         PurchaseLine.FINDFIRST();
         Assert.AreEqual('', PurchaseLine."No.", 'No should be blank');
         Assert.AreEqual(PurchaseLine.Type, PurchaseLine.Type::Item, 'Wrong type is set');
@@ -1089,7 +1086,6 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 

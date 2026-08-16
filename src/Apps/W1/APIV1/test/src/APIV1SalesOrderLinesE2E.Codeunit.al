@@ -714,8 +714,7 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         OrderLineJSON: Text;
-        LineIdFromJSON: Text;
-        LineNo: Integer;
+        LineDescription: Text;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -724,7 +723,8 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
 
         COMMIT();
 
-        OrderLineJSON := '{"description":"test"}';
+        LineDescription := LibraryUtility.GenerateGUID();
+        OrderLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line
         TargetURL := LibraryGraphMgt
@@ -736,12 +736,9 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, OrderLineJSON, ResponseText);
 
         // [THEN] Line of type Item is created
-        Assert.IsTrue(
-          LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', LineIdFromJSON), 'Could not find line id');
-        EVALUATE(LineNo, CopyStr(LineIdFromJSON, 38));
         SalesLine.SETRANGE("Document Type", SalesHeader."Document Type");
         SalesLine.SETRANGE("Document No.", SalesHeader."No.");
-        SalesLine.SETRANGE("Line No.", LineNo);
+        SalesLine.SETRANGE(Description, LineDescription);
         SalesLine.FINDFIRST();
         Assert.AreEqual('', SalesLine."No.", 'No should be blank');
         Assert.AreEqual(SalesLine.Type, SalesLine.Type::Item, 'Wrong type is set');
@@ -1209,7 +1206,6 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 
