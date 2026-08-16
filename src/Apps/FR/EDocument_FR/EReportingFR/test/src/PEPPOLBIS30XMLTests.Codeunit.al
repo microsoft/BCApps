@@ -1171,7 +1171,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceCode: Code[20];
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
-        LibrarySetupStorage.Restore();
         ServiceParticipant.SetRange(Service, EDocumentService.Code);
         ServiceParticipant.DeleteAll();
         InitializeCompanyIdentity();

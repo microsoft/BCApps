@@ -836,7 +836,6 @@ codeunit 148145 "Export E-Reporting Tests"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Export E-Reporting Tests");
-        LibrarySetupStorage.Restore();
         if IsInitialized then
             exit;
 
