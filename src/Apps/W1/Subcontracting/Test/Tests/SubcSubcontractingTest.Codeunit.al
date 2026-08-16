@@ -2512,7 +2512,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
-        LibraryUtility: Codeunit "Library - Utility";
         ExpectedDescription: Text[100];
         ExpectedDescription2: Text[50];
     begin
@@ -2540,16 +2539,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderRoutingLine.Modify();
 
         // [GIVEN] The production routing line is suggested on the subcontracting worksheet
-        ReqWkshTemplate.DeleteAll(true);
-        ReqWkshTemplate.Name := SelectRequisitionTemplateName();
-        RequisitionWkshName.Init();
-        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
-        RequisitionWkshName.Validate(
-            Name,
-            CopyStr(
-                LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
-                1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
-        RequisitionWkshName.Insert(true);
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
         RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
         SubcCalculateSubContract.SetWkShLine(RequisitionLine);
@@ -2581,7 +2571,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
-        LibraryUtility: Codeunit "Library - Utility";
         ExpectedDescription: Text[100];
         ExpectedDescription2: Text[50];
     begin
@@ -2605,16 +2594,7 @@ codeunit 139989 "Subc. Subcontracting Test"
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         // [GIVEN] A subcontracting requisition line whose routing operation does not exist
-        ReqWkshTemplate.DeleteAll(true);
-        ReqWkshTemplate.Name := SelectRequisitionTemplateName();
-        RequisitionWkshName.Init();
-        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
-        RequisitionWkshName.Validate(
-            Name,
-            CopyStr(
-                LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
-                1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
-        RequisitionWkshName.Insert(true);
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
         RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
         SubcCalculateSubContract.SetWkShLine(RequisitionLine);
