@@ -1076,8 +1076,15 @@ function Invoke-ParallelTestExecution {
         Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
             -AppNamesToTest $cleanTenantAppNames -AppIdByName $appIdByName
     )
+    $cleanTenantInfo = @(
+        $tenantInfo |
+            Where-Object { $_.Id -ne $parameters.tenant }
+    )
     $templateDatabaseName = ""
     if ($requiredDisabledWorkItems.Count -gt 0) {
+        if ($cleanTenantInfo.Count -eq 0) {
+            throw "Clean RequiredTestIsolation=Disabled execution requires at least one secondary tenant."
+        }
         Write-Host "Preparing clean-tenant execution for $($requiredDisabledWorkItems.Count) RequiredTestIsolation=Disabled codeunit(s)."
         $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceTenant $parameters.tenant
     }
@@ -1136,7 +1143,7 @@ function Invoke-ParallelTestExecution {
         try {
             Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
             $requiredDisabledPassed = Invoke-RequiredDisabledTestExecution -Parameters $parameters `
-                -WorkItems $requiredDisabledWorkItems -TenantInfo $tenantInfo `
+                -WorkItems $requiredDisabledWorkItems -TenantInfo $cleanTenantInfo `
                 -TemplateDatabaseName $templateDatabaseName -ScriptPath $scriptPath -TestType $testType
             if (-not $requiredDisabledPassed) {
                 $state.hasFailures = $true

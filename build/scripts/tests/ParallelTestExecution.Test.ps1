@@ -129,7 +129,10 @@ Describe "ParallelTestExecution transient retry scheduling" {
             $script:raced = $false
 
             Mock Get-AvailableBcTenantInfo {
-                @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
             }
             Mock Get-BcContainerAppInfo {
                 @('Big', 'Medium', 'Small') | ForEach-Object {
@@ -439,7 +442,10 @@ Describe "ParallelTestExecution clean tenant scheduling" {
     It "creates one template and invokes clean-tenant execution when codeunits require Disabled isolation" {
         InModuleScope ParallelTestExecution {
             Mock Get-AvailableBcTenantInfo {
-                @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
             }
             Mock Get-BcContainerAppInfo {
                 @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
@@ -473,7 +479,10 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             Should -Invoke New-BcTestTenantTemplate -Times 1
             Should -Invoke Enable-BcTestTaskScheduler -Times 1
             Should -Invoke Invoke-RequiredDisabledTestExecution -Times 1 -ParameterFilter {
-                $TemplateDatabaseName -eq 'default-test-template' -and $WorkItems.Count -eq 1
+                $TemplateDatabaseName -eq 'default-test-template' -and
+                $WorkItems.Count -eq 1 -and
+                $TenantInfo.Count -eq 1 -and
+                $TenantInfo[0].Id -eq 'tenant2'
             }
             Should -Invoke Remove-BcTestTenantTemplate -Times 1 -ParameterFilter {
                 $TemplateDatabaseName -eq 'default-test-template'
