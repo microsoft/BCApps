@@ -2557,7 +2557,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcCalculateSubContract.RunModal();
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
         RequisitionLine.FindFirst();
         LibraryPurchase.CreateVendor(Vendor);
 
