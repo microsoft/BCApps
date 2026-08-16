@@ -20,10 +20,16 @@ codeunit 13420 "FICore VIES Decl. Feature"
         FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
         FeatureEnabled := FeatureManagementFacade.IsEnabled(GetFeatureKey(), false);
+        OnAfterIsEnabled(FeatureEnabled);
     end;
 
     procedure GetFeatureKey(): Text[50]
     begin
         exit(VIESDeclarationFeatureIdTok);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsEnabled(var FeatureEnabled: Boolean)
+    begin
     end;
 }

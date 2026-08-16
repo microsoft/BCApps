@@ -13,12 +13,12 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryService: Codeunit "Library - Service";
         LibraryERM: Codeunit "Library - ERM";
+        FIVIESFeatureHandler: Codeunit "FI VIES Feature Handler";
         Assert: Codeunit Assert;
         BusinessIdentityCodeTxt: Text[20];
         RegisteredHomeCityTxt: Text[50];
         VendorCrMemoNoTok: Label '123', Locked = true;
         ServiceSuppliesCode4CaptionLbl: Label 'Total Value of Service Supplies(Code 4)';
-        FeatureIdTok: Label 'FIVATVIESDeclaration', Locked = true;
 
     local procedure Initialize()
     var
@@ -33,7 +33,7 @@ codeunit 148150 "FI Company Field Report Test"
 
         LibraryVariableStorage.Clear();
         LibraryReportDataset.Reset();
-        SetVATVIESDeclarationFeature(false);
+        FIVIESFeatureHandler.SetEnabled(false);
 
         CompanyInformation.Get();
         CompanyInformation."VAT Registration No." := 'FI12345678';
@@ -141,7 +141,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         // [Scenario] Test FI Core extension subscriber for Finnish company fields in the VIES declaration.
         Initialize();
-        SetVATVIESDeclarationFeature(true);
+        FIVIESFeatureHandler.SetEnabled(true);
         CreateVATVIESEntry();
 
         // [WHEN] The VAT VIES declaration report is run.
@@ -181,38 +181,6 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', '');
         LibraryReportDataset.AssertElementWithValueExists('RegHomeCityCaption', '');
         LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', '');
-    end;
-
-    local procedure SetVATVIESDeclarationFeature(Enable: Boolean)
-    var
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
-    begin
-        if not FeatureKey.Get(FeatureIdTok) then begin
-            FeatureKey.Init();
-            FeatureKey.ID := FeatureIdTok;
-            FeatureKey."Data Update Required" := false;
-            FeatureKey.Insert();
-        end;
-        if Enable then
-            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
-        else
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-        FeatureKey.Modify();
-
-        if not FeatureKeyUpdateStatus.Get(FeatureIdTok, CompanyName()) then begin
-            FeatureKeyUpdateStatus.Init();
-            FeatureKeyUpdateStatus."Feature Key" := FeatureIdTok;
-            FeatureKeyUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureKeyUpdateStatus."Company Name"));
-            FeatureKeyUpdateStatus."Data Update Required" := false;
-            FeatureKeyUpdateStatus.Insert();
-        end;
-        if Enable then
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Enabled
-        else
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-        FeatureKeyUpdateStatus.Modify();
-        Commit();
     end;
 
     local procedure CreateRefNumberSeries(StartingNo: Code[20]): Code[20]
