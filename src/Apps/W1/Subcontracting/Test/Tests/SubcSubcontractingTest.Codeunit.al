@@ -2570,6 +2570,74 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure ChangingVendorUsesWorkCenterDescriptionsWhenRoutingLineNotFound()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        LibraryUtility: Codeunit "Library - Utility";
+        ExpectedDescription: Text[100];
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor uses the subcontracting work center descriptions when the routing line is not found
+        Initialize();
+
+        // [GIVEN] A released production order with distinct descriptions on its subcontracting work center
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        ExpectedDescription := 'Subcontracting work center';
+        ExpectedDescription2 := 'Work center details';
+        WorkCenter[2].Validate(Name, ExpectedDescription);
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] A subcontracting requisition line whose routing operation does not exist
+        ReqWkshTemplate.DeleteAll(true);
+        ReqWkshTemplate.Name := SelectRequisitionTemplateName();
+        RequisitionWkshName.Init();
+        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
+        RequisitionWkshName.Validate(
+            Name,
+            CopyStr(
+                LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
+                1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
+        RequisitionWkshName.Insert(true);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine."Operation No." := 'NOTFOUND';
+        RequisitionLine.Description := 'Description before vendor validation';
+        RequisitionLine."Description 2" := 'Description 2 before validation';
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] Both descriptions fall back to the subcontracting work center
+        Assert.AreEqual(ExpectedDescription, RequisitionLine.Description, 'The work center description must be used when the routing line is not found.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The work center description 2 must be used when the routing line is not found.');
+    end;
+
+    [Test]
     procedure CalculateSubcontractsErrorsWhenWorkCenterMissingGenProdPostingGroup()
     var
         Item: Record Item;
