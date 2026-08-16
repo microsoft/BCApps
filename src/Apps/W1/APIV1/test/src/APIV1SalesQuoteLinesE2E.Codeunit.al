@@ -617,6 +617,7 @@ codeunit 139736 "APIV1 - Sales Quote Lines E2E"
         ResponseText: Text;
         QuoteLineJSON: Text;
         LineDescription: Text;
+        LineFound: Boolean;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -640,8 +641,11 @@ codeunit 139736 "APIV1 - Sales Quote Lines E2E"
         // [THEN] Line of type Item is created
         SalesLine.SETRANGE("Document Type", SalesHeader."Document Type");
         SalesLine.SETRANGE("Document No.", SalesHeader."No.");
-        SalesLine.SETRANGE(Description, LineDescription);
-        SalesLine.FINDFIRST();
+        if SalesLine.FINDSET() then
+            repeat
+                LineFound := SalesLine.Description = LineDescription;
+            until LineFound or (SalesLine.NEXT() = 0);
+        Assert.IsTrue(LineFound, 'Could not find the created quote line');
         Assert.AreEqual('', SalesLine."No.", 'No should be blank');
         Assert.AreEqual(SalesLine.Type, SalesLine.Type::Item, 'Wrong type is set');
 
@@ -952,7 +956,6 @@ codeunit 139736 "APIV1 - Sales Quote Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 
