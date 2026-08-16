@@ -23,12 +23,12 @@ table 133 "Incoming Document Attachment"
 
     fields
     {
-        field(1; "Incoming Document Entry No."; Integer)
+        field(1; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";
         }
-        field(2; "Line No."; Integer)
+        field(2; "Line No."; BigInteger)
         {
             Caption = 'Line No.';
         }

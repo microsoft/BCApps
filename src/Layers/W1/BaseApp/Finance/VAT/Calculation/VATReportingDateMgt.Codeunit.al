@@ -292,7 +292,7 @@ codeunit 799 "VAT Reporting Date Mgt"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeCode, '', false, false)]
-    local procedure ResetVATReturnPeriodWarningOnBeforeGenJnlPostLineCode(var GLEntryNo: Integer)
+    local procedure ResetVATReturnPeriodWarningOnBeforeGenJnlPostLineCode(var GLEntryNo: BigInteger)
     begin
         if GLEntryNo = 0 then
             ResetVATReturnPeriodWarning();

@@ -19,7 +19,7 @@ table 2584 "Dim Correction Set Buffer"
         /// <summary>
         /// Reference to the parent dimension correction entry.
         /// </summary>
-        field(1; "Dimension Correction Entry No."; Integer)
+        field(1; "Dimension Correction Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Correction"."Entry No.";
@@ -28,7 +28,7 @@ table 2584 "Dim Correction Set Buffer"
         /// <summary>
         /// Original dimension set ID to be corrected.
         /// </summary>
-        field(2; "Dimension Set ID"; Integer)
+        field(2; "Dimension Set ID"; BigInteger)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Set Entry"."Dimension Set ID";

@@ -25,12 +25,12 @@ table 5223 "Detailed Employee Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the entry number of the detailed employee ledger entry.';
         }
-        field(2; "Employee Ledger Entry No."; Integer)
+        field(2; "Employee Ledger Entry No."; BigInteger)
         {
             Caption = 'Employee Ledger Entry No.';
             ToolTip = 'Specifies the entry number of the employee ledger entry that the detailed employee ledger entry line was created for.';
@@ -102,7 +102,7 @@ table 5223 "Detailed Employee Ledger Entry"
             ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
-        field(13; "Transaction No."; Integer)
+        field(13; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -173,7 +173,7 @@ table 5223 "Detailed Employee Ledger Entry"
             Caption = 'Unapplied';
             ToolTip = 'Specifies whether the entry has been unapplied (undone) from the Unapply Employee Entries window by the entry number shown in the Unapplied by Entry No. field.';
         }
-        field(38; "Unapplied by Entry No."; Integer)
+        field(38; "Unapplied by Entry No."; BigInteger)
         {
             Caption = 'Unapplied by Entry No.';
             ToolTip = 'Specifies the number of the correcting entry, if the original entry has been unapplied (undone) from the Unapply Employee Entries window.';
@@ -202,7 +202,7 @@ table 5223 "Detailed Employee Ledger Entry"
             Editable = false;
             TableRelation = "Exch. Rate Adjmt. Reg.";
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             Editable = false;
@@ -234,7 +234,7 @@ table 5223 "Detailed Employee Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Employee Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -263,7 +263,7 @@ table 5223 "Detailed Employee Ledger Entry"
     procedure SetZeroTransNo(TransactionNo: Integer)
     var
         DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
-        ApplicationNo: Integer;
+        ApplicationNo: BigInteger;
     begin
         DetailedEmployeeLedgerEntry.SetCurrentKey("Transaction No.");
         DetailedEmployeeLedgerEntry.SetRange("Transaction No.", TransactionNo);

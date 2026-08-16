@@ -134,7 +134,7 @@ codeunit 408 DimensionManagement
     /// Determines appropriate source code from Source Code Setup for different document types and journal entries.
     /// </summary>
     /// <param name="TableID">Table ID to determine the appropriate source code for dimension operations</param>
-    procedure SetSourceCode(TableID: Integer)
+    procedure SetSourceCode(TableID: BigInteger)
     var
         SourceCodeSetup: Record "Source Code Setup";
     begin
@@ -170,7 +170,7 @@ codeunit 408 DimensionManagement
     /// </summary>
     /// <param name="TableID">Table ID to determine the appropriate source code for dimension operations</param>
     /// <param name="RecordVar">Record variant providing additional context for source code determination</param>
-    procedure SetSourceCode(TableID: Integer; RecordVar: Variant)
+    procedure SetSourceCode(TableID: BigInteger; RecordVar: Variant)
     begin
         SetSourceCode(TableID);
 
@@ -3793,7 +3793,7 @@ codeunit 408 DimensionManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSourceCodeWithVar(TableID: Integer; RecordVar: Variant; var SourceCode: Code[10])
+    local procedure OnAfterSetSourceCodeWithVar(TableID: BigInteger; RecordVar: Variant; var SourceCode: Code[10])
     begin
     end;
 
@@ -4150,7 +4150,7 @@ codeunit 408 DimensionManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSourceCode(var SourceCodeSetup: Record "Source Code Setup"; TableID: Integer; var SourceCode: Code[10]);
+    local procedure OnAfterSetSourceCode(var SourceCodeSetup: Record "Source Code Setup"; TableID: BigInteger; var SourceCode: Code[10]);
     begin
     end;
 

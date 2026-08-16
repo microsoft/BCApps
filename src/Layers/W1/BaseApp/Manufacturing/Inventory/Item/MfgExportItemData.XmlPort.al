@@ -2680,7 +2680,7 @@ xmlport 99000751 "Mfg. Export Item Data"
             until ProdOrderLine.Next() = 0;
     end;
 
-    procedure CollectCapValueEntry(CapEntryNo: Integer)
+    procedure CollectCapValueEntry(CapEntryNo: BigInteger)
     var
         ValueEntry: Record "Value Entry";
     begin

@@ -19,7 +19,7 @@ table 2582 "Dimension Correction"
         /// <summary>
         /// Unique identifier for the dimension correction record.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             AutoIncrement = true;

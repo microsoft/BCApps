@@ -31,7 +31,7 @@ table 1205 "Credit Transfer Register"
         /// <summary>
         /// Unique sequential number for the credit transfer register.
         /// </summary>
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';

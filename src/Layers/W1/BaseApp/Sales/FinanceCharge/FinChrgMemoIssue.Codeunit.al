@@ -250,7 +250,7 @@ codeunit 395 "FinChrgMemo-Issue"
         DimMgt: Codeunit DimensionManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocNo: Code[20];
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         ReplacePostingDate: Boolean;
         PostingDate: Date;
         SrcCode: Code[10];

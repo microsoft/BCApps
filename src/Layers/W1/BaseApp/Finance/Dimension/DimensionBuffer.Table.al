@@ -25,7 +25,7 @@ table 360 "Dimension Buffer"
         /// <summary>
         /// Identifier of the source table containing the entries with dimensions to be changed.
         /// </summary>
-        field(1; "Table ID"; Integer)
+        field(1; "Table ID"; BigInteger)
         {
             Caption = 'Table ID';
             DataClassification = SystemMetadata;
@@ -34,7 +34,7 @@ table 360 "Dimension Buffer"
         /// <summary>
         /// Entry number from the source table identifying the specific record with dimensions to be changed.
         /// </summary>
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;

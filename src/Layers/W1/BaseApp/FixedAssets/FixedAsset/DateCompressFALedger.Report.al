@@ -360,7 +360,7 @@ report 5696 "Date Compress FA Ledger"
         Retain: array[10] of Boolean;
         FieldNumber: array[10] of Integer;
         FieldNameArray: array[10] of Text[100];
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NoOfDeleted: Integer;
         FARegExists: Boolean;
         i: Integer;

@@ -717,7 +717,7 @@ codeunit 5051 SegManagement
         exit(CampaignEntry."Entry No." + 1);
     end;
 
-    local procedure GetCampaignEntryNo(SegmentLine: Record "Segment Line"; LoggedSegmentEntryNo: Integer): Integer
+    local procedure GetCampaignEntryNo(SegmentLine: Record "Segment Line"; LoggedSegmentEntryNo: Integer): BigInteger
     var
         CampaignEntry: Record "Campaign Entry";
     begin

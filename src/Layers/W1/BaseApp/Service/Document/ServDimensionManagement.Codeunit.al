@@ -20,7 +20,7 @@ codeunit 5955 "Serv. Dimension Management"
     // Codeunit DimensionManagement
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnAfterSetSourceCode', '', true, false)]
-    local procedure DimensionManagementOnAfterSetSourceCodeWithVar(var SourceCodeSetup: Record "Source Code Setup"; var SourceCode: Code[10]; TableID: Integer)
+    local procedure DimensionManagementOnAfterSetSourceCodeWithVar(var SourceCodeSetup: Record "Source Code Setup"; var SourceCode: Code[10]; TableID: BigInteger)
     begin
         if TableID in [Database::"Service Header",
                         Database::"Service Item Line",

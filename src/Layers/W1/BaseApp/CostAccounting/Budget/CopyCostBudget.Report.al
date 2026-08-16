@@ -229,7 +229,7 @@ report 1134 "Copy Cost Budget"
         Factor: Decimal;
         i: Integer;
         NoInserted: Integer;
-        CostBudgetRegNo: Integer;
+        CostBudgetRegNo: BigInteger;
 
 #pragma warning disable AA0074
         Text000: Label 'The multiplication factor must not be 0.';

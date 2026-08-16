@@ -421,7 +421,7 @@ table 5505 "Sales Quote Entity Buffer"
             Caption = 'Ship-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
-        field(1304; "Cust. Ledger Entry No."; Integer)
+        field(1304; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             DataClassification = CustomerContent;

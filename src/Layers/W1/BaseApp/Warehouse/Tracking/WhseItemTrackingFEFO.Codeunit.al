@@ -20,7 +20,7 @@ codeunit 7326 "Whse. Item Tracking FEFO"
         TempGlobalEntrySummary: Record "Entry Summary" temporary;
         SourceReservationEntry: Record "Reservation Entry";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
-        LastSummaryEntryNo: Integer;
+        LastSummaryEntryNo: BigInteger;
         StrictExpirationPosting: Boolean;
         HasExpiredItems: Boolean;
         ExpiredItemsForPickMsg: Label '\\Some items were not included in the pick due to their expiration date.';
@@ -325,7 +325,7 @@ codeunit 7326 "Whse. Item Tracking FEFO"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertEntrySummaryFEFOProcedure(ItemTrackingSetup: Record "Item Tracking Setup"; var TempGlobalEntrySummary: Record "Entry Summary" temporary; var LastSummaryEntryNo: Integer; StrictExpirationPosting: Boolean; ExpirationDate: Date; var HasExpiredItems: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeInsertEntrySummaryFEFOProcedure(ItemTrackingSetup: Record "Item Tracking Setup"; var TempGlobalEntrySummary: Record "Entry Summary" temporary; var LastSummaryEntryNo: BigInteger; StrictExpirationPosting: Boolean; ExpirationDate: Date; var HasExpiredItems: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -335,7 +335,7 @@ codeunit 7326 "Whse. Item Tracking FEFO"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeSummarizeInventoryFEFO(Location: Record Location; ItemNo: Code[20]; VariantCode: Code[10]; HasExpirationDate: Boolean; var IsHandled: Boolean; var TempGlobalEntrySummary: Record "Entry Summary"; var StrictExpirationPosting: Boolean; var LastSummaryEntryNo: Integer; var HasExpiredItems: Boolean)
+    local procedure OnBeforeSummarizeInventoryFEFO(Location: Record Location; ItemNo: Code[20]; VariantCode: Code[10]; HasExpirationDate: Boolean; var IsHandled: Boolean; var TempGlobalEntrySummary: Record "Entry Summary"; var StrictExpirationPosting: Boolean; var LastSummaryEntryNo: BigInteger; var HasExpiredItems: Boolean)
     begin
     end;
 

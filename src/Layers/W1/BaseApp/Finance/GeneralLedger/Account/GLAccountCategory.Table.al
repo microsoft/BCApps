@@ -30,7 +30,7 @@ table 570 "G/L Account Category"
         /// <summary>
         /// Unique identifier for the account category record with auto-increment functionality.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
@@ -38,7 +38,7 @@ table 570 "G/L Account Category"
         /// <summary>
         /// Reference to the parent category entry for hierarchical organization of account categories.
         /// </summary>
-        field(2; "Parent Entry No."; Integer)
+        field(2; "Parent Entry No."; BigInteger)
         {
             Caption = 'Parent Entry No.';
         }
@@ -248,7 +248,7 @@ table 570 "G/L Account Category"
     /// Returns the entry number of the newly created category for further processing.
     /// </summary>
     /// <returns>Entry number of the newly inserted account category</returns>
-    procedure InsertRow(): Integer
+    procedure InsertRow(): BigInteger
     var
         GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
     begin

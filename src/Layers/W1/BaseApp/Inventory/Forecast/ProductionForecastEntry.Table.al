@@ -25,7 +25,7 @@ table 99000852 "Production Forecast Entry"
             NotBlank = true;
             TableRelation = "Production Forecast Name";
         }
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -162,7 +162,7 @@ table 99000852 "Production Forecast Entry"
         ItemUnitofMeasure: Record "Item Unit of Measure";
         Item: Record Item;
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

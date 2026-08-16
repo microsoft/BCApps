@@ -593,7 +593,7 @@ table 6010 "Service Header Archive"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";

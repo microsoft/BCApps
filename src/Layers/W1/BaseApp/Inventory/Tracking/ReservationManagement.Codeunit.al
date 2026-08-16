@@ -350,7 +350,7 @@ codeunit 99000845 "Reservation Management"
     procedure UpdateStatistics(var TempEntrySummary: Record "Entry Summary" temporary; AvailabilityDate: Date; HandleItemTracking2: Boolean)
     var
         i: Integer;
-        CurrentEntryNo: Integer;
+        CurrentEntryNo: BigInteger;
         ValueArrayNo: Integer;
         TotalQuantity: Decimal;
     begin
@@ -1451,7 +1451,7 @@ codeunit 99000845 "Reservation Management"
         ActionMessageEntry2: Record "Action Message Entry";
         DateFormula: DateFormula;
         DampenerPeriod: DateFormula;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         FirstDate: Date;
         Found: Boolean;
         FreeBinding: Boolean;

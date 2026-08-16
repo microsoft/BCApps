@@ -294,7 +294,7 @@ page 120 "G/L Budget Entries"
         GLBudgetName: Record "G/L Budget Name";
         UpdateAnalysisView: Codeunit "Update Analysis View";
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
-        LowestModifiedEntryNo: Integer;
+        LowestModifiedEntryNo: BigInteger;
         GlobalDimension1CodeVisible: Boolean;
         GlobalDimension2CodeVisible: Boolean;
         BudgetDimension1CodeVisible: Boolean;

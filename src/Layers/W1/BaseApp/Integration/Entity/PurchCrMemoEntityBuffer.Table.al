@@ -271,7 +271,7 @@ table 5508 "Purch. Cr. Memo Entity Buffer"
             Caption = 'Document Date';
             DataClassification = CustomerContent;
         }
-        field(1304; "Vendor Ledger Entry No."; Integer)
+        field(1304; "Vendor Ledger Entry No."; BigInteger)
         {
             Caption = 'Vendor Ledger Entry No.';
             DataClassification = CustomerContent;

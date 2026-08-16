@@ -28,7 +28,7 @@ table 847 "Cash Flow Forecast Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -262,7 +262,7 @@ table 847 "Cash Flow Forecast Entry"
         }
     }
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

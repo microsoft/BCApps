@@ -1219,7 +1219,7 @@ page 6510 "Item Tracking Lines"
         Inbound: Boolean;
         InsertIsBlocked: Boolean;
         IsDirectTransfer: Boolean;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         QtyPerUOM: Decimal;
         QtyRoundingPerBase: Decimal;
         UndefinedQtyArray: array[3] of Decimal;
@@ -2188,7 +2188,7 @@ page 6510 "Item Tracking Lines"
     var
         Window: Dialog;
         ChangeType: Option Insert,Modify,Delete;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         NoOfLines: Integer;
         i: Integer;
         ModifyLoop: Integer;

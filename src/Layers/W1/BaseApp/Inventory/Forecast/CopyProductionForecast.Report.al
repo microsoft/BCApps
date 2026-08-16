@@ -161,7 +161,7 @@ report 99003803 "Copy Production Forecast"
         ProdForecastEntry2: Record "Production Forecast Entry";
         ChangeDateExpression: DateFormula;
         LastEntryNo: Integer;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
 
     local procedure CheckDemandForecastEntry(): Boolean
     var

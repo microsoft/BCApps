@@ -33,28 +33,28 @@ table 1111 "Cost Budget Register"
             Caption = 'Description';
             Editable = false;
         }
-        field(4; "From Budget Entry No."; Integer)
+        field(4; "From Budget Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'From Budget Entry No.';
             Editable = false;
             TableRelation = "G/L Budget Entry";
         }
-        field(5; "To Budget Entry No."; Integer)
+        field(5; "To Budget Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'To Budget Entry No.';
             Editable = false;
             TableRelation = "G/L Budget Entry";
         }
-        field(6; "From Cost Budget Entry No."; Integer)
+        field(6; "From Cost Budget Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'From Cost Budget Entry No.';
             Editable = false;
             TableRelation = "Cost Budget Entry";
         }
-        field(7; "To Cost Budget Entry No."; Integer)
+        field(7; "To Cost Budget Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'To Cost Budget Entry No.';

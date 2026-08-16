@@ -671,7 +671,7 @@ codeunit 5530 "Calc. Item Availability"
         exit(ForecastExist);
     end;
 
-    procedure GetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: Integer): Boolean
+    procedure GetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: BigInteger): Boolean
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         SalesLine: Record "Sales Line";
@@ -1000,7 +1000,7 @@ codeunit 5530 "Calc. Item Availability"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: Integer; var IsHandled: Boolean; RecRef: RecordRef)
+    local procedure OnAfterGetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: BigInteger; var IsHandled: Boolean; RecRef: RecordRef)
     begin
     end;
 

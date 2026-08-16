@@ -53,8 +53,8 @@ codeunit 5940 ServContractManagement
         PostingDate: Date;
         WDate: Date;
         ServLineNo: Integer;
-        NextEntryNo: Integer;
-        PrevEntryNo: Integer;
+        NextEntryNo: BigInteger;
+        PrevEntryNo: BigInteger;
         AppliedEntryNo: Integer;
         AmountType: Option ,Amount,DiscAmount,UnitPrice,UnitCost;
         TempServLedgEntriesIsSet: Boolean;
@@ -140,7 +140,7 @@ codeunit 5940 ServContractManagement
         ServContractLine: Record "Service Contract Line";
         ServContractHeader: Record "Service Contract Header";
         Currency: Record Currency;
-        LastEntry: Integer;
+        LastEntry: BigInteger;
         FirstLineEntry: Integer;
         NoOfPayments: Integer;
         DueDate: Date;
@@ -1086,7 +1086,7 @@ codeunit 5940 ServContractManagement
         AppliedCreditLineUnitCost: Decimal;
         AppliedCreditLineDiscAmount: Decimal;
         ApplyServiceLedgerEntryAmounts: Boolean;
-        ServLedgEntryNo: Integer;
+        ServLedgEntryNo: BigInteger;
     begin
         Days := Date2DMY(ContractLineStartingDate, 1);
         Currency.InitRoundingPrecision();
@@ -1481,8 +1481,8 @@ codeunit 5940 ServContractManagement
         ServiceLedgEntry: Record "Service Ledger Entry";
         SourceCodeSetup: Record "Source Code Setup";
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
-        KeepFromWarrEntryNo: Integer;
-        KeepToWarrEntryNo: Integer;
+        KeepFromWarrEntryNo: BigInteger;
+        KeepToWarrEntryNo: BigInteger;
     begin
         if ServiceRegister."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
@@ -1959,7 +1959,7 @@ codeunit 5940 ServContractManagement
         TempServLedgEntriesIsSet := true;
     end;
 
-    local procedure LookUpAmountToCredit(ServItemNo: Code[20]; ItemNo: Code[20]; PostingDate: Date; var LineAmount: Decimal; var CostAmount: Decimal; var UnitPrice: Decimal; var DiscountAmt: Decimal; var ServLedgEntryNo: Integer): Boolean
+    local procedure LookUpAmountToCredit(ServItemNo: Code[20]; ItemNo: Code[20]; PostingDate: Date; var LineAmount: Decimal; var CostAmount: Decimal; var UnitPrice: Decimal; var DiscountAmt: Decimal; var ServLedgEntryNo: BigInteger): Boolean
     begin
         LineAmount := 0;
         CostAmount := 0;

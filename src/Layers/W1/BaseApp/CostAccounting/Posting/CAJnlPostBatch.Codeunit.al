@@ -22,7 +22,7 @@ codeunit 1103 "CA Jnl.-Post Batch"
     var
         CostJnlLine: Record "Cost Journal Line";
         CostReg: Record "Cost Register";
-        CostRegNo: Integer;
+        CostRegNo: BigInteger;
         SuppressCommit: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470

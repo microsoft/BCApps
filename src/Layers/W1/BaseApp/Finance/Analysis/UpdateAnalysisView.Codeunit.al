@@ -767,7 +767,7 @@ codeunit 410 "Update Analysis View"
     /// <param name="DimSetID">Dimension set ID to validate against analysis view filters</param>
     /// <param name="AnalysisView">Analysis view record containing dimension filter criteria</param>
     /// <returns>True if dimension set matches all analysis view filters, false otherwise</returns>
-    procedure DimSetIDInFilter(DimSetID: Integer; var AnalysisView: Record "Analysis View"): Boolean
+    procedure DimSetIDInFilter(DimSetID: BigInteger; var AnalysisView: Record "Analysis View"): Boolean
     var
         InFilters: Boolean;
     begin

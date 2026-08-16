@@ -27,7 +27,7 @@ table 5106 "Interaction Merge Data"
             TableRelation = "Salesperson/Purchaser".Code;
         }
 
-        field(4; "Log Entry Number"; Integer)
+        field(4; "Log Entry Number"; BigInteger)
         {
             TableRelation = "Interaction Log Entry"."Entry No.";
         }

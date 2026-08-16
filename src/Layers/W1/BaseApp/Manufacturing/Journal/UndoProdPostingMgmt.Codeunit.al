@@ -95,7 +95,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         StopTime: Decimal;
         ScrapValue: Decimal;
         IsHandled: Boolean;
-        CapacityLedgerEntryNo: Integer;
+        CapacityLedgerEntryNo: BigInteger;
     begin
         ProductionOrder.SetLoadFields(Status, "No.");
         if not ProductionOrder.Get(ProductionOrder.Status::Released, ItemLedgerEntry."Order No.") then
@@ -212,7 +212,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         exit(not ProdOrderRoutingLine.IsEmpty());
     end;
 
-    local procedure GetLastOperationInformation(ItemLedgEntry: Record "Item Ledger Entry"; var CapacityLedgerEntryNo: Integer; var OperationNo: Code[20]; var SetupTime: Decimal; var RunTime: Decimal; var StopTime: Decimal; var ScrapValue: Decimal)
+    local procedure GetLastOperationInformation(ItemLedgEntry: Record "Item Ledger Entry"; var CapacityLedgerEntryNo: BigInteger; var OperationNo: Code[20]; var SetupTime: Decimal; var RunTime: Decimal; var StopTime: Decimal; var ScrapValue: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";

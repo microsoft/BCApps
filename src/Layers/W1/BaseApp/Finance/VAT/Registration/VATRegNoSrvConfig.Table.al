@@ -18,7 +18,7 @@ table 248 "VAT Reg. No. Srv Config"
         /// <summary>
         /// Primary key entry number for the configuration record.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

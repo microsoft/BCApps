@@ -29,7 +29,7 @@ table 5225 "Employee Payment Buffer"
             DataClassification = SystemMetadata;
             TableRelation = Currency;
         }
-        field(3; "Employee Ledg. Entry No."; Integer)
+        field(3; "Employee Ledg. Entry No."; BigInteger)
         {
             Caption = 'Employee Ledg. Entry No.';
             DataClassification = SystemMetadata;

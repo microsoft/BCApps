@@ -15,7 +15,7 @@ table 5806 "Cost Adjustment Log"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry.';
@@ -41,7 +41,7 @@ table 5806 "Cost Adjustment Log"
             Caption = 'Ending Date-Time';
             ToolTip = 'Specifies the ending date and time of the cost adjustment run.';
         }
-        field(6; "Item Register No."; Integer)
+        field(6; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             ToolTip = 'Specifies the item register number that is created for the cost adjustment run. Blank value indicates that the cost adjustment has not produced any new value entries.';

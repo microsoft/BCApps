@@ -845,7 +845,7 @@ codeunit 900 "Assembly-Post"
             until TempItemLedgEntry2.Next() = 0;
     end;
 
-    local procedure FindAppliesToATOUndoEntry(var ItemLedgEntryInChain: Record "Item Ledger Entry"): Integer
+    local procedure FindAppliesToATOUndoEntry(var ItemLedgEntryInChain: Record "Item Ledger Entry"): BigInteger
     begin
         ItemLedgEntryInChain.Reset();
         ItemLedgEntryInChain.SetCurrentKey("Item No.", Positive);
