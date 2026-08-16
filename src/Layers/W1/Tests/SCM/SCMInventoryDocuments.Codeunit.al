@@ -48,10 +48,10 @@ codeunit 137140 "SCM Inventory Documents"
         UnitAmountShouldBeDerivedErr: Label 'Unit Amount should be derived from Unit Cost and Indirect Cost %%.';
         UnitCostShouldBeDerivedErr: Label 'Unit Cost should be derived from Unit Amount and Indirect Cost %%.';
         InboundReservationErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
-        OutboundQtyNegativeLbl: Label 'Outbound reservation should have negative quantity';
-        OnlyOneLineShouldHaveQtyLbl: Label 'Only one transfer line should have qty in transit';
-        ShouldBeFirstTransferLbl: Label 'Should be the first transfer order';
-        QtyInTransitShouldMatchLbl: Label 'Qty in transit should match posted quantity';
+        OutboundQtyNegativeErr: Label 'Outbound reservation should have negative quantity';
+        OnlyOneLineShouldHaveQtyErr: Label 'Only one transfer line should have qty in transit';
+        ShouldBeFirstTransferErr: Label 'Should be the first transfer order';
+        QtyInTransitShouldMatchErr: Label 'Qty in transit should match posted quantity';
 
     [Test]
     [Scope('OnPrem')]
@@ -2537,7 +2537,7 @@ codeunit 137140 "SCM Inventory Documents"
         ReservationEntry.SetRange("Source Subtype", 0); // Outbound
         Assert.RecordIsNotEmpty(ReservationEntry);
         ReservationEntry.FindFirst();
-        Assert.IsTrue(ReservationEntry."Quantity (Base)" < 0, OutboundQtyNegativeLbl);
+        Assert.IsTrue(ReservationEntry."Quantity (Base)" < 0, OutboundQtyNegativeErr);
     end;
 
     [Test]
@@ -2580,10 +2580,10 @@ codeunit 137140 "SCM Inventory Documents"
         TransferLine1.SetFilter("Qty. in Transit (Base)", '>0');
 
         // [THEN] Only "T1" with qty in transit is shown
-        Assert.AreEqual(1, TransferLine1.Count, OnlyOneLineShouldHaveQtyLbl);
+        Assert.AreEqual(1, TransferLine1.Count, OnlyOneLineShouldHaveQtyErr);
         TransferLine1.FindFirst();
-        Assert.AreEqual(TransferHeader1."No.", TransferLine1."Document No.", ShouldBeFirstTransferLbl);
-        Assert.AreEqual(Qty1, TransferLine1."Qty. in Transit (Base)", QtyInTransitShouldMatchLbl);
+        Assert.AreEqual(TransferHeader1."No.", TransferLine1."Document No.", ShouldBeFirstTransferErr);
+        Assert.AreEqual(Qty1, TransferLine1."Qty. in Transit (Base)", QtyInTransitShouldMatchErr);
     end;
 
     [Test]
