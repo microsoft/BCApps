@@ -133,6 +133,70 @@ codeunit 148302 "Expense Report Posting Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure PostingExpenseReportLogsPostedActivity()
+    var
+        Expense: Record Expense;
+        Employee: Record Employee;
+        PostCode: Record "Post Code";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        OriginalSubjectSystemID: Guid;
+        Amount: Decimal;
+    begin
+        // [SCENARIO] Posting records a Posted activity entry and reassigns the report timeline to the posted source.
+        Initialize();
+
+        // [GIVEN] A released expense report with activity tracking already started.
+        LibraryERM.FindPostCode(PostCode);
+        Amount := LibraryRandom.RandInt(100);
+        CreateExpense(Expense, true, '', Amount);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        Expense.Modify();
+        ExpenseUser.Get(Expense."Expense User No.");
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        CreateExpenseReport.AddExpensesToReport(ExpenseReportHeader);
+        ExpenseReportHeader.PerformManualRelease();
+        OriginalSubjectSystemID := ExpenseReportHeader.SystemId;
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Submitted,
+            Enum::"Expense Activity Initiator"::User,
+            Enum::"Expense Activity Actor Role"::Submitter,
+            ExpenseUser."No.",
+            '');
+
+        // [WHEN] The report is posted through Expense Report-Post.
+        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] Submitted and Posted entries are sourced from the posted report and keep the original subject.
+        PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
+        PostedExpenseReportHeader.FindFirst();
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Posted Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", PostedExpenseReportHeader.SystemId);
+        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+        ExpenseActivityLogEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Subject System ID", OriginalSubjectSystemID);
+        ExpenseActivityLogEntry.SetCurrentKey("Subject Table ID", "Subject System ID", "Occurred At", "Entry No.");
+        ExpenseActivityLogEntry.FindLast();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Posted, ExpenseActivityLogEntry."Event Type", 'The latest activity entry must be Posted.');
+        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'Posting must identify the current BC User actor.');
+        Assert.IsFalse(IsNullGuid(ExpenseActivityLogEntry."Actor Record System ID"), 'Posting must persist the BC User SystemId.');
+        Assert.AreEqual(Amount, ExpenseActivityLogEntry."Amount (LCY)", 'Posted activity must preserve the report amount snapshot.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
     procedure ExpenseReportMustBePostedForMultipleReleasedExpense()
     var
         Expense: array[2] of Record Expense;
