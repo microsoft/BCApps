@@ -2,7 +2,6 @@ namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Ledger;
-using System.TestLibraries.Utilities;
 
 codeunit 148222 "Sust. Reversal Tests"
 {
