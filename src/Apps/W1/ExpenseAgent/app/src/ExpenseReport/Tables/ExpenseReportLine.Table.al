@@ -1069,12 +1069,40 @@ table 6907 "Expense Report Line"
             ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
+        field(102; "Policies Evaluated At"; DateTime)
+        {
+            Caption = 'Policies Evaluated At';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(103; "Policy Eval Version"; Integer)
+        {
+            Caption = 'Policy Eval Version';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(104; "Evaluated Policy Version"; Integer)
+        {
+            Caption = 'Evaluated Policy Version';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(105; "Has Policy Violation"; Boolean)
+        {
+            Caption = 'Has Policy Violation';
+            FieldClass = FlowField;
+            CalcFormula = exist("Expense Policy Flag" where("Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Evaluated Policy Version"), "Compliant" = const(false)));
+            Editable = false;
+        }
     }
     keys
     {
         key(PK; "Document No.", "Line No.")
         {
             Clustered = true;
+        }
+        key(PolicyInvalidation; "Expense Category", "Policies Evaluated At")
+        {
         }
     }
 
@@ -1090,16 +1118,24 @@ table 6907 "Expense Report Line"
     trigger OnModify()
     begin
         UpdateExpenseUserOnModify();
+        if PolicyRelevantFieldChanged() then
+            "Policy Eval Version" += 1;
     end;
 
     trigger OnDelete()
     var
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
     begin
         DeleteAssociatedRecords();
 
         RemoveExpenseReportNoInExpense();
+
+        ExpensePolicyFlag.SetRange("Subject System Id", Rec.SystemId);
+        ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
+        if not ExpensePolicyFlag.IsEmpty() then
+            ExpensePolicyFlag.DeleteAll();
 
         ExpenseReportRuleViolation.SetRange("Expense Report No.", Rec."Document No.");
         ExpenseReportRuleViolation.SetRange("Report Line No.", Rec."Line No.");
@@ -1185,6 +1221,142 @@ table 6907 "Expense Report Line"
     procedure GetHideValidationDialog(): Boolean
     begin
         exit(HideValidationDialog);
+    end;
+
+    procedure GetPolicyStatus(): Enum "Expense Policy Status"
+    begin
+        // A change made after the line was evaluated always needs a recheck - even a change that
+        // removed the last applicable policy (deleting a policy must surface as Needs Recheck, not
+        // silently drop to No Policies). Evaluate staleness before applicability so that signal wins.
+        if (Rec."Policies Evaluated At" <> 0DT) and (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
+            exit("Expense Policy Status"::Stale);
+
+        // No enabled policy targets this line's category, so there is nothing to run against it. This
+        // is a distinct, stable signal from an evaluated-and-passed line (Cleared): it holds whether
+        // or not a policy check has run, so the frontend can render "no policy" immediately instead
+        // of waiting for an evaluation pass that only marks the empty line evaluated and would then
+        // make it indistinguishable from a line that was checked against real policies and passed.
+        if not HasApplicablePolicies() then
+            exit("Expense Policy Status"::"No Policies");
+
+        // A policy applies but no evaluation has been recorded yet.
+        if Rec."Policies Evaluated At" = 0DT then
+            exit("Expense Policy Status"::"Not Evaluated");
+
+        if Rec.HasCurrentPolicyViolation() then
+            exit("Expense Policy Status"::Flagged);
+
+        exit("Expense Policy Status"::Cleared);
+    end;
+
+    internal procedure HasCurrentPolicyViolation(): Boolean
+    var
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+    begin
+        // A line is only Flagged by a violation that still reflects the current policy set. Superseded
+        // non-compliant flags (policy since changed, disabled, or deleted) are kept as history but must
+        // not keep a line Flagged - any policy change bumps the policy Version, so the flag's captured
+        // Policy Version no longer matches and Is Current reads false. The raw "Has Policy Violation"
+        // FlowField is the cheap gate; this refines it to current flags only.
+        Rec.CalcFields("Has Policy Violation");
+        if not Rec."Has Policy Violation" then
+            exit(false);
+
+        ExpensePolicyFlag.SetRange("Subject System Id", Rec.SystemId);
+        ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
+        ExpensePolicyFlag.SetRange("Subject Version", Rec."Evaluated Policy Version");
+        ExpensePolicyFlag.SetRange(Compliant, false);
+        ExpensePolicyFlag.SetAutoCalcFields("Is Current");
+        if ExpensePolicyFlag.FindSet() then
+            repeat
+                if ExpensePolicyFlag."Is Current" then
+                    exit(true);
+            until ExpensePolicyFlag.Next() = 0;
+        exit(false);
+    end;
+
+    local procedure HasApplicablePolicies(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        // Mirrors the applicability rule used by the policies-to-evaluate endpoint: an enabled
+        // report-line policy whose category matches the line or is blank (blank applies to every
+        // category).
+        ExpensePolicy.SetCurrentKey("Subject Type", Enabled, "Expense Category Code");
+        ExpensePolicy.SetRange("Subject Type", ExpensePolicy."Subject Type"::"Expense Report Line");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', Rec."Expense Category", '');
+        exit(not ExpensePolicy.IsEmpty());
+    end;
+
+    procedure MarkPoliciesEvaluated()
+    begin
+        Rec."Evaluated Policy Version" := Rec."Policy Eval Version";
+        Rec."Policies Evaluated At" := CurrentDateTime();
+        Rec.Modify(false);
+    end;
+
+    internal procedure InvalidatePolicyEvaluation()
+    begin
+        // Nothing to invalidate unless a current evaluation exists and is still up to date.
+        // Skipping the write when there is nothing to invalidate also avoids staling a parent
+        // Expense Report Line handle held by a caller when a child record (participant/itemization/per diem)
+        // is inserted, modified, or deleted before the caller next modifies the line.
+        if (Rec."Policies Evaluated At" = 0DT) or (Rec."Policy Eval Version" <> Rec."Evaluated Policy Version") then
+            exit;
+
+        Rec."Policy Eval Version" += 1;
+        Rec.Modify(false);
+    end;
+
+    local procedure PolicyRelevantFieldChanged(): Boolean
+    var
+        StoredExpenseReportLine: Record "Expense Report Line";
+        RecRef: RecordRef;
+        xRecRef: RecordRef;
+        FieldRef: FieldRef;
+        xFieldRef: FieldRef;
+        Index: Integer;
+    begin
+        // Compare against the committed pre-modify image read straight from the database.
+        // xRec is unreliable here - even passed explicitly from the trigger it has been
+        // observed to compare equal to Rec at runtime - so the before-image is fetched by
+        // primary key instead (OnModify runs before the row is written, so this Get returns
+        // the old values). If no stored row is found, conservatively treat it as changed.
+        if not StoredExpenseReportLine.Get(Rec."Document No.", Rec."Line No.") then
+            exit(true);
+        RecRef.GetTable(Rec);
+        xRecRef.GetTable(StoredExpenseReportLine);
+        for Index := 1 to RecRef.FieldCount() do begin
+            FieldRef := RecRef.FieldIndex(Index);
+            if (FieldRef.Class = FieldClass::Normal) and (FieldRef.Number < 2000000000) then
+                if not IsPolicyNeutralField(FieldRef.Number) then begin
+                    xFieldRef := xRecRef.Field(FieldRef.Number);
+                    if FieldRef.Value() <> xFieldRef.Value() then
+                        exit(true);
+                end;
+        end;
+        exit(false);
+    end;
+
+    local procedure IsPolicyNeutralField(FieldNo: Integer): Boolean
+    begin
+        // Fields whose change must NOT invalidate a policy evaluation: workflow/linkage
+        // state, the audit stamp written on every modify, and the policy machinery itself.
+        case FieldNo of
+            Rec.FieldNo("Document No."),
+            Rec.FieldNo("Line No."),
+            Rec.FieldNo("Expense No."),
+            Rec.FieldNo("Applied Rule Id"),
+            Rec.FieldNo("Created By Exp. User Id"),
+            Rec.FieldNo("Modified By Exp. User Id"),
+            Rec.FieldNo("User Confirmed"),
+            Rec.FieldNo("Policies Evaluated At"),
+            Rec.FieldNo("Policy Eval Version"),
+            Rec.FieldNo("Evaluated Policy Version"):
+                exit(true);
+        end;
+        exit(false);
     end;
 
     local procedure ConfirmAndDeleteAssociatedRecords(FieldCaption: Text)

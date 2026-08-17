@@ -493,4 +493,24 @@ table 6916 "Posted Expense Report Line"
         ExpenseCommentSheet.SetTableView(ExpenseReportCommentLine);
         ExpenseCommentSheet.RunModal();
     end;
+
+    procedure GetPolicyStatus(): Enum "Expense Policy Status"
+    var
+        PostedExpPolicyFlag: Record "Posted Exp. Policy Flag";
+    begin
+        // Report the policy verdict captured at posting. Posted flags are an immutable audit copy,
+        // so - unlike the open line - currency is not re-checked here: a non-compliant flag keeps the
+        // line Flagged for the audit trail even if the live policy later changes. A line posted with
+        // no flags was never evaluated.
+        PostedExpPolicyFlag.SetRange("Subject System Id", Rec.SystemId);
+        PostedExpPolicyFlag.SetRange("Subject Type", PostedExpPolicyFlag."Subject Type"::"Expense Report Line");
+        if PostedExpPolicyFlag.IsEmpty() then
+            exit("Expense Policy Status"::"Not Evaluated");
+
+        PostedExpPolicyFlag.SetRange(Compliant, false);
+        if not PostedExpPolicyFlag.IsEmpty() then
+            exit("Expense Policy Status"::Flagged);
+
+        exit("Expense Policy Status"::Cleared);
+    end;
 }

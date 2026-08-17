@@ -587,10 +587,18 @@ codeunit 148300 "Library - Expense"
         ExpenseLocation: Record "Expense Location";
         ExpenseUser: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
     begin
         ExpenseGroup.DeleteAll();
         ExpenseUser.DeleteAll();
         ExpenseLocation.DeleteAll();
+
+        // Codeunit test isolation keeps data written by earlier test methods, so shared policy
+        // master data must be reset between tests. A leaked blank-category policy in particular
+        // would otherwise apply to every report line and skew policy-status assertions.
+        ExpensePolicyFlag.DeleteAll();
+        ExpensePolicy.DeleteAll();
 
         // Ensure the agent is disabled so tests that toggle approval workflow don't fail
         // when the test environment was left with the agent enabled.

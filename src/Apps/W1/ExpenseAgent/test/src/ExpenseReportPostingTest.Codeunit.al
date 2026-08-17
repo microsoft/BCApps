@@ -62,6 +62,7 @@ codeunit 148302 "Expense Report Posting Test"
         CannotImportAndDeleteAttachmentOnPostedExpenseReportErr: Label 'You cannot import and delete attachments on %1 %2, %3 %4.', Comment = '%1 = Posted Expense Report No., %2 = P-ER000001, %3 = Line No., %4 = 10000';
         CannotUpdateAndDeleteAttachmentOnExpenseErr: Label 'You cannot update and delete attachment on an %1 %2 that is part of an %3 %4.', Comment = '%1 = Expense No., %2 = EXP100001, %3 = Expense Report No., %4 = ER100001';
         CannotUpdateAndDeleteAttachmentOnExpenseReportErr: Label 'You cannot update and delete attachment on an %1 %2, %3 %4 that is part of an %5 %6.', Comment = '%1 = Expense Report No., %2 = ER100001, %3 = Line No., %4 = 10000, %5 = Expense No., %6 = EXP100001';
+        CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
@@ -3521,6 +3522,274 @@ codeunit 148302 "Expense Report Posting Test"
             CommentText,
             PostedExpenseReportCommentLine.Comment,
             StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportCommentLine.FieldCaption(Comment), CommentText, PostedExpenseReportCommentLine.TableCaption()));
+    end;
+
+    [Test]
+    procedure SubmitDoesNotInvalidatePolicyEvaluation()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        CurrentUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
+        EvaluatedVersion: Integer;
+    begin
+        // [SCENARIO] Releasing and marking a report Pending Approval must NOT invalidate policy
+        //            evaluations - the submit path only reads lines, it never modifies them.
+        Initialize();
+
+        // [GIVEN] Approval workflow disabled so submit needs no interactive approval.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] An expense user and a refundable category with an expense report line.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCategory.Validate(Refundable, true);
+        ExpenseCategory.Modify();
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        // [GIVEN] A policy for the category and a violation flag captured on the line, then the line is marked evaluated.
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
+        ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
+        ExpensePolicyFlag.Insert(true);
+
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        EvaluatedVersion := ExpenseReportLine."Evaluated Policy Version";
+        Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the evaluated line must be Flagged.');
+
+        // [GIVEN] An approver chain so the report can be submitted.
+        CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
+
+        // [WHEN] The report is released and marked Pending Approval (submitted).
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+
+        // [THEN] The report is Pending Approval.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'The report must be Pending Approval after submit.');
+
+        // [THEN] The line's policy evaluation is untouched: both versions unchanged, status still Flagged (not Stale).
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(EvaluatedVersion, ExpenseReportLine."Policy Eval Version", 'Submit must not bump Policy Eval Version.');
+        Assert.AreEqual(EvaluatedVersion, ExpenseReportLine."Evaluated Policy Version", 'Submit must not move Evaluated Policy Version.');
+        Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Submit must leave the policy status unchanged (not Stale).');
+    end;
+
+    [Test]
+    procedure SubmitBlockedWhenPolicyEvaluationStaleAndAiPolicyEnabled()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpenseReportNo: Code[20];
+    begin
+        // [SCENARIO] With AI policy evaluation on, releasing and submitting a report whose line went
+        //            stale after it was evaluated is rejected in-transaction with a machine-detectable
+        //            error, so the client can re-evaluate and retry instead of submitting a stale report.
+        Initialize();
+
+        // [GIVEN] AI policy evaluation on and an expense report line with an applicable policy.
+        SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
+        ExpenseReportNo := ExpenseReportHeader."No.";
+
+        // [GIVEN] The line is evaluated then invalidated so it is now Stale.
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.InvalidatePolicyEvaluation();
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line must be Stale.');
+
+        // [GIVEN] Save the committed stale state so the rejected submit rolls back only its own
+        //         changes and the report can still be read back afterwards.
+        Commit();
+
+        // [WHEN] The report is released and marked Pending Approval.
+        asserterror ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+
+        // [THEN] Submit is rejected with the stable machine-detectable token and the report is not submitted.
+        Assert.ExpectedError('(PolicyEvaluationNotCurrent)');
+        ExpenseReportHeader.Get(ExpenseReportNo);
+        Assert.AreNotEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'A stale report must not reach Pending Approval.');
+    end;
+
+    [Test]
+    procedure SubmitBlockedWhenApplicablePolicyNotEvaluatedAndAiPolicyEnabled()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        // [SCENARIO] With AI policy evaluation on, submitting a report whose line has an applicable
+        //            policy that was never evaluated is rejected in-transaction (a newly added policy
+        //            that landed after the client's snapshot read must not slip through unevaluated).
+        Initialize();
+        SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line must be Not Evaluated.');
+
+        // [WHEN] The report is released and marked Pending Approval.
+        asserterror ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+
+        // [THEN] Submit is rejected with the stable machine-detectable token.
+        Assert.ExpectedError('(PolicyEvaluationNotCurrent)');
+    end;
+
+    [Test]
+    procedure SubmitAllowedWhenPolicyStaleButAiPolicyEvaluationDisabled()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CurrentUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
+    begin
+        // [SCENARIO] The submit-time policy currency gate only applies when AI policy evaluation is on.
+        //            With it off no policy currency is expected, so a stale line must not block submit.
+        Initialize();
+        SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
+
+        // [GIVEN] The line is evaluated then invalidated so it is Stale.
+        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.InvalidatePolicyEvaluation();
+
+        // [GIVEN] AI policy evaluation is turned off.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Evaluate Policies" := false;
+        ExpenseAgentSetup.Modify();
+
+        // [GIVEN] An approver chain so the report can be submitted.
+        CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
+
+        // [WHEN] The report is released and marked Pending Approval.
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+
+        // [THEN] Submit succeeds despite the stale line.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'With AI policy evaluation off, a stale line must not block submit.');
+    end;
+
+    local procedure SetupEvaluatedPolicyLineForSubmit(var ExpenseReportHeader: Record "Expense Report Header"; var ExpenseReportLine: Record "Expense Report Line"; var ExpensePolicy: Record "Expense Policy"; var ExpenseUser: Record "Expense User")
+    var
+        Employee: Record Employee;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        // Approval workflow off (no interactive approval) and AI policy evaluation on.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Evaluate Policies" := true;
+        ExpenseAgentSetup.Modify();
+
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCategory.Validate(Refundable, true);
+        ExpenseCategory.Modify();
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
+        ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('PostConfirmHandler')]
+    procedure PolicyFlagsCopiedToPostedExpenseReport()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedExpPolicyFlag: Record "Posted Exp. Policy Flag";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        // [SCENARIO] Policy flags on a report line are copied to the Posted Expense Policy Flag table on posting,
+        //            and the open flags are removed with the line.
+        Initialize();
+
+        // [GIVEN] An expense user and a refundable category with an expense report line.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCategory.Validate(Refundable, true);
+        ExpenseCategory.Modify();
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        // [GIVEN] A policy for the category and a violation flag captured on the line, then the line is marked evaluated.
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
+        ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
+        ExpensePolicyFlag.Insert(true);
+
+        ExpenseReportLine.MarkPoliciesEvaluated();
+
+        // [GIVEN] The report is released.
+        ExpenseReportHeader.PerformManualRelease();
+
+        // [WHEN] The report is posted.
+        LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
+        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] The posted line carries the copied policy flag.
+        FindPostedExpenseReportLine(PostedExpenseReportLine, ExpenseUser);
+        PostedExpPolicyFlag.SetRange("Subject System Id", PostedExpenseReportLine.SystemId);
+        Assert.RecordCount(PostedExpPolicyFlag, 1);
+
+        // [THEN] The original open flag no longer exists.
+        ExpensePolicyFlag.Reset();
+        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        Assert.RecordIsEmpty(ExpensePolicyFlag);
+
+        // [THEN] The expected posting confirmation was shown (the handler consumed the enqueued text).
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -8473,6 +8742,13 @@ codeunit 148302 "Expense Report Posting Test"
     [ConfirmHandler]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure PostConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), Question, 'Unexpected confirmation question shown during posting.');
         Reply := true;
     end;
 

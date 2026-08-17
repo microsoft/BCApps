@@ -26,6 +26,8 @@ codeunit 6984 "Release Exp. Report Document"
         ApprovalProcessMustBeCancelledErr: Label 'The approval process must be cancelled or completed to reopen this document.';
         RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
         CannotReleaseDocumentWithNothingToRefundErr: Label 'Cannot release the Expense Report No. %1 because there is nothing to refund for this Line No. %2.', Comment = '%1 - Expense No. , %2 - Line No.';
+        PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and submit again.';
+        PolicyEvaluationNotCurrentCodeTok: Label ' (PolicyEvaluationNotCurrent)', Locked = true;
 
     local procedure ReleaseExpenseReport()
     var
@@ -173,6 +175,38 @@ codeunit 6984 "Release Exp. Report Document"
         ExpReportHeader.TestField("Expense User No.");
 
         CheckExpenseReportLines(ExpenseReportLine, ExpReportHeader);
+        CheckPoliciesUpToDate(ExpReportHeader);
+    end;
+
+    local procedure CheckPoliciesUpToDate(ExpReportHeader: Record "Expense Report Header")
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        PolicyEvaluationNotCurrentMsg: Text;
+    begin
+        // Re-check policy currency in the submit transaction. The client decides whether to run
+        // evaluation from a snapshot read of the report's policy state; between that read and this
+        // release+submit a line can go stale (a policy or the line itself changed) or a newly added
+        // policy can leave a line unevaluated. Without this gate such a report would enter approval
+        // without a current evaluation. Only enforced when AI policy evaluation is switched on; when
+        // it is off no policy currency is expected, so submit proceeds as before.
+        ExpenseAgentSetup.GetRecordOnce();
+        if not ExpenseAgentSetup."Evaluate Policies" then
+            exit;
+
+        // Build the message before raising it: the human-readable label stays translatable while the
+        // machine-detectable marker stays locked, and Error receives a single value (no inline
+        // concatenation in the Error call).
+        PolicyEvaluationNotCurrentMsg := PolicyEvaluationNotCurrentErr + PolicyEvaluationNotCurrentCodeTok;
+
+        ExpenseReportLine.SetRange("Document No.", ExpReportHeader."No.");
+        ExpenseReportLine.SetLoadFields("Expense Category", "Policies Evaluated At", "Policy Eval Version", "Evaluated Policy Version");
+        if ExpenseReportLine.FindSet() then
+            repeat
+                if ExpenseReportLine.GetPolicyStatus() in
+                    ["Expense Policy Status"::Stale, "Expense Policy Status"::"Not Evaluated"]
+                then
+                    Error(PolicyEvaluationNotCurrentMsg);
+            until ExpenseReportLine.Next() = 0;
     end;
 
     procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
