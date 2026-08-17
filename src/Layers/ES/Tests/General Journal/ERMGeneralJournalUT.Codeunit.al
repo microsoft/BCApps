@@ -6270,11 +6270,11 @@ codeunit 134920 "ERM General Journal UT"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         RecurringFrequency: DateFormula;
-        RecurringGeneralJournal: TestPage "Recurring General Journal";
         PreviousGlobalLanguage: Integer;
         InvariantRecurringFrequency: Text;
         LocalizedRecurringFrequency: Text;
         ExpectedLocalizedRecurringFrequency: Text;
+        LocalizedValuesRead: Boolean;
     begin
         // [SCENARIO 646602] In a German session the Recurring Frequency field exposes the localized date formula token (1J for a year) that Edit in Excel exports, not the invariant token (1Y).
         Initialize();
@@ -6290,17 +6290,28 @@ codeunit 134920 "ERM General Journal UT"
         PreviousGlobalLanguage := GlobalLanguage();
         GlobalLanguage(1031);
 
-        // [WHEN] The Recurring General Journal page is opened on the line
+        // [WHEN] The Recurring General Journal page is opened on the line and its localized values are read
+        // Restore the session language through a cleanup path so it is always reset, even if the page interaction fails, preventing German from leaking into later tests
+        LocalizedValuesRead := TryReadLocalizedRecurringFrequency(GenJournalLine, LocalizedRecurringFrequency, ExpectedLocalizedRecurringFrequency);
+        GlobalLanguage(PreviousGlobalLanguage);
+        if not LocalizedValuesRead then
+            Error(GetLastErrorText());
+
+        // [THEN] The field shows the German localized date formula (1J), matching Format() in the German session and differing from the invariant token (1Y)
+        Assert.AreEqual(ExpectedLocalizedRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
+        Assert.AreNotEqual(InvariantRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
+    end;
+
+    [TryFunction]
+    local procedure TryReadLocalizedRecurringFrequency(var GenJournalLine: Record "Gen. Journal Line"; var LocalizedRecurringFrequency: Text; var ExpectedLocalizedRecurringFrequency: Text)
+    var
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+    begin
         RecurringGeneralJournal.Trap();
         Page.Run(Page::"Recurring General Journal", GenJournalLine);
         LocalizedRecurringFrequency := RecurringGeneralJournal."Recurring Frequency".Value;
         RecurringGeneralJournal.Close();
-
-        // [THEN] The field shows the German localized date formula (1J), matching Format() in the German session and differing from the invariant token (1Y)
         ExpectedLocalizedRecurringFrequency := Format(GenJournalLine."Recurring Frequency");
-        GlobalLanguage(PreviousGlobalLanguage);
-        Assert.AreEqual(ExpectedLocalizedRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
-        Assert.AreNotEqual(InvariantRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
     end;
 
     local procedure CreateRecurringGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalTemplate: Record "Gen. Journal Template"; var GenJournalBatch: Record "Gen. Journal Batch")
