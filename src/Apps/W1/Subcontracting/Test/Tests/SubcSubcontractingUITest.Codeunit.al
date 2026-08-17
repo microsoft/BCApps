@@ -693,7 +693,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WorkCenterCard.GotoRecord(WorkCenter);
 
         // [THEN] Subcontractor - Dispatch List action is not enabled
-        Assert.IsFalse(WorkCenterCard."Subcontractor - Dispatch List".Enabled(), SubcontractingActionsEnabledErr);
+        Assert.IsFalse(WorkCenterCard."Subcontractor Dispatch List".Enabled(), SubcontractingActionsEnabledErr);
         WorkCenterCard.Close();
     end;
 
@@ -716,7 +716,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WorkCenterCard.GotoRecord(WorkCenter);
 
         // [THEN] Subcontractor - Dispatch List action is enabled
-        Assert.IsTrue(WorkCenterCard."Subcontractor - Dispatch List".Enabled(), SubcontractingActionsNotEnabledErr);
+        Assert.IsTrue(WorkCenterCard."Subcontractor Dispatch List".Enabled(), SubcontractingActionsNotEnabledErr);
         WorkCenterCard.Close();
     end;
 
