@@ -130,6 +130,7 @@ codeunit 139589 "Shpfy Customer API Test"
     var
         CustomerApi: Codeunit "Shpfy Customer API";
         CustomerId: BigInteger;
+        NoCustomerId: BigInteger;
     begin
         // [SCENARIO] A spaced phone number must not match an unrelated Shopify customer that is only returned
         // because Shopify's search syntax tokenizes '+45 4545 4545' into 'phone:+45' plus loose '4545' terms.
@@ -143,7 +144,7 @@ codeunit 139589 "Shpfy Customer API Test"
         CustomerId := CustomerApi.FindIdByPhone('+45 4545 4545');
 
         // [THEN] No customer id is returned because the phone numbers are not an exact match.
-        LibraryAssert.AreEqual(0, CustomerId, 'A non-exact phone match must not be treated as an existing customer.');
+        LibraryAssert.AreEqual(NoCustomerId, CustomerId, 'A non-exact phone match must not be treated as an existing customer.');
     end;
 
     [Test]
@@ -173,6 +174,7 @@ codeunit 139589 "Shpfy Customer API Test"
     var
         CustomerApi: Codeunit "Shpfy Customer API";
         CustomerId: BigInteger;
+        NoCustomerId: BigInteger;
     begin
         // [SCENARIO] An e-mail search must not accept a Shopify customer whose e-mail differs from the requested one.
         Initialize();
@@ -185,7 +187,7 @@ codeunit 139589 "Shpfy Customer API Test"
         CustomerId := CustomerApi.FindIdByEmail('p1@contoso.com');
 
         // [THEN] No customer id is returned because the e-mail addresses are not an exact match.
-        LibraryAssert.AreEqual(0, CustomerId, 'A non-exact e-mail match must not be treated as an existing customer.');
+        LibraryAssert.AreEqual(NoCustomerId, CustomerId, 'A non-exact e-mail match must not be treated as an existing customer.');
     end;
 
     [Test]
