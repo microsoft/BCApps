@@ -86,7 +86,7 @@ report 685 "Payment Practice"
             LayoutFile = 'src/Reports/Payment Practice by Period.docx';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
         layout(PaymentPractice_SmallBusinessLayout)
         {
@@ -96,7 +96,7 @@ report 685 "Payment Practice"
             LayoutFile = 'src/Reports/Payment Practice Small Business.docx';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
         layout(PaymentPractice_VendorSizeLayout)
         {
@@ -106,7 +106,7 @@ report 685 "Payment Practice"
             LayoutFile = 'src/Reports/Payment Practice by Vendor Size.docx';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
         layout(PaymentPractice_PeriodLayoutBody)
         {
