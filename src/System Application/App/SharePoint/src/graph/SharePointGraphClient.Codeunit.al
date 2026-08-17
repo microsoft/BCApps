@@ -728,6 +728,297 @@ codeunit 9119 "SharePoint Graph Client"
         exit(SharePointGraphClientImpl.MoveItemByPath(ItemPath, TargetFolderPath, NewName));
     end;
 
+    /// <summary>
+    /// Gets items in the root folder of a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetRootItems(DriveId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetRootItems(DriveId, GraphDriveItems));
+    end;
+
+    /// <summary>
+    /// Gets items in the root folder of a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetRootItems(DriveId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetRootItems(DriveId, GraphDriveItems, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Gets children of a folder by ID from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="FolderId">ID of the folder.</param>
+    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetFolderItems(DriveId: Text; FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetFolderItems(DriveId, FolderId, GraphDriveItems));
+    end;
+
+    /// <summary>
+    /// Gets children of a folder by ID from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="FolderId">ID of the folder.</param>
+    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetFolderItems(DriveId: Text; FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetFolderItems(DriveId, FolderId, GraphDriveItems, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Gets items from a path in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="FolderPath">Path to the folder.</param>
+    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetItemsByPath(DriveId: Text; FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetItemsByPath(DriveId, FolderPath, GraphDriveItems));
+    end;
+
+    /// <summary>
+    /// Gets items from a path in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="FolderPath">Path to the folder.</param>
+    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetItemsByPath(DriveId: Text; FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetItemsByPath(DriveId, FolderPath, GraphDriveItems, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Gets a file or folder by ID from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemId">ID of the item to retrieve.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetDriveItem(DriveId: Text; ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetDriveItem(DriveId, ItemId, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Gets a file or folder by ID from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemId">ID of the item to retrieve.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetDriveItem(DriveId: Text; ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetDriveItem(DriveId, ItemId, GraphDriveItem, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Gets a file or folder by path from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemPath">Path to the item.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetDriveItemByPath(DriveId: Text; ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetDriveItemByPath(DriveId, ItemPath, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Gets a file or folder by path from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemPath">Path to the item.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetDriveItemByPath(DriveId: Text; ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetDriveItemByPath(DriveId, ItemPath, GraphDriveItem, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Downloads a file by ID from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemId">ID of the file to download.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure DownloadFile(DriveId: Text; ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DownloadFile(DriveId, ItemId, TempBlob));
+    end;
+
+    /// <summary>
+    /// Downloads a file by path from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="FilePath">Path to the file.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure DownloadFileByPath(DriveId: Text; FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DownloadFileByPath(DriveId, FilePath, TempBlob));
+    end;
+
+    /// <summary>
+    /// Downloads a large file by ID from a specific drive using chunked download.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemId">ID of the file to download.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All. Uses 100MB chunks to stay under the 150MB limit.</remarks>
+    procedure DownloadLargeFile(DriveId: Text; ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DownloadLargeFile(DriveId, ItemId, TempBlob));
+    end;
+
+    /// <summary>
+    /// Downloads a large file by path from a specific drive using chunked download.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="FilePath">Path to the file.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All. Uses 100MB chunks to stay under the 150MB limit.</remarks>
+    procedure DownloadLargeFileByPath(DriveId: Text; FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DownloadLargeFileByPath(DriveId, FilePath, TempBlob));
+    end;
+
+    /// <summary>
+    /// Deletes a drive item by ID from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemId">ID of the item to delete.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. Returns success if the item does not exist.</remarks>
+    procedure DeleteItem(DriveId: Text; ItemId: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DeleteItem(DriveId, ItemId));
+    end;
+
+    /// <summary>
+    /// Deletes a drive item by path from a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemPath">Path to the item.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. Returns success if the item does not exist.</remarks>
+    procedure DeleteItemByPath(DriveId: Text; ItemPath: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DeleteItemByPath(DriveId, ItemPath));
+    end;
+
+    /// <summary>
+    /// Checks whether a drive item exists by ID in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemId">ID of the item to check.</param>
+    /// <param name="Exists">True if the item exists; otherwise, false.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure ItemExists(DriveId: Text; ItemId: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.ItemExists(DriveId, ItemId, Exists));
+    end;
+
+    /// <summary>
+    /// Checks whether a drive item exists by path in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemPath">Path to the item.</param>
+    /// <param name="Exists">True if the item exists; otherwise, false.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure ItemExistsByPath(DriveId: Text; ItemPath: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.ItemExistsByPath(DriveId, ItemPath, Exists));
+    end;
+
+    /// <summary>
+    /// Copies a drive item by ID within a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemId">ID of the item to copy.</param>
+    /// <param name="TargetFolderId">ID of the target folder.</param>
+    /// <param name="NewName">New name for the copied item, or empty to keep the original name.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. This is an asynchronous operation.</remarks>
+    procedure CopyItem(DriveId: Text; ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.CopyItem(DriveId, ItemId, TargetFolderId, NewName));
+    end;
+
+    /// <summary>
+    /// Copies a drive item by path within a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemPath">Path to the item.</param>
+    /// <param name="TargetFolderPath">Path to the target folder.</param>
+    /// <param name="NewName">New name for the copied item, or empty to keep the original name.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. This is an asynchronous operation.</remarks>
+    procedure CopyItemByPath(DriveId: Text; ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.CopyItemByPath(DriveId, ItemPath, TargetFolderPath, NewName));
+    end;
+
+    /// <summary>
+    /// Moves or renames a drive item by ID within a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemId">ID of the item to move.</param>
+    /// <param name="TargetFolderId">ID of the target folder, or empty to only rename.</param>
+    /// <param name="NewName">New name for the item, or empty to keep the original name.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. At least one of TargetFolderId or NewName must be provided.</remarks>
+    procedure MoveItem(DriveId: Text; ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.MoveItem(DriveId, ItemId, TargetFolderId, NewName));
+    end;
+
+    /// <summary>
+    /// Moves or renames a drive item by path within a specific drive.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="ItemPath">Path to the item.</param>
+    /// <param name="TargetFolderPath">Path to the target folder, or empty to only rename.</param>
+    /// <param name="NewName">New name for the item, or empty to keep the original name.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. At least one of TargetFolderPath or NewName must be provided.</remarks>
+    procedure MoveItemByPath(DriveId: Text; ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.MoveItemByPath(DriveId, ItemPath, TargetFolderPath, NewName));
+    end;
+
     #endregion
 
     /// <summary>

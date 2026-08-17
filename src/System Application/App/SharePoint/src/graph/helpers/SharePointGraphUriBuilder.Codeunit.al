@@ -38,10 +38,15 @@ codeunit 9121 "SharePoint Graph Uri Builder"
         DriveItemChildrenByPathLbl: Label '/sites/%1/drive/root:/%2:/children', Locked = true;
         SpecificDriveRootLbl: Label '/sites/%1/drives/%2/root', Locked = true;
         SpecificDriveRootChildrenLbl: Label '/sites/%1/drives/%2/root/children', Locked = true;
+        SpecificDriveRootItemByPathLbl: Label '/sites/%1/drives/%2/root:/%3', Locked = true;
+        SpecificDriveItemByIdLbl: Label '/sites/%1/drives/%2/items/%3', Locked = true;
+        SpecificDriveItemChildrenByIdLbl: Label '/sites/%1/drives/%2/items/%3/children', Locked = true;
         SpecificDriveItemChildrenByPathLbl: Label '/sites/%1/drives/%2/root:/%3:/children', Locked = true;
+        SpecificDriveItemContentByIdLbl: Label '/sites/%1/drives/%2/items/%3/content', Locked = true;
         SpecificDriveItemContentByPathLbl: Label '/sites/%1/drives/%2/root:/%3:/content', Locked = true;
         SpecificDriveLbl: Label '/sites/%1/drives/%2', Locked = true;
         CopyItemLbl: Label '/sites/%1/drive/items/%2/copy', Locked = true;
+        SpecificCopyItemLbl: Label '/sites/%1/drives/%2/items/%3/copy', Locked = true;
 
     /// <summary>
     /// Initializes the Graph URI Builder with a specific request helper.
@@ -328,6 +333,39 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     end;
 
     /// <summary>
+    /// Gets the endpoint for an item by path in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">The ID of the drive.</param>
+    /// <param name="ItemPath">The path to the item.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetSpecificDriveItemByPathEndpoint(DriveId: Text; ItemPath: Text): Text
+    begin
+        exit(StrSubstNo(SpecificDriveRootItemByPathLbl, SiteId, EscapeDataString(DriveId), EscapePathSegments(ItemPath)));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for an item by ID in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">The ID of the drive.</param>
+    /// <param name="ItemId">The ID of the item.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetSpecificDriveItemByIdEndpoint(DriveId: Text; ItemId: Text): Text
+    begin
+        exit(StrSubstNo(SpecificDriveItemByIdLbl, SiteId, EscapeDataString(DriveId), EscapeDataString(ItemId)));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for the children of an item by ID in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">The ID of the drive.</param>
+    /// <param name="ItemId">The ID of the item.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetSpecificDriveItemChildrenByIdEndpoint(DriveId: Text; ItemId: Text): Text
+    begin
+        exit(StrSubstNo(SpecificDriveItemChildrenByIdLbl, SiteId, EscapeDataString(DriveId), EscapeDataString(ItemId)));
+    end;
+
+    /// <summary>
     /// Gets the endpoint for getting the children of an item by path in a specific drive.
     /// </summary>
     /// <param name="DriveId">The ID of the drive.</param>
@@ -336,6 +374,28 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     procedure GetSpecificDriveItemChildrenByPathEndpoint(DriveId: Text; ItemPath: Text): Text
     begin
         exit(StrSubstNo(SpecificDriveItemChildrenByPathLbl, SiteId, EscapeDataString(DriveId), EscapePathSegments(ItemPath)));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for the content of an item by ID in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">The ID of the drive.</param>
+    /// <param name="ItemId">The ID of the item.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetSpecificDriveItemContentByIdEndpoint(DriveId: Text; ItemId: Text): Text
+    begin
+        exit(StrSubstNo(SpecificDriveItemContentByIdLbl, SiteId, EscapeDataString(DriveId), EscapeDataString(ItemId)));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for the content of an item by path in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">The ID of the drive.</param>
+    /// <param name="ItemPath">The path to the item.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetSpecificDriveItemContentByPathEndpoint(DriveId: Text; ItemPath: Text): Text
+    begin
+        exit(StrSubstNo(SpecificDriveItemContentByPathLbl, SiteId, EscapeDataString(DriveId), EscapePathSegments(ItemPath)));
     end;
 
     /// <summary>
@@ -375,6 +435,17 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     procedure GetCopyItemEndpoint(ItemId: Text): Text
     begin
         exit(StrSubstNo(CopyItemLbl, SiteId, EscapeDataString(ItemId)));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for copying an item in a specific drive.
+    /// </summary>
+    /// <param name="DriveId">The ID of the drive.</param>
+    /// <param name="ItemId">The ID of the item.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetSpecificCopyItemEndpoint(DriveId: Text; ItemId: Text): Text
+    begin
+        exit(StrSubstNo(SpecificCopyItemLbl, SiteId, EscapeDataString(DriveId), EscapeDataString(ItemId)));
     end;
 
     local procedure EscapeDataString(TextToEscape: Text): Text
