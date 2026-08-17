@@ -224,4 +224,32 @@ Describe "ParallelTestExecution warmup dispatch" {
             Should -Invoke Start-TestAppDispatch -Times 0
         }
     }
+
+    It "warms up the first app and returns the remaining apps" {
+        InModuleScope ParallelTestExecution {
+            Mock Start-TestAppDispatch { }
+            Mock Wait-ForAllTestJobs { $true }
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('A', 'B', 'C') -AppIdByName @{ A = 'id-A'; B = 'id-B'; C = 'id-C' } `
+                -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
+            $result | Should -Be @('B', 'C')
+            Should -Invoke Start-TestAppDispatch -Times 1
+        }
+    }
+
+    It "leaves a transient warmup failure in State.transient for the caller to re-queue" {
+        InModuleScope ParallelTestExecution {
+            Mock Start-TestAppDispatch { }
+            # Simulate Wait-ForAllTestJobs classifying the warmup app as a transient race.
+            Mock Wait-ForAllTestJobs { $State.transient = @('A'); $true }
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('A', 'B', 'C') -AppIdByName @{ A = 'id-A'; B = 'id-B'; C = 'id-C' } `
+                -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
+            $result | Should -Be @('B', 'C')
+            $state.transient | Should -Contain 'A'
+            $state.hasFailures | Should -BeFalse
+        }
+    }
 }
