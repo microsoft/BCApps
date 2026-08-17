@@ -9378,7 +9378,7 @@ codeunit 134327 "ERM Purchase Order"
         PurchaseHeaderCreditMemo: Record "Purchase Header";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         PurchInvHeader: Record "Purch. Inv. Header";
-        PurchaseCreditMemo: TestPage "Purchase Credit Memo";
+        PurchaseCreditMemoPage: TestPage "Purchase Credit Memo";
         VendorNo: Code[20];
         OrderNo: Code[20];
         OrderLineNo: Integer;
@@ -9404,7 +9404,7 @@ codeunit 134327 "ERM Purchase Order"
         // [GIVEN] Purchase Invoice created from the receipt line and posted, so the Purchase Order line is fully received and invoiced.
         LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, VendorNo);
         PurchRcptLine.SetRange("Order No.", OrderNo);
-        PurchRcptLine.SetRange("No.", Item."No.");
+        PurchRcptLine.SetRange("Order Line No.", OrderLineNo);
         PurchRcptLine.FindFirst();
         PurchaseLineInvoice.Init();
         PurchaseLineInvoice.Validate("Document Type", PurchaseHeaderInvoice."Document Type");
@@ -9425,9 +9425,9 @@ codeunit 134327 "ERM Purchase Order"
         PurchaseHeaderCreditMemo.Modify(true);
 
         // [WHEN] Post the Purchase Credit Memo.
-        PurchaseCreditMemo.OpenView();
-        PurchaseCreditMemo.GotoRecord(PurchaseHeaderCreditMemo);
-        PurchaseCreditMemo.Post.Invoke();
+        PurchaseCreditMemoPage.OpenView();
+        PurchaseCreditMemoPage.GotoRecord(PurchaseHeaderCreditMemo);
+        PurchaseCreditMemoPage.Post.Invoke();
 
         // [THEN] The originating Purchase Order line keeps Quantity Received and Quantity Invoiced, with nothing left to receive or invoice.
         PurchaseLineOrder.Get(PurchaseLineOrder."Document Type"::Order, OrderNo, OrderLineNo);
