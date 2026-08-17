@@ -51,6 +51,7 @@ codeunit 4589 "SOA Upgrade"
     var
         SOASetupRec: Record "SOA Setup";
         TempSOASetup: Record "SOA Setup" temporary;
+        SOASetupCU: Codeunit "SOA Setup";
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
@@ -60,11 +61,14 @@ codeunit 4589 "SOA Upgrade"
             exit;
 
         repeat
-            TempSOASetup := SOASetupRec;
-            TempSOASetup.Insert();
-            if not TryUpdateAgentInstructions(SOASetupRec, TempSOASetup) then
-                Session.LogMessage('0000U1P', FailedToUpdateSOAInstructionsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade', 'ErrorCallStack', GetLastErrorCallStack());
-            TempSOASetup.DeleteAll();
+            // Archived agents are read-only, so instructions cannot and need not be refreshed for them.
+            if not SOASetupCU.IsAgentArchived(SOASetupRec."User Security ID") then begin
+                TempSOASetup := SOASetupRec;
+                TempSOASetup.Insert();
+                if not TryUpdateAgentInstructions(SOASetupRec, TempSOASetup) then
+                    Session.LogMessage('0000U1P', FailedToUpdateSOAInstructionsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade', 'ErrorCallStack', GetLastErrorCallStack());
+                TempSOASetup.DeleteAll();
+            end;
         until SOASetupRec.Next() = 0;
     end;
 
@@ -165,20 +169,23 @@ codeunit 4589 "SOA Upgrade"
 
         if SOASetup.FindSet() then
             repeat
-                IsModified := false;
+                // Archived agents keep the identity they had; their name and initials are free to reuse.
+                if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then begin
+                    IsModified := false;
 
-                if SOASetup."Agent Name" = '' then begin
-                    SOASetup."Agent Name" := CopyStr(SOASetupCU.GetSOAUserDisplayName(), 1, MaxStrLen(SOASetup."Agent Name"));
-                    IsModified := true;
+                    if SOASetup."Agent Name" = '' then begin
+                        SOASetup."Agent Name" := CopyStr(SOASetupCU.GetSOAUserDisplayName(), 1, MaxStrLen(SOASetup."Agent Name"));
+                        IsModified := true;
+                    end;
+
+                    if SOASetup."Agent Initials" = '' then begin
+                        SOASetup."Agent Initials" := SOASetupCU.GetInitials();
+                        IsModified := true;
+                    end;
+
+                    if IsModified then
+                        SOASetup.Modify();
                 end;
-
-                if SOASetup."Agent Initials" = '' then begin
-                    SOASetup."Agent Initials" := SOASetupCU.GetInitials();
-                    IsModified := true;
-                end;
-
-                if IsModified then
-                    SOASetup.Modify();
             until SOASetup.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetAgentIdentityTag());

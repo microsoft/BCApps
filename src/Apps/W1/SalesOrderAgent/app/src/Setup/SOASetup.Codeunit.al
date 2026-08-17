@@ -115,18 +115,75 @@ codeunit 4400 "SOA Setup"
 
     internal procedure AllowCreateNewSOAgent(): Boolean
     var
-        SOASetup: Record "SOA Setup";
         AgentSystemPermissions: Codeunit "Agent System Permissions";
-        CurrentOwnerUserSecurityID: Guid;
     begin
         if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             // Limit agent creation to agent admins.
             exit(false);
 
-        CurrentOwnerUserSecurityID := UserSecurityId();
-        SOASetup.SetRange("Owner User Security ID", CurrentOwnerUserSecurityID);
+        exit(ActiveSOAgentCount(UserSecurityId()) < MaxSOAInstances());
+    end;
 
-        exit(SOASetup.Count() < MaxSOAInstances());
+    /// <summary>
+    /// Counts the Sales Order Agent instances owned by a user that still occupy a slot.
+    /// Archived agents are excluded because they can never be reactivated.
+    /// </summary>
+    internal procedure ActiveSOAgentCount(OwnerUserSecurityID: Guid) ActiveCount: Integer
+    var
+        SOASetup: Record "SOA Setup";
+    begin
+        SOASetup.SetRange("Owner User Security ID", OwnerUserSecurityID);
+        if not SOASetup.FindSet() then
+            exit(0);
+
+        repeat
+            if not IsAgentArchived(SOASetup."User Security ID") then
+                ActiveCount += 1;
+        until SOASetup.Next() = 0;
+    end;
+
+    internal procedure ActiveSOAgentSetupExists(): Boolean
+    var
+        SOASetup: Record "SOA Setup";
+    begin
+        exit(FindFirstNonArchivedSetup(SOASetup));
+    end;
+
+    internal procedure IsAgentArchived(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(false);
+
+        // Not every session can read the Agent table, and a setup record can outlive its agent.
+        // In both cases the agent is treated as not archived so callers are never blocked.
+        if not AgentRec.ReadPermission() then
+            exit(false);
+
+        if not AgentRec.Get(AgentUserSecurityID) then
+            exit(false);
+
+        exit(Agent.IsArchived(AgentUserSecurityID));
+    end;
+
+    internal procedure CheckAgentNotArchived(AgentUserSecurityID: Guid)
+    begin
+        if IsAgentArchived(AgentUserSecurityID) then
+            Error(AgentArchivedErr);
+    end;
+
+    local procedure FindFirstNonArchivedSetup(var SOASetup: Record "SOA Setup"): Boolean
+    begin
+        if not SOASetup.FindSet() then
+            exit(false);
+
+        repeat
+            if not IsAgentArchived(SOASetup."User Security ID") then
+                exit(true);
+        until SOASetup.Next() = 0;
+
+        exit(false);
     end;
 
     internal procedure MaxSOAInstances(): Integer
@@ -158,6 +215,8 @@ codeunit 4400 "SOA Setup"
             TempSOASetup."User Security ID" := AgentSetupBuffer."User Security ID";
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
             AgentSetupBuffer."User Security ID" := TempSOASetup."User Security ID";
+
+        CheckAgentNotArchived(TempSOASetup."User Security ID");
 
         EnsureAgentIdentityDefaults(TempSOASetup);
 
@@ -359,6 +418,8 @@ codeunit 4400 "SOA Setup"
         SOAPromptBuilder: Codeunit "SOA Prompt Builder";
         InstructionsSecret: SecretText;
     begin
+        CheckAgentNotArchived(TempSOASetup."User Security ID");
+
         SOAPromptBuilder.PrepareInstructions(InstructionsSecret, TempSOASetup);
         Agent.SetInstructions(TempSOASetup."User Security ID", InstructionsSecret);
         TempSOASetup."Instructions Last Sync At" := CurrentDateTime();
@@ -502,13 +563,13 @@ codeunit 4400 "SOA Setup"
 
         OtherSOASetup.SetRange("Agent Name", SOASetup."Agent Name");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
-        if not OtherSOASetup.IsEmpty() then
+        if FindFirstNonArchivedSetup(OtherSOASetup) then
             Error(AgentNameConflictErr);
 
         OtherSOASetup.Reset();
         OtherSOASetup.SetRange("Agent Initials", SOASetup."Agent Initials");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
-        if not OtherSOASetup.IsEmpty() then
+        if FindFirstNonArchivedSetup(OtherSOASetup) then
             Error(AgentInitialsConflictErr);
     end;
 
@@ -525,13 +586,13 @@ codeunit 4400 "SOA Setup"
 
         if SOASetup."Email Folder Id" = '' then begin
             OtherSOASetup.SetRange("Email Folder Id", '');
-            if OtherSOASetup.FindFirst() then
+            if FindFirstNonArchivedSetup(OtherSOASetup) then
                 Error(MailboxAlreadyUsedWithoutFolderErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
             exit;
         end;
 
         OtherSOASetup.SetRange("Email Folder Id", SOASetup."Email Folder Id");
-        if OtherSOASetup.FindFirst() then
+        if FindFirstNonArchivedSetup(OtherSOASetup) then
             Error(MailboxAndFolderAlreadyUsedErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
     end;
 
@@ -766,7 +827,7 @@ codeunit 4400 "SOA Setup"
             if not UserNameExists(CandidateUserName) then
                 exit(CandidateUserName);
             Index += 1;
-        until Index > MaxSOAInstances() + 10;
+        until Index > MaxAgentIdentitySuffix();
 
         // Best-effort fallback to avoid blocking setup on exhausted default candidates.
         Token := DelChr(Format(CreateGuid()), '=', '{}-');
@@ -787,7 +848,7 @@ codeunit 4400 "SOA Setup"
         SOASetup: Record "SOA Setup";
     begin
         SOASetup.SetRange("Agent Name", AgentName);
-        exit(not SOASetup.IsEmpty());
+        exit(FindFirstNonArchivedSetup(SOASetup));
     end;
 
     local procedure UserNameExists(UserName: Text[50]): Boolean
@@ -803,7 +864,7 @@ codeunit 4400 "SOA Setup"
         SOASetup: Record "SOA Setup";
     begin
         SOASetup.SetRange("Agent Initials", AgentInitials);
-        exit(not SOASetup.IsEmpty());
+        exit(FindFirstNonArchivedSetup(SOASetup));
     end;
 
     local procedure GetNextAvailableAgentIdentityIndex(): Integer
@@ -1061,6 +1122,7 @@ codeunit 4400 "SOA Setup"
         SalesOrderAgentInitialLbl: Label 'SO', MaxLength = 4;
         SOASummaryLbl: Label 'Monitors incoming emails for sales inquiries, matches senders to customers, checks inventory, and creates quotes. When processing replies, the agent converts accepted quotes into orders.';
         DelegateAdminErr: Label 'Delegated admin and helpdesk users are not allowed to update the agent.';
+        AgentArchivedErr: Label 'The Sales Order Agent is archived and its settings can no longer be changed.';
         SOAInterventionSuggestionCodeLbl: Label 'SOA-UPDATE-%1', Locked = true, Comment = '%1 = Sales Document Type';
         SOAInterventionSuggestionSummaryLbl: Label 'I have updated the %1', Comment = '%1 = Sales Document Type', MaxLength = 100;
         SOAInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to a sales %1 as part of reviewing it before sending it to a customer.', Comment = '%1 = Sales Document Type', Locked = true, MaxLength = 1024;

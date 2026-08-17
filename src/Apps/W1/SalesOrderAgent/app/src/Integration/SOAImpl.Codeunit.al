@@ -127,10 +127,13 @@ codeunit 4587 "SOA Impl"
     local procedure GetInstanceOffset(var SOASetup: Record "SOA Setup"): Integer
     var
         OtherSOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
         OwnerUserSecurityID: Guid;
+        InstanceOffset: Integer;
     begin
         // Give each instance a distinct ordinal (0-based) based on its position among the same owner user's
         // instances, so dispatcher staggering aligns with per-user task scheduling limits.
+        // Archived agents never run, so they must not push the remaining instances further out.
         OwnerUserSecurityID := SOASetup."Owner User Security ID";
         if IsNullGuid(OwnerUserSecurityID) then
             OwnerUserSecurityID := SOASetup."User Security ID";
@@ -138,7 +141,15 @@ codeunit 4587 "SOA Impl"
         OtherSOASetup.ReadIsolation := IsolationLevel::ReadUncommitted;
         OtherSOASetup.SetRange("Owner User Security ID", OwnerUserSecurityID);
         OtherSOASetup.SetFilter(ID, '<%1', SOASetup.ID);
-        exit(OtherSOASetup.Count());
+        if not OtherSOASetup.FindSet() then
+            exit(0);
+
+        repeat
+            if not SOASetupCU.IsAgentArchived(OtherSOASetup."User Security ID") then
+                InstanceOffset += 1;
+        until OtherSOASetup.Next() = 0;
+
+        exit(InstanceOffset);
     end;
 
     local procedure ScheduleRecoveryDelay(): Integer
