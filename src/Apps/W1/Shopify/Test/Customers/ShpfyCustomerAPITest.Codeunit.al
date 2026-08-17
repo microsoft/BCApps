@@ -125,6 +125,7 @@ codeunit 139589 "Shpfy Customer API Test"
     end;
 
     [Test]
+    [HandlerFunctions('HttpClientHandler')]
     procedure UnitTestFindIdByPhoneIgnoresTokenizedPartialMatch()
     var
         CustomerApi: Codeunit "Shpfy Customer API";
@@ -146,6 +147,7 @@ codeunit 139589 "Shpfy Customer API Test"
     end;
 
     [Test]
+    [HandlerFunctions('HttpClientHandler')]
     procedure UnitTestFindIdByPhoneReturnsIdForExactMatch()
     var
         CustomerApi: Codeunit "Shpfy Customer API";
@@ -166,6 +168,7 @@ codeunit 139589 "Shpfy Customer API Test"
     end;
 
     [Test]
+    [HandlerFunctions('HttpClientHandler')]
     procedure UnitTestFindIdByEmailIgnoresNonExactMatch()
     var
         CustomerApi: Codeunit "Shpfy Customer API";
@@ -186,6 +189,7 @@ codeunit 139589 "Shpfy Customer API Test"
     end;
 
     [Test]
+    [HandlerFunctions('HttpClientHandler')]
     procedure UnitTestFindIdByEmailReturnsIdForExactMatch()
     var
         CustomerApi: Codeunit "Shpfy Customer API";
