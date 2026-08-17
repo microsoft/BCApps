@@ -51,6 +51,8 @@ codeunit 31235 "FA Disposal Handler CZF"
                     GLAccNo := FAPostingGroup.GetCustom1Account();
                 FALedgerEntry."FA Posting Type"::"Custom 2":
                     GLAccNo := FAPostingGroup.GetCustom2Account();
+                FALedgerEntry."FA Posting Type"::Derogatory:
+                    GLAccNo := FAPostingGroup.GetDerogatoryAccount();
                 FALedgerEntry."FA Posting Type"::"Proceeds on Disposal":
                     GLAccNo := FAPostingGroup.GetSalesAccountOnDisposalGainCZF(FALedgerEntry."Reason Code");
                 FALedgerEntry."FA Posting Type"::"Gain/Loss":
@@ -81,6 +83,8 @@ codeunit 31235 "FA Disposal Handler CZF"
                     GLAccNo := FAPostingGroup.GetCustom1AccountOnDisposal();
                 FALedgerEntry."FA Posting Type"::"Custom 2":
                     GLAccNo := FAPostingGroup.GetCustom2AccountOnDisposal();
+                FALedgerEntry."FA Posting Type"::Derogatory:
+                    GLAccNo := FAPostingGroup.GetDerogatoryAccountDecrease();
                 FALedgerEntry."FA Posting Type"::"Book Value on Disposal":
                     begin
                         if FALedgerEntry."Result on Disposal" = FALedgerEntry."Result on Disposal"::Gain then
@@ -103,6 +107,8 @@ codeunit 31235 "FA Disposal Handler CZF"
                     exit(FAPostingGroup.GetCustom1BalAccountOnDisposal());
                 FALedgerEntry."FA Posting Type"::"Custom 2":
                     exit(FAPostingGroup.GetCustom2BalAccountOnDisposal());
+                FALedgerEntry."FA Posting Type"::Derogatory:
+                    exit(FAPostingGroup.GetDerogatoryBalAccountDecrease());
                 FALedgerEntry."FA Posting Type"::"Book Value on Disposal":
                     exit(FAPostingGroup.GetBookValueBalAccountOnDisposalCZF());
             end;
@@ -119,7 +125,7 @@ codeunit 31235 "FA Disposal Handler CZF"
         exit(FAPostingGroup.GetMaintenanceExpenseAccountCZF(MaintenanceLedgerEntry."Maintenance Code"));
     end;
 
-    local procedure GetGLAccNoFromFAPostingGroup(FAPostingGroup: Record "FA Posting Group"; FAPostingType2: Enum "FA Posting Group Account Type"; ReasonMaintenanceCode: Code[10]) GLAccNo: Code[20]
+    local procedure GetGLAccNoFromFAPostingGroup(FAPostingGroup: Record "FA Posting Group"; FAPostingType2: Enum "FA Posting Group Account Type"; AllocAmount: Decimal; ReasonMaintenanceCode: Code[10]) GLAccNo: Code[20]
     var
         FAExtendedPostingGroupCZF: Record "FA Extended Posting Group CZF";
         FieldErrorText: Text[50];
@@ -228,6 +234,19 @@ codeunit 31235 "FA Disposal Handler CZF"
                     FAPostingGroup.CalcFields(FAPostingGroup."Allocated Book Value % (Loss)");
                     if FAPostingGroup."Allocated Book Value % (Loss)" > 100 then
                         FAPostingGroup.FieldError(FAPostingGroup."Allocated Book Value % (Loss)", FieldErrorText);
+                end;
+            FAPostingType2::Derogatory:
+                begin
+                    if AllocAmount > 0 then begin
+                        FAPostingGroup.TestField("Derogatory Expense Acc.");
+                        GLAccNo := FAPostingGroup."Derogatory Expense Acc.";
+                    end else begin
+                        FAPostingGroup.TestField("Derog. Bal. Account (Decrease)");
+                        GLAccNo := FAPostingGroup."Derog. Bal. Account (Decrease)";
+                    end;
+                    FAPostingGroup.CalcFields("Allocated Derogatory Pct.");
+                    if FAPostingGroup."Allocated Derogatory Pct." > 100 then
+                        FAPostingGroup.FieldError("Allocated Derogatory Pct.", FieldErrorText);
                 end;
         end;
         exit(GLAccNo);
@@ -845,7 +864,7 @@ codeunit 31235 "FA Disposal Handler CZF"
         NewAmount := 0;
         TotalPercent := 0;
         FAPostingGroup.GetPostingGroup(PostingGrCode, DeprBookCode2);
-        GLAccNo := GetGLAccNoFromFAPostingGroup(FAPostingGroup, FAPostingType2, ReasonMaintenanceCode);
+        GLAccNo := GetGLAccNoFromFAPostingGroup(FAPostingGroup, FAPostingType2, AllocAmount, ReasonMaintenanceCode);
         DimensionSetIDArr[1] := DimSetID;
 
         FAAllocation.SetRange(Code, PostingGrCode);

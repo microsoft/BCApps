@@ -518,6 +518,11 @@ table 5601 "FA Ledger Entry"
             Editable = false;
             TableRelation = "FA Ledger Entry"."Entry No.";
         }
+        field(5867; "Legacy Derogatory Ambiguous"; Boolean)
+        {
+            Caption = 'Legacy Derogatory Ambiguous';
+            Editable = false;
+        }
         field(6210; "Non-Ded. VAT FA Cost"; Boolean)
         {
             Caption = 'Non-Deductible VAT FA Cost';

@@ -178,6 +178,39 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure GeneralJournalCounterpartUsesPostedSourceAmount()
+    var
+        NormalDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        TaxFADepreciationBook: Record "FA Depreciation Book";
+        FAJournalSetup: Record "FA Journal Setup";
+        SourceGenJournalLine: Record "Gen. Journal Line";
+        CounterpartFAJournalLine: Record "FA Journal Line";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        PostedSourceAmount: Decimal;
+    begin
+        CreateDepreciationBook(NormalDepreciationBook);
+        CreateDepreciationBook(TaxDepreciationBook);
+        UpdateDerogatoryCalculationDepreciationBook(TaxDepreciationBook, NormalDepreciationBook.Code);
+        CreateFADepreciationBook(TaxFADepreciationBook, TaxDepreciationBook.Code);
+        FAJournalSetup."Depreciation Book Code" := TaxDepreciationBook.Code;
+        FAJournalSetup.Insert();
+        SourceGenJournalLine."Account No." := TaxFADepreciationBook."FA No.";
+        SourceGenJournalLine."Depreciation Book Code" := NormalDepreciationBook.Code;
+        SourceGenJournalLine.Amount := LibraryRandom.RandDec(1000, 2);
+        PostedSourceAmount := SourceGenJournalLine.Amount * 2;
+
+        Assert.IsTrue(
+            DerogatoryPostingMgt.MakeDerogatoryJournalLine(
+                CounterpartFAJournalLine, SourceGenJournalLine, PostedSourceAmount,
+                Enum::"Derogatory Posting Role"::Source),
+            'The posted source must produce an eligible counterpart.');
+
+        CounterpartFAJournalLine.TestField(Amount, PostedSourceAmount);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure FAJnlPostBatchCompatibilityDelegateBuildsCounterpart()
     var
         NormalDepreciationBook: Record "Depreciation Book";
