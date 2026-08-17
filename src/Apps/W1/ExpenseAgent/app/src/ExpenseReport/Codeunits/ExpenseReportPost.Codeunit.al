@@ -739,21 +739,18 @@ codeunit 6987 "Expense Report-Post"
 
         // Amounts come directly from the spec row — base (net) + VAT as captured on the receipt.
         GenJournalLine."Gen. Posting Type" := GenJournalLine."Gen. Posting Type"::Purchase;
-        GenJournalLine."Currency Code" := ExpenseReportLine."Expense Currency Code";
-        GenJournalLine."Currency Factor" := ExpenseReportLine."Expense Currency Factor";
-        GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount";
-        GenJournalLine."Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
+        GenJournalLine.Validate("Amount", ExpenseReportLineVATSpec."VAT Base Amount (LCY)");
 
         if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Approved" then begin
             GenJournalLine."VAT Bus. Posting Group" := ExpenseReportLineVATSpec."VAT Bus. Posting Group";
             GenJournalLine."VAT Prod. Posting Group" := ExpenseReportLineVATSpec."VAT Prod. Posting Group";
             GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Manual VAT Entry";
             GenJournalLine."VAT Calculation Type" := ExpenseReportLine."VAT Calculation Type";
-            GenJournalLine."VAT Base Amount" := ExpenseReportLineVATSpec."VAT Base Amount";
-            GenJournalLine."VAT Base Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
-            GenJournalLine."VAT Amount" := ExpenseReportLineVATSpec."VAT Amount";
-            GenJournalLine."VAT Amount (LCY)" := ExpenseReportLineVATSpec."VAT Amount (LCY)";
             GenJournalLine."VAT %" := ExpenseReportLineVATSpec."VAT %";
+            GenJournalLine."VAT Base Amount" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
+            GenJournalLine."VAT Base Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
+            GenJournalLine."VAT Amount" := ExpenseReportLineVATSpec."VAT Amount (LCY)";
+            GenJournalLine."VAT Amount (LCY)" := ExpenseReportLineVATSpec."VAT Amount (LCY)";
 
             // VAT Reclaim % is used to route the non-deductible portion of VAT to the correct accounts via VAT Posting Setup.
             if (ExpenseReportLineVATSpec."Reclaim %" <> 100) and (ExpenseReportLineVATSpec."VAT Amount" <> 0) then begin
@@ -763,9 +760,8 @@ codeunit 6987 "Expense Report-Post"
             end;
         end else begin
             // VAT is not reclaimable: include VAT in the expense amount (gross) and do not create a VAT entry.
-            GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount" + ExpenseReportLineVATSpec."VAT Amount";
-            GenJournalLine."Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)" + ExpenseReportLineVATSpec."VAT Amount (LCY)";
-
+            GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount (LCY)" + ExpenseReportLineVATSpec."VAT Amount (LCY)";
+            GenJournalLine."Amount (LCY)" := GenJournalLine.Amount;
             GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Automatic VAT Entry";
             GenJournalLine."VAT %" := 0;
             GenJournalLine."VAT Amount" := 0;

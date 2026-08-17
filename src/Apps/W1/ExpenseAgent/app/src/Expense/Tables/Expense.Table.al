@@ -788,6 +788,7 @@ table 6900 Expense
         NonRefundableAmountCannotBeNegativeErr: Label '%1 cannot be in negative on Expense No. %2.', Comment = '%1 = Field Caption, %2 = Expense No.';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 = Expense User No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
+        ModifyOrDeleteErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -1314,6 +1315,7 @@ table 6900 Expense
         TempExpenseVATSpec: Record "Expense VAT Specification" temporary;
         LineNo: Integer;
     begin
+        ;
         ExpenseAgentSetup.Get();
         if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then
             exit;
@@ -1323,6 +1325,11 @@ table 6900 Expense
             exit;
 
         ExpenseVATSpec.SetRange("Expense No.", ExpenseNo);
+        ExpenseVATSpec.SetRange(Source, ExpenseVATSpec.Source::Agent);
+        if not ExpenseVATSpec.IsEmpty() then
+            error(ModifyOrDeleteErr);
+
+        ExpenseVATSpec.SetRange(Source);
         ExpenseVATSpec.DeleteAll();
 
         LineNo := 0;
@@ -1335,6 +1342,7 @@ table 6900 Expense
                 TempExpenseVATSpec.Modify();
             end else begin
                 TempExpenseVATSpec.Init();
+                TempExpenseVATSpec.Source := TempExpenseVATSpec.Source::Manual;
                 TempExpenseVATSpec."Expense No." := ExpenseNo;
                 LineNo += 1;
                 TempExpenseVATSpec."Line No." := LineNo;

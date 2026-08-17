@@ -66,4 +66,9 @@ page 7084 "Expense VAT Specification"
             }
         }
     }
+
+    trigger OnInit()
+    begin
+        Rec.Source := Rec.Source::"Manual";
+    end;
 }

@@ -104,5 +104,6 @@ page 7085 "Expense VAT Spec. API"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
+        Source := Source::Agent;
     end;
 }
