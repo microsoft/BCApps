@@ -14,7 +14,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.TestLibraries.Utilities;
 
-codeunit 139556 "E-Doc. Item Charge Tests"
+codeunit 139786 "E-Doc. Item Charge Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

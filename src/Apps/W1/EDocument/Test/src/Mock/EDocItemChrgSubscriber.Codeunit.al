@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.Sales.History;
 
-codeunit 139557 "E-Doc. Item Chrg. Subscriber"
+codeunit 139787 "E-Doc. Item Chrg. Subscriber"
 {
     EventSubscriberInstance = Manual;
 
