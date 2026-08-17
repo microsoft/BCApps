@@ -349,7 +349,7 @@ report 10139 "Inventory Valuation"
         ValueEntry.SetLoadFields("Item Ledger Entry No.", "Posting Date", "Cost Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Expected) (ACY)", "Cost Amount (Actual) (ACY)");
         ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
         ValueEntry.SetRange("Posting Date", 0D, EndDate);
-        OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(ValueEntry, Item);
+        OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(ValueEntry, Item);
 
         if ShowACY then begin
             ValueEntry.CalcSums("Cost Amount (Actual) (ACY)", "Cost Amount (Expected) (ACY)");
@@ -443,7 +443,7 @@ report 10139 "Inventory Valuation"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
+    local procedure OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
     begin
     end;
 }
