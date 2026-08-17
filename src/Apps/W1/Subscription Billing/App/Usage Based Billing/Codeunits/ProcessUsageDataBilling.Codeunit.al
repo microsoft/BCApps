@@ -41,9 +41,7 @@ codeunit 8026 "Process Usage Data Billing"
             exit;
         UsageDataImport.SetStatus(Enum::"Processing Status"::None);
 
-        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
-        UsageDataBilling.SetRange("Document No.", '');
-        UsageDataBilling.SetFilter("Subscription Contract No.", '<>%1', '');
+        FilterUnprocessedUsageDataBilling(UsageDataBilling, UsageDataImport."Entry No.");
         if not UsageDataBilling.IsEmpty then begin
             UsageDataBilling.ExcludeProcessingStatusError();
 
@@ -67,7 +65,7 @@ codeunit 8026 "Process Usage Data Billing"
                 until UsageDataBilling.Next() = 0;
             this.ProgressTracker.Finish();
 
-            SetProcessedUsageDataBillingToOk(UsageDataBilling);
+            SetProcessedUsageDataBillingToOk(UsageDataImport."Entry No.");
             UsageDataImport.UpdateProcessingStatus();
         end else begin
             UsageDataBilling.SetRange("Subscription Contract No.");
@@ -84,8 +82,21 @@ codeunit 8026 "Process Usage Data Billing"
         OnAfterProcessUsageDataBilling(UsageDataImport);
     end;
 
-    local procedure SetProcessedUsageDataBillingToOk(UsageDataBilling: Record "Usage Data Billing")
+    local procedure FilterUnprocessedUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer)
     begin
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
+        UsageDataBilling.SetRange("Document No.", '');
+        UsageDataBilling.SetFilter("Subscription Contract No.", '<>%1', '');
+    end;
+
+    local procedure SetProcessedUsageDataBillingToOk(UsageDataImportEntryNo: Integer)
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        // The filters are set here and not taken from the caller, because a record passed by value carries its field values but not its filters.
+        FilterUnprocessedUsageDataBilling(UsageDataBilling, UsageDataImportEntryNo);
+        UsageDataBilling.ExcludeProcessingStatusError();
+
         // Lines carrying a reason have to be validated one by one, because the Reason blob is cleared in OnValidate.
         UsageDataBilling.SetFilter("Reason (Preview)", '<>%1', '');
         if UsageDataBilling.FindSet(true) then
