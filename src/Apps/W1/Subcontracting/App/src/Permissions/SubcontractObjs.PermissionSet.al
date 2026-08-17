@@ -80,6 +80,8 @@ permissionset 99001501 "Subcontract. - Objs"
 #endif
         codeunit "Subc. Upgrade Tag Def. Ext." = X,
         codeunit "Subc. Worksheet Handler" = X,
+        codeunit "Subc. Attachment Details Ext." = X,
+        codeunit "Subc. Routing Line Ext." = X,
 
         // Pages
         page "Subc. Standard Task Comments" = X,
