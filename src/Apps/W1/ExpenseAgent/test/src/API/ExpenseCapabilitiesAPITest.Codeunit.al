@@ -42,6 +42,7 @@ codeunit 148318 "Expense Capabilities API Test"
             ExpenseAgentSetup.Insert();
         end;
         ExpenseAgentSetup."Enable Project Fields" := true;
+        ExpenseAgentSetup."Allow VAT Reclaim" := true;
         ExpenseAgentSetup."Evaluate Policies" := true;
         ExpenseAgentSetup.Modify();
         Commit();
@@ -108,6 +109,7 @@ codeunit 148318 "Expense Capabilities API Test"
             ExpenseAgentSetup.Insert();
         end;
         ExpenseAgentSetup."Enable Project Fields" := true;
+        ExpenseAgentSetup."Allow VAT Reclaim" := true;
         // Enable Evaluate Policies too so the aiAssistedPolicyEvaluation capability is not reported
         // disabled, keeping the "no capability disabled" assertion below valid.
         ExpenseAgentSetup."Evaluate Policies" := true;
