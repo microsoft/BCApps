@@ -44,6 +44,7 @@ report 99001025 "Refresh Production Order"
                     CurrReport.Skip();
 
                 TestField("Due Date");
+                CheckVariantCodeMandatory("Production Order");
 
                 if CalcLines then
                     if IsComponentPicked("Production Order") then begin
@@ -400,6 +401,23 @@ report 99001025 "Refresh Production Order"
         exit(not ProdOrderComponent.IsEmpty());
     end;
 
+    local procedure CheckVariantCodeMandatory(var ProductionOrder: Record "Production Order")
+    var
+        Item: Record Item;
+        IsHandled: Boolean;
+    begin
+        if not CalcLines then
+            exit;
+        if ProductionOrder."Source Type" <> ProductionOrder."Source Type"::Item then
+            exit;
+        if Item.IsVariantMandatory(true, ProductionOrder."Source No.") then begin
+            IsHandled := false;
+            OnBeforeCheckVariantCodeMandatory(ProductionOrder, IsHandled);
+            if not IsHandled then
+                ProductionOrder.TestField("Variant Code");
+        end;
+    end;
+
     local procedure GetRoutingNo(ProductionOrder: Record "Production Order") RoutingNo: Code[20]
     var
         Item: Record Item;
@@ -477,6 +495,11 @@ report 99001025 "Refresh Production Order"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterInitReport()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckVariantCodeMandatory(var ProductionOrder: Record "Production Order"; var IsHandled: Boolean)
     begin
     end;
 

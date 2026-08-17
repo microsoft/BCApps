@@ -14,6 +14,8 @@ codeunit 134306 "Copy Workflow Tests"
         AmountCondXmlTemplateTxt: Label '<?xml version="1.0" standalone="yes"?><ReportParameters name="Purch. Inv. Event Conditions" id="1502"><DataItems><DataItem name="Purchase Header">SORTING(Document Type,No.) WHERE(Amount=FILTER(%1))</DataItem><DataItem name="Purchase Line">SORTING(Document Type,Document No.,Line No.)</DataItem></DataItems></ReportParameters>', Locked = true;
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        ResetTemplatesConfirmQst: Label 'delete and recreate all Microsoft workflow templates', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -350,8 +352,81 @@ codeunit 134306 "Copy Workflow Tests"
         Assert.AreEqual(0, FromWorkflow.Count, 'A new workflow was created.')
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure TestResetTemplatesKeepsStepsOfWorkflowCreatedFromTemplate()
+    var
+        TemplateWorkflow: Record Workflow;
+        WorkflowFromTemplate: Record Workflow;
+        WorkflowStep: Record "Workflow Step";
+        WorkflowSetup: Codeunit "Workflow Setup";
+        WorkflowTemplatesPage: TestPage "Workflow Templates";
+        TemplateCode: Code[20];
+        WorkflowFromTemplateCode: Code[20];
+    begin
+        // [SCENARIO 640937] Resetting Microsoft templates must not remove the steps of active
+        // workflows that were created from a template and still carry the template code prefix.
+
+        // [GIVEN] A workflow template whose code starts with the Microsoft template token, with steps.
+        Initialize();
+        TemplateCode := CopyStr(WorkflowSetup.GetWorkflowTemplateToken() + 'BUG640937', 1, MaxStrLen(TemplateWorkflow.Code));
+        CreateTwoStepWorkflowWithCode(TemplateWorkflow, TemplateCode);
+        TemplateWorkflow.Validate(Template, true);
+        TemplateWorkflow.Modify(true);
+
+        // [GIVEN] An active (non-template) workflow created from that template: its code keeps the
+        // template token prefix (e.g. MS-...-01) and it has its own steps.
+        WorkflowFromTemplateCode := CopyStr(TemplateCode + '-01', 1, MaxStrLen(WorkflowFromTemplate.Code));
+        CreateTwoStepWorkflowWithCode(WorkflowFromTemplate, WorkflowFromTemplateCode);
+
+        // [WHEN] The user runs Reset Microsoft Templates and confirms.
+        LibraryVariableStorage.Enqueue(ResetTemplatesConfirmQst);
+        LibraryVariableStorage.Enqueue(true);
+        WorkflowTemplatesPage.OpenView();
+        WorkflowTemplatesPage."Reset Templates".Invoke();
+
+        // [THEN] The active workflow still exists and keeps all of its steps.
+        Assert.IsTrue(WorkflowFromTemplate.Get(WorkflowFromTemplateCode), 'The workflow created from the template must not be deleted.');
+        WorkflowStep.SetRange("Workflow Code", WorkflowFromTemplateCode);
+        Assert.IsFalse(WorkflowStep.IsEmpty(), 'The steps of the workflow created from the template must not be deleted.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure TestResetTemplatesIsSkippedWhenConfirmationDeclined()
+    var
+        TemplateWorkflow: Record Workflow;
+        WorkflowSetup: Codeunit "Workflow Setup";
+        WorkflowTemplatesPage: TestPage "Workflow Templates";
+        TemplateCode: Code[20];
+    begin
+        // [SCENARIO 640937] The Reset Microsoft Templates action asks for confirmation and does
+        // nothing when the user declines.
+
+        // [GIVEN] A Microsoft workflow template with steps.
+        Initialize();
+        TemplateCode := CopyStr(WorkflowSetup.GetWorkflowTemplateToken() + 'BUG640937', 1, MaxStrLen(TemplateWorkflow.Code));
+        CreateTwoStepWorkflowWithCode(TemplateWorkflow, TemplateCode);
+        TemplateWorkflow.Validate(Template, true);
+        TemplateWorkflow.Modify(true);
+
+        // [WHEN] The user runs Reset Microsoft Templates but declines the confirmation.
+        LibraryVariableStorage.Enqueue(ResetTemplatesConfirmQst);
+        LibraryVariableStorage.Enqueue(false);
+        WorkflowTemplatesPage.OpenView();
+        WorkflowTemplatesPage."Reset Templates".Invoke();
+
+        // [THEN] Nothing is reset: the template still exists.
+        Assert.IsTrue(TemplateWorkflow.Get(TemplateCode), 'The templates must not be reset when the confirmation is declined.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
+        LibraryVariableStorage.Clear();
         LibraryWorkflow.DeleteAllExistingWorkflows();
     end;
 
@@ -438,6 +513,37 @@ codeunit 134306 "Copy Workflow Tests"
                     ToWorkflowRule.TestField("Field No.", FromWorkflowRule."Field No.");
                 until FromWorkflowRule.Next() = 0;
         until ToWorkflowStep.Next() = 0;
+    end;
+
+    local procedure CreateTwoStepWorkflowWithCode(var Workflow: Record Workflow; NewWorkflowCode: Code[20])
+    var
+        WorkflowEvent: Record "Workflow Event";
+        WorkflowRule: Record "Workflow Rule";
+        WorkflowResponseHandling: Codeunit "Workflow Response Handling";
+        EntryPointEventID: Integer;
+        ResponseID: Integer;
+    begin
+        Workflow.Init();
+        Workflow.Code := NewWorkflowCode;
+        Workflow.Description := CopyStr(LibraryUtility.GenerateRandomXMLText(MaxStrLen(Workflow.Description)), 1, MaxStrLen(Workflow.Description));
+        Workflow.Category := LibraryWorkflow.CreateWorkflowCategory();
+        Workflow.Template := false;
+        Workflow.Insert(true);
+
+        CreateAnyPurchaseHeaderEvent(WorkflowEvent);
+        EntryPointEventID := LibraryWorkflow.InsertEntryPointEventStep(Workflow, WorkflowEvent."Function Name");
+        ResponseID := LibraryWorkflow.InsertResponseStep(Workflow, WorkflowResponseHandling.CreateNotificationEntryCode(), EntryPointEventID);
+
+        LibraryWorkflow.InsertEventArgument(EntryPointEventID, StrSubstNo(AmountCondXmlTemplateTxt, Format(LibraryRandom.RandDec(1000, 2))));
+        LibraryWorkflow.InsertEventRule(EntryPointEventID, 0, WorkflowRule.Operator::Changed);
+        LibraryWorkflow.InsertNotificationArgument(ResponseID, UserId, 0, '');
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 }
 

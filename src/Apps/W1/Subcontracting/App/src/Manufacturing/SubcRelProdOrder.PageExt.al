@@ -22,9 +22,6 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
                 RunPageLink = "Document Type" = const(Order), "Prod. Order No." = field("No.");
                 ToolTip = 'Show purchase order lines for subcontracting.';
             }
-        }
-        addafter("&Warehouse Entries")
-        {
             action("Subc. Transfer Orders")
             {
                 ApplicationArea = Subcontracting;
@@ -39,6 +36,9 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
                     SubcPurchFactboxMgmt.ShowTransferOrdersFromProductionOrder(Rec);
                 end;
             }
+        }
+        addafter("&Warehouse Entries")
+        {
             action("Subc. Transfer Entries")
             {
                 ApplicationArea = Subcontracting;

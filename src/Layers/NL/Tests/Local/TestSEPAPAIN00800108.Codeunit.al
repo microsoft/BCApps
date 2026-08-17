@@ -40,8 +40,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         ProcessProposalLines: Codeunit "Process Proposal Lines";
         LibraryRandom: Codeunit "Library - Random";
-        XMLReadHelper: Codeunit "NL XML Read Helper";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         LibraryNLLocalization: Codeunit "Library - NL Localization";
+        ExportTempBlob: Codeunit "Temp Blob";
         IsInitialized: Boolean;
         ExportFileName: Text[250];
         DateErr: Label 'The Valid To date must be after the Valid From date.';
@@ -55,11 +56,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         ExpectedErr: Label 'Unexpected value in xml file for element <//ns:CtrlSum>.';
         UnexpectedErrorMsg: Label 'Unexpected error message in proposal line';
         ForeignCurrencyErrorTok: Label '%1 is filled in, but %2 is 0.';
-        IdentificationElementName: Label 'EndToEndId';
-        PaymentLineErr: Label '%1 payment line appears in the exported file!';
-        CancelTok: Label 'Cancelled';
-        RejectTok: Label 'Rejected';
+        IdentificationElementNameTok: Label 'EndToEndId';
         WrongSymbolFoundErr: Label 'Wrong symbol found';
+        CustomerAddressLbl: Label 'Test Street 1', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -666,7 +665,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         ExportMultilinePayment(BankAccountNo, 1, false, false);
 
         // [THEN] Exported file starts with '<?xml' not with BOM symbols
-        VerifyBeginningOfXMLFile(ExportFileName, '<?xml');
+        VerifyBeginningOfXMLFile('<?xml');
     end;
 
     [Test]
@@ -741,10 +740,10 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         // [THEN] There are three nodes StrtNm, PstCd, TwnNm under PstlAdr node.
         // [THEN] StrtNm = "3 Main Street", PstCd = "127473", TwnNm = "Moscow".
         CustomerBankAccount.Get(Customer."No.", Customer."Preferred Bank Account Code");
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm', CustomerBankAccount."Account Holder Address");
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd', CustomerBankAccount."Account Holder Post Code");
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm', CustomerBankAccount."Account Holder City");
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm', CustomerBankAccount."Account Holder Address");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd', CustomerBankAccount."Account Holder Post Code");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm', CustomerBankAccount."Account Holder City");
     end;
 
     [Test]
@@ -787,10 +786,10 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
 
         // [THEN] There are three nodes StrtNm, PstCd, TwnNm under PstlAdr node.
         // [THEN] StrtNm = first 70 chars of Address, PstCd = first 16 chars of Post Code, TwnNm = City.
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm', CopyStr(Address, 1, 70));
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd', CopyStr(PostCode, 1, 16));
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm', CopyStr(City, 1, 35));
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm', CopyStr(Address, 1, 70));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd', CopyStr(PostCode, 1, 16));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm', CopyStr(City, 1, 35));
     end;
 
     [Test]
@@ -826,10 +825,10 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
 
         // [THEN] There are no such nodes as StrtNm, PstCd, TwnNm under PstlAdr node.
         CustomerBankAccount.Get(Customer."No.", Customer."Preferred Bank Account Code");
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm', CustomerBankAccount."Account Holder Address");
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd', CustomerBankAccount."Account Holder Post Code");
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm', CustomerBankAccount."Account Holder City");
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm', CustomerBankAccount."Account Holder Address");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd', CustomerBankAccount."Account Holder Post Code");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm', CustomerBankAccount."Account Holder City");
     end;
 
     [Test]
@@ -864,10 +863,10 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         ExportSEPAFile(BankAccount."No.");
 
         // [THEN] There are no such nodes as StrtNm, PstCd, TwnNm under PstlAdr node.
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm');
-        XMLReadHelper.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd');
-        XMLReadHelper.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm');
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:StrtNm');
+        LibraryXPathXMLReader.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:PstCd');
+        LibraryXPathXMLReader.VerifyNodeAbsence('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:CdtTrfTxInf/ns:Cdtr/ns:PstlAdr/ns:TwnNm');
     end;
 
     [Test]
@@ -915,13 +914,13 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         GetCompanyAddress(StreetName, PostalCode, TownName);
 
         // [THEN] Verify the Address, Postcode and City at CompanyInformation will be shown in xml at Dbtor side
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
+        InitializeXMLReader();
         if StreetName <> '' then
-            XMLReadHelper.VerifyNodeValue('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:Dbtr/ns:PstlAdr/ns:StrtNm', StreetName);
+            LibraryXPathXMLReader.VerifyNodeValue('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:Dbtr/ns:PstlAdr/ns:StrtNm', StreetName);
         if PostalCode <> '' then
-            XMLReadHelper.VerifyNodeValue('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:Dbtr/ns:PstlAdr/ns:PstCd', PostalCode);
+            LibraryXPathXMLReader.VerifyNodeValue('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:Dbtr/ns:PstlAdr/ns:PstCd', PostalCode);
         if TownName <> '' then
-            XMLReadHelper.VerifyNodeValue('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:Dbtr/ns:PstlAdr/ns:TwnNm', TownName);
+            LibraryXPathXMLReader.VerifyNodeValue('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:Dbtr/ns:PstlAdr/ns:TwnNm', TownName);
     end;
 
     [Test]
@@ -931,7 +930,6 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         BankAccount: Record "Bank Account";
         Customer: Record Customer;
         DirectDebitMandate: Record "SEPA Direct Debit Mandate";
-        PaymentHistory: Record "Payment History";
     begin
         // [GIVEN 592595] Ensure the SEPA ISO 20022 PAIN.008.001.08 file exports the correct version in the XML File.
         Initialize();
@@ -955,12 +953,45 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         // [THEN] Export the SEPA file.
         ExportSEPAFile(BankAccount."No.");
 
-        // [GIVEN] Find the Payment History for the Bank Account.
-        FindPaymentHistory(BankAccount."No.", PaymentHistory);
-
         // [THEN] Verify the exported SEPA file and check the default namespace contains SEPA version pain.008.001.08
-        XMLReadHelper.Initialize(PaymentHistory."File on Disk", NameSpace);
-        XMLReadHelper.VerifyAttributeValue('//ns:Document', 'xmlns', NameSpace);
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyAttributeValue('//ns:Document', 'xmlns', NameSpace);
+    end;
+
+    [Test]
+    [HandlerFunctions('ProposalLineConfirmHandler,ProposalProcessedMsgHandler')]
+    procedure VerifyStructuredDebtorAddressInDirectDebitExport()
+    var
+        BankAccount: Record "Bank Account";
+        Customer: Record Customer;
+        DirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        PaymentHistoryLine: Record "Payment History Line";
+        dbtrPstlAdrPrefix: Text;
+    begin
+        // [SCENARIO 642551] Direct Debit export (report 11000015) writes the debtor address as structured elements (StrtNm, PstCd, TwnNm).
+        Initialize();
+
+        // [GIVEN] SEPA setup with a customer bank account that has address, post code and city.
+        SetUpSEPA(BankAccount, Customer, DirectDebitMandate);
+
+        // [GIVEN] Posted sales invoice and processed proposal.
+        CreateAndPostSalesInvoice(Customer."No.", false);
+        GetEntries(BankAccount."No.");
+        ProcessProposals(BankAccount."No.");
+
+        // [WHEN] Export the SEPA Direct Debit file.
+        ExportSEPAFile(BankAccount."No.");
+
+        // [THEN] The debtor postal address is exported as structured StrtNm, PstCd and TwnNm nodes (not a single AdrLine).
+        PaymentHistoryLine.SetRange("Our Bank", BankAccount."No.");
+        PaymentHistoryLine.FindFirst();
+
+        dbtrPstlAdrPrefix := '//ns:Document/ns:CstmrDrctDbtInitn/ns:PmtInf/ns:DrctDbtTxInf/ns:Dbtr/ns:PstlAdr';
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeCountByXPath(dbtrPstlAdrPrefix + '/ns:AdrLine', 0);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(dbtrPstlAdrPrefix + '/ns:StrtNm', PaymentHistoryLine."Account Holder Address");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(dbtrPstlAdrPrefix + '/ns:PstCd', PaymentHistoryLine."Account Holder Post Code");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(dbtrPstlAdrPrefix + '/ns:TwnNm', PaymentHistoryLine."Account Holder City");
     end;
 
     local procedure Initialize()
@@ -1021,7 +1052,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
             Today(), LibraryRandom.RandDec(30, 2), LibraryRandom.RandDec(30, 2)));
     end;
 
-    local procedure CreateMandate(var DirectDebitMandate: Record "SEPA Direct Debit Mandate"; CustomerNo: Code[20]; BankAccountCode: Code[10]; ValidFromDate: Date; ValidToDate: Date)
+    local procedure CreateMandate(var DirectDebitMandate: Record "SEPA Direct Debit Mandate"; CustomerNo: Code[20]; BankAccountCode: Code[20]; ValidFromDate: Date; ValidToDate: Date)
     begin
         DirectDebitMandate.Init();
         DirectDebitMandate.ID := LibraryUtility.GenerateRandomCode(DirectDebitMandate.FieldNo(ID), DATABASE::"SEPA Direct Debit Mandate");
@@ -1089,7 +1120,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         ExportProtocol.Insert(true);
     end;
 
-    local procedure CreateFreelyTransferableMax(CountryRegionCode: Code[20])
+    local procedure CreateFreelyTransferableMax(CountryRegionCode: Code[10])
     var
         FreelyTransferableMaximum: Record "Freely Transferable Maximum";
     begin
@@ -1107,6 +1138,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         PostCode: Record "Post Code";
     begin
         LibrarySales.CreateCustomer(Customer);
+        Customer.Validate(Address, CopyStr(CustomerAddressLbl, 1, MaxStrLen(Customer.Address)));
+        Customer.Modify(true);
+
         CustomerBankAccount.Init();
         CustomerBankAccount.Validate(Code, BankAccount.Name);
         CustomerBankAccount.Validate("Customer No.", Customer."No.");
@@ -1197,10 +1231,21 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
     local procedure ExportSEPAFile(BankAccountNo: Code[20])
     var
         PaymentHistory: Record "Payment History";
+        LibraryFileMgtHandler: Codeunit "Library - File Mgt Handler";
     begin
         Commit();
         FindPaymentHistory(BankAccountNo, PaymentHistory);
+        LibraryFileMgtHandler.SetBeforeDownloadFromStreamHandlerActivated(true);
+        BindSubscription(LibraryFileMgtHandler);
         REPORT.RunModal(ExportProtocol."Export ID", false, true, PaymentHistory);
+        UnbindSubscription(LibraryFileMgtHandler);
+        LibraryFileMgtHandler.GetTempBlob(ExportTempBlob);
+    end;
+
+    local procedure InitializeXMLReader()
+    begin
+        LibraryXPathXMLReader.InitializeWithBlob(ExportTempBlob, NameSpace);
+        LibraryXPathXMLReader.SetDefaultNamespaceUsage(false);
     end;
 
     local procedure FindPaymentHistory(BankAccountNo: Code[20]; var PaymentHistory: Record "Payment History")
@@ -1366,10 +1411,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
 
     local procedure TestPaymentLine(TestOption: Option Cancel,Reject; ReportNo: Integer)
     var
-        BankAccountNo: Code[20];
         PaymentHistoryLine: Record "Payment History Line";
+        BankAccountNo: Code[20];
         Identification: Code[80];
-        ErrorMessage: Text;
     begin
         // Setup: Create and export multiple Payment Lines.
         Initialize();
@@ -1386,21 +1430,16 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         // Exercise: Cancel single Payment Line and export XML file.
         case TestOption of
             TestOption::Cancel:
-                begin
-                    CancelPayment(BankAccountNo);
-                    ErrorMessage := StrSubstNo(PaymentLineErr, CancelTok);
-                end;
+                CancelPayment(BankAccountNo);
             TestOption::Reject:
-                begin
-                    RejectPayment(BankAccountNo);
-                    ErrorMessage := StrSubstNo(PaymentLineErr, RejectTok);
-                end;
+                RejectPayment(BankAccountNo);
         end;
 
         ExportSEPAFile(BankAccountNo);
 
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        Assert.IsFalse(XMLReadHelper.VerifyExists(IdentificationElementName, Identification), ErrorMessage);
+        // Verify: The cancelled or rejected payment line does not appear in the exported file.
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//ns:' + IdentificationElementNameTok, Identification, 0);
     end;
 
     local procedure CreateSEPABankAccount(var BankAccount: Record "Bank Account")
@@ -1540,14 +1579,14 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         i: Integer;
     begin
         for i := 1 to ArrayLen(NumberOfBatches) do
-            XMLReadHelper.VerifyNodeCountWithValueByXPath(
+            LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath(
               '//ns:Document/ns:CstmrDrctDbtInitn/ns:PmtInf/ns:PmtTpInf/ns:SeqTp', GetSequenceTypeText(i), NumberOfBatches[i]);
     end;
 
     local procedure VerifyBatchesInFile(NumberOfBatches: array[4] of Integer; NumberOfPayments: Integer)
     begin
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeValue('//ns:NbOfTxs', Format(NumberOfPayments));
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeValue('//ns:NbOfTxs', Format(NumberOfPayments));
         VerifyBatchCountInFile(NumberOfBatches)
     end;
 
@@ -1567,10 +1606,10 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
 
     local procedure VerifyPostlAdrDoesNotExist()
     begin
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeCountByXPath(
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeCountByXPath(
           '//ns:Document/ns:CstmrDrctDbtInitn/ns:PmtInf/ns:DrctDbtTxInf/ns:Dbtr/ns:PstlAdr/ns:AdrLine', 0);
-        XMLReadHelper.VerifyNodeCountByXPath('//ns:Document/ns:CstmrDrctDbtInitn/ns:PmtInf/ns:DrctDbtTxInf/ns:Dbtr/ns:PstlAdr', 0);
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//ns:Document/ns:CstmrDrctDbtInitn/ns:PmtInf/ns:DrctDbtTxInf/ns:Dbtr/ns:PstlAdr', 0);
     end;
 
     local procedure VerifySEPADirectDebitFile(BankAccountNo: Code[20]; NumberOfBatches: array[4] of Integer; NumberOfPayments: Integer)
@@ -1604,14 +1643,14 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         CompanyInfo.Get();
         GLSetup.Get();
 
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyAttributeValue('//ns:Document', 'xmlns', NameSpace);
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyAttributeValue('//ns:Document', 'xmlns', NameSpace);
         VerifyBatchCountInFile(NumberOfBatches);
-        XMLReadHelper.VerifyNodeValue('//ns:MsgId', GetMessageID(PaymentHistory));
-        XMLReadHelper.VerifyNodeValue('//ns:NbOfTxs', Format(NumberOfPayments));
-        XMLReadHelper.VerifyNodeValue('//ns:CtrlSum', PaymentHistorySum);
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrDrctDbtInitn/ns:GrpHdr/ns:InitgPty/ns:Nm', CompanyInfo.Name);
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrDrctDbtInitn/ns:GrpHdr/ns:InitgPty/ns:Id/ns:OrgId/ns:Othr/ns:Id',
+        LibraryXPathXMLReader.VerifyNodeValue('//ns:MsgId', GetMessageID(PaymentHistory));
+        LibraryXPathXMLReader.VerifyNodeValue('//ns:NbOfTxs', Format(NumberOfPayments));
+        LibraryXPathXMLReader.VerifyNodeValue('//ns:CtrlSum', PaymentHistorySum);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrDrctDbtInitn/ns:GrpHdr/ns:InitgPty/ns:Nm', CompanyInfo.Name);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:Document/ns:CstmrDrctDbtInitn/ns:GrpHdr/ns:InitgPty/ns:Id/ns:OrgId/ns:Othr/ns:Id',
           CompanyInfo."VAT Registration No.");
     end;
 
@@ -1625,6 +1664,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         DirectDebitMandate: Record "SEPA Direct Debit Mandate";
         PaymentHistoryLine: Record "Payment History Line";
         pmtInfPrefix: Text[50];
+        StreetName: Text[70];
+        PostalCode: Text[16];
+        TownName: Text[35];
     begin
         CompanyInfo.Get();
         GLSetup.Get();
@@ -1635,75 +1677,81 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         Customer.Get(PaymentHistoryLine."Account No.");
         pmtInfPrefix := '//ns:Document/ns:CstmrDrctDbtInitn/ns:PmtInf';
 
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtInfId',
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtInfId',
           GetPmtInformationId(PaymentHistoryLine));
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtMtd', 'DD');
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:BtchBookg', 'false');
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CtrlSum', PaymentHistorySum);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtMtd', 'DD');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:BtchBookg', 'false');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CtrlSum', PaymentHistorySum);
 
         // PmtTpInf
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtTpInf/ns:SvcLvl/ns:Cd', 'SEPA');
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtTpInf/ns:SeqTp', 'FRST');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtTpInf/ns:SvcLvl/ns:Cd', 'SEPA');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtTpInf/ns:SeqTp', 'FRST');
         if Customer."Partner Type" = Customer."Partner Type"::Person then
-            XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtTpInf/ns:LclInstrm/ns:Cd', 'CORE')
+            LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtTpInf/ns:LclInstrm/ns:Cd', 'CORE')
         else
-            XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtTpInf/ns:LclInstrm/ns:Cd', 'B2B');
+            LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:PmtTpInf/ns:LclInstrm/ns:Cd', 'B2B');
 
         // Cdtr
         BankAcc.Get(PaymentHistoryLine."Our Bank");
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:Nm',
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:Nm',
           '+' + CopyStr(BankAcc."Account Holder Name", 2)); // starts with '&'
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:PstlAdr',
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:PstlAdr/ns:StrtNm',
           '.' + CopyStr(BankAcc."Account Holder Address", 2)); // starts with '@'
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:PstlAdr/ns:PstCd', BankAcc."Account Holder Post Code");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:PstlAdr/ns:TwnNm', BankAcc."Account Holder City");
 
         // CdtrAcct
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CdtrAcct/ns:Id/ns:IBAN',
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CdtrAcct/ns:Id/ns:IBAN',
           DelChr(CopyStr(BankAcc.IBAN, 1, 34)));
 
         // CdtrAgt
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CdtrAgt/ns:FinInstnId/ns:BICFI',
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CdtrAgt/ns:FinInstnId/ns:BICFI',
           CopyStr(BankAcc."SWIFT Code", 1, 11));
 
-        // UltmtCdtr
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:Nm',
+        // UltmtCdtr - structured postal address
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:Nm',
           CompanyInfo.Name);
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:PstlAdr',
-          CompanyInfo.Address);
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:ChrgBr[1]', 'SLEV');
+        GetCompanyAddress(StreetName, PostalCode, TownName);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:PstlAdr/ns:StrtNm', StreetName);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:PstlAdr/ns:PstCd', PostalCode);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:PstlAdr/ns:TwnNm', TownName);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:ChrgBr[1]', 'SLEV');
 
         // CdtrSchmeId
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CdtrSchmeId[1]/ns:Nm',
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CdtrSchmeId[1]/ns:Nm',
           CompanyInfo.Name);
 
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix +
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix +
           '/ns:CdtrSchmeId[1]/ns:Id/ns:PrvtId/ns:Othr/ns:SchmeNm/ns:Prtry', 'SEPA');
 
         // DrctDbtTxInf
         CustomerBankAccount.Get(Customer."No.", BankAcc."No.");
         DirectDebitMandate.Get(CustomerBankAccount."Direct Debit Mandate ID");
-        XMLReadHelper.VerifyNodeValueByXPath('//ns:EndToEndId', PaymentHistoryLine.Identification);
-        XMLReadHelper.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//ns:EndToEndId', PaymentHistoryLine.Identification);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
           '//ns:InstdAmt',
           DelChr(Format(Abs(PaymentHistoryLine.Amount), 18, '<Precision,2:2><Standard Format,9>'), '=', ' '));
 
-        XMLReadHelper.VerifyAttributeValue('//ns:InstdAmt', 'Ccy', 'EUR');
+        LibraryXPathXMLReader.VerifyAttributeValue('//ns:InstdAmt', 'Ccy', 'EUR');
 
-        XMLReadHelper.VerifyNodeValue(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:DrctDbtTx/ns:MndtRltdInf/ns:MndtId',
+        LibraryXPathXMLReader.VerifyNodeValue(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:DrctDbtTx/ns:MndtRltdInf/ns:MndtId',
           DirectDebitMandate.ID);
 
-        XMLReadHelper.VerifyNodeValue(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:DrctDbtTx/ns:MndtRltdInf/ns:DtOfSgntr',
+        LibraryXPathXMLReader.VerifyNodeValue(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:DrctDbtTx/ns:MndtRltdInf/ns:DtOfSgntr',
           Format(DirectDebitMandate."Date of Signature", 0, 9));
 
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:DbtrAgt/ns:FinInstnId/ns:BICFI',
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:DbtrAgt/ns:FinInstnId/ns:BICFI',
           CopyStr(CustomerBankAccount."SWIFT Code", 1, 11));
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:DbtrAcct/ns:Id/ns:IBAN',
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:DbtrAcct/ns:Id/ns:IBAN',
           DelChr(CopyStr(PaymentHistoryLine.IBAN, 1, 34)));
 
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:Nm', Customer.Name);
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr', Customer.Address);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:Nm', Customer.Name);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:StrtNm', CustomerAddressLbl);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:PstCd', Customer."Post Code");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:TwnNm', Customer.City);
 
-        XMLReadHelper.VerifyNodeValue('//ns:Ustrd', GetUnstructiredRemittanceInfo(PaymentHistoryLine));
+        LibraryXPathXMLReader.VerifyNodeValue('//ns:Ustrd', GetUnstructiredRemittanceInfo(PaymentHistoryLine));
     end;
 
     local procedure VerifySEPAPmtInfInstdAmt(BankAccountNo: Code[20])
@@ -1713,8 +1761,8 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         PaymentHistoryLine.SetRange("Our Bank", BankAccountNo);
         PaymentHistoryLine.FindFirst();
 
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        XMLReadHelper.VerifyNodeValueByXPath(
+        InitializeXMLReader();
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
           '//ns:InstdAmt',
           DelChr(Format(Abs(PaymentHistoryLine.Amount), 18, '<Precision,2:2><Standard Format,9>'), '=', ' '));
     end;
@@ -1738,8 +1786,8 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
     begin
         PaymentHistory.SetRange("Our Bank", BankAccountNo);
         PaymentHistory.FindFirst();
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
-        asserterror XMLReadHelper.VerifyNodeValue('//ns:CtrlSum', '           ' + GetPmtHistoryLineSumAmount(PaymentHistory));
+        InitializeXMLReader();
+        asserterror LibraryXPathXMLReader.VerifyNodeValue('//ns:CtrlSum', '           ' + GetPmtHistoryLineSumAmount(PaymentHistory));
         Assert.ExpectedError(ExpectedErr);
     end;
 
@@ -1758,16 +1806,13 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         end;
     end;
 
-    local procedure VerifyBeginningOfXMLFile(FileName: Text; CheckString: Text[5])
+    local procedure VerifyBeginningOfXMLFile(CheckString: Text[5])
     var
         InStream: InStream;
-        File: File;
         ReadText: Text[5];
     begin
-        File.Open(FileName);
-        File.CreateInStream(InStream);
+        ExportTempBlob.CreateInStream(InStream);
         InStream.Read(ReadText, 5);
-        File.Close();
         Assert.AreEqual(CheckString, ReadText, WrongSymbolFoundErr);
     end;
 

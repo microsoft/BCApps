@@ -17,7 +17,7 @@ report 99001046 "Calculate Work Center Calendar"
         dataitem("Work Center"; "Work Center")
         {
             DataItemTableView = sorting("No.");
-            RequestFilterFields = "No.";
+            RequestFilterFields = "No.", "Work Center Group Code";
 
             trigger OnAfterGetRecord()
             begin

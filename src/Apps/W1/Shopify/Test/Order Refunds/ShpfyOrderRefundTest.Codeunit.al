@@ -571,6 +571,204 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.AreEqual(SubtotalAmount - RefundSubtotalAmount, OrderHeader."Subtotal Amount", 'Subtotal Amount must be reduced by refund subtotal.');
     end;
 
+    [Test]
+    procedure UnitTestCreateCrMemoFromRefundWithExchangeItem()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        RefundHeader: Record "Shpfy Refund Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        OrderId: BigInteger;
+        OriginalOrderLineId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+        ReturnId: BigInteger;
+        RefundId: BigInteger;
+        OriginalAmount: Decimal;
+        ExchangeAmount: Decimal;
+        RefundTotal: Decimal;
+        ItemSalesLineCount: Integer;
+        RefundAccountLineCount: Integer;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+    begin
+        // [SCENARIO] Create a Credit Memo from a Shopify refund that originates from a return with an exchange item.
+        // [SCENARIO] The original item (returned) yields a positive-qty sales line; the exchange item (kept by customer)
+        // [SCENARIO] yields a negative-qty sales line that offsets the credit memo total so it matches the Shopify refund
+        // [SCENARIO] total without an extra balancing G/L Refund Account line.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+
+        OriginalAmount := 1893;
+        ExchangeAmount := 365;
+        RefundTotal := OriginalAmount - ExchangeAmount; // 1,528
+
+        // [GIVEN] A processed Shopify order with two lines: an original item and an exchange item flagged Is Exchange Item.
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Total Amount" := OriginalAmount; // BC sales invoice value (exchange item excluded)
+        OrderHeader."Subtotal Amount" := OriginalAmount;
+        OrderHeader."VAT Amount" := 0;
+        OrderHeader."Presentment Total Amount" := OriginalAmount;
+        OrderHeader."Presentment Subtotal Amount" := OriginalAmount;
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader.Processed := true;
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        OrderHeader.Modify(false);
+        OriginalOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), OriginalAmount);
+        ExchangeOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 20000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), ExchangeAmount);
+        OrderRefundsHelper.MarkOrderLineAsExchangeItem(OrderId, ExchangeOrderLineId);
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+
+        // [GIVEN] A return for the original item plus an exchange item, and a refund whose total reflects the net refund.
+        ReturnId := OrderRefundsHelper.CreateReturn(OrderId);
+        OrderRefundsHelper.CreateReturnLine(ReturnId, OriginalOrderLineId, 'DEFECTIVE');
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, RefundTotal, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineForReturnedItem(RefundId, OriginalOrderLineId, 1, OriginalAmount);
+        OrderRefundsHelper.CreateExchangeRefundLine(RefundId, ExchangeOrderLineId, 1, ExchangeAmount);
+
+        // [WHEN] CreateSalesDocument is invoked through the Auto Create Credit Memo process.
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] A Credit Memo was created.
+        LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Credit Memo", SalesHeader."Document Type", 'Sales Header must be a Credit Memo.');
+
+        // [THEN] The credit memo amount equals RefundHeader.Total Refunded Amount.
+        RefundHeader.Get(RefundId);
+        SalesHeader.CalcFields("Amount Including VAT");
+        LibraryAssert.AreNearlyEqual(RefundHeader."Total Refunded Amount", SalesHeader."Amount Including VAT", 0.5, 'Credit memo Amount Including VAT must equal RefundHeader."Total Refunded Amount" (no balancing G/L line should be needed).');
+
+        // [THEN] No Sales Line of Type::"G/L Account" was added pointing at the Refund Account.
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+        SalesLine.SetRange("No.", Shop."Refund Account");
+        RefundAccountLineCount := SalesLine.Count();
+        LibraryAssert.AreEqual(0, RefundAccountLineCount, 'No Sales Line of Type G/L Account pointing at Shop."Refund Account" must be created.');
+
+        // [THEN] The credit memo contains two Type::Item lines (the original positive line and the exchange negative line).
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        ItemSalesLineCount := SalesLine.Count();
+        LibraryAssert.AreEqual(2, ItemSalesLineCount, 'Credit memo must contain exactly two Type::Item lines (returned item +qty, exchange item -qty).');
+
+        // [THEN] One item line carries a positive quantity, one a negative quantity, summing to the net refund.
+        SalesLine.SetFilter(Quantity, '>%1', 0);
+        LibraryAssert.IsFalse(SalesLine.IsEmpty(), 'Credit memo must contain a positive-qty Type::Item line for the returned item.');
+        SalesLine.SetFilter(Quantity, '<%1', 0);
+        LibraryAssert.IsFalse(SalesLine.IsEmpty(), 'Credit memo must contain a negative-qty Type::Item line for the exchange item.');
+
+        // Tear down
+        ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
+    procedure UnitTestDoesNotCreateCrMemoFromRefundWithPendingTransaction()
+    var
+        SalesHeader: Record "Sales Header";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        OrderId, OrderLineId : BigInteger;
+        ReturnId: BigInteger;
+    begin
+        // [SCENARIO] A credit memo is not created from a refund while it still has a pending transaction (Bug 640432).
+        Initialize();
+
+        // [GIVEN] Shop configured to auto create credit memos
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop.Modify(false);
+
+        // [GIVEN] A processed Shopify order with a return and a refund that can create a credit memo
+        CerateProcessedShopifyOrder(OrderId, OrderLineId);
+        CreateShopifyReturn(ReturnId, OrderId);
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, "Shpfy Restock Type"::Return);
+        // [GIVEN] The refund still has a pending transaction in Shopify
+        OrderRefundsHelper.CreateRefundTransaction(OrderId, RefundId, 156.38, "Shpfy Transaction Status"::Pending);
+
+        // [WHEN] Execute IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId)
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] No sales document is created (creation is skipped and retried on a later sync)
+        LibraryAssert.AreEqual('', SalesHeader."No.", 'No credit memo must be created while the refund has a pending transaction.');
+    end;
+
+    [Test]
+    procedure UnitTestCreatesCrMemoFromRefundWithSucceededTransaction()
+    var
+        SalesHeader: Record "Sales Header";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        OrderId, OrderLineId : BigInteger;
+        ReturnId: BigInteger;
+    begin
+        // [SCENARIO] The pending-transaction guard only blocks pending transactions; a succeeded transaction still creates the credit memo (Bug 640432).
+        Initialize();
+
+        // [GIVEN] Shop configured to auto create credit memos
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop.Modify(false);
+
+        // [GIVEN] A processed Shopify order with a return and a refund that can create a credit memo
+        CerateProcessedShopifyOrder(OrderId, OrderLineId);
+        CreateShopifyReturn(ReturnId, OrderId);
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, "Shpfy Restock Type"::Return);
+        // [GIVEN] The refund transaction has already succeeded
+        OrderRefundsHelper.CreateRefundTransaction(OrderId, RefundId, 156.38, "Shpfy Transaction Status"::Success);
+
+        // [WHEN] Execute IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId)
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] A credit memo is created
+        LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Credit Memo", SalesHeader."Document Type", 'A credit memo must be created when the refund transaction has succeeded.');
+        LibraryAssert.AreNotEqual('', SalesHeader."No.", 'The credit memo must have a number.');
+    end;
+
+    [Test]
+    procedure UnitTestVerifyRefundCanCreateCreditMemoErrorsWithPendingTransaction()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        RefundsAPI: Codeunit "Shpfy Refunds API";
+        RefundId: BigInteger;
+        OrderId, OrderLineId : BigInteger;
+        ReturnId: BigInteger;
+    begin
+        // [SCENARIO] Manually verifying a refund that still has a pending transaction throws an error (Bug 640432).
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+
+        // [GIVEN] A refund that can create a credit memo but still has a pending transaction
+        CerateProcessedShopifyOrder(OrderId, OrderLineId);
+        CreateShopifyReturn(ReturnId, OrderId);
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, "Shpfy Restock Type"::Return);
+        OrderRefundsHelper.CreateRefundTransaction(OrderId, RefundId, 156.38, "Shpfy Transaction Status"::Pending);
+
+        // [WHEN] Execute RefundsAPI.VerifyRefundCanCreateCreditMemo
+        asserterror RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId);
+
+        // [THEN] It throws the pending-transactions error
+        LibraryAssert.ExpectedError('This refund cannot be used to create a credit memo or return order yet because it has one or more pending transactions. The refunded amount is only final once the related transactions succeed. Retry after the transactions are no longer pending.');
+    end;
+
     local procedure Initialize()
     var
         OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
