@@ -50,15 +50,19 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Any: Codeunit Any;
+        AssignToSelfNotification: Notification;
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
-        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6 %7, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=Lot No., %6=Serial No., %7=Package No.';
-        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of Lot No., Serial No. and Package No.';
+        WarehouseEntryTypeBlockedErr: Label '"%1" warehouse transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
+        EntryTypeBlockedErr: Label '"%1" transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
+        InspectionCreatedMsgFragmentTok: Label 'has been created', Locked = true;
+        YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
         LotSerialTrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no', Locked = true;
@@ -1887,11 +1891,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] An error is raised indicating assembly consumption is blocked by the result
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, StrSubstNo(
             EntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Consumption",
             ComponentItem."No.",
-            LotNo));
+            LotNo,
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -1961,11 +1965,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] An error is raised indicating purchase is blocked by the result on the highest re-inspection
         asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
         LibraryAssert.ExpectedError(StrSubstNo(EntryTypeBlockedErr,
-            ReQltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::Purchase,
             PurchaseLine."No.",
-            ReservationEntry."Package No."));
+            ReservationEntry."Package No.",
+            ReQltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2126,11 +2130,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Output",
             AssemblyHeader."Item No.",
-            StrSubstNo(LotSerialTrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No.")));
+            StrSubstNo(LotSerialTrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No."),
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2211,13 +2215,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2290,13 +2292,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2395,13 +2395,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2538,13 +2536,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror LibraryWarehouse.RegisterWhseActivity(InventoryMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            ReQltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Movement",
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            ReQltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2679,13 +2675,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         asserterror LibraryWarehouse.RegisterWhseActivity(WhseMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
             WarehouseEntryTypeBlockedErr,
-            QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::Movement,
             Item."No.",
             ReservationEntry."Lot No.",
-            '',
-            ''));
+            QltyInspectionHeader.GetFriendlyIdentifier(),
+            ToLoadQltyInspectionResult.Code));
     end;
 
     [Test]
@@ -2879,8 +2873,92 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.IsTrue(QltyInspectionHeader.GetPreventAutoAssignment(), 'Inspection should be ignored');
     end;
 
+    [Test]
+    [HandlerFunctions('AssignToSelfNotificationHandler')]
+    procedure ModifyUnassignedInspection_SendsAssignToSelfNotification()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        // [SCENARIO] Modifying an unassigned Quality Inspection sends the "assign to yourself" notification
+        // instead of silently auto-assigning the current user.
+
+        // [GIVEN] An unassigned quality inspection
+        CreateUnassignedInspection(QltyInspectionHeader);
+
+        // [GIVEN] The expected assign-to-self notification is queued
+        Clear(AssignToSelfNotification);
+        LibraryVariableStorage.Enqueue(StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."));
+
+        // [WHEN] A user-modifiable field is changed and the inspection is modified (which runs OnModify)
+        QltyInspectionHeader.Validate(Description, 'x');
+        QltyInspectionHeader.Modify(true);
+
+        // [THEN] The inspection remains unassigned because the user was prompted
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'The inspection should not be silently assigned when the user is prompted');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AssignToSelfNotificationHandler')]
+    procedure ModifyUnassignedInspection_AcceptAssignToSelfNotificationAssignsCurrentUser()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        // [SCENARIO] Accepting the assign-to-self notification assigns the inspection to the current user
+
+        // [GIVEN] An unassigned quality inspection
+        CreateUnassignedInspection(QltyInspectionHeader);
+
+        // [GIVEN] The expected assign-to-self notification is queued
+        Clear(AssignToSelfNotification);
+        LibraryVariableStorage.Enqueue(StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."));
+
+        // [WHEN] The inspection is modified and the user accepts the assign-to-self notification
+        QltyInspectionHeader.Validate(Description, 'x');
+        QltyInspectionHeader.Modify(true);
+        QltyInspectionUtility.HandleNotificationActionAssignToSelf(AssignToSelfNotification);
+
+        // [THEN] The inspection is assigned to the current user
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'The inspection should be assigned to the current user after accepting the notification');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure CreateUnassignedInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateItem(Item);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        LibraryVariableStorage.Enqueue(InspectionCreatedMsgFragmentTok);
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        QltyInspectionGenRule.Delete();
+        LibraryVariableStorage.AssertEmpty();
+
+        QltyInspectionHeader."Assigned User ID" := '';
+        QltyInspectionHeader.Modify(false);
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Precondition: the inspection must start unassigned');
+    end;
+
     local procedure Initialize()
     begin
+        LibraryVariableStorage.Clear();
+
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
@@ -2910,6 +2988,17 @@ codeunit 139964 "Qlty. Tests - Misc."
     [MessageHandler]
     procedure MessageHandler(MessageText: Text)
     begin
+    end;
+
+    [SendNotificationHandler]
+    procedure AssignToSelfNotificationHandler(var NotificationToShow: Notification): Boolean
+    var
+        ExpectedMessage: Text;
+    begin
+        ExpectedMessage := LibraryVariableStorage.DequeueText();
+        LibraryAssert.ExpectedMessage(ExpectedMessage, NotificationToShow.Message());
+        if ExpectedMessage <> InspectionCreatedMsgFragmentTok then
+            AssignToSelfNotification := NotificationToShow;
     end;
 
     [ModalPageHandler]
