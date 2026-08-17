@@ -129,7 +129,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     /// <param name="PurchOrderLine">The purchase order line to attach the comments to.</param>
     /// <param name="RequisitionLine">The requisition line for the subcontracting production order routing line.</param>
     /// <param name="NextLineNo">The next purchase order line number, which is updated for each inserted comment.</param>
-    procedure InsertSubcontractingProdOrderComments(PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line"; var NextLineNo: Integer)
+    internal procedure InsertSubcontractingProdOrderComments(PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line"; var NextLineNo: Integer)
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProdOrderRoutingComment: Record "Subc. Prod. Rtng. Comment";

@@ -72,6 +72,72 @@ codeunit 139994 "Subc. Comments Attachment Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure SubcontractingCommentPagesHonorReadAndEditPermissionSets()
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        StandardTask: Record "Standard Task";
+        SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";
+        SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
+        SubcStandardTaskComment: Record "Subc. Standard Task Comment";
+        WorkCenter: Record "Work Center";
+        ProdRtngComments: TestPage "Subc. Prod. Rtng. Comments";
+        RoutingComments: TestPage "Subc. Routing Comments";
+        StandardTaskComments: TestPage "Subc. Standard Task Comments";
+    begin
+        Initialize();
+        LibraryManufacturing.CreateStandardTask(StandardTask);
+        LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 10000, 'Standard task comment', 'Standard task detail');
+
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, WorkCenter."No.", '010', 1, 1);
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, 'Routing comment', 'Routing detail');
+
+        SubcProdRtngComment.Status := "Production Order Status"::Released;
+        SubcProdRtngComment."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SubcProdRtngComment."Prod. Order No."));
+        SubcProdRtngComment."Prod. Order Line No." := 10000;
+        SubcProdRtngComment."Routing Reference No." := 10000;
+        SubcProdRtngComment."Routing No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SubcProdRtngComment."Routing No."));
+        SubcProdRtngComment."Operation No." := '010';
+        SubcProdRtngComment."Line No." := 10000;
+        SubcProdRtngComment.Validate(Description, 'Production routing comment');
+        SubcProdRtngComment.Validate("Description 2", 'Production routing detail');
+        SubcProdRtngComment.Insert();
+
+        LibraryLowerPermissions.SetExactPermissionSet('Subcontract. - Read');
+
+        StandardTaskComments.OpenView();
+        StandardTaskComments.Close();
+        RoutingComments.OpenView();
+        RoutingComments.Close();
+        ProdRtngComments.OpenView();
+        ProdRtngComments.Close();
+
+        LibraryLowerPermissions.SetExactPermissionSet('Subcontract. - Edit');
+
+        StandardTaskComments.OpenEdit();
+        StandardTaskComments.Description.SetValue('Edited standard task comment');
+        StandardTaskComments.Close();
+        RoutingComments.OpenEdit();
+        RoutingComments.Description.SetValue('Edited routing comment');
+        RoutingComments.Close();
+        ProdRtngComments.OpenEdit();
+        ProdRtngComments.Description.SetValue('Edited production routing comment');
+        ProdRtngComments.Close();
+
+        SubcStandardTaskComment.Get(StandardTask.Code, 10000);
+        Assert.AreEqual('Edited standard task comment', SubcStandardTaskComment.Description, 'The Standard Task comment page should allow edits with the edit permission set.');
+        SubcRoutingCommentLine.Get(RoutingLine."Routing No.", RoutingLine."Version Code", RoutingLine."Operation No.", 10000);
+        Assert.AreEqual('Edited routing comment', SubcRoutingCommentLine.Description, 'The Routing comment page should allow edits with the edit permission set.');
+        SubcProdRtngComment.Get(
+            SubcProdRtngComment.Status, SubcProdRtngComment."Prod. Order No.", SubcProdRtngComment."Prod. Order Line No.",
+            SubcProdRtngComment."Routing Reference No.", SubcProdRtngComment."Routing No.", SubcProdRtngComment."Operation No.", SubcProdRtngComment."Line No.");
+        Assert.AreEqual('Edited production routing comment', SubcProdRtngComment.Description, 'The production routing comment page should allow edits with the edit permission set.');
+    end;
+
+    [Test]
     procedure SubcontractingCommentLengthBoundariesAreEnforced()
     var
         StandardTask: Record "Standard Task";
@@ -2752,6 +2818,7 @@ codeunit 139994 "Subc. Comments Attachment Test"
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibraryPurchase: Codeunit "Library - Purchase";

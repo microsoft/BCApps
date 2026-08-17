@@ -281,10 +281,18 @@ codeunit 139984 "Subc. Library Mfg. Management"
         LibraryManufacturing.PostOutput(ProdOrderLine, Qty, WorkDate(), 0);
     end;
 
+    /// <summary>
+    /// Creates a subcontracting routing comment line for the specified routing operation.
+    /// </summary>
+    /// <param name="RoutingLine">The routing line whose routing and operation information is copied to the comment.</param>
+    /// <param name="LineNo">The line number of the comment.</param>
+    /// <param name="CommentDescription">The main description of the comment.</param>
+    /// <param name="CommentDescription2">The additional description of the comment.</param>
     procedure CreateRoutingSubcComment(RoutingLine: Record "Routing Line"; LineNo: Integer; CommentDescription: Text[100]; CommentDescription2: Text[50])
     var
         SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
     begin
+        SubcRoutingCommentLine.Init();
         SubcRoutingCommentLine."Routing No." := RoutingLine."Routing No.";
         SubcRoutingCommentLine."Version Code" := RoutingLine."Version Code";
         SubcRoutingCommentLine."Operation No." := RoutingLine."Operation No.";

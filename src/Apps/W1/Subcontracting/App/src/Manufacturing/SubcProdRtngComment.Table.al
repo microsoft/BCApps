@@ -91,6 +91,9 @@ table 99001574 "Subc. Prod. Rtng. Comment"
 
     trigger OnInsert()
     begin
+        if Status = Status::Finished then
+            Error(ModifyInsertOnFinishedErr, Status, TableCaption);
+
         if "Prod. Order Line No." = 0 then
             "Prod. Order Line No." := "Routing Reference No.";
     end;
