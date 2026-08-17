@@ -1,6 +1,7 @@
 namespace Microsoft.Sustainability.Ledger;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Navigate;
 
 page 6220 "Sustainability Ledger Entries"
 {
@@ -260,8 +261,30 @@ page 6220 "Sustainability Ledger Entries"
                 }
             }
         }
+        area(processing)
+        {
+            action("Navigate")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Find entries...';
+                Image = Navigate;
+                ShortCutKey = 'Ctrl+Alt+Q';
+                ToolTip = 'Find entries and documents that exist for the document number and posting date on the selected document. (Formerly this action was named Navigate.)';
+
+                trigger OnAction()
+                begin
+                    NavigatePage.SetDoc(Rec."Posting Date", Rec."Document No.");
+                    NavigatePage.Run();
+                end;
+            }
+        }
         area(Promoted)
         {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+                actionref("Navigate_Promoted"; "Navigate") { }
+            }
             group(Category_Category4)
             {
                 Caption = 'Entry';
@@ -273,6 +296,7 @@ page 6220 "Sustainability Ledger Entries"
 
     var
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
+        NavigatePage: Page Navigate;
         Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible : Boolean;
         DimensionCaptionLbl: Label '%1 %2', Locked = true;
 
