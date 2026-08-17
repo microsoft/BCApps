@@ -9704,6 +9704,26 @@
     ]
   },
   {
+    "name": "Expense Withholding Tax",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
     "name": "Excise Taxes",
     "groups": [
       {

@@ -70,6 +70,15 @@ codeunit 7056 "WHT Expense Category Mgt."
                 Result := false;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"WHT Employee Calculation", OnAfterIsEmployeeWHTApplicable, '', false, false)]
+    local procedure OnAfterIsEmployeeWHTApplicable(GenJnlLine: Record "Gen. Journal Line"; var IsApplicable: Boolean)
+    begin
+        if (GenJnlLine."Wthldg. Tax Prod. Post. Group" = '') and IsExpenseCategorySingleTax(GenJnlLine) then
+            IsApplicable := false
+        else
+            IsApplicable := true;
+    end;
+
     local procedure IsExpenseCategorySingleTax(GenJnlline: Record "Gen. Journal Line"): Boolean
     var
         ExpenseCategory: Record "Expense Category";
