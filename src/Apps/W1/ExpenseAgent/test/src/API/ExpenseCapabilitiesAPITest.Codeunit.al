@@ -10,6 +10,7 @@ codeunit 148318 "Expense Capabilities API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -19,13 +20,12 @@ codeunit 148318 "Expense Capabilities API Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryExpenseAgent: Codeunit "Library - Expense Agent";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
-        ProjectsEnabledTok: Label '"capabilityname":"projects","isenabled":true', Locked = true;
-        ProjectsDisabledTok: Label '"capabilityname":"projects","isenabled":false', Locked = true;
-        ConsolidatedProjectsEnabledTok: Label '"capabilityname":"consolidatedprojects","isenabled":true', Locked = true;
+        ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -37,6 +37,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // [SCENARIO] When Expense Agent Setup has "Enable Project Fields" = true,
         //            the capabilities API exposes a 'projects' row with isEnabled = true.
         Initialize();
+        LibraryExpenseAgent.BackupExpenseAgentSetup();
 
         // [GIVEN] Expense Agent Setup exists with Enable Project Fields = true.
         if not ExpenseAgentSetup.Get() then begin
@@ -50,11 +51,32 @@ codeunit 148318 "Expense Capabilities API Test"
         // [WHEN] The expenseCapabilities collection is fetched through the API.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := StripWhitespace(LowerCase(ResponseText));
 
-        // [THEN] The 'projects' row is present with isEnabled = true.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsEnabledTok),
-            'Projects row must be reported as isEnabled = true when Enable Project Fields is true.');
+        // [THEN] The Projects capability is enabled, regardless of other capability states.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'projects', true),
+            'Response must contain an enabled projects capability row.');
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        Commit();
+    end;
+
+    [Test]
+    procedure ActivityLogCapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] The Activity Log capability is always advertised when the API is installed.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] ActivityLog is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
+            'Response must contain an enabled activityLog capability row.');
     end;
 
     [Test]
@@ -67,6 +89,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // [SCENARIO] When Expense Agent Setup has "Enable Project Fields" = false,
         //            the capabilities API exposes a 'projects' row with isEnabled = false.
         Initialize();
+        LibraryExpenseAgent.BackupExpenseAgentSetup();
 
         // [GIVEN] Expense Agent Setup exists with Enable Project Fields = false.
         if not ExpenseAgentSetup.Get() then begin
@@ -80,11 +103,13 @@ codeunit 148318 "Expense Capabilities API Test"
         // [WHEN] The expenseCapabilities collection is fetched through the API.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := StripWhitespace(LowerCase(ResponseText));
 
-        // [THEN] The 'projects' row is present with isEnabled = false.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsDisabledTok),
-            'Projects row must be reported as isEnabled = false when Enable Project Fields is false.');
+        // [THEN] The Projects capability is disabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'projects', false),
+            'Response must contain a disabled projects capability row.');
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        Commit();
     end;
 
     [Test]
@@ -97,6 +122,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // [SCENARIO] The 'consolidatedAssignedProjects' capability is reported enabled when
         //            project fields are enabled (the web app uses it to detect the new endpoint).
         Initialize();
+        LibraryExpenseAgent.BackupExpenseAgentSetup();
 
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();
@@ -108,15 +134,19 @@ codeunit 148318 "Expense Capabilities API Test"
 
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := StripWhitespace(LowerCase(ResponseText));
 
-        // [THEN] The 'consolidatedProjects' row is present with isEnabled = true.
-        Assert.AreNotEqual(0, StrPos(ResponseText, ConsolidatedProjectsEnabledTok),
-            'Consolidated projects row must be reported as isEnabled = true when project fields are enabled.');
+        // [THEN] Consolidated Projects is enabled, regardless of other capability states.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'consolidatedProjects', true),
+            'Response must contain an enabled consolidatedProjects capability row.');
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        Commit();
     end;
 
     local procedure Initialize()
     begin
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        Commit();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Capabilities API Test");
         if IsInitialized then
             exit;
@@ -127,15 +157,42 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Capabilities API Test");
     end;
 
-    local procedure StripWhitespace(Source: Text): Text
+    local procedure ResponseContainsCapabilityState(
+        ResponseText: Text;
+        CapabilityName: Text;
+        ExpectedEnabled: Boolean
+    ): Boolean
     var
-        Result: Text;
+        RootObject: JsonObject;
+        CapabilityObject: JsonObject;
+        ValueArray: JsonArray;
+        CapabilityToken: JsonToken;
+        PropertyToken: JsonToken;
+        CapabilityIndex: Integer;
     begin
-        Result := Source;
-        Result := DelChr(Result, '=', ' ');
-        Result := DelChr(Result, '=', Format(10));  // LF
-        Result := DelChr(Result, '=', Format(13));  // CR
-        Result := DelChr(Result, '=', Format(9));   // TAB
-        exit(Result);
+        RootObject.ReadFrom(ResponseText);
+        if not RootObject.Get('value', PropertyToken) then
+            exit(false);
+
+        ValueArray := PropertyToken.AsArray();
+        if ValueArray.Count() = 0 then
+            exit(false);
+        for CapabilityIndex := 0 to ValueArray.Count() - 1 do begin
+            Clear(CapabilityToken);
+            Clear(CapabilityObject);
+            ValueArray.Get(CapabilityIndex, CapabilityToken);
+            CapabilityObject := CapabilityToken.AsObject();
+            Clear(PropertyToken);
+            if CapabilityObject.Get('capabilityName', PropertyToken) then
+                if LowerCase(PropertyToken.AsValue().AsText()) = LowerCase(CapabilityName) then begin
+                    Clear(PropertyToken);
+                    if not CapabilityObject.Get('isEnabled', PropertyToken) then
+                        exit(false);
+                    exit(PropertyToken.AsValue().AsBoolean() = ExpectedEnabled);
+                end;
+        end;
+
+        exit(false);
     end;
+
 }

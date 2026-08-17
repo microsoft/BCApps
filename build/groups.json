@@ -826,20 +826,6 @@
     ]
   },
   {
-    "name": "Tests-Performance-Internal",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
     "name": "TestRunner-Internal",
     "groups": [
       {
@@ -3590,6 +3576,26 @@
   },
   {
     "name": "External Storage - Document Attachments",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "External Storage - Document Attachments Tests",
     "groups": [
       {
         "name": "AllExtensions"
@@ -9699,6 +9705,26 @@
   },
   {
     "name": "Withholding Tax Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Expense Withholding Tax",
     "groups": [
       {
         "name": "AllExtensions"
