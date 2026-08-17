@@ -114,12 +114,14 @@ codeunit 99001572 "Subc. Invt. Put-away Ext"
                 begin
                     if WarehouseActivityLine."Source Subtype" <> "Purchase Document Type"::Order.AsInteger() then
                         exit;
+                    PurchLine.SetLoadFields("Subc. Purchase Line Type");
                     if not PurchLine.Get("Purchase Document Type"::Order, WarehouseActivityLine."Source No.", WarehouseActivityLine."Source Line No.") then
                         exit;
                     WarehouseActivityLine."Subc. Purchase Line Type" := PurchLine."Subc. Purchase Line Type";
                 end;
             Database::"Transfer Line":
                 begin
+                    TransferLine.SetLoadFields("Transfer WIP Item");
                     if not TransferLine.Get(WarehouseActivityLine."Source No.", WarehouseActivityLine."Source Line No.") then
                         exit;
                     WarehouseActivityLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
@@ -219,7 +221,7 @@ codeunit 99001572 "Subc. Invt. Put-away Ext"
 
     // Last-operation tracking is stored on the linked production order line.
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Put-away", OnBeforeFindReservationFromPurchaseLine, '', false, false)]
-    local procedure RedirectReservationLookupToProdOrderLine_OnBeforeFindReservationFromPurchaseLine(var PurchLine: Record "Purchase Line"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean; sender: Codeunit "Create Inventory Put-away")
+    local procedure RedirectReservationLookupToProdOrderLine_OnBeforeFindReservationFromPurchaseLine(var PurchLine: Record "Purchase Line"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean; CreateInventoryPutaway: Codeunit "Create Inventory Put-away")
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin
@@ -229,7 +231,7 @@ codeunit 99001572 "Subc. Invt. Put-away Ext"
         ItemTrackingMgt.GetWhseItemTrkgSetup(PurchLine."No.", WhseItemTrackingSetup);
         if WhseItemTrackingSetup.TrackingRequired() then
             ReservationFound :=
-                sender.FindReservationEntry(Database::"Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
+                CreateInventoryPutaway.FindReservationEntry(Database::"Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
 
         IsHandled := true;
     end;

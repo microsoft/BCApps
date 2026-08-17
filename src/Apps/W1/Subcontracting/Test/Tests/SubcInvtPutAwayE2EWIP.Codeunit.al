@@ -36,6 +36,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -55,6 +56,8 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
+        BeforeNewWhseActivLineInsertForWipCalled: Boolean;
+        AfterSetLineDataForWipCalled: Boolean;
         IsInitialized: Boolean;
 
     local procedure Initialize()
@@ -84,6 +87,20 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Invt. Put-away E2E WIP");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", OnBeforeNewWhseActivLineInsert, '', false, false)]
+    local procedure SetBeforeNewWhseActivLineInsertForWipCalled(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location)
+    begin
+        if WarehouseActivityLine."Transfer WIP Item" then
+            BeforeNewWhseActivLineInsertForWipCalled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", OnAfterSetLineData, '', false, false)]
+    local procedure SetAfterSetLineDataForWipCalled(WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location; var WarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+        if WarehouseActivityLine."Transfer WIP Item" then
+            AfterSetLineDataForWipCalled := true;
     end;
 
     [Test]
@@ -325,6 +342,8 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     begin
         // [SCENARIO TP-001] A WIP Inventory Pick is created with a blank bin when Special Equipment is According to Bin.
         Initialize();
+        BeforeNewWhseActivLineInsertForWipCalled := false;
+        AfterSetLineDataForWipCalled := false;
         Quantity := 7;
 
         // [GIVEN] Bin-mandatory production location with Require Pick and According to Bin setup, but no default bin.
@@ -366,7 +385,9 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         TransferLine.Modify(true);
 
         // [WHEN] An Inventory Pick is created for the released WIP transfer.
+        BindSubscription(this);
         SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(ForwardTransferHeader, WarehouseActivityHeader);
+        UnbindSubscription(this);
 
         // [THEN] Creation succeeds with one WIP activity line and no prefilled bin or Special Equipment Code.
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
@@ -379,6 +400,8 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         Assert.AreEqual('', WarehouseActivityLine."Special Equipment Code", 'A blank WIP bin must not require special equipment.');
         Assert.AreEqual(Quantity, WarehouseActivityLine.Quantity, 'The WIP activity line must retain the transfer quantity.');
         Assert.AreEqual(0, WarehouseActivityLine."Qty. (Base)", 'The WIP activity line must retain zero base quantity semantics.');
+        Assert.IsTrue(BeforeNewWhseActivLineInsertForWipCalled, 'The standard before-insert event must run for a WIP pick line.');
+        Assert.IsTrue(AfterSetLineDataForWipCalled, 'The standard after-line-data event must run for a WIP pick line.');
     end;
 
     [Test]
@@ -1892,6 +1915,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
 
         // [THEN] The purchase line cannot be changed after the linked transfer order is created.
         asserterror SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption("Bin Code"));
+        Assert.ExpectedError('because transfer orders exist for the linked production order');
     end;
 
     [Test]
@@ -1941,6 +1965,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         // [WHEN] The purchase line bin is changed to a nonexistent bin
         // [THEN] Standard bin validation rejects the nonexistent bin
         asserterror PurchaseLine.Validate("Bin Code", 'MISSING-BIN');
+        Assert.ExpectedError('MISSING-BIN');
     end;
 
     [Test]

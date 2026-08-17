@@ -323,7 +323,7 @@ codeunit 7321 "Create Inventory Put-away"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeFindReservationFromPurchaseLine(PurchaseLine, WhseItemTrackingSetup, ItemTrackingManagement, ReservationFound, IsHandled);
+        OnBeforeFindReservationFromPurchaseLine(PurchaseLine, WhseItemTrackingSetup, ItemTrackingManagement, ReservationFound, IsHandled, this);
         if IsHandled then
             exit;
 
@@ -1471,8 +1471,8 @@ codeunit 7321 "Create Inventory Put-away"
     begin
     end;
 
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforeFindReservationFromPurchaseLine(var PurchLine: Record "Purchase Line"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean)
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFindReservationFromPurchaseLine(var PurchLine: Record "Purchase Line"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean; CreateInventoryPutaway: Codeunit "Create Inventory Put-away")
     begin
     end;
 
