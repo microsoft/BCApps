@@ -919,7 +919,7 @@ report 117 Reminder
                 repeat
                     SegManagement.LogDocument(
                       8, "Issued Reminder Header"."No.", 0, 0, DATABASE::Customer, "Issued Reminder Header"."Customer No.",
-                      '', '', "Issued Reminder Header"."Posting Description", '');
+                      '', '', "Issued Reminder Header".GetLogInteractionDescription(), '');
                 until "Issued Reminder Header".Next() = 0;
     end;
 

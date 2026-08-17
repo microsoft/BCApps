@@ -101,6 +101,7 @@ codeunit 97 "Blanket Purch. Order to Order"
                         PurchOrderLine."Shortcut Dimension 2 Code" := PurchBlanketOrderLine."Shortcut Dimension 2 Code";
                         PurchOrderLine."Dimension Set ID" := PurchBlanketOrderLine."Dimension Set ID";
                         PurchOrderLine.DefaultDeferralCode();
+                        RemapAttachedToLineNo(PurchBlanketOrderLine, PurchOrderLine);
                         if IsPurchOrderLineToBeInserted(PurchOrderLine) then begin
                             OnBeforeInsertPurchOrderLine(PurchOrderLine, PurchOrderHeader, PurchBlanketOrderLine, Rec);
                             PurchOrderLine.Insert();
@@ -329,6 +330,23 @@ codeunit 97 "Blanket Purch. Order to Order"
         exit(
           AttachedToPurchaseLine.Get(
             PurchOrderLine."Document Type", PurchOrderLine."Document No.", PurchOrderLine."Attached to Line No."));
+    end;
+
+    local procedure RemapAttachedToLineNo(PurchBlanketOrderLine: Record "Purchase Line"; var PurchOrderLine: Record "Purchase Line")
+    var
+        ParentPurchaseLine: Record "Purchase Line";
+    begin
+        if PurchOrderLine."Attached to Line No." = 0 then
+            exit;
+
+        ParentPurchaseLine.SetCurrentKey("Document Type", "Blanket Order No.", "Blanket Order Line No.");
+        ParentPurchaseLine.SetLoadFields("Line No.");
+        ParentPurchaseLine.SetRange("Document Type", PurchOrderLine."Document Type");
+        ParentPurchaseLine.SetRange("Document No.", PurchOrderLine."Document No.");
+        ParentPurchaseLine.SetRange("Blanket Order No.", PurchBlanketOrderLine."Document No.");
+        ParentPurchaseLine.SetRange("Blanket Order Line No.", PurchBlanketOrderLine."Attached to Line No.");
+        if ParentPurchaseLine.FindFirst() then
+            PurchOrderLine."Attached to Line No." := ParentPurchaseLine."Line No.";
     end;
 
     [IntegrationEvent(false, false)]

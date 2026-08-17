@@ -437,9 +437,11 @@ codeunit 144714 "ERM FA Reports Test"
 
     local procedure PrintFAMovement(FADocNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FADocHeader: Record "FA Document Header";
         FA2Report: Report "FA Movement FA-2";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         FADocHeader.SetRange("No.", FADocNo);
@@ -447,13 +449,16 @@ codeunit 144714 "ERM FA Reports Test"
         FA2Report.SetFileNameSilent(LibraryReportValidation.GetFileName());
         FA2Report.UseRequestPage(false);
         FA2Report.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintPostedFAMovement(PostedFADocNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PostedFADocHeader: Record "Posted FA Doc. Header";
         PostedFA2Report: Report "FA Posted Movement FA-2";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         PostedFADocHeader.SetRange("No.", PostedFADocNo);
@@ -461,6 +466,7 @@ codeunit 144714 "ERM FA Reports Test"
         PostedFA2Report.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedFA2Report.UseRequestPage(false);
         PostedFA2Report.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyFA2ReportValues(DocNo: Code[20]; PostingDate: Date; Qty: Decimal; Amount: Decimal; BookValue: Decimal)
@@ -474,9 +480,11 @@ codeunit 144714 "ERM FA Reports Test"
 
     local procedure PrintFA14Receipt(DocumentNo: Code[20]; NoOfLines: Integer; Amounts: array[20] of Decimal)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchHeader: Record "Purchase Header";
         FA14Report: Report "Purch. FA Receipt FA-14";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         PurchHeader.SetRange("No.", DocumentNo);
@@ -486,13 +494,16 @@ codeunit 144714 "ERM FA Reports Test"
         FA14Report.Run();
 
         VerifyFA14ReportLineAmounts(NoOfLines, Amounts);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintPostedFA14Receipt(DocumentNo: Code[20]; NoOfLines: Integer; Amounts: array[20] of Decimal)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchInvHeader: Record "Purch. Inv. Header";
         FA14Report: Report "Posted Purch. FA Receipt FA-14";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         PurchInvHeader.SetRange("No.", DocumentNo);
@@ -502,6 +513,7 @@ codeunit 144714 "ERM FA Reports Test"
         FA14Report.Run();
 
         VerifyFA14ReportLineAmounts(NoOfLines, Amounts);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyFA14ReportLineAmounts(NoOfLines: Integer; Amounts: array[20] of Decimal)
@@ -588,9 +600,11 @@ codeunit 144714 "ERM FA Reports Test"
 
     local procedure PrintF6FAInvCard(FANo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FixedAsset: Record "Fixed Asset";
         FAInvCardFA6: Report "FA Inventory Card FA-6";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         FixedAsset.SetRange("No.", FANo);
@@ -599,6 +613,7 @@ codeunit 144714 "ERM FA Reports Test"
         FAInvCardFA6.SetFileNameSilent(LibraryReportValidation.GetFileName());
         FAInvCardFA6.UseRequestPage(false);
         FAInvCardFA6.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure FormatAmount(Amount: Decimal): Text
@@ -663,9 +678,11 @@ codeunit 144714 "ERM FA Reports Test"
 
     local procedure PrintFA15(DocumentNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FADocumentHeader: Record "FA Document Header";
         FAMovementFA15: Report "FA Movement FA-15";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         FADocumentHeader.SetRange("No.", DocumentNo);
@@ -673,13 +690,16 @@ codeunit 144714 "ERM FA Reports Test"
         FAMovementFA15.SetFileNameSilent(LibraryReportValidation.GetFileName());
         FAMovementFA15.UseRequestPage(false);
         FAMovementFA15.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintPostedFA15(DocumentNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PostedFADocHeader: Record "Posted FA Doc. Header";
         PostedFAMovementFA15: Report "Posted FA Movement FA-15";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
 
         PostedFADocHeader.SetRange("No.", DocumentNo);
@@ -687,6 +707,7 @@ codeunit 144714 "ERM FA Reports Test"
         PostedFAMovementFA15.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedFAMovementFA15.UseRequestPage(false);
         PostedFAMovementFA15.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyFA15ReportValues(DocumentNo: Code[20]; BookValue: Decimal; Amount: Decimal)

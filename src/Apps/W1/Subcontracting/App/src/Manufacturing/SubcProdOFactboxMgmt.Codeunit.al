@@ -273,8 +273,13 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
             Database::"Item Ledger Entry":
                 begin
                     ResultRecordRef.SetTable(ItemLedgerEntry);
-                    ProdOrderNo := ItemLedgerEntry."Order No.";
-                    ProdOrderLineNo := ItemLedgerEntry."Order Line No.";
+                    if (ItemLedgerEntry."Order Type" = ItemLedgerEntry."Order Type"::Production) and (ItemLedgerEntry."Order No." <> '') then begin
+                        ProdOrderNo := ItemLedgerEntry."Order No.";
+                        ProdOrderLineNo := ItemLedgerEntry."Order Line No.";
+                    end else begin
+                        ProdOrderNo := ItemLedgerEntry."Subc. Prod. Order No.";
+                        ProdOrderLineNo := ItemLedgerEntry."Subc. Prod. Order Line No.";
+                    end;
                     OperationNo := ItemLedgerEntry."Subc. Operation No.";
                     RoutingNo := GetRoutingNoFromProdOrderRoutingLine(ProdOrderNo, ProdOrderLineNo, OperationNo);
                 end;

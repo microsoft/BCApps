@@ -652,6 +652,15 @@ codeunit 8901 Email
     end;
 
     /// <summary>
+    /// Integration event that allows applying additional filtering to related source records before they are shown.
+    /// </summary>
+    /// <param name="EmailRelatedRecord">The related source records to filter. Subscribers can apply additional filters.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeFilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record")
+    begin
+    end;
+
+    /// <summary>
     /// Integration event to add additional relations based on added relation to emails.
     /// </summary>
     /// <param name="EmailMessageId">The ID of the email.</param>

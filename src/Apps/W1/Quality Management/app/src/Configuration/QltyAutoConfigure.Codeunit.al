@@ -272,6 +272,142 @@ codeunit 20402 "Qlty. Auto Configure"
         CreateDefaultItemLedgerEntryOpenToInspectConfiguration();
     end;
 
+    /// <summary>
+    /// Deletes only the source configurations that are shipped as defaults with Quality Management.
+    /// Any user-added source configurations are preserved.
+    /// </summary>
+    internal procedure DeleteShippedDefaultSourceConfigurations()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        ShippedCodes: List of [Code[20]];
+        ShippedCode: Code[20];
+    begin
+        GetShippedDefaultSourceConfigurationCodes(ShippedCodes);
+        foreach ShippedCode in ShippedCodes do
+            if QltyInspectSourceConfig.Get(ShippedCode) then
+                QltyInspectSourceConfig.Delete(true);
+    end;
+
+    /// <summary>
+    /// Deletes every source configuration, including user-added ones.
+    /// </summary>
+    internal procedure DeleteAllSourceConfigurations()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+    begin
+        QltyInspectSourceConfig.DeleteAll(true);
+    end;
+
+    /// <summary>
+    /// Indicates whether the specified code corresponds to a source configuration shipped as a default with Quality Management.
+    /// </summary>
+    /// <param name="Code">The code to check.</param>
+    /// <returns>True if the code matches a shipped default source configuration; otherwise false.</returns>
+    internal procedure IsShippedDefaultSourceConfiguration(Code: Code[20]): Boolean
+    var
+        ShippedCodes: List of [Code[20]];
+    begin
+        GetShippedDefaultSourceConfigurationCodes(ShippedCodes);
+        exit(ShippedCodes.Contains(Code));
+    end;
+
+    /// <summary>
+    /// Deletes and recreates a single shipped default source configuration, discarding any customizations made to it.
+    /// Does nothing if the specified code does not correspond to a shipped default configuration.
+    /// </summary>
+    /// <param name="Code">The code of the shipped default source configuration to reset.</param>
+    internal procedure ResetShippedDefaultSourceConfiguration(Code: Code[20])
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+    begin
+        if not IsShippedDefaultSourceConfiguration(Code) then
+            exit;
+
+        if QltyInspectSourceConfig.Get(Code) then
+            QltyInspectSourceConfig.Delete(true);
+
+        RecreateShippedDefaultSourceConfiguration(Code);
+    end;
+
+    local procedure RecreateShippedDefaultSourceConfiguration(Code: Code[20])
+    begin
+        case Code of
+            CopyStr(TrackingSpecToInspectTok, 1, 20):
+                CreateDefaultTrackingSpecificationToInspectConfiguration();
+            CopyStr(WarehouseEntryToInspectTok, 1, 20):
+                CreateDefaultWarehouseEntryToInspectConfiguration();
+            CopyStr(WarehouseJournalToInspectTok, 1, 20):
+                CreateDefaultWarehouseJournalLineToInspectConfiguration();
+            CopyStr(SalesLineToTrackingTok, 1, 20):
+                CreateDefaultTrackingSpecificationToSalesConfiguration();
+            CopyStr(WhseReceiptToPurchLineTok, 1, 20):
+                CreateDefaultWarehouseReceiptLineToPurchConfiguration();
+            CopyStr(ProdLineToTrackingTok, 1, 20):
+                CreateDefaultTrackingSpecificationToProdConfiguration();
+            CopyStr(PurchLineToTrackingTok, 1, 20):
+                CreateDefaultTrackingSpecificationToPurchaseConfiguration();
+            CopyStr(WhseReceiptToSalesLineTok, 1, 20):
+                CreateDefaultWarehouseReceiptLineToSalesConfiguration();
+            CopyStr(WhseJournalToPurchLineTok, 1, 20):
+                CreateDefaultWarehouseJournalLineToPurchConfiguration();
+            CopyStr(WhseJournalToSalesLineTok, 1, 20):
+                CreateDefaultWarehouseJournalLineToSalesConfiguration();
+            CopyStr(PurchLineToInspectTok, 1, 20):
+                CreateDefaultPurchaseLineToInspectConfiguration();
+            CopyStr(SalesLineToInspectTok, 1, 20):
+                CreateDefaultSalesLineToInspectConfiguration();
+            CopyStr(SalesReturnLineToInspectTok, 1, 20):
+                CreateDefaultSalesReturnLineToInspectConfiguration();
+            CopyStr(ProdJnlToInspectTok, 1, 20):
+                CreateDefaultItemProdJournalToInspectConfiguration();
+            CopyStr(LedgerToInspectTok, 1, 20):
+                CreateDefaultItemLedgerOutputToInspectConfiguration();
+            CopyStr(RtngToItemJnlTok, 1, 20):
+                CreateDefaultProdOrderRoutingLineToItemJournalLineConfiguration();
+            CopyStr(ProdLineToJnlTok, 1, 20):
+                CreateDefaultProdOrderLineToItemJournalLineConfiguration();
+            CopyStr(ProdLineToRoutingTok, 1, 20):
+                CreateDefaultProdOrderLineToProdOrderRoutingConfiguration();
+            CopyStr(InTransLineToInspectTok, 1, 20):
+                CreateDefaultTransferLineReceiptToInspectConfiguration();
+            CopyStr(ProdLineToLedgerTok, 1, 20):
+                CreateDefaultProdOrderLineToItemLedgerConfiguration();
+            CopyStr(ProdRoutingToInspectTok, 1, 20):
+                CreateDefaultProdOrderRoutingLineToInspectConfiguration();
+            CopyStr(AssemblyOutputToInspectTok, 1, 20):
+                CreateDefaultAssemblyOutputToInspectConfiguration();
+            CopyStr(OpenLedgerToInspectTok, 1, 20):
+                CreateDefaultItemLedgerEntryOpenToInspectConfiguration();
+        end;
+    end;
+
+    local procedure GetShippedDefaultSourceConfigurationCodes(var ShippedCodes: List of [Code[20]])
+    begin
+        ShippedCodes.Add(CopyStr(TrackingSpecToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(WarehouseEntryToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(WarehouseJournalToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(SalesLineToTrackingTok, 1, 20));
+        ShippedCodes.Add(CopyStr(WhseReceiptToPurchLineTok, 1, 20));
+        ShippedCodes.Add(CopyStr(ProdLineToTrackingTok, 1, 20));
+        ShippedCodes.Add(CopyStr(PurchLineToTrackingTok, 1, 20));
+        ShippedCodes.Add(CopyStr(WhseReceiptToSalesLineTok, 1, 20));
+        ShippedCodes.Add(CopyStr(WhseJournalToPurchLineTok, 1, 20));
+        ShippedCodes.Add(CopyStr(WhseJournalToSalesLineTok, 1, 20));
+        ShippedCodes.Add(CopyStr(PurchLineToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(SalesLineToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(SalesReturnLineToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(ProdJnlToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(LedgerToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(RtngToItemJnlTok, 1, 20));
+        ShippedCodes.Add(CopyStr(ProdLineToJnlTok, 1, 20));
+        ShippedCodes.Add(CopyStr(ProdLineToRoutingTok, 1, 20));
+        ShippedCodes.Add(CopyStr(InTransLineToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(ProdLineToLedgerTok, 1, 20));
+        ShippedCodes.Add(CopyStr(ProdRoutingToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(AssemblyOutputToInspectTok, 1, 20));
+        ShippedCodes.Add(CopyStr(OpenLedgerToInspectTok, 1, 20));
+    end;
+
     local procedure CreateDefaultTrackingSpecificationToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";

@@ -199,6 +199,7 @@ codeunit 7023 "Job Journal Line - Price" implements "Line With Price"
     local procedure AddSources()
     var
         Job: Record Job;
+        JobTask: Record "Job Task";
         SourceType: Enum "Price Source Type";
         IsHandled: Boolean;
     begin
@@ -213,8 +214,14 @@ codeunit 7023 "Job Journal Line - Price" implements "Line With Price"
             CurrPriceType::Sale:
                 begin
                     PriceSourceList.Add(SourceType::"All Customers");
-                    PriceSourceList.Add(SourceType::Customer, Job."Bill-to Customer No.");
-                    PriceSourceList.Add(SourceType::Contact, Job."Bill-to Contact No.");
+                    if Job."Task Billing Method" = Job."Task Billing Method"::"One customer" then begin
+                        PriceSourceList.Add(SourceType::Customer, Job."Bill-to Customer No.");
+                        PriceSourceList.Add(SourceType::Contact, Job."Bill-to Contact No.");
+                    end else begin
+                        JobTask.Get(JobJournalLine."Job No.", JobJournalLine."Job Task No.");
+                        PriceSourceList.Add(SourceType::Customer, JobTask."Bill-to Customer No.");
+                        PriceSourceList.Add(SourceType::Contact, JobTask."Bill-to Contact No.");
+                    end;
                     PriceSourceList.Add(SourceType::"Customer Price Group", JobJournalLine."Customer Price Group");
                     PriceSourceList.Add(SourceType::"Customer Disc. Group", Job."Customer Disc. Group");
                 end;
