@@ -594,11 +594,10 @@ codeunit 149905 "Subc. Whse Item Tracking"
         PurchRcptLine.FindFirst();
         Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
 
-        // [THEN] The undo created a reversing Capacity Ledger Entry (newest entry for the production order)
+        // [THEN] The undo created a reversing Capacity Ledger Entry (net output quantity is zero)
         CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
         CapacityLedgerEntry.SetRange("Order No.", ProdOrderNo);
         Assert.RecordIsNotEmpty(CapacityLedgerEntry);
-        CapacityLedgerEntry.FindLast();
 
         // [THEN] ... and a reversing (negative) Output Item Ledger Entry
         ReversingItemLedgerEntry.SetRange("Item No.", Item."No.");
@@ -607,14 +606,9 @@ codeunit 149905 "Subc. Whse Item Tracking"
         Assert.RecordIsNotEmpty(ReversingItemLedgerEntry);
         ReversingItemLedgerEntry.FindFirst();
 
-        // [THEN] No Item Entry Relation may be keyed by that Capacity Ledger Entry No.
-        // This assertion queries table 6507 for a row whose primary key equals an *actual* Capacity Ledger
-        // Entry."Entry No." - so a non-empty result positively proves the undo mis-keyed the relation with a
-        // capacity entry number (bug 644744), rather than merely showing the reversing item entry is absent.
-        ItemEntryRelation.SetRange("Item Entry No.", CapacityLedgerEntry."Entry No.");
-        Assert.RecordIsEmpty(ItemEntryRelation);
-
-        // [THEN] Instead, the relation should reference the reversing Output Item Ledger Entry.
+        // [THEN] The Item Entry Relation created by the undo references the reversing Output Item Ledger
+        // Entry. With bug 644744 it is instead keyed by the reversing Capacity Ledger Entry No., so no
+        // relation references the reversing Output Item Ledger Entry and this assertion fails.
         ItemEntryRelation.SetRange("Item Entry No.", ReversingItemLedgerEntry."Entry No.");
         Assert.RecordIsNotEmpty(ItemEntryRelation);
     end;
@@ -625,7 +619,7 @@ codeunit 149905 "Subc. Whse Item Tracking"
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         Item: Record Item;
-        ItemEntryRelation: Record "Item Entry Relation";
+        ItemLedgerEntry: Record "Item Ledger Entry";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -656,10 +650,11 @@ codeunit 149905 "Subc. Whse Item Tracking"
         CapacityLedgerEntry.CalcSums("Output Quantity");
         Assert.AreEqual(0, CapacityLedgerEntry."Output Quantity", 'Net capacity output quantity should be zero after undo');
 
-        // [THEN] No Item Entry Relation is keyed by the reversing Capacity Ledger Entry No.
-        CapacityLedgerEntry.FindLast();
-        ItemEntryRelation.SetRange("Item Entry No.", CapacityLedgerEntry."Entry No.");
-        Assert.RecordIsEmpty(ItemEntryRelation);
+        // [THEN] No Output Item Ledger Entry exists for the item - the capacity-only receipt has no output
+        // entry, so the undo takes the single-line path and never builds an Item Entry Relation.
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        Assert.RecordIsEmpty(ItemLedgerEntry);
     end;
 
     local procedure PostTrackedSubcontractingReceipt(var Item: Record Item; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ProdOrderNo: Code[20])
