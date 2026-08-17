@@ -26,7 +26,6 @@ codeunit 7104 "Create Expense Location"
         InsertExpenseLocation(ExpenseLocation, FranceParis(), FranceParisLbl, 'FR', ParisLbl, '');
         InsertExpenseLocation(ExpenseLocation, GermanyAll(), GermanyLbl, 'DE', '', '');
         InsertExpenseLocation(ExpenseLocation, UKLondon(), UKLondonAreaLbl, 'GB', LondonLbl, '');
-        InsertExpenseLocation(ExpenseLocation, UKOther(), UKOtherLbl, 'GB', '', '');
         InsertExpenseLocation(ExpenseLocation, USAFlorida(), USAFloridaLbl, 'US', '', FLLbl);
         InsertExpenseLocation(ExpenseLocation, USANY(), USANYLbl, 'US', NewYorkLbl, '');
         InsertExpenseLocation(ExpenseLocation, USAOther(), USAOtherLbl, 'US', '', '');
@@ -291,7 +290,6 @@ codeunit 7104 "Create Expense Location"
         FranceParisTok: Label 'FRANCE-PARIS', MaxLength = 20, Locked = true;
         GermanyAllTok: Label 'GERMANY-ALL', MaxLength = 20, Locked = true;
         UKLondonTok: Label 'UK-LONDON', MaxLength = 20, Locked = true;
-        UKOtherTok: Label 'UK-OTHER', MaxLength = 20, Locked = true;
         USAFloridaTok: Label 'USA-FLORIDA', MaxLength = 20, Locked = true;
         USANYTok: Label 'USA-NY', MaxLength = 20, Locked = true;
         USAOtherTok: Label 'USA-OTHER', MaxLength = 20, Locked = true;
@@ -303,7 +301,6 @@ codeunit 7104 "Create Expense Location"
         GermanyLbl: Label 'Germany', MaxLength = 100;
         UKLondonAreaLbl: Label 'United Kingdom - London area', MaxLength = 100;
         LondonLbl: Label 'London', MaxLength = 30;
-        UKOtherLbl: Label 'United Kingdom - other', MaxLength = 100;
         USAFloridaLbl: Label 'United States - Florida', MaxLength = 100;
         USANYLbl: Label 'United States - New York', MaxLength = 100;
         USAOtherLbl: Label 'United States - Other', MaxLength = 100;
@@ -803,7 +800,7 @@ codeunit 7104 "Create Expense Location"
         AlandIslandsAllLocationLbl: Label 'Aland Islands - all location', MaxLength = 100;
 
 
-    local procedure InsertExpenseLocation(var ExpenseLocation: Record "Expense Location"; Code: Code[20]; Description: Text[100]; CountryRegionCode: Code[10]; City: Text[30]; County: Text[30])
+    internal procedure InsertExpenseLocation(var ExpenseLocation: Record "Expense Location"; Code: Code[20]; Description: Text[100]; CountryRegionCode: Code[10]; City: Text[30]; County: Text[30])
     begin
         if ExpenseLocation.Get(Code) then
             exit;
@@ -812,7 +809,7 @@ codeunit 7104 "Create Expense Location"
         ExpenseLocation.Validate("Country/Region Code", CountryRegionCode);
         ExpenseLocation.Validate("City", City);
         ExpenseLocation.Validate("County", County);
-        ExpenseLocation.Insert(true);
+        ExpenseLocation.Insert();
     end;
 
     procedure UnitedArabEmiratesAll(): Code[20]
@@ -2078,11 +2075,6 @@ codeunit 7104 "Create Expense Location"
     procedure UKLondon(): Code[20]
     begin
         exit(UKLondonTok);
-    end;
-
-    procedure UKOther(): Code[20]
-    begin
-        exit(UKOtherTok);
     end;
 
     procedure USAFlorida(): Code[20]

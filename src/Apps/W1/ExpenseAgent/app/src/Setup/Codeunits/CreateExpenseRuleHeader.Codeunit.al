@@ -275,7 +275,6 @@ codeunit 7107 "Create Expense Rule Header"
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.FranceParis(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.GermanyAll(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.UKLondon(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
-        InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.UKOther(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.USAFlorida(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.USANY(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.USAOther(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
@@ -290,15 +289,15 @@ codeunit 7107 "Create Expense Rule Header"
             exit;
         if ExpenseRuleHeader.Get(ExpenseCategoryCode, ExpenseLocationCode, EffectiveDate) then
             exit;
-        ExpenseRuleHeader.Validate("Expense Category Code", ExpenseCategoryCode);
-        ExpenseRuleHeader.Validate("Expense Location", ExpenseLocationCode);
-        ExpenseRuleHeader.Validate("Effective Date", EffectiveDate);
-        ExpenseRuleHeader.Validate("Justification Required", JustificationRequired);
-        ExpenseRuleHeader.Validate("Required Specific Merchant", RequiredSpecificMerchant);
-        ExpenseRuleHeader.Validate("Specific Merchant Name", SpecificMerchantName);
-        ExpenseRuleHeader.Validate("Currency Code", CurrencyCode);
-        ExpenseRuleHeader.Validate("Unit of Measure Code", UnitOfMeasureCode);
-        ExpenseRuleHeader.Insert(true);
+        ExpenseRuleHeader."Expense Category Code" := ExpenseCategoryCode;
+        ExpenseRuleHeader."Expense Location" := ExpenseLocationCode;
+        ExpenseRuleHeader."Effective Date" := EffectiveDate;
+        ExpenseRuleHeader."Justification Required" := JustificationRequired;
+        ExpenseRuleHeader."Required Specific Merchant" := RequiredSpecificMerchant;
+        ExpenseRuleHeader."Specific Merchant Name" := SpecificMerchantName;
+        ExpenseRuleHeader."Currency Code" := CurrencyCode;
+        ExpenseRuleHeader."Unit of Measure Code" := UnitOfMeasureCode;
+        ExpenseRuleHeader.Insert();
     end;
 
     var

@@ -672,8 +672,10 @@ codeunit 6973 "Create Expense Categories"
         BuildLocationSeeds(TempLocationSeed);
         if TempLocationSeed.FindSet() then
             repeat
-                if not SeedLocationShouldBeSkipped(TempLocationSeed) then
-                    InsertExpenseLocation(TempLocationSeed."No.", TempLocationSeed."Country/Region Code", TempLocationSeed.Description);
+                if not SeedLocationShouldBeSkipped(TempLocationSeed) then begin
+                    ExpenseLocation := TempLocationSeed;
+                    ExpenseLocation.Insert();
+                end;
             until TempLocationSeed.Next() = 0;
     end;
 
@@ -682,7 +684,7 @@ codeunit 6973 "Create Expense Categories"
         ConflictingLocation: Record "Expense Location";
     begin
         if ConflictingLocation.Get(SeedLocation."No.") then
-            exit(false);
+            exit(true);
 
         ConflictingLocation.Reset();
         ConflictingLocation.SetFilter("No.", '<>%1', SeedLocation."No.");
@@ -767,13 +769,10 @@ codeunit 6973 "Create Expense Categories"
         TempRuleHeaderSeed: Record "Expense Rule Header" temporary;
         TempRuleConditionSeed: Record "Expense Rule Condition" temporary;
         TempPreExistingRuleHeader: Record "Expense Rule Header" temporary;
-        TempSkippedSeedLocation: Record "Expense Location" temporary;
         ExistingRuleHeader: Record "Expense Rule Header";
     begin
         // Expense Locations are a prerequisite for rules that target a location.
         InsertDefaultExpenseLocations();
-
-        BuildSkippedSeedLocations(TempSkippedSeedLocation);
 
         BuildRuleSeeds(TempRuleHeaderSeed);
 
@@ -781,25 +780,22 @@ codeunit 6973 "Create Expense Categories"
         // are considered customer-owned and must not be touched by the defaults run.
         if TempRuleHeaderSeed.FindSet() then
             repeat
-                if not TempSkippedSeedLocation.Get(TempRuleHeaderSeed."Expense Location") then
-                    if ExistingRuleHeader.Get(TempRuleHeaderSeed."Expense Category Code", TempRuleHeaderSeed."Expense Location", TempRuleHeaderSeed."Effective Date") then begin
-                        TempPreExistingRuleHeader := ExistingRuleHeader;
-                        TempPreExistingRuleHeader.Insert();
-                    end;
+                if ExistingRuleHeader.Get(TempRuleHeaderSeed."Expense Category Code", TempRuleHeaderSeed."Expense Location", TempRuleHeaderSeed."Effective Date") then begin
+                    TempPreExistingRuleHeader := ExistingRuleHeader;
+                    TempPreExistingRuleHeader.Insert();
+                end;
             until TempRuleHeaderSeed.Next() = 0;
 
         if TempRuleHeaderSeed.FindSet() then
             repeat
-                if not TempSkippedSeedLocation.Get(TempRuleHeaderSeed."Expense Location") then
-                    InsertExpenseRule(TempRuleHeaderSeed."Expense Category Code", TempRuleHeaderSeed."Expense Location", TempRuleHeaderSeed."Currency Code", TempRuleHeaderSeed."Justification Required");
+                InsertExpenseRule(TempRuleHeaderSeed."Expense Category Code", TempRuleHeaderSeed."Expense Location", TempRuleHeaderSeed."Currency Code", TempRuleHeaderSeed."Justification Required");
             until TempRuleHeaderSeed.Next() = 0;
 
         BuildRuleConditionSeeds(TempRuleConditionSeed);
         if TempRuleConditionSeed.FindSet() then
             repeat
-                if not TempSkippedSeedLocation.Get(TempRuleConditionSeed."Expense Location") then
-                    if not TempPreExistingRuleHeader.Get(TempRuleConditionSeed."Expense Category Code", TempRuleConditionSeed."Expense Location", TempRuleConditionSeed."Effective Date") then
-                        InsertExpenseRuleCondition(TempRuleConditionSeed."Expense Category Code", TempRuleConditionSeed."Expense Location", TempRuleConditionSeed."Condition Type", TempRuleConditionSeed.Value);
+                if not TempPreExistingRuleHeader.Get(TempRuleConditionSeed."Expense Category Code", TempRuleConditionSeed."Expense Location", TempRuleConditionSeed."Effective Date") then
+                    InsertExpenseRuleCondition(TempRuleConditionSeed."Expense Category Code", TempRuleConditionSeed."Expense Location", TempRuleConditionSeed."Condition Type", TempRuleConditionSeed.Value);
             until TempRuleConditionSeed.Next() = 0;
     end;
 
@@ -1271,18 +1267,6 @@ codeunit 6973 "Create Expense Categories"
         ExpensePostingGroup.Validate("Debit Rounding Account", ExpenseDebitRoundingAccount);
         ExpensePostingGroup.Validate("Credit Rounding Account", ExpenseCreditRoundingAccount);
         ExpensePostingGroup.Insert(true);
-    end;
-
-    local procedure InsertExpenseLocation(Code: Code[20]; CountryRegionCode: Code[10]; Description: Text[100])
-    begin
-        if ExpenseLocation.Get(Code) then
-            exit;
-
-        ExpenseLocation.Init();
-        ExpenseLocation.Validate("No.", Code);
-        ExpenseLocation.Validate("Country/Region Code", CountryRegionCode);
-        ExpenseLocation.Validate("Description", Description);
-        ExpenseLocation.Insert(true);
     end;
 
     local procedure InsertExpenseRule(CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; CurrencyCode: Code[10]; JustificationRequired: Enum "Expense Justification")

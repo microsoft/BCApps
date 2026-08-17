@@ -274,7 +274,6 @@ codeunit 7105 "Create Expense Rule Condition"
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.FranceParis(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.GermanyAll(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.UKLondon(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
-        InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.UKOther(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.USAFlorida(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.USANY(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.USAOther(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
