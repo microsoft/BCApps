@@ -20,6 +20,10 @@ codeunit 6532 "E-Doc. Item Charge Mapping"
     var
         CachedDocumentLineNos: Dictionary of [Integer, Integer];
         CachedLineNoDocumentNo: Code[20];
+        CachedInvoiceLineToKeepNo: Code[20];
+        CachedCrMemoLineToKeepNo: Code[20];
+        CachedInvoiceLineToKeep: Boolean;
+        CachedCrMemoLineToKeep: Boolean;
         UnitCodeOneTok: Label 'C62', Locked = true;
 
     /// <summary>
@@ -252,18 +256,32 @@ codeunit 6532 "E-Doc. Item Charge Mapping"
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
     begin
+        // The answer depends on the document, not on the item charge, but the classification runs once per
+        // charge line. Caching it per document keeps a document with many item charges to a single query.
+        if (CachedInvoiceLineToKeepNo = DocumentNo) and (DocumentNo <> '') then
+            exit(CachedInvoiceLineToKeep);
+
         SalesInvoiceLine.SetRange("Document No.", DocumentNo);
         SalesInvoiceLine.SetFilter(Type, '<>%1&<>%2', SalesInvoiceLine.Type::" ", SalesInvoiceLine.Type::"Charge (Item)");
-        exit(not SalesInvoiceLine.IsEmpty());
+        CachedInvoiceLineToKeep := not SalesInvoiceLine.IsEmpty();
+        CachedInvoiceLineToKeepNo := DocumentNo;
+        exit(CachedInvoiceLineToKeep);
     end;
 
     local procedure HasLineToKeepInCrMemo(DocumentNo: Code[20]): Boolean
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
     begin
+        // Cached per document for the same reason as the invoice variant. Invoices and credit memos keep
+        // separate caches, so a document number that exists in both tables cannot return the wrong answer.
+        if (CachedCrMemoLineToKeepNo = DocumentNo) and (DocumentNo <> '') then
+            exit(CachedCrMemoLineToKeep);
+
         SalesCrMemoLine.SetRange("Document No.", DocumentNo);
         SalesCrMemoLine.SetFilter(Type, '<>%1&<>%2', SalesCrMemoLine.Type::" ", SalesCrMemoLine.Type::"Charge (Item)");
-        exit(not SalesCrMemoLine.IsEmpty());
+        CachedCrMemoLineToKeep := not SalesCrMemoLine.IsEmpty();
+        CachedCrMemoLineToKeepNo := DocumentNo;
+        exit(CachedCrMemoLineToKeep);
     end;
 
     local procedure FindSingleAssignedLineNo(DocumentNo: Code[20]; ChargeLineNo: Integer; ItemChargeNo: Code[20]): Integer
