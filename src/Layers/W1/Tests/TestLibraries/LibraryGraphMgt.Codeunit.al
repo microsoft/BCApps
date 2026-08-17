@@ -27,11 +27,25 @@ codeunit 130618 "Library - Graph Mgt"
     begin
         BindAuthentication();
         SetApiTestWorkDate();
+        EnsureApiTestReasonCode();
     end;
 
     procedure SetApiTestWorkDate()
     begin
-        WorkDate := DMY2Date(15, 1, Date2DMY(Today, 3));
+        WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
+    end;
+
+    local procedure EnsureApiTestReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        ReasonCode.Init();
+        ReasonCode.Code := 'API-TEST';
+        ReasonCode.Description := 'API test reason';
+        ReasonCode.Insert();
     end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
