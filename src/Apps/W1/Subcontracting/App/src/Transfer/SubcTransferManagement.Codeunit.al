@@ -302,7 +302,7 @@ codeunit 99001504 "Subc. Transfer Management"
             // during Return TO creation. Revert it back to Transfer-from (subcontractor location)
             // so the component correctly reflects that items are still at the subcontractor.
             if (TransferLine."Transfer-from Code" <> '') and (ProdOrderComponent."Location Code" <> TransferLine."Transfer-from Code") then begin
-                ProdOrderComponent.Validate("Location Code", TransferLine."Transfer-from Code");
+                SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferLine."Transfer-from Code");
                 ProdOrderComponent.Modify();
             end;
             exit;

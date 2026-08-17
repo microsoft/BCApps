@@ -15,6 +15,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
 using Microsoft.Sales.History;
@@ -47,6 +48,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XmlNamespaceRSM: Text;
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
+        ItemGTINCache: Dictionary of [Code[20], Code[14]];
         DocumentLanguageCode: Code[10];
 
     trigger OnRun()
@@ -284,6 +286,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         LineAmount: Dictionary of [Decimal, Decimal];
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
+        Clear(ItemGTINCache);
         GetSetups();
         FindEDocumentService();
         if not DocumentLinesExist(SalesInvoiceHeader, SalesInvLine) then
@@ -319,6 +322,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         LineAmount: Dictionary of [Decimal, Decimal];
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
+        Clear(ItemGTINCache);
         GetSetups();
         FindEDocumentService();
         if not DocumentLinesExist(SalesCrMemoHeader, SalesCrMemoLine) then
@@ -356,6 +360,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         LineAmount: Dictionary of [Decimal, Decimal];
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
+        Clear(ItemGTINCache);
         GetSetups();
         FindEDocumentService();
         ClearItemChargeClassification();
@@ -401,6 +406,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         LineAmount: Dictionary of [Decimal, Decimal];
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
+        Clear(ItemGTINCache);
         GetSetups();
         FindEDocumentService();
         ClearItemChargeClassification();
@@ -529,7 +535,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DataTypeManagement: Codeunit "Data Type Management";
         HeaderRecordRef: RecordRef;
         HeaderTradeAgreementElement, SellerTradePartyElement, BuyerTradePartyElement, SpecifiedTaxRegistrationElement, IDElement : XmlElement;
-        SellerOrderReferencedDocumentElement: XmlElement;
+        SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement: XmlElement;
         PostalTradeAddressElement, ContactElement : XmlElement;
         SellerIDAttr, BuyerIDAttr : XmlAttribute;
         CustomerNo: Code[20];
@@ -545,6 +551,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         CustomerEmail: Text[250];
         PhoneNumber: Text[30];
         OrderNo: Code[20];
+        ExternalDocumentNo: Code[35];
         SellerStreetName: Text;
         SellerAdditionalStreetName: Text;
         SellerCityName: Text;
@@ -575,6 +582,7 @@ codeunit 13917 "Export ZUGFeRD Document"
                     CustomerEmail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), RecordVariant, CustomerNo, TempBodyReportSelections);
                     PhoneNumber := SalesInvoiceHeader."Sell-to Phone No.";
                     OrderNo := SalesInvoiceHeader."Order No.";
+                    ExternalDocumentNo := SalesInvoiceHeader."External Document No.";
                     RespCentrCode := SalesInvoiceHeader."Responsibility Center";
                     GetSellerContactInfo(SalesInvoiceHeader, SellerContactName, SellerPhoneNumber, SellerEmailAddress);
                 end;
@@ -595,6 +603,7 @@ codeunit 13917 "Export ZUGFeRD Document"
                     CustomerEmail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), RecordVariant, CustomerNo, TempBodyReportSelections);
                     PhoneNumber := SalesCrMemoHeader."Sell-to Phone No.";
                     OrderNo := SalesCrMemoHeader."Return Order No.";
+                    ExternalDocumentNo := SalesCrMemoHeader."External Document No.";
                     RespCentrCode := SalesCrMemoHeader."Responsibility Center";
                     GetSellerContactInfo(SalesCrMemoHeader, SellerContactName, SellerPhoneNumber, SellerEmailAddress);
                 end;
@@ -684,6 +693,12 @@ codeunit 13917 "Export ZUGFeRD Document"
             SellerOrderReferencedDocumentElement := XmlElement.Create('SellerOrderReferencedDocument', XmlNamespaceRAM);
             SellerOrderReferencedDocumentElement.Add(XmlElement.Create('IssuerAssignedID', XmlNamespaceRAM, OrderNo));
             HeaderTradeAgreementElement.Add(SellerOrderReferencedDocumentElement);
+        end;
+
+        if ExternalDocumentNo <> '' then begin
+            BuyerOrderReferencedDocumentElement := XmlElement.Create('BuyerOrderReferencedDocument', XmlNamespaceRAM);
+            BuyerOrderReferencedDocumentElement.Add(XmlElement.Create('IssuerAssignedID', XmlNamespaceRAM, ExternalDocumentNo));
+            HeaderTradeAgreementElement.Add(BuyerOrderReferencedDocumentElement);
         end;
 
         OnAfterInsertApplicableHeaderTradeAgreement(HeaderTradeAgreementElement, HeaderRecordRef);
@@ -933,6 +948,30 @@ codeunit 13917 "Export ZUGFeRD Document"
         RootElement.Add(BillingSpecifiedPeriodElement);
     end;
 
+    local procedure InsertGlobalID(var SpecifiedTradeProductElement: XmlElement; ItemNo: Code[20])
+    var
+        GTIN: Code[14];
+    begin
+        GTIN := GetItemGTIN(ItemNo);
+        if GTIN = '' then
+            exit;
+
+        SpecifiedTradeProductElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', '0160'), GTIN));
+    end;
+
+    local procedure GetItemGTIN(ItemNo: Code[20]) GTIN: Code[14]
+    var
+        Item: Record Item;
+    begin
+        if ItemGTINCache.Get(ItemNo, GTIN) then
+            exit;
+
+        Item.SetLoadFields(Item.GTIN);
+        if Item.Get(ItemNo) then
+            GTIN := Item.GTIN;
+        ItemGTINCache.Add(ItemNo, GTIN);
+    end;
+
     local procedure InsertInvoiceLine(var SupplyChainTradeTransactionElement: XmlElement; var SalesInvoiceLine: Record "Sales Invoice Line"; Currency: Record Currency; CurrencyCode: Code[10]; PricesIncVAT: Boolean)
     var
         InvoiceLineElement: XmlElement;
@@ -959,8 +998,12 @@ codeunit 13917 "Export ZUGFeRD Document"
             InvoiceLineElement.Add(AssociatedDocumentLineElement);
 
             SpecifiedTradeProductElement := XmlElement.Create('SpecifiedTradeProduct', XmlNamespaceRAM);
+            if SalesInvoiceLine.Type = SalesInvoiceLine.Type::Item then
+                InsertGlobalID(SpecifiedTradeProductElement, SalesInvoiceLine."No.");
             if SalesInvoiceLine."No." <> '' then
                 SpecifiedTradeProductElement.Add(XmlElement.Create('SellerAssignedID', XmlNamespaceRAM, SalesInvoiceLine."No."));
+            if SalesInvoiceLine."Item Reference No." <> '' then
+                SpecifiedTradeProductElement.Add(XmlElement.Create('BuyerAssignedID', XmlNamespaceRAM, SalesInvoiceLine."Item Reference No."));
             SpecifiedTradeProductElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesInvoiceLine.Description));
             InvoiceLineElement.Add(SpecifiedTradeProductElement);
 
@@ -1046,8 +1089,12 @@ codeunit 13917 "Export ZUGFeRD Document"
             CrMemoLineElement.Add(AssociatedDocumentLineElement);
 
             SpecifiedTradeProductElement := XmlElement.Create('SpecifiedTradeProduct', XmlNamespaceRAM);
+            if SalesCrMemoLine.Type = SalesCrMemoLine.Type::Item then
+                InsertGlobalID(SpecifiedTradeProductElement, SalesCrMemoLine."No.");
             if SalesCrMemoLine."No." <> '' then
                 SpecifiedTradeProductElement.Add(XmlElement.Create('SellerAssignedID', XmlNamespaceRAM, SalesCrMemoLine."No."));
+            if SalesCrMemoLine."Item Reference No." <> '' then
+                SpecifiedTradeProductElement.Add(XmlElement.Create('BuyerAssignedID', XmlNamespaceRAM, SalesCrMemoLine."Item Reference No."));
             SpecifiedTradeProductElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesCrMemoLine.Description));
             CrMemoLineElement.Add(SpecifiedTradeProductElement);
 

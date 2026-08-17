@@ -262,6 +262,20 @@ table 4325 "SOA Setup"
         exit(false);
     end;
 
+    /// <summary>
+    /// Determines whether the specified identity is the configured owner or agent, including the fallback for setups created before an explicit owner was stored.
+    /// </summary>
+    internal procedure IsAuthorizedUserSecurityID(UserSecurityID: Guid): Boolean
+    var
+        OwnerUserSecurityID: Guid;
+    begin
+        OwnerUserSecurityID := "Owner User Security ID";
+        if IsNullGuid(OwnerUserSecurityID) then
+            OwnerUserSecurityID := "User Security ID";
+
+        exit((UserSecurityID = OwnerUserSecurityID) or (UserSecurityID = "User Security ID"));
+    end;
+
     internal procedure GetDefaultMessageLimit(): Integer
     begin
         exit(100);
