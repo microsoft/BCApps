@@ -39,6 +39,17 @@ if (-not (Test-Path $licenseFile)) {
 }
 Reset-BcContainerApplicationDatabase -ContainerName $parameters.ContainerName -Credential $parameters.Credential -LicenseFile $licenseFile
 
+if (-not [string]::IsNullOrWhiteSpace($parameters.companyName)) {
+    $companyExists = @(
+        Get-CompanyInBcContainer -containerName $parameters.ContainerName -tenant default |
+            Where-Object { ($_.CompanyName -eq $parameters.companyName) -or ($_.Name -eq $parameters.companyName) }
+    ).Count -gt 0
+    if (-not $companyExists) {
+        Write-Host "Creating company $($parameters.companyName) before app install"
+        New-CompanyInBcContainer -containerName $parameters.ContainerName -tenant default -companyName $parameters.companyName
+    }
+}
+
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
 # The reset leaves only the System Application published. Remove it too so AL-Go publishes the
