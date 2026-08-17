@@ -1062,6 +1062,7 @@ codeunit 139204 "FS Integration Test"
         // "The value 0.333333333333333 in field Quantity is of lower precision than expected..."
         // [GIVEN] FS Connection Setup, where "Is Enabled" = Yes.
         Initialize();
+        SetUpServiceManagement();
         InitSetup(true, '');
 
         // [GIVEN] Service Line where the Item UoM has rounding precision 0.00001.
@@ -1095,6 +1096,7 @@ codeunit 139204 "FS Integration Test"
         // "This will cause the quantity and base quantity fields to be out of balance."
         // [GIVEN] FS Connection Setup, where "Is Enabled" = Yes.
         Initialize();
+        SetUpServiceManagement();
         InitSetup(true, '');
 
         // [GIVEN] Service Line with no rounding precision defined (default 0).
@@ -1772,6 +1774,26 @@ codeunit 139204 "FS Integration Test"
 
         IsInitialized := true;
         SetTenantLicenseStateToTrial();
+    end;
+
+    local procedure SetUpServiceManagement()
+    var
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+        ServiceInvoiceTemplate: Record "Service Invoice Template";
+    begin
+        if not ServiceInvoiceTemplate.Get('DEFAULT') then begin
+            ServiceInvoiceTemplate.Init();
+            ServiceInvoiceTemplate.Name := 'DEFAULT';
+            ServiceInvoiceTemplate.Insert();
+        end;
+
+        if not ServiceMgtSetup.Get() then begin
+            ServiceMgtSetup.Init();
+            ServiceMgtSetup.Insert();
+        end;
+
+        ServiceMgtSetup."Serv. Invoice Template Name" := ServiceInvoiceTemplate.Name;
+        ServiceMgtSetup.Modify();
     end;
 
     procedure ResetFSEnvironment()
