@@ -233,7 +233,6 @@ report 99000780 "Capacity Task List"
 
     rendering
     {
-//#if not CLEAN32
         layout(WordLayout)
         {
             Type = Word;
@@ -241,9 +240,8 @@ report 99000780 "Capacity Task List"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
         layout(ExcelLayout)
         {
             Type = Excel;

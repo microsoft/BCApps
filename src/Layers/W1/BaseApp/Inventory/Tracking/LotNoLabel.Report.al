@@ -77,7 +77,6 @@ report 6628 "Lot No Label"
     }
     rendering
     {
-        //#if not CLEAN32
         layout(Word)
         {
             Type = Word;
@@ -85,9 +84,8 @@ report 6628 "Lot No Label"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-        //#endif
         layout(WordBody)
         {
             Type = Word;

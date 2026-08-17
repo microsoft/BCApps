@@ -294,7 +294,6 @@ report 708 "Inventory Order Details"
             Type = Excel;
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-        //#if not CLEAN32
         layout(Word)
         {
             Caption = 'Inventory Order Details Word';
@@ -303,9 +302,8 @@ report 708 "Inventory Order Details"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-        //#endif
 #if not CLEAN27
         layout(RDLC)
         {

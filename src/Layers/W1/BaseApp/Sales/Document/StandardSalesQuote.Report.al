@@ -983,7 +983,6 @@ report 1304 "Standard Sales - Quote"
             Caption = 'Standard Sales Quote (RDLC)';
             Summary = 'The Standard Sales Quote (RDLC) provides a detailed layout.';
         }
-//#if not CLEAN32
         layout("StandardSalesQuote.docx")
         {
             Type = Word;
@@ -992,10 +991,8 @@ report 1304 "Standard Sales - Quote"
             Summary = 'The Standard Sales Quote (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardSalesQuoteBlue.docx")
         {
             Type = Word;
@@ -1004,10 +1001,8 @@ report 1304 "Standard Sales - Quote"
             Summary = 'The Standard Sales Quote - Blue (Word) provides a basic layout with a blue theme.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardSalesQuoteBlueThemable.docx")
         {
             Type = Word;
@@ -1016,10 +1011,8 @@ report 1304 "Standard Sales - Quote"
             Summary = 'The Standard Sales Quote - Themable (Word) provides a basic Themable layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardSalesQuoteEmail.docx")
         {
             Type = Word;
@@ -1028,9 +1021,8 @@ report 1304 "Standard Sales - Quote"
             Summary = 'The Standard Sales Quote Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
         layout("StandardSalesQuoteBody.docx")
         {
             Type = Word;

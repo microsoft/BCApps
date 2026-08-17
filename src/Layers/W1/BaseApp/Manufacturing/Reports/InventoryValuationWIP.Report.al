@@ -474,7 +474,6 @@ report 5802 "Inventory Valuation - WIP"
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.xlsx';
             Summary = 'Built in layout for the Production Order - WIP Excel report.';
         }
-//#if not CLEAN32
         layout(Word)
         {
             Caption = 'Production Order - WIP Word';
@@ -483,10 +482,9 @@ report 5802 "Inventory Valuation - WIP"
             Summary = 'Built in layout for the Production Order - WIP Word report.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
 
         }
-//#endif
 #if not CLEAN28
         layout(RDLC)
         {

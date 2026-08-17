@@ -358,7 +358,6 @@ report 99000788 "Prod. Order - Shortage List"
 
     rendering
     {
-//#if not CLEAN32
         layout(Word)
         {
             Caption = 'Prod. Order - Shortage List Word';
@@ -367,9 +366,8 @@ report 99000788 "Prod. Order - Shortage List"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
         layout(Excel)
         {
             Caption = 'Prod. Order - Shortage List Excel';

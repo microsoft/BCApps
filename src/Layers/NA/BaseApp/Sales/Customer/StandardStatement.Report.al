@@ -979,7 +979,6 @@ report 1316 "Standard Statement"
             Caption = 'Standard Customer Statement (RDLC)';
             Summary = 'The Standard Customer Statement (RDLC) provides a detailed layout.';
         }
-        //#if not CLEAN32
         layout("StandardStatement.docx")
         {
             Type = Word;
@@ -988,10 +987,8 @@ report 1316 "Standard Statement"
             Summary = 'The Standard Customer Statement (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-        //#endif
-        //#if not CLEAN32
         layout("StandardCustomerStatementEmail.docx")
         {
             Type = Word;
@@ -1000,9 +997,8 @@ report 1316 "Standard Statement"
             Summary = 'The Standard Customer Statement Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-        //#endif
         layout("StandardStatementBody.docx")
         {
             Type = Word;

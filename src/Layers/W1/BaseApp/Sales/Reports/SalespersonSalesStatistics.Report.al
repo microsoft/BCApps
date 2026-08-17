@@ -255,7 +255,6 @@ report 114 "Salesperson - Sales Statistics"
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-//#if not CLEAN32
         layout(Word)
         {
             Caption = 'Salesperson Sales Statistics Word';
@@ -264,9 +263,8 @@ report 114 "Salesperson - Sales Statistics"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
 #if not CLEAN27
         layout(RDLC)
         {

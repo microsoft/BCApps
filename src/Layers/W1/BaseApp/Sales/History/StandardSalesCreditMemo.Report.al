@@ -1024,7 +1024,6 @@ report 1307 "Standard Sales - Credit Memo"
             Caption = 'Standard Sales Credit Memo (RDLC)';
             Summary = 'The Standard Sales Credit Memo (RDLC) provides a detailed layout.';
         }
-//#if not CLEAN32
         layout("StandardSalesCreditMemo.docx")
         {
             Type = Word;
@@ -1033,10 +1032,8 @@ report 1307 "Standard Sales - Credit Memo"
             Summary = 'The Standard Sales Credit Memo (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardSalesCreditMemoThemable.docx")
         {
             Type = Word;
@@ -1045,10 +1042,8 @@ report 1307 "Standard Sales - Credit Memo"
             Summary = 'The Standard Sales Credit Memo (Word) provides a basic Themable layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardSalesCreditMemoEmail.docx")
         {
             Type = Word;
@@ -1057,9 +1052,8 @@ report 1307 "Standard Sales - Credit Memo"
             Summary = 'The Standard Sales Credit Memo Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
         layout("StandardSalesCreditMemoBody.docx")
         {
             Type = Word;

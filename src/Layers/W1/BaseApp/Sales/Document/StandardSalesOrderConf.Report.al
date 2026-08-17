@@ -1044,7 +1044,6 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation (RDLC)';
             Summary = 'Detailed layout with all fields.';
         }
-//#if not CLEAN32
         layout("StandardSalesOrderConf.docx")
         {
             Type = Word;
@@ -1053,10 +1052,8 @@ report 1305 "Standard Sales - Order Conf."
             Summary = 'Simple layout with most necessary fields.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardSalesOrderConfThemable.docx")
         {
             Type = Word;
@@ -1065,10 +1062,8 @@ report 1305 "Standard Sales - Order Conf."
             Summary = 'Simple themable layout with most necessary fields.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardOrderConfirmationEmail.docx")
         {
             Type = Word;
@@ -1077,9 +1072,8 @@ report 1305 "Standard Sales - Order Conf."
             Summary = 'Layout intended for an email body.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
 
 
         layout("StandardSalesOrderConfBody.docx")

@@ -297,7 +297,6 @@ report 1016 "Job Quote"
             Caption = 'Project Quote (RDLC)';
             Summary = 'The Project Quote (RDLC) provides a detailed layout.';
         }
-//#if not CLEAN32
         layout("JobQuote.docx")
         {
             Type = Word;
@@ -306,9 +305,8 @@ report 1016 "Job Quote"
             Summary = 'The Project Quote (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
         layout("JobQuoteBody.docx")
         {
             Type = Word;

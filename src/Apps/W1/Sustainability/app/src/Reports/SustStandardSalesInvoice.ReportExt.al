@@ -55,7 +55,6 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
     }
     rendering
     {
-        //#if not CLEAN32
         layout("StandardESGSalesInvoice.docx")
         {
             Type = Word;
@@ -64,10 +63,8 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             LayoutFile = 'src\Reports\StandardESGSalesInvoice.docx';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-        //#endif
-        //#if not CLEAN32
         layout("StandardESGSalesInvoiceBlueSimple.docx")
         {
             Type = Word;
@@ -76,9 +73,8 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             LayoutFile = 'src\Reports\StandardESGSalesInvoiceBlueSimple.docx';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-        //#endif
         layout("StandardESGSalesInvoiceBody.docx")
         {
             Type = Word;

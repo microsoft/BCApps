@@ -1033,7 +1033,6 @@ report 1322 "Standard Purchase - Order"
 
     rendering
     {
-//#if not CLEAN32
         layout("StandardPurchaseOrder.docx")
         {
             Type = Word;
@@ -1042,10 +1041,8 @@ report 1322 "Standard Purchase - Order"
             Summary = 'The Standard Purchase Order (Word) provides a basic layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardPurchaseOrderThemable.docx")
         {
             Type = Word;
@@ -1054,10 +1051,8 @@ report 1322 "Standard Purchase - Order"
             Summary = 'The Standard Purchase Order (Word) provides a Themable layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
-//#if not CLEAN32
         layout("StandardPurchaseOrderEmail.docx")
         {
             Type = Word;
@@ -1066,9 +1061,8 @@ report 1322 "Standard Purchase - Order"
             Summary = 'The Standard Purchase Order Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
         layout("StandardPurchaseOrderBody.docx")
         {
             Type = Word;

@@ -133,16 +133,14 @@ report 1320 "Notification Email"
 
     rendering
     {
-//#if not CLEAN32
         layout("NotificationEmail.docx")
         {
             Type = Word;
             LayoutFile = './System/Notifications/NotificationEmail.docx';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
         layout("NotificationEmailBody.docx")
         {
             Type = Word;

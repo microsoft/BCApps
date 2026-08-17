@@ -901,7 +901,6 @@ report 117 Reminder
             Summary = 'The Reminder (RDLC) provides a detailed layout.';
         }
 #endif
-//#if not CLEAN32
         layout("DefaultReminderEmail.docx")
         {
             Type = Word;
@@ -910,9 +909,8 @@ report 117 Reminder
             Summary = 'The Default Reminder Email (Word) provides an email body for the reminder.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-//#endif
         layout("DefaultReminderEmailBody.docx")
         {
             Type = Word;
