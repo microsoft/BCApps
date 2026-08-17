@@ -269,17 +269,17 @@ page 30172 "Shpfy Order Totals FactBox"
         end;
     end;
 
-    local procedure ResolveSalesDocument(var DocumentType: Enum "Shpfy Document Type"; var SalesDocumentNo: Code[20]): Boolean
+    local procedure ResolveSalesDocument(var DocumentType: Enum "Shpfy Document Type"; var ResolvedDocumentNo: Code[20]): Boolean
     begin
-        if FindLinkedDocument("Shpfy Document Type"::"Posted Sales Invoice", SalesDocumentNo) then begin
+        if FindLinkedDocument("Shpfy Document Type"::"Posted Sales Invoice", ResolvedDocumentNo) then begin
             DocumentType := "Shpfy Document Type"::"Posted Sales Invoice";
             exit(true);
         end;
-        if FindLinkedDocument("Shpfy Document Type"::"Sales Invoice", SalesDocumentNo) then begin
+        if FindLinkedDocument("Shpfy Document Type"::"Sales Invoice", ResolvedDocumentNo) then begin
             DocumentType := "Shpfy Document Type"::"Sales Invoice";
             exit(true);
         end;
-        if FindLinkedDocument("Shpfy Document Type"::"Sales Order", SalesDocumentNo) then begin
+        if FindLinkedDocument("Shpfy Document Type"::"Sales Order", ResolvedDocumentNo) then begin
             DocumentType := "Shpfy Document Type"::"Sales Order";
             exit(true);
         end;
@@ -287,18 +287,18 @@ page 30172 "Shpfy Order Totals FactBox"
         // Fallback for orders processed before the document link table was populated.
         if Rec."Sales Invoice No." <> '' then begin
             DocumentType := "Shpfy Document Type"::"Sales Invoice";
-            SalesDocumentNo := Rec."Sales Invoice No.";
+            ResolvedDocumentNo := Rec."Sales Invoice No.";
             exit(true);
         end;
         if Rec."Sales Order No." <> '' then begin
             DocumentType := "Shpfy Document Type"::"Sales Order";
-            SalesDocumentNo := Rec."Sales Order No.";
+            ResolvedDocumentNo := Rec."Sales Order No.";
             exit(true);
         end;
         exit(false);
     end;
 
-    local procedure FindLinkedDocument(DocumentType: Enum "Shpfy Document Type"; var SalesDocumentNo: Code[20]): Boolean
+    local procedure FindLinkedDocument(DocumentType: Enum "Shpfy Document Type"; var ResolvedDocumentNo: Code[20]): Boolean
     var
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
     begin
@@ -306,7 +306,7 @@ page 30172 "Shpfy Order Totals FactBox"
         DocLinkToBCDoc.SetRange("Shopify Document Id", Rec."Shopify Order Id");
         DocLinkToBCDoc.SetRange("Document Type", DocumentType);
         if DocLinkToBCDoc.FindLast() then begin
-            SalesDocumentNo := DocLinkToBCDoc."Document No.";
+            ResolvedDocumentNo := DocLinkToBCDoc."Document No.";
             exit(true);
         end;
         exit(false);
