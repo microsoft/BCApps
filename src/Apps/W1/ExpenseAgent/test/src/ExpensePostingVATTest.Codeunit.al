@@ -650,6 +650,7 @@ codeunit 148330 "Expense Posting VAT Test"
         RecordRef: RecordRef;
     begin
         ExpenseVATSpecification.Init();
+        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Manual;
         ExpenseVATSpecification.Validate("Expense No.", Expense."No.");
         RecordRef.GetTable(ExpenseVATSpecification);
         ExpenseVATSpecification.Validate("Line No.", LibraryUtility.GetNewLineNo(RecordRef, ExpenseVATSpecification.FieldNo("Line No.")));
