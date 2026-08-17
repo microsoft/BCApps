@@ -450,15 +450,27 @@ codeunit 6912 "Expense Auto Population"
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         ExpenseCurrency: Record Currency;
+        MileageRateSetup: Record "Mileage Rate Setup";
+        EffectiveRate: Decimal;
+        RateCurrencyCode: Code[10];
     begin
-        if CurrencyCode = '' then
-            exit(StandardRateOfMileage);
+        if MileageRateSetup.FindEffectiveRate(ExpenseDate, CurrencyCode) or
+           ((CurrencyCode <> '') and MileageRateSetup.FindEffectiveRate(ExpenseDate, ''))
+        then begin
+            EffectiveRate := MileageRateSetup.Rate;
+            RateCurrencyCode := MileageRateSetup."Currency Code";
+        end else begin
+            EffectiveRate := StandardRateOfMileage;
+            RateCurrencyCode := '';
+        end;
+
+        if RateCurrencyCode = CurrencyCode then
+            exit(EffectiveRate);
 
         if CurrencyCode = '' then
-            ExpenseCurrency.InitRoundingPrecision()
-        else
-            ExpenseCurrency.Get(CurrencyCode);
+            exit(EffectiveRate);
 
-        exit(Round(CurrencyExchangeRate.ExchangeAmtLCYToFCY(ExpenseDate, CurrencyCode, StandardRateOfMileage, CurrencyFactor), ExpenseCurrency."Unit-Amount Rounding Precision"));
+        ExpenseCurrency.Get(CurrencyCode);
+        exit(Round(CurrencyExchangeRate.ExchangeAmtLCYToFCY(ExpenseDate, CurrencyCode, EffectiveRate, CurrencyFactor), ExpenseCurrency."Unit-Amount Rounding Precision"));
     end;
 }

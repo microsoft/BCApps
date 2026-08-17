@@ -62,6 +62,7 @@ permissionset 6904 "Expense Management - Objects"
         table "Expense Capabilities Buffer" = X,
         table Traveler = X,
         table "Expense Project Buf" = X,
+        table "Mileage Rate Setup" = X,
         page "EA Billing Overview" = X,
         page "EA Scheduler Tasks" = X,
         page "EA Outbox Emails" = X,
@@ -141,6 +142,7 @@ permissionset 6904 "Expense Management - Objects"
         page "Posted Expense Billing Info." = X,
         page "Expense Payment Methods" = X,
         page "Expense Report List" = X,
+        page "Mileage Rate Setup" = X,
         page "Expense Report Stats" = X,
 #if not CLEAN29
 #pragma warning disable AL0432

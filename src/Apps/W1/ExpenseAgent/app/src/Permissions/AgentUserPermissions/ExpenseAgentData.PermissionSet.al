@@ -40,6 +40,7 @@ permissionset 6953 "Expense Agent - Data"
                   tabledata "Expense User" = R,
                   tabledata "Expense Group" = R,
                   tabledata "Expense Location" = R,
+                  tabledata "Mileage Rate Setup" = R,
                   tabledata "Expense Rule Condition" = R,
                   tabledata "Expense Rule Header" = R,
                   tabledata "Expense Posting Group" = r,

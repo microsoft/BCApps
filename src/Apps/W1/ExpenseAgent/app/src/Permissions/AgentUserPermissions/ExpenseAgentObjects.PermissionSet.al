@@ -86,6 +86,7 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Expense Itemization" = X,
                   table "Expense Ledger Entry" = X,
                   table "Expense Location" = X,
+                  table "Mileage Rate Setup" = X,
                   table "Expense Participant" = X,
                   table "Expense Payment Method" = X,
                   table "Expense Per Diem" = X,

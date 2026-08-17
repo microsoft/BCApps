@@ -373,6 +373,14 @@ page 6996 "Expense Agent Setup"
                     RunObject = Page "VAT Posting Setup";
                     ToolTip = 'Opens the page to define reduced VAT rates for expense management.';
                 }
+                action("Mileage Rate Setup")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Mileage Rate Setup';
+                    Image = CalculateConsumption;
+                    RunObject = Page "Mileage Rate Setup";
+                    ToolTip = 'Opens the page to set up time-valid mileage rates that apply based on the transaction date.';
+                }
                 action("Apply Default Settings")
                 {
                     ApplicationArea = Basic, Suite;
