@@ -20,6 +20,7 @@ codeunit 148318 "Expense Capabilities API Test"
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ProjectsCapabilityNameTok: Label '"capabilityname":"projects"', Locked = true;
+        ProjectsDisabledRowTok: Label '"capabilityname":"projects","isenabled":false', Locked = true;
         ConsolidatedCapabilityNameTok: Label '"capabilityname":"consolidatedprojects"', Locked = true;
         IsEnabledTrueTok: Label '"isenabled":true', Locked = true;
         IsEnabledFalseTok: Label '"isenabled":false', Locked = true;
@@ -89,7 +90,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // [THEN] The 'projects' row is present and isEnabled = false.
         Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsCapabilityNameTok),
             'Response must contain a projects capability row.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, IsEnabledFalseTok),
+        Assert.AreNotEqual(0, StrPos(ResponseText, ProjectsDisabledRowTok),
             'Projects row must be reported as isEnabled = false when Enable Project Fields is false.');
     end;
 

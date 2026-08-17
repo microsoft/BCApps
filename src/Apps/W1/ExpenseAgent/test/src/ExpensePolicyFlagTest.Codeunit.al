@@ -53,12 +53,36 @@ codeunit 148339 "Expense Policy Flag Test"
         CreateTestReportLine(ExpenseReportLine);
 
         // [WHEN] The report line is marked evaluated.
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [THEN] Evaluated equals Current, the timestamp is set, and the status is No Policies.
         Assert.AreEqual(ExpenseReportLine."Policy Eval Version", ExpenseReportLine."Evaluated Policy Version", 'Evaluated must catch up to Policy Eval Version after MarkPoliciesEvaluated.');
         Assert.AreNotEqual(0DT, ExpenseReportLine."Policies Evaluated At", 'Policies Evaluated At must be stamped.');
         Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'An evaluated line with no applicable policy must report No Policies.');
+    end;
+
+    [Test]
+    procedure MarkPoliciesEvaluatedRejectsChangedReportLine()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        EvaluatedSubjectVersion: Integer;
+    begin
+        // [SCENARIO] Evaluation completion is rejected when the report line changed after evaluation started.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        EvaluatedSubjectVersion := ExpenseReportLine."Policy Eval Version";
+
+        // [GIVEN] A policy-relevant field changes after the caller captured the subject version.
+        ExpenseReportLine."Merchant Name" := 'Changed after evaluation started';
+        ExpenseReportLine.Modify(true);
+
+        // [WHEN] The caller tries to complete the older evaluation.
+        asserterror ExpenseReportLine.MarkPoliciesEvaluated(EvaluatedSubjectVersion);
+
+        // [THEN] The stale completion is rejected and no evaluation timestamp is recorded.
+        Assert.ExpectedError('changed after policy evaluation started');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(0DT, ExpenseReportLine."Policies Evaluated At", 'A stale evaluation must not be marked complete.');
     end;
 
     [Test]
@@ -69,7 +93,7 @@ codeunit 148339 "Expense Policy Flag Test"
         // [SCENARIO] Changing a policy-relevant field after evaluation bumps Current, leaving the line Stale.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [WHEN] A policy-relevant field (Merchant Name) changes to a guaranteed-different value.
         ExpenseReportLine."Merchant Name" := 'Contoso Merchant (policy-relevant change)';
@@ -91,7 +115,7 @@ codeunit 148339 "Expense Policy Flag Test"
         //            does not go Stale (with no applicable policy it stays at the stable No Policies signal).
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [WHEN] Only a neutral field (Applied Rule Id) changes.
         ExpenseReportLine."Applied Rule Id" := CreateGuid();
@@ -111,7 +135,7 @@ codeunit 148339 "Expense Policy Flag Test"
         // [SCENARIO] InvalidatePolicyEvaluation bumps Current directly, leaving an evaluated line Stale.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [WHEN] The evaluation is invalidated.
         ExpenseReportLine.InvalidatePolicyEvaluation();
@@ -123,12 +147,12 @@ codeunit 148339 "Expense Policy Flag Test"
     end;
 
     [Test]
-    procedure InvalidateBeforeEvaluationIsNoOp()
+    procedure InvalidateBeforeEvaluationAdvancesVersion()
     var
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
     begin
-        // [SCENARIO] InvalidatePolicyEvaluation on a never-evaluated line is a no-op (guard against staling a held handle).
+        // [SCENARIO] Invalidation before the first evaluation advances the subject version.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
         CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Applies to the line category');
@@ -137,10 +161,26 @@ codeunit 148339 "Expense Policy Flag Test"
         // [WHEN] The evaluation is invalidated before any evaluation ever happened.
         ExpenseReportLine.InvalidatePolicyEvaluation();
 
-        // [THEN] Current is unchanged and the status stays Not Evaluated.
+        // [THEN] Current advances and the status stays Not Evaluated.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual(0, ExpenseReportLine."Policy Eval Version", 'Invalidation before evaluation must not bump Policy Eval Version.');
+        Assert.AreEqual(1, ExpenseReportLine."Policy Eval Version", 'Invalidation before evaluation must bump Policy Eval Version.');
         Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'Invalidation before evaluation must leave the line Not Evaluated.');
+    end;
+
+    [Test]
+    procedure RepeatedInvalidationAdvancesVersion()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Every policy-relevant change receives a distinct subject version.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+
+        ExpenseReportLine.InvalidatePolicyEvaluation();
+        ExpenseReportLine.InvalidatePolicyEvaluation();
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(2, ExpenseReportLine."Policy Eval Version", 'Repeated invalidation must advance the version for every change.');
     end;
 
     // --- Flag insertion + Flagged status -----------------------------------------------------
@@ -159,7 +199,7 @@ codeunit 148339 "Expense Policy Flag Test"
 
         // [WHEN] A flag is added and the line is then marked evaluated.
         AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Receipt includes alcohol.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [THEN] The Policy Flags FlowField sees the live flag and the status is Flagged.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -167,20 +207,20 @@ codeunit 148339 "Expense Policy Flag Test"
     end;
 
     [Test]
-    procedure FlagStampedWithSubjectAndPolicyVersion()
+    procedure FlagValidatedWithSubjectAndPolicyVersion()
     var
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
         ExpensePolicyFlag: Record "Expense Policy Flag";
     begin
-        // [SCENARIO] OnInsert stamps the flag's Policy Version from the linked policy; the caller
-        //            supplies Subject Version from the parent line's Policy Eval Version.
+        // [SCENARIO] OnInsert accepts the subject and policy versions returned to the evaluator
+        //            when they still match the current records.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
         CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Policy text.');
 
         // [GIVEN] The line is evaluated then invalidated once so Policy Eval Version is 1 (not the trivial 0).
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
@@ -196,6 +236,62 @@ codeunit 148339 "Expense Policy Flag Test"
         Assert.AreEqual(1, ExpensePolicyFlag."Subject Version", 'Policy Eval Version was 1 at insert, so the flag Subject Version must be 1.');
         Assert.AreEqual(ExpensePolicy."Version", ExpensePolicyFlag."Policy Version", 'The flag Policy Version must match the policy Version at insert.');
         Assert.AreEqual(1, ExpensePolicyFlag."Policy Version", 'The policy was modified once, so the flag Policy Version must be 1.');
+    end;
+
+    [Test]
+    procedure FlagInsertRejectsChangedReportLineVersion()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        EvaluatedSubjectVersion: Integer;
+    begin
+        // [SCENARIO] A policy result is rejected when its expense line changed during evaluation.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Policy text.');
+        EvaluatedSubjectVersion := ExpenseReportLine."Policy Eval Version";
+
+        ExpenseReportLine."Merchant Name" := 'Changed after evaluation started';
+        ExpenseReportLine.Modify(true);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := EvaluatedSubjectVersion;
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
+
+        asserterror ExpensePolicyFlag.Insert(true);
+        Assert.ExpectedError('expense report line changed after policy evaluation started');
+    end;
+
+    [Test]
+    procedure FlagInsertRejectsChangedPolicyVersion()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        EvaluatedPolicyVersion: Integer;
+    begin
+        // [SCENARIO] A policy result is rejected when its policy changed during evaluation.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Policy text.');
+        EvaluatedPolicyVersion := ExpensePolicy."Version";
+
+        ExpensePolicy."Policy Text" := 'Changed after evaluation started.';
+        ExpensePolicy.Modify(true);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := EvaluatedPolicyVersion;
+
+        asserterror ExpensePolicyFlag.Insert(true);
+        Assert.ExpectedError('expense policy changed after policy evaluation started');
     end;
 
     [Test]
@@ -251,6 +347,33 @@ codeunit 148339 "Expense Policy Flag Test"
     end;
 
     [Test]
+    procedure FlagInsertOverwritesCallerTimestamp()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        CallerTimestamp: DateTime;
+    begin
+        // [SCENARIO] The server owns the policy flag audit timestamp.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Policy text.');
+        CallerTimestamp := CreateDateTime(DMY2Date(1, 1, 2000), 0T);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyFlag."Flagged At" := CallerTimestamp;
+        ExpensePolicyFlag.Insert(true);
+
+        Assert.AreNotEqual(CallerTimestamp, ExpensePolicyFlag."Flagged At", 'The server must overwrite a caller-supplied Flagged At value.');
+        Assert.AreNotEqual(0DT, ExpensePolicyFlag."Flagged At", 'The server-generated Flagged At value must not be blank.');
+    end;
+
+    [Test]
     procedure StaleFlagHiddenAfterReevaluation()
     var
         ExpenseReportLine: Record "Expense Report Line";
@@ -265,7 +388,7 @@ codeunit 148339 "Expense Policy Flag Test"
 
         // [GIVEN] An evaluated, flagged line at version 1.
         AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Old violation.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line should be Flagged at version 1.');
 
@@ -273,7 +396,7 @@ codeunit 148339 "Expense Policy Flag Test"
         ExpenseReportLine."Merchant Name" := 'Contoso Merchant (policy-relevant change)';
         ExpenseReportLine.Modify(true);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [THEN] The version-1 flag is no longer live (status Cleared) but the row still exists.
@@ -297,7 +420,7 @@ codeunit 148339 "Expense Policy Flag Test"
 
         // [GIVEN] An evaluated, flagged line at version 1.
         AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Version 1 violation.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [WHEN] A relevant field change bumps the version, a new flag is stamped at version 2, then re-evaluated.
@@ -305,7 +428,7 @@ codeunit 148339 "Expense Policy Flag Test"
         ExpenseReportLine.Modify(true);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Version 2 violation.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [THEN] The line is Flagged (the version-2 flag is live) and both flag rows are preserved.
@@ -328,7 +451,7 @@ codeunit 148339 "Expense Policy Flag Test"
 
         // [WHEN] A compliant verdict is recorded and the line is marked evaluated.
         AddCompliantFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'No alcohol found - compliant.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [THEN] Has Policy Violation is false and the line reports Cleared.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -354,7 +477,7 @@ codeunit 148339 "Expense Policy Flag Test"
         // [WHEN] Policy A passes and Policy B is violated, then the line is marked evaluated.
         AddCompliantFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicyA, 'No alcohol found - compliant.');
         AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicyB, 'Missing itemized receipt.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [THEN] Has Policy Violation is true and the line reports Flagged.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -372,7 +495,7 @@ codeunit 148339 "Expense Policy Flag Test"
         // [SCENARIO] Adding a policy for a category invalidates lines of that category that were already evaluated.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'Precondition: with no policy yet the line reports No Policies.');
 
@@ -398,7 +521,7 @@ codeunit 148339 "Expense Policy Flag Test"
 
         // [GIVEN] The line is evaluated (Cleared) after the policy already exists.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line should be Cleared.');
 
@@ -408,7 +531,16 @@ codeunit 148339 "Expense Policy Flag Test"
 
         // [THEN] The evaluated line is invalidated and reports Stale.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(1, ExpenseReportLine."Policy Eval Version", 'The first policy change must advance the line version.');
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Changing a policy must leave the evaluated line Stale.');
+
+        // [WHEN] The policy changes again while the line is already stale.
+        ExpensePolicy."Policy Text" := 'No alcohol, minibar, or room service alcohol.';
+        ExpensePolicy.Modify(true);
+
+        // [THEN] The second change receives another distinct line version.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(2, ExpenseReportLine."Policy Eval Version", 'Each policy change must advance the line version.');
     end;
 
     [Test]
@@ -428,7 +560,7 @@ codeunit 148339 "Expense Policy Flag Test"
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Alcohol flagged');
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [WHEN] The policy is deleted.
         ExpensePolicy.Delete(true);
@@ -452,7 +584,7 @@ codeunit 148339 "Expense Policy Flag Test"
         // [SCENARIO] A policy for one category does not invalidate lines of a different category.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [WHEN] A policy is added for a different category than the line's.
@@ -478,7 +610,7 @@ codeunit 148339 "Expense Policy Flag Test"
 
         // [GIVEN] A policy for the line's category and the line evaluated (Cleared, no flags).
         CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'No alcohol on company expenses.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the evaluated line should be Cleared.');
 
@@ -524,7 +656,7 @@ codeunit 148339 "Expense Policy Flag Test"
         Assert.IsFalse(ExpensePolicyFlag."Is Current", 'Precondition: the flag must be non-current.');
 
         // [WHEN] The line is marked evaluated so its status is read from flags.
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [THEN] The superseded flag does not count as a violation; the line reports Cleared.
@@ -642,7 +774,7 @@ codeunit 148339 "Expense Policy Flag Test"
         // [SCENARIO] Inserting a child participant invalidates the parent line's evaluation.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'Precondition: with no policy the line reports No Policies.');
 
@@ -656,6 +788,26 @@ codeunit 148339 "Expense Policy Flag Test"
     end;
 
     [Test]
+    procedure AddingParticipantWhileStaleAdvancesVersionAgain()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        FirstParticipant: Record "Expense Report Line Particip.";
+        SecondParticipant: Record "Expense Report Line Particip.";
+    begin
+        // [SCENARIO] A second child change advances the version even while the parent is already stale.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+
+        CreateReportLineParticipant(FirstParticipant, ExpenseReportLine);
+        CreateReportLineParticipant(SecondParticipant, ExpenseReportLine);
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(2, ExpenseReportLine."Policy Eval Version", 'Each child insert must advance the parent policy version.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Repeated child changes must leave the parent Stale.');
+    end;
+
+    [Test]
     procedure DeletingParticipantInvalidatesParent()
     var
         ExpenseReportLine: Record "Expense Report Line";
@@ -666,7 +818,7 @@ codeunit 148339 "Expense Policy Flag Test"
         CreateTestReportLine(ExpenseReportLine);
         CreateReportLineParticipant(ExpenseReportLineParticip, ExpenseReportLine);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [WHEN] The participant is deleted.
@@ -687,7 +839,7 @@ codeunit 148339 "Expense Policy Flag Test"
         // [SCENARIO] Inserting a child itemization invalidates the parent line's evaluation.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [WHEN] An itemization is added to the line.
@@ -710,7 +862,7 @@ codeunit 148339 "Expense Policy Flag Test"
         // [SCENARIO] Inserting a child per diem invalidates the parent line's evaluation.
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [WHEN] A per diem is added to the line.
@@ -934,7 +1086,7 @@ codeunit 148339 "Expense Policy Flag Test"
         Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'With no applicable policy the line must report No Policies.');
 
         // [WHEN] The line is marked evaluated even though nothing applies (the check run marks every line).
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [THEN] The signal is stable: an evaluated line with no applicable policy still reports No Policies,
@@ -950,7 +1102,7 @@ codeunit 148339 "Expense Policy Flag Test"
 
         // [WHEN] The applicable policy is evaluated with a compliant verdict.
         AddCompliantFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'No alcohol found - compliant.');
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
 
         // [THEN] Now the line is genuinely evaluated-and-passed: Cleared, distinct from No Policies.
@@ -1024,6 +1176,7 @@ codeunit 148339 "Expense Policy Flag Test"
         ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
         ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
         ExpensePolicyFlag.Reason := FlagDescription;
         ExpensePolicyFlag."Compliant" := Compliant;
         ExpensePolicyFlag.Insert(true);

@@ -115,6 +115,7 @@ codeunit 6912 "Expense Auto Population"
     var
         ExpenseRuleCondition: Record "Expense Rule Condition";
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        CurrentExpenseReportLine: Record "Expense Report Line";
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
         CurrentDate: Date;
         BaseRate: Decimal;
@@ -165,6 +166,10 @@ codeunit 6912 "Expense Auto Population"
             CurrentDate := CalcDate('<+1D>', CurrentDate);
         end;
 
+        // Child inserts update the parent version through their table triggers. Preserve that latest
+        // database version in the parent record held by the rule application before it is saved.
+        CurrentExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine."Policy Eval Version" := CurrentExpenseReportLine."Policy Eval Version";
         ExpenseReportLine.Validate(Amount, TotalAmount);
     end;
 

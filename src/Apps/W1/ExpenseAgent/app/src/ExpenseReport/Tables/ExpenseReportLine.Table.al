@@ -33,6 +33,7 @@ table 6907 "Expense Report Line"
     DataClassification = CustomerContent;
     DrillDownPageId = "Expense Report Lines";
     LookupPageId = "Expense Report Lines";
+    Permissions = TableData "Expense Policy Flag" = d;
     ReplicateData = false;
 
     fields
@@ -171,7 +172,7 @@ table 6907 "Expense Report Line"
 
                     if Rec."Vendor No." = '' then begin
                         if GuiAllowed then begin
-                            Rec.Modify();
+                            Rec.Modify(true);
                             Commit();
                             ExpenseBillingInformation.SetRecord(Rec);
                             ExpenseBillingInformation.RunModal();
@@ -1168,6 +1169,7 @@ table 6907 "Expense Report Line"
         NonRefundableGreaterThanAmountErr: Label '%1 cannot be greater than Amount.', Comment = '%1 = Field Caption';
         NonRefundableCannotBeNegativeErr: Label '%1 cannot be in negative on Expense Report No. %2, Line No. %3.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Line No.';
         CannotUseVATCalcTypeErr: Label 'You cannot use VAT Calculation Type %1 in Expense Report Line Expense No. %2, Line No. %3', Comment = '%1 = VAT Calculation Type, %2 = Expense No., %3 = Line No.';
+        EvaluationSubjectVersionChangedErr: Label 'The expense report line changed after policy evaluation started. Refresh the line and evaluate it again.';
         CannotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Field Name';
         CannotExceedForErr: Label '%1 for %2 must not exceed %3 = %4.', Comment = '%1 = Field Name, %2 = Description, %3 = Limit Field Name, %4 = Limit Value';
         CannotExceedErr: Label '%1 must not exceed %2 = %3.', Comment = '%1 = Field Name, %2 = Limit Field Name, %3 = Limit Value';
@@ -1289,8 +1291,18 @@ table 6907 "Expense Report Line"
         exit(not ExpensePolicy.IsEmpty());
     end;
 
-    procedure MarkPoliciesEvaluated()
+    procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)
+    var
+        DocumentNo: Code[20];
+        LineNo: Integer;
     begin
+        DocumentNo := Rec."Document No.";
+        LineNo := Rec."Line No.";
+        Rec.LockTable();
+        Rec.Get(DocumentNo, LineNo);
+        if EvaluatedSubjectVersion <> Rec."Policy Eval Version" then
+            Error(EvaluationSubjectVersionChangedErr);
+
         Rec."Evaluated Policy Version" := Rec."Policy Eval Version";
         Rec."Policies Evaluated At" := CurrentDateTime();
         Rec.Modify(false);
@@ -1298,13 +1310,9 @@ table 6907 "Expense Report Line"
 
     internal procedure InvalidatePolicyEvaluation()
     begin
-        // Nothing to invalidate unless a current evaluation exists and is still up to date.
-        // Skipping the write when there is nothing to invalidate also avoids staling a parent
-        // Expense Report Line handle held by a caller when a child record (participant/itemization/per diem)
-        // is inserted, modified, or deleted before the caller next modifies the line.
-        if (Rec."Policies Evaluated At" = 0DT) or (Rec."Policy Eval Version" <> Rec."Evaluated Policy Version") then
-            exit;
-
+        // Every policy-relevant change gets a distinct version, including changes made before the
+        // first evaluation or while the line is already stale. Evaluators can therefore detect any
+        // change that happened after they captured their subject version.
         Rec."Policy Eval Version" += 1;
         Rec.Modify(false);
     end;
@@ -2189,6 +2197,9 @@ table 6907 "Expense Report Line"
         SourceLineNo := Rec."Line No.";
 
         NewLine.TransferFields(Rec, false);
+        NewLine."Policies Evaluated At" := 0DT;
+        NewLine."Policy Eval Version" := 0;
+        NewLine."Evaluated Policy Version" := 0;
         NewLine."Document No." := TargetExpenseReportNo;
         NewLine."Line No." := GetNextExpenseReportLineNo(TargetExpenseReportNo);
         NewLine."Posted Date" := TargetExpenseReportHeader."Posting Date";

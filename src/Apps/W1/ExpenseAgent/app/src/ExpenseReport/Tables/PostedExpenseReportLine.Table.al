@@ -441,6 +441,12 @@ table 6916 "Posted Expense Report Line"
             ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
+        field(102; "Policy Status At Posting"; Enum "Expense Policy Status")
+        {
+            Caption = 'Policy Status At Posting';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
         field(1000; "Job Ledger Entry No."; Integer)
         {
             Caption = 'Project Ledger Entry No.';
@@ -495,22 +501,7 @@ table 6916 "Posted Expense Report Line"
     end;
 
     procedure GetPolicyStatus(): Enum "Expense Policy Status"
-    var
-        PostedExpPolicyFlag: Record "Posted Exp. Policy Flag";
     begin
-        // Report the policy verdict captured at posting. Posted flags are an immutable audit copy,
-        // so - unlike the open line - currency is not re-checked here: a non-compliant flag keeps the
-        // line Flagged for the audit trail even if the live policy later changes. A line posted with
-        // no flags was never evaluated.
-        PostedExpPolicyFlag.SetRange("Subject System Id", Rec.SystemId);
-        PostedExpPolicyFlag.SetRange("Subject Type", PostedExpPolicyFlag."Subject Type"::"Expense Report Line");
-        if PostedExpPolicyFlag.IsEmpty() then
-            exit("Expense Policy Status"::"Not Evaluated");
-
-        PostedExpPolicyFlag.SetRange(Compliant, false);
-        if not PostedExpPolicyFlag.IsEmpty() then
-            exit("Expense Policy Status"::Flagged);
-
-        exit("Expense Policy Status"::Cleared);
+        exit(Rec."Policy Status At Posting");
     end;
 }

@@ -60,6 +60,7 @@ table 7096 "Expense Policy Flag"
         {
             Caption = 'Flagged At';
             DataClassification = CustomerContent;
+            Editable = false;
         }
         field(10; "Compliant"; Boolean)
         {
@@ -95,8 +96,7 @@ table 7096 "Expense Policy Flag"
         ExpenseReportLine: Record "Expense Report Line";
         ExistingFlag: Record "Expense Policy Flag";
     begin
-        if "Flagged At" = 0DT then
-            "Flagged At" := CurrentDateTime();
+        "Flagged At" := CurrentDateTime();
 
         // A flag is an immutable evaluation record. It must reference a real report line and a real,
         // enabled policy that actually applies to that line; otherwise a caller could record a verdict
@@ -112,13 +112,17 @@ table 7096 "Expense Policy Flag"
         if not PolicyAppliesToLine(ExpensePolicy, ExpenseReportLine) then
             Error(InapplicablePolicyErr);
 
-        // Snapshot the subject and policy state as evaluated. Subject Version comes from the parent
-        // line's current Policy Eval Version; Policy Version records the policy's version at flag time
-        // so Is Current can tell whether the policy has changed since.
-        "Subject Version" := ExpenseReportLine."Policy Eval Version";
+        // Reject results produced from an older subject or policy snapshot. The caller must echo the
+        // versions returned by policiesToEvaluate so an evaluation cannot be stamped as current after
+        // either record changes while the model is working.
+        if "Subject Version" <> ExpenseReportLine."Policy Eval Version" then
+            Error(SubjectVersionChangedErr);
+        if "Policy Version" <> ExpensePolicy."Version" then
+            Error(PolicyVersionChangedErr);
+
+        // Snapshot server-owned policy details after the supplied versions have been validated.
         "Policy Text" := ExpensePolicy."Policy Text";
         "Expense Category Code" := ExpensePolicy."Expense Category Code";
-        "Policy Version" := ExpensePolicy."Version";
 
         // Block duplicate evaluations for the same subject+policy version combination.
         if ExistingFlag.Get("Subject Type", "Subject System Id", "Policy System Id", "Subject Version", "Policy Version") then
@@ -142,4 +146,6 @@ table 7096 "Expense Policy Flag"
         UnknownPolicyErr: Label 'The expense policy referenced by the policy flag does not exist.';
         DisabledPolicyErr: Label 'A policy flag cannot be recorded for a disabled policy.';
         InapplicablePolicyErr: Label 'The referenced policy does not apply to the expense report line''s category.';
+        SubjectVersionChangedErr: Label 'The expense report line changed after policy evaluation started. Refresh the line and evaluate it again.';
+        PolicyVersionChangedErr: Label 'The expense policy changed after policy evaluation started. Refresh the policy and evaluate it again.';
 }

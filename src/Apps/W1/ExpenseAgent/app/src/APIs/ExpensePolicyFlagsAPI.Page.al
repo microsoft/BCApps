@@ -41,10 +41,9 @@ page 7125 "Expense Policy Flags API"
                 {
                     Caption = 'Subject Type';
                 }
-                field(subjectVersion; Rec."Subject Version")
+                field(subjectVersion; SubjectVersionInput)
                 {
                     Caption = 'Subject Version';
-                    Editable = false;
                 }
                 field(expenseCategoryCode; Rec."Expense Category Code")
                 {
@@ -55,10 +54,9 @@ page 7125 "Expense Policy Flags API"
                 {
                     Caption = 'Policy System Id';
                 }
-                field(policyVersion; Rec."Policy Version")
+                field(policyVersion; PolicyVersionInput)
                 {
                     Caption = 'Policy Version';
-                    Editable = false;
                 }
                 field(isCurrent; Rec."Is Current")
                 {
@@ -72,6 +70,7 @@ page 7125 "Expense Policy Flags API"
                 field(flaggedAt; Rec."Flagged At")
                 {
                     Caption = 'Flagged At';
+                    Editable = false;
                 }
                 field(compliant; Rec."Compliant")
                 {
@@ -86,5 +85,41 @@ page 7125 "Expense Policy Flags API"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
+        InitializeVersionInputs();
     end;
+
+    trigger OnAfterGetRecord()
+    begin
+        SubjectVersionInput := Rec."Subject Version";
+        PolicyVersionInput := Rec."Policy Version";
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        InitializeVersionInputs();
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        if SubjectVersionInput < 0 then
+            Error(SubjectVersionRequiredErr);
+        if PolicyVersionInput < 0 then
+            Error(PolicyVersionRequiredErr);
+
+        Rec."Subject Version" := SubjectVersionInput;
+        Rec."Policy Version" := PolicyVersionInput;
+        exit(true);
+    end;
+
+    local procedure InitializeVersionInputs()
+    begin
+        SubjectVersionInput := -1;
+        PolicyVersionInput := -1;
+    end;
+
+    var
+        SubjectVersionInput: Integer;
+        PolicyVersionInput: Integer;
+        SubjectVersionRequiredErr: Label 'Subject Version is required.';
+        PolicyVersionRequiredErr: Label 'Policy Version is required.';
 }

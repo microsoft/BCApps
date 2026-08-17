@@ -44,7 +44,7 @@ permissionset 6953 "Expense Agent - Data"
                   tabledata "Expense Rule Header" = R,
                   tabledata "Expense Policy" = R,
                   tabledata "Expense Policy Flag" = RIMD,
-                  tabledata "Posted Exp. Policy Flag" = Rim,
+                  tabledata "Posted Exp. Policy Flag" = Rid,
                   tabledata "Expense Posting Group" = r,
                   tabledata "Expense Subcategory" = R,
                   tabledata "Expense Agent Access Control" = R,

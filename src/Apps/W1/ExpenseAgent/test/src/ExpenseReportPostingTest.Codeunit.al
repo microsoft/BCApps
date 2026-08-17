@@ -3506,10 +3506,11 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
         ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
         ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
         ExpensePolicyFlag.Insert(true);
 
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         EvaluatedVersion := ExpenseReportLine."Evaluated Policy Version";
         Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the evaluated line must be Flagged.');
@@ -3550,7 +3551,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportNo := ExpenseReportHeader."No.";
 
         // [GIVEN] The line is evaluated then invalidated so it is now Stale.
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line must be Stale.');
@@ -3608,7 +3609,7 @@ codeunit 148302 "Expense Report Posting Test"
         SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
 
         // [GIVEN] The line is evaluated then invalidated so it is Stale.
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
 
         // [GIVEN] AI policy evaluation is turned off.
@@ -3702,10 +3703,11 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
         ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
         ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
         ExpensePolicyFlag.Insert(true);
 
-        ExpenseReportLine.MarkPoliciesEvaluated();
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [GIVEN] The report is released.
         ExpenseReportHeader.PerformManualRelease();
@@ -3716,6 +3718,8 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [THEN] The posted line carries the copied policy flag.
         FindPostedExpenseReportLine(PostedExpenseReportLine, ExpenseUser);
+        Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine."Policy Status At Posting", 'The posted line must preserve the Flagged status.');
+        Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine.GetPolicyStatus(), 'The posted status accessor must return the posting snapshot.');
         PostedExpPolicyFlag.SetRange("Subject System Id", PostedExpenseReportLine.SystemId);
         Assert.RecordCount(PostedExpPolicyFlag, 1);
 
@@ -3725,6 +3729,61 @@ codeunit 148302 "Expense Report Posting Test"
         Assert.RecordIsEmpty(ExpensePolicyFlag);
 
         // [THEN] The expected posting confirmation was shown (the handler consumed the enqueued text).
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('PostConfirmHandler')]
+    procedure PolicyStatusSnapshotDistinguishesNoPoliciesFromNotEvaluated()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        NoPolicyCategory: Record "Expense Category";
+        UnevaluatedPolicyCategory: Record "Expense Category";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        // [SCENARIO] Posting preserves the difference between no applicable policies and an unevaluated applicable policy.
+        Initialize();
+
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(NoPolicyCategory, NoPolicyCategory."Reimbursement Type"::"Employee Paid", NoPolicyCategory."Expense Detail Required"::" ");
+        NoPolicyCategory.Validate(Refundable, true);
+        NoPolicyCategory.Modify();
+        LibraryExpense.CreateExpenseCategory(UnevaluatedPolicyCategory, UnevaluatedPolicyCategory."Reimbursement Type"::"Employee Paid", UnevaluatedPolicyCategory."Expense Detail Required"::" ");
+        UnevaluatedPolicyCategory.Validate(Refundable, true);
+        UnevaluatedPolicyCategory.Modify();
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, NoPolicyCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, UnevaluatedPolicyCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := UnevaluatedPolicyCategory.Code;
+        ExpensePolicy."Policy Text" := 'Policy text.';
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+
+        ExpenseReportHeader.PerformManualRelease();
+        LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
+        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+
+        PostedExpenseReportLine.SetRange("Expense Category", NoPolicyCategory.Code);
+        PostedExpenseReportLine.FindFirst();
+        Assert.AreEqual("Expense Policy Status"::"No Policies", PostedExpenseReportLine."Policy Status At Posting", 'A line with no applicable policies must preserve No Policies.');
+
+        PostedExpenseReportLine.SetRange("Expense Category", UnevaluatedPolicyCategory.Code);
+        PostedExpenseReportLine.FindFirst();
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", PostedExpenseReportLine."Policy Status At Posting", 'A line with an unevaluated applicable policy must preserve Not Evaluated.');
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -6983,6 +7042,7 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Report Posting Test");
+        LibraryVariableStorage.Clear();
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         UserSetup.DeleteAll();

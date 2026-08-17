@@ -28,7 +28,6 @@ permissionset 6905 "Expense Mgmt. Admin"
         tabledata "Expense Rule Header" = IMD,
         tabledata "Expense Policy" = IMD,
         tabledata "Expense Policy Flag" = IMD,
-        tabledata "Posted Exp. Policy Flag" = IMD,
         tabledata "Expense Posting Group" = IMD,
         tabledata "Expense Subcategory" = IMD,
         tabledata "EA Email" = R,

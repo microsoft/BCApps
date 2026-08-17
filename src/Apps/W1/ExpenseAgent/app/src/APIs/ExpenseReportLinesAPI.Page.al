@@ -338,6 +338,11 @@ page 6929 "Expense Report Lines API"
                     Caption = 'Policies Evaluated At';
                     Editable = false;
                 }
+                field(policyEvalVersion; Rec."Policy Eval Version")
+                {
+                    Caption = 'Policy Eval Version';
+                    Editable = false;
+                }
                 field(policyStatus; PolicyStatusDisplay)
                 {
                     Caption = 'Policy Status';
@@ -449,7 +454,7 @@ page 6929 "Expense Report Lines API"
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
         PolicyStatusDisplay := Rec.GetPolicyStatus();
-        HasPolicyViolationDisplay := Rec.HasCurrentPolicyViolation();
+        HasPolicyViolationDisplay := PolicyStatusDisplay = PolicyStatusDisplay::Flagged;
 
         JobDescription := '';
         JobTaskDescription := '';
@@ -528,7 +533,7 @@ page 6929 "Expense Report Lines API"
     procedure ApplyExpenseReportRule(var ActionContext: WebServiceActionContext)
     begin
         Rec.ApplyRule();
-        Rec.Modify();
+        Rec.Modify(true);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Report Lines API");
@@ -537,7 +542,7 @@ page 6929 "Expense Report Lines API"
     end;
 
     [ServiceEnabled]
-    procedure MarkPoliciesEvaluated(var ActionContext: WebServiceActionContext)
+    procedure MarkPoliciesEvaluated(var ActionContext: WebServiceActionContext; EvaluatedSubjectVersion: Integer)
     var
         PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
     begin
@@ -548,7 +553,7 @@ page 6929 "Expense Report Lines API"
         if PoliciesToEvalBuilder.HasOutstandingPolicies(Rec) then
             Error(OutstandingPoliciesErr);
 
-        Rec.MarkPoliciesEvaluated();
+        Rec.MarkPoliciesEvaluated(EvaluatedSubjectVersion);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Report Lines API");

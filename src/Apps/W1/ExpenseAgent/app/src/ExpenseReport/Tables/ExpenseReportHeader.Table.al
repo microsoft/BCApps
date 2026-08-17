@@ -690,7 +690,7 @@ table 6906 "Expense Report Header"
     local procedure UpdateCurrFactorOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
     begin
         ExpenseReportLine.UpdateAmounts();
-        ExpenseReportLine.Modify();
+        ExpenseReportLine.Modify(true);
     end;
 
     local procedure UpdateVATBusPostingGroupOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
@@ -699,14 +699,14 @@ table 6906 "Expense Report Header"
             ExpenseReportLine."VAT Bus. Posting Group" := Rec."VAT Bus. Posting Group";
             ExpenseReportLine.Validate("VAT Prod. Posting Group");
             ExpenseReportLine.UpdateAmounts();
-            ExpenseReportLine.Modify();
+            ExpenseReportLine.Modify(true);
         end;
     end;
 
     local procedure UpdatePostingDateOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
     begin
         ExpenseReportLine.UpdateAmounts();
-        ExpenseReportLine.Modify();
+        ExpenseReportLine.Modify(true);
     end;
 
     local procedure UpdateSpendRequestOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
@@ -716,7 +716,7 @@ table 6906 "Expense Report Header"
             ExpenseReportLine.Validate("Spend Request No.", Rec."Spend Request No.");
             ExpenseReportLine."Spend Request Close" := Rec."Spend Request Close";
             ExpenseReportLine.SetSkipSpendRequestClose(false);
-            ExpenseReportLine.Modify();
+            ExpenseReportLine.Modify(true);
         end;
     end;
 
@@ -754,7 +754,7 @@ table 6906 "Expense Report Header"
                     DimMgt.UpdateGlobalDimFromDimSetID(
                       ExpenseReportLine."Dimension Set ID", ExpenseReportLine."Shortcut Dimension 1 Code", ExpenseReportLine."Shortcut Dimension 2 Code");
 
-                    ExpenseReportLine.Modify();
+                    ExpenseReportLine.Modify(true);
                 end;
             until ExpenseReportLine.Next() = 0;
     end;

@@ -802,6 +802,68 @@ codeunit 148306 "Expense Report Test"
     end;
 
     [Test]
+    procedure RelinkExpenseReportLineMustResetPolicyEvaluation()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        SourceExpenseReportHeader: Record "Expense Report Header";
+        TargetExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
+        CreateExpReport: Codeunit "Create Expense Report";
+        SourceSystemId: Guid;
+    begin
+        // [SCENARIO] Moving an evaluated line resets policy state because the new line has a new identity.
+        Initialize();
+
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory,
+            ExpenseCategory."Reimbursement Type"::"Employee Paid",
+            ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', 100);
+        Expense.PerformManualRelease();
+        LibraryExpense.CreateExpenseReport(SourceExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        LibraryExpense.CreateExpenseReport(TargetExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        CreateExpReport.AddSingleExpenseToExpenseReport(Expense, SourceExpenseReportHeader);
+        FindExpenseReportLine(ExpenseReportLine, SourceExpenseReportHeader."No.");
+
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
+        ExpensePolicy."Policy Text" := 'Policy text.';
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyFlag.Reason := 'Policy violation.';
+        ExpensePolicyFlag.Insert(true);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the source line must be flagged.');
+        SourceSystemId := ExpenseReportLine.SystemId;
+
+        ExpenseReportLine.MoveToExpenseReport(TargetExpenseReportHeader."No.");
+
+        Assert.AreNotEqual(SourceSystemId, ExpenseReportLine.SystemId, 'The moved line must have a new SystemId.');
+        Assert.AreEqual(0DT, ExpenseReportLine."Policies Evaluated At", 'The moved line must not retain the source evaluation timestamp.');
+        Assert.AreEqual(0, ExpenseReportLine."Policy Eval Version", 'The moved line must restart policy versioning.');
+        Assert.AreEqual(0, ExpenseReportLine."Evaluated Policy Version", 'The moved line must not retain the evaluated source version.');
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'The moved line must require policy evaluation.');
+
+        ExpensePolicyFlag.SetRange("Subject System Id", SourceSystemId);
+        Assert.RecordIsEmpty(ExpensePolicyFlag);
+    end;
+
+    [Test]
     procedure RelinkExpenseReportLineMustMoveAssociatedRecordsAndRetriggerRuleViolation()
     var
         Expense: Record Expense;

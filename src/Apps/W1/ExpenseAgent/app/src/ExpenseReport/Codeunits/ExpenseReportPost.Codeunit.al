@@ -39,7 +39,7 @@ codeunit 6987 "Expense Report-Post"
                   TableData "Posted Exp. Rep. Line Particip" = rimd,
                   TableData "Posted Exp. Rep. Line VAT Spec" = rimd,
                   TableData "Expense Policy Flag" = rd,
-                  TableData "Posted Exp. Policy Flag" = rimd,
+                  TableData "Posted Exp. Policy Flag" = i,
                   TableData "Expense Category" = r,
                   TableData "Expense Posting Group" = r,
                   TableData "Expense User" = r;
@@ -184,6 +184,7 @@ codeunit 6987 "Expense Report-Post"
                 PostedExpenseReportLine.Init();
                 PostedExpenseReportLine.TransferFields(ExpenseReportLine);
                 PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
+                PostedExpenseReportLine."Policy Status At Posting" := ExpenseReportLine.GetPolicyStatus();
                 PostedExpenseReportLine.Insert();
 
                 if not PreviewMode then
