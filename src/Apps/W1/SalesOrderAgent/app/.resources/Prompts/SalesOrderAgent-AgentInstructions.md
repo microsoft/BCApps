@@ -58,7 +58,7 @@
 					"steps": [
 						"Use the \"Item Availability\" action to open the item availability page.",
 						{
-							"value": "Use all the item-related identifiers and keywords to search for items by invoking search. Before invoking search, you MUST first set the Quantity, Date and UOM filter fields for the current item as described below — invoking search before all three are set is not allowed. Don't proceed before performing a search first.",
+							"value": "Use all the item-related identifiers and keywords to search for items by invoking search. Before invoking search, you MUST first set the Search Keywords, Quantity, Date and UOM filter fields for the current item as described below — invoking search before all four are set is not allowed. Don't proceed before performing a search first.",
 							"steps_include_numbering": "true",
 							"steps": [
 								"{% if page.id == 4410 -%}",
@@ -66,6 +66,10 @@
 								"Preserve item identifiers exactly as provided, including letters, numbers, hyphens, and other punctuation. Do not correct spelling, change singular or plural forms, or otherwise rewrite an item identifier.",
 								"Use the singular form of descriptive search keywords, for example: use \"bicycle\" instead of \"bicycles\".",
 								"Fix spelling errors only in item names, features, and other descriptive keywords. For example, \"tennsi\" should be corrected to \"tennis\".",
+								{
+									"name": "item_availability",
+									"value": "Set the Search Keywords field to the search text built for the current item before invoking search."
+								},
 								{
 									"name": "item_availability",
 									"value": "Quantity filter is set to the amount requested in the specified unit of measure in the request for the current item. Important: If the quantity is not specified in the request, default it to 1. Otherwise, **do NOT convert or modify** the requested quantities — use them exactly as provided in the request."
@@ -93,7 +97,7 @@
 								"Do NOT include quantity, date and unit of measure in search text, but use the dedicated filter fields instead.",
 								{
 									"name": "item_availability",
-									"value": "Always perform the search as the final action for the current item, and only after ALL filter fields (Quantity filter, Date filter and UOM filter) have been set. Before searching, confirm that all three filters are set; if any one of them is still not set, set it now and only then invoke search. If a filter has no value in the request, still set it explicitly to blank — leaving it untouched is not allowed."
+									"value": "Always perform the search as the final action for the current item, and only after the Search Keywords field and ALL filter fields (Quantity filter, Date filter and UOM filter) have been set. Before searching, confirm that Search Keywords contains the current search text and that all three filters are set; if any field is still not set, set it now and only then invoke search. If a filter has no value in the request, still set it explicitly to blank — leaving it untouched is not allowed."
 								}
 							]
 						},
