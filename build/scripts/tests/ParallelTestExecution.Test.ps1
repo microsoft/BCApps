@@ -142,6 +142,7 @@ Describe "ParallelTestExecution transient retry scheduling" {
             Mock Get-CleanTenantTestAppNames { @() }
             Mock Get-RequiredDisabledWorkItems { @() }
             Mock Wait-ForFreeTenant { 'default' }
+            Mock Wait-ForSpecificTenant { 'default' }
             Mock Wait-ForAllTestJobs { $true }
             Mock Merge-TenantTestResults { }
             Mock Start-TestAppDispatch {
@@ -149,7 +150,9 @@ Describe "ParallelTestExecution transient retry scheduling" {
                 # 'Big' loses the platform race on its very first dispatch, exactly once.
                 if ($AppName -eq 'Big' -and -not $script:raced) {
                     $script:raced = $true
-                    $State.transient = @($State.transient) + @($AppName)
+                    $State.transient = @($State.transient) + @(
+                        [PSCustomObject]@{ Key = $AppName; Tenant = $Tenant }
+                    )
                 }
             }
 
@@ -436,6 +439,45 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 -Verb 'Re-dispatching'
 
             $script:capturedParameters.ReRun | Should -BeTrue
+        }
+    }
+
+    It "retries a clean codeunit on its original tenant" {
+        InModuleScope ParallelTestExecution {
+            $script:dispatchTenants = [System.Collections.Generic.List[string]]::new()
+            $script:firstDispatch = $true
+
+            Mock Wait-ForFreeTenant { 'tenant2' }
+            Mock Wait-ForSpecificTenant { $tenant }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Start-RequiredDisabledDispatch {
+                $script:dispatchTenants.Add($TenantInfo.Id)
+                if ($script:firstDispatch) {
+                    $script:firstDispatch = $false
+                    $State.transient = @(
+                        [PSCustomObject]@{ Key = $WorkItem.Key; Tenant = $TenantInfo.Id }
+                    )
+                }
+            }
+
+            $workItem = [PSCustomObject]@{
+                Key = 'Tests::500'
+                AppName = 'Tests'
+                AppId = 'tests-id'
+                CodeunitId = '500'
+                CodeunitName = 'API E2E'
+            }
+            $tenantInfo = @(
+                [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                [PSCustomObject]@{ Id = 'tenant3'; DatabaseName = 'tenant3' }
+            )
+
+            $result = Invoke-RequiredDisabledTestExecution -Parameters @{ containerName = 'c' } `
+                -WorkItems @($workItem) -TenantInfo $tenantInfo -TemplateDatabaseName 'template' `
+                -ScriptPath 'runner.ps1' -TestType 'UnitTest'
+
+            $result | Should -BeTrue
+            $script:dispatchTenants | Should -Be @('tenant2', 'tenant2')
         }
     }
 

@@ -704,6 +704,7 @@ function Invoke-RequiredDisabledTestExecution {
         hasFailures = $false
         transient = @()
         retried = @{}
+        retryTenant = @{}
     }
     $pending = @($WorkItems)
     $tenants = @($TenantInfo | ForEach-Object { $_.Id })
@@ -711,8 +712,10 @@ function Invoke-RequiredDisabledTestExecution {
     while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
         if ($state.transient.Count -gt 0) {
             $retryItems = @()
-            foreach ($key in @($state.transient)) {
+            foreach ($transient in @($state.transient)) {
+                $key = $transient.Key
                 $state.retried[$key] = $true
+                $state.retryTenant[$key] = $transient.Tenant
                 $retryItems += $workItemByKey[$key]
             }
             $state.transient = @()
@@ -722,7 +725,11 @@ function Invoke-RequiredDisabledTestExecution {
         if ($pending.Count -gt 0) {
             $workItem = $pending[0]
             $pending = @($pending | Select-Object -Skip 1)
-            $tenant = Wait-ForFreeTenant -state $state -tenants $tenants
+            $tenant = if ($state.retryTenant.ContainsKey($workItem.Key)) {
+                Wait-ForSpecificTenant -state $state -tenants $tenants -tenant $state.retryTenant[$workItem.Key]
+            } else {
+                Wait-ForFreeTenant -state $state -tenants $tenants
+            }
             $selectedTenantInfo = $TenantInfo | Where-Object { $_.Id -eq $tenant } | Select-Object -First 1
             $verb = if ($state.retried.ContainsKey($workItem.Key)) { "Re-dispatching" } else { "Dispatching" }
 
@@ -770,7 +777,12 @@ function Get-FreeTenants {
             switch ($result.Outcome) {
                 'Transient' {
                     Write-Host "Transient platform race for '$($result.AppName)' on '$($result.Tenant)'. Queued for one retry."
-                    $state.transient = @($state.transient) + @($result.AppName)
+                    $state.transient = @($state.transient) + @(
+                        [PSCustomObject]@{
+                            Key = $result.AppName
+                            Tenant = $result.Tenant
+                        }
+                    )
                 }
                 'Failed' {
                     Write-Host "Tests FAILED for $($result.AppName) on $($result.Tenant) (job state: $($result.JobState))"
@@ -813,6 +825,28 @@ function Wait-ForFreeTenant {
     }
 
     throw "Wait-ForFreeTenant: timed out after $timeoutSeconds seconds waiting for a free tenant. Running jobs: $($state.jobs | ForEach-Object { "$($_.appName) on $($_.tenant)" } | Out-String)"
+}
+
+function Wait-ForSpecificTenant {
+    param(
+        $state,
+        $tenants,
+        [string]$tenant,
+        [int]$timeoutSeconds = 7200,
+        [int]$pollIntervalSeconds = 10
+    )
+
+    $waited = 0
+    while ($waited -lt $timeoutSeconds) {
+        $available = @(Get-FreeTenants -state $state -tenants $tenants)
+        if ($tenant -in $available) {
+            return $tenant
+        }
+        Start-Sleep -Seconds $pollIntervalSeconds
+        $waited += $pollIntervalSeconds
+    }
+
+    throw "Wait-ForSpecificTenant: timed out after $timeoutSeconds seconds waiting for tenant '$tenant'."
 }
 
 <#
@@ -899,7 +933,12 @@ function Wait-ForAllTestJobs {
             switch ($result.Outcome) {
                 'Transient' {
                     Write-Host "Transient platform race for '$($result.AppName)' on '$($result.Tenant)'. Queued for one retry."
-                    $state.transient = @($state.transient) + @($result.AppName)
+                    $state.transient = @($state.transient) + @(
+                        [PSCustomObject]@{
+                            Key = $result.AppName
+                            Tenant = $result.Tenant
+                        }
+                    )
                 }
                 'Failed' {
                     Write-Host "Tests FAILED for $($result.AppName) on $($result.Tenant) (job state: $($result.JobState))"
@@ -1091,7 +1130,7 @@ function Invoke-ParallelTestExecution {
 
     # dispatched=true marks "we started the foreach" - lets concurrent reads notice an in-flight
     # run. completed=false stays false until wait+merge finish; only then is finalResult valid.
-    $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false; transient = @(); retried = @{} }
+    $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false; transient = @(); retried = @{}; retryTenant = @{} }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
     # Single dispatch loop. $pending is processed FIFO and $appNamesToTest arrives ordered
@@ -1109,11 +1148,14 @@ function Invoke-ParallelTestExecution {
         if ($state.transient.Count -gt 0) {
             $toRetry = @($state.transient)
             $state.transient = @()
-            Write-Host "Re-queueing $($toRetry.Count) app(s) after transient platform race: $($toRetry -join ', ')"
-            foreach ($appName in $toRetry) {
+            $retryAppNames = @($toRetry | ForEach-Object { $_.Key })
+            Write-Host "Re-queueing $($toRetry.Count) app(s) after transient platform race: $($retryAppNames -join ', ')"
+            foreach ($transient in $toRetry) {
+                $appName = $transient.Key
                 $state.retried[$appName] = $true
+                $state.retryTenant[$appName] = $transient.Tenant
             }
-            $pending = @($toRetry) + @($pending)
+            $pending = @($retryAppNames) + @($pending)
         }
 
         if ($pending.Count -gt 0) {
@@ -1127,7 +1169,11 @@ function Invoke-ParallelTestExecution {
             }
 
             $verb = if ($state.retried.ContainsKey($appName)) { 'Re-dispatching' } else { 'Dispatching' }
-            $tenant = Wait-ForFreeTenant -state $state -tenants $tenants
+            $tenant = if ($state.retryTenant.ContainsKey($appName)) {
+                Wait-ForSpecificTenant -state $state -tenants $tenants -tenant $state.retryTenant[$appName]
+            } else {
+                Wait-ForFreeTenant -state $state -tenants $tenants
+            }
             Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
                 -ScriptPath $scriptPath -TestType $testType -State $state `
                 -SkipAutomaticDisabledPass:($appName -in $cleanTenantAppNames) -Verb $verb
