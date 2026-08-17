@@ -11043,9 +11043,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit(GenJnlLine."Source Currency Amount");
 
         if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
-            exit(GenJnlLine."Source Curr. VAT Base Amount")
+            exit(GenJnlLine."Source Curr. VAT Base Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY))
         else
-            exit(GenJnlLine."Source Currency Amount");
+            exit(CalcAmountSrcCurr(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)" + WHTAmountLCY));
     end;
 
     local procedure GetVendorPayablesAccount2(var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var GenJournalLine: Record "Gen. Journal Line"; VendPostingGr: Record "Vendor Posting Group"): Code[20]
