@@ -236,11 +236,7 @@ page 9660 "Report Layouts"
                 var
                     NewEditedLayoutName: Text;
                 begin
-                    if not Rec."User Defined" then begin
-                        if Dialog.Confirm(EditInfoExtensionLayoutTxt, false) then
-                            ReportLayoutsImpl.EditReportLayout(Rec, NewEditedLayoutName);
-                    end else
-                        ReportLayoutsImpl.EditReportLayout(Rec, NewEditedLayoutName);
+                    ReportLayoutsImpl.EditReportLayout(Rec, NewEditedLayoutName);
                     SetFocusedRecord(Rec."Report ID", NewEditedLayoutName);
                 end;
             }
@@ -477,11 +473,13 @@ page 9660 "Report Layouts"
                 }
             }
 
+            // BaseSystemPermissionSet grants Tenant Report Layout and its override table together, so
+            // gating on Tenant Report Layout = M covers both.
             action(SetApproved)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set Approved';
-                ToolTip = 'Mark the selected user-defined layouts as approved. Only approved layouts are available for selection on report request pages.';
+                ToolTip = 'Mark the selected layouts as approved. Only approved layouts are available for selection on report request pages.';
                 Image = Approve;
                 Enabled = CanModifyStatus;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
@@ -495,7 +493,7 @@ page 9660 "Report Layouts"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set Draft';
-                ToolTip = 'Mark the selected user-defined layouts as draft. Draft layouts are not available for selection on report request pages.';
+                ToolTip = 'Mark the selected layouts as draft. Draft layouts are not available for selection on report request pages.';
                 Image = OpenWorksheet;
                 Enabled = CanModifyStatus;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
@@ -509,7 +507,7 @@ page 9660 "Report Layouts"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set Pending Approval';
-                ToolTip = 'Mark the selected user-defined layouts as pending approval. Pending layouts are not available for selection on report request pages.';
+                ToolTip = 'Mark the selected layouts as pending approval. Pending layouts are not available for selection on report request pages.';
                 Image = AddWatch;
                 Enabled = CanModifyStatus;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
@@ -523,7 +521,7 @@ page 9660 "Report Layouts"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set Retired';
-                ToolTip = 'Mark the selected user-defined layouts as retired. Retired layouts are not available for selection on report request pages.';
+                ToolTip = 'Mark the selected layouts as retired. Retired layouts are not available for selection on report request pages.';
                 Image = Archive;
                 Enabled = CanModifyStatus;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
@@ -728,9 +726,7 @@ page 9660 "Report Layouts"
         IsMultiSelect := SelectedReportLayoutList.Count() > 1;
         ShareOptionsVisible := DocumentSharing.ShareEnabled(Enum::"Document Sharing Source"::System);
         ShareOptionsEnabled := LayoutIsSelected and (not IsMultiSelect) and Rec."User Defined" and (Rec."Layout Format" <> Rec."Layout Format"::RDLC);
-        SelectedReportLayoutList.SetRange("User Defined", true);
-        CanModifyStatus := LayoutIsSelected and not SelectedReportLayoutList.IsEmpty();
-        SelectedReportLayoutList.SetRange("User Defined");
+        CanModifyStatus := LayoutIsSelected;
         UpdateUserDisplayName();
     end;
 
@@ -776,7 +772,6 @@ page 9660 "Report Layouts"
         DocumentReportExperienceEnabled: Boolean;
         WordLayoutSelected: Boolean;
         ModifyNonUserLayoutErr: Label 'Only user-defined layouts can be modified or removed.';
-        EditInfoExtensionLayoutTxt: Label 'It is not possible to modify the layout info for this layout because it is provided by an extension. Do you want to edit a copy of the layout instead ?';
         ReplaceConfirmationTxt: Label 'This action will replace the layout file of the currently selected layout "%1". Do you want to continue ?', Comment = '%1 = LayoutName';
         LayoutStatusChangedMsg: Label '%1 layout(s) set to %2.', Comment = '%1 = Number of layouts updated, %2 = Status name';
         DeletePartWithReferencesQst: Label 'Layout part "%1" is referenced in the Tenant Report Layout Configuration. Deleting it will clear those references and may result in reports rendering without the expected header/footer or theme. Do you want to continue?', Comment = '%1 = Layout Name';
