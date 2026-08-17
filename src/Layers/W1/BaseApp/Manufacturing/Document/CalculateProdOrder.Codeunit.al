@@ -245,7 +245,10 @@ codeunit 99000773 "Calculate Prod. Order"
                         ProdBOMLine[Level].Type::"Production BOM":
                             begin
                                 OnTransferBOMOnBeforeProcessProdBOM(ProdBOMLine[Level], LineQtyPerUOM, ItemQtyPerUOM, ReqQty, ProdOrderLine);
-                                TransferBOM(ProdBOMLine[Level]."No.", Level + 1, ReqQty, 1);
+                                IsHandled := false;
+                                OnTransferBOMOnBeforeTransferNestedProdBOM(ProdBOMLine[Level], LineQtyPerUOM, ItemQtyPerUOM, ReqQty, ProdOrderLine, IsHandled);
+                                if not IsHandled then
+                                    TransferBOM(ProdBOMLine[Level]."No.", Level + 1, ReqQty, 1);
                                 ProdBOMLine[Level].SetRange("Production BOM No.", ProdBOMNo);
                                 if Level > 1 then
                                     ProdBOMLine[Level].SetRange("Version Code", VersionMgt.GetBOMVersion(ProdBOMNo, ProdOrderLine."Starting Date", true))
@@ -601,6 +604,7 @@ codeunit 99000773 "Calculate Prod. Order"
             CapLedgEntry.SetCurrentKey("Order Type", "Order No.");
             CapLedgEntry.SetRange("Order Type", CapLedgEntry."Order Type"::Production);
             CapLedgEntry.SetRange("Order No.", ProdOrderLine."Prod. Order No.");
+            OnCalculateOnAfterCapLedgEntrySetFilters(ProdOrderLine, CapLedgEntry);
             if not CapLedgEntry.IsEmpty() then
                 Error(
                   Text001,
@@ -1190,6 +1194,11 @@ codeunit 99000773 "Calculate Prod. Order"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnTransferBOMOnBeforeTransferNestedProdBOM(ProductionBOMLine: Record "Production BOM Line"; LineQtyPerUOM: Decimal; ItemQtyPerUOM: Decimal; var ReqQty: Decimal; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnTransferBOMProcessItemOnAfterGetPlanningParameters(var ProdOrderLine: Record "Prod. Order Line"; var ComponentSKU: Record "Stockkeeping Unit")
     begin
     end;
@@ -1271,6 +1280,11 @@ codeunit 99000773 "Calculate Prod. Order"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalculateOnBeforeCalcComponents(ProdOrderLine: Record "Prod. Order Line"; CalcComponents: Boolean; var SkipCalcComponents: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalculateOnAfterCapLedgEntrySetFilters(var ProdOrderLine: Record "Prod. Order Line"; var CapacityLedgerEntry: Record "Capacity Ledger Entry")
     begin
     end;
 

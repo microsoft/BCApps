@@ -61,9 +61,14 @@ function Create-BCContainer {
         # Get artifactUrl from branch
         $artifactUrl = Get-CurrentBCArtifactUrl
 
+        $memoryLimit = Get-ConfigValue -Key "memoryLimit" -ConfigType AL-Go
+        if (-not $memoryLimit) {
+            $memoryLimit = "16G"
+        }
+
         # Create a new container with a single tenant
         $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
-        New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $Credential -includeAL -additionalParameters @("--volume ""$($baseFolder):c:\sources""")
+        New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $Credential -includeAL -memoryLimit $memoryLimit -additionalParameters @("--volume ""$($baseFolder):c:\sources""")
 
         # Move all installed apps to the dev scope
         # By default, the container is created with the global scope. We need to move all installed apps to the dev scope.

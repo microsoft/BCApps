@@ -43,10 +43,10 @@ codeunit 5587 "Contoso Currency"
         Currency.Validate("Unrealized Losses Acc.", UnrealizedLossesAcc);
         Currency.Validate("Realized Losses Acc.", RealizedLossesAcc);
 
-        Currency.Validate("Invoice Rounding Precision", InvoiceRoundingPrecision);
-        Currency.Validate("Invoice Rounding Type", InvoiceRoundingType);
         Currency.Validate("Amount Rounding Precision", AmountRoundingPrecision);
         Currency.Validate("Unit-Amount Rounding Precision", UnitAmountRoundingPrecision);
+        Currency.Validate("Invoice Rounding Type", InvoiceRoundingType);
+        Currency.Validate("Invoice Rounding Precision", InvoiceRoundingPrecision);
 
         Currency.Validate("Amount Decimal Places", AmountDecimalPlaces);
         Currency.Validate("Unit-Amount Decimal Places", UnitAmountDecimalPlaces);

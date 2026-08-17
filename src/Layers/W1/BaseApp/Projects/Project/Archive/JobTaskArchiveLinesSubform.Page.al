@@ -212,6 +212,22 @@ page 5181 "Job Task Archive Lines Subform"
                             JobPlanningArchiveLines.Run();
                         end;
                     }
+                    action("Assigned Resources")
+                    {
+                        ApplicationArea = Jobs;
+                        Caption = 'Assigned Resources';
+                        Image = Users;
+                        Scope = Repeater;
+                        ToolTip = 'View the resources that were assigned to this project task in this archived version.';
+
+                        trigger OnAction()
+                        var
+                            JobAssignedResArchive: Page "Job Assigned Res. Archive";
+                        begin
+                            if JobAssignedResArchive.SetJobTaskContext(Rec) then
+                                JobAssignedResArchive.Run();
+                        end;
+                    }
                 }
             }
         }

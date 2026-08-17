@@ -500,6 +500,9 @@ table 167 Job
                         Error('');
 
                 InitCustomerOnJobTasks();
+
+                if "Task Billing Method" <> xRec."Task Billing Method" then
+                    Modify(true);
             end;
         }
         field(117; Reserve; Enum "Reserve Method")
@@ -655,6 +658,7 @@ table 167 Job
         {
             CalcFormula = exist("Job WIP Entry" where("Job No." = field("No.")));
             Caption = 'WIP Entries Exist';
+            ToolTip = 'Specifies whether WIP entries exist for the project, indicating that Calculate WIP has been run.';
             FieldClass = FlowField;
         }
         field(1008; "WIP Posting Date"; Date)
@@ -769,7 +773,7 @@ table 167 Job
                                                                         "Job Complete" = const(false),
                                                                         Type = filter("Accrued Sales" | "Applied Sales" | "Recognized Sales")));
             Caption = 'Total WIP Sales Amount';
-            ToolTip = 'Specifies the total WIP sales amount that was last calculated for the project. It is calculated as the value in the WIP Sales field minus the value in the Recognized Sales field in the Project WIP Entries window. For projects that use the Cost Value or Cost of Sales WIP methods, the WIP sales amount is normally 0.';
+            ToolTip = 'Specifies the total WIP sales amount that was last calculated for the project. It is calculated as the value in the WIP Sales field minus the value in the Recognized Sales field in the Project WIP Entries page. For projects that use the Cost Value or Cost of Sales WIP methods, the WIP sales amount is normally 0.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -782,7 +786,7 @@ table 167 Job
                                                                             "Job Complete" = const(false),
                                                                             Type = filter("Accrued Sales" | "Applied Sales" | "Recognized Sales")));
             Caption = 'Total WIP Sales G/L Amount';
-            ToolTip = 'Specifies the total WIP sales amount that was last posted to the general ledger for the project. The WIP sales amount is the value in the WIP Sales Project WIP G/L Entries window minus the value in the Recognized Sales Project WIP G/L Entries window. For projects with the Cost Value or Cost of Sales WIP methods, the WIP sales amount is normally 0.';
+            ToolTip = 'Specifies the total WIP sales amount that was last posted to the general ledger for the project. The WIP sales amount is the value in the WIP Sales Project WIP G/L Entries page minus the value in the Recognized Sales Project WIP G/L Entries page. For projects with the Cost Value or Cost of Sales WIP methods, the WIP sales amount is normally 0.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -791,6 +795,7 @@ table 167 Job
             CalcFormula = exist("Job WIP Entry" where("Job No." = field("No."),
                                                        "Job Complete" = const(true)));
             Caption = 'WIP Completion Calculated';
+            ToolTip = 'Specifies whether the final WIP calculation has been performed with the project marked as complete.';
             FieldClass = FlowField;
         }
         field(1024; "Next Invoice Date"; Date)
@@ -889,11 +894,11 @@ table 167 Job
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
-                                                                             Reverse = const(false),
+                                                                             Reversed = const(false),
                                                                              "Job Complete" = const(false),
                                                                              Type = filter("Applied Costs")));
             Caption = 'Applied Costs G/L Amount';
-            ToolTip = 'Specifies the sum of all applied costs that is based on to the selected project in the general ledger.';
+            ToolTip = 'Specifies the sum of all applied costs posted to the general ledger that are related to the project.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -902,7 +907,7 @@ table 167 Job
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
-                                                                             Reverse = const(false),
+                                                                             Reversed = const(false),
                                                                              "Job Complete" = const(false),
                                                                              Type = filter("Applied Sales")));
             Caption = 'Applied Sales G/L Amount';
@@ -955,6 +960,7 @@ table 167 Job
             CalcFormula = exist("Job WIP G/L Entry" where("Job No." = field("No."),
                                                            "Job Complete" = const(true)));
             Caption = 'WIP Completion Posted';
+            ToolTip = 'Specifies whether the final WIP completion entries have been posted to the general ledger.';
             FieldClass = FlowField;
         }
         field(1035; "Over Budget"; Boolean)
@@ -1382,6 +1388,8 @@ table 167 Job
 
         DeleteRelatedJobTasks();
 
+        DeleteRelatedJobAssignedResources();
+
         CommentLine.SetRange("Table Name", CommentLine."Table Name"::Job);
         CommentLine.SetRange("No.", "No.");
         CommentLine.DeleteAll();
@@ -1393,6 +1401,7 @@ table 167 Job
 
         // Delete all warehouse requests and warehouse pick requests associated with the Job
         WarehouseRequest.DeleteRequest(Database::Job, 0, "No.");
+        WarehouseRequest.DeleteRequest(Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), "No.");
         DeleteWhsePickRelation();
     end;
 
@@ -1905,6 +1914,7 @@ table 167 Job
             Message(EndingDateChangedMsg, FieldCaption("Ending Date"), "Ending Date");
 
             WarehouseRequest.DeleteRequest(Database::Job, 0, "No.");
+            WarehouseRequest.DeleteRequest(Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), "No.");
             DeleteWhsePickRelation();
         end else begin
             JobCalcWIP.ReOpenJob("No.");
@@ -1923,7 +1933,7 @@ table 167 Job
 
         WarehouseRequest.SetCurrentKey("Source Document", "Source No.");
         WarehouseRequest.SetRange("Source Document", WarehouseRequest."Source Document"::"Job Usage");
-        WarehouseRequest.SetRange("Source Type", Database::Job);
+        WarehouseRequest.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
         WarehouseRequest.SetRange("Source No.", "No.");
         Report.RunModal(Report::"Create Invt Put-away/Pick/Mvmt", true, false, WarehouseRequest);
     end;
@@ -2305,6 +2315,14 @@ table 167 Job
         JobTask.SetRange("Job No.", "No.");
         JobTask.SuspendDeletionCheck(true);
         JobTask.DeleteAll(true);
+    end;
+
+    local procedure DeleteRelatedJobAssignedResources()
+    var
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        JobAssignedResource.SetRange("Job No.", "No.");
+        JobAssignedResource.DeleteAll();
     end;
 
     procedure ToPriceSource(var PriceSource: Record "Price Source"; PriceType: Enum "Price Type")
@@ -2844,11 +2862,11 @@ table 167 Job
         JobPlanningLine.SetFilter("Line Type", '<>%1', JobPlanningLine."Line Type"::Billable);
         JobPlanningLine.SetRange(Type, JobPlanningLine.Type::Item);
         JobPlanningLine.SetFilter("Quantity", '>0');
-        JobPlanningLine.SetLoadFields(JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.");
+        JobPlanningLine.SetLoadFields(JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.", JobPlanningLine.Status);
 
         if JobPlanningLine.FindSet() then begin
             repeat
-                ItemTrackingMgt.InitItemTrackingForTempWhseWorksheetLine(Enum::"Warehouse Worksheet Document Type"::Job, JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", Database::Job, 0, JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.");
+                ItemTrackingMgt.InitItemTrackingForTempWhseWorksheetLine(Enum::"Warehouse Worksheet Document Type"::Job, JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.");
             until JobPlanningLine.Next() = 0;
             Commit();
             RunCreatePickFromWhseSource()

@@ -523,13 +523,7 @@ codeunit 139166 "Integration Record Synch. Test"
         "Field": Record "Field";
     begin
         Field.SetRange(TableNo, Database::"Comparison Type");
-        Field.SetFilter("No.", '<>%1&<>%2&<>%3&<>%4&<>%5&<>%6',
-                            1, // Ignore the key
-                            Field.FieldNo(SystemId),
-                            Field.FieldNo(SystemCreatedAt),
-                            Field.FieldNo(SystemCreatedBy),
-                            Field.FieldNo(SystemModifiedAt),
-                            Field.FieldNo(SystemModifiedBy));
+        Field.SetFilter("No.", '>%1&<%2', 1, Field.FieldNo(SystemId)); // Ignore the key and the system fields
         Field.FindSet();
 
         if IncludePrimaryKeyDefault then begin
@@ -592,13 +586,7 @@ codeunit 139166 "Integration Record Synch. Test"
 
         // Validate fields are equal;
         Field.SetRange(TableNo, DATABASE::"Comparison Type");
-        Field.SetFilter("No.", '<>%1&<>%2&<>%3&<>%4&<>%5&<>%6',
-                            1, // Ignore the key
-                            Field.FieldNo(SystemId),
-                            Field.FieldNo(SystemCreatedAt),
-                            Field.FieldNo(SystemCreatedBy),
-                            Field.FieldNo(SystemModifiedAt),
-                            Field.FieldNo(SystemModifiedBy));
+        Field.SetFilter("No.", '>%1&<%2', 1, Field.FieldNo(SystemId)); // Ignore the key and the system fields
         Field.FindSet();
 
         repeat

@@ -245,6 +245,75 @@ page 99000768 "Manufacturing Setup"
                 }
             }
 #endif
+            group(ProductionDefinitionWizard)
+            {
+                Caption = 'Production Definition Wizard';
+
+                group(BOMRoutingDisplayGroup)
+                {
+                    Caption = 'BOM/Routing Step Display';
+
+                    field("Show Rtng BOM Select Both"; Rec."Show Rtng BOM Select Both")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Show Rtng BOM Select Partial"; Rec."Show Rtng BOM Select Partial")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Show Rtng BOM Select Nothing"; Rec."Show Rtng BOM Select Nothing")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                }
+                group(ProdCompDisplayGroup)
+                {
+                    Caption = 'Components/Routing Preview Step Display';
+
+                    field("Show Prod Comp Select Both"; Rec."Show Prod Comp Select Both")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Show Prod Comp Select Partial"; Rec."Show Prod Comp Select Partial")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Show Prod Comp Select Nothing"; Rec."Show Prod Comp Select Nothing")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                }
+                group(GeneralWizardOptions)
+                {
+                    Caption = 'General Options';
+
+                    field("Always Save Modified Versions"; Rec."Always Save Modified Versions")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Allow Edit UI Selection"; Rec."Allow Edit UI Selection")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                }
+                group(WizardDefaults)
+                {
+                    Caption = 'Defaults';
+
+                    field("Def. Wiz. Work Center No."; Rec."Def. Wiz. Work Center No.")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Def. Wiz. Comp Item No."; Rec."Def. Wiz. Comp Item No.")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Def. Wiz. Flushing Method"; Rec."Def. Wiz. Flushing Method")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                }
+            }
         }
         area(factboxes)
         {
@@ -281,7 +350,7 @@ page 99000768 "Manufacturing Setup"
                     Visible = not Rec."Legacy Subcontracting";
                     ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
 
                     trigger OnAction()
                     var

@@ -548,6 +548,7 @@ page 7024 "Prices Overview"
     var
         FeaturePriceCalculation: Codeunit "Feature - Price Calculation";
     begin
+        OnBeforeOnInit();
         FeaturePriceCalculation.FailIfFeatureDisabled();
     end;
 
@@ -897,6 +898,11 @@ page 7024 "Prices Overview"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFilters(var PriceListLine: record "Price List Line"; var StartingDateFilter: Text; var EndingDateFilter: Text)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnInit()
     begin
     end;
 

@@ -42,6 +42,8 @@ permissionsetextension 42800 "SL D365 Basic Ext." extends "D365 BASIC"
                   tabledata "SL Hist. LotSerT Archive" = R,
                   tabledata "SL Hist. Migration Cur. Status" = R,
                   tabledata "SL Hist. Migration Step Status" = R,
+                  tabledata "SL Hist. PJTran" = R,
+                  tabledata "SL Hist. PJTranEx" = R,
                   tabledata "SL Hist. POReceipt" = R,
                   tabledata "SL Hist. POTran" = R,
                   tabledata "SL Hist. PurchOrd" = R,
@@ -52,5 +54,4 @@ permissionsetextension 42800 "SL D365 Basic Ext." extends "D365 BASIC"
                   tabledata "SL Hist. SOShipLine" = R,
                   tabledata "SL Hist. SOShipLot" = R,
                   tabledata "SL Hist. SOType" = R;
-
 }

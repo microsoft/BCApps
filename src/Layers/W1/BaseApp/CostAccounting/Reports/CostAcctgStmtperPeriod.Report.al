@@ -13,6 +13,7 @@ report 1123 "Cost Acctg. Stmt. per Period"
     RDLCLayout = './CostAccounting/Reports/CostAcctgStmtperPeriod.rdlc';
     ApplicationArea = CostAccounting;
     Caption = 'Cost Acctg. Stmt. per Period';
+    ToolTip = 'View profit and loss for cost types over two periods with the comparison as a percentage.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

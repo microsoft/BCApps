@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ using Microsoft.Sales.Setup;
 using System.Diagnostics;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.Telemetry;
@@ -416,6 +417,48 @@ page 1 "Company Information"
                     end;
                 }
             }
+            group(Reporting)
+            {
+                Caption = 'Reporting';
+                Visible = DocumentReportExperienceEnabled;
+
+                field(DefaultThemePart; ThemePartDisplay)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Default Theme';
+                    ToolTip = 'Specifies the default theme applied to this company''s Word report layouts when no more specific configuration applies. Use the assist-edit to pick a theme; clear the value to remove it.';
+
+                    trigger OnAssistEdit()
+                    begin
+                        if LookupHelper.AssignCompanyDefaultPart(Enum::"Report Layout Subtype"::Theme, ThemePartDisplay) then
+                            CurrPage.Update(false);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if ThemePartDisplay = '' then
+                            LookupHelper.ClearCompanyDefaultPart(Enum::"Report Layout Subtype"::Theme);
+                    end;
+                }
+                field(DefaultHeaderFooterPart; HeaderPartDisplay)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Default Header/Footer';
+                    ToolTip = 'Specifies the default header/footer applied to this company''s Word report layouts when no more specific configuration applies. Use the assist-edit to pick a part; clear the value to remove it.';
+
+                    trigger OnAssistEdit()
+                    begin
+                        if LookupHelper.AssignCompanyDefaultPart(Enum::"Report Layout Subtype"::HeaderFooter, HeaderPartDisplay) then
+                            CurrPage.Update(false);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if HeaderPartDisplay = '' then
+                            LookupHelper.ClearCompanyDefaultPart(Enum::"Report Layout Subtype"::HeaderFooter);
+                    end;
+                }
+            }
         }
         area(factboxes)
         {
@@ -699,6 +742,7 @@ page 1 "Company Information"
     var
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         MonitorSensitiveField: Codeunit "Monitor Sensitive Field";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         Rec.Reset();
         if not Rec.Get() then begin
@@ -711,12 +755,17 @@ page 1 "Company Information"
         MonitorSensitiveField.ShowPromoteMonitorSensitiveFieldNotification();
 
         BankAcctPostingGroup := CompanyInformationMgt.GetCompanyBankAccountPostingGroup();
+
+        DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
+        if DocumentReportExperienceEnabled then
+            LookupHelper.GetCompanyDefaultDisplays(HeaderPartDisplay, ThemePartDisplay);
     end;
 
     var
         CalendarMgmt: Codeunit "Calendar Management";
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
         FormatAddress: Codeunit "Format Address";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
         Experience: Text;
         SystemIndicatorText: Code[6];
         SystemIndicatorTextEditable: Boolean;
@@ -727,6 +776,9 @@ page 1 "Company Information"
         IsShipToCountyVisible: Boolean;
         CompanyBadgeRefreshPageTxt: Label 'The Company Badge settings have changed. Refresh the browser (Ctrl+F5) to update the badge.';
         CompanyBadgeChangedLbl: Label 'The Company badge settings have changed by UserSecurityId %1.', Locked = true;
+        DocumentReportExperienceEnabled: Boolean;
+        HeaderPartDisplay: Text;
+        ThemePartDisplay: Text;
 
     protected var
         SystemIndicatorChanged: Boolean;

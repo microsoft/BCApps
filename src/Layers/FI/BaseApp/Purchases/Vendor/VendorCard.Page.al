@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -368,6 +368,12 @@ page 26 "Vendor Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
+                }
+                field("Self-Billing Invoice Nos."; Rec."Self-Billing Invoice Nos.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    Enabled = Rec."Self-Billing Agreement";
                 }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
                 {
@@ -2058,4 +2064,3 @@ page 26 "Vendor Card"
     begin
     end;
 }
-

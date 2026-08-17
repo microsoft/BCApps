@@ -294,6 +294,7 @@ report 11403 "Create Elec. VAT Declaration"
 
         VATStatementLine.SetRange("Date Filter",
           "Elec. Tax Declaration Header"."Declaration Period From Date", "Elec. Tax Declaration Header"."Declaration Period To Date");
+        OnCalcVATAmountOnAfterSetDateFilter(VATStatementLine, "Elec. Tax Declaration Header");
         VATStatement.SetElectronicVAT(true);
         VATStatement.InitializeRequest(
           VATStatementName, VATStatementLine, "VAT Statement Report Selection"::Open,
@@ -345,6 +346,17 @@ report 11403 "Create Elec. VAT Declaration"
     local procedure ExtractSurname(FullName: Text[35]) Surname: Text[35]
     begin
         Surname := CopyStr(FullName, StrPos(FullName, ' ') + 1)
+    end;
+
+    /// <summary>
+    /// Integration event raised after the date filter has been set on the VAT statement line in CalcVATAmount.
+    /// Enables subscribers to override the date filter on the VAT statement line before the VAT statement is calculated.
+    /// </summary>
+    /// <param name="VATStatementLine">VAT statement line, passed by reference so subscribers can change the date filter.</param>
+    /// <param name="ElecTaxDeclarationHeader">Electronic tax declaration header providing the declaration period context.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcVATAmountOnAfterSetDateFilter(var VATStatementLine: Record "VAT Statement Line"; ElecTaxDeclarationHeader: Record "Elec. Tax Declaration Header")
+    begin
     end;
 }
 

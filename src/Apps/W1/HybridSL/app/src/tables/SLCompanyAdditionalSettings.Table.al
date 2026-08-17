@@ -524,8 +524,13 @@ table 47061 "SL Company Additional Settings"
                 end;
             end;
         }
+        field(42; "Migrate Hist. Project Trans."; Boolean)
+        {
+            Caption = 'Snapshot Project Transactions';
+            InitValue = false;
+            ToolTip = 'Specify whether to migrate historical project transactions.';
+        }
     }
-
     keys
     {
         key(Key1; Name)
@@ -781,6 +786,12 @@ table 47061 "SL Company Additional Settings"
         exit(Rec."Migrate Hist. Purch. Trx.");
     end;
 
+    internal procedure GetMigrateHistProjectTrans(): Boolean
+    begin
+        GetSingleInstance();
+        exit(Rec."Migrate Hist. Project Trans.");
+    end;
+
     internal procedure GetMigrateHistory(): Boolean
     begin
         GetSingleInstance();
@@ -798,6 +809,9 @@ table 47061 "SL Company Additional Settings"
             exit(true);
 
         if Rec."Migrate Hist. Purch. Trx." then
+            exit(true);
+
+        if Rec."Migrate Hist. Project Trans." then
             exit(true);
 
         exit(false);

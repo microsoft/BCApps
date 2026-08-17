@@ -185,7 +185,7 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date and time when the order was last modified.';
+                    ToolTip = 'Specifies the date and time when the order was last modified in Shopify.';
                 }
                 field(CancelledAt; Rec."Cancelled At")
                 {

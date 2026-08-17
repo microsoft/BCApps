@@ -267,8 +267,6 @@ codeunit 7201 "CDS Integration Impl."
         ConnectionDefaultNameTok: Label 'Dataverse', Locked = true;
         BaseSolutionUniqueNameTxt: Label 'bcbi_CdsBaseIntegration', Locked = true;
         BaseSolutionDisplayNameTxt: Label 'Business Central Dataverse Base Integration', Locked = true;
-        OAuthAuthorityUrlTxt: Label 'https://login.microsoftonline.com/common/oauth2', Locked = true;
-        ClientCredentialsTokenAuthorityUrlTxt: Label 'https://login.microsoftonline.com/organizations/oauth2/v2.0/token', Locked = true;
         TemporaryConnectionName: Text;
         CDSConnectionClientIdAKVSecretNameLbl: Label 'globaldisco-clientid', Locked = true;
         CDSConnectionFirstPartyAppIdAKVSecretNameLbl: Label 'bctocdsappid', Locked = true;
@@ -3400,11 +3398,21 @@ codeunit 7201 "CDS Integration Impl."
     end;
 
 
+    internal procedure GetDataverseCloudEndpoints(): Interface "Dataverse Cloud Endpoints"
+    var
+        CDSConnectionSetup: Record "CDS Connection Setup";
+    begin
+        if not CDSConnectionSetup.Get() then
+            CDSConnectionSetup.Init();
+        exit(CDSConnectionSetup.GetDataverseCloudEndpoints());
+    end;
+
     [Scope('OnPrem')]
     procedure GetAccessToken(ResourceURL: Text; GetTokenFromCache: Boolean; var AccessToken: SecretText)
     var
         OAuth2: Codeunit OAuth2;
         PromptInteraction: Enum "Prompt Interaction";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
         Scopes: List of [Text];
         [NonDebuggable]
         ClientId: Text;
@@ -3416,6 +3424,7 @@ codeunit 7201 "CDS Integration Impl."
         RedirectUrl: Text;
         AuthCodeError: Text;
     begin
+        Endpoints := GetDataverseCloudEndpoints();
         Scopes.Add(ResourceURL + '/user_impersonation');
         ClientId := GetCDSConnectionClientId();
         ClientSecret := GetCDSConnectionClientSecret();
@@ -3430,10 +3439,10 @@ codeunit 7201 "CDS Integration Impl."
         if GetTokenFromCache then
             if (FirstPartyAppId <> '') and (not FirstPartyAppCertificate.IsEmpty()) then begin
                 Session.LogMessage('0000EI9', AttemptingAuthCodeTokenFromCacheWithCertTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                OAuth2.AcquireAuthorizationCodeTokenFromCacheWithCertificate(FirstPartyAppId, FirstPartyAppCertificate, RedirectUrl, OAuthAuthorityUrlTxt, ResourceURL, AccessToken)
+                OAuth2.AcquireAuthorizationCodeTokenFromCacheWithCertificate(FirstPartyAppId, FirstPartyAppCertificate, RedirectUrl, Endpoints.GetOAuthAuthorityUrl(), ResourceURL, AccessToken)
             end else begin
                 Session.LogMessage('0000EIA', AttemptingAuthCodeTokenFromCacheWithClientSecretTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientId, ClientSecret, RedirectUrl, OAuthAuthorityUrlTxt, Scopes, AccessToken);
+                OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientId, ClientSecret, RedirectUrl, Endpoints.GetOAuthAuthorityUrl(), Scopes, AccessToken);
             end;
         if AccessToken.IsEmpty() then begin
             if not GuiAllowed then begin
@@ -3446,7 +3455,7 @@ codeunit 7201 "CDS Integration Impl."
                 OAuth2.AcquireTokenByAuthorizationCodeWithCertificate(
                     FirstPartyAppId,
                     FirstPartyAppCertificate,
-                    OAuthAuthorityUrlTxt,
+                    Endpoints.GetOAuthAuthorityUrl(),
                     RedirectUrl,
                     ResourceURL,
                     PromptInteraction::Consent,
@@ -3457,7 +3466,7 @@ codeunit 7201 "CDS Integration Impl."
                 OAuth2.AcquireTokenByAuthorizationCode(
                     ClientId,
                     ClientSecret,
-                    OAuthAuthorityUrlTxt,
+                    Endpoints.GetOAuthAuthorityUrl(),
                     RedirectUrl,
                     Scopes,
                     PromptInteraction::Consent,
@@ -3478,6 +3487,7 @@ codeunit 7201 "CDS Integration Impl."
     procedure GetBusinessEventAccessToken(ResourceURL: Text; GetTokenFromCache: Boolean; var AccessToken: SecretText)
     var
         OAuth2: Codeunit OAuth2;
+        Endpoints: Interface "Dataverse Cloud Endpoints";
         Scopes: List of [Text];
         [NonDebuggable]
         ClientId: Text;
@@ -3490,6 +3500,7 @@ codeunit 7201 "CDS Integration Impl."
         AuthCodeError: Text;
         IdToken: Text;
     begin
+        Endpoints := GetDataverseCloudEndpoints();
         Scopes.Add(ResourceURL + '/.default');
         ClientId := GetCDSConnectionClientId();
         ClientSecret := GetCDSConnectionClientSecret();
@@ -3504,19 +3515,19 @@ codeunit 7201 "CDS Integration Impl."
         if GetTokenFromCache then
             if (FirstPartyAppId <> '') and (not FirstPartyAppCertificate.IsEmpty()) then begin
                 Session.LogMessage('0000GIG', AttemptingClientCredentialsTokenFromCacheWithCertTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                OAuth2.AcquireTokensFromCacheWithCertificate(FirstPartyAppId, FirstPartyAppCertificate, RedirectUrl, ClientCredentialsTokenAuthorityUrlTxt, Scopes, AccessToken, IdToken);
+                OAuth2.AcquireTokensFromCacheWithCertificate(FirstPartyAppId, FirstPartyAppCertificate, RedirectUrl, Endpoints.GetClientCredentialsTokenAuthorityUrl(), Scopes, AccessToken, IdToken);
             end else begin
                 Session.LogMessage('0000GIH', AttemptingClientCredentialsTokenFromCacheWithClientSecretTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                OAuth2.AcquireTokensFromCache(ClientId, ClientSecret, RedirectUrl, ClientCredentialsTokenAuthorityUrlTxt, Scopes, AccessToken, IdToken);
+                OAuth2.AcquireTokensFromCache(ClientId, ClientSecret, RedirectUrl, Endpoints.GetClientCredentialsTokenAuthorityUrl(), Scopes, AccessToken, IdToken);
             end;
 
         if AccessToken.IsEmpty() then
             if (FirstPartyAppId <> '') and (not FirstPartyAppCertificate.IsEmpty()) then begin
                 Session.LogMessage('0000GII', AttemptingClientCredentialsTokenWithCertTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                OAuth2.AcquireTokensWithCertificate(FirstPartyAppId, FirstPartyAppCertificate, RedirectUrl, ClientCredentialsTokenAuthorityUrlTxt, Scopes, AccessToken, IdToken);
+                OAuth2.AcquireTokensWithCertificate(FirstPartyAppId, FirstPartyAppCertificate, RedirectUrl, Endpoints.GetClientCredentialsTokenAuthorityUrl(), Scopes, AccessToken, IdToken);
             end else begin
                 Session.LogMessage('0000GIJ', AttemptingClientCredentialsTokenWithClientSecretTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                OAuth2.AcquireTokenWithClientCredentials(ClientId, ClientSecret, ClientCredentialsTokenAuthorityUrlTxt, RedirectUrl, Scopes, AccessToken);
+                OAuth2.AcquireTokenWithClientCredentials(ClientId, ClientSecret, Endpoints.GetClientCredentialsTokenAuthorityUrl(), RedirectUrl, Scopes, AccessToken);
             end;
 
         if AccessToken.IsEmpty() then begin

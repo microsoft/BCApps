@@ -66,7 +66,17 @@ report 5848 "Cost Shares Breakdown"
                 DataItemTableView = sorting("Order Type", "Order No.", "Order Line No.") where("Order Type" = const(Production));
 
                 trigger OnAfterGetRecord()
+                var
+                    TempItem: Record Item temporary;
                 begin
+                    if Item.Get("Capacity Ledger Entry"."Item No.") then begin
+                        TempItem := Item;
+                        TempItem.Insert();
+                        TempItem.CopyFilters(Item);
+                        if TempItem.IsEmpty() then
+                            CurrReport.Skip();
+                    end;
+
                     InsertCapLedgEntryCostShare("Capacity Ledger Entry");
                 end;
 
@@ -789,6 +799,18 @@ report 5848 "Cost Shares Breakdown"
         CostShareBuffer."Material Overhead" += InvtAdjmtEntryOrder."Single-Level Mfg. Ovhd Cost";
         CostShareBuffer.Subcontracted += InvtAdjmtEntryOrder."Single-Level Subcontrd. Cost";
 
+        ApplyShareOfCostToCostShareBuffer(ItemLedgEntry, CostShareBuffer, InvtAdjmtEntryOrder, OutputQty, ShareOfCost);
+    end;
+
+    local procedure ApplyShareOfCostToCostShareBuffer(ItemLedgEntry: Record "Item Ledger Entry"; var CostShareBuffer: Record "Cost Share Buffer"; var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; OutputQty: Decimal; var ShareOfCost: Decimal)
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnUpdateCostShareBufFromInvAdjmtEntryOrderOnBeforeApplyShareOfCost(ItemLedgEntry, CostShareBuffer, InvtAdjmtEntryOrder, OutputQty, ShareOfCost, IsHandled);
+        if IsHandled then
+            exit;
+
         if OutputQty <> 0 then begin
             ShareOfCost := ItemLedgEntry.Quantity / OutputQty;
             CostShareBuffer.Capacity *= ShareOfCost;
@@ -947,5 +969,9 @@ report 5848 "Cost Shares Breakdown"
     local procedure OnInsertItemLedgEntryCostShareOnAfterSetQuantity(ItemLedgerEntry: Record "Item Ledger Entry"; var TempCostShareBuffer: Record "Cost Share Buffer" temporary)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateCostShareBufFromInvAdjmtEntryOrderOnBeforeApplyShareOfCost(ItemLedgerEntry: Record "Item Ledger Entry"; var CostShareBuffer: Record "Cost Share Buffer"; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; OutputQuantity: Decimal; var ShareOfCost: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+}

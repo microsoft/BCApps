@@ -80,7 +80,6 @@ page 9011 "Shop Supervisor Mfg Foundation"
                 Caption = 'Production Order - &Shortage List';
                 Image = "Report";
                 RunObject = Report "Prod. Order - Shortage List";
-                ToolTip = 'View a list of the missing quantity per production order. The report shows how the inventory development is planned from today until the set day - for example whether orders are still open.';
             }
             action("Subcontractor - Dis&patch List")
             {
@@ -88,7 +87,6 @@ page 9011 "Shop Supervisor Mfg Foundation"
                 Caption = 'Subcontractor - Dis&patch List';
                 Image = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
-                ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';
             }
             separator(Action42)
             {
@@ -112,7 +110,6 @@ page 9011 "Shop Supervisor Mfg Foundation"
                 Caption = 'Production Order Statistics';
                 Image = "Report";
                 RunObject = report "Production Order Statistics";
-                ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
             }
             action("S&tatus")
             {
@@ -135,7 +132,6 @@ page 9011 "Shop Supervisor Mfg Foundation"
                 Caption = 'Inventory Valuation &WIP';
                 Image = "Report";
                 RunObject = Report "Inventory Valuation - WIP";
-                ToolTip = 'View inventory valuation for selected production orders in your WIP inventory. The report also shows information about the value of consumption, capacity usage and output in WIP. The printed report only shows invoiced amounts, that is, the cost of entries that have been posted as invoiced.';
             }
         }
         area(embedding)
