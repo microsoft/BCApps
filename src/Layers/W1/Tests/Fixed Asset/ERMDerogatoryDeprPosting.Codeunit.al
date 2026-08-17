@@ -830,6 +830,8 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         GenJournalLine: Record "Gen. Journal Line";
         FADepreciationBook: Record "FA Depreciation Book";
         FALedgerEntry: Record "FA Ledger Entry";
+        CounterpartFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartReversal: Record "FA Ledger Entry";
         FANo: Code[20];
         NormalDeprBookCode: Code[10];
         TaxDeprBookCode: Code[10];
@@ -862,12 +864,14 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Depreciation);
         FALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
         FALedgerEntry.FindLast();
+        FindLinkedFAEntry(CounterpartFALedgerEntry, FALedgerEntry."Entry No.", TaxDeprBookCode);
         ReverseFALedgerEntries(FALedgerEntry);
 
-        // [WHEN] The derogatory is reversed from company book
-        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Derogatory);
-        FALedgerEntry.FindLast();
-        ReverseFALedgerEntries(FALedgerEntry);
+        // [THEN] The linked derogatory counterpart is automatically reversed
+        FALedgerEntry.Get(FALedgerEntry."Entry No.");
+        FindLinkedFAEntry(CounterpartReversal, FALedgerEntry."Reversed by Entry No.", TaxDeprBookCode);
+        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
+        CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
 
         // [THEN] The FA ledger entries created by the report are all reversed
         VerifyAllFALedgEntriesReversed(LastFALedgerEntryNo);
