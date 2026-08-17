@@ -5,6 +5,7 @@
 namespace Microsoft.Peppol.Test;
 
 using Microsoft.CRM.Team;
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -61,6 +62,115 @@ codeunit 139235 "PEPPOL30 Management Tests"
         NoItemDescriptionErr: Label 'Description field is empty.';
         NoUnitOfMeasureErr: Label 'The Invoice %1 contains lines on which the Unit of Measure Code field is empty.', Comment = '%1 - Invoice Number';
         SalespersonTxt: Label 'Salesperson';
+
+    [Test]
+    procedure UnknownFormatValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocument('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatDocumentLinesValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocumentLines('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatDocumentLineValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocumentLine('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatLineTypeValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateLineTypeAndDescription('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatPostedDocumentValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidatePostedDocument('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatIteratorRaisesControlledError()
+    var
+        SalesHeader: Record "Sales Header";
+        PostedRecRef: RecordRef;
+        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOLPostedDocumentIterator := UnknownFormat;
+
+        asserterror PEPPOLPostedDocumentIterator.GetNextPostedHeaderAsSalesHeader(PostedRecRef, SalesHeader);
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatLineIteratorRaisesControlledError()
+    var
+        SalesLine: Record "Sales Line";
+        PostedLineRecRef: RecordRef;
+        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOLPostedDocumentIterator := UnknownFormat;
+
+        asserterror PEPPOLPostedDocumentIterator.GetNextPostedLineAsSalesLine(PostedLineRecRef, SalesLine);
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
 
     [Test]
     procedure GeneralInfo()
@@ -2524,6 +2634,33 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     [Test]
+    procedure TestPeppolValidationSalesInvoiceAllocationAccountLineSkipped()
+    var
+        AllocationAccount: Record "Allocation Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 632064] PEPPOL validation does not fail on sales lines of type Allocation Account.
+        // Allocation account lines are placeholder lines that are expanded into their underlying
+        // distribution lines during posting and are never exported in the electronic document.
+        Initialize();
+
+        // [GIVEN] An allocation account
+        AllocationAccount."No." := Format(LibraryRandom.RandText(5));
+        AllocationAccount."Account Type" := AllocationAccount."Account Type"::Fixed;
+        AllocationAccount.Name := Format(LibraryRandom.RandText(10));
+        AllocationAccount.Insert();
+
+        // [GIVEN] A sales invoice with a line of type Allocation Account and no Unit of Measure Code
+        CreateGenericSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"Allocation Account", AllocationAccount."No.", 1);
+
+        // [WHEN] PEPPOL validation runs on the document
+        // [THEN] No error is thrown for the allocation account line
+        CODEUNIT.Run(CODEUNIT::"PEPPOL30 Sales Validation", SalesHeader);
+    end;
+
+    [Test]
     procedure TestPeppolValidationSalesInvoiceLineNoItemDescription()
     var
         Item: Record Item;
@@ -3789,6 +3926,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         AddCustPEPPOLIdentifier(Customer."No.");
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.SetShipToAddress(ServiceHeader.Name, '', ServiceHeader.Address, ServiceHeader."Address 2",
         ServiceHeader.City, ServiceHeader."Post Code", ServiceHeader.County, ServiceHeader."Country/Region Code");
         ServiceHeader.Modify(true);

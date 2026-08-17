@@ -1,0 +1,1332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GroupingCategoryCode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="Grouping_Category_Code.xsd">
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.11.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kontanter</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.16.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bankinnskudd</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.20.40</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Fondsobligasjoner klassifisert som egenkapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.20.51</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andeler i rentefond</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.20.56</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andeler i aksjefond (inkl. kombinasjonsfond)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.20.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Aksjer, egenkapitalbevis og øvrige andeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.30.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Obligasjoner med fortrinnsrett</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.30.40</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Fondsobligasjoner klassifisert som ansv. lånekapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.30.91</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre rentebærende verdipapirer med opprinnelig løpetid tom. 12 mnd.</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.30.92</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre rentebærende verdipapirer med opprinnelig løpetid over 12 mnd.</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Finansielle derivater</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.51.11</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utlån, brutto balanseført verdi - Factoring</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.51.15</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utlån, brutto balanseført verdi - Kredittkort</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.51.19</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utlån, brutto balanseført verdi - Andre rammelån/rammekreditter</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.51.30</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utlån, brutto balanseført verdi - Leasing</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.51.50</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utlån, brutto balanseført verdi - Nedbetalingslån</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.51.80</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utlån, brutto balanseført verdi - Repoavtale (gjensalgsavtale)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.56.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Tapsnedskrivning på utlån - steg 1 for IFRS</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.56.30</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Tapsnedskrivning på utlån - steg 2 for IFRS / gruppenedskrivninger for NGAAP</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>3.56.50</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Tapsnedskrivning på utlån - steg 3 for IFRS / individuelle nedskrivninger for NGAAP</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.82.50</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Uoppgjorte verdipapirhandler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.82.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kortsiktige fordringer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.89.20</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Eiendeler ved skatt</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.89.70</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Netto pensjonsmidler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.89.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Øvrige finansielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.91.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Investeringseiendom</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.91.30</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Eierbenyttet eiendom</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.91.50</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overtatte eiendommer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.94.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Maskiner, inventar og transportmidler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.97.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Goodwill</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.97.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre immaterielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.16.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Innskudd - Brukskonti</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.16.20</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Innskudd - Sparekonti mv. uten binding</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.17.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Innskudd med oppsigelsesfrist tom. 3 måneder eller bindingstid tom. 2 år </CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.17.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Innskudd med oppsigelsesfrist over 3 måneder eller bindingstid over 2 år</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.18.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Skattetrekkskonti</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.18.30</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Boligspareordning for ungdom (BSU-konti med skattefradrag)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.18.40</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konti knyttet til pensjonsavtale/-sparing
+	</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.18.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre innskudd bundet til formål uten oppsigelsesfrist eller bindingstid</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.30.11</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Obligasjoner med fortrinnsrett (kun for kredittforetak), brutto</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.30.12</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Egenbeholdning av obligasjoner med fortrinnsrett</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.30.91</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Annen verdipapirgjeld, brutto</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.30.92</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Egenbeholdning av andre obligasjoner</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Finansielle derivater</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.50.80</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Repoavtale (gjenkjøpsavtale)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.50.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Øvrige lån</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.82.20</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Skattetrekk, arbeidsgiveravgift mv. knyttet til egne ansatte</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.82.50</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Uoppgjorte verdipapirhandler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.82.81</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utbytte/egenkapitalbevisrenter siste år</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.82.82</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konsernbidrag siste år</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.82.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Øvrig kortsiktig gjeld</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.86.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Tapsavsetninger på ubenyttet ramme og garantier til amortisert kost - steg 1 for IFRS</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.86.30</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Tapsavsetninger på ubenyttet ramme og garantier til amortisert kost - steg 2 for IFRS</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.86.50</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Tapsavsetninger på ubenyttet ramme og garantier til amortisert kost - steg 3 for IFRS</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.87.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Tapsavsetning på garantier til virkelig verdi, samt til amortisert kost for NGAAP</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.89.21</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Forpliktelser ved periodeskatt</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.89.22</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Forpliktelser ved utsatt skatt</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.89.70</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Pensjonsforpliktelser</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.89.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Øvrige avsetninger</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.31.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Ansvarlig lånekapital i form av fondsobligasjoner, netto</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.39.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Ansvarlig lånekap i form av andre rentebærende omsettelige verdipapirer, netto </CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.50.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Annen ansvarlig lånekapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.21.11</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Aksjekapital/eierandelskapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.21.12</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Egne aksjer og egenkapitalbevis</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.21.30</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overkurs</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.21.40</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utjevningsfond</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.23.20</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Sparebankens/foreningens fond</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.23.30</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kompensasjonsfond</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.23.40</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Gavefond</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.25.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Fondsobligasjonskapital, netto</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.28.31</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Fond for urealiserte gevinster</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.28.33</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Fond for vurderingsforskjeller</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.28.36</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre akkumulerte inntekter og kostnader (IFRS)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.28.81</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utbytte/egenkapitalbevisrenter og renter på fondsobligasjoner siste år (IFRS)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.28.82</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konsernbidrag siste år (IFRS)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.28.85</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kundeutbytte</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.28.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Øvrig egenkapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.11.1.16.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renteinntekter - Bankinnskudd</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.11.2.30.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renteinntekter - Rentebærende, omsettelige verdipapirer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.11.0.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renteinntekter - Finansielle derivater</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.11.3.50.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renteinntekter - Utlån</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.11.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renteinntekter - Øvrige eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.12.0.00.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kredittprovisjonsinntekter</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.20.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Provisjons- og gebyrinntekter  - Betalingsformidling</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.20.0.20.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Provisjons- og gebyrinntekter  - Netto garantiprovisjonsinntekter</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.20.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Provisjons- og gebyrinntekter  - Andre provisjoner og gebyrer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.30.2.20.51</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utbytte, konsernbidrag og resultatavhengig avkastning - Rentefond</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.30.2.20.91</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utbytte, konsernbidrag og resultatavhengig avkastning - Aksjer og andeler regnskaps-ført etter egenkapitalmetoden</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.30.2.20.99</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utbytte, konsernbidrag og resultatavhengig avkastning - Øvrig</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.60.0.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, gevinst/tap på valuta og finansielle instrumenter - Valuta og finansielle derivater (eiend. og gjeld)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.60.2.20.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, gevinst/tap på valuta og finansielle instrumenter - Aksjer, andeler og egenkapitalbevis</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.60.2.30.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, gevinst/tap på valuta og finansielle instrumenter - Rentebærende, omsettelige verdipapirer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.60.3.50.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, gevinst/tap på valuta og finansielle instrumenter - Utlån</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.60.0.96.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, gevinst/tap på valuta og finansielle instrumenter - Øvrige finansielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>1.60.0.97.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, gevinst/tap på valuta og finansielle instrumenter - Finansielle forpliktelser, ekskl. derivater</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.73.0.00.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Driftsinntekter eide eiendommer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.78.0.80.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Forvaltningshonorarer fra konsernselskaper</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.79.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre driftsinntekter - Negativ goodwill innregnet i resultat</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>2.79.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre driftsinntekter - Øvrige</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.11.6.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rentekostnader - Innskudd </CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.11.0.30.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rentekostnader - Obligasjoner med fortrinnsrett</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.11.0.30.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rentekostnader - Annen verdipapirgjeld</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.11.0.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rentekostnader - Finansielle derivater</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.11.0.50.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rentekostnader - Andre lån</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.11.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rentekostnader - Andre forpliktelser</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.13.0.00.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Avgift til sikringsfondet</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.20.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Provisjons- og gebyrkostnader, kurtasje - Betalingsformidling</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.20.0.20.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Provisjons- og gebyrkostnader, kurtasje - Netto garantiprovisjonskostnader</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>4.20.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Provisjons- og gebyrkostnader, kurtasje - Andre provisjoner og gebyrer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.51.0.11.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader - Lønn og naturalytelser til ansatte, unntatt personalforsikringer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.51.0.19.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader - Styrehonorarer, godtgjørelse for verv og andre avgiftspliktige honorarer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.51.0.20.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader - Andre honorarer som klassifiseres som lønn</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.51.0.30.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader - Pensjonskostnader</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.51.0.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader - Personalforsikringer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.51.0.50.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader - Arbeidsgiveravgift og finansskatt</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.51.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader - Andre personalkostnader</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.71.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kostander til strøm, inkl. nettleie</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.71.0.20.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kostander til forsikring</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.73.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Driftskostnader eide  eiendommer - Reparasjon og vedlikehold</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.73.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Driftskostnader eide  eiendommer - Andre, ekskl. strøm og forsikring</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kostnader til eksterne tjenester - Revisjon og regnskap</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.20.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kostnader til eksterne tjenester - Juridisk bistand</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.30.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kostnader til eksterne tjenester - IKT</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kostnader til eksterne tjenester - Salg, reklame og representasjon</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.71.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kostnader til eksterne tjenester - Leie av lokaler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.73.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kostnader til eksterne tjenester - Leie av maskiner, inventar og transportmidler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.80.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kostnader til eksterne tjenester - Forvaltningshonorarer til konsernselskaper</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.90.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Honorarer til bemanningsselskaper, ikke betraktet som lønn</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.78.0.90.90</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kostnader til eksterne tjenester - Andre</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.79.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre driftskostnader - Lisenser, programmer og annet IKT-utstyr</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>5.79.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre driftskostnader - Øvrige</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.61.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Avskrivning på ikke-finansielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.61.0.20.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Nedskrivning på ikke-finansielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.61.0.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Netto verdiendringer på ikke-finansielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.61.0.60.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Gevinst/tap på ikke-finansielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.66.2.30.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kredittap på rentebærende omsettelige verdipapirer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.66.3.50.11</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konstaterte tap på utlån balanseført til virkelig verdi</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.66.3.50.19</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renovasjon, vann, avløp, renhold mv.</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.66.3.50.21</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konstaterte tap på utlån balanseført til amortisert kost</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.66.3.50.29</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Øvrige kredittap på utlån balanseført til amortisert kost</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.68.7.86.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kredittap på ubenyttet utlånsramme (IFRS)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>6.68.7.87.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kreditttap på garantier</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.80.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Periodeskatt</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>7.80.7.89.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Endring i forpliktelse ved utsatt skatt</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.91.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som ikke blir omklassifisert - Fra egenkapitalinstrumenter</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.91.0.30.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som ikke blir omklassifisert - Estimatendringer knyttet til ytelsesbaserte pensjonsordninger</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.91.0.60.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som ikke blir omklassifisert - Fra andre finansielle eiendeler og forpliktelser</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.91.0.70.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som ikke blir omklassifisert - Fra ikke-finansielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.91.7.89.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Skatt på innt./kost. som ikke blir omklassifisert</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.92.0.20.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som kan bli omklassifisert - Fra rentebærende verdipapirer</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.92.0.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som kan bli omklassifisert - Effektiv andel av nettogevinster på sikringsinstrumenter i kontantstrømsikring</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.92.0.50.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som kan bli omklassifisert - Netto valutakursgevinster ved omregning av utenlandsk virksomhet</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.92.0.60.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som kan bli omklassifisert - Fra andre finansielle eiendeler og forpliktelser</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.92.0.70.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre inntekter og kostnader som kan bli omklassifisert - Fra ikke-finansielle eiendeler</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>8.92.7.89.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Skatt på innt./kost. som kan bli omklassifisert</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.01.0.00.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Virkn. av endr. i regnskaps-prinsipper og korr. av feil i IB (kan være negativ)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.03.0.00.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Totalresultat hittil i år (negativ hvis underskudd) / Resultat hittil i år (NGAAP)</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.05.9.21.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Emisjoner, tilbakekjøp, kapitalnedsettelser og andre endringer - Aksje-/eierandelskapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.05.9.25.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Emisjoner, tilbakekjøp, kapitalnedsettelser og andre endringer - Fondsobligasjonskapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.08.0.10.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre egenkapitaltransaksjoner  - Gaveutdeling</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.08.0.40.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre egenkapitaltransaksjoner  - Renter på fondsobligasjonskapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.08.0.50.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre egenkapitaltransaksjoner  - Utbytte/renter på eierandelskapital</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.08.0.60.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre egenkapitaltransaksjoner  - Avgitt konsernbidrag</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.08.0.60.20</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre egenkapitaltransaksjoner  - Mottatt konsernbidrag</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.08.0.70.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre egenkapitaltransaksjoner - Kundeutbytte</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>RF-1173</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 4</CategoryDescription>
+    <CategoryDescription ISOLanguageCode="ENG">Income Statement 4</CategoryDescription>
+    <GroupingCode>9.08.0.90.00</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre egenkapitaltransaksjoner  - Andre</CodeDescription>
+    <CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+  </Account>
+</GroupingCategoryCode>

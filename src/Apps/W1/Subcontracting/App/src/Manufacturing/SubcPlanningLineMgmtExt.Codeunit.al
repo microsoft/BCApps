@@ -61,8 +61,9 @@ codeunit 99001518 "Subc. Planning Line Mgmt Ext."
 #pragma warning restore AL0432
             exit;
 #endif
-        if ProductionBOMLine."Component Supply Method" = "Component Supply Method"::"Vendor-Supplied" then
-            IsHandled := true;
+        // Vendor-Supplied components must still be transferred as planning components so they appear
+        // in the Planning Worksheet component list (required for consumption registration).
+        // Exclusion from planning demand is handled by ProdOrderComponent_OnAfterFilterLinesWithItemToPlan.
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterFilterLinesWithItemToPlan, '', false, false)]

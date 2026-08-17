@@ -42,10 +42,10 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
             group(Subcontracting)
             {
                 Caption = 'Subcontracting';
-                Visible = HasSubcontractingContext;
                 action(CreateTransfOrdToSubcontractor)
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Create Transf. Ord. to Subcontractor';
                     Image = NewDocument;
                     ToolTip = 'Create a transfer order to send to the subcontractor.';
@@ -62,6 +62,7 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
                 action(CreateReturnFromSubcontractor)
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Create Return from Subcontractor';
                     Image = ReturnRelated;
                     ToolTip = 'Create a return document from the subcontractor.';
@@ -78,6 +79,7 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
                 action(PrintSubcDispatchingList)
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Print Subcontractor Dispatching List';
                     Image = Print;
                     ToolTip = 'Print the dispatching list for the subcontractor.';
@@ -114,7 +116,6 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
             exit;
 #endif
         HasSubcontractingContext := SubcontractingManagement.IsSubcontractingPurchaseDocument(Rec);
-        CurrPage.PurchLines.Page.SetIsSubcontracting(HasSubcontractingContext);
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -125,6 +126,5 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
 
 #endif
         HasSubcontractingContext := SubcontractingManagement.IsSubcontractingPurchaseDocument(Rec);
-        CurrPage.PurchLines.Page.SetIsSubcontracting(HasSubcontractingContext);
     end;
 }

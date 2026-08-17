@@ -24,7 +24,6 @@ codeunit 99001543 "Subc. Trans Shpt Header Ext"
             exit;
 #endif
         TransferShipmentHeader."Subc. Source Type" := TransferHeader."Subc. Source Type";
-        TransferShipmentHeader."Source Subtype" := TransferHeader."Source Subtype";
         TransferShipmentHeader."Source ID" := TransferHeader."Source ID";
         TransferShipmentHeader."Source Ref. No." := TransferHeader."Source Ref. No.";
         TransferShipmentHeader."Subc. Return Order" := TransferHeader."Subc. Return Order";

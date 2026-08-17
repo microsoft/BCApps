@@ -1,0 +1,3 @@
+Code,Name,ISOCode,ISONumericCode,EUCountryRegionCode,IntrastatCode,AddressFormat,ContactAddressFormat,VATScheme,CountyName
+TCR1,Test Country 1,TA,901,EU01,IN01,0,0,VS1,County1
+TCR2,Test Country 2,TB,902,EU02,IN02,1,1,VS2,County2

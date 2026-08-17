@@ -24,7 +24,6 @@ codeunit 99001542 "Subc. Trans Rcpt Header Ext"
             exit;
 #endif
         TransferReceiptHeader."Subc. Source Type" := TransferHeader."Subc. Source Type";
-        TransferReceiptHeader."Source Subtype" := TransferHeader."Source Subtype";
         TransferReceiptHeader."Source ID" := TransferHeader."Source ID";
         TransferReceiptHeader."Source Ref. No." := TransferHeader."Source Ref. No.";
         TransferReceiptHeader."Subc. Return Order" := TransferHeader."Subc. Return Order";

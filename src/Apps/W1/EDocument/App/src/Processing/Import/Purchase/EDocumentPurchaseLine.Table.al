@@ -263,6 +263,17 @@ table 6101 "E-Document Purchase Line"
         DimMgt: Codeunit DimensionManagement;
 
     local procedure SetDescriptionFromLineTypeNo()
+    begin
+        if Rec.Description <> '' then
+            exit;
+        Rec.Description := GetMatchedEntityName();
+    end;
+
+    /// <summary>
+    /// Returns the name of the entity (Item, G/L Account, Resource, etc.) that this line is matched to,
+    /// resolved from the "[BC] Purchase Line Type" and "[BC] Purchase Type No." fields
+    /// </summary>
+    internal procedure GetMatchedEntityName() EntityName: Text[100]
     var
         Item: Record Item;
         GLAccount: Record "G/L Account";
@@ -271,29 +282,54 @@ table 6101 "E-Document Purchase Line"
         Resource: Record Resource;
         ItemCharge: Record "Item Charge";
     begin
-        if Rec.Description <> '' then
-            exit;
+        if Rec."[BC] Purchase Type No." = '' then
+            exit('');
 
         case Rec."[BC] Purchase Line Type" of
             "Purchase Line Type"::Item:
-                if Item.Get(Rec."[BC] Purchase Type No.") then
-                    Rec.Description := Item.Description;
+                begin
+                    Item.SetLoadFields(Description);
+                    if Item.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := Item.Description;
+                end;
             "Purchase Line Type"::"G/L Account":
-                if GLAccount.Get(Rec."[BC] Purchase Type No.") then
-                    Rec.Description := GLAccount.Name;
+                begin
+                    GLAccount.SetLoadFields(Name);
+                    if GLAccount.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := GLAccount.Name;
+                end;
             "Purchase Line Type"::"Allocation Account":
-                if AllocationAccount.Get(Rec."[BC] Purchase Type No.") then
-                    Rec.Description := AllocationAccount.Name;
+                begin
+                    AllocationAccount.SetLoadFields(Name);
+                    if AllocationAccount.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := AllocationAccount.Name;
+                end;
             "Purchase Line Type"::"Fixed Asset":
-                if FixedAsset.Get(Rec."[BC] Purchase Type No.") then
-                    Rec.Description := FixedAsset.Description;
+                begin
+                    FixedAsset.SetLoadFields(Description);
+                    if FixedAsset.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := FixedAsset.Description;
+                end;
             "Purchase Line Type"::Resource:
-                if Resource.Get(Rec."[BC] Purchase Type No.") then
-                    Rec.Description := Resource.Name;
+                begin
+                    Resource.SetLoadFields(Name);
+                    if Resource.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := Resource.Name;
+                end;
             "Purchase Line Type"::"Charge (Item)":
-                if ItemCharge.Get(Rec."[BC] Purchase Type No.") then
-                    Rec.Description := ItemCharge.Description;
+                begin
+                    ItemCharge.SetLoadFields(Description);
+                    if ItemCharge.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := ItemCharge.Description;
+                end;
         end;
+
+        OnAfterGetMatchedEntityName(Rec, EntityName);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetMatchedEntityName(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var EntityName: Text[100])
+    begin
     end;
 
     local procedure POMatchingValidation()

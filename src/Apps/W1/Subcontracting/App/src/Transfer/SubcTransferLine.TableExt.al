@@ -242,8 +242,10 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
 #endif
         if Rec."Transfer WIP Item" then
             if ProdOrderRoutingLine.Get("Production Order Status"::Released, "Subc. Prod. Order No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.") then begin
-                Rec.Description := ProdOrderRoutingLine."Transfer Description";
-                Rec."Description 2" := ProdOrderRoutingLine."Transfer Description 2";
+                if ProdOrderRoutingLine."Transfer Description" <> '' then
+                    Rec.Description := ProdOrderRoutingLine."Transfer Description";
+                if ProdOrderRoutingLine."Transfer Description 2" <> '' then
+                    Rec."Description 2" := ProdOrderRoutingLine."Transfer Description 2";
             end;
     end;
 }

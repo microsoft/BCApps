@@ -10,6 +10,10 @@ using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.EServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.eServices.EDocument.RemittanceAdvice;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -19,6 +23,7 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Document;
@@ -49,6 +54,8 @@ codeunit 6103 "E-Document Subscribers"
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocumentProcessingPhase: Enum "E-Document Processing Phase";
         DeleteDocumentQst: Label 'This document is linked to E-Document %1. Do you want to continue?', Comment = '%1 - E-Document Entry No.';
+        RemittanceAdviceCreatedMsg: Label '%1 remittance advice(s) created.', Comment = '%1 - Number of remittance advice e-documents created.';
+        RemittanceAdviceAlreadyExistsMsg: Label 'A remittance advice already exists for %1 payment(s).', Comment = '%1 - Number of payments for which a remittance advice already existed.';
 
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
@@ -444,6 +451,7 @@ codeunit 6103 "E-Document Subscribers"
     begin
         if not IsNullGuid(GenJnlLine.SystemId) then begin
             EDocument.SetRange("Journal Line System ID", GenJnlLine.SystemId);
+            EDocument.SetFilter("Document Type", '<>%1', EDocument."Document Type"::"Remittance Advice");
             if EDocument.FindFirst() then begin
                 EDocument.Validate("Document Record ID", GLEntry.RecordId);
                 EDocument."Document No." := GLEntry."Document No.";
@@ -452,6 +460,61 @@ codeunit 6103 "E-Document Subscribers"
                 EDocument.Modify();
             end;
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterVendLedgEntryInsert', '', false, false)]
+    local procedure OnAfterVendLedgEntryInsert(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; var DtldLedgEntryInserted: Boolean; PreviewMode: Boolean)
+    var
+        EDocument: Record "E-Document";
+    begin
+        if PreviewMode then
+            exit;
+        if IsNullGuid(GenJournalLine.SystemId) then
+            exit;
+
+        EDocument.SetRange("Journal Line System ID", GenJournalLine.SystemId);
+        EDocument.SetRange("Document Type", EDocument."Document Type"::"Remittance Advice");
+        if EDocument.FindFirst() then begin
+            EDocument.Validate("Document Record ID", VendorLedgerEntry.RecordId);
+            EDocument."Document No." := VendorLedgerEntry."Document No.";
+            EDocument."Posting Date" := VendorLedgerEntry."Posting Date";
+            EDocument.Modify();
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnAfterDeleteEventGenJournalLine(var Rec: Record "Gen. Journal Line"; RunTrigger: Boolean)
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+    begin
+        if Rec.IsTemporary then
+            exit;
+
+        EDocument.SetRange("Journal Line System ID", Rec.SystemId);
+        EDocument.SetRange("Document Type", EDocument."Document Type"::"Remittance Advice");
+        if not EDocument.FindFirst() then
+            exit;
+
+        // If the E-Document was already re-pointed to the posted Vendor Ledger Entry (by
+        // OnAfterVendLedgEntryInsert above), it is no longer tied to this journal line's lifecycle.
+        if EDocument."Document Record ID".TableNo <> Database::"Gen. Journal Line" then
+            exit;
+
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        if EDocumentServiceStatus.FindSet() then
+            repeat
+                EDocumentService.Get(EDocumentServiceStatus."E-Document Service Code");
+                EDocumentProcessing.ModifyServiceStatus(EDocument, EDocumentService, Enum::"E-Document Service Status"::"Canceled");
+            until EDocumentServiceStatus.Next() = 0;
+
+        EDocumentProcessing.ModifyEDocumentStatus(EDocument);
+
+        // The journal line no longer exists — clear the now-dangling reference so the
+        // E-Document doesn't point at a deleted record.
+        Clear(EDocument."Document Record ID");
+        EDocument.Modify();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnBeforeOnDelete', '', false, false)]
@@ -475,6 +538,29 @@ codeunit 6103 "E-Document Subscribers"
         EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnDeleteOnBeforeArchiveSalesDocument', '', false, false)]
+    local procedure OnDeleteOnBeforeArchiveSalesDocumentSalesHeader(var SalesHeader: Record "Sales Header")
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImport: Codeunit "E-Doc. Import";
+        ConfirmDialogMgt: Codeunit "Confirm Management";
+    begin
+        if IsNullGuid(SalesHeader."E-Document Link") then
+            exit;
+
+        if not EDocument.GetBySystemId(SalesHeader."E-Document Link") then
+            exit;
+        if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(DeleteDocumentQst, EDocument."Entry No")) then
+            Error('');
+
+        TempEDocImportParameters."Step to Run / Desired Status" := TempEDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
+        TempEDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
@@ -523,6 +609,8 @@ codeunit 6103 "E-Document Subscribers"
 #pragma warning restore AL0432
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc Sample Purch. Inv File");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Header");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Line");
     end;
 
 
@@ -594,6 +682,105 @@ codeunit 6103 "E-Document Subscribers"
 
     #endregion Send To Customer
 
+    #region Send To Vendor
+
+    /// <summary>
+    /// This event is fired at the end of sending vendor records through a document sending profile
+    /// (print/email/disk). We subscribe to also create the e-document when the chosen profile uses
+    /// the Extended E-Document Service Flow - the vendor-side mirror of OnAfterSendEDocument above.
+    /// The profile from the event is used as-is (not re-resolved from the vendor) because the user
+    /// may have modified it in the Select Sending Options dialog.
+    /// </summary>
+    [EventSubscriber(ObjectType::Table, Database::"Document Sending Profile", OnAfterSendVendor, '', false, false)]
+    local procedure OnAfterSendVendorEDocument(ReportUsage: Integer; RecordVariant: Variant; DocNo: Code[20]; ToVendor: Code[20]; DocName: Text[150]; VendorNoFieldNo: Integer; DocumentNoFieldNo: Integer; DocumentSendingProfile: Record "Document Sending Profile")
+    begin
+        if DocumentSendingProfile."Electronic Document" <> Enum::"Doc. Sending Profile Elec.Doc."::"Extended E-Document Service Flow" then
+            exit;
+        if DocumentSendingProfile."Electronic Service Flow" = '' then
+            exit;
+
+        // The source record type alone is ambiguous (a Gen. Journal Line maps to "General Journal"
+        // elsewhere), so the document type is derived from the report selection usage instead.
+        case Enum::"Report Selection Usage".FromInteger(ReportUsage) of
+            Enum::"Report Selection Usage"::"V.Remittance":
+                CreateRemittanceAdviceFromJournalLines(RecordVariant, DocumentSendingProfile);
+            Enum::"Report Selection Usage"::"P.V.Remit.":
+                CreateRemittanceAdviceFromPostedPayments(RecordVariant, DocumentSendingProfile);
+        end;
+    end;
+
+    local procedure CreateRemittanceAdviceFromJournalLines(RecordVariant: Variant; DocumentSendingProfile: Record "Document Sending Profile")
+    var
+        GenJournalLine, AnchorGenJournalLine : Record "Gen. Journal Line";
+        TempProcessedGenJnlLine: Record "Gen. Journal Line" temporary;
+        EDocRemittanceAdviceMgt: Codeunit "E-Doc. Remittance Advice Mgt.";
+        EDocRemitAdviceExport: Codeunit "E-Doc. Remit. Advice Export";
+        RecRef: RecordRef;
+    begin
+        RecRef.GetTable(RecordVariant);
+        if RecRef.Number() <> Database::"Gen. Journal Line" then
+            exit;
+
+        // The selection can span multiple payments; create one e-document per payment group,
+        // anchored on the group's lowest vendor line.
+        if RecRef.FindSet() then
+            repeat
+                RecRef.SetTable(GenJournalLine);
+                if (GenJournalLine."Account Type" = GenJournalLine."Account Type"::Vendor) and (GenJournalLine."Account No." <> '') then
+                    if not PaymentGroupProcessed(TempProcessedGenJnlLine, GenJournalLine) then
+                        if EDocRemittanceAdviceMgt.FindGroupAnchor(GenJournalLine, AnchorGenJournalLine) then
+                            EDocRemitAdviceExport.ExportFromJournalLine(AnchorGenJournalLine, DocumentSendingProfile, false);
+            until RecRef.Next() = 0;
+    end;
+
+    local procedure PaymentGroupProcessed(var TempProcessedGenJnlLine: Record "Gen. Journal Line" temporary; GenJournalLine: Record "Gen. Journal Line"): Boolean
+    begin
+        TempProcessedGenJnlLine.Reset();
+        TempProcessedGenJnlLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        TempProcessedGenJnlLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        TempProcessedGenJnlLine.SetRange("Account No.", GenJournalLine."Account No.");
+        TempProcessedGenJnlLine.SetRange("Document No.", GenJournalLine."Document No.");
+        if not TempProcessedGenJnlLine.IsEmpty() then
+            exit(true);
+
+        TempProcessedGenJnlLine := GenJournalLine;
+        if TempProcessedGenJnlLine.Insert() then;
+        exit(false);
+    end;
+
+    local procedure CreateRemittanceAdviceFromPostedPayments(RecordVariant: Variant; DocumentSendingProfile: Record "Document Sending Profile")
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        EDocRemitAdviceExport: Codeunit "E-Doc. Remit. Advice Export";
+        RecRef: RecordRef;
+        AlreadyExists: Boolean;
+        NoOfCreated: Integer;
+        NoOfAlreadyExisting: Integer;
+    begin
+        RecRef.GetTable(RecordVariant);
+        if RecRef.Number() <> Database::"Vendor Ledger Entry" then
+            exit;
+
+        if RecRef.FindSet() then
+            repeat
+                RecRef.SetTable(VendorLedgerEntry);
+                if EDocRemitAdviceExport.ExportFromPostedPayment(VendorLedgerEntry, DocumentSendingProfile, false, AlreadyExists) then
+                    NoOfCreated += 1
+                else
+                    if AlreadyExists then
+                        NoOfAlreadyExisting += 1;
+            until RecRef.Next() = 0;
+
+        if not GuiAllowed() then
+            exit;
+        if NoOfCreated > 0 then
+            Message(RemittanceAdviceCreatedMsg, NoOfCreated);
+        if NoOfAlreadyExisting > 0 then
+            Message(RemittanceAdviceAlreadyExistsMsg, NoOfAlreadyExisting);
+    end;
+
+    #endregion Send To Vendor
+
     local procedure IsEDocumentLinkedToPurchaseDocument(var EDocument: Record "E-Document"; OpenRecord: Variant): Boolean
     var
         PurchaseHeader: Record "Purchase Header";
@@ -644,6 +831,7 @@ codeunit 6103 "E-Document Subscribers"
         EDocService: Record "E-Document Service";
         EDocumentLog: Codeunit "E-Document Log";
         EDocLogHelper: Codeunit "E-Document Log Helper";
+        EDocIntegrationManagement: Codeunit "E-Doc. Integration Management";
         PostedSourceDocumentHeader: RecordRef;
     begin
         PostedSourceDocumentHeader.GetTable(PostedRecord);
@@ -652,24 +840,45 @@ codeunit 6103 "E-Document Subscribers"
         EDocument."Document Type" := DocumentType;
         EDocument.Status := Enum::"E-Document Status"::Processed;
         EDocument.Modify(true);
-        
-        OnAfterUpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
-        
+
+        EDocIntegrationManagement.RunOnAfterUpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
+
         EDocService := EDocumentLog.GetLastServiceFromLog(EDocument);
         EDocLogHelper.InsertLog(EDocument, EDocService, Enum::"E-Document Service Status"::"Imported Document Created");
     end;
 
-    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile")
+    /// <summary>
+    /// Creates a new E-Document for the provided posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"): Boolean
     begin
-        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord), false);
+        exit(CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord), false));
     end;
 
-    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
+    /// <summary>
+    /// Creates a new E-Document of specified type for the provided posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"): Boolean
     begin
-        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType, false);
+        exit(CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType, false));
     end;
 
-    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"; AllowReExport: Boolean)
+    /// <summary>
+    /// Creates a new E-Document of specified type for the provided posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"; AllowReExport: Boolean): Boolean
     var
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
@@ -683,9 +892,9 @@ codeunit 6103 "E-Document Subscribers"
 
         PostedSourceDocumentHeader.GetTable(PostedRecord);
         if (DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow") then
-            exit;
+            exit(false);
 
-        EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType, AllowReExport);
+        exit(EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType, AllowReExport));
     end;
 
     local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
@@ -740,8 +949,30 @@ codeunit 6103 "E-Document Subscribers"
         Telemetry.LogMessage('0000PYF', DraftChangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Sales Document", 'OnAfterReleaseSalesDoc', '', false, false)]
+    local procedure OnAfterReleaseSalesDoc(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
+    var
+        EDocument: Record "E-Document";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        ResponseBlob: Codeunit "Temp Blob";
+        SalesHeaderRef: RecordRef;
+        IResponseProvider: Interface IEDocResponseProvider;
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        MessageType: Enum "E-Document Message Type";
     begin
+        if PreviewMode then
+            exit;
+        SalesHeaderRef.GetTable(SalesHeader);
+        EDocument.SetRange("Document Record ID", SalesHeaderRef.RecordId);
+        EDocument.SetRange(Direction, EDocument.Direction::Incoming);
+        if not EDocument.FindLast() then
+            exit;
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType = "E-Document Message Type"::Unknown then
+            exit;
+        IMessageBuilder := MessageType;
+        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
+        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Accepted, ResponseBlob);
     end;
 }

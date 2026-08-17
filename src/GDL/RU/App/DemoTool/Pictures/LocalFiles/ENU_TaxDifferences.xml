@@ -1,0 +1,1731 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<TaxDifferencesRegisters>
+	<TaxCalcSection>
+		<Code>DEFAULT</Code>
+		<Description>Tax Difference Accounting</Description>
+		<FormID>17321</FormID>
+		<Type>Standard</Type>
+		<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+		<Dimension1Code/>
+		<Dimension2Code/>
+		<Dimension3Code/>
+		<Dimension4Code/>
+		<StartingDate>01.01.09</StartingDate>
+		<EndingDate>31.01.09</EndingDate>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>ADVERT</No>
+			<Description>Advertising Expenses</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>ADVERT</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode/>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>ADVERT</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>44-2961</AccountNo>
+				<BalAccountNo/>
+				<RegisterType> </RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ADVERT</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Advertising Expenses (current month)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ADVERT</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>EXPENSES</LineCode>
+				<Description>Advertising Expenses YTD (Bookkeping)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ADVERT</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Link</ExpressionType>
+				<Expression>DEDUCT</Expression>
+				<LineCode/>
+				<Description>Advertising Expenses YTD (Tax. Acc.)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo>ADVNORM</LinkRegisterNo>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>CalcField</LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>ADVNORM</No>
+			<Description>Advertising Expenses Norm</Description>
+			<TableID>17314</TableID>
+			<FormID>0</FormID>
+			<Check>No</Check>
+			<Level>1</Level>
+			<RegisterID>ADVNORM</RegisterID>
+			<StoringMethod>Calculation</StoringMethod>
+			<TaxDiffCode>EX-04</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ADVNORM</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Norm</ExpressionType>
+				<Expression>REVENUE</Expression>
+				<LineCode>REVENUE</LineCode>
+				<Description>Revenue YTD</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ADVNORM</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Norm</ExpressionType>
+				<Expression>ADVNORM</Expression>
+				<LineCode>ADVNORM</LineCode>
+				<Description>Advertising Expenses Norm</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ADVNORM</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>REVENUE * ADVNORM</Expression>
+				<LineCode>LIMIT</LineCode>
+				<Description>Limit of Advertising Expenses YTD</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ADVNORM</Code>
+				<LineNo>40000</LineNo>
+				<ExpressionType>Link</ExpressionType>
+				<Expression>ExpenseS</Expression>
+				<LineCode>EXPENSES</LineCode>
+				<Description>Advertising Expenses YTD</Description>
+				<Value>0</Value>
+				<LinkRegisterNo>ADVERT</LinkRegisterNo>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ADVNORM</Code>
+				<LineNo>50000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>ExpenseS ? LIMIT</Expression>
+				<LineCode>DEDUCT</LineCode>
+				<Description>Advertising Expenses YTD within Limit</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>AD_GAINS</No>
+			<Description>Different gains for currency (Accounting) and amount (TA) differences</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>AD_GAINS</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-09</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>AD_GAINS</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>60-1110|62-1110</AccountNo>
+				<BalAccountNo>91-1310|91-1311</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>CD</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>AD_GAINS</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo>99-5090</AccountNo>
+				<BalAccountNo>99-0550|99-0560</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>AD</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>AD_GAINS</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>CD</LineCode>
+				<Description>Положительные курсовые разницы - БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode>CD</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>AD_GAINS</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression/>
+				<LineCode>AD</LineCode>
+				<Description>Положительные курсовые разницы НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode>AD</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>AD_LOSSES</No>
+			<Description>Different losses for currency (Accounting) and amount (TA) differences</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>AD_LOSSES</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-10</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>AD_LOSSES</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>91-2310|91-2311</AccountNo>
+				<BalAccountNo>60-1110|62-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>CD</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>AD_LOSSES</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo>99-0550|99-0560</AccountNo>
+				<BalAccountNo>99-5090</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>AD</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>AD_LOSSES</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>CD</LineCode>
+				<Description>Положительные курсовые разницы - БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode>CD</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>AD_LOSSES</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression/>
+				<LineCode>AD</LineCode>
+				<Description>Положительные курсовые разницы НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode>AD</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>CHARGES</No>
+			<Description>Different Charges  in Accounting and TA with currency prepayment  adjustment</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>CHARGES</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-14</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CHARGES</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>20-0000..20-9999</AccountNo>
+				<BalAccountNo>60-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L20</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CHARGES</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo>26-0000..26-9999</AccountNo>
+				<BalAccountNo>60-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L26</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CHARGES</RegisterNo>
+				<LineNo>30000</LineNo>
+				<AccountNo>44-0000..44-9999</AccountNo>
+				<BalAccountNo>60-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L44</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CHARGES</RegisterNo>
+				<LineNo>40000</LineNo>
+				<AccountNo>91-2000..91-2999</AccountNo>
+				<BalAccountNo>60-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L91</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L20</LineCode>
+				<Description>Расходы по 20 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L20</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L20D</LineCode>
+				<Description>Расходы по 20 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L20</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L26</LineCode>
+				<Description>Расходы по 26 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L26</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>40000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L26D</LineCode>
+				<Description>Расходы по 26 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L26</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>50000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L44</LineCode>
+				<Description>Расходы по 44 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L44</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>60000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L44D</LineCode>
+				<Description>Расходы по 44 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L44</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>70000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L91</LineCode>
+				<Description>Расходы по 91 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L91</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>80000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L91D</LineCode>
+				<Description>Расходы по 91 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L91</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>90000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>L20+L26+L44+L91</Expression>
+				<LineCode>A</LineCode>
+				<Description>Расходы при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>CalcField</LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>100000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>L20D+L26D+L44D+L91D</Expression>
+				<LineCode>D</LineCode>
+				<Description>Разница при покупке в вал. между БУ и НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>CalcField</LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CHARGES</Code>
+				<LineNo>110000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>A-D</Expression>
+				<LineCode>TA</LineCode>
+				<Description>Расходы при покупке в вал. в НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>CalcField</LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcDimFilter>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CHARGES</RegisterNo>
+				<Define>Template</Define>
+				<LineNo>20000</LineNo>
+				<DimensionCode>TAXOBJ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Ignore</IfNoValue>
+			</TaxCalcDimFilter>
+			<TaxCalcDimFilter>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CHARGES</RegisterNo>
+				<Define>Template</Define>
+				<LineNo>40000</LineNo>
+				<DimensionCode>TAXOBJ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Ignore</IfNoValue>
+			</TaxCalcDimFilter>
+			<TaxCalcDimFilter>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CHARGES</RegisterNo>
+				<Define>Template</Define>
+				<LineNo>60000</LineNo>
+				<DimensionCode>TAXOBJ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Ignore</IfNoValue>
+			</TaxCalcDimFilter>
+			<TaxCalcDimFilter>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CHARGES</RegisterNo>
+				<Define>Template</Define>
+				<LineNo>80000</LineNo>
+				<DimensionCode>TAXOBJ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Ignore</IfNoValue>
+			</TaxCalcDimFilter>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>CTA</No>
+			<Description>Other Differences, CTA should be calculated</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>CTA</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-15</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CTA</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo/>
+				<BalAccountNo>91-1390</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L001</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CTA</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Доходы, не учитываемые в налогооблагаемой базе</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>CTL</No>
+			<Description>Other Differences, CTL should be calculated</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>CTL</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-16</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>CTL</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>26-9995|44-2995|91-2104|91-2390</AccountNo>
+				<BalAccountNo/>
+				<RegisterType> </RegisterType>
+				<LineCode>L001</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>CTL</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Расходы, не учитываемые в налогооблагаемой базе</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>ITEMCOST</No>
+			<Description>Inventory Costing</Description>
+			<TableID>17317</TableID>
+			<FormID>17326</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>ITEMCOST</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-08</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>ITEMCOST</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>41-0000..41-9999|10-0000..10-9999</AccountNo>
+				<BalAccountNo/>
+				<RegisterType>Item</RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>ITEMCOST</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo/>
+				<BalAccountNo>41-0000..41-9999|10-0000..10-9999</BalAccountNo>
+				<RegisterType>Item</RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Header</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>This calculation only includes items entries</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>4</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Header</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>there cost posted to G/L is different from</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>4</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Header</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>cost posted for Tax Accounting.</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>4</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>40000</LineNo>
+				<ExpressionType>Header</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Inventory cost change in current month (Bookkeeping)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>50000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Receipt</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>60</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>1</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>60000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Shipment</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>61</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>1</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>70000</LineNo>
+				<ExpressionType>Header</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Inventory cost change in current month (Tax Acc.)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>80000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Receipt</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>54</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>1</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>90000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Shipment</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>56</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>1</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>100000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Inventory Cost as of End of current month (Bookkeeping)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>58</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>ITEMCOST</Code>
+				<LineNo>110000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Inventory Cost as of End of current month (Tax Acc.)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>52</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>PD_GAINS</No>
+			<Description>Prepayment diferences gains for currency prepayment  adjustment</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>PD_GAINS</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-11</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>PD_GAINS</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>99-5090</AccountNo>
+				<BalAccountNo>:PR_G_CU</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>CD_CU</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>PD_GAINS</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo>99-5090</AccountNo>
+				<BalAccountNo>:PR_G_V</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>CD_V</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>PD_GAINS</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>CD_CU</LineCode>
+				<Description>Положительные курсовые разницы при переоценке авансов полученных в НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode>CD_CU</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>PD_GAINS</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>CD_V</LineCode>
+				<Description>Положительные курсовые разницы при переоценке авансов выданных в НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode>CD_V</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>PD_GAINS</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>CD_CU+CD_V</Expression>
+				<LineCode/>
+				<Description>ИТОГО Положительные курсовые разницы при переоценке авансов в НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>CalcField</LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>PD_LOSSES</No>
+			<Description>Prepayment diferences losses for currency prepayment  adjustment</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>PD_LOSSES</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-12</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>PD_LOSSES</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>:PR_L_CU</AccountNo>
+				<BalAccountNo>99-5090</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>CD_CU</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>PD_LOSSES</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo>:PR_L_V</AccountNo>
+				<BalAccountNo>99-5090</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>CD_V</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>PD_LOSSES</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>CD_CU</LineCode>
+				<Description>Отрицательные курсовые разницы при переоценке авансов полученных в НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode>CD_CU</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>PD_LOSSES</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>CD_V</LineCode>
+				<Description>Отрицательные курсовые разницы при переоценке авансов выданных в НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode>CD_V</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>PD_LOSSES</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>CD_CU+CD_V</Expression>
+				<LineCode/>
+				<Description>ИТОГО Отрицательные курсовые разницы при переоценке авансов в НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>CalcField</LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>REPNORM</No>
+			<Description>Representative Expenses Norm</Description>
+			<TableID>17314</TableID>
+			<FormID>0</FormID>
+			<Check>No</Check>
+			<Level>1</Level>
+			<RegisterID>REPNORM</RegisterID>
+			<StoringMethod>Calculation</StoringMethod>
+			<TaxDiffCode/>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REPNORM</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Norm</ExpressionType>
+				<Expression>SALARY</Expression>
+				<LineCode>SALARY</LineCode>
+				<Description>Total Salary YTD</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REPNORM</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Norm</ExpressionType>
+				<Expression>REPNORM</Expression>
+				<LineCode>REPNORM</LineCode>
+				<Description>Representative Expenses Norm</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REPNORM</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>SALARY * REPNORM</Expression>
+				<LineCode>LIMIT</LineCode>
+				<Description>Limit of Representative Expenses YTD</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REPNORM</Code>
+				<LineNo>40000</LineNo>
+				<ExpressionType>Link</ExpressionType>
+				<Expression>ExpenseS</Expression>
+				<LineCode>EXPENSES</LineCode>
+				<Description>Representative Expenses YTD</Description>
+				<Value>0</Value>
+				<LinkRegisterNo>REPREXP</LinkRegisterNo>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REPNORM</Code>
+				<LineNo>50000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>LIMIT ? ExpenseS</Expression>
+				<LineCode>DEDUCT</LineCode>
+				<Description>Representative Expenses YTD within Limit</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>REPREXP</No>
+			<Description>Representative Expenses</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>REPREXP</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-07</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>REPREXP</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>20-2930|26-9300|44-2930</AccountNo>
+				<BalAccountNo/>
+				<RegisterType> </RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REPREXP</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Representative Expenses in current month (Bookkeeping)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REPREXP</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>EXPENSES</LineCode>
+				<Description>Representative Expenses YTD (Bookkeeping)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REPREXP</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Link</ExpressionType>
+				<Expression>DEDUCT</Expression>
+				<LineCode/>
+				<Description>Representative Expenses YTD (Tax Acc.)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo>REPNORM</LinkRegisterNo>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>CalcField</LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>DEFAULT</SectionCode>
+			<No>REVENUE</No>
+			<Description>Different Revenue in Accounting and TA with currency prepayment  adjustment</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Yes</Check>
+			<Level>0</Level>
+			<RegisterID>REVENUE</RegisterID>
+			<StoringMethod>Build Entry</StoringMethod>
+			<TaxDiffCode>EX-13</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>REVENUE</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>62-0000..62-9999</AccountNo>
+				<BalAccountNo>90-1000..90-1199</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REVENUE</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L001</LineCode>
+				<Description>Выручка от реализации - БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Yes</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REVENUE</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>SumField</ExpressionType>
+				<Expression/>
+				<LineCode>L002</LineCode>
+				<Description>Разница в выручке от реализации м/у БУ и НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>No</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>DEFAULT</SectionCode>
+				<Code>REVENUE</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Total</ExpressionType>
+				<Expression>L001-L002</Expression>
+				<LineCode>LOO3</LineCode>
+				<Description>Выручка от реализации - НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>CalcField</LineType>
+				<TaxDiffAmountBase>No</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Yes</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>No</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>No</Disposed>
+			</TaxCalcLine>
+			<TaxCalcDimFilter>
+				<SectionCode>DEFAULT</SectionCode>
+				<RegisterNo>REVENUE</RegisterNo>
+				<Define>Template</Define>
+				<LineNo>20000</LineNo>
+				<DimensionCode>TAXOBJ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Ignore</IfNoValue>
+			</TaxCalcDimFilter>
+		</TaxCalcHeader>
+	</TaxCalcSection>
+</TaxDifferencesRegisters>

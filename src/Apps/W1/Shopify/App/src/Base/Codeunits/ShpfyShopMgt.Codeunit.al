@@ -5,13 +5,18 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Apps;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Feedback;
 
 codeunit 30211 "Shpfy Shop Mgt."
 {
     var
-        DontShowThisAgainMsg: Label 'Don''t show this again.';
+        BelgianCountryCodeTok: Label 'BE', Locked = true;
+        BelgianLocalizationAppIdTok: Label 'c2d93c78-f87a-4b0e-b71f-570f578d78de', Locked = true;
+        InstallActionLbl: Label 'Install';
+        DontShowThisAgainLbl: Label 'Don''t show this again.';
         ExpirationNotificationMsg: Label 'The Shopify Admin API used by your current Shopify connector will go out of support on %1. Please upgrade your Business Central environment.', Comment = '%1 - expiry date';
         BlockedNotificationMsg: Label 'The Shopify Admin API used by your current Shopify connector is no longer supported. To continue using the Shopify connector, please upgrade your Business Central environment.';
         ExpirationNotificationNameTok: Label 'Notify user of Shopify connector going out of support.';
@@ -20,6 +25,9 @@ codeunit 30211 "Shpfy Shop Mgt."
         BlockedNotificationDescTok: Label 'Show a notification informing the user that Shopify connector is out of support.';
         NoItemNotificationNameTok: Label 'Notify user of Shopify connector has no items.';
         NoItemNotificationDescTok: Label 'Show a notification informing the user that Shopify connector has no items.';
+        BelgianLocalizationNotificationMsg: Label 'Belgian customers use the Enterprise No. as their tax registration identifier. Install the Shopify Connector BE extension to synchronize Belgian companies and customers.';
+        BelgianLocalizationNotificationNameTok: Label 'Notify user to install the Shopify Connector BE extension.';
+        BelgianLocalizationNotificationDescTok: Label 'Show a notification informing the user that the Shopify Connector BE extension is required for Belgian localizations.';
 
     internal procedure IsEnabled(): Boolean
     var
@@ -41,7 +49,7 @@ codeunit 30211 "Shpfy Shop Mgt."
             ExpirationNotification.Id := GetExpirationNotificationId();
             ExpirationNotification.Message := StrSubstNo(ExpirationNotificationMsg, Format(ExpiryDate));
             ExpirationNotification.Scope := NotificationScope::LocalScope;
-            ExpirationNotification.AddAction(DontShowThisAgainMsg, Codeunit::"Shpfy Shop Mgt.", 'DisableExpirationNotification');
+            ExpirationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableExpirationNotification');
             ExpirationNotification.Send();
         end;
     end;
@@ -55,7 +63,7 @@ codeunit 30211 "Shpfy Shop Mgt."
             BlockedNotification.Id := GetBlockedNotificationId();
             BlockedNotification.Message := BlockedNotificationMsg;
             BlockedNotification.Scope := NotificationScope::LocalScope;
-            BlockedNotification.AddAction(DontShowThisAgainMsg, Codeunit::"Shpfy Shop Mgt.", 'DisableBlockedNotification');
+            BlockedNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableBlockedNotification');
             BlockedNotification.Send();
         end;
     end;
@@ -107,5 +115,55 @@ codeunit 30211 "Shpfy Shop Mgt."
         if MyNotifications.WritePermission() then
             if not MyNotifications.Disable(GetNoItemNotificationId()) then
                 MyNotifications.InsertDefault(GetNoItemNotificationId(), NoItemNotificationNameTok, NoItemNotificationDescTok, false);
+    end;
+
+    internal procedure SendBelgianLocalizationNotification()
+    var
+        MyNotifications: Record "My Notifications";
+        EnvironmentInformation: Codeunit "Environment Information";
+        ExtensionManagement: Codeunit "Extension Management";
+        BelgianLocalizationNotification: Notification;
+    begin
+        if EnvironmentInformation.GetApplicationFamily() <> BelgianCountryCodeTok then
+            exit;
+
+        if ExtensionManagement.IsInstalledByAppId(GetBelgianLocalizationAppId()) then
+            exit;
+
+        if not MyNotifications.IsEnabled(GetBelgianLocalizationNotificationId()) then
+            exit;
+
+        BelgianLocalizationNotification.Id := GetBelgianLocalizationNotificationId();
+        BelgianLocalizationNotification.Message := BelgianLocalizationNotificationMsg;
+        BelgianLocalizationNotification.Scope := NotificationScope::LocalScope;
+        BelgianLocalizationNotification.AddAction(InstallActionLbl, Codeunit::"Shpfy Shop Mgt.", 'InstallBelgianLocalization');
+        BelgianLocalizationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableBelgianLocalizationNotification');
+        BelgianLocalizationNotification.Send();
+    end;
+
+    procedure InstallBelgianLocalization(Notification: Notification)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        ExtensionManagement.InstallMarketplaceExtension(GetBelgianLocalizationAppId());
+    end;
+
+    procedure DisableBelgianLocalizationNotification(Notification: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        if MyNotifications.WritePermission() then
+            if not MyNotifications.Disable(GetBelgianLocalizationNotificationId()) then
+                MyNotifications.InsertDefault(GetBelgianLocalizationNotificationId(), BelgianLocalizationNotificationNameTok, BelgianLocalizationNotificationDescTok, false);
+    end;
+
+    local procedure GetBelgianLocalizationNotificationId(): Guid
+    begin
+        exit('ca66423d-4607-4a81-8805-2f5e58e70373');
+    end;
+
+    local procedure GetBelgianLocalizationAppId(): Guid
+    begin
+        exit(BelgianLocalizationAppIdTok);
     end;
 }

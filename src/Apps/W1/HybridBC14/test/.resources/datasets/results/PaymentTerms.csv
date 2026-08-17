@@ -1,0 +1,3 @@
+Code,DueDateCalculation,DiscountDateCalculation,DiscountPct,Description,CalcPmtDiscOnCrMemos
+TESTPT1,30D,10D,2.5,Net 30 with 2.5% discount,true
+TESTPT2,14D,0D,5,Net 14,false

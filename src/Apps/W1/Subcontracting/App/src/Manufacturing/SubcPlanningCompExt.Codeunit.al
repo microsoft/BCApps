@@ -113,7 +113,7 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
                       PlanningComponent."Item No.",
                       PlanningComponent."Variant Code",
                       PlanningComponent."Location Code");
-                    PlanningComponent.Validate(PlanningComponent."Location Code", StockkeepingUnit."Components at Location");
+                    PlanningComponent.Validate("Location Code", StockkeepingUnit."Components at Location");
                 end;
     end;
 

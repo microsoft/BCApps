@@ -178,10 +178,9 @@ codeunit 99001511 "Subc. Synchronize Management"
                                 if not PurchaseLine2.IsEmpty() then
                                     PurchaseLine2.DeleteAll(true);
 
-                                TransferHeader.SetCurrentKey("Source ID", "Subc. Source Type", "Source Subtype");
+                                TransferHeader.SetCurrentKey("Source ID", "Subc. Source Type");
                                 TransferHeader.SetRange("Source ID", xPurchaseHeader."Buy-from Vendor No.");
                                 TransferHeader.SetRange("Subc. Source Type", "Transfer Source Type"::Subcontracting);
-                                TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
                                 TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
                                 if not TransferHeader.IsEmpty() then begin
                                     TransferHeader.FindFirst();

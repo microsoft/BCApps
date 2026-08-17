@@ -1,7 +1,9 @@
 namespace Microsoft.eServices.EDocument.OrderMatch;
 
 using Microsoft.eServices.EDocument;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.Purchases.Document;
 
 table 6164 "E-Doc. Order Match"
@@ -110,6 +112,7 @@ table 6164 "E-Doc. Order Match"
         ImportedLine.Get(Rec."E-Document Entry No.", Rec."E-Document Line No.");
     end;
 
+#if not CLEAN29
     procedure InsertMatch(var TempAIProposalBuffer: Record "E-Doc. PO Match Prop. Buffer" temporary; var TempEDocMatches: Record "E-Doc. Order Match" temporary)
     begin
         TempEDocMatches.Init();
@@ -125,6 +128,7 @@ table 6164 "E-Doc. Order Match"
         TempEDocMatches."PO Description" := TempAIProposalBuffer."PO Description";
         TempEDocMatches.Insert();
     end;
+#endif
 
 
 }

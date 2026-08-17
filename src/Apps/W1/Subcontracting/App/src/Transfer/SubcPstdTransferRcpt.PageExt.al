@@ -19,13 +19,6 @@ pageextension 99001528 "Subc. Pstd. Transfer Rcpt" extends "Posted Transfer Rece
                 ToolTip = 'Specifies for which source type the transfer order is related to.';
                 Visible = false;
             }
-            field(SourceSubtype; Rec."Source Subtype")
-            {
-                ApplicationArea = Subcontracting;
-                Editable = false;
-                ToolTip = 'Specifies which source subtype the transfer order is related to.';
-                Visible = false;
-            }
             field(SourceID; Rec."Source ID")
             {
                 ApplicationArea = Subcontracting;

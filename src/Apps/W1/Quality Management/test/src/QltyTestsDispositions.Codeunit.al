@@ -6961,6 +6961,75 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
+    procedure InternalPutaway_FailedQuantity_SourcedFromStorageBinNotReceive()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        Item: Record Item;
+        Bin: Record Bin;
+        BinType: Record "Bin Type";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        WhseInternalPutAwayLine: Record "Whse. Internal Put-away Line";
+        WarehouseSetup: Record "Warehouse Setup";
+        FailedQuantity: Decimal;
+        TotalPutAwayQuantity: Decimal;
+    begin
+        // [SCENARIO] Creating an internal put-away for the failed quantity sources the inventory from the storage bin the goods were put away to, never from the receive bin, and moves exactly the failed quantity
+
+        // [GIVEN] A directed warehouse location with warehouse number series configured
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        LibraryWarehouse.NoSeriesSetup(WarehouseSetup);
+        LibraryWarehouse.CreateFullWMSLocation(Location, 3);
+
+        // [GIVEN] Current user is set as warehouse employee for the location
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
+
+        // [GIVEN] An untracked item is purchased, received and put away at the directed location
+        LibraryInventory.CreateItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] A quality inspection is created for the put away warehouse entry (a storage bin, not the receive bin)
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.FindFirst();
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+
+        // [GIVEN] The inspection has 5 samples with 3 failures and 2 passes
+        FailedQuantity := 3;
+        QltyInspectionHeader."Sample Size" := 5;
+        QltyInspectionHeader."Fail Quantity" := FailedQuantity;
+        QltyInspectionHeader."Pass Quantity" := 2;
+        QltyInspectionHeader.Modify();
+
+        // [WHEN] Perform disposition with internal put-away for the failed quantity
+        LibraryAssert.IsTrue(
+            QltyInspectionUtility.PerformInternalPutAwayDisposition(QltyInspectionHeader, 0, '', '', true, Enum::"Qlty. Quantity Behavior"::"Failed Quantity"),
+            'Should have created an internal put-away for the failed quantity');
+
+        // [THEN] Every created put-away line is sourced from a non-receive bin
+        WhseInternalPutAwayLine.SetRange("Item No.", Item."No.");
+        LibraryAssert.IsTrue(WhseInternalPutAwayLine.FindSet(), 'Expected internal put-away lines to be created');
+        repeat
+            Bin.Get(WhseInternalPutAwayLine."Location Code", WhseInternalPutAwayLine."From Bin Code");
+            if BinType.Get(Bin."Bin Type Code") then
+                LibraryAssert.IsFalse(BinType.Receive, 'Internal put-away must not be sourced from a receive bin');
+            TotalPutAwayQuantity += WhseInternalPutAwayLine.Quantity;
+        until WhseInternalPutAwayLine.Next() = 0;
+
+        // [THEN] The total put-away quantity equals the failed quantity
+        LibraryAssert.AreEqual(FailedQuantity, TotalPutAwayQuantity, 'Total internal put-away quantity should equal the failed quantity');
+    end;
+
+    [Test]
     procedure WarehousePutaway_PerformDisposition()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";

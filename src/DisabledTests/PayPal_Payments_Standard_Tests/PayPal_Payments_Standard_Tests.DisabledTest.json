@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 139500,
+    "codeunitName": "MS - PayPal Standard Tests",
+    "method": "TestPaymentNotificationDoesNothingIfMissingInvoice"
+  },
+  {
+    "codeunitId": 139500,
+    "codeunitName": "MS - PayPal Standard Tests",
+    "method": "TestPaymentNotificationMarksInvoiceAsFullyPaid"
+  },
+  {
+    "codeunitId": 139500,
+    "codeunitName": "MS - PayPal Standard Tests",
+    "method": "TestPaymentNotificationMarksInvoiceAsOverPaid"
+  },
+  {
+    "codeunitId": 139500,
+    "codeunitName": "MS - PayPal Standard Tests",
+    "method": "TestPaymentNotificationMarksInvoiceAsPartlyPaid"
+  }
+]

@@ -23,9 +23,12 @@ codeunit 20404 "Qlty. Inspection - Create"
     EventSubscriberInstance = Manual;
     InherentPermissions = X;
     Permissions =
-        tabledata "Qlty. Inspection Header" = Rim,
-        tabledata "Qlty. Inspection Line" = Rim,
-        tabledata "Qlty. I. Result Condit. Conf." = RIM;
+        tabledata "Qlty. Management Setup" = r,
+        tabledata "Qlty. Inspection Gen. Rule" = r,
+        tabledata "Qlty. Inspection Header" = rim,
+        tabledata "Qlty. Inspection Line" = rim,
+        tabledata "Qlty. I. Result Condit. Conf." = rim,
+        tabledata "Qlty. Inspection Template Line" = r;
 
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -259,12 +262,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, DummyRec4Variant, TempDummyQltyInspectionGenRule));
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Qlty. Start Workflow", 'X', InherentPermissionsScope::Both)]
     local procedure InternalCreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
     var
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -367,9 +364,10 @@ codeunit 20404 "Qlty. Inspection - Create"
                not PreventShowingGeneratedInspectionEvenIfConfigured and
                (QltyInspectionHeader."No." <> '')
             then
-                if IsManualCreation then
-                    Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader)
-                else
+                if IsManualCreation then begin
+                    if not TryRunInspectionPage(Page::"Qlty. Inspection", QltyInspectionHeader) then
+                        QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
+                end else
                     if IsNewlyCreatedInspection then
                         QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
         end else begin
@@ -380,6 +378,21 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
 
         OnAfterCreateInspectionAfterDialog(TargetRecordRef, RecordRefToBufferTriggeringRecord, IsManualCreation, OptionalSpecificTemplate, TempQltyInspectionGenRule, QltyInspectionHeader, OptionalRec2Variant, OptionalRec3Variant);
+    end;
+
+    /// <summary>
+    /// Attempts to run the specified inspection page for the given inspection header.
+    /// Wrapped as a TryFunction because <c>Page.Run</c> will throw a permission error
+    /// when the current user is not permitted to read the underlying inspection records.
+    /// Callers should treat a false return as "page could not be shown" and fall back to a
+    /// non-interactive path such as a notification.
+    /// </summary>
+    /// <param name="PageId">The ID of the page to run (e.g. Page::"Qlty. Inspection" or Page::"Qlty. Inspection List").</param>
+    /// <param name="QltyInspectionHeader">The inspection header (or filtered set) to display on the page.</param>
+    [TryFunction]
+    local procedure TryRunInspectionPage(PageId: Integer; var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    begin
+        Page.Run(PageId, QltyInspectionHeader);
     end;
 
     /// <summary>
@@ -910,15 +923,17 @@ codeunit 20404 "Qlty. Inspection - Create"
             if ToDisplayQltyInspectionIds.Count() = 1 then begin
                 CreatedQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                 CreatedQltyInspectionHeader.FindLast();
-                if IsManualCreation then
-                    Page.Run(Page::"Qlty. Inspection", CreatedQltyInspectionHeader)
-                else
+                if IsManualCreation then begin
+                    if not TryRunInspectionPage(Page::"Qlty. Inspection", CreatedQltyInspectionHeader) then
+                        QltyNotificationMgmt.NotifyInspectionCreated(CreatedQltyInspectionHeader);
+                end else
                     QltyNotificationMgmt.NotifyInspectionCreated(CreatedQltyInspectionHeader);
             end else begin
                 CreatedQltyInspectionHeader.FindSet();
-                if IsManualCreation then
-                    Page.Run(Page::"Qlty. Inspection List", CreatedQltyInspectionHeader)
-                else
+                if IsManualCreation then begin
+                    if not TryRunInspectionPage(Page::"Qlty. Inspection List", CreatedQltyInspectionHeader) then
+                        QltyNotificationMgmt.NotifyMultipleInspectionsCreated(CreatedQltyInspectionHeader);
+                end else
                     QltyNotificationMgmt.NotifyMultipleInspectionsCreated(CreatedQltyInspectionHeader);
             end;
         end;

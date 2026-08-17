@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<DocumentTypeElements>
+  <DocumentType>
+    <Code>1</Code>
+    <DocumentName>Паспорт гражданина СССР</DocumentName>
+    <Note />
+  </DocumentType>
+  <DocumentType>
+    <Code>10</Code>
+    <DocumentName>Иностранный паспорт</DocumentName>
+    <Note>Паспорт иностранного гражданина</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>11</Code>
+    <DocumentName>Свидетельство о регистрации</DocumentName>
+    <Note>Для беженцев, не имеющих статуса беженца</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>12</Code>
+    <DocumentName>Вид на жительство</DocumentName>
+    <Note>Вид на жительство в Российской Федерации</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>13</Code>
+    <DocumentName>Удостоверение беженца в РФ</DocumentName>
+    <Note>Для беженцев</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>14</Code>
+    <DocumentName>Временное удостоверение личности</DocumentName>
+    <Note>Временное удостоверение личности гражданина Российской Федерации по форме 2П</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>2</Code>
+    <DocumentName>Загранпаспорт гражданина СССР</DocumentName>
+    <Note>Паспорт, удостоверяющий личность гражданина РФ за пределами РФ, образца до 1997 года</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>21</Code>
+    <DocumentName>Паспорт гражданина РФ</DocumentName>
+    <Note>Паспорт гражданина Российской Федерации, действующий на территории Российской Федерации с 1 октября 1997 года</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>22</Code>
+    <DocumentName>Загранпаспорт гражданина РФ</DocumentName>
+    <Note>Паспорт, удостоверяющий личность гражданина РФ за пределами РФ,образца 1997 года</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>23</Code>
+    <DocumentName>Свидетельство о рождении ин. гос.</DocumentName>
+    <Note>Для лиц, не достигших 16-летнего(с 01.10.97 - 14-летнего)возраста</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>26</Code>
+    <DocumentName>Паспорт моряка</DocumentName>
+    <Note>Паспорт моряка (удостоверение личности гражданина, работающего на судах заграничного плавания или на иностранных судах) образца 1997 г.</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>27</Code>
+    <DocumentName>Военный билет офицера запаса</DocumentName>
+    <Note>Военный билет офицера запаса</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>3</Code>
+    <DocumentName>Свидетельство о рождении</DocumentName>
+    <Note>Для лиц, не достигших 16-летнего(с 01.10.97 - 14-летнего)возраста</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>4</Code>
+    <DocumentName>Удостоверение личности офицера</DocumentName>
+    <Note>Для военнослужащих (офицеров,прапорщиков, мичманов)</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>5</Code>
+    <DocumentName>Справка об освобождении</DocumentName>
+    <Note>Для лиц, освободившихся из мест лишения cвободы</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>6</Code>
+    <DocumentName>Паспорт Минморфлота</DocumentName>
+    <Note>Паспорт моряка Минморфлота СССР (РФ), выданный до 1997 г.</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>7</Code>
+    <DocumentName>Военный билет солдата</DocumentName>
+    <Note>Военный билет для солдат, матросов, сержантов и старшин, проходящих военную службу по призыву или контракту</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>9</Code>
+    <DocumentName>Диппаспорт гражданина РФ</DocumentName>
+    <Note>Дипломатический паспорт для граждан РФ</Note>
+  </DocumentType>
+  <DocumentType>
+    <Code>91</Code>
+    <DocumentName>Иные документы</DocumentName>
+    <Note>Иные выдаваемые органами внутренних дел РФ документы, удостоверяющие личность гражданина</Note>
+  </DocumentType>
+</DocumentTypeElements>

@@ -23,13 +23,6 @@ tableextension 99001521 "Subc. Trans Rcpt Header Ext." extends "Transfer Receipt
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(99001535; "Source Subtype"; Option)
-        {
-            Caption = 'Source Subtype';
-            DataClassification = CustomerContent;
-            OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
-            OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
-        }
         field(99001536; "Source ID"; Code[20])
         {
             Caption = 'Source ID';
@@ -54,6 +47,6 @@ tableextension 99001521 "Subc. Trans Rcpt Header Ext." extends "Transfer Receipt
     keys
     {
         key(Key99001500; "Subcontr. Purch. Order No.") { }
-        key(Key99001501; "Source ID", "Subc. Source Type", "Source Subtype") { }
+        key(Key99001501; "Source ID", "Subc. Source Type") { }
     }
 }

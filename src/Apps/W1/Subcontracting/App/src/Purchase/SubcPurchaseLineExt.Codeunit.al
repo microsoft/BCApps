@@ -301,7 +301,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
             exit;
 #endif
         if PurchaseLine."Prod. Order No." <> '' then
-            Error(ChangeVariantNoNotAllowedErr, PurchaseLine.FieldCaption(PurchaseLine."Variant Code"), PurchaseLine."Prod. Order No.");
+            Error(ChangeVariantNoNotAllowedErr, PurchaseLine.FieldCaption("Variant Code"), PurchaseLine."Prod. Order No.");
     end;
 
     local procedure GetSubcontractingPrice(var PurchaseLine: Record "Purchase Line")

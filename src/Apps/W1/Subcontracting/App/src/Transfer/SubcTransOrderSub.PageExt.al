@@ -103,10 +103,10 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
             group(Production)
             {
                 Caption = 'Production';
-                Visible = HasSubcontractingContext;
                 action("Production Order")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Production Order';
                     Image = Production;
                     ToolTip = 'View the related production order.';
@@ -118,6 +118,7 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
                 action("Production Order Routing")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Production Order Routing';
                     Image = Route;
                     ToolTip = 'View the related production order routing.';
@@ -129,6 +130,7 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
                 action("Production Order Components")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Production Order Components';
                     Image = Components;
                     ToolTip = 'View the related production order components.';
@@ -140,6 +142,7 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
                 action("Purchase Order")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Subcontracting Purchase Order';
                     Image = Order;
                     ToolTip = 'View the related subcontracting purchase order.';
@@ -152,9 +155,26 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
         }
     }
     var
+        TransferHeader: Record "Transfer Header";
+        SubcTransferManagement: Codeunit "Subc. Transfer Management";
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
         HasSubcontractingContext: Boolean;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetSubcontractingVisibility();
+    end;
+
+    local procedure SetSubcontractingVisibility()
+    begin
+        if Rec."Document No." = TransferHeader."No." then
+            exit;
+        if TransferHeader.Get(Rec."Document No.") then
+            HasSubcontractingContext := SubcTransferManagement.IsSubcontractingTransferDocument(TransferHeader)
+        else
+            HasSubcontractingContext := false;
+    end;
 
     internal procedure SetIsSubcontracting(IsSubcontractingRelated: Boolean)
     begin

@@ -7,6 +7,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
@@ -83,16 +85,44 @@ report 99001501 "Subc. Create Transf. Order"
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
+        CannotCreateTransferErr: Label 'Cannot create a transfer from location %1 to location %2 because location %1 requires warehousing. Set up an in-transit transfer route between the locations, or set Direct Transfer Posting to Direct Transfer on the transfer route or in Inventory Setup.', Comment = '%1=Transfer-from location code, %2=Transfer-to location code';
+
+    local procedure CheckDirectTransferAllowed(var TransferRoute: Record "Transfer Route"; TransferRouteExists: Boolean; TransferFromLocation: Code[10]; TransferToLocation: Code[10])
+    var
+        Location: Record Location;
+    begin
+        if IsOneStepDirectTransfer(TransferRoute, TransferRouteExists) then
+            exit;
+
+        if Location.RequirePicking(TransferFromLocation) or Location.RequireShipment(TransferFromLocation) then
+            Error(CannotCreateTransferErr, TransferFromLocation, TransferToLocation);
+    end;
+
+    local procedure IsOneStepDirectTransfer(var TransferRoute: Record "Transfer Route"; TransferRouteExists: Boolean): Boolean
+    var
+        InventorySetup: Record "Inventory Setup";
+        DirectTransferPostingType: Enum "Direct Transfer Posting Type";
+    begin
+        if TransferRouteExists and TransferRoute."Direct Transfer" then
+            DirectTransferPostingType := TransferRoute."Direct Transfer Posting"
+        else begin
+            InventorySetup.SetLoadFields("Direct Transfer Posting Type");
+            InventorySetup.GetRecordOnce();
+            DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
+        end;
+        exit(DirectTransferPostingType = DirectTransferPostingType::"Direct Transfer");
+    end;
 
     local procedure InsertTransferHeader(TransferFromLocation: Code[10])
     var
         TransferRoute: Record "Transfer Route";
         TransferToLocationCode: Code[10];
+        TransferRouteExists: Boolean;
     begin
         GetTransferToLocationCode(TransferToLocationCode);
 
         TransferHeader.Reset();
-        TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
+        TransferHeader.SetRange("Subc. Source Type", TransferHeader."Subc. Source Type"::Subcontracting);
         TransferHeader.SetRange("Source ID", "Purchase Header"."Buy-from Vendor No.");
         TransferHeader.SetRange(Status, TransferHeader.Status::Open);
         TransferHeader.SetRange("Completely Shipped", false);
@@ -106,11 +136,15 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", TransferFromLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
-            if not TransferRoute.Get(TransferFromLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
+            TransferRouteExists := TransferRoute.Get(TransferFromLocation, TransferToLocationCode);
+            if not TransferRouteExists or (TransferRoute."In-Transit Code" = '') then begin
+                CheckDirectTransferAllowed(TransferRoute, TransferRouteExists, TransferFromLocation, TransferToLocationCode);
                 TransferHeader.Validate("Direct Transfer", true);
+            end else
+                if not IsOneStepDirectTransfer(TransferRoute, TransferRouteExists) then
+                    TransferHeader.Validate("In-Transit Code", TransferRoute."In-Transit Code");
 
             TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
-            TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
             TransferHeader."Subcontr. Purch. Order No." := "Purchase Header"."No.";
             TransferHeader."Subcontr. PO Line No." := "Purchase Line"."Line No.";
@@ -164,6 +198,7 @@ report 99001501 "Subc. Create Transf. Order"
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SubcProdOrdCompRes: Codeunit "Subc. Prod. Ord. Comp. Res.";
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         TransferFromLocationCode: Code[10];
         QtyPerUom: Decimal;
@@ -246,16 +281,14 @@ report 99001501 "Subc. Create Transf. Order"
                             Error(ExcessReservationsErr, TransferLine."Quantity (Base)", SubcTransferManagement.GetComponentReservedQtyBase(ProdOrderComponent), ProdOrderComponent."Item No.");
 
                         SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
-                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
+                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then
                             if Item."Order Tracking Policy" = Item."Order Tracking Policy"::None then
-                                ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code")
+                                SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code")
                             else begin
                                 BindSubscription(SubcProdOrdCompRes);
-                                ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code");
+                                SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code");
                                 UnbindSubscription(SubcProdOrdCompRes);
                             end;
-                            ProdOrderComponent.GetDefaultBin();
-                        end;
                         ProdOrderComponent.Modify();
 
                         SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
@@ -271,7 +304,7 @@ report 99001501 "Subc. Create Transf. Order"
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
     begin
         Commit(); // Used for following call of Transfer Pages
-        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder("Purchase Line", true, false);
+        SubcPurchFactboxMgmt.ShowTransferOrdersFromPurchaseOrder("Purchase Header", false);
     end;
 
     local procedure GetTransferFromLocationForComponent(ProdOrderComponent: Record "Prod. Order Component"): Code[10]
@@ -323,6 +356,7 @@ report 99001501 "Subc. Create Transf. Order"
         WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]];
         WIPSourceQtyDict: Dictionary of [Code[10], Decimal];
         WIPSourceLocationList: List of [Code[10]];
+        OpenWIPLineQtyBase: Decimal;
     begin
         if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
             exit(false);
@@ -333,7 +367,7 @@ report 99001501 "Subc. Create Transf. Order"
         if not ProdOrderRoutingLine."Transfer WIP Item" then
             exit(false);
 
-        if not CheckCreateWIPTransfer(PurchaseLine) then
+        if not CheckCreateWIPTransfer(PurchaseLine, OpenWIPLineQtyBase) then
             exit(false);
 
         PurchLineQtyBase := CalcPurchLineQtyBase(PurchaseLine, ProdOrderLine);
@@ -348,7 +382,7 @@ report 99001501 "Subc. Create Transf. Order"
 
         if WIPSourceLocationList.Count() = 1 then begin
             GetTransferToLocationCodeForPurchaseHeader("Purchase Header", Vendor, TransferToLocCode);
-            PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocCode);
+            PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocCode) + OpenWIPLineQtyBase;
         end;
 
         Item.SetLoadFields("Base Unit of Measure");
@@ -504,13 +538,12 @@ report 99001501 "Subc. Create Transf. Order"
             WIPQtyBase := WIPLedgerEntry."Quantity (Base)";
     end;
 
-    local procedure CheckCreateWIPTransfer(PurchaseLine: Record "Purchase Line"): Boolean
+    local procedure CheckCreateWIPTransfer(PurchaseLine: Record "Purchase Line"; var OpenWIPLineQtyBase: Decimal): Boolean
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseHeader: Record "Purchase Header";
         VendorFromPurchOrder: Record Vendor;
-        TransferLineToCheck: Record "Transfer Line";
         LocCode: Code[10];
         PurchLineQtyBase: Decimal;
         TransferToLocationCode: Code[10];
@@ -520,16 +553,7 @@ report 99001501 "Subc. Create Transf. Order"
         WIPSourceQtyDict: Dictionary of [Code[10], Decimal];
         WIPSourceLocationList: List of [Code[10]];
     begin
-        TransferLineToCheck.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
-        TransferLineToCheck.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
-        TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
-        TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
-        TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
-        TransferLineToCheck.SetRange("Derived From Line No.", 0);
-        TransferLineToCheck.SetRange("Transfer WIP Item", true);
-        if not TransferLineToCheck.IsEmpty() then
-            exit(false);
-
+        OpenWIPLineQtyBase := 0;
         if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
             exit(false);
 
@@ -559,16 +583,43 @@ report 99001501 "Subc. Create Transf. Order"
         GetTransferToLocationCodeForPurchaseHeader(PurchaseHeader, VendorFromPurchOrder, TransferToLocationCode);
 
         if TransferToLocationCode = '' then
-            exit(false);
+            VendorFromPurchOrder.TestField("Subc. Location Code");
 
         PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocationCode);
+        OpenWIPLineQtyBase := GetOpenWIPTransferLineQtyBase(PurchaseLine, ProdOrderLine);
 
-        if WIPPreviousOperationNoDict.Keys().Count() > 1 then
-            foreach LocCode in WIPPreviousOperationNoDict.Keys() do
-                if LocCode <> '' then
-                    exit(ExpectedQtyBase > 0);
+        exit((PostedWIPQtyBase + OpenWIPLineQtyBase) < ExpectedQtyBase);
+    end;
 
-        exit(PostedWIPQtyBase < ExpectedQtyBase);
+    local procedure GetOpenWIPTransferLineQtyBase(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"): Decimal
+    var
+        TransferLineToCheck: Record "Transfer Line";
+        Item: Record Item;
+        UOMManagement: Codeunit "Unit of Measure Management";
+        QtyPerUom: Decimal;
+    begin
+        TransferLineToCheck.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLineToCheck.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
+        TransferLineToCheck.SetRange("Derived From Line No.", 0);
+        TransferLineToCheck.SetRange("Transfer WIP Item", true);
+        TransferLineToCheck.SetRange("Subc. Return Order", false);
+        TransferLineToCheck.CalcSums(Quantity);
+        if TransferLineToCheck.Quantity = 0 then
+            exit(0);
+
+        // "Quantity (Base)" cannot be used here: "Qty. per Unit of Measure" is forced to 0
+        // for WIP transfer lines (see "Subc. Transfer Line".OnValidate("Transfer WIP Item")),
+        // which makes "Quantity (Base)" always evaluate to 0 for these lines. Convert the
+        // open (unposted) Quantity to the item's base UOM ourselves, using the same
+        // Purchase Line unit of measure that was used to convert it in the first place
+        // (see InsertWIPTransferLine / CalcPurchLineQtyBase).
+        Item.SetLoadFields("Base Unit of Measure");
+        Item.Get(ProdOrderLine."Item No.");
+        QtyPerUom := UOMManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
+        exit(UOMManagement.CalcBaseQty(TransferLineToCheck.Quantity, QtyPerUom));
     end;
 
     local procedure CalcPurchLineQtyBase(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"): Decimal

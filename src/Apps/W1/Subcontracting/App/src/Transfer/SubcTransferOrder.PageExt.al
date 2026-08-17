@@ -23,13 +23,6 @@ pageextension 99001526 "Subc. Transfer Order" extends "Transfer Order"
                 ToolTip = 'Specifies for which source type the transfer order is related to.';
                 Visible = false;
             }
-            field(SourceSubtype; Rec."Source Subtype")
-            {
-                ApplicationArea = Subcontracting;
-                Editable = false;
-                ToolTip = 'Specifies which source subtype the transfer order is related to.';
-                Visible = false;
-            }
             field(SourceID; Rec."Source ID")
             {
                 ApplicationArea = Subcontracting;

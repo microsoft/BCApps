@@ -85,6 +85,7 @@ permissionset 99001501 "Subcontract. - Objs"
         page "Subc. Routing Info Factbox" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
+        page "Subcontracting Setup Wizard" = X,
         page "Subc. WIP Adjustment" = X,
         page "Subc. WIP Ledger Entries" = X,
 
@@ -92,6 +93,5 @@ permissionset 99001501 "Subcontract. - Objs"
         report "Subc. Calculate Subcontracts" = X,
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
-        report "Subc. Detailed Calculation" = X,
         report "Subc. Dispatching List" = X;
 }

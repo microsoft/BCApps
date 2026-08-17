@@ -342,11 +342,23 @@ report 4403 "EXR Aged Acc Payable Excel"
     local procedure InsertAgingData(var Vendor: Record "Vendor")
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        EarliestPeriodStart: Date;
     begin
+        EarliestPeriodStart := PeriodStarts.Get(PeriodStarts.Count());
         VendorLedgerEntry.SetCurrentKey("Vendor No.", Open, Positive, "Due Date", "Currency Code");
         VendorLedgerEntry.SetRange("Vendor No.", Vendor."No.");
         VendorLedgerEntry.SetRange("Posting Date", 0D, EndingDate);
         VendorLedgerEntry.SetRange("Date Filter", 0D, EndingDate);
+
+        case TempEXRAgingReportBuffer."Aged By" of
+            TempEXRAgingReportBuffer."Aged By"::"Due Date":
+                VendorLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Posting Date":
+                VendorLedgerEntry.SetRange("Posting Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Document Date":
+                VendorLedgerEntry.SetRange("Document Date", EarliestPeriodStart, EndingDate);
+        end;
+
         VendorLedgerEntry.SetAutoCalcFields("Remaining Amt. (LCY)", "Remaining Amount", "Original Amount", "Original Amt. (LCY)");
         VendorLedgerEntry.SetFilter("Remaining Amt. (LCY)", '<>0');
         if VendorLedgerEntry.FindSet() then

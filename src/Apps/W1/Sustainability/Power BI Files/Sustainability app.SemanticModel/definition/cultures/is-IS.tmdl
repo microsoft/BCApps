@@ -1,0 +1,721 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table 'Sustainability Account Category'
+				caption: Fjárhagsreikningsflokkur
+				column 'Sustainability Account Category Description'
+					caption: Lýsing fjárhagsreikningsflokka
+				column 'Sustainability Account Category Code'
+					caption: Flokkakóði sjálfbærnireiknings
+				column 'Sustainability Account Category  Emission Scope'
+					caption: Losunarsvið fyrir flokk sjálfbærnireiknings
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+				column id
+					caption: kenni
+			table Date
+				caption: Dagsetning
+				column 'Week Day'
+					caption: Vika Dagur
+				column 'Day Type'
+					caption: Dagsgerð
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar Month Year'
+					caption: Dagatal Mánuður Ár
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar Week Year'
+					caption: Dagatal Vika Ár
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal Staða samsvarandi viku
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal Staða samsvarandi mánaðar
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal Staða samsvarandi ársfjórðungs
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal Staða samsvarandi árs
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphaf mánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal Upphaf ársfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphaf árs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal Dagar mánaðar
+				column 'Calendar QuarterDays'
+					caption: Dagatal Dagar ársfjórðungs
+				column 'Calendar YearDays'
+					caption: Dagatal Dagar árs
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal Númer mánaðardags
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal Númer dags innan ársfjórðungs
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal Númer dags innan árs
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal Dagsetning fyrri viku
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal Dagsetning fyrri mánaðar
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal Dagsetning fyrri ársfjórðungs
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal Dagsetning fyrra árs
+				column 'Fiscal Year'
+					caption: Fjárhagur Ár
+				column 'Fiscal Quarter'
+					caption: Fjórðungur Ársfjórðungur
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagur Ársfjórðungur og ár
+				column 'Fiscal Month'
+					caption: Fjárhagur Mánuður
+				column 'Fiscal Month Year'
+					caption: Fjárhagur Mánuður og ár
+				column 'Fiscal Week'
+					caption: Vika fjárhagsárs
+				column 'Fiscal Week Year'
+					caption: Fjárhagur Vika ár
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur Staða samsvarandi viku
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur Staða samsvarandi mánaðar
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur Staða samsvarandi ársfjórðungs
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur Staða samsvarandi árs
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphaf mánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur Upphaf ársfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphaf árs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur Dagar mánaðar
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur Dagar ársfjórðungs
+				column 'Fiscal YearDays'
+					caption: Fjárhagur Dagar árs
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur Númer mánaðardags
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur Númer dags innan ársfjórðungs
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur Númer dags innan árs
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur Dagsetning fyrri viku
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur Dagsetning fyrri mánaðar
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur Dagsetning fyrri ársfjórðungs
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur Dagsetning fyrra árs
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika Upphaf viku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika Staða samsvarandi viku
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika Staða samsvarandi mánaðar
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika Staða samsvarandi ársfjórðungs
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika Staða samsvarandi árs
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphaf mánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika Upphaf ársfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphaf árs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika Dagar mánaðar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika Dagar ársfjórðungs
+				column 'FW YearDays'
+					caption: Fjárhagsvika Dagar árs
+				column 'FW DayOfMonthNumber'
+					caption: Fjárhagsvika Númer mánaðardags
+				column 'FW DayOfQuarterNumber'
+					caption: Fjárhagsvika Númer dags innan ársfjórðungs
+				column 'FW DayOfYearNumber'
+					caption: Fjárhagsvika Númer dags innan árs
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika Dagsetning fyrri viku
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika Dagsetning fyrri mánaðar
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika Dagsetning fyrri ársfjórðungs
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika Dagsetning fyrra árs
+				column 'Relative Day'
+					caption: Samsvarandi dagur
+				column Sequential365DayNumber
+					caption: 365 daga raðnúmer
+				measure 'No. of Days'
+					caption: Fjöldi daga
+				measure 'Working Days'
+					caption: Vinnudagar
+				measure Ranged
+					caption: Bil
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fjárhagur Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Quarter Year'
+						caption: Fjárhagur Ársfjórðungur og ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður og ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagur Vika ár
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Dagatal Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Quarter Year'
+						caption: Dagatal Ársfjórðungur Ár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+					level 'Calendar Week Year'
+						caption: Dagatal Vika Ár
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'Fiscal Year-Month'
+					caption: Fjárhagur Ár-Mánuður
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður og ár
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fjárhagur Ár-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður og ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagur Vika ár
+				hierarchy 'Calendar Year-Month'
+					caption: Dagatal Ár-Mánuður
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Dagatal Ár-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+					level 'Calendar Week Year'
+						caption: Dagatal Vika Ár
+				hierarchy 'FW Year-Month-Week'
+					caption: Fjárhagsvika Ár-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Week'
+					caption: Fjárhagsvika Ár-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Skýrslutitill notanda
+				measure 'My Button Caption'
+					caption: Texti hnapps notanda
+				measure 'My Visual Title'
+					caption: Sjónrænn titill notanda
+				measure 'Inactive Employees'
+					caption: Óvirkir starfsmenn
+				measure 'Terminated Employees'
+					caption: Starfsmenn sem hafa hætt störfum
+				measure 'Employees in Unions'
+					caption: Starfsmenn í stéttarfélögum
+				measure 'Social Analysis'
+					caption: Félagsgreining
+				measure 'Gender Distribution'
+					caption: Kynjadreifing
+				measure 'Age Distribution'
+					caption: Aldursdreifing
+				measure 'Employees Qualifications'
+					caption: Menntun og hæfi starfsmanna
+				measure 'Realized Emissions vs Target'
+					caption: Raunlosun samanborið við markmið
+				measure 'CO2e Emissions by Scope'
+					caption: Losun CO2e eftir umfangi
+				measure 'Gas Emissions by Category'
+					caption: Losun lofttegunda eftir flokki
+				measure 'Realized Emissions vs Baseline'
+					caption: Raunlosun samanborið við grunngildi
+				measure 'CO2e Emissions vs Baseline'
+					caption: Losun CO2e miðað við grunnlínu
+				measure 'CO2e Emissions by Account'
+					caption: Losun CO2e eftir reikningi
+				measure 'Water and Waste Analysis'
+					caption: Greining á vatni og úrgangi
+				measure 'Water by Facility Location'
+					caption: Vatn eftir staðsetningu starfsstöðvar
+				measure 'Water by Facility Capacity'
+					caption: Vatn eftir afkastagetu starfastöðvar
+				measure 'Water and Waste by Type'
+					caption: Vatn og úrgangur eftir gerð
+				measure 'Water and Waste Intensity by Type'
+					caption: Vatns- og úrgangsmagn eftir gerð
+				measure 'Water and Waste Intensity by Facility'
+					caption: Vatns- og úrgangsmagn eftir starfsstöð
+				measure 'Emissions by Category and Scope'
+					caption: Losun eftir flokkum og umfangi
+				measure 'Emissions by Category'
+					caption: Losun eftir flokki
+				measure 'Emissions by Scope'
+					caption: Losun eftir umfangi
+				measure 'CO2e Analysis'
+					caption: Greining CO2e
+				measure 'CO2e Emissions by Category'
+					caption: Losun CO2e eftir flokki
+				measure 'Carbon Credit by Month'
+					caption: Kolefnisheimild eftir mánuði
+				measure 'CO2e Equivalent Emission by Month and Revenue'
+					caption: Jafngild losun CO2e eftir mánuði og tekjum
+				measure 'Employee Entries Drillthrough'
+					caption: Köfun í færslur starfsmanns
+				measure 'Employee Ledger Entries'
+					caption: Fjárhagsfærslur starfsmanns
+				measure 'Sustainability Ledger Entries'
+					caption: Fjárhagsfærslur fyrir sjálfbærni
+				measure 'Sustainability Ledger Entries Drillthrough'
+					caption: Köfun í fjárhagsfærslur fyrir sjálfbærni
+				measure 'Employee Ledger Entries Drillthrough'
+					caption: Köfun í fjárhagsfærslur starfsmanns
+				measure 'Sustainability Overview'
+					caption: Yfirlit yfir sjálfbærni
+				measure 'Sustainability Analytics'
+					caption: Sjálfbærnigreining
+				measure 'CO2e Emissions by Month'
+					caption: Losun CO2e eftir mánuði
+				measure 'Scopes 1 and 2 Analysis by Categories Per Year'
+					caption: Umfang 1 og 2 Greining eftir flokkum eftir ári
+				measure 'CO2e Emissions by Department'
+					caption: Losun CO2e eftir deild
+				measure 'Journey to Net-Zero Carbon'
+					caption: Ferð til nettólosunar kolefnis
+				measure 'CO2e Emissions by Business Group'
+					caption: Losun CO2e eftir fyrirtækjahópi
+				measure 'Renewable Energy Usage'
+					caption: Notkun endurnýjanlegrar orku
+				measure 'CO2e Emissions Over Time'
+					caption: Losun CO2e yfir tíma
+				measure 'CO2e Smart Review'
+					caption: Snjallúttekt CO2e
+				measure 'CO2e Emissions by Global Dimension One'
+					caption: Losun CO2e frá altækri vídd eitt
+				measure 'CO2e Emissions by Global Dimension Two'
+					caption: Losun CO2e frá altækri vídd tvö
+				measure 'CO2e Equivalent Emissions by Month'
+					caption: Jafngild losun CO2e eftir mánuði
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Released Employees'
+					caption: Losaðir starfsmenn
+				measure 'CO2e Decomposition Tree'
+					caption: Niðurbrotstré CO2e
+				measure 'CO2e Key Influences'
+					caption: Helstu áhrif CO2e
+				measure 'Water and Waste Yearly and Daily Change'
+					caption: Árlegar og daglegar breytingar á vatni og úrgangi
+			table COMPANY
+				caption: FYRIRTÆKI
+				measure 'Company Label'
+					caption: Merki fyrirtækis
+			table 'Sustainability Ledger Entries'
+				caption: Fjárhagsfærslur fyrir sjálfbærni
+				column 'Entry No.'
+					caption: Nr. færslu
+				column Description
+					caption: Lýsing
+				column 'Wat. Intensity'
+					caption: Vatnsmagn
+				column 'Water Type'
+					caption: Tegund vatns
+				column 'Wate/Waste Intensity Type'
+					caption: Gerð vatnsmagns/úrgangsmagns
+				column 'Document Type'
+					caption: Gerð skjals
+				measure 'CO2 Emissions'
+					caption: CO2 losun
+				measure 'CH4 Emissions'
+					caption: CH4 losun
+				measure 'CO2 Emissions Balance'
+					caption: Losunarjöfnuður CO2
+				measure 'CO2 Emissions Balance at Date'
+					caption: Losunarstaða CO2 við dagsetningu
+				measure 'N2O Emissions'
+					caption: N2O losun
+				measure 'CO2e Emissions'
+					caption: Losun CO2e
+				measure 'CH4 Emissions Balance at Date'
+					caption: Losunarstaða CH4 við dagsetningu
+				measure 'CH4 Emissions Balance'
+					caption: Losunarjöfnuður CH4
+				measure 'Water Intensity'
+					caption: Vatnsmagn
+				measure 'Waste Intensity'
+					caption: Úrgangsmagn
+				measure 'Discharged Into Water'
+					caption: Losun í vatn
+				measure 'CO2e Emissions Balance'
+					caption: Losunarstaða CO2e
+				measure 'CO2e Emissions Balance at Date'
+					caption: Staða á dagsetningu losunar CO2e
+				measure 'Discharged Into Water Balance at Date'
+					caption: Losað í vatnsstöðu á degi
+				measure 'Discharged Into Water Balance'
+					caption: Staða losunar í vatn
+				measure 'N2O Emissions Balance'
+					caption: Losunarjöfnuður N2O
+				measure 'N2O Emissions Balance at Date'
+					caption: Losunarstaða N2O við dagsetningu
+				measure 'Waste Intensity Balance at Date'
+					caption: Staða til dags. vatnsmagns
+				measure 'Waste Intensity Balance'
+					caption: Staða úrgangsmagns
+				measure 'Water Intensity Balance'
+					caption: Staða vatnsmagns
+				measure 'Water Intensity Balance at Date'
+					caption: Staða vatnsmagns til dags
+				measure 'CO2 Baseline'
+					caption: Grunngildi CO2
+				measure 'CH4 Baseline'
+					caption: Grunngildi CH4
+				measure 'CH4 vs Baseline (%)'
+					caption: CH4 miðað við upphafsgildi (%)
+				measure 'N2O Baseline'
+					caption: N2O grunnlína
+				measure 'N2O vs Baseline (%)'
+					caption: N2O miðað við grunnlínu (%)
+				measure 'CO2 vs Baseline (%)'
+					caption: CO2 miðað við upphafsgildi (%)
+				measure 'Water Baseline'
+					caption: Grunnlína vatns
+				measure 'Waste Baseline'
+					caption: Grunnlína úrgangs
+				measure 'Water vs Baseline (%)'
+					caption: Vatn samanborið við grunnlínu (%)
+				measure 'Waste vs Baseline (%)'
+					caption: Úrgangur samaborið við upphafsgildi (%)
+				measure 'CO2e Baseline'
+					caption: Grunngildi CO2e
+				measure 'CO2e vs Baseline (%)'
+					caption: CO2e miðað við upphafsgildi (%)
+				measure 'Purchased Carbon Credits'
+					caption: Keyptar kolefnisheimildir
+				measure 'Discharged Into Water Baseline'
+					caption: Grunnlína vatnslosunar
+				measure 'Discharged Into Water vs Baseline (%)'
+					caption: Vatnslosun sbr. við grunnlínu (%)
+				measure 'CO2e Emissions (Excl Credits)'
+					caption: Losun CO2e (að undanskildum inneignum)
+				measure 'Water Intensity PY'
+					caption: Vatnsmagn fyrra ár
+				measure 'Water Intensity YOY'
+					caption: Breyting á vanti samanburður milli ára
+				measure 'Waste Intensity PY'
+					caption: Úrgangur fyrra ár
+				measure 'Waste Intensity YOY'
+					caption: Breyting á úrgangi samanburður milli ára
+				measure 'Discharged Into Water PY'
+					caption: Losun í vatn fyrra ár
+				measure 'Discharged Into Water YOY'
+					caption: Losun í vatn samanburður milli ára
+				measure 'Discharged Into Water PD'
+					caption: Losun í vatn FK
+				measure 'Waste Intensity PD'
+					caption: Úrgangur FK
+				measure 'Water Intensity PD'
+					caption: Vatnsmagn FK
+				measure 'Water Intensity DOD'
+					caption: Vatnsbreyting milli daga
+				measure 'Waste Intensity DOD'
+					caption: Úrgangsbreyting milli daga
+				measure 'Discharged Into Water DOD'
+					caption: Losun í vatn milli daga
+				measure 'Base Link'
+					caption: Grunntengill
+				measure 'Sustainability Ledger Entries Link'
+					caption: Fjárhagsfærslutengill fyrir sjálfbærni
+				measure 'Months in Context'
+					caption: Mánuðir í samhengi
+			table 'Sustainability Accounts'
+				caption: Sjálfbærnireikningar
+				column 'Sustainability Account No.'
+					caption: Nr. sjálfbærnireiknings
+				column 'Sustainability Account Name'
+					caption: Heiti sjálfbærnireiknings
+				column 'Sustainability Account Category'
+					caption: Flokkur sjálfbærnireiknings
+				column 'Sustainability Account Sub-Category'
+					caption: Undirflokkur sjálfbærnireiknings
+			table Country/Region
+				caption: Land/svæði
+				column 'Country Region Code'
+					caption: Landskóði/svæðakóði
+				column 'Country Region Name'
+					caption: Landsvæði - Nafn
+			table 'Responsibility Centre'
+				caption: Ábyrgðarstöð
+				column 'Responsibility Centre Code'
+					caption: Kóði ábyrgðarstöðvar
+				column 'Responsibility Centre Name'
+					caption: Heiti ábyrgðarstöðvar
+				measure 'Facility Capacity'
+					caption: Afkastageta starfsstöðvar
+			table 'Sustainability Goals'
+				caption: Sjálfbærnimarkmið
+				column 'Score Card No.'
+					caption: Einkunnaspjald nr.
+				column 'No.'
+					caption: Nr.
+				column Name
+					caption: Heiti
+				column Owner
+					caption: Eigandi
+				column 'Target Value For CO2'
+					caption: Markgildi fyrir CO2
+				column 'Target Value For CH4'
+					caption: Markgildi fyrir CH4
+				column 'Target Value For N2O'
+					caption: Markgildi fyrir N2O
+				column 'Target Value For Water Intensity'
+					caption: Markgildi vatnsmagns
+				column 'Target Value For Waste Intensity'
+					caption: Markgildi úrgangsmagns
+				column 'Main Goal'
+					caption: Meginmarkmið
+				column 'Start Date'
+					caption: Upphafsdagur
+				column 'End Date'
+					caption: Lokadagur
+				column 'Baseline Start Date'
+					caption: Upphafsdagur grunnlínu
+				column 'Baseline End Date'
+					caption: Lokadagur grunnlínu
+				measure 'CO2 Target'
+					caption: CO2 mark
+				measure 'CO2 Realized (%)'
+					caption: CO2 losun (%)
+				measure 'CH4 Target'
+					caption: CH4 mark
+				measure 'N2O Target'
+					caption: N2O mark
+				measure 'CH4 Realized (%)'
+					caption: CH4 losun (%)
+				measure 'N2O Realized (%)'
+					caption: N2O losun (%)
+				measure 'Water Target'
+					caption: Vatnsmarkmið
+				measure 'Waste Target'
+					caption: Markúrgangur
+				measure 'Water Realized (%)'
+					caption: Vatnslosun (%)
+				measure 'Waste Realized (%)'
+					caption: Úrgangslosun (%)
+				measure 'CO2e Realized (%)'
+					caption: Losun CO2e (%)
+				measure 'CO2 Current Value'
+					caption: Núverandi gildi CO2
+				measure 'CH4 Current Value'
+					caption: Núverandi gildi CH4
+				measure 'N2O Current Value'
+					caption: Núverandi gildi N2O
+				measure 'CO2e Current Value'
+					caption: Núverandi gildi CO2e
+			table 'Employee Ledger Entries'
+				caption: Fjárhagsfærslur starfsmanns
+				column 'Entry No.'
+					caption: Nr. færslu
+				column 'Document Type'
+					caption: Gerð skjals
+				column 'Document No.'
+					caption: Nr. skjals
+				column Description
+					caption: Lýsing
+				measure 'Employee Amount'
+					caption: Upphæð
+				measure 'Employee Ledger Entries Link'
+					caption: Fjárhagsfærslutengill starfsmanns
+			table 'Employee Qualifications'
+				caption: Menntun og hæfi starfsmanns
+				column 'Employee Qualification Codes'
+					caption: Hæfikóðar starfsmanns
+				measure 'Employee Qualifications'
+					caption: Telja hæfi starfsmanna
+			table 'Emission Fees'
+				caption: Losunargjöld
+				column 'Emission Type'
+					caption: Losunargerð
+				column 'Scope Type'
+					caption: Umfangsgerð
+				column 'Starting Date'
+					caption: Upphafsdagur
+				column 'Ending Date'
+					caption: Lokadagur
+				column 'Country Region Code'
+					caption: Landskóði/svæðakóði
+				column 'Responsibility Centre'
+					caption: Ábyrgðarstöð
+				column 'Carbon Fee'
+					caption: Kolefnisgjald
+				column 'Carbon Equivalent Factor'
+					caption: Kolefnisjafngildisstuðull
+				measure 'CO2e Target'
+					caption: Markmið CO2e
+				measure 'CO2 Carbon Equivalent'
+					caption: Jafngilt kolefni CO2
+				measure 'CH4 Carbon Equivalent'
+					caption: Jafngilt kolefni CH4
+				measure 'N2O Carbon Equivalent'
+					caption: Jafngilt kolefni N2O
+			table 'Employee Absences'
+				caption: Fjarvistir starfsmanna
+				column 'Entry No'
+					caption: Færslunr.
+				column 'From Date'
+					caption: Frá dags.
+				column 'To Date'
+					caption: Til dags
+				column 'Cause of Absence'
+					caption: Ástæða fjarvistar
+				column Description
+					caption: Lýsing
+				measure 'Employee Absences'
+					caption: Magn
+				measure 'Absence Hours (%)'
+					caption: Fjarverustundir (%)
+			table 'Sustainability Sub-Account Categories'
+				caption: Undirflokkar sjálfbærnireikninga
+				column 'Sub-Category Description'
+					caption: Lýsing undirflokks
+				column 'Renewable Energy'
+					caption: Endurnýjanleg orka
+			table Employees
+				caption: Starfsmenn
+				column 'Employee No.'
+					caption: Starfsmannanúmer
+				column 'Employee Full Name'
+					caption: Fullt nafn starfsmanns
+				column 'Employee First Name'
+					caption: Fornafn starfsmanns
+				column 'Employee Last Name'
+					caption: Eftirnafn starfsmanns
+				column 'Employee Gender'
+					caption: Kyn starfsmanns
+				column 'Employee Union Code'
+					caption: Stéttarfélagskóði starfsmanns
+				column 'Employee Status'
+					caption: Staða starfsmanns
+				column 'Employee Cause of Inactivity'
+					caption: Orsök fyrir óvirkni starfsmanns
+				column 'Employee Inactive Date'
+					caption: Óvirk dagsetning starfsmanns
+				column 'Employee Grounds for Termination'
+					caption: Ástæður starfsloka starfsmanns
+				column 'Employee Date of Birth'
+					caption: Fæðingardagur starfsmanns
+				column Age
+					caption: Aldur
+				column 'Age Distribution'
+					caption: Aldursdreifing
+				measure 'No. of Employees'
+					caption: Fjöldi starfsmanna
+				measure 'No. of Male Employees'
+					caption: Fjöldi karlkyns starfsmanna
+				measure 'No. of Female Employees'
+					caption: Fjöldi kvenkyns starfsmanna
+				measure 'No. of Other Employees'
+					caption: Fjöldi annarra starfsmanna
+				measure 'Male Employees (%)'
+					caption: Karlkyns starfsmenn (%)
+				measure 'Female Employees (%)'
+					caption: Kvenkyns starfsmenn (%)
+				measure 'Other Employees (%)'
+					caption: Aðrir starfsmenn (%)
+			table ENVIRONMENT
+				caption: UMHVERFIÐ
+
