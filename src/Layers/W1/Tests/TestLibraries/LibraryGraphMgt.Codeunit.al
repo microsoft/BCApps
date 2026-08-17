@@ -180,9 +180,8 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
-        if IsAuthenticationBound then begin
+        if IsAuthenticationBound then
             EnsureApiTestVATPostingSetups();
-        end;
         HttpWebRequestMgt.Initialize(TargetURL);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
     end;
