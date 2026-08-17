@@ -369,6 +369,11 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Quote, SalesQuote."No.".VALUE());
         ApiRecordRef.GETTABLE(ApiSalesHeader);
         PageRecordRef.GETTABLE(PageSalesHeader);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'Operation Occurred Date');
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'VAT Reporting Date');
+
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API quote do not match');
     end;

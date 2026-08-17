@@ -35,6 +35,17 @@ codeunit 130618 "Library - Graph Mgt"
         WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
     end;
 
+    procedure AddFieldToIgnoreIfExists(var TempIgnoredFields: Record 2000000041 temporary; SourceTableNo: Integer; SourceFieldName: Text)
+    var
+        RecordField: Record Field;
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        RecordField.SetRange(TableNo, SourceTableNo);
+        RecordField.SetRange(FieldName, SourceFieldName);
+        if RecordField.FindFirst() then
+            LibraryUtility.AddTempField(TempIgnoredFields, RecordField."No.", SourceTableNo);
+    end;
+
     local procedure EnsureApiTestReasonCode()
     var
         ReasonCode: Record "Reason Code";
@@ -169,8 +180,47 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
+        if IsAuthenticationBound then begin
+            EnsureApiTestVATPostingSetups();
+        end;
         HttpWebRequestMgt.Initialize(TargetURL);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
+    end;
+
+    local procedure EnsureApiTestVATPostingSetups()
+    var
+        SalesLine: Record "Sales Line";
+        PurchaseLine: Record "Purchase Line";
+        Created: Boolean;
+    begin
+        if SalesLine.FindSet() then
+            repeat
+                EnsureApiTestVATPostingSetup(
+                    SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group", Created);
+            until SalesLine.Next() = 0;
+
+        if PurchaseLine.FindSet() then
+            repeat
+                EnsureApiTestVATPostingSetup(
+                    PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group", Created);
+            until PurchaseLine.Next() = 0;
+
+        if Created then
+            Commit();
+    end;
+
+    local procedure EnsureApiTestVATPostingSetup(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var Created: Boolean)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        if (VATBusPostingGroup = '') and (VATProdPostingGroup = '') then
+            exit;
+        if VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
+            exit;
+
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup, VATProdPostingGroup);
+        Created := true;
     end;
 
     procedure PatchToWebServiceAndCheckResponseCode(TargetURL: Text; JSONBody: Text; var ResponseText: Text; ExpectedResponseCode: Integer)

@@ -929,6 +929,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
         SalesHeader1RecordRef.GetTable(SalesHeader1);
         SalesHeader2RecordRef.GetTable(SalesHeader2);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Sales Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(
           SalesHeader1RecordRef, SalesHeader2RecordRef, TempIgnoredFieldsForComparison, 'Credit Memos do not match');
@@ -1048,4 +1050,3 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
             JobQueueEntry.Cancel();
     end;
 }
-

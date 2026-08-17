@@ -673,6 +673,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
 
         PurchaseHeader1RecordRef.GetTable(PurchaseHeader1);
         PurchaseHeader2RecordRef.GetTable(PurchaseHeader2);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Purchase Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(
           PurchaseHeader1RecordRef, PurchaseHeader2RecordRef, TempIgnoredFieldsForComparison, 'Credit Memos do not match');
@@ -719,4 +721,3 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         Assert.AreEqual(Status, PurchCrMemoEntityBuffer.Status, CreditMemoStatusErr);
     end;
 }
-

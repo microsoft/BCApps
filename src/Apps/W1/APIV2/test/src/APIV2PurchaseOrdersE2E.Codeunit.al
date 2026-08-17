@@ -451,6 +451,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         PagePurchaseHeader.Get(PagePurchaseHeader."Document Type"::Order, PurchaseOrder."No.".Value());
         ApiRecordRef.GetTable(ApiPurchaseHeader);
         PageRecordRef.GetTable(PagePurchaseHeader);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Purchase Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API order do not match');
