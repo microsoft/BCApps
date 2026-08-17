@@ -27,6 +27,7 @@ using System.Device;
 using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 
 table 20405 "Qlty. Inspection Header"
@@ -173,13 +174,17 @@ table 20405 "Qlty. Inspection Header"
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Name";
+            ValidateTableRelation = false;
             Caption = 'Assigned User ID';
             ToolTip = 'Specifies the user this inspection is assigned to. Changing another user''s assignment requires the Quality Admin & Supervisor role.';
 
             trigger OnValidate()
             var
+                UserSelection: Codeunit "User Selection";
                 CanChangeAssignmentWithoutPermission: Boolean;
             begin
+                UserSelection.ValidateUserName("Assigned User ID");
+
                 CanChangeAssignmentWithoutPermission := false;
 
                 if ((xRec."Assigned User ID" = UserId()) and (Rec."Assigned User ID" = '')) or (((xRec."Assigned User ID" = '') and (Rec."Assigned User ID" = UserId()))) then
@@ -607,7 +612,7 @@ table 20405 "Qlty. Inspection Header"
             end;
             if ShouldTryAndChangePrompt then
                 if QltyPermissionMgmt.GetShouldAutoAssign(PromptToAssignIfPossible) then
-                    if PromptToAssignIfPossible and GuiAllowed() then
+                    if PromptToAssignIfPossible then
                         QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(Rec)
                     else
                         Rec.AssignToSelf();
