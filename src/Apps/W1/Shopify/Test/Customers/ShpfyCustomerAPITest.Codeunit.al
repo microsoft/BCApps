@@ -25,7 +25,7 @@ codeunit 139589 "Shpfy Customer API Test"
         Any: Codeunit Any;
         ResponseContent: Text;
         IsInitialized: Boolean;
-        CustomerSearchResponseTok: Label '{"data":{"customers":{"edges":[{"node":{"id":"gid://shopify/Customer/%1",%2}}]}},"extensions":{"cost":{"requestedQueryCost":3,"actualQueryCost":3,"throttleStatus":{"maximumAvailable":20000.0,"currentlyAvailable":19997,"restoreRate":1000.0}}}}', Locked = true;
+        CustomerSearchResponseTok: Label '{"data":{"customers":{"edges":[{"node":{"id":"gid://shopify/Customer/%1",%2}}]}},"extensions":{"cost":{"requestedQueryCost":4,"actualQueryCost":4,"throttleStatus":{"maximumAvailable":20000.0,"currentlyAvailable":19996,"restoreRate":1000.0}}}}', Locked = true;
         DefaultPhoneNumberNodeTok: Label '"defaultPhoneNumber":{"phoneNumber":"%1"}', Locked = true;
         DefaultEMailAddressNodeTok: Label '"defaultEmailAddress":{"emailAddress":"%1"}', Locked = true;
 
