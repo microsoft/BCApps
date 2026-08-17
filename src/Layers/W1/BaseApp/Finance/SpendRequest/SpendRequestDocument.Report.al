@@ -154,6 +154,7 @@ report 6850 "Spend Request Document"
     }
     labels
     {
+        ReportLbl = 'Spend Request';
         DetailsHeaderLbl = 'Details';
         PostedEntriesHeaderLbl = 'Posted Entries';
     }

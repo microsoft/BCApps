@@ -106,20 +106,22 @@ page 6840 "Spend Request List"
         }
         area(Reporting)
         {
-            group(Report)
+            action(Print)
             {
-                Caption = 'Report';
+                Caption = 'Print';
+                ToolTip = 'Prints the selected spend requests.';
+                ApplicationArea = Basic, Suite;
                 Image = Print;
 
-                action(Print)
-                {
-                    Caption = 'Print';
-                    ToolTip = 'Prints the spend request so it can be sent to the requester.';
-                    ApplicationArea = Basic, Suite;
-                    Image = Print;
-                    RunObject = Report "Spend Request Document";
-                    RunPageOnRec = true;
-                }
+                trigger OnAction()
+                var
+                    SpendRequest: Record "Spend Request";
+                    SpendRequestDocument: Report "Spend Request Document";
+                begin
+                    CurrPage.SetSelectionFilter(SpendRequest);
+                    SpendRequestDocument.SetTableView(SpendRequest);
+                    SpendRequestDocument.Run();
+                end;
             }
         }
         area(Promoted)
