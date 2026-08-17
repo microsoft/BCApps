@@ -982,7 +982,7 @@ table 125 "Purch. Cr. Memo Line"
         PurchaseLine: Record "Purchase Line";
     begin
         if Type = Type::" " then
-            exit(PurchaseLine.FormatType());
+            exit(PurchaseLine.FormatTypeAsText());
 
         exit(Format(Type));
     end;
@@ -1065,7 +1065,7 @@ table 125 "Purch. Cr. Memo Line"
             end;
         end;
 
-        if ItemLedgerEntry."Entry No." = 0 then begin
+        if (ItemLedgerEntry."Entry No." = 0) and ("Order No." <> '') then begin
             PurchInvLine.SetRange("Order No.", "Order No.");
             PurchInvLine.SetRange("Order Line No.", "Order Line No.");
             if PurchInvLine.FindFirst() then;

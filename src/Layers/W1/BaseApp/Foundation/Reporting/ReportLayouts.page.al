@@ -442,7 +442,7 @@ page 9660 "Report Layouts"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Manage all themes/header-footers';
                     Image = ViewDetails;
-                    Enabled = LayoutIsSelected;
+                    Enabled = WordLayoutSelected;
                     AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
                     ToolTip = 'Show every layout of this report with the theme and header/footer that apply to each, and change them per layout. Inherited company and global defaults are shown with their source.';
 
@@ -463,7 +463,7 @@ page 9660 "Report Layouts"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Layout configuration';
                     Image = Setup;
-                    Enabled = LayoutIsSelected;
+                    Enabled = WordLayoutSelected;
                     AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
                     ToolTip = 'View the Tenant Report Layout Configuration defaults for the selected report. These defaults specify the header/footer and theme parts applied when no per-user selection override is present.';
 

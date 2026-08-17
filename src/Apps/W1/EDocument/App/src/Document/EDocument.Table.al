@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
@@ -409,6 +410,14 @@ table 6121 "E-Document"
         exit(EDocumentPurchaseHeader.Total);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"E-Document", 'd')]
+    internal procedure DeleteOrphanedImport()
+    begin
+        CleanupDocument();
+        Rec.Delete(false);
+        Commit();
+    end;
+
     procedure CleanupDocument()
     var
         DocumentAttachment: Record "Document Attachment";
@@ -416,6 +425,7 @@ table 6121 "E-Document"
         EDocumentIntegrationLog: Record "E-Document Integration Log";
         EDocumentLog: Record "E-Document Log";
         EDocImportedLine: Record "E-Doc. Imported Line";
+        EDocumentMessage: Record "E-Document Message";
         EDocumentServiceStatus: Record "E-Document Service Status";
 #if not CLEAN27
         PurchaseHeader: Record "Purchase Header";
@@ -452,6 +462,10 @@ table 6121 "E-Document"
         EDocImportedLine.SetRange("E-Document Entry No.", Rec."Entry No");
         if not EDocImportedLine.IsEmpty() then
             EDocImportedLine.DeleteAll(true);
+
+        EDocumentMessage.SetRange("E-Document Entry No.", Rec."Entry No");
+        if not EDocumentMessage.IsEmpty() then
+            EDocumentMessage.DeleteAll(true);
 
 #if not CLEAN27
         // Version 1 processing cleanup
@@ -546,7 +560,7 @@ table 6121 "E-Document"
     var
         Telemetry: Codeunit Telemetry;
         ToStringLbl: Label '%1,%2,%3,%4', Locked = true;
-        DeleteLinkedNotAllowedErr: Label 'The E-Document is linked to sales or purchase document and cannot be deleted.';
+        DeleteLinkedNotAllowedErr: Label 'The E-Document is linked to a source document and cannot be deleted.';
         DeleteProcessedNotAllowedErr: Label 'The E-Document has already been processed and cannot be deleted.';
         DeleteUniqueNotAllowedErr: Label 'Only duplicate E-Documents can be deleted without a confirmation in the user interface.';
         NoFileErr: label 'No previewable attachment exists for this %2.', Comment = '%1 - a table caption';
