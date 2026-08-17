@@ -145,7 +145,6 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         SubcSessionState.SetRecordID('PurchRcptLineForItemCharge', PurchRcptLine.RecordId);
     end;
 
-    /// <summary>Determines whether the item has an item tracking code.</summary>
     local procedure ItemIsTracked(ItemNo: Code[20]): Boolean
     var
         Item: Record Item;

@@ -19,7 +19,7 @@ codeunit 99001573 "Subc. Invt. Pick Ext"
         if not TransferLine."Transfer WIP Item" then
             exit;
 
-        RemQtyToPickBase := TransferLine."Qty. to Ship";
+        RemQtyToPickBase := TransferLine.CalcBaseQty(TransferLine."Qty. to Ship");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", OnBeforeCreatePickOrMoveLineWithZeroBaseQty, '', false, false)]
