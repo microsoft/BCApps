@@ -24,6 +24,10 @@ enum 6841 "Spend Request Status"
     {
         Caption = 'Approved';
     }
+    value(5; "Pending Approval")
+    {
+        Caption = 'Pending Approval';
+    }
     value(3; Rejected)
     {
         Caption = 'Rejected';

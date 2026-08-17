@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
+using System.Automation;
 using System.Utilities;
 
 codeunit 6840 "Release Spend Request"
@@ -19,6 +20,8 @@ codeunit 6840 "Release Spend Request"
         HasExpensesErr: Label 'A spend request with posted expenses cannot be reopened.';
         ClosedRequestErr: Label 'A closed spend request cannot be reopened.';
         CloseSpendRequestQst: Label 'Do you want to close spend request %1?', Comment = '%1 is the spend request no.';
+        PendingApprovalErr: Label 'The approval process must be cancelled or completed to reopen this document.';
+        ApprovalPendingReleaseErr: Label 'This document can only be released when the approval process is complete.';
 
     /// <summary>
     /// Sets the status of the spend request to Released.
@@ -102,7 +105,12 @@ codeunit 6840 "Release Spend Request"
     /// </summary>
     /// <param name="SpendRequest">The spend request to release.</param>
     procedure PerformManualRelease(var SpendRequest: Record "Spend Request")
+    var
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
     begin
+        if ApprovalsMgmt.IsSpendRequestPendingApproval(SpendRequest) then
+            Error(ApprovalPendingReleaseErr);
+
         Codeunit.Run(Codeunit::"Release Spend Request", SpendRequest);
     end;
 
@@ -112,6 +120,9 @@ codeunit 6840 "Release Spend Request"
     /// <param name="SpendRequest">The spend request to reopen.</param>
     procedure PerformManualReopen(var SpendRequest: Record "Spend Request")
     begin
+        if SpendRequest.Status = SpendRequest.Status::"Pending Approval" then
+            Error(PendingApprovalErr);
+
         Reopen(SpendRequest);
     end;
 

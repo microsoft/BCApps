@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
+using System.Automation;
+
 page 6841 "Spend Request Card"
 {
     Caption = 'Spend Request';
@@ -114,6 +116,14 @@ page 6841 "Spend Request Card"
                 }
             }
         }
+        area(FactBoxes)
+        {
+            part(ApprovalFactBox; "Approval FactBox")
+            {
+                ApplicationArea = Suite;
+                Visible = false;
+            }
+        }
     }
     actions
     {
@@ -179,6 +189,7 @@ page 6841 "Spend Request Card"
                     ToolTip = 'Manually set the status field to Approved';
                     ApplicationArea = Basic, Suite;
                     Enabled = Rec.Status <> Rec.Status::Approved;
+                    Visible = OpenApprovalEntriesExistForCurrUser;
                     Image = Approve;
 
                     trigger OnAction()
@@ -197,6 +208,7 @@ page 6841 "Spend Request Card"
                     ToolTip = 'Manually set the status field to Rejected';
                     ApplicationArea = Basic, Suite;
                     Enabled = Rec.Status <> Rec.Status::Rejected;
+                    Visible = OpenApprovalEntriesExistForCurrUser;
                     Image = Reject;
 
                     trigger OnAction()
@@ -208,6 +220,42 @@ page 6841 "Spend Request Card"
                         Rec."Approved/Rejected At" := CurrentDateTime();
                         Rec."Approved/Rejected by User ID" := UserSecurityId();
                         Rec.Modify();
+                    end;
+                }
+            }
+            group("Request Approval")
+            {
+                Caption = 'Request Approval';
+
+                action(SendApprovalRequest)
+                {
+                    Caption = 'Send A&pproval Request';
+                    ToolTip = 'Request approval of the document.';
+                    ApplicationArea = Basic, Suite;
+                    Enabled = not OpenApprovalEntriesExist;
+                    Image = SendApprovalRequest;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        if ApprovalsMgmt.CheckSpendRequestApprovalPossible(Rec) then
+                            ApprovalsMgmt.OnSendSpendRequestForApproval(Rec);
+                    end;
+                }
+                action(CancelApprovalRequest)
+                {
+                    Caption = 'Cancel Approval Re&quest';
+                    ToolTip = 'Cancel the approval request.';
+                    ApplicationArea = Basic, Suite;
+                    Enabled = CanCancelApprovalForRecord;
+                    Image = CancelApprovalRequest;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.OnCancelSpendRequestApprovalRequest(Rec);
                     end;
                 }
             }
@@ -300,6 +348,12 @@ page 6841 "Spend Request Card"
                 actionref(Reject_Promoted; Reject)
                 {
                 }
+                actionref(SendApprovalRequest_Promoted; SendApprovalRequest)
+                {
+                }
+                actionref(CancelApprovalRequest_Promoted; CancelApprovalRequest)
+                {
+                }
             }
             group(Category_SpendRequest)
             {
@@ -312,6 +366,24 @@ page 6841 "Spend Request Card"
         }
     }
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetControlAppearance();
+        CurrPage.ApprovalFactBox.PAGE.UpdateApprovalEntriesFromSourceRecord(Rec.RecordId());
+    end;
+
+    local procedure SetControlAppearance()
     var
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+    begin
+        OpenApprovalEntriesExistForCurrUser := ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(Rec.RecordId());
+        OpenApprovalEntriesExist := ApprovalsMgmt.HasOpenApprovalEntries(Rec.RecordId());
+        CanCancelApprovalForRecord := ApprovalsMgmt.CanCancelApprovalForRecord(Rec.RecordId());
+    end;
+
+    var
+        OpenApprovalEntriesExistForCurrUser: Boolean;
+        OpenApprovalEntriesExist: Boolean;
+        CanCancelApprovalForRecord: Boolean;
         SpendRequestClosedErr: Label 'A closed spend request cannot be updated.';
 }
