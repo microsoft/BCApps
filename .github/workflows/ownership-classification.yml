@@ -70,7 +70,7 @@ jobs:
 
       - name: Check labels and manual override
         id: preflight
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           SUBJECT_KIND: ${{ env.SUBJECT_KIND }}
           SUBJECT_NUMBER: ${{ env.SUBJECT_NUMBER }}
@@ -162,7 +162,7 @@ jobs:
       - name: Create correlation token
         if: steps.preflight.outputs.dispatch == 'true'
         id: correlation
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: core.setOutput('token', require('crypto').randomUUID())
 
@@ -232,7 +232,7 @@ jobs:
 
       - name: Validate and apply ownership result
         if: steps.preflight.outputs.dispatch == 'true'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           RESULT_PATH: result/ownership-result.json
           CORRELATION_TOKEN: ${{ steps.correlation.outputs.token }}
