@@ -1081,6 +1081,8 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
 
         Assert.AreNotEqual('', InvoiceLineID, 'ID should not be empty');
         LibraryInventory.CreateItem(Item);
+        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+            SalesLine."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
 
         InvoiceLineJSON := StrSubstNo('{"itemId":"%1"}', LibraryGraphMgt.StripBrackets(Item.SystemId));
         Commit();

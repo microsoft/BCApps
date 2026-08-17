@@ -758,6 +758,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
     local procedure CreateCorrectiveSalesCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
+        ReasonCode: Record "Reason Code";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesHeader: Record "Sales Header";
         InvoiceCode: Code[20];
@@ -769,6 +770,12 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
         SalesCrMemoHeader.SetRange("Applies-to Doc. No.", SalesInvoiceHeader."No.");
         SalesCrMemoHeader.FindFirst();
+        SalesHeader.GetBySystemId(SalesCrMemoHeader."Draft Cr. Memo SystemId");
+        if SalesHeader."Reason Code" = '' then begin
+            ReasonCode.FindFirst();
+            SalesHeader.Validate("Reason Code", ReasonCode.Code);
+            SalesHeader.Modify(true);
+        end;
     end;
 
     local procedure CreateDraftSalesCreditMemo(var SalesHeader: Record "Sales Header")

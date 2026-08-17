@@ -427,6 +427,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
 
         // [GIVEN] Create Invoice Json with Vendor No and Invoice Date
         InvoiceJSON := CreateInvoiceJSON('vendorNumber', VendorNo, 'invoiceDate', WorkDate());
+        InvoiceJSON := LibraryGraphMgt.AddPropertytoJSON(InvoiceJSON, 'postingDate', WorkDate());
         COMMIT();
 
         // [WHEN] We POST the JSON to the Web Service

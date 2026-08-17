@@ -8,6 +8,7 @@ codeunit 130618 "Library - Graph Mgt"
     var
         Assert: Codeunit Assert;
         LibraryGraphAuthMgt: Codeunit Microsoft.TestLibraries.ERP."Library - Graph Auth Mgt.";
+        IsApiTestInitialized: Boolean;
         IsAuthenticationBound: Boolean;
         IncorrectValueErr: Label 'Incorrect value found in JSON for %1 property.', Comment = '%1 - Name of property';
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
@@ -25,6 +26,7 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeApiTest()
     begin
+        IsApiTestInitialized := true;
         BindAuthentication();
         SetApiTestWorkDate();
         EnsureApiTestReasonCode();
@@ -180,10 +182,19 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
-        if IsAuthenticationBound then
+        if IsApiTestInitialized then
             EnsureApiTestVATPostingSetups();
         HttpWebRequestMgt.Initialize(TargetURL);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
+    end;
+
+    procedure EnsureApiTestVATPostingSetupExists(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    var
+        Created: Boolean;
+    begin
+        EnsureApiTestVATPostingSetup(VATBusPostingGroup, VATProdPostingGroup, Created);
+        if Created then
+            Commit();
     end;
 
     local procedure EnsureApiTestVATPostingSetups()
@@ -213,7 +224,7 @@ codeunit 130618 "Library - Graph Mgt"
         VATPostingSetup: Record "VAT Posting Setup";
         LibraryERM: Codeunit "Library - ERM";
     begin
-        if (VATBusPostingGroup = '') and (VATProdPostingGroup = '') then
+        if (VATBusPostingGroup = '') or (VATProdPostingGroup = '') then
             exit;
         if VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
             exit;

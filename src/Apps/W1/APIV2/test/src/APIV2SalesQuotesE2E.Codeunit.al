@@ -761,6 +761,9 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         LibrarySmallBusiness.CreateCustomer(Customer);
         LibrarySmallBusiness.CreateItem(Item);
         LibrarySmallBusiness.CreateSalesQuoteHeaderWithLines(SalesHeader, Customer, Item, 1, 1);
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Validate("Document Date", WorkDate());
+        SalesHeader.Modify(true);
     end;
 
     local procedure FindSalesHeader(var SalesHeader: Record "Sales Header"; CustomerNo: Text; QuoteNumber: Text): Boolean
