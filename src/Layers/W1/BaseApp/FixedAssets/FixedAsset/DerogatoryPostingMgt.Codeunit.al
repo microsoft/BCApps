@@ -55,6 +55,11 @@ codeunit 5869 "Derogatory Posting Mgt."
     end;
 
     procedure MakeDerogatoryJournalLine(var DerogatoryFAJournalLine: Record "FA Journal Line"; SourceGenJournalLine: Record "Gen. Journal Line"; PostingRole: Enum "Derogatory Posting Role"): Boolean
+    begin
+        exit(MakeDerogatoryJournalLine(DerogatoryFAJournalLine, SourceGenJournalLine, SourceGenJournalLine.Amount, PostingRole));
+    end;
+
+    procedure MakeDerogatoryJournalLine(var DerogatoryFAJournalLine: Record "FA Journal Line"; SourceGenJournalLine: Record "Gen. Journal Line"; SourceAmount: Decimal; PostingRole: Enum "Derogatory Posting Role"): Boolean
     var
         FAJournalSetup: Record "FA Journal Setup";
         DerogatoryDepreciationBookCode: Code[10];
@@ -82,7 +87,7 @@ codeunit 5869 "Derogatory Posting Mgt."
         DerogatoryFAJournalLine."Document No." := SourceGenJournalLine."Document No.";
         DerogatoryFAJournalLine."External Document No." := SourceGenJournalLine."External Document No.";
         DerogatoryFAJournalLine.Description := SourceGenJournalLine.Description;
-        DerogatoryFAJournalLine.Validate(Amount, SourceGenJournalLine."VAT Base Amount");
+        DerogatoryFAJournalLine.Validate(Amount, SourceAmount);
         DerogatoryFAJournalLine.Validate(
             "Salvage Value", SourceGenJournalLine.ConvertAmtFCYToLCYForSourceCurrency(SourceGenJournalLine."Salvage Value"));
         DerogatoryFAJournalLine.Quantity := SourceGenJournalLine.Quantity;

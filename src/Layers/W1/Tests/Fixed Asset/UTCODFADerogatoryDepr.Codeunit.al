@@ -213,6 +213,7 @@ codeunit 134150 "UT COD FA Derogatory Depr."
         FAPostingTypeSetup."Depreciation Book Code" := DepreciationBookCode;
         FAPostingTypeSetup."FA Posting Type" := FAPostingType;
         FAPostingTypeSetup."Part of Book Value" := true;
+        FAPostingTypeSetup."Include in Gain/Loss Calc." := true;
         FAPostingTypeSetup."Reverse before Disposal" := true;
         FAPostingTypeSetup.Insert();
     end;

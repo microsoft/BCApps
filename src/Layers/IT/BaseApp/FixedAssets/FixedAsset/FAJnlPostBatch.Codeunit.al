@@ -461,6 +461,18 @@ codeunit 5633 "FA Jnl.-Post Batch"
                 NewFAJnlLine, FAJournalLine, Enum::"Derogatory Posting Role"::Source));
     end;
 
+    local procedure CreateAndPostDerogEntry(SourceFAJournalLine: Record "FA Journal Line")
+    var
+        FAJournalLine: Record "FA Journal Line";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+    begin
+        if not DerogatoryPostingMgt.PrepareAcquisitionCostAdjustment(FAJournalLine, SourceFAJournalLine) then
+            exit;
+
+        // REVIEW(redesign-derogatory-mirroring): FA-journal execution remains here; policy and line construction are centralized.
+        FAJnlPostLine.FAJnlPostLine(FAJournalLine, true);
+    end;
+
     local procedure PostLines()
     var
         IsHandled: Boolean;
@@ -500,6 +512,8 @@ codeunit 5633 "FA Jnl.-Post Batch"
             OnPostLinesOnBeforeFAJnlPostLine(FAJnlLine, FAJnlPostLine);
             FAJnlPostLine.FAJnlPostLine(FAJnlLine, false);
             OnPostLinesOnAfterFAJnlPostLine(FAJnlLine);
+            CreateAndPostDerogEntry(FAJnlLine);
+            CreateCompressTable(FAJnlLine);
         until FAJnlLine.Next() = 0;
         PostCompressTable(FAJnlLine);
     end;

@@ -317,7 +317,9 @@ codeunit 5632 "FA Jnl.-Post Line"
             SourceEntryNo := InsertedFALedgEntry."Entry No.";
         if (SourceEntryNo = 0) and not HasSourceAutomaticEntries() then
             exit;
-        if not DerogatoryPostingMgt.MakeDerogatoryJournalLine(DerogatoryFAJournalLine, SourceGenJournalLine, CurrentPostingRole::Source) then
+        if not DerogatoryPostingMgt.MakeDerogatoryJournalLine(
+             DerogatoryFAJournalLine, SourceGenJournalLine, Amount2, CurrentPostingRole::Source)
+        then
             exit;
 
         if SourceGenJournalLine."FA Error Entry No." <> 0 then
@@ -968,4 +970,3 @@ codeunit 5632 "FA Jnl.-Post Line"
     begin
     end;
 }
-

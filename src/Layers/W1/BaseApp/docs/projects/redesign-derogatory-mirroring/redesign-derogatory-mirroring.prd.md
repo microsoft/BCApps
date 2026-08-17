@@ -2,7 +2,7 @@
 goal: Complete deterministic derogatory depreciation mirroring across W1, localization, reversal, and French upgrade paths
 version: 1.0
 date_created: 2026-08-05
-last_updated: 2026-08-12
+last_updated: 2026-08-17
 owner: Business Central Fixed Assets
 tags: [feature, fixed-assets, derogatory-depreciation, posting, reversal, upgrade, localization]
 ---
@@ -24,6 +24,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 | PRD Review | DONE | EPIC-001 through EPIC-003 requirements, traceability, files, tests, dependencies, constraints, and pre-existing worktree changes were reviewed. |
 | Implementation | DONE | EPIC-001 posting/linkage invariants, EPIC-002 link-authoritative reversal, and EPIC-003 French routing/API compatibility were completed with focused tests and W1/FR compilation. |
 | Review | DONE | The independent EPIC-003 review reopened the epic as NON_COMPLIANT. All actionable findings were fixed test-first on 2026-08-10, the four normal compile/build targets and the cumulative CLEAN25-CLEAN29 compile pass, and the focused French and W1 suites were published and executed (134194: 17/17, 134149: 42/42, 134166: 24/24). |
+| Post-implementation remediation | DONE | DME job 3620308 reopened the affected EPIC-001, EPIC-005, EPIC-008, and EPIC-009 items only for its reported regressions. All non-infrastructure root causes were remediated on 2026-08-17; W1 codeunits 134149, 134150, and 134166 passed 88/88 after build and publication. The CA code-coverage failure remains classified as a rerun-only infrastructure flake because its 2246 tests passed with `TestsFailed = 0`. |
 
 ## 1. Goals and Non-Goals
 
@@ -448,8 +449,18 @@ Implementation and validation notes (2026-08-14, resumed after a forced-restart 
 
 - ITEM-023/027/028 CICD gate — CONCRETE BLOCKER: the AL-Go `CICD.yaml` multi-country gate cannot reach green on this `private/*` branch. Prior run 31718032964 (dispatched after `45e9e12c`) failed with `Run-AlPipeline` "There are test failures!" simultaneously across every country and every test bucket (Integration/Legacy1/Legacy2/Uncategorized/Default), and its logs report the private-branch runs cannot read the required organization secrets (`licenseFileUrl`, `gitSubmodulesToken`, `AZURE_CREDENTIALS`, code-signing). That universal, bucket-independent failure is the signature of a missing-license container test run, not of the derogatory changes — whose focused suites are green locally and whose only new scenario (validate before `Code`) is exercised by no pre-existing country test. Per the available-environment constraint (W1/ES/FR/NL only), the non-supported country jobs were not built locally. The committed fix was pushed to `private/algladkov/FR-Derogatory-Depreciation-redesign` (commit `13fe1591`); a fresh `gh workflow run --repo microsoft/BCApps --ref <branch> CICD.yaml` dispatch for that ref returned `HTTP 403: Must have admin rights to Repository`, so re-dispatch is not permitted from the available accounts. The most recent dispatched gate run remains 31718032964 (https://github.com/microsoft/BCApps/actions/runs/31718032964), which fails on the same private-branch secret limitation. The multi-country CICD gate therefore cannot be closed green from this environment (missing organization secrets and no workflow-dispatch admin right).
 
+Post-implementation test-job remediation (2026-08-17, DME job 3620308):
+
+- EPIC-001 / ITEM-001: DACH, GB, and IT full-copy `Depreciation Book` validations now enforce W1's one-to-one relationship checks; CH inherits the corrected DACH implementation. FR now guards the reverse-use lookup while `Code` is blank.
+- EPIC-001 / ITEM-007 and EPIC-008 / ITEM-019: general-journal mirror construction uses the posted LCY source-ledger amount rather than a purchase-invoice `VAT Base Amount` that can be zero or the journal's transaction-currency amount. The Czech `Calculate Depreciation CZF` full copy now includes the W1 derogatory calculation path needed by final/negative scenarios.
+- EPIC-005 / ITEM-013 and ITEM-026: IT again prepares/posts acquisition adjustments, populates its depreciation-compression buffer, and preserves the `Custom 2` depreciation-days exemption; RU full-copy ledgers now include both legacy-ambiguity marker fields.
+- EPIC-009 localization compatibility: the Czech FA account override resolves all `Derogatory` main, disposal, balancing, and sign-dependent expense accounts. The migrated gain/loss fixture sets `Include in Gain/Loss Calc.`. Spanish demo derogatory income-statement accounts receive their balancing account before indentation.
+- Red evidence was the 36 failed test occurrences and five non-test tasks recorded in `dme-3620308-analysis.md`. Independent review additionally identified foreign-currency amount parity; its new focused regression failed with expected 497.34 versus actual 248.67 before the posted-LCY-amount overload was wired, then passed. AL MCP compiled W1 BaseApp and Fixed Asset tests with zero diagnostics, built and published both packages, and passed codeunits 134149 (50/50), 134150 (9/9), and 134166 (29/29). The ES Contoso Coffee app compiled with zero diagnostics. Initial localization compile probes for IT, RU, and CZ completed successfully during implementation; the later IT/RU source-amount call alignment exactly matches the green W1 call, and the full country-job rerun remains the release-gate evidence for all country compositions.
+- `RunALTests_CA_OnPremBucket4` requires only a rerun: all 2246 tests passed and the failure occurred in post-test code-coverage processing.
+
 ## 15. Change Log
 
+- 2026-08-17: Remediated every non-infrastructure failure from DME job 3620308 across relationship validation, Czech account/report compatibility, purchase mirroring, Italian posting/compression checks, Russian schema parity, Spanish demo-data ordering, and the migrated gain/loss fixture; independent review added posted-LCY foreign-currency parity and focused W1 runtime passed 88/88.
 - 2026-08-14: Resumed the interrupted EPIC-009 run — recovered three release-gate commits, completed the interrupted `Depreciation Book` blank-`Code` derogatory-setup fix test-first (134166 28/28, 134149 50/50), recorded the ITEM-022 zero-dual-producer / zero-unmarked-heuristic sweep across all 14 layers, and documented the `private/*` CICD organization-secret blocker for ITEM-023/027/028.
 - 2026-08-12: Remediated independent-review gaps in FR upgrade-path telemetry observation and W1 missing-tax-book/salvage cardinality assertions.
 - 2026-08-12: Closed remaining EPIC-008 direct-insertion, generated-mirror insurance, and exact reversal-cardinality coverage gaps.

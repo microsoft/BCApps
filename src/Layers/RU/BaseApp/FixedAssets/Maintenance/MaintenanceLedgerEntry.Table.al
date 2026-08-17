@@ -387,6 +387,11 @@ table 5625 "Maintenance Ledger Entry"
             Editable = false;
             TableRelation = "Maintenance Ledger Entry"."Entry No.";
         }
+        field(5866; "Legacy Derogatory Ambiguous"; Boolean)
+        {
+            Caption = 'Legacy Derogatory Ambiguous';
+            Editable = false;
+        }
         field(12405; "Employee No."; Code[20])
         {
             Caption = 'Employee No.';
