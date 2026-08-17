@@ -762,6 +762,7 @@ codeunit 139692 "Contract Renewal Test"
         // [GIVEN] A Customer Subscription Contract whose Subscription Lines have no Renewal Term.
         CreateBaseData();
         ServiceCommitment.Reset();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
         ServiceCommitment.ModifyAll("Renewal Term", EmptyDateFormula, false);
 
         // [GIVEN] The Create Contract Renewal Quote page is open.
