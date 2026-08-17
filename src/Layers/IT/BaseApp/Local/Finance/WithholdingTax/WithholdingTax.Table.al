@@ -214,21 +214,15 @@ table 12116 "Withholding Tax"
 
     trigger OnDelete()
     begin
-        if not Reported and
-           not Paid
-        then
+        if not Reported and not Paid then
             if not Confirm(DeductionWarningQst) then
                 Error(OperationCanceledErr);
 
-        if Paid and
-           not Reported
-        then
-            Error(Text1036);
+        if Paid and not Reported then
+            Error(PaidCertifiedErr);
 
-        if not Paid and
-           Reported
-        then
-            Error(Text1037);
+        if not Paid and Reported then
+            Error(CertifiedNotPaidErr);
     end;
 
     trigger OnInsert()
@@ -252,21 +246,22 @@ table 12116 "Withholding Tax"
         if not PreviousWithholdingTax.Get(Rec."Entry No.") then
             exit;
         if (Reported or Paid) and StandardFieldModified(PreviousWithholdingTax) then
-            Error(Text1033);
+            Error(PaidAndCertifiedErr);
     end;
 
     var
-        Text1033: Label 'Paid and/or certified withholding taxes cannot be modified.';
-        DeductionWarningQst: Label 'Warning: This deduction was not certified. Do you want to continue?';
-        OperationCanceledErr: Label 'Operation canceled.';
-        Text1036: Label 'Paid and certified withholding taxes cannot be deleted.';
-        Text1037: Label 'Certified and not paid withholding taxes cannot be deleted.';
-        InvalidBaseExcludedAmountErr: Label 'The Base - Excluded Amount must not be greater than %1.';
+        Vend: Record Vendor;
         WithholdCode: Record "Withhold Code";
         WithholdCodeLine: Record "Withhold Code Line";
         WithholdingTax: Record "Withholding Tax";
-        Vend: Record Vendor;
         WithholdingSocSecMgt: Codeunit "Withholding - Contribution";
+
+        PaidAndCertifiedErr: Label 'Paid and/or certified withholding taxes cannot be modified.';
+        DeductionWarningQst: Label 'Warning: This deduction was not certified. Do you want to continue?';
+        OperationCanceledErr: Label 'Operation canceled.';
+        PaidCertifiedErr: Label 'Paid and certified withholding taxes cannot be deleted.';
+        CertifiedNotPaidErr: Label 'Certified and not paid withholding taxes cannot be deleted.';
+        InvalidBaseExcludedAmountErr: Label 'The Base - Excluded Amount must not be greater than %1.';
         BaseExcludedAmtGreaterThanTotalErr: Label 'The Base - Excluded Amount must not be greater than Total Amount.';
         InvalidNonTaxableAmountByTreatyErr: Label 'The Non Taxable Amount By Treaty must not be greater than %1.';
         WithholdingTaxEntryAlreadyExistsErr: Label 'Withholding Tax Entry %1 already exists for vendor ledger entry Document No.: %2 ,Posting Date: %3.', Comment = 'Parameter 1 - entry no, 2 - document no., 3- posting date';

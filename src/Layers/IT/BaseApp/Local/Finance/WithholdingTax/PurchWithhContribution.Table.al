@@ -419,10 +419,6 @@ table 12137 "Purch. Withh. Contribution"
     }
 
     var
-        InvalidBaseExcludedAmountErr: Label 'The Base - Excluded Amount must not be greater than %1.';
-        BaseExcludedAmtGreaterThanTotalErr: Label 'The Base - Excluded Amount must not be greater than Total Amount.';
-        InvalidNonTaxableAmountByTreatyErr: Label 'The Non Taxable Amount By Treaty must not be greater than %1.';
-        ResidentVendorWarningQst: Label 'Vendor %1 is resident. Do you want to continue?';
         Curr: Record Currency;
         Vend: Record Vendor;
         PurchHeader: Record "Purchase Header";
@@ -432,6 +428,11 @@ table 12137 "Purch. Withh. Contribution"
         WithholdFilter: Record "Contribution Code Line";
         RigheScaglioniINAIL: Record "Contribution Bracket Line";
         SocSecBracketLine: Codeunit "Withholding - Contribution";
+
+        InvalidBaseExcludedAmountErr: Label 'The Base - Excluded Amount must not be greater than %1.', Comment = '%1 - Total Amount - Non Taxable Amount By Treaty';
+        BaseExcludedAmtGreaterThanTotalErr: Label 'The Base - Excluded Amount must not be greater than Total Amount.';
+        InvalidNonTaxableAmountByTreatyErr: Label 'The Non Taxable Amount By Treaty must not be greater than %1.', Comment = '%1 - Total Amount - Base - Excluded Amount';
+        ResidentVendorWarningQst: Label 'Vendor %1 is resident. Do you want to continue?', Comment = '%1 - vendor number';
         WHTAmtManualEqWHTAmtErr: Label '%1 must not be equal to %2 in %3.', Comment = '%1=FIELDCAPTION("WHT Amount Manual"),%2=FIELDCAPTION("Withholding Tax Amount"),%3=TABLECAPTION("Purch. Withh. Contribution")';
 
     procedure ValorizzaRitenute()
@@ -634,7 +635,7 @@ table 12137 "Purch. Withh. Contribution"
     end;
 
     [Scope('OnPrem')]
-    procedure CreateRecord(PurchaseHeader: Record "Purchase Header"; Vend: Record Vendor)
+    procedure CreateRecord(PurchaseHeader: Record "Purchase Header"; Vend2: Record Vendor)
     var
         PurchWithhContribution: Record "Purch. Withh. Contribution";
     begin
@@ -643,16 +644,16 @@ table 12137 "Purch. Withh. Contribution"
 
         DeleteRecByPurchHeader(PurchaseHeader);
 
-        if Vend."Withholding Tax Code" <> '' then begin
+        if Vend2."Withholding Tax Code" <> '' then begin
             PurchWithhContribution.Init();
             PurchWithhContribution.Validate("Document Type", PurchaseHeader."Document Type");
             PurchWithhContribution.Validate("No.", PurchaseHeader."No.");
             PurchWithhContribution.Validate("Date Related", PurchaseHeader."Document Date");
-            PurchWithhContribution."Withholding Tax Code" := Vend."Withholding Tax Code";
-            PurchWithhContribution."Social Security Code" := Vend."Social Security Code";
-            PurchWithhContribution."INAIL Code" := Vend."INAIL Code";
-            PurchWithhContribution.Validate("Currency Code", Vend."Currency Code");
-            OnCreateRecordOnBeforeInsertPurchWithhContribution(PurchWithhContribution, PurchaseHeader, Vend);
+            PurchWithhContribution."Withholding Tax Code" := Vend2."Withholding Tax Code";
+            PurchWithhContribution."Social Security Code" := Vend2."Social Security Code";
+            PurchWithhContribution."INAIL Code" := Vend2."INAIL Code";
+            PurchWithhContribution.Validate("Currency Code", Vend2."Currency Code");
+            OnCreateRecordOnBeforeInsertPurchWithhContribution(PurchWithhContribution, PurchaseHeader, Vend2);
             PurchWithhContribution.Insert(true);
         end;
     end;
