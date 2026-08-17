@@ -1,3 +1,9 @@
+namespace Microsoft.Test.Sustainability;
+
+using Microsoft.Sustainability.Account;
+using Microsoft.Sustainability.Ledger;
+using System.TestLibraries.Utilities;
+
 codeunit 148222 "Sust. Reversal Tests"
 {
     Subtype = Test;
@@ -267,8 +273,8 @@ codeunit 148222 "Sust. Reversal Tests"
     var
         SustLedgEntry: Record "Sustainability Ledger Entry";
         SustLedgEntry2: Record "Sustainability Ledger Entry";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
         SelectionFilter: Record "Sustainability Ledger Entry";
+        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
     begin
         // [SCENARIO] Reversing multiple selected entries when user confirms Yes
         // [GIVEN] Two sustainability entries from journal
@@ -292,8 +298,8 @@ codeunit 148222 "Sust. Reversal Tests"
     procedure ReverseMultipleEntriesConfirmNo()
     var
         SustLedgEntry: Record "Sustainability Ledger Entry";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
         SelectionFilter: Record "Sustainability Ledger Entry";
+        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
     begin
         // [SCENARIO] Reversing entries when user declines confirmation should leave entries unchanged
         // [GIVEN] A sustainability entry from journal
@@ -315,8 +321,8 @@ codeunit 148222 "Sust. Reversal Tests"
     var
         SustLedgEntry: Record "Sustainability Ledger Entry";
         SustLedgEntry2: Record "Sustainability Ledger Entry";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
         SelectionFilter: Record "Sustainability Ledger Entry";
+        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
     begin
         // [SCENARIO] If any entry in the selection is already reversed, all-or-nothing validation should fail
         // [GIVEN] Two entries - one already reversed, one not
