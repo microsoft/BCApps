@@ -39,14 +39,15 @@ if (-not (Test-Path $licenseFile)) {
 }
 Reset-BcContainerApplicationDatabase -ContainerName $parameters.ContainerName -Credential $parameters.Credential -LicenseFile $licenseFile
 
-if (-not [string]::IsNullOrWhiteSpace($parameters.companyName)) {
+$companyName = $parameters['companyName']
+if (-not [string]::IsNullOrWhiteSpace($companyName)) {
     $companyExists = @(
         Get-CompanyInBcContainer -containerName $parameters.ContainerName -tenant default |
-            Where-Object { ($_.CompanyName -eq $parameters.companyName) -or ($_.Name -eq $parameters.companyName) }
+            Where-Object { ($_.CompanyName -eq $companyName) -or ($_.Name -eq $companyName) }
     ).Count -gt 0
     if (-not $companyExists) {
-        Write-Host "Creating company $($parameters.companyName) before app install"
-        New-CompanyInBcContainer -containerName $parameters.ContainerName -tenant default -companyName $parameters.companyName
+        Write-Host "Creating company $companyName before app install"
+        New-CompanyInBcContainer -containerName $parameters.ContainerName -tenant default -companyName $companyName
     }
 }
 
