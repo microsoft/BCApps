@@ -320,10 +320,6 @@ report 5802 "Inventory Valuation - WIP"
                     AtLastDateSum += AtLastDate;
                     ValueEntryCostPostedToGLSum += ValueOfCostPstdToGL;
 
-                    // When a production order is finished with no output, the WIP is written off (expensed) to the
-                    // Inventory Adjustment account with no output entry. Present that written-off amount in the dedicated
-                    // "Expensed WIP" column and remove it from the ending WIP and consumption columns, so the same amount
-                    // is not shown twice and the ending WIP reconciles to the (now zero) G/L WIP balance.
                     if (CountRecord = LengthRecord) and IsFinishedWithoutOutput("Production Order") then begin
                         TotalExpensedWIP := TotalExpensedWIP + TotalAtLastDate;
                         ExpensedWIPSum := ExpensedWIPSum + TotalAtLastDate;
@@ -658,15 +654,13 @@ report 5802 "Inventory Valuation - WIP"
         exit(not ValueEntryExist("Production Order", StartDate, 99991231D));
     end;
 
-    local procedure IsFinishedWithoutOutput(ProductionOrder: Record "Production Order"): Boolean
+    local procedure IsFinishedWithoutOutput(var ProductionOrder: Record "Production Order"): Boolean
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
         if ProductionOrder.Status <> ProductionOrder.Status::Finished then
             exit(false);
 
-        // A production order finished with no output has no output item ledger entry, so its WIP was
-        // written off (expensed) to the Inventory Adjustment account instead of being cleared by an output entry.
         ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
