@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Comment;
@@ -803,8 +804,8 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         CompanyInformation.Get();
         CompanyInformation."SIRET No." := '';
         CompanyInformation."Registration No." := '';
-        CompanyInformation.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo('DE'));
         CompanyInformation.Validate("Country/Region Code", CountryRegion.Code);
+        CompanyInformation.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo('DE'));
         CompanyInformation.Modify(true);
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
@@ -834,6 +835,9 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ServiceParticipant.Insert();
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
         CompanyInformation.Get();
+        CompanyInformation.Address := '123 Rue de Paris';
+        CompanyInformation.City := 'Paris';
+        CompanyInformation."Post Code" := '75001';
         CompanyInformation.GLN := '';
         CompanyInformation."VAT Registration No." := '';
         CompanyInformation."SIRET No." := '';
@@ -1166,7 +1170,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
     local procedure Initialize()
     var
-        CountryRegion: Record "Country/Region";
         ServiceParticipant: Record "Service Participant";
         ServiceCode: Code[20];
     begin
@@ -1178,22 +1181,19 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
 
-        LibraryERM.CreateCountryRegion(CountryRegion);
-        CountryRegion.Validate("ISO Code", 'FR');
-        CountryRegion.Modify(true);
-
         CompanyInformation.Get();
         CompanyInformation.Name := 'Test Company FR';
         CompanyInformation.Address := '123 Rue de Paris';
         CompanyInformation.City := 'Paris';
         CompanyInformation."Post Code" := '75001';
-        CompanyInformation."Country/Region Code" := CountryRegion.Code;
+        CompanyInformation."Country/Region Code" := 'FR';
         CompanyInformation.Validate(IBAN, 'FR1420041010050500013M02606');
         CompanyInformation.Validate("SWIFT Code", 'CCBPFRPPVER');
         CompanyInformation.Validate("Bank Branch No.", '20041');
         CompanyInformation.Modify(true);
 
         SetupGeneralLedger();
+        CreatePostingSetupFixture();
 
         EDocumentService.Reset();
         EDocumentService.DeleteAll();
@@ -1215,8 +1215,22 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     local procedure InitializeCompanyIdentity()
+    var
+        CountryRegion: Record "Country/Region";
     begin
+        if not CountryRegion.Get('FR') then begin
+            CountryRegion.Code := 'FR';
+            CountryRegion.Insert(true);
+        end;
+        CountryRegion.Validate("ISO Code", 'FR');
+        CountryRegion.Modify(true);
+
         CompanyInformation.Get();
+        CompanyInformation.Name := 'Test Company FR';
+        CompanyInformation.Address := '123 Rue de Paris';
+        CompanyInformation.City := 'Paris';
+        CompanyInformation."Post Code" := '75001';
+        CompanyInformation.Validate("Country/Region Code", CountryRegion.Code);
         CompanyInformation.Validate("Registration No.", '123456789');
         CompanyInformation.Validate("SIRET No.", '12345678901234');
         CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
@@ -1666,6 +1680,68 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             GeneralLedgerSetup."LCY Code" := 'EUR';
             GeneralLedgerSetup.Modify(true);
         end;
+    end;
+
+    local procedure CreatePostingSetupFixture()
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PostingGroupCode: Code[20];
+    begin
+        PostingGroupCode := '0FR';
+
+        if not GenBusinessPostingGroup.Get(PostingGroupCode) then begin
+            GenBusinessPostingGroup.Code := PostingGroupCode;
+            GenBusinessPostingGroup.Insert(true);
+        end;
+        if not GenProductPostingGroup.Get(PostingGroupCode) then begin
+            GenProductPostingGroup.Code := PostingGroupCode;
+            GenProductPostingGroup.Insert(true);
+        end;
+
+        if not GeneralPostingSetup.Get(PostingGroupCode, PostingGroupCode) then begin
+            GeneralPostingSetup."Gen. Bus. Posting Group" := PostingGroupCode;
+            GeneralPostingSetup."Gen. Prod. Posting Group" := PostingGroupCode;
+            GeneralPostingSetup.Insert(true);
+        end;
+        GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Sales Credit Memo Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Sales Prepayments Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Credit Memo Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Prepayments Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("COGS Account (Interim)", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
+
+        if not VATBusinessPostingGroup.Get(PostingGroupCode) then begin
+            VATBusinessPostingGroup.Code := PostingGroupCode;
+            VATBusinessPostingGroup.Insert(true);
+        end;
+        if not VATProductPostingGroup.Get(PostingGroupCode) then begin
+            VATProductPostingGroup.Code := PostingGroupCode;
+            VATProductPostingGroup.Insert(true);
+        end;
+
+        if not VATPostingSetup.Get(PostingGroupCode, PostingGroupCode) then begin
+            VATPostingSetup."VAT Bus. Posting Group" := PostingGroupCode;
+            VATPostingSetup."VAT Prod. Posting Group" := PostingGroupCode;
+            VATPostingSetup.Insert(true);
+        end;
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", 20);
+        VATPostingSetup.Validate("Tax Category", 'S');
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
     end;
 
     local procedure CreateDirectPostingGLAccountWithSalesSetup(var GLAccount: Record "G/L Account")

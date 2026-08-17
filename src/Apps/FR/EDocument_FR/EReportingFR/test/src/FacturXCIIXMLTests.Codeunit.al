@@ -1737,6 +1737,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         CompanyInformation.Modify(true);
 
         SetupGeneralLedger();
+        CreatePostingSetupFixture();
 
         LibrarySetupStorage.SaveCompanyInformation();
         LibrarySetupStorage.SaveGeneralLedgerSetup();
@@ -2237,6 +2238,68 @@ codeunit 148148 "Factur-X CII XML Tests"
             GeneralLedgerSetup."LCY Code" := 'EUR';
             GeneralLedgerSetup.Modify(true);
         end;
+    end;
+
+    local procedure CreatePostingSetupFixture()
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PostingGroupCode: Code[20];
+    begin
+        PostingGroupCode := '0FR';
+
+        if not GenBusinessPostingGroup.Get(PostingGroupCode) then begin
+            GenBusinessPostingGroup.Code := PostingGroupCode;
+            GenBusinessPostingGroup.Insert(true);
+        end;
+        if not GenProductPostingGroup.Get(PostingGroupCode) then begin
+            GenProductPostingGroup.Code := PostingGroupCode;
+            GenProductPostingGroup.Insert(true);
+        end;
+
+        if not GeneralPostingSetup.Get(PostingGroupCode, PostingGroupCode) then begin
+            GeneralPostingSetup."Gen. Bus. Posting Group" := PostingGroupCode;
+            GeneralPostingSetup."Gen. Prod. Posting Group" := PostingGroupCode;
+            GeneralPostingSetup.Insert(true);
+        end;
+        GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Sales Credit Memo Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Sales Prepayments Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Credit Memo Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purch. Prepayments Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("COGS Account (Interim)", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
+
+        if not VATBusinessPostingGroup.Get(PostingGroupCode) then begin
+            VATBusinessPostingGroup.Code := PostingGroupCode;
+            VATBusinessPostingGroup.Insert(true);
+        end;
+        if not VATProductPostingGroup.Get(PostingGroupCode) then begin
+            VATProductPostingGroup.Code := PostingGroupCode;
+            VATProductPostingGroup.Insert(true);
+        end;
+
+        if not VATPostingSetup.Get(PostingGroupCode, PostingGroupCode) then begin
+            VATPostingSetup."VAT Bus. Posting Group" := PostingGroupCode;
+            VATPostingSetup."VAT Prod. Posting Group" := PostingGroupCode;
+            VATPostingSetup.Insert(true);
+        end;
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", 20);
+        VATPostingSetup.Validate("Tax Category", 'S');
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
     end;
 
     local procedure GetUnitOfMeasureCode(): Code[10]
