@@ -2,17 +2,6 @@
   "conditionalSettings": [
     {
       "triggers": [
-        "pull_request"
-      ],
-      "settings": {
-        "projects": [
-          "build\\projects\\Apps W1",
-          "build\\projects\\Test Apps W1"
-        ]
-      }
-    },
-    {
-      "triggers": [
         "merge_group"
       ],
       "settings": {
