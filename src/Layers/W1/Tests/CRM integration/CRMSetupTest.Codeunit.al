@@ -291,8 +291,8 @@ codeunit 139160 "CRM Setup Test"
     procedure ConnectionRegistrationMirrorsEnabledCheckbox()
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
-        CRMConnectionSetupPage: TestPage "CRM Connection Setup";
         Any: Codeunit "Any";
+        CRMConnectionSetupPage: TestPage "CRM Connection Setup";
     begin
         // [FEATURE] [UI]
         Initialize();
