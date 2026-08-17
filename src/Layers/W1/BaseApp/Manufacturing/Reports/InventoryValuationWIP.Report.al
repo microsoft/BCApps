@@ -103,6 +103,12 @@ report 5802 "Inventory Valuation - WIP"
                 ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
                 ObsoleteTag = '28.0';
             }
+            column(ExpensedWIPCaption; ExpensedWIPCaptionLbl)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
+            }
             column(ValueOfMatConsumpCaption; ValueOfMatConsumpCaptionLbl)
             {
                 ObsoleteState = Pending;
@@ -185,6 +191,7 @@ report 5802 "Inventory Valuation - WIP"
                 trigger OnAfterGetRecord()
                 var
                     IsHandled: Boolean;
+                    FinishedDate: Date;
                 begin
                     CountRecord := CountRecord + 1;
                     LastOutput := 0;
@@ -321,14 +328,22 @@ report 5802 "Inventory Valuation - WIP"
                     ValueEntryCostPostedToGLSum += ValueOfCostPstdToGL;
 
                     if (CountRecord = LengthRecord) and IsFinishedWithoutOutput("Production Order") then begin
-                        TotalExpensedWIP := TotalExpensedWIP + TotalAtLastDate;
-                        ExpensedWIPSum := ExpensedWIPSum + TotalAtLastDate;
+                        FinishedDate := "Production Order"."Finished Date";
+                        if (EndDate = 0D) or (FinishedDate <= EndDate) then begin
+                            if FinishedDate >= StartDate then begin
+                                TotalExpensedWIP := TotalExpensedWIP + TotalAtLastDate;
+                                ExpensedWIPSum := ExpensedWIPSum + TotalAtLastDate;
 
-                        ValueOfMatConsumptionSum := ValueOfMatConsumptionSum - TotalValueOfMatConsump;
-                        AtLastDateSum := AtLastDateSum - TotalAtLastDate;
+                                ValueOfMatConsumptionSum := ValueOfMatConsumptionSum - TotalValueOfMatConsump;
+                                TotalValueOfMatConsump := 0;
+                            end else begin
+                                LastWipSum := LastWipSum - TotalLastWIP;
+                                TotalLastWIP := 0;
+                            end;
 
-                        TotalValueOfMatConsump := 0;
-                        TotalAtLastDate := 0;
+                            AtLastDateSum := AtLastDateSum - TotalAtLastDate;
+                            TotalAtLastDate := 0;
+                        end;
                     end;
 
                     if (CountRecord <> LengthRecord) or (SkipZeroLines and ((TotalAtLastDate = 0) and (TotalExpensedWIP = 0) and (TotalValueOfCostPstdToGL = 0))) then
@@ -527,6 +542,7 @@ report 5802 "Inventory Valuation - WIP"
         OutputLbl = 'Output';
         AsOfEndDateLbl = 'As of End Date';
         CostPostedToGLLbl = 'Cost Posted to G/L';
+        ExpensedWIPLbl = 'Expensed WIP';
         // About the report labels
         AboutTheReportLbl = 'About the report', MaxLength = 31, Comment = 'Excel worksheet name.';
         EnvironmentLbl = 'Environment';
@@ -597,6 +613,7 @@ report 5802 "Inventory Valuation - WIP"
         ValueOfCapCaptionLbl: Label 'Capacity ';
         ValueOfOutputCaptionLbl: Label 'Output ';
         ValueEntryCostPostedtoGLCaptionLbl: Label 'Cost Posted to G/L';
+        ExpensedWIPCaptionLbl: Label 'Expensed WIP';
         ValueOfMatConsumpCaptionLbl: Label 'Consumption ';
         ProductionOrderNoCaptionLbl: Label 'No.';
         ProdOrderStatusCaptionLbl: Label 'Status';

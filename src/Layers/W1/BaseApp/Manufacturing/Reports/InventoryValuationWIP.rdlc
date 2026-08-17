@@ -403,7 +403,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Expensed WIP</Value>
+                                  <Value>=Fields!ExpensedWIPCaption.Value</Value>
                                   <Style>
                                     <FontStyle>Normal</FontStyle>
                                     <FontFamily>Segoe UI</FontFamily>
@@ -3186,6 +3186,15 @@
       </DefaultValue>
       <Prompt>CostPostedToGLLbl</Prompt>
     </ReportParameter>
+    <ReportParameter Name="ExpensedWIPLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ExpensedWIPLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ExpensedWIPLbl</Prompt>
+    </ReportParameter>
     <ReportParameter Name="AboutTheReportLbl">
       <DataType>String</DataType>
       <DefaultValue>
@@ -3414,6 +3423,9 @@ End Function
         </Field>
         <Field Name="ValueEntryCostPostedtoGLCaption">
           <DataField>ValueEntryCostPostedtoGLCaption</DataField>
+        </Field>
+        <Field Name="ExpensedWIPCaption">
+          <DataField>ExpensedWIPCaption</DataField>
         </Field>
         <Field Name="ValueOfMatConsumpCaption">
           <DataField>ValueOfMatConsumpCaption</DataField>
