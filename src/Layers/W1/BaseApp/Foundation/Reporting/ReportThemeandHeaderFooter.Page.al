@@ -34,11 +34,17 @@ page 9666 "Report Theme and Header/Footer"
         {
             repeater(Group)
             {
+                field(LayoutCaption; Rec."Caption")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Layout Name';
+                    ToolTip = 'Specifies the friendly, translated display name of the theme or header/footer part. For tenant-defined parts this matches the name.';
+                }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the theme or header/footer part.';
+                    ToolTip = 'Specifies the name that identifies the theme or header/footer part. This is the value stored when the part is assigned to a report.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -78,6 +84,7 @@ page 9666 "Report Theme and Header/Footer"
                 Caption = 'New theme';
                 Image = New;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
+                Visible = NewThemeVisible;
                 ToolTip = 'Upload a new theme part.';
 
                 trigger OnAction()
@@ -91,6 +98,7 @@ page 9666 "Report Theme and Header/Footer"
                 Caption = 'New header/footer';
                 Image = New;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
+                Visible = NewHeaderFooterVisible;
                 ToolTip = 'Upload a new header/footer part.';
 
                 trigger OnAction()
@@ -246,10 +254,34 @@ page 9666 "Report Theme and Header/Footer"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        // Show only the Composite Layout artifacts (themes and header/footer parts), not body layouts.
+        // When the page is opened as a lookup for one subtype, only offer the New action for that subtype: a part of
+        // the other subtype would be created and then immediately hidden by the lookup filter.
+        NewThemeVisible := (not LookupSubtypeSet) or (LookupSubtype = LookupSubtype::Theme);
+        NewHeaderFooterVisible := (not LookupSubtypeSet) or (LookupSubtype = LookupSubtype::HeaderFooter);
+
+        // Show only the Composite Layout artifacts (themes and header/footer parts), not body layouts. Filter group 2
+        // cannot be cleared from the filter pane, so the restriction here cannot be widened by the user.
         Rec.FilterGroup(2);
-        Rec.SetFilter("Layout Subtype", '%1|%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
+        if LookupSubtypeSet then begin
+            // Picking a part to assign: restrict to exactly what the platform will accept, so the pick cannot fail on
+            // save. Mirrors the filter in LookupCompositePart; drop the report filter if the platform ever accepts
+            // parts owned by an extension.
+            Rec.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+            Rec.SetRange("Layout Subtype", LookupSubtype);
+        end else
+            // Browsing the registry: list every theme and header/footer part, whichever report or app owns it.
+            Rec.SetFilter("Layout Subtype", '%1|%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
         Rec.FilterGroup(0);
+    end;
+
+    /// <summary>
+    /// Tells the page it is being opened as a lookup restricted to one subtype, so that only the New action for that
+    /// subtype is offered. Call before running the page; without it both New actions are available.
+    /// </summary>
+    internal procedure SetLookupSubtype(Subtype: Enum "Report Layout Subtype")
+    begin
+        LookupSubtype := Subtype;
+        LookupSubtypeSet := true;
     end;
 
     local procedure CreateArtifact(Subtype: Enum "Report Layout Subtype")
@@ -292,6 +324,7 @@ page 9666 "Report Theme and Header/Footer"
     local procedure SetStatus(NewStatus: Enum "Report Layout Status")
     var
         SelectedLayouts: Record "Report Layout List";
+        UpdatedName: Text;
         UpdateCount: Integer;
         AssignedCount: Integer;
     begin
@@ -307,9 +340,36 @@ page 9666 "Report Theme and Header/Footer"
         end;
 
         UpdateCount := ReportLayoutsImpl.SetLayoutStatusBatch(SelectedLayouts, NewStatus);
-        if UpdateCount > 0 then
-            Message(StatusChangedMsg, UpdateCount, NewStatus);
+        if UpdateCount > 0 then begin
+            // Name the part when a single one changed; fall back to the count for a multi-select.
+            UpdatedName := GetSingleUserDefinedName(SelectedLayouts);
+            if (UpdateCount = 1) and (UpdatedName <> '') then
+                Message(StatusChangedSingleMsg, UpdatedName, NewStatus)
+            else
+                Message(StatusChangedMsg, UpdateCount, NewStatus);
+        end;
         CurrPage.Update(false);
+    end;
+
+    /// <summary>
+    /// Returns the name of the only user-defined part in the selection, or an empty string when the selection holds
+    /// none or several. Out-of-box parts are excluded because their status cannot change.
+    /// </summary>
+    local procedure GetSingleUserDefinedName(var SelectedLayouts: Record "Report Layout List"): Text
+    var
+        FoundName: Text;
+        FoundCount: Integer;
+    begin
+        if SelectedLayouts.FindSet() then
+            repeat
+                if SelectedLayouts."User Defined" then begin
+                    FoundName := SelectedLayouts.Name;
+                    FoundCount += 1;
+                end;
+            until (SelectedLayouts.Next() = 0) or (FoundCount > 1);
+
+        if FoundCount = 1 then
+            exit(FoundName);
     end;
 
     local procedure CountAssignedInSelection(var SelectedLayouts: Record "Report Layout List"): Integer
@@ -414,7 +474,11 @@ page 9666 "Report Theme and Header/Footer"
     var
         ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        LookupSubtype: Enum "Report Layout Subtype";
         EmptyGuid: Guid;
+        LookupSubtypeSet: Boolean;
+        NewThemeVisible: Boolean;
+        NewHeaderFooterVisible: Boolean;
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
         CannotDeleteOobErr: Label 'Out-of-box themes and header/footer parts cannot be deleted.';
         CannotReplaceOobErr: Label 'Out-of-box themes and header/footer parts cannot be replaced.';
@@ -427,5 +491,6 @@ page 9666 "Report Theme and Header/Footer"
         DeleteArtifactQst: Label 'Delete the artifact %1?', Comment = '%1 = artifact name';
         DeletePartWithReferencesQst: Label 'The part "%1" is assigned in %2 report configuration(s). Deleting it will clear those assignments and the affected reports will render without this part. Do you want to continue?', Comment = '%1 = artifact name; %2 = number of configurations';
         StatusChangedMsg: Label 'The status of %1 part(s) was changed to %2.', Comment = '%1 = number of parts; %2 = new status';
+        StatusChangedSingleMsg: Label 'The status of "%1" was changed to %2.', Comment = '%1 = part name; %2 = new status';
         DemoteAssignedQst: Label 'The selected part(s) are currently assigned in %1 report configuration(s) and will keep applying when reports are printed, even after this status change. Change the status anyway?', Comment = '%1 = number of configurations';
 }

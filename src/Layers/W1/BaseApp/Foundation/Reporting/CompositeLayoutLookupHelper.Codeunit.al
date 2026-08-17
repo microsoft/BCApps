@@ -29,8 +29,14 @@ codeunit 9665 "Composite Layout Lookup Helper"
         ReportLayoutList: Record "Report Layout List";
         ReportThemeHeaderFooter: Page "Report Theme and Header/Footer";
     begin
+        // Assignment currently requires a part on the Tenant Report Defaults report: the platform rejects a composite
+        // reference to a layout on any other report when the configuration row is written. Offering those would only
+        // produce a choice that fails on save. Drop this filter if the platform starts accepting app-owned parts.
+        ReportLayoutList.SetRange("Report ID", this.GetTenantReportDefaultsReportID());
         ReportLayoutList.SetRange("Layout Subtype", Subtype);
         ReportThemeHeaderFooter.SetTableView(ReportLayoutList);
+        // Match the New action to the filter, so the lookup cannot create a part it would then hide.
+        ReportThemeHeaderFooter.SetLookupSubtype(Subtype);
         ReportThemeHeaderFooter.LookupMode(true);
         if ReportThemeHeaderFooter.RunModal() <> Action::LookupOK then
             exit(false);

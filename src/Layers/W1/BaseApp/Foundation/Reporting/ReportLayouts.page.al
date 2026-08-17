@@ -183,10 +183,13 @@ page 9660 "Report Layouts"
         }
         area(factboxes)
         {
-            part(ThemeHeaderFooterBox; "Theme and Header/Footer Box")
+            part(ReportLayoutFactBox; "Report Layout FactBox")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Theme and Header/Footer';
+                Caption = 'Details';
+                SubPageLink = "Report ID" = field("Report ID"),
+                              Name = field(Name),
+                              "Application ID" = field("Application ID");
                 Visible = DocumentReportExperienceEnabled and WordLayoutSelected;
             }
             systempart(Control11; Notes)
@@ -720,9 +723,6 @@ page 9660 "Report Layouts"
     begin
         LayoutIsSelected := not ((Rec."Report ID" = 0) and (Rec.Name = ''));
         WordLayoutSelected := LayoutIsSelected and (Rec."Layout Format" = Rec."Layout Format"::Word);
-
-        if DocumentReportExperienceEnabled and WordLayoutSelected then
-            CurrPage.ThemeHeaderFooterBox.Page.SetContext(Rec."Report ID", Rec.Name);
 
         CurrPage.SetSelectionFilter(SelectedReportLayoutList);
         IsMultiSelect := SelectedReportLayoutList.Count() > 1;
