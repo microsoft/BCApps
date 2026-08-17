@@ -244,55 +244,52 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
     begin
         IsHandled := false;
         OnBeforeCalcProdOrderLineExpCost(ProdOrderLine, ShareOfTotalCapCost, ExpMatCost, ExpCapDirCost, ExpSubDirCost, ExpCapOvhdCost, ExpMfgOvhdCost, IsHandled);
-        if IsHandled then begin
-            OnAfterCalcProdOrderLineExpCost(ProdOrderLine, ShareOfTotalCapCost, ExpMatCost, ExpCapDirCost, ExpSubDirCost, ExpCapOvhdCost, ExpMfgOvhdCost);
-            exit;
-        end;
+        if not IsHandled then begin
+            ProdOrderComp.SetCurrentKey(Status, "Prod. Order No.", "Prod. Order Line No.");
+            ProdOrderComp.SetRange(Status, ProdOrderLine.Status);
+            ProdOrderComp.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+            ProdOrderComp.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+            OnCalcProdOrderLineExpCostOnAfterProdOrderCompSetFilters(ProdOrderComp, ProdOrderLine);
+            if ProdOrderComp.Find('-') then
+                repeat
+                    ExpMatCost := ExpMatCost + ProdOrderComp."Cost Amount";
+                until ProdOrderComp.Next() = 0;
 
-        ProdOrderComp.SetCurrentKey(Status, "Prod. Order No.", "Prod. Order Line No.");
-        ProdOrderComp.SetRange(Status, ProdOrderLine.Status);
-        ProdOrderComp.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        ProdOrderComp.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-        OnCalcProdOrderLineExpCostOnAfterProdOrderCompSetFilters(ProdOrderComp, ProdOrderLine);
-        if ProdOrderComp.Find('-') then
-            repeat
-                ExpMatCost := ExpMatCost + ProdOrderComp."Cost Amount";
-            until ProdOrderComp.Next() = 0;
-
-        ProdOrderRtngLine.SetRange(Status, ProdOrderLine.Status);
-        ProdOrderRtngLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        ProdOrderRtngLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
-        ProdOrderRtngLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
-        OnCalcProdOrderLineExpCostOnAfterProdOrderRtngLineSetFilters(ProdOrderRtngLine, ProdOrderLine);
-        if ProdOrderRtngLine.Find('-') then
-            repeat
-                ExpOperCost :=
-                  ProdOrderRtngLine."Expected Operation Cost Amt." -
-                  ProdOrderRtngLine."Expected Capacity Ovhd. Cost";
-                OnCalcProdOrderLineExpCostOnExpOperCostCalculated(ExpOperCost, ProdOrderRtngLine);
-                if ProdOrderRtngLine.Type = ProdOrderRtngLine.Type::"Work Center" then begin
-                    if not WorkCenter.Get(ProdOrderRtngLine."No.") then
+            ProdOrderRtngLine.SetRange(Status, ProdOrderLine.Status);
+            ProdOrderRtngLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+            ProdOrderRtngLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
+            ProdOrderRtngLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+            OnCalcProdOrderLineExpCostOnAfterProdOrderRtngLineSetFilters(ProdOrderRtngLine, ProdOrderLine);
+            if ProdOrderRtngLine.Find('-') then
+                repeat
+                    ExpOperCost :=
+                      ProdOrderRtngLine."Expected Operation Cost Amt." -
+                      ProdOrderRtngLine."Expected Capacity Ovhd. Cost";
+                    OnCalcProdOrderLineExpCostOnExpOperCostCalculated(ExpOperCost, ProdOrderRtngLine);
+                    if ProdOrderRtngLine.Type = ProdOrderRtngLine.Type::"Work Center" then begin
+                        if not WorkCenter.Get(ProdOrderRtngLine."No.") then
+                            Clear(WorkCenter);
+                    end else
                         Clear(WorkCenter);
-                end else
-                    Clear(WorkCenter);
 
-                if WorkCenter."Subcontractor No." <> '' then
-                    ExpSubDirCostRtng := ExpSubDirCostRtng + ExpOperCost
-                else
-                    ExpCapDirCostRtng := ExpCapDirCostRtng + ExpOperCost;
-                ExpCapOvhdCostRtng := ExpCapOvhdCostRtng + ProdOrderRtngLine."Expected Capacity Ovhd. Cost";
-            until ProdOrderRtngLine.Next() = 0;
+                    if WorkCenter."Subcontractor No." <> '' then
+                        ExpSubDirCostRtng := ExpSubDirCostRtng + ExpOperCost
+                    else
+                        ExpCapDirCostRtng := ExpCapDirCostRtng + ExpOperCost;
+                    ExpCapOvhdCostRtng := ExpCapOvhdCostRtng + ProdOrderRtngLine."Expected Capacity Ovhd. Cost";
+                until ProdOrderRtngLine.Next() = 0;
 
-        ExpCapDirCost := ExpCapDirCost + Round(ExpCapDirCostRtng * ShareOfTotalCapCost);
-        ExpSubDirCost := ExpSubDirCost + Round(ExpSubDirCostRtng * ShareOfTotalCapCost);
-        ExpCapOvhdCost := ExpCapOvhdCost + Round(ExpCapOvhdCostRtng * ShareOfTotalCapCost);
-        ExpMfgDirCost := ExpMatCost + ExpCapDirCost + ExpSubDirCost + ExpCapOvhdCost;
-        ExpOvhdCost := ExpMfgOvhdCost;
-        if ExpMfgDirCost = 0 then
-            ExpMfgOvhdCost := ExpOvhdCost +
-              Round(CostCalculationMgt.CalcOvhdCost(ExpMfgDirCost, ProdOrderLine."Indirect Cost %", ProdOrderLine."Overhead Rate", ProdOrderLine."Quantity (Base)"))
-        else
-            ExpMfgOvhdCost := Round(CostCalculationMgt.CalcOvhdCost(ExpMfgDirCost, ProdOrderLine."Indirect Cost %", ProdOrderLine."Overhead Rate", ProdOrderLine."Quantity (Base)"));
+            ExpCapDirCost := ExpCapDirCost + Round(ExpCapDirCostRtng * ShareOfTotalCapCost);
+            ExpSubDirCost := ExpSubDirCost + Round(ExpSubDirCostRtng * ShareOfTotalCapCost);
+            ExpCapOvhdCost := ExpCapOvhdCost + Round(ExpCapOvhdCostRtng * ShareOfTotalCapCost);
+            ExpMfgDirCost := ExpMatCost + ExpCapDirCost + ExpSubDirCost + ExpCapOvhdCost;
+            ExpOvhdCost := ExpMfgOvhdCost;
+            if ExpMfgDirCost = 0 then
+                ExpMfgOvhdCost := ExpOvhdCost +
+                  Round(CostCalculationMgt.CalcOvhdCost(ExpMfgDirCost, ProdOrderLine."Indirect Cost %", ProdOrderLine."Overhead Rate", ProdOrderLine."Quantity (Base)"))
+            else
+                ExpMfgOvhdCost := Round(CostCalculationMgt.CalcOvhdCost(ExpMfgDirCost, ProdOrderLine."Indirect Cost %", ProdOrderLine."Overhead Rate", ProdOrderLine."Quantity (Base)"));
+        end;
 
         OnAfterCalcProdOrderLineExpCost(ProdOrderLine, ShareOfTotalCapCost, ExpMatCost, ExpCapDirCost, ExpSubDirCost, ExpCapOvhdCost, ExpMfgOvhdCost);
     end;
