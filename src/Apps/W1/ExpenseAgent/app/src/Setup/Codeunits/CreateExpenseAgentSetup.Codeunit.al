@@ -164,7 +164,7 @@ codeunit 6970 "Create Expense Agent Setup"
 
     internal procedure GetMileageUOMStandardCodeFilter(): Text
     begin
-        exit('SMI|MI|KMT|KM');
+        exit('SMI|MI|KMT|KM|1A');
     end;
 
     local procedure CreateExpensePaymentMethod(PaymentMethodCode: Code[10]; Description: Text[100]; ReimbursementType: Enum "Expense Reimbursement Type")
