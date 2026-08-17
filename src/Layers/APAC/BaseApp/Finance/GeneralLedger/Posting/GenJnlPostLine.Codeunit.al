@@ -1637,6 +1637,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf.Init();
         TempDtldCVLedgEntryBuf.CopyFromGenJnlLine(GenJnlLine);
         TempDtldCVLedgEntryBuf."CV Ledger Entry No." := EmployeeLedgerEntry."Entry No.";
+        OnPostEmployeeAfterTempDtldCVLedgEntryBufInit(GenJnlLine, TempDtldCVLedgEntryBuf, TaxAmount, TaxBaseAmount);
+
         CVLedgEntryBuf.CopyFromEmplLedgEntry(EmployeeLedgerEntry);
         TempDtldCVLedgEntryBuf.InsertDtldCVLedgEntry(TempDtldCVLedgEntryBuf, CVLedgEntryBuf, true);
         CVLedgEntryBuf.Open := CVLedgEntryBuf."Remaining Amount" <> 0;
@@ -8192,9 +8194,30 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     InitGLEntry(
                         GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true, TotalAmountAddCurr)
                 else
-                    InitGLEntry(
-                        GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, 0, false, true, TotalAmountAddCurr);
+                    if VendorACYExchangeRateApplies(GenJnlLine) then
+                        // [641827] GLCalcAddCurrency keeps the vendor ACY here, so derive Source Currency Amount from LCY.
+                        InitGLEntry(
+                            GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, TotalAmountAddCurr, true, true,
+                            CalcAmountSrcCurr(GenJnlLine, TotalAmountLCY))
+                    else
+                        InitGLEntry(
+                            GenJnlLine, GLEntry, GLAccNo, TotalAmountLCY, 0, false, true, TotalAmountAddCurr);
         end;
+    end;
+
+    local procedure VendorACYExchangeRateApplies(GenJnlLine: Record "Gen. Journal Line"): Boolean
+    var
+        PurchSetup: Record "Purchases & Payables Setup";
+    begin
+        // Mirrors GLCalcAddCurrency's vendor-ACY branch so the balancing entry's Source Currency Amount matches its ACY.
+        if (AddCurrencyCode = '') or (not UseVendExchRate) then
+            exit(false);
+        if GenJnlLine."Additional-Currency Posting" <> GenJnlLine."Additional-Currency Posting"::None then
+            exit(false);
+        // Read fresh, like GLCalcAddCurrency, so a mid-batch setup change is not masked by a cached value.
+        PurchSetup.SetLoadFields("Enable Vendor GST Amount (ACY)");
+        PurchSetup.Get();
+        exit(PurchSetup."Enable Vendor GST Amount (ACY)");
     end;
 
     local procedure PostDtldAdjustment(GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; AdjAmount: array[4] of Decimal; TotalAmountLCY: Decimal; TotalAmountAddCurr: Decimal; GLAcc: Code[20]; ArrayIndex: Integer): Boolean
@@ -8464,6 +8487,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry: Record "G/L Entry";
         IsHandled: Boolean;
     begin
+        // General balancing entries are never the vendor-ACY case; clear the transient flag so leftover state cannot select it.
+        UseVendExchRate := false;
         HandleDtldAdjustment(GenJnlLine, GLEntry, AdjAmountBuf, Amount, AmountACY, GLAccNo);
         GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
         GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
@@ -13684,6 +13709,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostEmployee(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostEmployeeAfterTempDtldCVLedgEntryBufInit(var GenJnlLine: Record "Gen. Journal Line"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary; TaxAmount: Decimal; TaxBaseAmount: Decimal)
     begin
     end;
 }
