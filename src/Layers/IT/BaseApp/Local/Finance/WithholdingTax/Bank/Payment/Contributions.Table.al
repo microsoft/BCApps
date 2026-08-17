@@ -294,10 +294,10 @@ table 12117 Contributions
 
     trigger OnInsert()
     begin
-        SocialSecurity.LockTable();
-        SocialSecurity.Reset();
-        if SocialSecurity.FindLast() then
-            "Entry No." := SocialSecurity."Entry No." + 1
+        Contributions.LockTable();
+        Contributions.Reset();
+        if Contributions.FindLast() then
+            "Entry No." := Contributions."Entry No." + 1
         else
             "Entry No." := 1;
     end;
@@ -311,22 +311,22 @@ table 12117 Contributions
     end;
 
     var
+        ContributionCodeLine: Record "Contribution Code Line";
+        Contributions: Record Contributions;
+        WithholdingSocSecMgt: Codeunit "Withholding - Contribution";
         PaidAndOrCertifiedErr: Label 'Paid and/or certified Social Security taxes cannot be modified.';
         NotCertifiedQst: Label 'Caution, this contribution was not certified. Continue anyway?';
         OperationCancelledErr: Label 'Operation cancelled.';
         PaidNotCertifiedErr: Label 'Paid and not certified Social Security taxes cannot be deleted.';
         CertifiedNotPaidErr: Label 'Certified and not paid Social Security taxes cannot be deleted.';
-        SocSecCodeLine: Record "Contribution Code Line";
-        SocialSecurity: Record Contributions;
-        WithholdingSocSecMgt: Codeunit "Withholding - Contribution";
 
     procedure ValorizzaINPS()
     begin
         WithholdingSocSecMgt.SetSocSecLineFilters(
-            SocSecCodeLine, "Social Security Code", "Payment Date", SocSecCodeLine."Contribution Type"::INPS);
+            ContributionCodeLine, "Social Security Code", "Payment Date", ContributionCodeLine."Contribution Type"::INPS);
 
-        "Social Security %" := SocSecCodeLine."Social Security %";
-        "Free-Lance Amount %" := SocSecCodeLine."Free-Lance Amount %";
+        "Social Security %" := ContributionCodeLine."Social Security %";
+        "Free-Lance Amount %" := ContributionCodeLine."Free-Lance Amount %";
 
         Validate("Non Taxable Amount");
     end;
@@ -342,10 +342,10 @@ table 12117 Contributions
     procedure ValorizzaINAIL()
     begin
         WithholdingSocSecMgt.SetSocSecLineFilters(
-            SocSecCodeLine, "INAIL Code", "Payment Date", SocSecCodeLine."Contribution Type"::INAIL);
+            ContributionCodeLine, "INAIL Code", "Payment Date", ContributionCodeLine."Contribution Type"::INAIL);
 
-        "INAIL Per Mil" := SocSecCodeLine."Social Security %";
-        "INAIL Free-Lance %" := SocSecCodeLine."Free-Lance Amount %";
+        "INAIL Per Mil" := ContributionCodeLine."Social Security %";
+        "INAIL Free-Lance %" := ContributionCodeLine."Free-Lance Amount %";
 
         Validate("INAIL Non Taxable Amount");
     end;
