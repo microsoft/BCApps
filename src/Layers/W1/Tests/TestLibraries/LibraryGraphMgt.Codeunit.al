@@ -222,14 +222,16 @@ codeunit 130618 "Library - Graph Mgt"
     local procedure EnsureApiTestVATPostingSetup(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var Created: Boolean)
     var
         VATPostingSetup: Record "VAT Posting Setup";
-        LibraryERM: Codeunit "Library - ERM";
     begin
-        if (VATBusPostingGroup = '') or (VATProdPostingGroup = '') then
+        if (VATBusPostingGroup = '') and (VATProdPostingGroup = '') then
             exit;
         if VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
             exit;
 
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup, VATProdPostingGroup);
+        VATPostingSetup.Init();
+        VATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
+        VATPostingSetup."VAT Prod. Posting Group" := VATProdPostingGroup;
+        VATPostingSetup.Insert();
         Created := true;
     end;
 
