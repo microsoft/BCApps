@@ -14,12 +14,16 @@ codeunit 148343 "Expense Activity Log API Test"
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseActivityLogEntries', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
@@ -575,7 +579,6 @@ codeunit 148343 "Expense Activity Log API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();
