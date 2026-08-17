@@ -231,7 +231,6 @@ codeunit 130622 "Library - Graph Journal Lines"
     procedure CreateVendorPaymentsJournal(): Code[10]
     var
         GenJournalBatch: Record "Gen. Journal Batch";
-        LibraryERM: Codeunit "Library - ERM";
         JournalName: Code[10];
     begin
         JournalName := LibraryUtility.GenerateRandomCode(GenJournalBatch.FieldNo(Name), DATABASE::"Gen. Journal Batch");
