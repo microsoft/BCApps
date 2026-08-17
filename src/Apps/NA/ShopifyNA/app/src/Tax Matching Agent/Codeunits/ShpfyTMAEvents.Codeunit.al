@@ -21,6 +21,7 @@ codeunit 30473 "Shpfy TMA Events"
         ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the tax match has been approved. Open the order, choose Review Tax Match, and approve the match on the review page — or clear Tax Match Review Required on the Shopify Shop Card.', Comment = '%1 = Shopify Order No.';
         RateConflictBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because a matched tax rate differs from Business Central. Open the order, choose Review Tax Match, and either approve the match to accept Business Central''s rates or correct the Tax Detail rate or Tax Jurisdiction, on the review page.', Comment = '%1 = Shopify Order No.';
         IncompleteBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because the Tax Matching Agent could not resolve one or more tax lines to a Tax Jurisdiction. Open the order, choose Review Tax Match, assign a Tax Jurisdiction to every tax line, and approve the match on the review page.', Comment = '%1 = Shopify Order No.';
+        SecurityPromptUnavailableMsg: Label 'Shopify Tax Matching: security prompt unavailable from Key Vault; tax matching skipped for this order.', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterMapShopifyOrder, '', false, false)]
     local procedure OnAfterMapShopifyOrder(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
@@ -39,6 +40,7 @@ codeunit 30473 "Shpfy TMA Events"
         HasRateConflict: Boolean;
         HasUnresolvedLine: Boolean;
         MatchApplied: Boolean;
+        SecurityPrompt: SecretText;
     begin
         if not Result then
             exit;
@@ -55,6 +57,12 @@ codeunit 30473 "Shpfy TMA Events"
         if not CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Shpfy Tax Matching") then
             exit;
 
+        if not TMAMatcher.TryGetGuardrailPrompt(SecurityPrompt) then begin
+            Session.LogMessage('0000UNV', SecurityPromptUnavailableMsg,
+                Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+            exit;
+        end;
+
         // Reset markers before re-matching (e.g. when a user manually cleared Tax Area Code to force a re-run).
         if ShopifyOrderHeader."Tax Match Applied" or ShopifyOrderHeader."Tax Match Reviewed" or ShopifyOrderHeader."Tax Rate Conflict" or ShopifyOrderHeader."Tax Match Incomplete" then begin
             ShopifyOrderHeader."Tax Match Applied" := false;
@@ -67,7 +75,7 @@ codeunit 30473 "Shpfy TMA Events"
         Session.LogMessage('0000UMK', StrSubstNo(StartingMatchMsg, ShopifyOrderHeader."Shopify Order Id"),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
 
-        MatchApplied := TMAMatcher.MatchTaxLines(ShopifyOrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine);
+        MatchApplied := TMAMatcher.MatchTaxLines(ShopifyOrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine);
         if not MatchApplied then
             exit;
 

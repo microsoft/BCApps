@@ -28,12 +28,11 @@ codeunit 30471 "Shpfy TMA Matcher"
         TaxDetailRateMismatchMsg: Label 'Shopify Tax Matching: Existing Tax Detail for jurisdiction %1, tax group %2 has rate %3, but Shopify reported %4. Existing detail left untouched.', Locked = true, Comment = '%1 = jurisdiction code, %2 = tax group code, %3 = BC rate, %4 = Shopify rate';
         RateConflictReasonTok: Label 'Shopify charged %1%, but Business Central has a Tax Detail rate of %2% for tax group %3. Business Central will post at its own rate unless you correct the Tax Detail.', Comment = '%1 = Shopify rate, %2 = existing BC rate, %3 = tax group code';
         SecurityPromptSecretNameTok: Label 'ShopifyTaxMatchingAgentSecurityPrompt', Locked = true;
-        KeyVaultPromptErr: Label 'There was an error preparing the Shopify tax matching request. Log a Business Central support request about this.';
         AuditJurisdictionCreatedLbl: Label 'Shopify Tax Matching Agent (AI) auto-created Tax Jurisdiction %1 from Shopify order %2, based on buyer-controlled Shopify tax data.', Comment = '%1 = Tax Jurisdiction code, %2 = Shopify order id';
         UnknownSentinelTok: Label 'UNKNOWN', Locked = true;
         UnresolvedTaxLineMsg: Label 'Shopify Tax Matching: Tax line %1 could not be resolved to a jurisdiction (model returned UNKNOWN); left unmatched for review.', Locked = true, Comment = '%1 = Tax line ID';
 
-    procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean): Boolean
+    procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; SecurityPrompt: SecretText; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean): Boolean
     var
         OrderLine: Record "Shpfy Order Line";
         ShippingCharge: Record "Shpfy Order Shipping Charges";
@@ -99,11 +98,11 @@ codeunit 30471 "Shpfy TMA Matcher"
         // Call LLM and process results. HasRateConflict is accumulated per line inside
         // ApplyMatches -> ApplyAssignedJurisdiction, then stored on the order by the caller as the
         // single source of truth.
-        exit(CallLLMAndApplyMatches(OrderHeader, Shop, UserPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine));
+        exit(CallLLMAndApplyMatches(OrderHeader, Shop, UserPrompt, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine));
     end;
 
     [NonDebuggable]
-    local procedure CallLLMAndApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; UserPrompt: Text; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean): Boolean
+    local procedure CallLLMAndApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; UserPrompt: Text; SecurityPrompt: SecretText; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean): Boolean
     var
         AzureOpenAI: Codeunit "Azure OpenAi";
         AOAIDeployments: Codeunit "AOAI Deployments";
@@ -116,7 +115,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         SystemPromptTxt: SecretText;
         MatchResults: JsonObject;
     begin
-        SystemPromptTxt := GetSystemPrompt();
+        SystemPromptTxt := GetSystemPrompt(SecurityPrompt);
 
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Shpfy Tax Matching");
@@ -570,23 +569,20 @@ codeunit 30471 "Shpfy TMA Matcher"
     end;
 
     [NonDebuggable]
-    local procedure GetSystemPrompt(): SecretText
+    local procedure GetSystemPrompt(SecurityPrompt: SecretText): SecretText
     var
         MatchingPrompt: Text;
     begin
         MatchingPrompt := NavApp.GetResourceAsText('Prompts/ShpfyTaxMatchingAgent-SystemPrompt.md', TextEncoding::UTF8);
-        exit(SecretStrSubstNo('%1%2', MatchingPrompt, GetSecurityPrompt()));
+        exit(SecretStrSubstNo('%1%2', MatchingPrompt, SecurityPrompt));
     end;
 
     [NonDebuggable]
-    local procedure GetSecurityPrompt(): SecretText
+    internal procedure TryGetGuardrailPrompt(var SecurityPrompt: SecretText): Boolean
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        SecurityPrompt: SecretText;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptSecretNameTok, SecurityPrompt) then
-            Error(KeyVaultPromptErr);
-        exit(SecurityPrompt);
+        exit(AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptSecretNameTok, SecurityPrompt));
     end;
 
     internal procedure Capitalize(Confidence: Text): Text

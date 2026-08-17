@@ -35,6 +35,7 @@ codeunit 134717 "Shpfy TMA Match Test"
         ElementExists: Boolean;
         HasRateConflict: Boolean;
         HasUnresolvedLine: Boolean;
+        SecurityPrompt: SecretText;
     begin
         // Arrange
         TMATestLibrary.CleanupTestData();
@@ -46,8 +47,10 @@ codeunit 134717 "Shpfy TMA Match Test"
         OrderHeader := TMATestLibrary.SetupOrder(Input.Element('setup'), Shop);
 
         // Act — real LLM call + tax area. A rate conflict still matches (the jurisdiction is
-        // correct) and builds the Tax Area; the order is flagged for review.
-        Result := TMAMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine);
+        // correct) and builds the Tax Area; the order is flagged for review. The guardrail prompt is
+        // read from Key Vault (provisioned in the eval environment) and carried into MatchTaxLines.
+        TMAMatcher.TryGetGuardrailPrompt(SecurityPrompt);
+        Result := TMAMatcher.MatchTaxLines(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine);
         if Result and (MatchedJurisdictions.Count() > 0) then
             TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated);
 
