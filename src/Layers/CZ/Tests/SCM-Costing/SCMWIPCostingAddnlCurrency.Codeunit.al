@@ -91,7 +91,7 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
         LibraryInventory.SetExpectedCostPosting(false);
 
         // [GIVEN] Currency "C" is the Additional Reporting Currency. Exchange rate 3 is used because 1/3 is non-terminating, so a naive ACY -> LCY -> ACY round-trip drops a cent.
-        ExchangeRate := libraryRandom.RandInt(2) + 1;
+        ExchangeRate := LibraryRandom.RandIntInRange(3, 3);
         AddReportingCurrencyCode := CreateAddReportingCurrency(ExchangeRate);
 
         // [GIVEN] An Average costing Item and a Vendor invoicing in the Additional Reporting Currency "C".
