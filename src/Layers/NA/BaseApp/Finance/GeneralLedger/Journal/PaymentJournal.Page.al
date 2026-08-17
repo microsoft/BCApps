@@ -176,6 +176,8 @@ page 256 "Payment Journal"
                     begin
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
+                        if Rec."Account Type" = Rec."Account Type"::"G/L Account" then
+                            GenJnlManagement.ShowNotificationIfSpendRequestIsRequired(Rec."Account No.", Rec."Spend Request No.", SpendRequestNotificationID);
                         CurrPage.SaveRecord();
                         OnAfterValidateAccountNo(Rec, xRec, Balance, TotalBalance, ShowBalance, ShowTotalBalance, BalanceVisible, TotalBalanceVisible, NumberOfRecords);
                     end;
@@ -366,6 +368,8 @@ page 256 "Payment Journal"
                     begin
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
+                        if Rec."Account Type" = Rec."Account Type"::"G/L Account" then
+                            GenJnlManagement.ShowNotificationIfSpendRequestIsRequired(Rec."Account No.", Rec."Spend Request No.", SpendRequestNotificationID);
                         CurrPage.SaveRecord();
                     end;
                 }
@@ -1176,6 +1180,22 @@ page 256 "Payment Journal"
                     begin
                         NetCustomerVendorBalances.SetGenJnlLine(Rec);
                         NetCustomerVendorBalances.RunModal();
+                    end;
+                }
+                action(SendVendorRemittanceAdvice)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Send Remittance Advice';
+                    Image = SendToMultiple;
+                    ToolTip = 'Send the remittance advice before posting a payment journal or after posting a payment. The advice contains vendor invoice numbers, which helps vendors to perform reconciliations.';
+
+                    trigger OnAction()
+                    var
+                        GenJournalLine: Record "Gen. Journal Line";
+                    begin
+                        GenJournalLine := Rec;
+                        CurrPage.SetSelectionFilter(GenJournalLine);
+                        SendVendorRemittanceAdviceRecords(GenJournalLine);
                     end;
                 }
             }
@@ -2014,6 +2034,7 @@ page 256 "Payment Journal"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         ClientTypeManagement: Codeunit "Client Type Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        SpendRequestNotificationID: Guid;
         GenJnlBatchApprovalStatus: Text[20];
         GenJnlLineApprovalStatus: Text[20];
         Balance: Decimal;
@@ -2075,6 +2096,7 @@ page 256 "Payment Journal"
         RecipientBankAccountEmptyErr: Label 'Recipient Bank Account must be filled.';
         ElectronicPaymentTok: Label 'NA Electronic Payments', Locked = true;
         AmountToApplyMissMatchMsg: Label 'Amount assigned on Apply Entries (%1) is bigger then the amount on the line (%2). System will remove all related Applies-to ID. Do you want to proceed?', Comment = '%1 - Amount to apply, %2 - Amount on the line';
+        RemittanceAdviceTxt: Label 'Remittance Advice';
 
     protected var
         GenJnlManagement: Codeunit GenJnlManagement;
@@ -2091,6 +2113,23 @@ page 256 "Payment Journal"
         ApplyEntriesActionEnabled: Boolean;
         AccName: Text[100];
         BalAccName: Text[100];
+
+    local procedure SendVendorRemittanceAdviceRecords(var GenJournalLine: Record "Gen. Journal Line")
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        DummyReportSelections: Record "Report Selections";
+        ReportSelectionInteger: Integer;
+    begin
+        if not GenJournalLine.FindSet() then
+            exit;
+
+        DummyReportSelections.Usage := DummyReportSelections.Usage::"V.Remittance";
+        ReportSelectionInteger := DummyReportSelections.Usage.AsInteger();
+
+        DocumentSendingProfile.SendVendorRecords(
+            ReportSelectionInteger, GenJournalLine, RemittanceAdviceTxt, Rec."Account No.", Rec."Document No.",
+            GenJournalLine.FieldNo("Account No."), GenJournalLine.FieldNo("Document No."));
+    end;
 
     local procedure CheckForPmtJnlErrors()
     var

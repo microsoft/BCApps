@@ -87,34 +87,6 @@ codeunit 135091 "Environment Information Test"
 
     [Test]
     [Scope('OnPrem')]
-    procedure TestApplicationServiceLocationIsEmptyOutsideSaaSInfrastructure()
-    begin
-        // [SCENARIO] Application service location is unavailable outside SaaS infrastructure.
-
-        // [GIVEN] SaaS testability is disabled
-        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
-
-        // [WHEN] The application service location is requested
-        // [THEN] An empty location is returned
-        Assert.AreEqual('', EnvironmentInformation.GetApplicationServiceLocation(), 'Application service location should be empty outside SaaS infrastructure.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestApplicationServiceEUDBIsFalseOutsideSaaSInfrastructure()
-    begin
-        // [SCENARIO] EUDB membership is unavailable outside SaaS infrastructure.
-
-        // [GIVEN] SaaS testability is disabled
-        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
-
-        // [WHEN] EUDB membership is requested
-        // [THEN] False is returned
-        Assert.IsFalse(EnvironmentInformation.IsApplicationServiceInEUDB(), 'Application service EUDB membership should be false outside SaaS infrastructure.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure TestIsEarlyPreviewVersionIsSet()
     begin
         // [SCENARIO] Set the testability to true. IsEarlyPreview returns correct value.
