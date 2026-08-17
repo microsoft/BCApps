@@ -738,7 +738,7 @@ codeunit 6785 "Withholding Tax Mgmt."
                     WithholdingTaxEntry."Unrealized Base" := 0;
                     WithholdingTaxEntry."Remaining Unrealized Amount" := 0;
                     WithholdingTaxEntry."Remaining Unrealized Base" := 0;
-                    WithholdingTaxEntry.Amount := Round(WithholdingTaxEntry.Base * WithholdingTaxEntry."Withholding Tax %" / 100);
+                    WithholdingTaxEntry.Amount := Round(WithholdingTaxEntry.Base * WithholdingTaxEntry."Withholding Tax %" / 100, GetAmountRoundingPrecision(WithholdingTaxEntry."Currency Code"));
                     WithholdingTaxEntry."Rem Realized Amount" := WithholdingTaxEntry.Amount;
                     WithholdingTaxEntry."Rem Realized Base" := WithholdingTaxEntry.Base;
                     WithholdingTaxEntry."Original Document No." := DocNo;
@@ -2141,7 +2141,7 @@ codeunit 6785 "Withholding Tax Mgmt."
         else
             WithholdingTaxEntry."Unrealized Base" := AmountVAT;
 
-        WithholdingTaxEntry."Unrealized Amount" := Round(WithholdingTaxEntry."Unrealized Base" * WithholdingTaxEntry."Withholding Tax %" / 100);
+        WithholdingTaxEntry."Unrealized Amount" := Round(WithholdingTaxEntry."Unrealized Base" * WithholdingTaxEntry."Withholding Tax %" / 100, GetAmountRoundingPrecision(WithholdingTaxEntry."Currency Code"));
         WithholdingTaxEntry."Unrealized Base (LCY)" :=
           Round(CurrExchRate.ExchangeAmtFCYToLCY(WithholdingTaxEntry."Document Date", WithholdingTaxEntry."Currency Code", WithholdingTaxEntry."Unrealized Base", CurrFactor));
         WithholdingTaxEntry."Unrealized Amount (LCY)" :=
@@ -2150,6 +2150,20 @@ codeunit 6785 "Withholding Tax Mgmt."
         WithholdingTaxEntry."Remaining Unrealized Base" := WithholdingTaxEntry."Unrealized Base";
         WithholdingTaxEntry."Rem Unrealized Amount (LCY)" := WithholdingTaxEntry."Unrealized Amount (LCY)";
         WithholdingTaxEntry."Rem Unrealized Base (LCY)" := WithholdingTaxEntry."Unrealized Base (LCY)";
+    end;
+
+    local procedure GetAmountRoundingPrecision(CurrencyCode: Code[10]): Decimal
+    var
+        Currency: Record Currency;
+        GLSetup: Record "General Ledger Setup";
+    begin
+        if CurrencyCode = '' then begin
+            GLSetup.Get();
+            exit(GLSetup."Amount Rounding Precision");
+        end;
+        Currency.Get(CurrencyCode);
+        Currency.TestField("Amount Rounding Precision");
+        exit(Currency."Amount Rounding Precision");
     end;
 
     local procedure FindWithholdingTaxEntryForApply(var WithholdingTaxEntry: Record "Withholding Tax Entry"; DocType: Enum "Gen. Journal Document Type"; DocNo: Code[20]; WithholdingBusPostingGr: Code[20]; WithholdingProdPostingGr: Code[20]): Boolean

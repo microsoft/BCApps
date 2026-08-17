@@ -19,7 +19,7 @@ codeunit 6369 "Pagero Processing"
                     tabledata "E-Document Service" = rm,
                     tabledata "E-Document Service Status" = rm;
 
-    procedure SendEDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var TempBlob: Codeunit "Temp Blob"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage)
+    procedure SendEDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var TempBlob: Codeunit "Temp Blob"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage)
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -39,7 +39,7 @@ codeunit 6369 "Pagero Processing"
         FeatureTelemetry.LogUptake('0000MSC', ExternalServiceTok, Enum::"Feature Uptake Status"::Used);
     end;
 
-    procedure GetDocumentResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage): Boolean
+    procedure GetDocumentResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage): Boolean
     begin
         if not CheckIfDocumentStatusSuccessful(EDocument, EDocumentService, HttpRequest, HttpResponse) then
             exit(false);
@@ -50,7 +50,7 @@ codeunit 6369 "Pagero Processing"
         exit(true);
     end;
 
-    procedure CancelEDocument(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean
+    procedure CancelEDocument(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
     begin
@@ -68,7 +68,7 @@ codeunit 6369 "Pagero Processing"
         exit(false);
     end;
 
-    procedure RestartEDocument(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage): Boolean
+    procedure RestartEDocument(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage): Boolean
     begin
         if (EDocumentService."Service Integration V2" <> EDocumentService."Service Integration V2"::Pagero) then
             exit;
@@ -77,7 +77,7 @@ codeunit 6369 "Pagero Processing"
             exit(true);
     end;
 
-    procedure GetDocumentApproval(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; HttpRequestMessage: HttpRequestMessage; HttpResponseMessage: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean
+    procedure GetDocumentApproval(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
         PageroAPIRequests: Codeunit "Pagero API Requests";
@@ -192,6 +192,8 @@ codeunit 6369 "Pagero Processing"
 
         EDocument."Document Id" := CopyStr(DocumentId, 1, MaxStrLen(EDocument."Document Id"));
         EDocument."File Id" := CopyStr(FileId, 1, MaxStrLen(EDocument."File Id"));
+        // The framework rereads the E-Document after the interface call, so the values have to be persisted here.
+        EDocument.Modify();
         ReceiveContext.Http().SetHttpRequestMessage(HttpRequest);
         ReceiveContext.Http().SetHttpResponseMessage(HttpResponse);
     end;
@@ -320,7 +322,7 @@ codeunit 6369 "Pagero Processing"
         exit(GetNumberOfReceivedDocuments(ResponseTxt));
     end;
 
-    local procedure SendEDocument(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage);
+    local procedure SendEDocument(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage);
     var
         HttpContentResponse: HttpContent;
     begin
