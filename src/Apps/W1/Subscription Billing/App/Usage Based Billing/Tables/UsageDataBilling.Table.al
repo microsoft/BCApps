@@ -301,6 +301,12 @@ table 8006 "Usage Data Billing"
             Caption = 'Product Name';
             ToolTip = 'Specifies the vendor''s product name for this subscription.';
         }
+        field(37; "Cost Amount from Unit Cost"; Boolean)
+        {
+            Caption = 'Cost Amount from Unit Cost';
+            ToolTip = 'Specifies whether the cost amount is calculated from the unit cost because the supplier did not deliver a cost amount.';
+            Editable = false;
+        }
     }
     keys
     {
@@ -444,6 +450,18 @@ table 8006 "Usage Data Billing"
         CurrencyMismatchErr := StrSubstNo(CustomerContractCurrencyMismatchErr, ContractNo, CustomerContract."Currency Code", ImportCurrencyCode);
     end;
 
+    /// <summary>
+    /// Sets the Unit Cost and Cost Amount of the usage data billing from the imported values and, for a customer whose supplier delivers
+    /// the price, its Unit Price and Amount. A value that is not delivered is derived from the other one and the Quantity, and the values
+    /// are converted from the import currency. It also sets "Cost Amount from Unit Cost", which states whether the Cost Amount is derived
+    /// from the Unit Cost because the supplier delivered no Cost Amount.
+    /// </summary>
+    /// <param name="UsageDataSupplier">The supplier of the usage data, which states whether the Unit Price is taken from the import.</param>
+    /// <param name="ImportCurrencyCode">The currency of the imported values.</param>
+    /// <param name="NewUnitCost">The imported Unit Cost.</param>
+    /// <param name="NewCostAmount">The imported Cost Amount.</param>
+    /// <param name="NewUnitPrice">The imported Unit Price.</param>
+    /// <param name="NewAmount">The imported Amount.</param>
     procedure CalculateAmounts(UsageDataSupplier: Record "Usage Data Supplier"; ImportCurrencyCode: Code[10]; NewUnitCost: Decimal; NewCostAmount: Decimal; NewUnitPrice: Decimal; NewAmount: Decimal)
     var
         Currency: Record Currency;
@@ -456,6 +474,7 @@ table 8006 "Usage Data Billing"
 
         NeedsCurrencyConversion := Rec."Currency Code" <> ImportCurrencyCode;
 
+        Rec."Cost Amount from Unit Cost" := (NewUnitCost <> 0) and (NewCostAmount = 0) and (Rec.Quantity <> 0);
         DeriveAndConvertAmounts(NewUnitCost, NewCostAmount, NeedsCurrencyConversion, ImportCurrencyCode);
         Rec."Unit Cost" := Round(NewUnitCost, Currency."Unit-Amount Rounding Precision");
         Rec."Cost Amount" := Round(NewCostAmount, Currency."Amount Rounding Precision");
