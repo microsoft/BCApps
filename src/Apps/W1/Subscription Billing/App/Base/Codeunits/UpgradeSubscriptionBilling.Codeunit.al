@@ -31,6 +31,7 @@ codeunit 8032 "Upgrade Subscription Billing"
         DeleteSalesSubscriptionLinesConnectedToDeletedQuote();
         RemoveDocumentNoFromBillingLines();
         FillPostingGroupsInContractDeferrals();
+        UpdateCostAmountFromUnitCostInUsageDataBilling();
     end;
 
 #if not CLEANSCHEMA29
@@ -401,6 +402,90 @@ codeunit 8032 "Upgrade Subscription Billing"
         exit('MS-623188-FillPostingGroupsInContractDeferrals-20250209');
     end;
 
+    local procedure UpdateCostAmountFromUnitCostInUsageDataBilling()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpdateCostAmountFromUnitCostInUsageDataBillingTag()) then
+            exit;
+
+        SetCostAmountFromUnitCostInUsageDataBilling();
+
+        UpgradeTag.SetUpgradeTag(UpdateCostAmountFromUnitCostInUsageDataBillingTag());
+    end;
+
+    internal procedure SetCostAmountFromUnitCostInUsageDataBilling()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        UsageDataImport: Record "Usage Data Import";
+        CostAmountFromUnitCostPerImportedLine: Dictionary of [Text, Boolean];
+        CostAmountFromUnitCost: Boolean;
+    begin
+        // Usage data billing created before "Cost Amount from Unit Cost" existed does not state whether the supplier delivered its Cost Amount. Its own values
+        // cannot tell, because a Unit Cost derived from a delivered Cost Amount matches that Cost Amount as well, so the imported line it was created from decides.
+        // Usage data billing without an imported line, or whose imported lines disagree, keeps its Cost Amount.
+        // Only usage data billing that can still be processed is updated: it belongs to an import that is not closed and it is not invoiced.
+        UsageDataImport.SetFilter("Processing Status", '<>%1', Enum::"Processing Status"::Closed);
+        UsageDataImport.SetLoadFields("Entry No.");
+        if not UsageDataImport.FindSet() then
+            exit;
+        UsageDataBilling.SetRange("Document No.", '');
+        UsageDataBilling.SetRange("Cost Amount from Unit Cost", false);
+        UsageDataBilling.SetFilter(Quantity, '<>%1', 0);
+        repeat
+            UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+            if UsageDataBilling.FindSet(true) then begin
+                GetCostAmountFromUnitCostPerImportedLine(UsageDataImport."Entry No.", CostAmountFromUnitCostPerImportedLine);
+                repeat
+                    if CostAmountFromUnitCostPerImportedLine.Get(GetImportedLineKey(UsageDataBilling."Subscription Header No.", UsageDataBilling."Product ID", UsageDataBilling."Product Name",
+                                                                                   UsageDataBilling."Charge Start Date", UsageDataBilling."Charge End Date", UsageDataBilling.Quantity), CostAmountFromUnitCost)
+                    then
+                        if CostAmountFromUnitCost then begin
+                            UsageDataBilling."Cost Amount from Unit Cost" := true;
+                            UsageDataBilling.Modify(false);
+                        end;
+                until UsageDataBilling.Next() = 0;
+            end;
+        until UsageDataImport.Next() = 0;
+    end;
+
+    local procedure GetCostAmountFromUnitCostPerImportedLine(UsageDataImportEntryNo: Integer; var CostAmountFromUnitCostPerImportedLine: Dictionary of [Text, Boolean])
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+        ImportedLineKey: Text;
+        CostAmountFromUnitCost: Boolean;
+        StoredCostAmountFromUnitCost: Boolean;
+    begin
+        // The condition is the one CalculateAmounts sets "Cost Amount from Unit Cost" with; the Quantity is part of the key.
+        Clear(CostAmountFromUnitCostPerImportedLine);
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
+        UsageDataGenericImport.SetLoadFields("Subscription Header No.", "Product ID", "Product Name", "Billing Period Start Date", "Billing Period End Date", Quantity, Cost, "Cost Amount");
+        if UsageDataGenericImport.FindSet() then
+            repeat
+                ImportedLineKey := GetImportedLineKey(UsageDataGenericImport."Subscription Header No.", UsageDataGenericImport."Product ID", UsageDataGenericImport."Product Name",
+                                                      UsageDataGenericImport."Billing Period Start Date", UsageDataGenericImport."Billing Period End Date", UsageDataGenericImport.Quantity);
+                CostAmountFromUnitCost := (UsageDataGenericImport.Cost <> 0) and (UsageDataGenericImport."Cost Amount" = 0);
+                if CostAmountFromUnitCostPerImportedLine.Get(ImportedLineKey, StoredCostAmountFromUnitCost) then begin
+                    if StoredCostAmountFromUnitCost <> CostAmountFromUnitCost then
+                        CostAmountFromUnitCostPerImportedLine.Set(ImportedLineKey, false);
+                end else
+                    CostAmountFromUnitCostPerImportedLine.Add(ImportedLineKey, CostAmountFromUnitCost);
+            until UsageDataGenericImport.Next() = 0;
+    end;
+
+    local procedure GetImportedLineKey(SubscriptionHeaderNo: Code[20]; ProductID: Text[80]; ProductName: Text[100]; ChargeStartDate: Date; ChargeEndDate: Date; Quantity: Decimal): Text
+    var
+        ImportedLineKeyTok: Label '%1|%2|%3|%4|%5|%6', Locked = true;
+    begin
+        // The length of the Product ID keeps the key unique whatever the Product ID and the Product Name contain.
+        exit(StrSubstNo(ImportedLineKeyTok, SubscriptionHeaderNo, Format(ChargeStartDate, 0, 9), Format(ChargeEndDate, 0, 9), Format(Quantity, 0, 9), StrLen(ProductID), ProductID + ProductName));
+    end;
+
+    local procedure UpdateCostAmountFromUnitCostInUsageDataBillingTag(): Text[250]
+    begin
+        exit('MS-10033-CostAmountFromUnitCostInUsageDataBilling-20261118');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
@@ -416,5 +501,6 @@ codeunit 8032 "Upgrade Subscription Billing"
         PerCompanyUpgradeTags.Add(DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag());
         PerCompanyUpgradeTags.Add(RemoveDocumentNoFromBillingLinesTag());
         PerCompanyUpgradeTags.Add(FillPostingGroupsInContractDeferralsTag());
+        PerCompanyUpgradeTags.Add(UpdateCostAmountFromUnitCostInUsageDataBillingTag());
     end;
 }
