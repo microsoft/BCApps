@@ -154,6 +154,29 @@ page 7081 "Expense Report Line VAT Spec."
                         CurrPage.Update(false);
                     end;
                 }
+                action(ApproveAllReclaims)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Approve All Reclaims';
+                    Image = Approve;
+                    ToolTip = 'Approve all VAT reclaims for the selected expense report line.';
+
+                    trigger OnAction()
+                    var
+                        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+                    begin
+                        ExpenseReportLineVATSpec.SetRange("Document No.", Rec."Document No.");
+                        ExpenseReportLineVATSpec.SetRange("Document Line No.", Rec."Document Line No.");
+                        if ExpenseReportLineVATSpec.FindSet() then
+                            repeat
+                                if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::Pending then begin
+                                    ExpenseReportLineVATSpec.Validate("Reclaim Status", Rec."Reclaim Status"::Approved);
+                                    ExpenseReportLineVATSpec.Modify(true);
+                                end;
+                            until ExpenseReportLineVATSpec.Next() = 0;
+                        CurrPage.Update(false);
+                    end;
+                }
                 action(RejectReclaim)
                 {
                     ApplicationArea = Basic, Suite;
@@ -176,6 +199,9 @@ page 7081 "Expense Report Line VAT Spec."
             {
                 Caption = 'Process';
                 actionref(ApproveReclaim_Promoted; ApproveReclaim)
+                {
+                }
+                actionref(ApproveAllReclaims_Promoted; ApproveAllReclaims)
                 {
                 }
                 actionref(RejectReclaim_Promoted; RejectReclaim)
