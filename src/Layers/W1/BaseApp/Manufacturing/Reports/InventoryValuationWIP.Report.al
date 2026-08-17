@@ -178,6 +178,10 @@ report 5802 "Inventory Valuation - WIP"
                 column(LastWIP; TotalLastWIP)
                 {
                 }
+                column(ExpensedWIP; TotalExpensedWIP)
+                {
+                    AutoFormatType = 1;
+                }
                 trigger OnAfterGetRecord()
                 var
                     IsHandled: Boolean;
@@ -316,7 +320,22 @@ report 5802 "Inventory Valuation - WIP"
                     AtLastDateSum += AtLastDate;
                     ValueEntryCostPostedToGLSum += ValueOfCostPstdToGL;
 
-                    if (CountRecord <> LengthRecord) or (SkipZeroLines and ((TotalAtLastDate = 0) and (TotalValueOfCostPstdToGL = 0))) then
+                    // When a production order is finished with no output, the WIP is written off (expensed) to the
+                    // Inventory Adjustment account with no output entry. Present that written-off amount in the dedicated
+                    // "Expensed WIP" column and remove it from the ending WIP and consumption columns, so the same amount
+                    // is not shown twice and the ending WIP reconciles to the (now zero) G/L WIP balance.
+                    if (CountRecord = LengthRecord) and IsFinishedWithoutOutput("Production Order") then begin
+                        TotalExpensedWIP := TotalExpensedWIP + TotalAtLastDate;
+                        ExpensedWIPSum := ExpensedWIPSum + TotalAtLastDate;
+
+                        ValueOfMatConsumptionSum := ValueOfMatConsumptionSum - TotalValueOfMatConsump;
+                        AtLastDateSum := AtLastDateSum - TotalAtLastDate;
+
+                        TotalValueOfMatConsump := 0;
+                        TotalAtLastDate := 0;
+                    end;
+
+                    if (CountRecord <> LengthRecord) or (SkipZeroLines and ((TotalAtLastDate = 0) and (TotalExpensedWIP = 0) and (TotalValueOfCostPstdToGL = 0))) then
                         CurrReport.Skip();
                 end;
 
@@ -335,6 +354,7 @@ report 5802 "Inventory Valuation - WIP"
                     TotalLastOutput := 0;
                     TotalAtLastDate := 0;
                     TotalLastWIP := 0;
+                    TotalExpensedWIP := 0;
 
                     SetRange("Order Type", "Order Type"::Production);
                     SetRange("Order No.", "Production Order"."No.");
@@ -376,6 +396,9 @@ report 5802 "Inventory Valuation - WIP"
             {
             }
             column(AtLastDateSum; AtLastDateSum)
+            {
+            }
+            column(ExpensedWIPSum; ExpensedWIPSum)
             {
             }
             column(ValueEntryCostPostedToGLSum; ValueEntryCostPostedToGLSum)
@@ -567,6 +590,7 @@ report 5802 "Inventory Valuation - WIP"
         TotalLastOutput: Decimal;
         TotalAtLastDate: Decimal;
         TotalLastWIP: Decimal;
+        TotalExpensedWIP: Decimal;
         SkipZeroLines: Boolean;
         ReportHasData: Boolean;
         StartDateHeading: Text;
@@ -591,6 +615,7 @@ report 5802 "Inventory Valuation - WIP"
         ValueOfCapSum: Decimal;
         ValueOfOutputSum: Decimal;
         AtLastDateSum: Decimal;
+        ExpensedWIPSum: Decimal;
         ValueEntryCostPostedToGLSum: Decimal;
 
 
@@ -631,6 +656,21 @@ report 5802 "Inventory Valuation - WIP"
             exit(false);
 
         exit(not ValueEntryExist("Production Order", StartDate, 99991231D));
+    end;
+
+    local procedure IsFinishedWithoutOutput(ProductionOrder: Record "Production Order"): Boolean
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        if ProductionOrder.Status <> ProductionOrder.Status::Finished then
+            exit(false);
+
+        // A production order finished with no output has no output item ledger entry, so its WIP was
+        // written off (expensed) to the Inventory Adjustment account instead of being cleared by an output entry.
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        exit(ItemLedgerEntry.IsEmpty());
     end;
 
     procedure InitializeRequest(NewStartDate: Date; NewEndDate: Date)
