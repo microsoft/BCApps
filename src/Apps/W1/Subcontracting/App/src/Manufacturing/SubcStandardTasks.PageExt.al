@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
 
-pageextension 99001515 "Subc. Standard Tasks" extends "Standard Tasks"
+pageextension 20515 "Subc. Standard Tasks" extends "Standard Tasks"
 {
     actions
     {

@@ -23,7 +23,7 @@ using System.Email;
 using System.TestLibraries.Email;
 using System.Utilities;
 
-codeunit 139994 "Subc. Comments Attachment Test"
+codeunit 139995 "Subc. Comments Attachment Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

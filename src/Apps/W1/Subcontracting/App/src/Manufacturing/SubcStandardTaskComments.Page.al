@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-page 99001575 "Subc. Standard Task Comments"
+page 20575 "Subc. Standard Task Comments"
 {
     ApplicationArea = Subcontracting;
     AutoSplitKey = true;

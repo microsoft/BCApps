@@ -3,7 +3,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 
-table 99001574 "Subc. Prod. Rtng. Comment"
+table 20574 "Subc. Prod. Rtng. Comment"
 {
     Caption = 'Subcontracting Production Order Routing Comment';
     DrillDownPageID = "Subc. Prod. Rtng. Comments";

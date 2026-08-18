@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
 
-codeunit 99001572 "Subc. Routing Line Ext."
+codeunit 20568 "Subc. Routing Line Ext."
 {
     var
 #if not CLEAN29

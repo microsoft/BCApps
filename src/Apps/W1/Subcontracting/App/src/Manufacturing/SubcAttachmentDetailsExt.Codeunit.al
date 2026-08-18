@@ -8,7 +8,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 
-codeunit 99001599 "Subc. Attachment Details Ext."
+codeunit 20578 "Subc. Attachment Details Ext."
 {
     [EventSubscriber(ObjectType::Page, Page::"Document Attachment Details", OnAfterOpenForRecRef, '', false, false)]
     local procedure OnAfterOpenForRecRef(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef; var FlowFieldsEditable: Boolean; var PurchaseDocumentFlow: Boolean)

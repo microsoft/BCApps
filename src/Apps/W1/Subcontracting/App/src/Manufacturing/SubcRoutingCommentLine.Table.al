@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
 
-table 99001573 "Subc. Routing Comment Line"
+table 20573 "Subc. Routing Comment Line"
 {
     Caption = 'Subcontracting Routing Comment Line';
     DrillDownPageID = "Subc. Routing Comments";
