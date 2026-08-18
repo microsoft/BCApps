@@ -24,21 +24,28 @@ tableextension 30476 "Shpfy TMA Order Header" extends "Shpfy Order Header"
             Caption = 'Tax Match Reviewed';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies whether a user has approved the tax match for this order. When the shop has Tax Match Review Required enabled, a Sales Document is not created until the match is approved on the Tax Match Review page.';
+            ToolTip = 'Specifies whether a user has approved the tax match for this order. Depending on the shop''s Tax Match Review Mode, a Sales Document is not created until the match is approved on the Tax Match Review page.';
         }
         field(30478; "Tax Rate Conflict"; Boolean)
         {
             Caption = 'Tax Rate Conflict';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies whether the Tax Matching Agent matched a tax jurisdiction whose Business Central Tax Detail rate differs from the rate Shopify charged. Such an order is always held for human review, regardless of the Tax Match Review Required setting, so the rate difference can be accepted or corrected before a Sales Document is created.';
+            ToolTip = 'Specifies whether the Tax Matching Agent matched a tax jurisdiction whose Business Central Tax Detail rate differs from the rate Shopify charged. Such an order is always held for human review, regardless of the shop''s Tax Match Review Mode, so the rate difference can be accepted or corrected before a Sales Document is created.';
         }
         field(30479; "Tax Match Incomplete"; Boolean)
         {
             Caption = 'Tax Match Incomplete';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies whether the Tax Matching Agent could not resolve one or more tax lines to a Tax Jurisdiction (the model returned UNKNOWN, e.g. for an unrecognizable or adversarial tax-line title). Such an order is always held for human review, regardless of the Tax Match Review Required setting, so a user can assign the missing Tax Jurisdiction before a Sales Document is created.';
+            ToolTip = 'Specifies whether the Tax Matching Agent could not resolve one or more tax lines to a Tax Jurisdiction (the model returned UNKNOWN, e.g. for an unrecognizable or adversarial tax-line title). Such an order is always held for human review, regardless of the shop''s Tax Match Review Mode, so a user can assign the missing Tax Jurisdiction before a Sales Document is created.';
+        }
+        field(30480; "Tax Match Low Confidence"; Boolean)
+        {
+            Caption = 'Tax Match Low Confidence';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether the Tax Matching Agent produced at least one match on this order that is not high confidence. This includes a match to a provisional (agent-created, not yet verified) Tax Jurisdiction, which is always forced to low confidence. When the shop uses the Low Confidence Only review mode, such an order is held for human review.';
         }
     }
 }

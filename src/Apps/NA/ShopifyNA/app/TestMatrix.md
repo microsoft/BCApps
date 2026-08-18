@@ -80,12 +80,41 @@ effect on Approve and are reverted if the page is closed without approving.
 |---|----------|-------|-----------------|
 | RD1 | Item-group rate conflict | `NYSTAX × FURNITURE` Tax Detail = 10%; order line taxed at 20% for NYSTAX (group FURNITURE) | Line matched to NYSTAX; existing 10% detail untouched; telemetry `0000UMR`; `Tax Match Applied` + `Tax Rate Conflict` set; **Tax Area built**; Activity Log entry on the line noting the rate difference; order held (see RD3/RD4) |
 | RD2 | Partial conflict, multi-line | Lines A (NYSTAX, no existing detail) and B (NYCTAX × FURNITURE conflict) | A matched (code written, detail seeded); B matched (code written, existing detail untouched); **Tax Area built from both**; order flagged `Tax Rate Conflict` and held |
-| RD3 | Held in blocking mode | RD1 + shop Review Required = Yes | `OnBeforeCreateSalesHeader` sets `Handled := true`; no Sales Document created |
-| RD4 | Held in non-blocking mode | RD1 + shop Review Required = No | Still held — the gate holds because `Tax Rate Conflict` is set, regardless of the toggle, so a rate difference is never auto-posted without review |
+| RD3 | Held in Always mode | RD1 + shop Tax Match Review Mode = Always | `OnBeforeCreateSalesHeader` sets `Handled := true`; no Sales Document created |
+| RD4 | Held in Never mode | RD1 + shop Tax Match Review Mode = Never | Still held — the gate holds because `Tax Rate Conflict` is set, regardless of the review mode, so a rate difference is never auto-posted without review |
 | RD5 | Resolved then approved / re-run | After RD1 the reviewer either (a) accepts BC's 10% and clicks Approve, or (b) corrects the Tax Detail rate to 20% then Approves (or re-runs Find Mappings on the Shopify order) | On Approve the Tax Area is rebuilt from the line jurisdictions, `Tax Rate Conflict` is recomputed (clears when rates now agree), and the order is released. A re-run rebuilds from the order's **full** jurisdiction set (carried in from persisted codes), not just the re-matched line |
 | RD8 | Edit discarded on close | On a held order the reviewer changes a line's Tax Jurisdiction Code, then closes the page **without** Approve | A confirmation warns the edit will be discarded; on confirm the line's Tax Jurisdiction Code is reverted to its pre-edit value and `Tax Rate Conflict` is unchanged (still authoritative) |
 | RD9 | Undo Approval | On an approved, held order with no Sales Document yet (`Sales Order No.`/`Sales Invoice No.` blank), **Undo Approval** (after a confirm) clears `Tax Match Reviewed` so the order is held again; the action is hidden once a Sales Document exists or the order is not held-when-unapproved |
 | RD10 | Use Shopify Rate resolves the conflict | On a conflict line the reviewer clicks **Use Shopify Rate** (after a confirm warning it changes shared tax setup beyond this order): a Tax Detail is created/updated for the line's jurisdiction + tax group, effective the order's document date, at Shopify's rate. The row turns green (BC rate now equals Shopify's); on Approve the Tax Area is rebuilt and `Tax Rate Conflict` clears. The action is disabled when the rates already agree or no jurisdiction is assigned. **Verified manually / by TestPage** (page action + Confirm) |
+
+---
+
+## Review Mode & Provenance Scenarios
+
+The shop's `Tax Match Review Mode` (Always / Low Confidence Only / Never) decides whether a matched
+order is held for the review *preference* (evaluated by `IsHeldForReviewPreference`). A rate conflict
+or an incomplete match always holds regardless of the mode. An agent-auto-created Tax Jurisdiction is
+**provisional** (`Created by Agent` = true, `Verified` = false); in Always and Low Confidence Only
+modes a match to a provisional jurisdiction is deterministically forced to low confidence and sets
+the order's `Tax Match Low Confidence` flag, so the order is held (in Never mode the downgrade is
+skipped, since nothing is held). Approving any order that uses the jurisdiction sets `Verified` = true,
+clearing the provisional state (`MarkJurisdictionsVerified`). The gate rows RM1–RM7
+are deterministic in-memory unit tests; the provisional rows PV1–PV3 exercise the LLM path and live in
+the internal RAI app.
+
+| # | Scenario | Setup | Expected Result |
+|---|----------|-------|-----------------|
+| RM1 | Always holds every match | Applied, not reviewed, high confidence, no conflict; mode = Always | Held (`GateHeldWhenAlwaysRegardlessOfConfidence`) |
+| RM2 | Low Confidence Only holds low-confidence | Applied, not reviewed, `Tax Match Low Confidence` = true, no conflict; mode = Low Confidence Only | Held (`GateHeldWhenLowConfidenceOnlyAndLowConfidence`) |
+| RM3 | Low Confidence Only releases high-confidence | As RM2 but `Tax Match Low Confidence` = false | Not held (`GateNotHeldWhenLowConfidenceOnlyAndHighConfidence`) |
+| RM4 | Never releases a low-confidence match | Applied, not reviewed, low confidence, no conflict/incomplete; mode = Never | Not held (`GateNotHeldWhenNeverAndLowConfidence`) |
+| RM5 | Never still holds a rate conflict | Mode = Never, `Tax Rate Conflict` = true | Held (`GateHeldWhenNeverButRateConflict`) |
+| RM6 | Never still holds an incomplete match | Mode = Never, `Tax Match Incomplete` = true | Held (`GateHeldWhenNeverButIncomplete`) |
+| RM7 | Preference tracks the mode | One order; flip the mode across Always / Never / Low Confidence Only | `IsHeldForReviewPreference` returns true / false / flag-driven (`ReviewPreferenceFollowsMode`) |
+| PV1 | Provisional jurisdiction forced low | Auto-create on; model matches a not-yet-existing code; jurisdiction created (`Created by Agent` = true, `Verified` = false) | The created jurisdiction is matched, the match is recorded **low** confidence, `Tax Match Low Confidence` set → order held (LLM / XPIA scenario, internal app) |
+| PV2 | Later match stays provisional until verified | Second order, same ship-to; jurisdiction now exists but `Verified` = false | Match forced low again; order held (LLM / XPIA scenario, internal app) |
+| PV3 | Verify on approve | Reviewer approves an order using the provisional jurisdiction | `Verified` set true on every jurisdiction the order uses; a subsequent high-confidence match then rides through per mode (LLM / AIT scenario) |
+| PV4 | Non-agent jurisdiction never quarantined | Pre-existing / admin jurisdiction (`Created by Agent` = false) matched | Never forced low by provenance (the gate short-circuits on `Created by Agent`) |
 
 ---
 
@@ -152,13 +181,13 @@ A shipping-line rate conflict holds the order for review exactly like a product-
 | HITL-4 | `DisableForUser` from the Sales Order notification | Sets the order's `Tax Match Reviewed = true` and disables the prompt via `My Notifications` |
 | HITL-5 | Successful match applied | `Activity Log Entry` count for the Order Header `Tax Area Code` field ≥ 1; per-line entries on each matched `Shpfy Order Tax Line` |
 | HITL-6 | LLM returns 'low'/'medium'/'high'/unknown confidence | `Capitalize` helper maps to 'Low'/'Medium'/'High'/'Low' (safe fallback); `Activity Log Builder.SetConfidence` does not error |
-| HITL-7 | Review page Approve visibility (held order) | On a held order (shop requires review, or a live rate conflict) that isn't yet approved, **Approve** is visible; it sets `Tax Match Reviewed = true` and the order's Sales Document is created on the next process run |
-| HITL-8 | Review page Approve hidden (non-blocking, no conflict) | With review not required and no rate conflict, the order isn't held (its Sales Document is created automatically), so the page's **Approve** action is hidden and the page is informational |
+| HITL-7 | Review page Approve visibility (held order) | On a held order (the review mode holds it, or a live rate conflict) that isn't yet approved, **Approve** is visible; it sets `Tax Match Reviewed = true` and the order's Sales Document is created on the next process run |
+| HITL-8 | Review page Approve hidden (auto-released, no conflict) | When the review mode does not hold the order and there is no rate conflict, the order isn't held (its Sales Document is created automatically), so the page's **Approve** action is hidden and the page is informational |
 | HITL-9 | Review page scoping + content | The tax lines ListPart shows exactly the tax lines of the current order (filtered by the order's order line ids via `SetTaxLineFilter`), each with its applies-to Item No./description; AI confidence indicators render on Tax Jurisdiction Code |
 | HITL-10 | Sales Order prompt is stateless | With `Sales Header."Tax Match Applied"` set, the prompt fires iff the originating order's `Tax Match Reviewed = false` and `My Notifications` is enabled; no `Shpfy TMA Notification` table exists |
 | HITL-11 | Order-page review notification | On opening a matched, not-yet-reviewed Shopify order, `SendOrderReviewNotification` fires once per order/session; **Review** opens the review page; **Don't show again** disables it via `MyNotifications` |
-| HITL-12 | Page review actions | Shpfy Order page: **Review and Approve Tax Match** shows while the order is held (shop requires review or a live rate conflict) and it isn't yet approved, else **Review Tax Match**; both open the review page (hidden when not agent-matched). BC Sales Order page: **Review Tax Match** opens the review page when the marker is set |
-| HITL-13 | Review page close guard | When the order is being held (shop requires review, or a rate conflict) and it is not yet approved, closing the Tax Match Review page raises the `OnQueryClosePage` confirmation; declining keeps the page open. No warning once the order is approved |
+| HITL-12 | Page review actions | Shpfy Order page: **Review and Approve Tax Match** shows while the order is held (per the review mode or a live rate conflict) and it isn't yet approved, else **Review Tax Match**; both open the review page (hidden when not agent-matched). BC Sales Order page: **Review Tax Match** opens the review page when the marker is set |
+| HITL-13 | Review page close guard | When the order is being held (per the review mode, or a rate conflict) and it is not yet approved, closing the Tax Match Review page raises the `OnQueryClosePage` confirmation; declining keeps the page open. No warning once the order is approved |
 | RD6 | Approve rebuilds Tax Area | On a **held**, not-yet-reviewed order the **Approve** action is shown; it re-applies the line jurisdictions (re-seeding brackets, re-detecting conflicts), rebuilds the Tax Area, refreshes `Tax Rate Conflict`, and sets `Tax Match Reviewed`. Approve is blocked (error) while any tax line has a blank Tax Jurisdiction Code, **and** errors without releasing the order if no Tax Area can be resolved for the selected jurisdictions (e.g. edited to a set with no existing area and Auto Create Tax Areas is off) |
 | RD7 | Rate comparison + edit | Each tax line shows Shopify's rate next to Business Central's Tax Detail rate; the row is green when they agree, red when they differ. Editing a line's Tax Jurisdiction Code recomputes the BC rate/colour; on a rate conflict, the Overview tab shows a guidance message that approving posts at BC's rate |
 
@@ -166,7 +195,7 @@ A shipping-line rate conflict holds the order for review exactly like a product-
 
 | # | Scenario | Expected Result |
 |---|----------|-----------------|
-| SC-1 | Tax Matching Agent Enabled = No | Auto Create Jurisdictions/Areas, Naming Pattern, and Review Required are disabled (greyed out) |
+| SC-1 | Tax Matching Agent Enabled = No | Auto Create Jurisdictions/Areas, Naming Pattern, and Review Mode are disabled (greyed out) |
 | SC-2 | Enabled = Yes, Auto Create Tax Areas = No | Tax Area Naming Pattern is disabled; the other three are enabled |
 | SC-3 | Enabled = Yes, Auto Create Tax Areas = Yes | Tax Area Naming Pattern is enabled |
 
@@ -319,7 +348,7 @@ is the more honest accuracy signal; the *synthetic* family is the broader regres
 | `Shpfy TMA Tax Area Test` | 134718 | Tax Area find/create (TA*) — `FindOrCreateTaxArea` |
 | `Shpfy TMA Guard Test` | 134719 | Guard / early-exit (GD*, P1–P6) |
 | `Shpfy TMA HITL Test` | 134716 | HITL-1…6 — marker propagation, `MarkReviewed`, `DisableForUser`, Activity Log helpers, `Capitalize` |
-| `Shpfy TMA Rate Conflict Test` | 134720 | Rate-conflict recheck/flip on approve (RD1/RD5/RD6 core via `ReapplyFromAssignedLines`), including **shipping** tax lines (shipping bracket seeded from the shipping line's own rate; shipping rate conflict holds — S7); the Report-to rollup on re-apply (JC6 — `ReapplySetsReportToOnBlankJurisdictions` sets a blank Report-to on any matched jurisdiction incl. the state; `ReapplyPreservesExistingReportTo` leaves an admin-set one untouched); the creation gate RD3/RD4 + released cases (`IsSalesDocumentCreationHeld`), the business guards P4/tax-exempt/enabled (`ShouldAttemptMatch`), and Undo Approval RD9 (`UndoApproval`) |
+| `Shpfy TMA Rate Conflict Test` | 134720 | Rate-conflict recheck/flip on approve (RD1/RD5/RD6 core via `ReapplyFromAssignedLines`), including **shipping** tax lines (shipping bracket seeded from the shipping line's own rate; shipping rate conflict holds — S7); the Report-to rollup on re-apply (JC6 — `ReapplySetsReportToOnBlankJurisdictions` sets a blank Report-to on any matched jurisdiction incl. the state; `ReapplyPreservesExistingReportTo` leaves an admin-set one untouched); the creation gate RD3/RD4 + released cases (`IsSalesDocumentCreationHeld`), the **review-mode** gate RM1–RM7 and `IsHeldForReviewPreference` (`GateHeldWhenAlwaysRegardlessOfConfidence`, `GateHeldWhenLowConfidenceOnlyAndLowConfidence`, `GateNotHeldWhenLowConfidenceOnlyAndHighConfidence`, `GateNotHeldWhenNeverAndLowConfidence`, `GateHeldWhenNeverButRateConflict`, `GateHeldWhenNeverButIncomplete`, `ReviewPreferenceFollowsMode`), the business guards P4/tax-exempt/enabled (`ShouldAttemptMatch`), and Undo Approval RD9 (`UndoApproval`) |
 
 The Responsible AI tests (XPIA + Red Team Scan harms/jailbreak — codeunits 134721-134724) are **not** in this public app; they live in the internal **Shopify Connector NA AI Tests** app (`App/Internal/Apps/ShopifyNAAITest`). See the Responsible AI section above.
 

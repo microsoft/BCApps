@@ -333,6 +333,105 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
             'An order the Tax Matching Agent did not match must not be held.');
     end;
 
+    // Low Confidence Only — held when the order carries a non-high-confidence match.
+    [Test]
+    procedure GateHeldWhenLowConfidenceOnlyAndLowConfidence()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildOrderAndShopMode(OrderHeader, Shop, Enum::"Shpfy Tax Match Review Mode"::"Low Confidence Only", true, false, false);
+        LibraryAssert.IsTrue(TMAEvents.IsSalesDocumentCreationHeld(OrderHeader, Shop),
+            'In Low Confidence Only mode, a low-confidence match must hold the order.');
+    end;
+
+    // Low Confidence Only — a fully high-confidence order (no conflict) is released.
+    [Test]
+    procedure GateNotHeldWhenLowConfidenceOnlyAndHighConfidence()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildOrderAndShopMode(OrderHeader, Shop, Enum::"Shpfy Tax Match Review Mode"::"Low Confidence Only", false, false, false);
+        LibraryAssert.IsFalse(TMAEvents.IsSalesDocumentCreationHeld(OrderHeader, Shop),
+            'In Low Confidence Only mode, a fully high-confidence match with no conflict must not be held.');
+    end;
+
+    // Never — a low-confidence (e.g. provisional-jurisdiction) match is released.
+    [Test]
+    procedure GateNotHeldWhenNeverAndLowConfidence()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildOrderAndShopMode(OrderHeader, Shop, Enum::"Shpfy Tax Match Review Mode"::Never, true, false, false);
+        LibraryAssert.IsFalse(TMAEvents.IsSalesDocumentCreationHeld(OrderHeader, Shop),
+            'In Never mode, a low-confidence match with no hard-gate flag must not be held.');
+    end;
+
+    // Never — a rate conflict still holds (hard safety gate).
+    [Test]
+    procedure GateHeldWhenNeverButRateConflict()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildOrderAndShopMode(OrderHeader, Shop, Enum::"Shpfy Tax Match Review Mode"::Never, false, true, false);
+        LibraryAssert.IsTrue(TMAEvents.IsSalesDocumentCreationHeld(OrderHeader, Shop),
+            'A rate conflict must hold the order even in Never mode.');
+    end;
+
+    // Never — an incomplete match still holds (hard safety gate).
+    [Test]
+    procedure GateHeldWhenNeverButIncomplete()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildOrderAndShopMode(OrderHeader, Shop, Enum::"Shpfy Tax Match Review Mode"::Never, false, false, true);
+        LibraryAssert.IsTrue(TMAEvents.IsSalesDocumentCreationHeld(OrderHeader, Shop),
+            'An incomplete match must hold the order even in Never mode.');
+    end;
+
+    // Always — every matched order is held, even a high-confidence one.
+    [Test]
+    procedure GateHeldWhenAlwaysRegardlessOfConfidence()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildOrderAndShopMode(OrderHeader, Shop, Enum::"Shpfy Tax Match Review Mode"::Always, false, false, false);
+        LibraryAssert.IsTrue(TMAEvents.IsSalesDocumentCreationHeld(OrderHeader, Shop),
+            'In Always mode, every matched, not-yet-reviewed order must be held.');
+    end;
+
+    // IsHeldForReviewPreference reflects the mode independently of the hard gates.
+    [Test]
+    procedure ReviewPreferenceFollowsMode()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildOrderAndShopMode(OrderHeader, Shop, Enum::"Shpfy Tax Match Review Mode"::Always, false, false, false);
+        LibraryAssert.IsTrue(TMAEvents.IsHeldForReviewPreference(OrderHeader, Shop), 'Always must hold for review preference.');
+
+        Shop."Tax Match Review Mode" := Shop."Tax Match Review Mode"::Never;
+        LibraryAssert.IsFalse(TMAEvents.IsHeldForReviewPreference(OrderHeader, Shop), 'Never must not hold for review preference.');
+
+        Shop."Tax Match Review Mode" := Shop."Tax Match Review Mode"::"Low Confidence Only";
+        OrderHeader."Tax Match Low Confidence" := false;
+        LibraryAssert.IsFalse(TMAEvents.IsHeldForReviewPreference(OrderHeader, Shop), 'Low Confidence Only must not hold a high-confidence order.');
+        OrderHeader."Tax Match Low Confidence" := true;
+        LibraryAssert.IsTrue(TMAEvents.IsHeldForReviewPreference(OrderHeader, Shop), 'Low Confidence Only must hold a low-confidence order.');
+    end;
+
     // Guard — matching runs only when enabled, no Tax Area yet, and not tax exempt.
     [Test]
     procedure ShouldAttemptMatchWhenEligible()
@@ -394,7 +493,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
     begin
         Cleanup();
         Shop := CreateShop();
-        Shop."Tax Match Review Required" := true;
+        Shop."Tax Match Review Mode" := Shop."Tax Match Review Mode"::Always;
         Shop.Modify();
 
         OrderHeader.Init();
@@ -447,14 +546,14 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         // Simulate a shop created before the fields existed: platform zero-values.
         Shop."Auto Create Tax Areas" := false;
         Shop."Tax Area Naming Pattern" := '';
-        Shop."Tax Match Review Required" := false;
+        Shop."Tax Match Review Mode" := Shop."Tax Match Review Mode"::Never;
         Shop.Modify();
 
         TMAUpgrade.ApplyShopDefaults(Shop);
 
         LibraryAssert.IsTrue(Shop."Auto Create Tax Areas", 'Auto Create Tax Areas should be defaulted to true.');
         LibraryAssert.AreEqual('SHPFY-', Shop."Tax Area Naming Pattern", 'Tax Area Naming Pattern should be defaulted to SHPFY-.');
-        LibraryAssert.IsTrue(Shop."Tax Match Review Required", 'Tax Match Review Required should be defaulted to true.');
+        LibraryAssert.AreEqual(Shop."Tax Match Review Mode"::Always, Shop."Tax Match Review Mode", 'Tax Match Review Mode should be defaulted to Always.');
     end;
 
     // The backfill must not flip the two intentionally-false defaults on.
@@ -481,13 +580,33 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         // In-memory records are enough — IsSalesDocumentCreationHeld only reads these fields.
         Clear(Shop);
         Shop.Code := 'TMATEST';
-        Shop."Tax Match Review Required" := ReviewRequired;
+        if ReviewRequired then
+            Shop."Tax Match Review Mode" := Shop."Tax Match Review Mode"::Always
+        else
+            Shop."Tax Match Review Mode" := Shop."Tax Match Review Mode"::Never;
 
         Clear(OrderHeader);
         OrderHeader."Shopify Order Id" := NextId();
         OrderHeader."Tax Match Applied" := Applied;
         OrderHeader."Tax Match Reviewed" := Reviewed;
         OrderHeader."Tax Rate Conflict" := RateConflict;
+    end;
+
+    local procedure BuildOrderAndShopMode(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; ReviewMode: Enum "Shpfy Tax Match Review Mode"; LowConfidence: Boolean; RateConflict: Boolean; Incomplete: Boolean)
+    begin
+        // In-memory records are enough — IsSalesDocumentCreationHeld / IsHeldForReviewPreference
+        // only read these fields. The order is always agent-matched and not yet reviewed here.
+        Clear(Shop);
+        Shop.Code := 'TMATEST';
+        Shop."Tax Match Review Mode" := ReviewMode;
+
+        Clear(OrderHeader);
+        OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Tax Match Applied" := true;
+        OrderHeader."Tax Match Reviewed" := false;
+        OrderHeader."Tax Match Low Confidence" := LowConfidence;
+        OrderHeader."Tax Rate Conflict" := RateConflict;
+        OrderHeader."Tax Match Incomplete" := Incomplete;
     end;
 
     local procedure BuildGuardRecords(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; Enabled: Boolean; ExistingTaxAreaCode: Code[20]; TaxExempt: Boolean)

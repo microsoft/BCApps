@@ -58,10 +58,11 @@ pageextension 30479 "Shpfy TMA Order" extends "Shpfy Order"
     var
         Shop: Record "Shpfy Shop";
         TMANotify: Codeunit "Shpfy TMA Notify";
+        TMAEvents: Codeunit "Shpfy TMA Events";
     begin
         if Shop.Get(Rec."Shop Code") then begin
             TaxMatchingAgentEnabled := Shop."Tax Matching Agent Enabled";
-            ReviewRequired := Shop."Tax Match Review Required";
+            ReviewRequired := TMAEvents.IsHeldForReviewPreference(Rec, Shop);
         end else begin
             TaxMatchingAgentEnabled := false;
             ReviewRequired := false;

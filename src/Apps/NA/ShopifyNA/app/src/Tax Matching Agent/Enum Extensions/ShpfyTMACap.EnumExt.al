@@ -4,7 +4,7 @@ using System.AI;
 
 enumextension 30470 "Shpfy TMA Cap." extends "Copilot Capability"
 {
-    value(30470; "Shpfy Tax Matching")
+    value(30470; "Shopify Tax Matching Agent")
     {
         Caption = 'Shopify Tax Matching Agent';
     }

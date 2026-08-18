@@ -3,7 +3,7 @@
     <AITSuite Code="TMA-UNIT"
               Description="Shopify Tax Matching Agent - Tests"
               Dataset="TMA-Setup.yaml"
-              Capability="Shpfy Tax Matching"
+              Capability="Shopify Tax Matching Agent"
               Frequency="Daily"
               TestRunnerId="130451"
               TestType="Copilot">

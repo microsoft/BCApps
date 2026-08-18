@@ -34,12 +34,12 @@ tableextension 30470 "Shpfy TMA Shop" extends "Shpfy Shop"
             InitValue = 'SHPFY-';
             ToolTip = 'Specifies the prefix used when auto-creating Tax Area codes.';
         }
-        field(30474; "Tax Match Review Required"; Boolean)
+        field(30474; "Tax Match Review Mode"; Enum "Shpfy Tax Match Review Mode")
         {
-            Caption = 'Tax Match Review Required';
+            Caption = 'Tax Match Review Mode';
             DataClassification = CustomerContent;
-            InitValue = true;
-            ToolTip = 'Specifies whether Sales Document creation is held until a user explicitly approves the tax match. When enabled (default), an order whose Tax Area was populated by the Tax Matching Agent cannot become a Sales Order until the match is approved on the Tax Match Review page (opened via the Review Tax Match action on the Shopify order). When disabled, Sales Documents are created automatically and the user reviews them after the fact via the notification on the Sales Order page.';
+            InitValue = Always;
+            ToolTip = 'Specifies when an order matched by the Tax Matching Agent is held until a user approves the tax match on the Tax Match Review page. Always holds every matched order (default). Low Confidence Only holds an order only when at least one match is not high confidence (including a match to a provisional, agent-created Tax Jurisdiction). Never does not hold orders for review preference. A rate conflict or an incomplete match always holds the order regardless of this setting.';
         }
     }
 }

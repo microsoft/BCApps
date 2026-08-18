@@ -61,7 +61,7 @@ codeunit 30478 "Shpfy TMA Upgrade"
         DefaultShop.Init();
         Shop."Auto Create Tax Areas" := DefaultShop."Auto Create Tax Areas";
         Shop."Tax Area Naming Pattern" := DefaultShop."Tax Area Naming Pattern";
-        Shop."Tax Match Review Required" := DefaultShop."Tax Match Review Required";
+        Shop."Tax Match Review Mode" := DefaultShop."Tax Match Review Mode";
     end;
 
     internal procedure GetShopDefaultsUpgradeTag(): Code[250]

@@ -3,7 +3,7 @@
     <AITSuite Code="TMA-ACCUR"
               Description="Shopify Tax Matching Agent - Accuracy (generated, large)"
               Dataset="TMA-Setup.yaml"
-              Capability="Shpfy Tax Matching"
+              Capability="Shopify Tax Matching Agent"
               Frequency="Weekly"
               TestRunnerId="130451"
               TestType="Copilot">

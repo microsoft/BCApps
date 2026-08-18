@@ -34,7 +34,7 @@ pageextension 30470 "Shpfy TMA Shop Card" extends "Shpfy Shop Card"
                     ApplicationArea = All;
                     Enabled = Rec."Tax Matching Agent Enabled" and Rec."Auto Create Tax Areas";
                 }
-                field("Tax Match Review Required"; Rec."Tax Match Review Required")
+                field("Tax Match Review Mode"; Rec."Tax Match Review Mode")
                 {
                     ApplicationArea = All;
                     Enabled = Rec."Tax Matching Agent Enabled";

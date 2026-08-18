@@ -1,5 +1,7 @@
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Finance.SalesTax;
+
 /// <summary>
 /// Page Shpfy TMA Review (ID 30471).
 /// Card view that lets a human review — and adjust — what Tax Matching Agent did for a
@@ -186,9 +188,10 @@ page 30471 "Shpfy TMA Review"
     local procedure ResolveShopSettings()
     var
         Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
     begin
         if Shop.Get(Rec."Shop Code") then
-            ReviewRequired := Shop."Tax Match Review Required"
+            ReviewRequired := TMAEvents.IsHeldForReviewPreference(Rec, Shop)
         else
             ReviewRequired := false;
     end;
@@ -332,6 +335,11 @@ page 30471 "Shpfy TMA Review"
         OrderHeader."Tax Match Reviewed" := true;
         OrderHeader.Modify();
 
+        // A human has approved this order, so mark every Tax Jurisdiction it uses as verified.
+        // This clears the provisional state of any agent-created jurisdiction so later matches to
+        // it are no longer forced to low confidence and held for review.
+        MarkJurisdictionsVerified(MatchedJurisdictions);
+
         Rec := OrderHeader;
         // Refresh the guidance flag from the rechecked state so the red message clears when the
         // conflict was resolved. The approved state is now the baseline — refresh the snapshot so
@@ -339,6 +347,22 @@ page 30471 "Shpfy TMA Review"
         RateConflict := OrderHeader."Tax Rate Conflict";
         SnapshotTaxLines();
         CurrPage.Update(false);
+    end;
+
+    local procedure MarkJurisdictionsVerified(MatchedJurisdictions: List of [Code[10]])
+    var
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        JurisdictionCode: Code[10];
+    begin
+        // For an agent-created jurisdiction this clears its provisional state so future
+        // high-confidence matches to it are no longer forced to low confidence and held.
+        // Non-agent and already-verified jurisdictions are skipped (no-op).
+        foreach JurisdictionCode in MatchedJurisdictions do
+            if TaxJurisdiction.Get(JurisdictionCode) then
+                if TaxJurisdiction."Created by Agent" and not TaxJurisdiction.Verified then begin
+                    TaxJurisdiction.Verified := true;
+                    TaxJurisdiction.Modify();
+                end;
     end;
 
     local procedure UndoApprovalReview()

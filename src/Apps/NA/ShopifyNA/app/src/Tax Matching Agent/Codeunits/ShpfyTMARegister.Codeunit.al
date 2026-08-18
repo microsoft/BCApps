@@ -16,7 +16,7 @@ codeunit 30470 "Shpfy TMA Register"
 
     var
         LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2179727', Locked = true;
-        FeatureNameTxt: Label 'Shopify Tax Jurisdiction Matching with AI', Locked = true;
+        FeatureNameTxt: Label 'Shopify Tax Matching Agent', Locked = true;
 
     procedure RegisterCopilotCapability()
     var
@@ -27,8 +27,8 @@ codeunit 30470 "Shpfy TMA Register"
         // if not EnvironmentInformation.IsSaaSInfrastructure() then
         //     exit;
 
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shpfy Tax Matching") then begin
-            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Shpfy Tax Matching", LearnMoreUrlTxt);
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shopify Tax Matching Agent") then begin
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Shopify Tax Matching Agent", LearnMoreUrlTxt);
             FeatureTelemetry.LogUptake('0000UMZ', FeatureNameTxt, Enum::"Feature Uptake Status"::"Set up");
         end;
     end;

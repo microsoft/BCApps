@@ -2,7 +2,6 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Sales.Document;
 using System.AI;
-using System.Telemetry;
 
 /// <summary>
 /// Codeunit Shpfy TMA Events (ID 30473).
@@ -17,11 +16,17 @@ codeunit 30473 "Shpfy TMA Events"
     InherentEntitlements = X;
 
     var
-        StartingMatchMsg: Label 'Shopify Tax Matching Agent: Starting match for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
-        ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the tax match has been approved. Open the order, choose Review Tax Match, and approve the match on the review page — or clear Tax Match Review Required on the Shopify Shop Card.', Comment = '%1 = Shopify Order No.';
+        StartingMatchMsg: Label 'Starting match for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
+        ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the tax match has been approved. Open the order, choose Review Tax Match, and approve the match on the review page — or change the shop''s Tax Match Review Mode.', Comment = '%1 = Shopify Order No.';
         RateConflictBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because a matched tax rate differs from Business Central. Open the order, choose Review Tax Match, and either approve the match to accept Business Central''s rates or correct the Tax Detail rate or Tax Jurisdiction, on the review page.', Comment = '%1 = Shopify Order No.';
         IncompleteBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because the Tax Matching Agent could not resolve one or more tax lines to a Tax Jurisdiction. Open the order, choose Review Tax Match, assign a Tax Jurisdiction to every tax line, and approve the match on the review page.', Comment = '%1 = Shopify Order No.';
-        SecurityPromptUnavailableMsg: Label 'Shopify Tax Matching: security prompt unavailable from Key Vault; tax matching skipped for this order.', Locked = true;
+        SecurityPromptUnavailableMsg: Label 'Security prompt unavailable from Key Vault; tax matching skipped for this order.', Locked = true;
+        MarkerSetMsg: Label 'Tax match marker set on order %1', Locked = true, Comment = '%1 = Shopify Order Id';
+        HeldRateConflictMsg: Label 'Order %1 held for review pending rate conflict resolution', Locked = true, Comment = '%1 = Shopify Order Id';
+        HeldUnresolvedMsg: Label 'Order %1 held for review pending unresolved tax line', Locked = true, Comment = '%1 = Shopify Order Id';
+        TaxLinesMatchedMsg: Label 'Tax lines matched for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
+        CreationBlockedMsg: Label 'Sales Document creation blocked pending tax match review for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
+        MarkerPropagatedMsg: Label 'Tax match marker propagated to Sales Header for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterMapShopifyOrder, '', false, false)]
     local procedure OnAfterMapShopifyOrder(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
@@ -32,13 +37,13 @@ codeunit 30473 "Shpfy TMA Events"
         TaxAreaBuilder: Codeunit "Shpfy Tax Area Builder";
         CTActivityLog: Codeunit "Shpfy TMA Activity Log";
         TMARegister: Codeunit "Shpfy TMA Register";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         MatchedJurisdictions: List of [Code[10]];
         MatchLog: JsonArray;
         ResolvedTaxAreaCode: Code[20];
         TaxAreaWasCreated: Boolean;
         HasRateConflict: Boolean;
         HasUnresolvedLine: Boolean;
+        HasLowConfidenceMatch: Boolean;
         MatchApplied: Boolean;
         SecurityPrompt: SecretText;
     begin
@@ -51,10 +56,10 @@ codeunit 30473 "Shpfy TMA Events"
         if not ShouldAttemptMatch(ShopifyOrderHeader, Shop) then
             exit;
 
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shpfy Tax Matching") then
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shopify Tax Matching Agent") then
             exit;
 
-        if not CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Shpfy Tax Matching") then
+        if not CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Shopify Tax Matching Agent") then
             exit;
 
         if not TMAMatcher.TryGetGuardrailPrompt(SecurityPrompt) then begin
@@ -64,18 +69,19 @@ codeunit 30473 "Shpfy TMA Events"
         end;
 
         // Reset markers before re-matching (e.g. when a user manually cleared Tax Area Code to force a re-run).
-        if ShopifyOrderHeader."Tax Match Applied" or ShopifyOrderHeader."Tax Match Reviewed" or ShopifyOrderHeader."Tax Rate Conflict" or ShopifyOrderHeader."Tax Match Incomplete" then begin
+        if ShopifyOrderHeader."Tax Match Applied" or ShopifyOrderHeader."Tax Match Reviewed" or ShopifyOrderHeader."Tax Rate Conflict" or ShopifyOrderHeader."Tax Match Incomplete" or ShopifyOrderHeader."Tax Match Low Confidence" then begin
             ShopifyOrderHeader."Tax Match Applied" := false;
             ShopifyOrderHeader."Tax Match Reviewed" := false;
             ShopifyOrderHeader."Tax Rate Conflict" := false;
             ShopifyOrderHeader."Tax Match Incomplete" := false;
+            ShopifyOrderHeader."Tax Match Low Confidence" := false;
             ShopifyOrderHeader.Modify();
         end;
 
         Session.LogMessage('0000UMK', StrSubstNo(StartingMatchMsg, ShopifyOrderHeader."Shopify Order Id"),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
 
-        MatchApplied := TMAMatcher.MatchTaxLines(ShopifyOrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine);
+        MatchApplied := TMAMatcher.MatchTaxLines(ShopifyOrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch);
         if not MatchApplied then
             exit;
 
@@ -90,19 +96,23 @@ codeunit 30473 "Shpfy TMA Events"
                 ShopifyOrderHeader."Tax Match Applied" := true;
                 ShopifyOrderHeader."Tax Rate Conflict" := HasRateConflict;
                 ShopifyOrderHeader."Tax Match Incomplete" := HasUnresolvedLine;
+                ShopifyOrderHeader."Tax Match Low Confidence" := HasLowConfidenceMatch;
                 ShopifyOrderHeader.Modify();
-                FeatureTelemetry.LogUsage('0000UMG', TMARegister.FeatureName(), 'tax match marker set on order');
-                // TODO: feature telemetry is for feature usage only, it shouldn't log everything. normal session.logmessage should be used.
+                Session.LogMessage('0000UMG', StrSubstNo(MarkerSetMsg, ShopifyOrderHeader."Shopify Order Id"),
+                    Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
                 if HasRateConflict then
-                    FeatureTelemetry.LogUsage('0000UMF', TMARegister.FeatureName(), 'tax match held pending rate conflict resolution');
+                    Session.LogMessage('0000UMF', StrSubstNo(HeldRateConflictMsg, ShopifyOrderHeader."Shopify Order Id"),
+                        Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
                 if HasUnresolvedLine then
-                    FeatureTelemetry.LogUsage('0000UNT', TMARegister.FeatureName(), 'tax match held pending unresolved tax line');
+                    Session.LogMessage('0000UNT', StrSubstNo(HeldUnresolvedMsg, ShopifyOrderHeader."Shopify Order Id"),
+                        Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
 
                 CTActivityLog.LogPerLineEntries(ShopifyOrderHeader, MatchLog);
                 CTActivityLog.LogTaxAreaEntry(ShopifyOrderHeader, ResolvedTaxAreaCode, TaxAreaWasCreated, MatchedJurisdictions);
             end;
 
-        FeatureTelemetry.LogUsage('0000UMH', TMARegister.FeatureName(), 'Tax lines matched');
+        Session.LogMessage('0000UMH', StrSubstNo(TaxLinesMatchedMsg, ShopifyOrderHeader."Shopify Order Id"),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeCreateSalesHeader, '', false, false)]
@@ -110,7 +120,6 @@ codeunit 30473 "Shpfy TMA Events"
     var
         Shop: Record "Shpfy Shop";
         TMARegister: Codeunit "Shpfy TMA Register";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if Handled then
             exit;
@@ -122,7 +131,8 @@ codeunit 30473 "Shpfy TMA Events"
             exit;
 
         Handled := true;
-        FeatureTelemetry.LogUsage('0000UMI', TMARegister.FeatureName(), 'Sales Document creation blocked pending tax match review');
+        Session.LogMessage('0000UMI', StrSubstNo(CreationBlockedMsg, ShopifyOrderHeader."Shopify Order Id"),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
 
         // In an interactive session surface a clear error so the user knows what to do.
         // In background flows (job queue, webhook) silently set Handled := true so the
@@ -159,13 +169,13 @@ codeunit 30473 "Shpfy TMA Events"
 
     /// <summary>
     /// Decides whether Sales Document creation must be held for a agent-matched order. Held
-    /// when the order was matched, is not yet approved, and either the shop requires review, the
-    /// order carries a rate conflict, or the match is incomplete (one or more tax lines unresolved —
-    /// the stored Tax Rate Conflict / Tax Match Incomplete flags are the single source of truth).
-    /// A rate conflict or an incomplete match holds the order regardless of the review-required
-    /// toggle, so a human sees the difference or assigns the missing jurisdiction before a Sales
-    /// Document is created. Exposed as internal so the gate decision can be tested without driving
-    /// the connector's create-document flow.
+    /// when the order was matched, is not yet approved, and either the shop's review mode requires
+    /// it (see IsHeldForReviewPreference), the order carries a rate conflict, or the match is
+    /// incomplete (one or more tax lines unresolved — the stored Tax Rate Conflict / Tax Match
+    /// Incomplete flags are the single source of truth). A rate conflict or an incomplete match
+    /// holds the order regardless of the review mode, so a human sees the difference or assigns the
+    /// missing jurisdiction before a Sales Document is created. Exposed as internal so the gate
+    /// decision can be tested without driving the connector's create-document flow.
     /// </summary>
     internal procedure IsSalesDocumentCreationHeld(ShopifyOrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"): Boolean
     begin
@@ -173,7 +183,27 @@ codeunit 30473 "Shpfy TMA Events"
             exit(false);
         if ShopifyOrderHeader."Tax Match Reviewed" then
             exit(false);
-        exit(Shop."Tax Match Review Required" or ShopifyOrderHeader."Tax Rate Conflict" or ShopifyOrderHeader."Tax Match Incomplete");
+        exit(IsHeldForReviewPreference(ShopifyOrderHeader, Shop) or ShopifyOrderHeader."Tax Rate Conflict" or ShopifyOrderHeader."Tax Match Incomplete");
+    end;
+
+    /// <summary>
+    /// Evaluates only the shop's review-mode preference for an order (independent of the hard
+    /// rate-conflict / incomplete gates and of the Applied/Reviewed markers). Always holds; Never
+    /// does not; Low Confidence Only holds when the order carries at least one non-high-confidence
+    /// match (Tax Match Low Confidence — which includes a match to a provisional, agent-created
+    /// jurisdiction that was forced low). Shared by the gate and the order/review UI so the hold
+    /// decision is computed in exactly one place.
+    /// </summary>
+    internal procedure IsHeldForReviewPreference(ShopifyOrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"): Boolean
+    begin
+        case Shop."Tax Match Review Mode" of
+            Shop."Tax Match Review Mode"::Always:
+                exit(true);
+            Shop."Tax Match Review Mode"::Never:
+                exit(false);
+            Shop."Tax Match Review Mode"::"Low Confidence Only":
+                exit(ShopifyOrderHeader."Tax Match Low Confidence");
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterCreateSalesHeader, '', false, false)]
@@ -192,7 +222,6 @@ codeunit 30473 "Shpfy TMA Events"
     internal procedure HandleSalesHeaderCreated(OrderHeader: Record "Shpfy Order Header"; var SalesHeader: Record "Sales Header")
     var
         TMARegister: Codeunit "Shpfy TMA Register";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if not OrderHeader."Tax Match Applied" then
             exit;
@@ -200,6 +229,7 @@ codeunit 30473 "Shpfy TMA Events"
         SalesHeader."Tax Match Applied" := true;
         SalesHeader.Modify();
 
-        FeatureTelemetry.LogUsage('0000UMJ', TMARegister.FeatureName(), 'tax match marker propagated to Sales Header');
+        Session.LogMessage('0000UMJ', StrSubstNo(MarkerPropagatedMsg, OrderHeader."Shopify Order Id"),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
     end;
 }
