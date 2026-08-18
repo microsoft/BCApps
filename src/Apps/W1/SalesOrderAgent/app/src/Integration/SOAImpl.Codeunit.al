@@ -117,7 +117,7 @@ codeunit 4587 "SOA Impl"
             CancelScheduledTasksForRecord(SOASetup.RecordId);
 
         TelemetryDimensions.Add('SOASetupId', Format(SOASetup.ID));
-        FeatureTelemetry.LogUsage('', SOASetupCU.GetFeatureName(), TelemetryInactiveAgentTasksRemovedLbl, TelemetryDimensions);
+        FeatureTelemetry.LogUsage('0000V3K', SOASetupCU.GetFeatureName(), TelemetryInactiveAgentTasksRemovedLbl, TelemetryDimensions);
         exit(true);
     end;
 
