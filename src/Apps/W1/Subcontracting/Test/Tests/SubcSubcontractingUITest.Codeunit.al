@@ -80,11 +80,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     procedure SubcontractingSetupWizardShowsCompanyDefaultsAndConfigurationLinks()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
+        SubcCompTransferLeadTime: DateFormula;
         SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
         CreateProdOrderInfoLine: Boolean;
         SubcDefaultCompLocation: Enum "Components at Location";
-        SubcCompTransferLeadTime: DateFormula;
         SubcontractingBatchName: Code[10];
         SubcontractingTemplateName: Code[10];
     begin
@@ -1060,4 +1060,4 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SendNotificationTok: Label 'Send', Locked = true;
         VendorCardNoErr: Label 'The Vendor Card opened for an unexpected vendor.';
         VendorNoTok: Label 'VendorNo', Locked = true;
-    }
+}

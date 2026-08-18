@@ -361,20 +361,20 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     [HandlerFunctions('HandleMultipleTransferOrders')]
     procedure MultipleWIPTransferOrdersFromPurchaseOrderOpenTransferOrdersPage()
     var
-        Item: Record Item;
         Location: array[2] of Record Location;
         MachineCenter: array[2] of Record "Machine Center";
         ProductionOrder: array[2] of Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+        Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         TransferHeader: Record "Transfer Header";
-        WorkCenter: array[2] of Record "Work Center";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 641284] Creating WIP transfer orders for purchase lines from production orders at different locations opens all transfer orders.
@@ -415,7 +415,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+#pragma warning disable AA0210
         PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
