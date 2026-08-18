@@ -237,9 +237,15 @@ codeunit 4589 "SOA Upgrade"
         end;
 
         // Legacy KPI records predate per agent tracking, so they are attributed to an agent that is still
-        // in use. An archived agent is skipped here because the KPI pages never show it.
+        // in use, because the KPI pages never show an archived agent. When every agent is archived the
+        // history is still migrated onto one of them rather than dropped, since the table is deleted below.
         if SOASetupCU.FindFirstNonArchivedSetup(SOASetup) and (not IsNullGuid(SOASetup."User Security ID")) then
-            TargetAgentSecurityID := SOASetup."User Security ID";
+            TargetAgentSecurityID := SOASetup."User Security ID"
+        else begin
+            SOASetup.Reset();
+            if SOASetup.FindFirst() then
+                TargetAgentSecurityID := SOASetup."User Security ID";
+        end;
 
         repeat
             if IsNullGuid(LegacySOAKPI."User Security ID") then begin
