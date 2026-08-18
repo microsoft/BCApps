@@ -52,5 +52,16 @@ pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                 }
             }
         }
+        addlast(WizardDefaults)
+        {
+            field("Rtng. Link Code Purch. Prov."; Rec."Rtng. Link Code Purch. Prov.")
+            {
+                ApplicationArea = Subcontracting;
+            }
+            field("Put-Away Work Center No."; Rec."Put-Away Work Center No.")
+            {
+                ApplicationArea = Subcontracting;
+            }
+        }
     }
 }
