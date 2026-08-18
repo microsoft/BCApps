@@ -17,6 +17,9 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     Permissions = tabledata "Privacy Notice" = rd,
                   tabledata "Privacy Notice Approval" = rd;
 
+    var
+        LegacyPrivacyNoticeIdTok: Label 'Anthropic', Locked = true;
+
     trigger OnUpgradePerDatabase()
     var
         InstallExpenseAgentSetup: Codeunit "Install Expense Agent Setup";
@@ -174,6 +177,4 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         exit('MS-636970-EnableCommunicationDefault-20260701');
     end;
 
-    var
-        LegacyPrivacyNoticeIdTok: Label 'Anthropic', Locked = true;
 }
