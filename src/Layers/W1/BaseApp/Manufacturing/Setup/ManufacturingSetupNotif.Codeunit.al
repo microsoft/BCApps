@@ -69,8 +69,8 @@ codeunit 99000779 "Manufacturing Setup Notif."
         ExtensionManagement: Codeunit "Extension Management";
         Notification: Notification;
     begin
-        // if not EnvironmentInformation.IsSaaS() then
-        //     exit;
+        if not EnvironmentInformation.IsSaaS() then
+            exit;
         if ExtensionManagement.IsInstalledByAppId(GetSubcontractingAppId()) then
             exit;
         if not MyNotifications.IsEnabled(GetInstallSubcontractingAppNotificationID()) then
