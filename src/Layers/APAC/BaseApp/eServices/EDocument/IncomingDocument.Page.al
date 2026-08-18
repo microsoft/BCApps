@@ -1164,7 +1164,7 @@ page 189 "Incoming Document"
         ReplaceMainAttachmentEnabled := Rec.CanReplaceMainAttachment();
     end;
 
-    [IntegrationEvent(true, true)]
+    [IntegrationEvent(true, false)]
     local procedure OnCloseIncomingDocumentFromAction(var IncomingDocument: Record "Incoming Document")
     begin
     end;

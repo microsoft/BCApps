@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Activity;
 
-enumextension 99000776 "Mfg. Whse. Pick Rqst. Doc. Type" extends "Warehouse Pick Request Document Type"
+enumextension 99000776 "Mfg. WhsePickRqstDocType" extends "Warehouse Pick Request Document Type"
 {
     value(2; "Production") { Caption = 'Production'; }
 }
