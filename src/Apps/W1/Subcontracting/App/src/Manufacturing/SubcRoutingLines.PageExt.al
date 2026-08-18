@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
 
-pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
+pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
 {
     layout
     {
@@ -112,7 +112,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        TransferWIPItemEnabled := Rec.Subcontracting;
+        TransferWIPItemEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
     end;
 
     procedure ShowRelatedSubcontractorPrices()

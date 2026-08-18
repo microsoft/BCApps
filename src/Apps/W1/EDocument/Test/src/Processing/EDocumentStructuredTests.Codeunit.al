@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Format;
+using Microsoft.eServices.EDocument.Helpers;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
@@ -15,7 +16,6 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
-using System.TestLibraries.Config;
 using System.TestLibraries.Utilities;
 
 codeunit 139891 "E-Document Structured Tests"
@@ -82,6 +82,110 @@ codeunit 139891 "E-Document Structured Tests"
         end
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_AllExtractedValuesAreEmpty()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{"invoiceId":{"value_text":null,"value_number":null,"value_date":null}},"items":[{"fields":{"description":{"value_text":"   ","value_number":null,"value_date":null}}}]}}}}');
+
+        Assert.IsFalse(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'An ADI response containing only empty extracted values must be treated as empty.');
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_EmptyJsonResponse()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom('{}');
+
+        Assert.IsFalse(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'An empty ADI JSON response must be treated as empty.');
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_LineContainsExtractedValue()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{},"items":[{"fields":{"description":{"value_text":"Consulting","value_number":null,"value_date":null}}}]}}}}');
+
+        Assert.IsTrue(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'A line value must count as extracted invoice data.');
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_ZeroIsExtractedValue()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom('{"outputs":{"1":{"result":{"fields":{"invoiceTotal":{"value_text":null,"value_number":0,"value_date":null}},"items":[]}}}}');
+
+        Assert.IsTrue(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'A numeric zero must count as extracted invoice data.');
+    end;
+
+    [Test]
+    procedure TestCAPIInvoice_ValidResponseContainsExtractedData()
+    var
+        EDocumentJsonHelper: Codeunit "EDocument Json Helper";
+        ResponseJson: JsonObject;
+    begin
+        ResponseJson.ReadFrom(NavApp.GetResourceAsText('capi/capi-invoice-valid-0.json'));
+
+        Assert.IsTrue(EDocumentJsonHelper.HasADIExtractedInvoiceData(ResponseJson), 'The valid ADI fixture must contain extracted invoice data.');
+    end;
+
+    [Test]
+    procedure TestOpeningFailedExtractionCreatesDraftWithoutReprocessing()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocLogRecord: Record "E-Document Log";
+        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocPreparePurchDraft: Codeunit "EDoc Prepare Purch. Draft";
+    begin
+        // [SCENARIO] Opening the draft of a document whose extraction failed creates the records required by the page without reprocessing the document.
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupCAPIEDocumentService();
+
+        // [GIVEN] An inbound PDF e-document that has ADI selected as its structuring implementation
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::PDF, 'Data');
+        EDocumentLog.SetFields(EDocument, EDocumentService);
+        EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Unprocessed);
+        EDocument."Unstructured Data Entry No." := EDocLogRecord."E-Doc. Data Storage Entry No.";
+        EDocument."Structure Data Impl." := "Structure Received E-Doc."::ADI;
+        EDocument."File Name" := 'Test.pdf';
+        EDocument.Modify();
+
+        // [GIVEN] Structuring failed, leaving the document at the structure step in an error state
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Unprocessed);
+        EDocument.Status := EDocument.Status::Error;
+        EDocument.Modify();
+
+        // [WHEN] The draft is opened for the failed document
+        EDocPreparePurchDraft.EnsureDraftHeaderExistsForFailedExtraction(EDocument);
+
+        // [THEN] A purchase draft header exists so the draft page can render
+        EDocument.Get(EDocument."Entry No");
+        EDocument.CalcFields("Import Processing Status");
+        Assert.IsTrue(EDocumentPurchaseHeader.Get(EDocument."Entry No"), 'A purchase draft header should exist after opening the draft.');
+
+        // [THEN] The failed processing state and implementation remain unchanged so the extraction error is preserved and ADI can be retried
+        Assert.AreEqual(Enum::"Import E-Document Steps"::"Structure received data", EDocument."Import Processing Status", 'Opening the draft must not advance the import pipeline.');
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'Opening the draft must preserve the extraction error state.');
+        Assert.AreEqual(Enum::"Structure Received E-Doc."::ADI, EDocument."Structure Data Impl.", 'Opening the draft must preserve the structuring implementation.');
+
+        // [THEN] Reopening is idempotent: the guard prevents reprocessing or a duplicate draft
+        EDocPreparePurchDraft.EnsureDraftHeaderExistsForFailedExtraction(EDocument);
+        EDocumentPurchaseHeader.Reset();
+        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.AreEqual(1, EDocumentPurchaseHeader.Count(), 'Reopening must not create a duplicate draft header.');
     end;
     #endregion
 
@@ -447,61 +551,20 @@ codeunit 139891 "E-Document Structured Tests"
     end;
     #endregion
 
-    #region Experiment Configuration
+    #region Preferred Structure Implementation
     [Test]
-    procedure TestExperiment_ControlAllocation_PreferredImplIsADI()
+    procedure TestPdfPreferredImplIsMLLM()
     var
         EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
-        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
     begin
-        // [SCENARIO] With control allocation, the PDF file format returns ADI as the preferred implementation
+        // [SCENARIO] The PDF file format returns MLLM as the preferred structure data implementation
         LibraryLowerPermission.SetOutsideO365Scope();
 
-        FeatureConfigTestLib.UseControlAllocation();
-
         Assert.AreEqual(
-            "Structure Received E-Doc."::ADI,
+            "Structure Received E-Doc."::MLLM,
             EDocPDFFileFormat.PreferredStructureDataImplementation(),
-            'Control allocation should prefer ADI for PDF processing');
+            'PDF processing should prefer MLLM');
     end;
-
-    // Todo: Reenable once #624677 is fixed
-    // [Test]
-    // procedure TestExperiment_TreatmentAllocation_PreferredImplIsMLLM()
-    // var
-    //     EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
-    //     FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
-    // begin
-    //     // [SCENARIO] With treatment allocation, the PDF file format returns MLLM as the preferred implementation
-    //     LibraryLowerPermission.SetOutsideO365Scope();
-
-    //     FeatureConfigTestLib.UseTreatmentAllocation();
-
-    //     Assert.AreEqual(
-    //         "Structure Received E-Doc."::MLLM,
-    //         EDocPDFFileFormat.PreferredStructureDataImplementation(),
-    //         'Treatment allocation should prefer MLLM for PDF processing');
-    // end;
-
-    // Todo: Reenable once #624677 is fixed
-    // [Test]
-    // procedure TestExperiment_TreatmentAllocation_MLLMProcessesValidDocument()
-    // var
-    //     EDocument: Record "E-Document";
-    //     FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
-    // begin
-    //     // [SCENARIO] With treatment allocation active, MLLM is used to process a valid UBL invoice E2E
-    //     Initialize(Enum::"Service Integration"::"Mock");
-    //     SetupMLLMEDocumentService();
-
-    //     FeatureConfigTestLib.UseTreatmentAllocation();
-
-    //     CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-invoice-valid-0.json');
-    //     if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
-    //         StructuredValidations.AssertFullMLLMDocumentExtracted(EDocument."Entry No")
-    //     else
-    //         Assert.Fail(EDocumentStatusNotUpdatedErr);
-    // end;
     #endregion
 
     #region Fallback

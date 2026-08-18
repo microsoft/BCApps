@@ -22,6 +22,8 @@ using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Utilities;
 
 codeunit 139991 "Subc. Purch. Subcont. Test"
 {
@@ -45,6 +47,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
@@ -416,6 +419,223 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [THEN] No error is raised because net stock at the subcontractor location is zero
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         SubcTransferManagement.CheckSubcPurchLineCanBeModified(PurchaseLine, PurchaseLine.FieldCaption(Quantity));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder,ExpectedPostedTransferMessageHandler')]
+    procedure SubcTransferPreservesManuallyChangedComponentFlushingMethod()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 646576] A manually changed component Flushing Method is preserved when the component is transferred to the subcontractor location.
+        Initialize();
+
+        // Harden the UI handlers: assert the exact confirm, transfer order page and posting message that must occur, in order.
+        LibraryVariableStorage.Enqueue('Do you want to view it?'); // confirm shown after the subcontracting purchase order is created
+        LibraryVariableStorage.Enqueue(false); // do not open the created purchase order
+        LibraryVariableStorage.Enqueue('A subcontracting transfer order should be surfaced before posting.'); // transfer order page
+        LibraryVariableStorage.Enqueue('was successfully posted and is now deleted'); // direct transfer posting message
+
+        // [GIVEN] A subcontracting purchase order with a "Transfer to Vendor" component
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", LibraryRandom.RandIntInRange(2, 10));
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [GIVEN] The component item's own Flushing Method is "Pick + Manual"
+        FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
+        ProdOrderComponent.FindFirst();
+        ComponentItem.Get(ProdOrderComponent."Item No.");
+        ComponentItem.Validate("Flushing Method", "Flushing Method"::"Pick + Manual");
+        ComponentItem.Modify(true);
+
+        // [GIVEN] The user manually changes the released component's Flushing Method to "Backward"
+        ProdOrderComponent.Validate("Flushing Method", "Flushing Method"::Backward);
+        ProdOrderComponent.Modify(true);
+
+        // [WHEN] The transfer to the subcontractor is created and posted as a direct transfer
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        PostDirectTransferOrder(TransferHeader);
+
+        // [THEN] The component has been moved to the subcontractor location
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Assert.AreEqual(Vendor."Subc. Location Code", ProdOrderComponent."Location Code", 'Component should be moved to the subcontractor location.');
+
+        // [THEN] The manually selected "Backward" flushing method is preserved
+        Assert.AreEqual("Flushing Method"::Backward, ProdOrderComponent."Flushing Method", 'Manually changed Flushing Method must be preserved after the subcontracting transfer.');
+
+        // [THEN] Exactly the expected confirm, transfer order page and posting message were handled
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder,ExpectedPostedTransferMessageHandler')]
+    procedure SubcReturnTransferPreservesManuallyChangedComponentFlushingMethod()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrderPage: TestPage "Purchase Order";
+        OriginalLocationCode: Code[10];
+        TransferredQty: Decimal;
+        ConsumedQty: Decimal;
+    begin
+        // [SCENARIO 646576] A manually changed component Flushing Method is preserved through the full
+        // subcontracting lifecycle, including the return of the remaining stock from the subcontractor
+        // (even when consumption has already been posted at the subcontractor location).
+        Initialize();
+
+        // Harden the UI handlers: assert the exact confirm, the forward and return transfer order pages and both
+        // posting messages that must occur, in order.
+        LibraryVariableStorage.Enqueue('Do you want to view it?'); // confirm shown after the subcontracting purchase order is created
+        LibraryVariableStorage.Enqueue(false); // do not open the created purchase order
+        LibraryVariableStorage.Enqueue('A subcontracting transfer order should be surfaced before posting.'); // forward transfer order page
+        LibraryVariableStorage.Enqueue('was successfully posted and is now deleted'); // forward direct transfer posting message
+        LibraryVariableStorage.Enqueue('A subcontracting return transfer order should be surfaced before posting.'); // return transfer order page
+        LibraryVariableStorage.Enqueue('was successfully posted and is now deleted'); // return direct transfer posting message
+
+        // [GIVEN] A subcontracting purchase order with a "Transfer to Vendor" component
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", LibraryRandom.RandIntInRange(2, 10));
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [GIVEN] The component item's own Flushing Method is "Pick + Manual" while the user manually sets the component to "Backward"
+        FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
+        ProdOrderComponent.FindFirst();
+        OriginalLocationCode := ProdOrderComponent."Location Code";
+        ComponentItem.Get(ProdOrderComponent."Item No.");
+        ComponentItem.Validate("Flushing Method", "Flushing Method"::"Pick + Manual");
+        ComponentItem.Modify(true);
+        ProdOrderComponent.Validate("Flushing Method", "Flushing Method"::Backward);
+        ProdOrderComponent.Modify(true);
+
+        // [GIVEN] The component is transferred to the subcontractor and partially consumed there
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        TransferLine.FindFirst();
+        TransferredQty := TransferLine.Quantity;
+        ConsumedQty := Round(TransferredQty / 2, 1);
+        PostDirectTransferOrder(TransferHeader);
+
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        ProdOrderLine.Get(ProductionOrder.Status, ProductionOrder."No.", ProdOrderComponent."Prod. Order Line No.");
+        LibraryMfgManagement.PostConsumptionForComponent(ProdOrderLine, ProdOrderComponent, ComponentItem, ConsumedQty);
+
+        // [WHEN] The remaining stock is returned from the subcontractor and the return transfer is posted
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+        PurchaseOrderPage.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrderPage.Close();
+
+        ReturnTransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        ReturnTransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        ReturnTransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        ReturnTransferLine.FindFirst();
+        ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+        PostDirectTransferOrder(ReturnTransferHeader);
+
+        // [THEN] The component has been moved back to its original location
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Assert.AreEqual(OriginalLocationCode, ProdOrderComponent."Location Code", 'Component should be moved back to its original location after the return.');
+
+        // [THEN] The manually selected "Backward" flushing method is still preserved
+        Assert.AreEqual("Flushing Method"::Backward, ProdOrderComponent."Flushing Method", 'Manually changed Flushing Method must be preserved after the subcontracting return transfer.');
+
+        // [THEN] Exactly the expected confirm, both transfer order pages and both posting messages were handled
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder')]
+    procedure SubcDirectPostPreservesComponentBinForManualFlushingMethod()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcLocation: Record Location;
+        OpenShopFloorBin: Record Bin;
+        ToProductionBin: Record Bin;
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+    begin
+        // [SCENARIO 646576] When the subcontracting direct-transfer post revalidates the component against its own
+        // (unchanged) location, the manually chosen "Backward" flushing method must keep its Open Shop Floor bin instead
+        // of being switched to the item's "Pick + Manual" To-Production bin.
+        Initialize();
+
+        // Harden the UI handlers: assert the exact confirm and transfer order page that must occur, in order.
+        LibraryVariableStorage.Enqueue('Do you want to view it?'); // confirm shown after the subcontracting purchase order is created
+        LibraryVariableStorage.Enqueue(false); // do not open the created purchase order
+        LibraryVariableStorage.Enqueue('A subcontracting transfer order should be surfaced.'); // transfer order page
+
+        // [GIVEN] A subcontracting purchase order with a "Transfer to Vendor" component
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", LibraryRandom.RandIntInRange(2, 10));
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [GIVEN] The subcontractor location is Bin Mandatory with distinct Open Shop Floor and To-Production bins
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        ConfigureSubcontractorLocationBins(SubcLocation, OpenShopFloorBin, ToProductionBin, Vendor."Subc. Location Code");
+
+        // [GIVEN] The component item's own Flushing Method is "Pick + Manual" (its default bin would be To-Production)
+        FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
+        ProdOrderComponent.FindFirst();
+        ComponentItem.Get(ProdOrderComponent."Item No.");
+        ComponentItem.Validate("Flushing Method", "Flushing Method"::"Pick + Manual");
+        ComponentItem.Modify(true);
+
+        // [GIVEN] The user manually changes the released component's Flushing Method to "Backward"
+        ProdOrderComponent.Validate("Flushing Method", "Flushing Method"::Backward);
+        ProdOrderComponent.Modify(true);
+
+        // [GIVEN] The transfer is created, moving the component to the subcontractor location on its Open Shop Floor bin
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        Assert.AreEqual(SubcLocation.Code, ProdOrderComponent."Location Code", 'Precondition: component is moved to the subcontractor location when the transfer is created.');
+        Assert.AreEqual(OpenShopFloorBin.Code, ProdOrderComponent."Bin Code", 'Precondition: component starts on the Open Shop Floor bin (matching the Backward flushing method).');
+
+        // [WHEN] The direct-transfer post revalidates the component against its own (unchanged) location
+        // (this is exactly what "Subc. TransOrderPostTrans Ext".OnBeforeInsertDirectTransLine does during posting)
+        SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, ProdOrderComponent."Location Code");
+        ProdOrderComponent.Modify();
+
+        // [THEN] The manually selected "Backward" flushing method is preserved
+        Assert.AreEqual("Flushing Method"::Backward, ProdOrderComponent."Flushing Method", 'Manually changed Flushing Method must survive the direct-post revalidation.');
+
+        // [THEN] The component keeps its Open Shop Floor bin and is not switched to the item's To-Production bin
+        Assert.AreEqual(OpenShopFloorBin.Code, ProdOrderComponent."Bin Code", 'Component Bin Code must stay consistent with the manually selected Backward flushing method (Open Shop Floor Bin).');
+
+        // [THEN] Exactly the expected confirm and transfer order page were handled
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -794,6 +1014,85 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Assert.RecordIsEmpty(PurchaseLine);
     end;
 
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess')]
+    procedure SubcOrderFlowFieldIsTrueAfterCreatingSubcontractingPurchaseOrder()
+    var
+        FinishedItem: Record Item;
+        Location: Record Location;
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO 640115] After creating a subcontracting purchase order from a Prod. Order Routing Line,
+        // the "Subc. Order" FlowField on the Purchase Header must evaluate to true so the order is visible
+        // in the "Subcontracting Orders" view of the Purchase Order List.
+
+        Initialize();
+
+        // [GIVEN] A subcontracting work center with vendor and location
+        CreateAndCalculateNeededWorkCenter(WorkCenter, true);
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor.Modify();
+
+        // [GIVEN] A routing with a single subcontracting operation
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(
+            RoutingLine, RoutingHeader, WorkCenter."No.", '100',
+            LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        // [GIVEN] A finished good item with the routing
+        LibraryManufacturing.CreateItemManufacturing(
+            FinishedItem, "Costing Method"::FIFO, LibraryRandom.RandInt(10),
+            "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual",
+            RoutingHeader."No.", '');
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, FinishedItem."Base Unit of Measure");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        FinishedItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        FinishedItem.Validate("Routing No.", RoutingHeader."No.");
+        FinishedItem.Modify(true);
+
+        // [GIVEN] A released production order
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, FinishedItem."No.", LibraryRandom.RandInt(10), Location.Code);
+
+        // [GIVEN] Requisition worksheet template for subcontracting
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+
+        // [WHEN] Create subcontracting purchase order from Prod. Order Routing
+        ProdOrderRtngLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRtngLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRtngLine.SetRange(Type, ProdOrderRtngLine.Type::"Work Center");
+        ProdOrderRtngLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRtngLine.FindFirst();
+        ReleasedProdOrderRtng.OpenView();
+        ReleasedProdOrderRtng.GoToRecord(ProdOrderRtngLine);
+        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [THEN] A purchase order was created and the "Subc. Order" FlowField is true
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeader.CalcFields("Subc. Order");
+        Assert.IsTrue(PurchaseHeader."Subc. Order",
+            'The Subc. Order FlowField must be true for a subcontracting purchase order');
+    end;
+
     [ModalPageHandler]
     procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     begin
@@ -820,6 +1119,25 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     [MessageHandler]
     procedure MessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmViewCreatedDocumentHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
+    end;
+
+    [MessageHandler]
+    procedure ExpectedPostedTransferMessageHandler(Message: Text[1024])
+    begin
+        Assert.ExpectedMessage(LibraryVariableStorage.DequeueText(), Message);
+    end;
+
+    [PageHandler]
+    procedure HandleExpectedSubcTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
+    begin
+        Assert.AreNotEqual('', TransfOrderPage."No.".Value(), LibraryVariableStorage.DequeueText());
     end;
 
     local procedure CreateAndCalculateNeededWorkCenter(var WorkCenter: Record "Work Center"; IsSubcontracting: Boolean)
@@ -867,6 +1185,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Purch. Subcont. Test");
         LibrarySetupStorage.Restore();
+        LibraryVariableStorage.Clear();
 
         if IsInitialized then
             exit;
@@ -1013,6 +1332,21 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         TransferOrderPage.OpenView();
         TransferOrderPage.GoToRecord(TransferHeader);
         TransferOrderPage.Post.Invoke();
+    end;
+
+    local procedure ConfigureSubcontractorLocationBins(var SubcLocation: Record Location; var OpenShopFloorBin: Record Bin; var ToProductionBin: Record Bin; SubcLocationCode: Code[10])
+    begin
+        SubcLocation.Get(SubcLocationCode);
+        SubcLocation."Bin Mandatory" := true;
+        SubcLocation.Modify();
+        LibraryWarehouse.CreateBin(OpenShopFloorBin, SubcLocation.Code, '', '', '');
+        LibraryWarehouse.CreateBin(ToProductionBin, SubcLocation.Code, '', '', '');
+        // The default production bins are assigned directly: validating them runs Location.CheckBinCode, which
+        // requires a Bin Mandatory location. Bin Mandatory itself is likewise set directly because validating the
+        // subcontractor location through "Subc. Location Code" deliberately rejects Bin Mandatory locations.
+        SubcLocation."Open Shop Floor Bin Code" := OpenShopFloorBin.Code;
+        SubcLocation."To-Production Bin Code" := ToProductionBin.Code;
+        SubcLocation.Modify();
     end;
 
     local procedure CreateInventoryForAllComponents(ProductionOrder: Record "Production Order")

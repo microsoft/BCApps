@@ -28,6 +28,10 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         ItemAttributeFilterTok: Label '"%1"=Filter(1))', Comment = '%1=attribute', Locked = true;
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
         CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control fields. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
+        TableMissingErr: Label 'You must choose a Table for this generation rule', Locked = true;
+        LegacyDescriptionTok: Label 'Legacy rule', Locked = true;
+        NoCompatibleGenRuleQstFragmentTok: Label 'Could not find any compatible inspection generation rules for the template', Locked = true;
+        NoCompatibleGenRuleQuestionSeen: Boolean;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualOnly_ManualRuleSearch()
@@ -382,6 +386,163 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
         // [THEN] The filter contains the Purchase Line table number
         LibraryAssert.IsTrue(Filters.Contains(Format(Database::"Purchase Line")), 'Should contain table no.');
+    end;
+
+    [Test]
+    procedure Insert_NoSourceTableNo_ShouldError()
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        // [SCENARIO] Inserting a generation rule without setting Source Table No. raises an actionable error pointing to the Table assist-edit button
+
+        // [GIVEN] A template exists
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [GIVEN] All existing generation rules are removed
+        QltyInspectionGenRule.DeleteAll();
+
+        // [GIVEN] A generation rule is initialized with Template Code but no Source Table No.
+        QltyInspectionGenRule.Init();
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+
+        // [WHEN] Inserting the rule with triggers enabled
+        asserterror QltyInspectionGenRule.Insert(true);
+
+        // [THEN] The actionable error is raised
+        LibraryAssert.ExpectedError(TableMissingErr);
+    end;
+
+    [Test]
+    procedure Modify_ClearSourceTableNo_ShouldError()
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        // [SCENARIO] Modifying a generation rule to clear Source Table No. raises the actionable error
+
+        // [GIVEN] A valid generation rule for Purchase Line exists
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] The saved rule is read back so the before-image (xRec) reflects the table it has on disk, mirroring a user editing an existing rule
+        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
+
+        // [GIVEN] Source Table No. is cleared on the record buffer
+        QltyInspectionGenRule."Source Table No." := 0;
+
+        // [WHEN] Modifying the rule with triggers enabled
+        asserterror QltyInspectionGenRule.Modify(true);
+
+        // [THEN] The actionable error is raised
+        LibraryAssert.ExpectedError(TableMissingErr);
+    end;
+
+    [Test]
+    procedure Insert_WithSourceTableNo_Succeeds()
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        // [SCENARIO] Inserting a generation rule with Source Table No. set succeeds without raising the actionable error
+
+        // [GIVEN] A template exists
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [GIVEN] All existing generation rules are removed
+        QltyInspectionGenRule.DeleteAll();
+
+        // [GIVEN] A generation rule with Template Code and Source Table No. is initialized
+        QltyInspectionGenRule.Init();
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
+
+        // [WHEN] Inserting the rule with triggers enabled
+        QltyInspectionGenRule.Insert(true);
+
+        // [THEN] The rule is persisted
+        LibraryAssert.IsFalse(QltyInspectionGenRule.IsEmpty(), 'The generation rule should be persisted after insert');
+    end;
+
+    [Test]
+    procedure LegacyRuleWithoutTable_CanBeModifiedAndDeleted()
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        LegacyEntryNo: Integer;
+    begin
+        // [SCENARIO] A pre-existing rule with no Source Table No. (legacy data created before the mandatory-table guard) can still be edited and deleted
+
+        // [GIVEN] A template exists
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [GIVEN] All existing generation rules are removed
+        QltyInspectionGenRule.DeleteAll();
+
+        // [GIVEN] A legacy rule persisted without a table, bypassing triggers (Insert(false) mimics data created before the guard existed)
+        QltyInspectionGenRule.Init();
+        QltyInspectionUtility.SetEntryNo(QltyInspectionGenRule);
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionGenRule."Source Table No." := 0;
+        QltyInspectionGenRule.Insert(false);
+        LegacyEntryNo := QltyInspectionGenRule."Entry No.";
+
+        // [WHEN] Editing a non-table field with triggers enabled
+        QltyInspectionGenRule.Description := LegacyDescriptionTok;
+        QltyInspectionGenRule.Modify(true);
+
+        // [THEN] The modify succeeds - the OnModify guard is skipped for rows that were already table-less
+        LibraryAssert.AreEqual(LegacyDescriptionTok, QltyInspectionGenRule.Description, 'A legacy rule without a table should remain editable');
+
+        // [WHEN] Deleting the legacy rule
+        QltyInspectionGenRule.Delete(true);
+
+        // [THEN] It is gone - legacy rows are not bricked by the mandatory-table enforcement
+        LibraryAssert.IsFalse(QltyInspectionGenRule.Get(LegacyEntryNo), 'A legacy rule without a table should be deletable');
+    end;
+
+    [Test]
+    [HandlerFunctions('NoCompatibleGenRuleConfirmHandler,GenRulesFilteredToTemplateModalHandler')]
+    procedure SourceLookup_NoCompatibleRule_WarnsAndOpensGenRulesFilteredToTemplate()
+    var
+        TargetQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        OtherQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        HasCompatibleRule: Boolean;
+    begin
+        // [SCENARIO] When the Source lookup finds no compatible generation rule for the chosen template, it warns the user and opens the Generation Rules page filtered to that template
+
+        // [GIVEN] Setup, a target template with no rules, and a different template that does have an enabled rule
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreateTemplate(TargetQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(OtherQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(OtherQltyInspectionTemplateHdr, Database::"Purchase Line");
+
+        // [WHEN] The Source lookup pre-check runs for the target template (via the test library wrapper around the report procedure)
+        NoCompatibleGenRuleQuestionSeen := false;
+        HasCompatibleRule := QltyInspectionUtility.EnsureCompatibleGenerationRuleExists(TargetQltyInspectionTemplateHdr.Code);
+
+        // [THEN] The warning question was shown (NoCompatibleGenRuleConfirmHandler) and the Generation Rules page opened filtered to the target template (GenRulesFilteredToTemplateModalHandler)
+        LibraryAssert.IsTrue(NoCompatibleGenRuleQuestionSeen, 'The lookup should warn that no compatible generation rule exists for the template');
+        // [THEN] Still no compatible rule afterwards because none was created
+        LibraryAssert.IsFalse(HasCompatibleRule, 'No compatible rule should exist for the target template');
+    end;
+
+    [ConfirmHandler]
+    procedure NoCompatibleGenRuleConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        // Incidental confirms raised during setup are answered without asserting; only the no-compatible-rule warning is tracked
+        if StrPos(Question, NoCompatibleGenRuleQstFragmentTok) > 0 then
+            NoCompatibleGenRuleQuestionSeen := true;
+        Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure GenRulesFilteredToTemplateModalHandler(var QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules")
+    begin
+        // The page is opened filtered to the target template, which has no rules, so the rule that exists for a different template must not be shown
+        LibraryAssert.IsFalse(QltyInspectionGenRules.First(), 'The Generation Rules page should open filtered to the selected template (rules of other templates must not appear)');
     end;
 
     local procedure DeleteAllAndCreateOneGenerationRule(TemplateCode: Code[20]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger")

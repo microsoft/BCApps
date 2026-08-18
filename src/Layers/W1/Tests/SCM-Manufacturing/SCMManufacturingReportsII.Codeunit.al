@@ -697,6 +697,47 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         VerifyScheduledQtysInProdOrderShortageListReport(ProductionOrder."No.", 2 * Qty, Qty);
     end;
 
+    [Test]
+    [HandlerFunctions('ExpCostPostingConfirmHandler,ExpCostPostingMsgHandler,InventoryValuationWIPRequestPageHandler')]
+    procedure InventoryValuationWIPReportMatConsumptionNotDoubledByNonWIPEntries()
+    var
+        InventorySetup: Record "Inventory Setup";
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ValueEntry: Record "Value Entry";
+        ExpectedMatConsumption: Decimal;
+    begin
+        // [SCENARIO 638005] Material consumption in report "Inventory Valuation - WIP" must not be double-counted when non-WIP value entries follow a consumption entry.
+        Initialize();
+
+        // [GIVEN] Update Automatic Cost Setup. Create a manufacturing Item with Routing and Production BOM (so both consumption and capacity value entries are posted).
+        ExecuteUIHandlers();
+        UpdateInventorySetup(true, true, InventorySetup."Automatic Cost Adjustment"::Never);
+        CreateProdOrderItemsSetup(Item);
+
+        // [GIVEN] Create and refresh a Released Production Order.
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", LibraryRandom.RandInt(5));
+
+        // [GIVEN] Post Consumption Journal, creating a WIP consumption value entry.
+        CreateAndPostConsumptionJournal(ProductionOrder."No.");
+
+        // [GIVEN] Explode Routing and Post Output Journal, creating non-WIP (expected cost) capacity value entries after the consumption entry.
+        ExplodeRoutingAndPostOutputJournal(ProductionOrder."No.");
+
+        // [WHEN] Run "Inventory Valuation - WIP" Report.
+        RunAndSaveInventoryValuationWIPReport(ProductionOrder);
+
+        // [THEN] Reported material consumption equals the consumption posted to the value entries, not multiplied by the number of trailing non-WIP entries.
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Consumption);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        ExpectedMatConsumption := -ValueEntry."Cost Amount (Actual)";
+
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('ValueOfMatConsumptionSum', ExpectedMatConsumption);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

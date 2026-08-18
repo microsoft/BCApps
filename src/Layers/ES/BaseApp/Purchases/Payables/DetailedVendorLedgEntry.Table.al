@@ -431,5 +431,6 @@ table 380 "Detailed Vendor Ledg. Entry"
     local procedure OnSetZeroTransNoOnBeforeDetailedVendorLedgEntryModify(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
     begin
     end;
+
 }
 

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 99001501 "Subcontract. - Objs"
+permissionset 20501 "Subcontract. - Objs"
 {
     Caption = 'Subcontracting - Objects';
     Assignable = true;
@@ -85,6 +85,7 @@ permissionset 99001501 "Subcontract. - Objs"
         page "Subc. Routing Info Factbox" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
+        page "Subcontracting Setup Wizard" = X,
         page "Subc. WIP Adjustment" = X,
         page "Subc. WIP Ledger Entries" = X,
 

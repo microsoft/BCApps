@@ -4015,6 +4015,79 @@ codeunit 136318 "Whse. Pick On Job Planning"
                 JobJournalLine."Line No."));
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,WhseSrcCreateDocReqHandler')]
+    [Scope('OnPrem')]
+    procedure ReservationAvailabilityCorrectAfterWhsePickAndSecondReservation()
+    var
+        Item: Record Item;
+        Job1: Record Job;
+        JobTask1: Record "Job Task";
+        JobTask2: Record "Job Task";
+        JobPlanningLine1: Record "Job Planning Line";
+        JobPlanningLine2: Record "Job Planning Line";
+        ReservationEntry: Record "Reservation Entry";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        QtyInventory: Decimal;
+        QtyToUse1: Decimal;
+        QtyToUse2: Decimal;
+    begin
+        // [FEATURE] 625654 [WMS] Different source reference on reservation entries created directly from Job Planning Line and via a warehouse pick
+        // [SCENARIO] When a second Job Planning Line reserves item after a warehouse pick has been registered for the first JPL, availability is calculated correctly.
+        Initialize();
+
+        // [GIVEN] Item "I" with inventory = 100 on location "L" with require shipment and pick.
+        LibraryInventory.CreateItem(Item);
+        QtyInventory := 100;
+        QtyToUse1 := 30;
+        QtyToUse2 := 40;
+        CreateAndPostInvtAdjustmentWithUnitCost(Item."No.", LocationWithWhsePick.Code, SourceBin.Code, QtyInventory, 0);
+
+        // [GIVEN] Job "J1" with Job Task "JT1" and Job Planning Line "JPL1" for Item "I", Quantity = 30.
+        CreateJobWithJobTask(JobTask1);
+        CreateJobPlanningLineWithData(JobPlanningLine1, JobTask1, "Job Planning Line Line Type"::Budget, JobPlanningLine1.Type::Item, Item."No.", LocationWithWhsePick.Code, DestinationBin.Code, QtyToUse1);
+
+        // [GIVEN] Auto-Reserve against JPL1.
+        JobPlanningLine1.AutoReserve();
+
+        // [THEN] Reservation Entry is created with Source Type = 1003 (Job Planning Line), Source Subtype = 2 (Order).
+        ReservationEntry.SetRange("Source Type", Database::"Job Planning Line");
+        ReservationEntry.SetRange("Source Subtype", 2);
+        ReservationEntry.SetRange("Source ID", JobPlanningLine1."Job No.");
+        ReservationEntry.SetRange("Item No.", Item."No.");
+        Assert.AreEqual(1, ReservationEntry.Count(), 'Reservation Entry should be created for JPL1.');
+
+        // [GIVEN] Create and register Warehouse Pick for Job J1.
+        Job1.Get(JobPlanningLine1."Job No.");
+        OpenJobAndCreateWarehousePick(Job1);
+
+        WarehouseActivityLine.SetRange("Item No.", Item."No.");
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [GIVEN] Create Job "J2" with Job Task "JT2" and Job Planning Line "JPL2" for same Item "I", Quantity = 40.
+        CreateJobWithJobTask(JobTask2);
+        CreateJobPlanningLineWithData(JobPlanningLine2, JobTask2, "Job Planning Line Line Type"::Budget, JobPlanningLine2.Type::Item, Item."No.", LocationWithWhsePick.Code, DestinationBin.Code, QtyToUse2);
+
+        // [WHEN] Auto-Reserve against JPL2.
+        JobPlanningLine2.AutoReserve();
+
+        // [THEN] Reservation Entry is created for JPL2 with correct quantity.
+        ReservationEntry.Reset();
+        ReservationEntry.SetRange("Source Type", Database::"Job Planning Line");
+        ReservationEntry.SetRange("Source Subtype", 2);
+        ReservationEntry.SetRange("Source ID", JobPlanningLine2."Job No.");
+        ReservationEntry.SetRange("Item No.", Item."No.");
+        Assert.AreEqual(1, ReservationEntry.Count(), 'Reservation Entry should be created for JPL2.');
+
+        // [THEN] "Reserved Quantity" on JPL2 should be 40 (reserved successfully after warehouse pick was registered for JPL1).
+        JobPlanningLine2.CalcFields("Reserved Quantity");
+        Assert.AreEqual(QtyToUse2, JobPlanningLine2."Reserved Quantity", 'JPL2 should have correct Reserved Quantity after warehouse pick for JPL1.');
+    end;
+
     procedure AssignSNWhsePickLines(JobPlanningLine: Record "Job Planning Line")
     var
         WarehouseActivityLinePick: Record "Warehouse Activity Line";
@@ -4090,7 +4163,8 @@ codeunit 136318 "Whse. Pick On Job Planning"
         Job: Record Job;
     begin
         WarehouseActivityPickLine.TestField("Source No.", JobPlanningLine."Job No.");
-        WarehouseActivityPickLine.TestField("Source Type", Database::Job);
+        WarehouseActivityPickLine.TestField("Source Type", Database::"Job Planning Line");
+        WarehouseActivityPickLine.TestField("Source Subtype", "Job Planning Line Status"::Order.AsInteger()); // Warehouse operations always use Order status
         WarehouseActivityPickLine.TestField("Source Document", WarehouseActivityPickLine."Source Document"::"Job Usage");
         WarehouseActivityPickLine.TestField("Activity Type", WarehouseActivityPickLine."Activity Type"::Pick);
         WarehouseActivityPickLine.TestField("Location Code", JobPlanningLine."Location Code");
@@ -4305,7 +4379,7 @@ codeunit 136318 "Whse. Pick On Job Planning"
     begin
         WarehouseEntry.SetRange("Item No.", JobPlanningLine."No.");
         WarehouseEntry.SetRange("Source No.", JobPlanningLine."Job No.");
-        WarehouseEntry.SetRange("Source Type", DATABASE::Job);
+        WarehouseEntry.SetRange("Source Type", DATABASE::"Job Planning Line");
         WarehouseEntry.SetRange("Source Line No.", JobPlanningLine."Job Contract Entry No.");
         WarehouseEntry.SetRange("Source Subline No.", JobPlanningLine."Line No."); //Link job planning line to warehouse entry for registered pick
         WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);

@@ -8,6 +8,7 @@ namespace System.DataAdministration;
 using System.Diagnostics;
 using System.Environment;
 using System.Reflection;
+using System.Security.AccessControl;
 using System.Security.User;
 
 /// <summary>
@@ -109,6 +110,28 @@ page 8700 "Table Information"
                     OptionCaption = 'None,Row,Page,,';
                     ToolTip = 'Specifies the type of compression that is applied to the table in the database.';
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Navigation)
+        {
+            action("View Table Permissions")
+            {
+                ApplicationArea = All;
+                Caption = 'View Table Permissions';
+                Image = Permission;
+                Scope = Repeater;
+                ToolTip = 'View an overview of permissions that apply to this table across all permission sets.';
+
+                trigger OnAction()
+                var
+                    PermissionsOverviewCU: Codeunit "Permissions Overview";
+                begin
+                    PermissionsOverviewCU.OpenForTable(Rec."Table No.");
+                end;
             }
         }
     }

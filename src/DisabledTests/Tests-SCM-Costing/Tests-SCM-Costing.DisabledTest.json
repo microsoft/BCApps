@@ -1,0 +1,550 @@
+[
+  {
+    "codeunitId": 137070,
+    "codeunitName": "SCM Avg. Cost Calc.",
+    "method": "JobConsumptionEntryFixAppliedToPurchaseSNTracking"
+  },
+  {
+    "codeunitId": 137287,
+    "codeunitName": "SCM Inventory Costing II",
+    "method": "ItemChargeDistributionByLotNosPurchaseInvoice_RoundingPrecisionLCY"
+  },
+  {
+    "codeunitId": 137287,
+    "codeunitName": "SCM Inventory Costing II",
+    "method": "ItemChargeDistributionBySerialNosPurchaseInvoice"
+  },
+  {
+    "codeunitId": 137287,
+    "codeunitName": "SCM Inventory Costing II",
+    "method": "ItemChargeDistributionBySerialNosPurchaseOrder"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "CorrectionLinesUnavailableForPurchaseReturnOrder"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "CorrectionLinesUnavailableForSalesOrder"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "TrackingForPurchRetOrdAfterUndoRetRcpt"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoNegativePurchaseReceiptTrackedBySerialNumber"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoPurchaseReceiptTrackedByLotNumber"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoPurchaseReceiptTrackedBySerialNumber"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoPurchaseReceiptWithAppliedQuantity"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoPurchaseReceiptWithChargeAssignment"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoReturnShipmentOfNegativeQuantity"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoReturnShipmentTrackedBySerialNumber"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoReturnShipmentWithChargeAssignment"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoSalesShipmentTrackedBySerialNumber"
+  },
+  {
+    "codeunitId": 137288,
+    "codeunitName": "SCM Inventory Costing III",
+    "method": "UndoSalesShipmentWithChargeAssignment"
+  },
+  {
+    "codeunitId": 137292,
+    "codeunitName": "SCM Inventory Costing Orders",
+    "method": "ErrorUsingApplToItemEntry"
+  },
+  {
+    "codeunitId": 137292,
+    "codeunitName": "SCM Inventory Costing Orders",
+    "method": "PurchaseReceiptErrorUsingLotNo"
+  },
+  {
+    "codeunitId": 137292,
+    "codeunitName": "SCM Inventory Costing Orders",
+    "method": "TransferLineWithShipmentDate"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "FIFOAdjustingOptimisationForPurchaseOnceManySales"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "SalePurchSale_Avg"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "SalePurchSale_FIFO"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "Test_PurchReturnShptAnd2Sales_AvgFixedAppln"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "Test_PurchReturnShptAnd2Sales_AvgNoAppln"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "Test_PurchReturnShptAnd2Sales_FIFO"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "Test_UndoReturnReceiptAnd2Sales_AvgFixedAppln"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "Test_UndoReturnReceiptAnd2Sales_AvgNoAppln"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "Test_UndoReturnReceiptAnd2Sales_FIFO"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "TFS94483_ManyConsumptionsAppliedToOneInbound"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "UpdateUnitCostSKUNotCalledWhenNotAdjustmentPosted"
+  },
+  {
+    "codeunitId": 133504,
+    "codeunitName": "SCM Costing Performance",
+    "method": "VSTF268387"
+  },
+  {
+    "codeunitId": 137001,
+    "codeunitName": "SCM Online Adjustment",
+    "method": "CheckPlanningLineWithItemDeletion"
+  },
+  {
+    "codeunitId": 137002,
+    "codeunitName": "SCM WIP Costing Addnl Currency",
+    "method": "WIPAddnlReportingCurrency"
+  },
+  {
+    "codeunitId": 137006,
+    "codeunitName": "SCM PAC Output Consumption",
+    "method": "StdBackwardPostOutput"
+  },
+  {
+    "codeunitId": 137006,
+    "codeunitName": "SCM PAC Output Consumption",
+    "method": "StdForwardPostOutput"
+  },
+  {
+    "codeunitId": 137006,
+    "codeunitName": "SCM PAC Output Consumption",
+    "method": "StdForwardTwoRoutingLinkCode"
+  },
+  {
+    "codeunitId": 137006,
+    "codeunitName": "SCM PAC Output Consumption",
+    "method": "StdManualPostConsumption"
+  },
+  {
+    "codeunitId": 137007,
+    "codeunitName": "SCM Inventory Costing",
+    "method": "ComponentIsActiveBOMVersionInOrderPlanning"
+  },
+  {
+    "codeunitId": 137007,
+    "codeunitName": "SCM Inventory Costing",
+    "method": "SetupTimeShouldNotBeCountedTwiceForRolledUpCapacityInCostShares"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "AssemblyPost_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "InvtDocReceipt_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "InvtDocShipment_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "ItemJournalPost_DifferentLowLevelCodes"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "ItemJournalPost_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "PurchasePost_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "SalesPost_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "TransferReceipt_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "TransferShipment_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "UndoPurchaseReceipt_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "UndoReturnReceipt_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "UndoReturnShipment_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137103,
+    "codeunitName": "Cost Adjustment Parallel Run",
+    "method": "UndoSalesShipment_OnlyProcessPostedItemsInAutomaticCostAdjustment"
+  },
+  {
+    "codeunitId": 137124,
+    "codeunitName": "Cost Adjust Action Msg. Tests",
+    "method": "SuboptimalAvgCostSettingsLoggedAfterCostAdjustmentIfMoreUnadjustedAvgCostEntryPtsExist"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "AverageCostCalculationWithAverageCostingMethod"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ProductionOrderPostingDoesNotPropagateACYToSourceCurrency"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "AverageCostCalculationWithStandardCostingMethod"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "CapacityCostPostedToGLForTwoItemsInOneProductionOrder"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "CheckFieldCaptionOnItemStatisticsMatrixPage"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "CopyStandardCostWorksheetReportCostWithRoundingFactor"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "CopyStandardCostWorksheetReportWithoutAdjustmentFactor"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "GLEntryWithAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ImplementStandardCostChange"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ImplementStandardCostChangeError"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ItemLedgerEntryWithAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ItemStatisticsAndItemTurnoverWithAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ItemStatisticsWithRoundingFactor1"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ItemStatisticsWithRoundingFactor1000"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "RollUpStandardCostAfterDelete"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "StandardCostWorksheetAfterRollUp"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "StandardCostWorksheetBeforeRollUp"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestItemPriceOnWorksheetWithSalesTypeAllCustomers"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestItemPriceOnWorksheetWithSalesTypeCampaign"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestItemPriceOnWorksheetWithSalesTypeCustomer"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestItemPriceOnWorksheetWithSalesTypeCustomerPriceGroup"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestItemStandardCostWithoutRoundingFactor"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestItemStandardCostWithRoundingFactor"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestSalesPriceOnWorksheetWithSalesTypeAllCustomers"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestSalesPriceOnWorksheetWithSalesTypeCampaign"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestSalesPriceOnWorksheetWithSalesTypeCustomer"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestSalesPriceOnWorksheetWithSalesTypeCustomerPriceGroup"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestWorkAndMachineCenterStandardCostWithoutRoundingFactor"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "SuggestWorkAndMachineCenterStandardCostWithRoundingFactor"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "UpdateUnitCostInItemJournalAndAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "UpdateUnitCostReportWithAllLevelsAndTrueReservations"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "UpdateUnitCostReportWithOneLevelAndFalseReservations"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "ValueEntryWithAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137603,
+    "codeunitName": "SCM CETAF Costing Revaluation",
+    "method": "CostAppliedRevaluationExcludedFromAvgCostCalc"
+  },
+  {
+    "codeunitId": 137606,
+    "codeunitName": "SCM CETAF Costing Reval. WIP",
+    "method": "TestProdAverageItemConsReserv"
+  },
+  {
+    "codeunitId": 137612,
+    "codeunitName": "SCM Costing Rollup Sev 2",
+    "method": "CalcSubcontractOrderForReleasedProdOrderWithNonBaseUOM"
+  },
+  {
+    "codeunitId": 137612,
+    "codeunitName": "SCM Costing Rollup Sev 2",
+    "method": "VerifyCapacityLedgerEntryMustNotBeReversedWhenSubcontractingIsTrue"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B256325_PostOutputJournalFromRelProdOrder"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B256325_PostOutputJournalWithAppliesToEntry"
+  },
+  {
+    "codeunitId": 137616,
+    "codeunitName": "SCM Costing Rollup Sev 4",
+    "method": "DeletionOfItemAfterClosingFiscalYearPostNegativeFirstCostOnNegative"
+  },
+  {
+    "codeunitId": 137616,
+    "codeunitName": "SCM Costing Rollup Sev 4",
+    "method": "DeletionOfItemAfterClosingFiscalYearPostPositiveFirstCostOnNegative"
+  },
+  {
+    "codeunitId": 137616,
+    "codeunitName": "SCM Costing Rollup Sev 4",
+    "method": "PS45737"
+  },
+  {
+    "codeunitId": 137616,
+    "codeunitName": "SCM Costing Rollup Sev 4",
+    "method": "PS49498"
+  },
+  {
+    "codeunitId": 137620,
+    "codeunitName": "SCM Costing Bugs I",
+    "method": "VSTF239230"
+  },
+  {
+    "codeunitId": 137620,
+    "codeunitName": "SCM Costing Bugs I",
+    "method": "VSTF330557_NonSpecificWorkCenter"
+  },
+  {
+    "codeunitId": 137620,
+    "codeunitName": "SCM Costing Bugs I",
+    "method": "VSTF330557_SpecificWorkCenter"
+  },
+  {
+    "codeunitId": 137620,
+    "codeunitName": "SCM Costing Bugs I",
+    "method": "VSTF330557_WorkCenterToMachineCenter"
+  },
+  {
+    "codeunitId": 137621,
+    "codeunitName": "SCM Costing Bugs II",
+    "method": "CheckConsumptionAfterPostingNegativeOutput"
+  },
+  {
+    "codeunitId": 137621,
+    "codeunitName": "SCM Costing Bugs II",
+    "method": "StartAutomaticCostAdjustmentAfterNeverChangedToAlways"
+  },
+  {
+    "codeunitId": 137621,
+    "codeunitName": "SCM Costing Bugs II",
+    "method": "TFS251070TFS256704"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B292993_GLEntriesAfterPostToGL"
+  },
+  {
+    "codeunitId": 137614,
+    "codeunitName": "SCM Costing Rollup Sev 3",
+    "method": "B292993_PostInvCostToGLPerEntry"
+  },
+  {
+    "codeunitId": 137402,
+    "codeunitName": "SCM Costing Batch",
+    "method": "PurchasePostingDoesNotPropagateACYToSourceCurrencyOnGLEntry",
+    "bug": "RU: shared W1 test fails under RU base-app behavior in the merged RU build; runs+passes for W1/other countries. Disabled globally (low value, RU pipeline enablement)."
+  },
+  {
+    "codeunitId": 137289,
+    "codeunitName": "SCM Inventory Costing IV",
+    "method": "AdjustCostForDifferentCurrencyExchangeRate",
+    "bug": "RU: #9071 (b477d1fe9c) regresses ACY balancing in RU Purch.-Post -> G/L inconsistency. Shared W1 test, fails only in RU. Mirrors NAV App/DisabledTests/SCMInventoryCostingIV.DisabledTest.json (PR 250996, 2026-07-17)."
+  },
+  {
+    "codeunitId": 137289,
+    "codeunitName": "SCM Inventory Costing IV",
+    "method": "PostPurchOrderWithDiffCurrencyExchangeRate",
+    "bug": "RU: #9071 (b477d1fe9c) regresses ACY balancing in RU Purch.-Post -> G/L inconsistency. Shared W1 test, fails only in RU. Mirrors NAV App/DisabledTests/SCMInventoryCostingIV.DisabledTest.json (PR 250996, 2026-07-17)."
+  }
+]

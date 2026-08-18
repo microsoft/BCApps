@@ -696,7 +696,7 @@ codeunit 9200 "Matrix Management"
                 OnFormatRoundingFactorOnElse(AmountDecimal, RoundingFactor);
         end;
 
-        OnFormatRoundingFactorOnAfterSetAmountDecimal(RoundingFactor, AmountDecimal);
+        OnFormatRoundingFactorOnAfterSetAmountDecimal(AmountDecimal, RoundingFactor);
 
         case NegativeAmountFormat of
             NegativeAmountFormat::"Minus Sign":
@@ -797,10 +797,10 @@ codeunit 9200 "Matrix Management"
     /// Integration event raised after the decimal format text has been set for the rounding factor and before the negative amount format is applied.
     /// Allows subscribers to change the decimal formatting based on the rounding factor.
     /// </summary>
-    /// <param name="RoundingFactor">Rounding factor being formatted.</param>
     /// <param name="AmountDecimal">Decimal format text, passed by reference so subscribers can change it.</param>
+    /// <param name="RoundingFactor">Rounding factor being formatted.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnFormatRoundingFactorOnAfterSetAmountDecimal(RoundingFactor: Enum "Analysis Rounding Factor"; var AmountDecimal: Text)
+    local procedure OnFormatRoundingFactorOnAfterSetAmountDecimal(var AmountDecimal: Text; RoundingFactor: Enum "Analysis Rounding Factor")
     begin
     end;
 

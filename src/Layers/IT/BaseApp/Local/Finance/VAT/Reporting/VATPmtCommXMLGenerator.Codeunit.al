@@ -16,7 +16,7 @@ codeunit 12150 "VAT Pmt. Comm. XML Generator"
     end;
 
     var
-        IVURLTxt: Label 'urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ivp', Comment = 'Locked';
+        IVURLTxt: Label 'urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ivp', Locked = true;
         VATPmtCommDataLookup: Codeunit "VAT Pmt. Comm. Data Lookup";
         XMLDOMManagement: Codeunit "XML DOM Management";
 

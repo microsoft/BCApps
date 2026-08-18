@@ -29,12 +29,12 @@ table 30129 "Shpfy Variant"
         }
         field(3; "Created At"; DateTime)
         {
-            Caption = 'CreatedAt';
+            Caption = 'Created At (Shopify)';
             DataClassification = CustomerContent;
         }
         field(4; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = CustomerContent;
         }
         field(5; "Available For Sales"; Boolean)
