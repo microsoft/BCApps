@@ -253,10 +253,8 @@ codeunit 99000818 "Mfg. Carry Out Action"
             ProdOrderChoice::Released,
             ProdOrderChoice::"Released & Print":
                 ManufacturingSetup.TestField("Released Order Nos.");
-            else begin
-                OnInsertProductionOrderOnProdOrderChoiceCaseElse(ProdOrderChoice);
-                OnVerifyProdOrderNoSeriesSetupOnElse(ProdOrderChoice, ManufacturingSetup);
-            end;
+            else
+                OnInsertProductionOrderOnProdOrderChoiceCaseElse(ProdOrderChoice, ManufacturingSetup);
         end;
     end;
 
@@ -843,7 +841,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertProductionOrderOnProdOrderChoiceCaseElse(ProdOrderChoice: Enum "Planning Create Prod. Order")
+    local procedure OnInsertProductionOrderOnProdOrderChoiceCaseElse(ProdOrderChoice: Enum "Planning Create Prod. Order"; ManufacturingSetup: Record "Manufacturing Setup")
     begin
     end;
 
@@ -907,11 +905,6 @@ codeunit 99000818 "Mfg. Carry Out Action"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetProdOrderStatus(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnVerifyProdOrderNoSeriesSetupOnElse(ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup")
     begin
     end;
 
