@@ -280,7 +280,12 @@ codeunit 6109 "E-Document Import Helper"
     procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
     var
         CompanyInformation: Record "Company Information";
+        IsHandled: Boolean;
     begin
+        OnBeforeValidateReceivingCompanyInfo(EDocument, IsHandled);
+        if IsHandled then
+            exit;
+
         CompanyInformation.Get();
 
         if (EDocument."Receiving Company GLN" = '') and (EDocument."Receiving Company VAT Reg. No." = '') then begin
@@ -431,6 +436,19 @@ codeunit 6109 "E-Document Import Helper"
     /// <param name="VATRegistrationNo">Vendor's VAT registration number.</param>
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]): Code[20]
+    begin
+        exit(FindVendor(VendorNoText, GLN, VATRegistrationNo, ''));
+    end;
+
+    /// <summary>
+    /// Use it to find a vendor by number, GLN, VAT registration number or registration number.
+    /// </summary>
+    /// <param name="VendorNoText">Vendor's number.</param>
+    /// <param name="GLN">Vendor's GLN.</param>
+    /// <param name="VATRegistrationNo">Vendor's VAT registration number.</param>
+    /// <param name="RegistrationNo">Vendor's registration number.</param>
+    /// <returns>Vendor number if exists or empty string.</returns>
+    procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]; RegistrationNo: Text[20]): Code[20]
     var
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         VendorNo: Code[20];
@@ -450,6 +468,12 @@ codeunit 6109 "E-Document Import Helper"
         VendorNo := FindVendorByVATRegistrationNo(VATRegistrationNo);
         if VendorNo <> '' then begin
             EDocImpSessionTelemetry.SetText('Vendor Match Method', 'VAT Id');
+            exit(VendorNo);
+        end;
+
+        VendorNo := FindVendorByRegistrationNo(RegistrationNo);
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Registration No.');
             exit(VendorNo);
         end;
     end;
@@ -524,11 +548,34 @@ codeunit 6109 "E-Document Import Helper"
     end;
 
     /// <summary>
+    /// Use it to find a vendor by registration number.
+    /// </summary>
+    /// <param name="RegistrationNo">Vendor's registration number.</param>
+    /// <returns>Vendor number if exists or empty string.</returns>
+    procedure FindVendorByRegistrationNo(RegistrationNo: Text[20]): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        if RegistrationNo = '' then
+            exit('');
+
+        Vendor.SetRange("Registration No.", RegistrationNo);
+        if Vendor.FindFirst() then
+            exit(Vendor."No.");
+    end;
+
+    /// <summary>
     /// Use it to find a vendor by phone number.
     /// </summary>
     /// <param name="PhoneNo">Vendor's Phone number.</param>
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendorByPhoneNo(PhoneNo: Text): Code[20]
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateReceivingCompanyInfo(EDocument: Record "E-Document"; var IsHandled: Boolean)
+    begin
+    end;
+
     var
         Vendor: Record Vendor;
         RecordMatchMgt: Codeunit "Record Match Mgt.";

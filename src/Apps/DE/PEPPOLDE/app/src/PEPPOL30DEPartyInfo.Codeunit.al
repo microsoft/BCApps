@@ -38,13 +38,33 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
     end;
 
     procedure GetAccountingSupplierPartyTaxScheme(var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
+    var
+        CompanyInformation: Record "Company Information";
     begin
         StandardProvider.GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
+        if CompanyID <> '' then
+            exit;
+
+        CompanyInformation.SetLoadFields("Registration No.");
+        CompanyInformation.Get();
+        if CompanyInformation."Registration No." = '' then
+            exit;
+
+        CompanyID := CompanyInformation."Registration No.";
+        CompanyIDSchemeID := '';
+        TaxSchemeID := FiscalCodeSchemeTok;
     end;
 
     procedure GetAccountingSupplierPartyTaxSchemeBIS(var VATAmtLine: Record "VAT Amount Line"; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
     begin
         StandardProvider.GetAccountingSupplierPartyTaxSchemeBIS(VATAmtLine, CompanyID, CompanyIDSchemeID, TaxSchemeID);
+        if CompanyID <> '' then
+            exit;
+
+        VATAmtLine.SetFilter("Tax Category", '<>%1', 'O');
+        if not VATAmtLine.IsEmpty() then
+            GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
+        VATAmtLine.SetRange("Tax Category");
     end;
 
     procedure GetAccountingSupplierPartyLegalEntity(var PartyLegalEntityRegName: Text; var PartyLegalEntityCompanyID: Text; var PartyLegalEntitySchemeID: Text; var SupplierRegAddrCityName: Text; var SupplierRegAddrCountryIdCode: Text; var SupplRegAddrCountryIdListId: Text)
@@ -55,6 +75,7 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
     procedure GetAccountingSupplierPartyLegalEntityBIS(var PartyLegalEntityRegName: Text; var PartyLegalEntityCompanyID: Text; var PartyLegalEntitySchemeID: Text; var SupplierRegAddrCityName: Text; var SupplierRegAddrCountryIdCode: Text; var SupplRegAddrCountryIdListId: Text)
     begin
         StandardProvider.GetAccountingSupplierPartyLegalEntityBIS(PartyLegalEntityRegName, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID, SupplierRegAddrCityName, SupplierRegAddrCountryIdCode, SupplRegAddrCountryIdListId);
+        SetRegistrationNoAsLegalEntityFallback(PartyLegalEntityCompanyID, PartyLegalEntitySchemeID);
     end;
 
     procedure GetAccountingSupplierPartyContact(SalesHeader: Record "Sales Header"; var ContactID: Text; var ContactName: Text; var Telephone: Text; var Telefax: Text; var ElectronicMail: Text)
@@ -132,4 +153,20 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
     begin
         StandardProvider.GetTaxRepresentativePartyInfo(TaxRepPartyNameName, PayeePartyTaxSchemeCompanyID, PayeePartyTaxSchCompIDSchemeID, PayeePartyTaxSchemeTaxSchemeID);
     end;
+
+    local procedure SetRegistrationNoAsLegalEntityFallback(var PartyLegalEntityCompanyID: Text; var PartyLegalEntitySchemeID: Text)
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        if PartyLegalEntityCompanyID <> '' then
+            exit;
+
+        CompanyInformation.SetLoadFields("Registration No.");
+        CompanyInformation.Get();
+        PartyLegalEntityCompanyID := CompanyInformation."Registration No.";
+        PartyLegalEntitySchemeID := '';
+    end;
+
+    var
+        FiscalCodeSchemeTok: Label 'FC', Locked = true;
 }

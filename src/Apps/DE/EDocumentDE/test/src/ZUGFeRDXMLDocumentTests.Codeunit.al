@@ -313,6 +313,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifySupplierRegistrationNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
+        RegistrationNo: Text[20];
+    begin
+        // [SCENARIO 646793] Supplier Registration No. is exported as the FC tax identifier when GLN and VAT ID are unavailable.
+        Initialize();
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        SetCompanyRegistrationNo(RegistrationNo);
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SellerTaxRegistrationTok), StrSubstNo(IncorrectValueErr, SellerTaxRegistrationTok));
+        Assert.AreEqual('FC', GetAttributeByPathWithError(TempXMLBuffer, SellerTaxRegistrationTok, 'schemeID'), StrSubstNo(IncorrectValueErr, SellerTaxRegistrationTok + '/@schemeID'));
+    end;
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatDoesNotExportCustomerGLNWhenDisabled();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -3496,6 +3515,16 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         VATPostingSetup.Get(VATBusPostingGroup, VATProductPostingGroup);
         VATPostingSetup.Validate("VAT Clause Code", VATClauseCode);
         VATPostingSetup.Modify(true);
+    end;
+
+    local procedure SetCompanyRegistrationNo(RegistrationNo: Text[20])
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := '';
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation."Registration No." := RegistrationNo;
+        CompanyInformation.Modify();
     end;
 
     local procedure Initialize();

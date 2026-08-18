@@ -251,16 +251,20 @@ codeunit 13919 "Import ZUGFeRD Document"
         EDocumentHelper: Codeunit "E-Document Helper";
         VendorName, VendorAddress : Text;
         VATRegistrationNo: Text[20];
+        RegistrationNo: Text[20];
         GLN: Text[13];
         VendorID: Text[200];
         VendorNo: Code[20];
     begin
-        if GetAttributeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID') = 'VA' then
+        if GetAttributeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID/@schemeID') = 'VA' then
             VATRegistrationNo := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'), 1, MaxStrLen(VATRegistrationNo));
+
+        if GetAttributeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID/@schemeID') = 'FC' then
+            RegistrationNo := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'), 1, MaxStrLen(RegistrationNo));
 
         if GetAttributeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID') = '0002' then
             GLN := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID'), 1, MaxStrLen(GLN));
-        VendorNo := EDocumentImportHelper.FindVendor('', GLN, VATRegistrationNo);
+        VendorNo := EDocumentImportHelper.FindVendor('', GLN, VATRegistrationNo, RegistrationNo);
 
         // If vendor not found, try to find by Service Participant.
         if VendorNo = '' then begin
@@ -287,10 +291,18 @@ codeunit 13919 "Import ZUGFeRD Document"
     end;
 
     local procedure ParseBuyerTradeParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentType: Text)
+    var
+        TaxRegistrationPath: Text;
     begin
         EDocument."Receiving Company Name" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Name'), 1, MaxStrLen(EDocument."Receiving Company Name"));
         EDocument."Receiving Company Address" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + 'rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne'), 1, MaxStrLen(EDocument."Receiving Company Address"));
-        EDocument."Receiving Company VAT Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedTaxRegistration'), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+        TaxRegistrationPath := '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID';
+        case GetAttributeByPath(TempXMLBuffer, TaxRegistrationPath + '/@schemeID') of
+            'VA':
+                EDocument."Receiving Company VAT Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, TaxRegistrationPath), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+            'FC':
+                EDocument."Receiving Company Reg. No. DE" := CopyStr(GetNodeByPath(TempXMLBuffer, TaxRegistrationPath), 1, MaxStrLen(EDocument."Receiving Company Reg. No. DE"));
+        end;
     end;
 
     #region Invoice

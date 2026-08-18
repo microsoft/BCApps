@@ -22,7 +22,7 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
 
     var
         PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
-        MissingCompInfGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. in %1.', Comment = '%1=Company Information';
+        MissingCompInfIdentifierErr: Label 'You must specify either GLN, VAT Registration No., or Registration No. in %1.', Comment = '%1=Company Information';
         MissingCustGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Customer %1.', Comment = '%1 = Customer No.';
         UnsupportedDocumentErr: Label 'The posted sales document type is not supported for PEPPOL 3.0 validation.';
 
@@ -122,8 +122,8 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         CompanyInfo.TestField("Country/Region Code");
         PEPPOL30SalesValidation.CheckCountryRegionCode(CompanyInfo."Country/Region Code");
 
-        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '' then
-            Error(MissingCompInfGLNOrVATRegNoErr, CompanyInfo.TableCaption());
+        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." + CompanyInfo."Registration No." = '' then
+            Error(MissingCompInfIdentifierErr, CompanyInfo.TableCaption());
 
         SalesHeader.TestField("Bill-to Name");
         SalesHeader.TestField("Bill-to Address");

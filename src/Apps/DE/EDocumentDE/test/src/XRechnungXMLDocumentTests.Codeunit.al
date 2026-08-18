@@ -2179,11 +2179,41 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifySupplierRegistrationNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        SupplierTaxSchemeTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme', Locked = true;
+        RegistrationNo: Text[20];
+    begin
+        // [SCENARIO 646793] Supplier Registration No. is exported as the FC tax identifier when GLN and VAT ID are unavailable.
+        Initialize();
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        SetCompanyRegistrationNo(RegistrationNo);
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+        Assert.AreEqual('FC', GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+    end;
+
     local procedure SetCompanyGLN(GLN: Code[13])
     begin
         CompanyInformation.Get();
         CompanyInformation.GLN := GLN;
         CompanyInformation."Use GLN in Electronic Document" := true;
+        CompanyInformation.Modify();
+    end;
+
+    local procedure SetCompanyRegistrationNo(RegistrationNo: Text[20])
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := '';
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation."Registration No." := RegistrationNo;
         CompanyInformation.Modify();
     end;
 

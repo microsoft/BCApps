@@ -10,6 +10,8 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using System.Utilities;
 
 codeunit 139799 "E-Doc. Helper Test"
 {
@@ -54,6 +56,25 @@ codeunit 139799 "E-Doc. Helper Test"
     begin
         VendorNo := EDocumentImportHelper.FindVendor('', '', '');
         Assert.IsTrue(VendorNo = '', 'Vendor No. should be empty');
+    end;
+
+    [Test]
+    procedure FindVendorByRegistrationNo()
+    var
+        Vendor: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNo: Text[20];
+    begin
+        // [SCENARIO 646793] A vendor can be resolved by Registration No. when other identifiers are unavailable.
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        Vendor.Init();
+        Vendor."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Vendor."No."));
+        Vendor.Name := Vendor."No.";
+        Vendor."Registration No." := RegistrationNo;
+        Vendor.Insert();
+
+        Assert.AreEqual(Vendor."No.", EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should be matched by Registration No.');
     end;
 
     [Test]
