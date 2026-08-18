@@ -604,6 +604,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
 
         GetSellerPostalAddr(RespCentrCode, SellerStreetName, SellerAdditionalStreetName, SellerCityName, SellerPostalZone, SellerCountryCode);
+        Customer.SetLoadFields("Use GLN in Electronic Document", GLN);
         if Customer.Get(CustomerNo) then
             if Customer."Use GLN in Electronic Document" then
                 CustomerGLN := Customer.GLN;
@@ -766,11 +767,13 @@ codeunit 13917 "Export ZUGFeRD Document"
         ShipToAddress: Record "Ship-to Address";
         DeliveryGLN: Code[13];
     begin
+        Customer.SetLoadFields("Use GLN in Electronic Document", GLN);
         if not Customer.Get(CustomerNo) then
             exit;
         if not Customer."Use GLN in Electronic Document" then
             exit;
-        if ShipToAddress.Get(CustomerNo, ShipToCode) then
+        ShipToAddress.SetLoadFields(GLN);
+        if (ShipToCode <> '') and ShipToAddress.Get(CustomerNo, ShipToCode) then
             DeliveryGLN := ShipToAddress.GLN;
         if DeliveryGLN = '' then
             DeliveryGLN := Customer.GLN;

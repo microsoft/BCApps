@@ -539,11 +539,13 @@ codeunit 13916 "Export XRechnung Document"
         Customer: Record Customer;
         ShipToAddress: Record "Ship-to Address";
     begin
+        Customer.SetLoadFields("Use GLN in Electronic Document", GLN);
         if not Customer.Get(CustomerNo) then
             exit('');
         if not Customer."Use GLN in Electronic Document" then
             exit('');
-        if ShipToAddress.Get(CustomerNo, ShipToCode) then
+        ShipToAddress.SetLoadFields(GLN);
+        if (ShipToCode <> '') and ShipToAddress.Get(CustomerNo, ShipToCode) then
             if ShipToAddress.GLN <> '' then
                 exit(ShipToAddress.GLN);
         exit(Customer.GLN);

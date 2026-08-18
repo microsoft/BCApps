@@ -57,7 +57,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ZUGFeRDFormat: Codeunit "ZUGFeRD Format";
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
-        AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
+        AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
@@ -927,6 +927,28 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with buyer reference XX
         VerifyBuyerReference(SalesCrMemoHeader."Your Reference", TempXMLBuffer, '/rsm:CrossIndustryInvoice');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyCustomerGLN();
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD credit memo format
+        Initialize();
+
+        // [GIVEN] Create and post a sales credit memo for a customer that uses GLN in electronic documents
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoForCustomerWithGLN(CustomerGLN()));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Buyer and ship-to GlobalID contain the customer GLN with schemeID 0088
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok + '/@schemeID'));
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok + '/@schemeID'));
     end;
 
     [Test]
@@ -2248,6 +2270,15 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ShipToAddress.Modify(true);
         SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
         SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesCrMemoForCustomerWithGLN(GLN: Code[13]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CreateCustomerWithGLN(GLN, true));
         CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;

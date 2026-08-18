@@ -58,7 +58,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportXRechnungFormat: Codeunit "XRechnung Format";
         ExportXRechnungDocument: Codeunit "Export XRechnung Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
-        AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
+        AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         SupplierPartyIdTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
         SupplierLegalEntityIdTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
@@ -66,6 +66,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         CustomerLegalEntityIdTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
         DeliveryLocationIdTok: Label '/ubl:Invoice/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
         CreditMemoCustomerPartyIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
+        CreditMemoCustomerLegalEntityIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
+        CreditMemoDeliveryLocationIdTok: Label '/ns0:CreditNote/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -1668,6 +1670,26 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatFallsBackToCustomerGLNWhenShipToGLNIsBlank();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 646443] Customer GLN is used when the ship-to address GLN is blank
+        Initialize();
+
+        // [GIVEN] A customer with GLN and a ship-to address without GLN
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), '', true));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Delivery location uses the customer GLN with schemeID 0088
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, DeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, DeliveryLocationIdTok));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, DeliveryLocationIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, DeliveryLocationIdTok + '/@schemeID'));
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatDoesNotExportCustomerGLNWhenDisabled();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1724,9 +1746,13 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
-        // [THEN] Customer PartyIdentification ID is the GLN with schemeID = 0088
+        // [THEN] Customer and delivery identifiers contain the customer GLN with schemeID 0088
         Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CreditMemoCustomerPartyIdTok), StrSubstNo(IncorrectValueErr, CreditMemoCustomerPartyIdTok));
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CreditMemoCustomerPartyIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CreditMemoCustomerPartyIdTok + '/@schemeID'));
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CreditMemoCustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CreditMemoCustomerLegalEntityIdTok));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CreditMemoCustomerLegalEntityIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CreditMemoCustomerLegalEntityIdTok + '/@schemeID'));
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, CreditMemoDeliveryLocationIdTok));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CreditMemoDeliveryLocationIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CreditMemoDeliveryLocationIdTok + '/@schemeID'));
     end;
     #endregion
 
