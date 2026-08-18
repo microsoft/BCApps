@@ -463,7 +463,7 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnDeleteOnBeforeArchiveSalesDocumentSalesHeader(var SalesHeader: Record "Sales Header")
     var
         EDocument: Record "E-Document";
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters" temporary;
         EDocImport: Codeunit "E-Doc. Import";
         ConfirmDialogMgt: Codeunit "Confirm Management";
     begin

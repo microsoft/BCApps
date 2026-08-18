@@ -2,9 +2,9 @@ namespace Microsoft.EServices.EDocument.IO.Peppol;
 
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Peppol;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
-using Microsoft.Peppol;
 using Microsoft.Sales.Reminder;
 using System.Utilities;
 
