@@ -147,18 +147,19 @@ codeunit 148150 "FI Company Field Report Test"
         DocumentNo: Code[20];
         RequestPageXML: Text;
     begin
-        // [Scenario] Test FI Core extension subscriber for the field "Registered Home City"
+        // [FEATURE] [AI test]
+        // [SCENARIO] The registered home city is included in a standard sales quote.
         Initialize();
 
+        // [GIVEN] Sales quote "SQ".
         DocumentNo := CreateSalesDocument(SalesHeader."Document Type"::Quote);
 
-        // [THEN] The even should be triggered in OnInitReport
+        // [WHEN] The standard sales quote report is run for "SQ".
         RequestPageXML := Report.RunRequestPage(Report::"Standard Sales - Quote", RequestPageXML);
-
         SalesHeader.SetRange("No.", DocumentNo);
         LibraryReportDataset.RunReportAndLoad(Report::"Standard Sales - Quote", SalesHeader, RequestPageXML);
 
-        // [THEN] Element should be correctly initialized
+        // [THEN] The dataset contains the registered home city and its caption.
         LibraryReportDataset.AssertElementWithValueExists('CompanyLegalOffice', RegisteredHomeCityTxt);
         LibraryReportDataset.AssertElementWithValueExists('CompanyLegalOffice_Lbl', CompanyInformation.FieldCaption(CompanyInformation."Registered Home City"));
     end;
@@ -170,17 +171,20 @@ codeunit 148150 "FI Company Field Report Test"
         EmptyRecordVariant: Variant;
         RequestPageXML: Text;
     begin
-        // [Scenario] Test FI Core extension subscriber for Finnish company fields in the VIES declaration.
+        // [FEATURE] [AI test]
+        // [SCENARIO] Finnish company fields are included in the VIES declaration when the feature is enabled.
         Initialize();
+
+        // [GIVEN] The FI VIES declaration feature is enabled and VAT VIES entry "VE" exists.
         FIVIESFeatureHandler.SetEnabled(true);
         Assert.IsTrue(FICoreVIESDeclarationFeature.IsEnabled(), 'The FI VIES feature should be enabled for the test.');
         CreateVATVIESEntry();
 
-        // [WHEN] The VAT VIES declaration report is run.
+        // [WHEN] The VIES declaration report is run.
         RequestPageXML := GetVATVIESDeclarationRequestPageXML();
         LibraryReportDataset.RunReportAndLoad(Report::"VAT- VIES Declaration Tax Auth", EmptyRecordVariant, RequestPageXML);
 
-        // [THEN] Finnish company fields and captions are initialized in the report dataset.
+        // [THEN] The dataset contains the Finnish company fields and captions.
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoBusinessIdentityCode', BusinessIdentityCodeTxt);
         LibraryReportDataset.AssertElementWithValueExists('BusinessIdentityCodeCaption', CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code"));
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', RegisteredHomeCityTxt);
@@ -194,15 +198,18 @@ codeunit 148150 "FI Company Field Report Test"
         EmptyRecordVariant: Variant;
         RequestPageXML: Text;
     begin
-        // [Scenario] Finnish company fields are not added to the VIES declaration when the feature is disabled.
+        // [FEATURE] [AI test]
+        // [SCENARIO] Finnish company fields are excluded from the VIES declaration when the feature is disabled.
         Initialize();
+
+        // [GIVEN] The FI VIES declaration feature is disabled and VAT VIES entry "VE" exists.
         CreateVATVIESEntry();
 
-        // [WHEN] The VAT VIES declaration report is run.
+        // [WHEN] The VIES declaration report is run.
         RequestPageXML := GetVATVIESDeclarationRequestPageXML();
         LibraryReportDataset.RunReportAndLoad(Report::"VAT- VIES Declaration Tax Auth", EmptyRecordVariant, RequestPageXML);
 
-        // [THEN] Finnish company fields and captions remain empty in the report dataset.
+        // [THEN] The Finnish company fields and captions are empty in the dataset.
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoBusinessIdentityCode', '');
         LibraryReportDataset.AssertElementWithValueExists('BusinessIdentityCodeCaption', '');
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', '');
@@ -537,6 +544,7 @@ codeunit 148150 "FI Company Field Report Test"
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        VATPostingSetup: Record "VAT Posting Setup";
         CreateFinanceChargeMemos: Report "Create Finance Charge Memos";
         LibraryFinanceChargeMemo: Codeunit "Library - Finance Charge Memo";
         PostedDocumentNo: Code[20];
@@ -548,6 +556,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryFinanceChargeMemo.CreateFinanceChargeTermAndText(FinanceChargeTerms);
         SalesInvoiceHeader.Get(PostedDocumentNo);
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, Customer."VAT Bus. Posting Group", '');
         Customer."Fin. Charge Terms Code" := FinanceChargeTerms.Code;
         Customer.Modify();
 
@@ -947,7 +956,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerFalse,ServiceContractReportHandler')]
+    [HandlerFunctions('ServiceContractReportHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractReport()
     var
@@ -977,7 +986,7 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerFalse,ServiceContractQuoteReportHandler')]
+    [HandlerFunctions('ServiceContractQuoteReportHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractQuoteReport()
     var
@@ -1004,12 +1013,6 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceContractQuoteRequestPage."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
         ServiceContractQuoteRequestPage.OK().Invoke();
-    end;
-
-    [ConfirmHandler]
-    procedure ConfirmHandlerFalse(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := false;
     end;
 
     [RequestPageHandler]
