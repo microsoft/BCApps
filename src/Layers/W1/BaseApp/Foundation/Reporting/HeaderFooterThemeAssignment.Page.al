@@ -86,9 +86,6 @@ page 9667 "Header/Footer Theme Assignment"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        // Stage the current report-level configuration (empty Layout Name and Company Name) in a temporary record.
-        // Nothing is written to the persisted Tenant Report Layout Cfg table until the dialog is closed with OK
-        // (see OnQueryClosePage), so cancelling never changes the effective theme/header-footer.
         Rec.Reset();
         Rec.DeleteAll();
         Rec.Init();
@@ -100,7 +97,6 @@ page 9667 "Header/Footer Theme Assignment"
         end;
         Rec.Insert();
 
-        // Pin the card to exactly this report/layout configuration row so it opens on it and shows no prev/next navigation.
         Rec.SetRecFilter();
     end;
 
@@ -115,14 +111,11 @@ page 9667 "Header/Footer Theme Assignment"
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
         BothPartsEmpty: Boolean;
     begin
-        // Persist the staged selection only when the dialog is confirmed. On Cancel the temporary record is
-        // discarded and the effective configuration is left unchanged.
         if CloseAction <> Action::OK then
             exit(true);
 
         BothPartsEmpty := (Rec."Header Part Name" = '') and (Rec."Theme Part Name" = '');
         if TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then begin
-            // Do not leave an empty per-report configuration row behind if the user cleared both parts.
             if BothPartsEmpty then
                 TenantReportLayoutCfg.Delete(true)
             else begin

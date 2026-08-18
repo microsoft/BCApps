@@ -55,10 +55,8 @@ page 9669 "Theme and Header/Footer Box"
         Clear(ThemeSource);
         Clear(HeaderDisplay);
         Clear(HeaderSource);
-        // Only resolve when a report is selected; with no report there is nothing to show.
         if ReportID <> 0 then
             LookupHelper.GetResolvedPartDisplays(ReportID, LayoutName, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
-        // Show the source columns only when a source actually resolved (i.e. the value is not blank).
         ThemeSourceVisible := ThemeSource <> '';
         HeaderSourceVisible := HeaderSource <> '';
         CurrPage.Update(false);

@@ -12,16 +12,6 @@ using System.Environment.Configuration;
 /// the shared pool, so they can be assigned as defaults on any report from the Report themes and header-footer
 /// setup page.
 /// </summary>
-/// <remarks>
-/// Parts are written to the platform's virtual Tenant Report Defaults report (2000000001), which is the only
-/// report the resolver accepts reusable default parts from. A part declared in a report or reportextension
-/// rendering section is bound to that specific report, and there is no design-time way to place a layout on the
-/// virtual report, so the rows are inserted as Tenant Report Layout records - the same table the New Theme or
-/// Header/Footer dialog writes - at install and upgrade time.
-///
-/// The layout files ship as app resources from the .resources folder declared in app.json and are read with
-/// NavApp.GetResource, which keeps the binaries out of the AL source.
-/// </remarks>
 codeunit 9667 "Composite Report Parts Mgt."
 {
     Access = Internal;
@@ -33,9 +23,6 @@ codeunit 9667 "Composite Report Parts Mgt."
     /// </summary>
     procedure SeedDefaultParts()
     begin
-        // One line per part shipped: the name it appears under in the UI, the resource file holding the layout,
-        // its role, and the description shown next to it. The resource folders mirror the roles -
-        // HeaderFooterDesign holds the .docx header/footer parts, ReportTheme holds the .dotx theme templates.
         UpsertPart(ExternalDefaultTxt, 'ReportParts/HeaderFooterDesign/ExternalDefault.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalDefaultDescTxt);
         UpsertPart(ExternalDefaultDetailedTxt, 'ReportParts/HeaderFooterDesign/ExternalDefaultDetailed.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalDefaultDetailedDescTxt);
         UpsertPart(ExternalMinimalisticTxt, 'ReportParts/HeaderFooterDesign/ExternalMinimalistic.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalMinimalisticDescTxt);
@@ -43,14 +30,12 @@ codeunit 9667 "Composite Report Parts Mgt."
         UpsertPart(ExternalModernTxt, 'ReportParts/HeaderFooterDesign/ExternalModern.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalModernDescTxt);
         UpsertPart(ExternalModernLogoTxt, 'ReportParts/HeaderFooterDesign/ExternalModernLogo.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalModernLogoDescTxt);
 
-        //Internal
         UpsertPart(InternalDefaultTxt, 'ReportParts/HeaderFooterDesign/InternalDefault.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalDefaultDescTxt);
         UpsertPart(InternalMinimalisticCenteredTxt, 'ReportParts/HeaderFooterDesign/InternalMinimalisticCentered.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalMinimalisticCenteredDescTxt);
         UpsertPart(InternalMinimalisticTxt, 'ReportParts/HeaderFooterDesign/InternalMinimalistic.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalMinimalisticDescTxt);
         UpsertPart(InternalModernTxt, 'ReportParts/HeaderFooterDesign/InternalModern.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalModernDescTxt);
         UpsertPart(InternalModernMaxiTxt, 'ReportParts/HeaderFooterDesign/InternalModernMaxi.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalModernMaxiDescTxt);
 
-        //Theme
         UpsertPart(DefaultThemeTxt, 'ReportParts/ReportTheme/Default.dotx', Enum::"Report Layout Subtype"::Theme, DefaultThemeDescTxt);
         UpsertPart(CalmThemeTxt, 'ReportParts/ReportTheme/Calm.dotx', Enum::"Report Layout Subtype"::Theme, CalmThemeDescTxt);
         UpsertPart(PlayfulThemeTxt, 'ReportParts/ReportTheme/Playful.dotx', Enum::"Report Layout Subtype"::Theme, PlayfulThemeDescTxt);
@@ -59,13 +44,6 @@ codeunit 9667 "Composite Report Parts Mgt."
     /// <summary>
     /// Whether the given part name is one of the themes or header/footer designs that ship with the Base Application.
     /// </summary>
-    /// <remarks>
-    /// Shipped parts are stored as Tenant Report Layout rows with the empty application ID - the only way to get a
-    /// layout onto the virtual Tenant Report Defaults report - so the platform reports no publisher for them and they
-    /// are indistinguishable from a part an administrator uploaded. This lets the UI name Microsoft as their publisher.
-    /// Matching is by name, which is what the pool is keyed on: a part carrying a shipped name is the shipped part,
-    /// because seeding replaces anything already stored under that name.
-    /// </remarks>
     internal procedure IsShippedPart(PartName: Text): Boolean
     begin
         exit(
@@ -80,16 +58,6 @@ codeunit 9667 "Composite Report Parts Mgt."
     /// Writes one part into the shared pool, inserting it when missing and replacing it when already there, so
     /// re-seeding picks up a changed layout file.
     /// </summary>
-    /// <remarks>
-    /// Replacing means delete-then-insert, not Modify. The platform refuses to modify a Tenant Report Layout
-    /// whose type or content changes, and that error inside an install trigger rolls the whole publish back, so
-    /// the row is removed and written afresh instead. Assignments survive it: Tenant Report Layout Cfg refers to
-    /// a part by its composite &lt;app id&gt;::&lt;name&gt; text rather than by a foreign key, and the row returns
-    /// under the same name and the same empty application ID.
-    ///
-    /// A part that an administrator has customized under one of these names is overwritten - the customization
-    /// has to be kept under a different name.
-    /// </remarks>
     /// <param name="PartName">The name the part is stored and assigned under.</param>
     /// <param name="ResourceFile">Path of the layout file inside the resource folder declared in app.json.</param>
     /// <param name="Subtype">HeaderFooter or Theme. Also decides the MIME type.</param>
@@ -101,7 +69,6 @@ codeunit 9667 "Composite Report Parts Mgt."
         LayoutInStream: InStream;
         EmptyAppId: Guid;
     begin
-        // Read before the delete, so a resource that cannot be read leaves the existing part intact.
         NavApp.GetResource(ResourceFile, LayoutInStream);
 
         if TenantReportLayout.Get(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId) then
@@ -110,11 +77,10 @@ codeunit 9667 "Composite Report Parts Mgt."
         TenantReportLayout.Init();
         TenantReportLayout."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();
         TenantReportLayout.Name := PartName;
-        TenantReportLayout."Company Name" := ''; // '' = global (all companies), so seeding once per database is enough
+        TenantReportLayout."Company Name" := '';
         TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Word;
         TenantReportLayout."Layout Subtype" := Subtype;
         TenantReportLayout.Description := CopyStr(Description, 1, MaxStrLen(TenantReportLayout.Description));
-        // Only approved parts can be assigned as report defaults, so seed them ready to use.
         TenantReportLayout."Layout Status" := TenantReportLayout."Layout Status"::Approved;
         TenantReportLayout."MIME Type" := PartMimeType(Subtype);
         TenantReportLayout.Layout.ImportStream(LayoutInStream, PartName);
@@ -165,6 +131,6 @@ codeunit 9667 "Composite Report Parts Mgt."
         CalmThemeDescTxt: Label 'Classic and calm, and easy to read. Styling-only theme: Sitka serif in semibold and regular for hierarchy, with dark-green text on a soft beige background. A timeless look that gives your reports a quieter, more classic feel.';
         PlayfulThemeDescTxt: Label 'Dynamic and lively, a fresh take on a professional report. Styling-only theme: geometric Bahnschrift in semibold and regular for hierarchy, with backgrounds alternating between green and pink for an energetic, modern feel.';
 
-        ThemeMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.template', Locked = true; // .dotx
-        HeaderFooterMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', Locked = true; // .docx
+        ThemeMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.template', Locked = true;
+        HeaderFooterMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', Locked = true;
 }

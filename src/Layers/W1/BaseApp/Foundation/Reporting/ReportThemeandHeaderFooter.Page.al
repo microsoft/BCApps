@@ -98,19 +98,6 @@ page 9666 "Report Theme and Header/Footer"
                     CreateArtifact(Enum::"Report Layout Subtype"::HeaderFooter);
                 end;
             }
-            action(ImportShippedParts)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Import default themes and header/footers';
-                Image = Import;
-                AccessByPermission = tabledata "Tenant Report Layout" = M;
-                ToolTip = 'Import all themes and header/footer parts that ship with Business Central into the shared pool. Missing parts are added and parts that are already there are refreshed from the shipped file.';
-
-                trigger OnAction()
-                begin
-                    ImportShippedPartsAction();
-                end;
-            }
             action(AssignShippedDesigns)
             {
                 ApplicationArea = Basic, Suite;
@@ -122,19 +109,6 @@ page 9666 "Report Theme and Header/Footer"
                 trigger OnAction()
                 begin
                     AssignShippedDesignsAction();
-                end;
-            }
-            action(AssignThemeHeaderFooter)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Assign Theme and Header/Footer Design';
-                Image = Setup;
-                AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
-                ToolTip = 'Assign the theme and header/footer design that apply to every report with no more specific assignment. A layout, report or company assignment overrides this global default.';
-
-                trigger OnAction()
-                begin
-                    AssignGlobalDefaultParts();
                 end;
             }
             action(ExportArtifact)
@@ -285,9 +259,7 @@ page 9666 "Report Theme and Header/Footer"
 
                 actionref(NewTheme_Promoted; NewTheme) { }
                 actionref(NewHeaderFooter_Promoted; NewHeaderFooter) { }
-                actionref(ImportShippedParts_Promoted; ImportShippedParts) { }
                 actionref(AssignShippedDesigns_Promoted; AssignShippedDesigns) { }
-                actionref(AssignThemeHeaderFooter_Promoted; AssignThemeHeaderFooter) { }
                 actionref(ReportsUsingPart_Promoted; ReportsUsingPart) { }
                 actionref(ReplaceArtifact_Promoted; ReplaceArtifact) { }
                 actionref(ShowInfo_Promoted; ShowInfo) { }
@@ -327,7 +299,6 @@ page 9666 "Report Theme and Header/Footer"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        // Show only the Composite Layout artifacts (themes and header/footer parts), not body layouts.
         Rec.FilterGroup(2);
         Rec.SetFilter("Layout Subtype", '%1|%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
         Rec.FilterGroup(0);
@@ -344,8 +315,6 @@ page 9666 "Report Theme and Header/Footer"
         if NewPartDialog.RunModal() <> Action::OK then
             exit;
 
-        // Create the part under Tenant Report Defaults as a global Word layout so it can be
-        // assigned to any report. InsertNewLayout prompts for the file and validates the subtype.
         ReportLayoutsImpl.InsertNewLayout(
             LookupHelper.GetTenantReportDefaultsReportID(),
             NewPartDialog.GetPartName(),
@@ -361,27 +330,6 @@ page 9666 "Report Theme and Header/Footer"
     end;
 
     /// <summary>
-    /// Writes every theme and header/footer part that ships with the Base Application into the shared pool, the same
-    /// seeding that runs at install and upgrade, so an administrator can restore or refresh the shipped set on demand.
-    /// </summary>
-    /// <remarks>
-    /// Seeding replaces a part that already exists under a shipped name with the shipped file, so a change made to one
-    /// of those parts is lost. Assignments survive, because Tenant Report Layout Cfg references a part by name rather
-    /// than by a foreign key. Confirm first: reverting an administrator's own edit is not something to do silently.
-    /// </remarks>
-    local procedure ImportShippedPartsAction()
-    var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-    begin
-        if not Confirm(ImportShippedPartsQst, false) then
-            exit;
-
-        CompositeReportPartsMgt.SeedDefaultParts();
-        CurrPage.Update(false);
-        Message(ImportShippedPartsDoneMsg);
-    end;
-
-    /// <summary>
     /// Runs the assignment that ships with the Base Application - the same one that runs at install and upgrade - so an
     /// administrator can apply it without republishing, for instance after installing an app that adds report layouts.
     /// </summary>
@@ -390,33 +338,8 @@ page 9666 "Report Theme and Header/Footer"
         CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
         AssignedCount: Integer;
     begin
-        // No confirmation: the assignment only fills in layouts that have no header/footer, so it cannot overwrite a
-        // choice an administrator has made.
         AssignedCount := CompositeLayoutAssignMgt.AssignDefaultParts();
         Message(AssignShippedDesignsDoneMsg, AssignedCount);
-    end;
-
-    /// <summary>
-    /// Opens the assignment dialog on the global default: the Tenant Report Layout Cfg wildcard row (Report ID 0, empty
-    /// Layout Name, all companies) that the platform resolver falls back to for every report and layout with nothing
-    /// more specific configured.
-    /// </summary>
-    /// <remarks>
-    /// The global default is the assignment this page can offer, because a registry of parts carries no report context.
-    /// Per-layout and per-report assignments are made from Report Layouts, and the company default from Company
-    /// Information; both override what is set here.
-    ///
-    /// Note that a header/footer set globally also reaches layouts that were never meant to carry one - the e-mail
-    /// body layouts among them - since a blank column means "not configured at this level" to the resolver rather than
-    /// "explicitly none". Hence the dialog rather than a one-click assign: the choice is stated before it is written.
-    /// </remarks>
-    local procedure AssignGlobalDefaultParts()
-    var
-        HeaderFooterThemeAssignment: Page "Header/Footer Theme Assignment";
-    begin
-        HeaderFooterThemeAssignment.SetLayout(0, '');
-        HeaderFooterThemeAssignment.RunModal();
-        CurrPage.Update(false);
     end;
 
     /// <summary>
@@ -448,8 +371,6 @@ page 9666 "Report Theme and Header/Footer"
     begin
         CurrPage.SetSelectionFilter(SelectedLayouts);
 
-        // Moving an assigned part away from Approved does not unassign it — it will keep applying at print time
-        // (status is not enforced at render). Warn so the change isn't made unknowingly.
         if NewStatus <> NewStatus::Approved then begin
             AssignedCount := CountAssignedInSelection(SelectedLayouts);
             if AssignedCount > 0 then
@@ -467,7 +388,6 @@ page 9666 "Report Theme and Header/Footer"
     var
         Total: Integer;
     begin
-        // Only user-defined parts can actually change status; count assignments for those.
         if SelectedLayouts.FindSet() then
             repeat
                 if SelectedLayouts."User Defined" then
@@ -531,7 +451,6 @@ page 9666 "Report Theme and Header/Footer"
 
         AssignedCount := LookupHelper.CountPartAssignments(Rec);
 
-        // Pass values as parameters so any backslashes in the data are not turned into line breaks.
         Message(PartInfoLbl, Rec.Name, Rec.Description, TypeText, Format(Rec."Layout Status"), PublisherText, AssignedCount);
     end;
 
@@ -551,7 +470,6 @@ page 9666 "Report Theme and Header/Footer"
             if not Confirm(DeleteArtifactQst, false, Rec.Name) then
                 exit;
 
-        // EmptyGuid is the App ID key part - empty for tenant-defined layouts.
         if not TenantReportLayout.Get(Rec."Report ID", Rec.Name, EmptyGuid) then
             exit;
         LookupHelper.ClearPartAssignments(Rec);
@@ -579,8 +497,6 @@ page 9666 "Report Theme and Header/Footer"
         DeletePartWithReferencesQst: Label 'The part "%1" is assigned in %2 report configuration(s). Deleting it will clear those assignments and the affected reports will render without this part. Do you want to continue?', Comment = '%1 = artifact name; %2 = number of configurations';
         StatusChangedMsg: Label 'The status of %1 part(s) was changed to %2.', Comment = '%1 = number of parts; %2 = new status';
         DemoteAssignedQst: Label 'The selected part(s) are currently assigned in %1 report configuration(s) and will keep applying when reports are printed, even after this status change. Change the status anyway?', Comment = '%1 = number of configurations';
-        ImportShippedPartsQst: Label 'Import all themes and header/footer designs that ship with Business Central?\\A part that already exists under a shipped name is replaced with the shipped file, so any change made to it is lost. Assignments to reports and layouts are kept.';
-        ImportShippedPartsDoneMsg: Label 'The themes and header/footer designs that ship with Business Central were imported.';
         AssignShippedDesignsDoneMsg: Label '%1 assignment(s) were written. Layouts that already had a header/footer, and reports whose layouts are not installed, were left unchanged.', Comment = '%1 = number of assignments written';
         PartNotAssignedMsg: Label 'The part %1 is not assigned to any report layout yet.', Comment = '%1 = part name';
 }
