@@ -32,17 +32,6 @@ page 99001019 "Temp Prod. Order Comp. List"
                     Visible = false;
                     ToolTip = 'Specifies the variant of the component item.';
                 }
-                field("Due Date-Time"; Rec."Due Date-Time")
-                {
-                    ApplicationArea = Manufacturing;
-                    Visible = false;
-                    ToolTip = 'Specifies the due date and time for the component.';
-                }
-                field("Due Date"; Rec."Due Date")
-                {
-                    ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the due date for the component.';
-                }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
