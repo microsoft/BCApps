@@ -21,12 +21,14 @@ table 6939 "Mileage Rate Setup"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            DataClassification = CustomerContent;
             NotBlank = true;
             ToolTip = 'Specifies the unique code that identifies the mileage rate.';
         }
         field(2; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            DataClassification = CustomerContent;
             TableRelation = "Country/Region".Code;
             ToolTip = 'Specifies the country or region the mileage rate applies to. Leave blank to apply the rate regardless of country or region.';
 
@@ -38,6 +40,7 @@ table 6939 "Mileage Rate Setup"
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            DataClassification = CustomerContent;
             TableRelation = Currency;
             ToolTip = 'Specifies the currency the mileage rate is expressed in. Leave blank to use the local currency.';
 
@@ -50,12 +53,14 @@ table 6939 "Mileage Rate Setup"
         {
             AutoFormatType = 0;
             Caption = 'Rate';
+            DataClassification = CustomerContent;
             MinValue = 0;
             ToolTip = 'Specifies the reimbursement amount per unit of distance for this mileage rate.';
         }
         field(5; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            DataClassification = CustomerContent;
             NotBlank = true;
             ToolTip = 'Specifies the first date the mileage rate is effective.';
 
@@ -69,6 +74,7 @@ table 6939 "Mileage Rate Setup"
         field(6; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the last date the mileage rate is effective. Leave blank for an open-ended rate.';
 
             trigger OnValidate()
