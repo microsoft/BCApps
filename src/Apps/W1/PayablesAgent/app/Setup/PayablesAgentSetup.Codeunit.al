@@ -17,11 +17,13 @@ using System.Agents;
 using System.AI;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
+using System.Config;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.Encryption;
 using System.Security.User;
 
 codeunit 3307 "Payables Agent Setup"
@@ -219,18 +221,22 @@ codeunit 3307 "Payables Agent Setup"
 
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
     var
+        PayablesAgentSetup: Record "Payables Agent Setup";
         AzureKeyVault: Codeunit "Azure Key Vault";
         Agent: Codeunit Agent;
         SecurityPromptSecretText, CompletePromptSecretText : SecretText;
         PayablesAgentPromptText: Text;
-        PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
-        SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
-        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
+        AgentDriven: Boolean;
+        NewConfigHash: Text;
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
 
-        PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
+        AgentDriven := IsAgentDrivenLineMatchingEnabled();
+        if AgentDriven then
+            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentAgentDrivenPromptTok, TextEncoding::UTF8)
+        else
+            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
             CompletePromptSecretText := SecretText.SecretStrSubstNo(PayablesAgentPromptText, SecurityPromptSecretText)
         else begin
@@ -238,6 +244,83 @@ codeunit 3307 "Payables Agent Setup"
             Error(UnableToConfigureAgentInstructionsErr);
         end;
         Agent.SetInstructions(AgentUserSecurityId, CompletePromptSecretText);
+
+        // Record the experiment configuration that produced these instructions so drift can be detected on future tasks.
+        NewConfigHash := GetInstructionsConfigHash();
+        PayablesAgentSetup.GetSetup();
+        if PayablesAgentSetup."Applied Instr. Config Hash" <> NewConfigHash then begin
+            PayablesAgentSetup."Applied Instr. Config Hash" := CopyStr(NewConfigHash, 1, MaxStrLen(PayablesAgentSetup."Applied Instr. Config Hash"));
+            PayablesAgentSetup.Modify();
+        end;
+    end;
+
+    /// <summary>
+    /// Feature-specific resolver for the agent-driven line-matching experiment, used to select the prompt variant.
+    /// </summary>
+    internal procedure IsAgentDrivenLineMatchingEnabled(): Boolean
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+    begin
+        exit(FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok);
+    end;
+
+    /// <summary>
+    /// Reconciles the agent's persisted instructions with the current experiment configuration.
+    /// The agent instructions are set once (at creation/upgrade), but tenant-level ECS experiments can change
+    /// independently; this reapplies the instructions when the configuration that produced them has drifted.
+    /// Cheap on the common path: it only reloads instructions when the config hash has actually changed.
+    /// </summary>
+    internal procedure EnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        if IsNullGuid(AgentUserSecurityId) then
+            exit;
+        PayablesAgentSetup.GetSetup();
+        if PayablesAgentSetup."Applied Instr. Config Hash" = GetInstructionsConfigHash() then
+            exit;
+        Session.LogMessage('0000SEK', 'Payables Agent instructions reapplied due to experiment configuration drift.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureName());
+        SetAgentInstructions(AgentUserSecurityId);
+    end;
+
+    /// <summary>
+    /// Non-throwing wrapper around EnsureAgentInstructionsMatchConfiguration for callers on a critical path
+    /// (e.g. the e-document import event subscriber) where an instruction-refresh failure must not abort the
+    /// host operation. Returns false on failure so the caller can log and continue with existing instructions.
+    /// </summary>
+    [TryFunction]
+    internal procedure TryEnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
+    begin
+        EnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId);
+    end;
+
+    /// <summary>
+    /// Fingerprint of every tenant-level experiment configuration that influences the agent's instructions.
+    /// Generic on purpose: a future prompt-affecting experiment only needs its key added to
+    /// GetInstructionsExperimentKeys (and its value consumed in prompt selection) — no new setup field required.
+    /// </summary>
+    internal procedure GetInstructionsConfigHash(): Text
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+        CryptographyManagement: Codeunit "Cryptography Management";
+        ConfigKey: Text;
+        Signature: TextBuilder;
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+    begin
+        foreach ConfigKey in GetInstructionsExperimentKeys() do begin
+            Signature.Append(ConfigKey);
+            Signature.Append('=');
+            Signature.Append(FeatureConfiguration.GetConfiguration(ConfigKey));
+            Signature.Append(';');
+        end;
+        exit(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256));
+    end;
+
+    local procedure GetInstructionsExperimentKeys() Keys: List of [Text]
+    begin
+        // Tenant-level experiment keys whose ECS configuration changes the agent's instructions.
+        // Add future prompt-affecting experiment keys here.
+        Keys.Add(AgentDrivenLineMatchingTok);
     end;
 
     internal procedure CanShowAgentActions(): Boolean
@@ -720,4 +803,10 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         TrialModeInitializedTok: Label 'Trial mode initialized for Payables Agent', Locked = true;
+        PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
+        PayablesAgentAgentDrivenPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
+        SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
+        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
+        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
+        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 }
