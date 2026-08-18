@@ -62,6 +62,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         SupplierPartyIdTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
         SupplierLegalEntityIdTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
+        SupplierTaxSchemeTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme', Locked = true;
         CustomerPartyIdTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
         CustomerLegalEntityIdTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
         DeliveryLocationIdTok: Label '/ubl:Invoice/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
@@ -1738,7 +1739,6 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        SupplierTaxSchemeTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme', Locked = true;
         RegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]

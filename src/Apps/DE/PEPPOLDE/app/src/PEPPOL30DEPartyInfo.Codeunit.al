@@ -46,7 +46,8 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
             exit;
 
         CompanyInformation.SetLoadFields("Registration No.");
-        CompanyInformation.Get();
+        if not CompanyInformation.Get() then
+            exit;
         if CompanyInformation."Registration No." = '' then
             exit;
 
@@ -162,7 +163,8 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
             exit;
 
         CompanyInformation.SetLoadFields("Registration No.");
-        CompanyInformation.Get();
+        if not CompanyInformation.Get() then
+            exit;
         PartyLegalEntityCompanyID := CompanyInformation."Registration No.";
         PartyLegalEntitySchemeID := '';
     end;

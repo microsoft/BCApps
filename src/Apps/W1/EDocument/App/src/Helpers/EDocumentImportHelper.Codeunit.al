@@ -280,13 +280,17 @@ codeunit 6109 "E-Document Import Helper"
     procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
     var
         CompanyInformation: Record "Company Information";
-        IsHandled: Boolean;
+        ReceivingCompanyRegistrationNo: Text[20];
     begin
-        OnBeforeValidateReceivingCompanyInfo(EDocument, IsHandled);
-        if IsHandled then
-            exit;
-
+        OnGetReceivingCompanyRegistrationNo(EDocument, ReceivingCompanyRegistrationNo);
         CompanyInformation.Get();
+
+        if ReceivingCompanyRegistrationNo <> '' then begin
+            if CompanyInformation."Registration No." <> ReceivingCompanyRegistrationNo then
+                EDocErrorHelper.LogErrorMessage(
+                    EDocument, CompanyInformation, CompanyInformation.FieldNo("Registration No."), InvalidCompanyInfoRegistrationNoErr);
+            exit;
+        end;
 
         if (EDocument."Receiving Company GLN" = '') and (EDocument."Receiving Company VAT Reg. No." = '') then begin
             ValidateReceivingCompanyInfoByNameAndAddress(EDocument);
@@ -559,6 +563,7 @@ codeunit 6109 "E-Document Import Helper"
         if RegistrationNo = '' then
             exit('');
 
+        Vendor.SetLoadFields("No.");
         Vendor.SetRange("Registration No.", RegistrationNo);
         if Vendor.FindFirst() then
             exit(Vendor."No.");
@@ -570,12 +575,6 @@ codeunit 6109 "E-Document Import Helper"
     /// <param name="PhoneNo">Vendor's Phone number.</param>
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendorByPhoneNo(PhoneNo: Text): Code[20]
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateReceivingCompanyInfo(EDocument: Record "E-Document"; var IsHandled: Boolean)
-    begin
-    end;
-
     var
         Vendor: Record Vendor;
         RecordMatchMgt: Codeunit "Record Match Mgt.";
@@ -594,6 +593,11 @@ codeunit 6109 "E-Document Import Helper"
                 if PhoneNoNearness >= RequiredNearness() then
                     exit(Vendor."No.");
             until Vendor.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetReceivingCompanyRegistrationNo(EDocument: Record "E-Document"; var ReceivingCompanyRegistrationNo: Text[20])
+    begin
     end;
 
     /// <summary>
@@ -1127,6 +1131,7 @@ codeunit 6109 "E-Document Import Helper"
         MissingCompanyInfoSetupErr: Label 'You must fill either GLN or VAT Registration No. in the Company Information window.';
         InvalidCompanyInfoGLNErr: Label 'The customer''s GLN %1 on the electronic document does not match the GLN in the Company Information window.', Comment = '%1 = GLN (13 digit number)';
         InvalidCompanyInfoVATRegNoErr: Label 'The customer''s VAT registration number %1 on the electronic document does not match the VAT Registration No. in the Company Information window.', Comment = '%1 VAT Registration Number (format could be AB###### or ###### or AB##-##-###)';
+        InvalidCompanyInfoRegistrationNoErr: Label 'The receiving company registration number does not match Company Information.';
         InvalidCompanyInfoNameErr: Label 'The customer name ''%1'' on the electronic document does not match the name in the Company Information window.', Comment = '%1 = customer name';
         InvalidCompanyInfoAddressErr: Label 'The customer''s address ''%1'' on the electronic document does not match the Address in the Company Information window.', Comment = '%1 = customer address, street name';
         UnableToApplyDiscountErr: Label 'The invoice discount of %1 cannot be applied. Invoice discount must be allowed on at least one invoice line and invoice total must not be 0.', Comment = '%1 - a decimal number';

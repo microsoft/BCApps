@@ -62,6 +62,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
+        SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -317,7 +318,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         RegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]
