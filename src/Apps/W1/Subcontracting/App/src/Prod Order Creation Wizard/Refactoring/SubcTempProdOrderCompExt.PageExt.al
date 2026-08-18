@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Wizard;
 
-pageextension 99001564 SubcTempProdOrderCompExt extends "Temp Prod. Order Comp. List"
+pageextension 20564 SubcTempProdOrderCompExt extends "Temp Prod. Order Comp. List"
 {
     layout
     {

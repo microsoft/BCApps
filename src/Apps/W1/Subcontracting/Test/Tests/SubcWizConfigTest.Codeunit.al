@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 
-codeunit 139994 "Subc. Wiz. Config Test"
+codeunit 140000 "Subc. Wiz. Config Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

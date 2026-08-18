@@ -29,7 +29,6 @@ pageextension 20524 "Subc. PO Subform" extends "Purchase Order Subform"
                 Caption = 'Create Production Order';
                 Image = CreateSerialNo;
                 ToolTip = 'Create the production order for the current purchase order.';
-                 Visible = HasSubcontractingContext;
                 trigger OnAction()
                 begin
                     Rec.TestStatusOpen();

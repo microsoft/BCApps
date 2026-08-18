@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Wizard;
 
-pageextension 99001573 SubcTempBOMLineExt extends "Temp BOM Lines"
+pageextension 20573 SubcTempBOMLineExt extends "Temp BOM Lines"
 {
     layout
     {

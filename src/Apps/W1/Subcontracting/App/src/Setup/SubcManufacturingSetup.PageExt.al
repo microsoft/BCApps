@@ -58,10 +58,6 @@ pageextension 20542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
             {
                 ApplicationArea = Subcontracting;
             }
-            field("Put-Away Work Center No."; Rec."Put-Away Work Center No.")
-            {
-                ApplicationArea = Subcontracting;
-            }
         }
     }
 }

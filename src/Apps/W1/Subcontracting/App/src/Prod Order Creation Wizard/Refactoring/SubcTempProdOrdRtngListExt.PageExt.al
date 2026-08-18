@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Wizard;
 
-pageextension 99001565 SubcTempProdOrdRtngListExt extends "Temp Prod. Ord. Rtng List"
+pageextension 20565 SubcTempProdOrdRtngListExt extends "Temp Prod. Ord. Rtng List"
 {
     layout
     {

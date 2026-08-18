@@ -8,7 +8,6 @@ using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.WorkCenter;
 
 tableextension 20501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
 {
@@ -87,19 +86,12 @@ tableextension 20501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                 end;
             end;
         }
-        field(99001506; "Rtng. Link Code Purch. Prov."; Code[10])
+        field(20510; "Rtng. Link Code Purch. Prov."; Code[10])
         {
             Caption = 'Routing Link Code Purchase Provision';
             DataClassification = CustomerContent;
             TableRelation = "Routing Link";
             ToolTip = 'Specifies the routing link code used to identify the purchase provision operation in subcontracting routing lines.';
-        }
-        field(99001566; "Put-Away Work Center No."; Code[20])
-        {
-            Caption = 'Put-Away Work Center No.';
-            DataClassification = CustomerContent;
-            TableRelation = "Work Center";
-            ToolTip = 'Specifies the work center used for the subcontracting put-away routing operation.';
         }
     }
 }

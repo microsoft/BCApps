@@ -17,6 +17,7 @@ pageextension 139982 "Subc. TST WizProdRtng" extends "Temp Prod. Ord. Rtng List"
                 ApplicationArea = All;
                 Caption = 'Test Delete';
                 Tooltip = 'Test Delete';
+                Image = Delete;
 
                 trigger OnAction()
                 begin

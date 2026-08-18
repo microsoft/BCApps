@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
@@ -17,7 +16,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Reflection;
 
-codeunit 99001580 "Subc. Prod. Def. Subscriber"
+codeunit 20580 "Subc. Prod. Def. Subscriber"
 {
     EventSubscriberInstance = Manual;
 
@@ -110,28 +109,6 @@ codeunit 99001580 "Subc. Prod. Def. Subscriber"
         TempBOMLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
         if ManufacturingSetup."Def. Wiz. Comp Item No." <> '' then
             TempBOMLine."No." := ManufacturingSetup."Def. Wiz. Comp Item No.";
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Definition Temp Data", 'OnAfterInitializeNewTemporaryRoutingInformation', '', false, false)]
-    local procedure OnAfterInitializeNewTemporaryRoutingInformation(var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLine: Record "Routing Line" temporary; ItemNo: Code[20])
-    var
-        Location: Record Location;
-        PutAwayOperationLbl: Label 'Put-Away Operation';
-    begin
-        GetManufacturingSetup();
-
-        if ManufacturingSetup."Put-Away Work Center No." <> '' then
-            if (SubcontractingPurchaseLine."Location Code" <> '') and Location.Get(SubcontractingPurchaseLine."Location Code") then
-                if Location."Prod. Output Whse. Handling" <> Location."Prod. Output Whse. Handling"::"No Warehouse Handling" then begin
-                    TempRoutingLine.Init();
-                    TempRoutingLine."Routing No." := TempRoutingHeader."No.";
-                    TempRoutingLine."Operation No." := '20';
-                    TempRoutingLine.Type := TempRoutingLine.Type::"Work Center";
-                    TempRoutingLine.Validate("No.", ManufacturingSetup."Put-Away Work Center No.");
-                    TempRoutingLine.Validate("Work Center No.", ManufacturingSetup."Put-Away Work Center No.");
-                    TempRoutingLine.Description := CopyStr(PutAwayOperationLbl, 1, MaxStrLen(TempRoutingLine.Description));
-                    TempRoutingLine.Insert();
-                end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Definition Temp Data", 'OnAfterCreateTemporaryComponentFromBOMLine', '', false, false)]
@@ -430,7 +407,6 @@ codeunit 99001580 "Subc. Prod. Def. Subscriber"
         if not ManufacturingSetupRead then begin
             ManufacturingSetup.SetLoadFields(
                 "Rtng. Link Code Purch. Prov.",
-                "Put-Away Work Center No.",
                 "Def. Wiz. Comp Item No.",
                 "Def. Wiz. Flushing Method",
                 "Released Order Nos.",
