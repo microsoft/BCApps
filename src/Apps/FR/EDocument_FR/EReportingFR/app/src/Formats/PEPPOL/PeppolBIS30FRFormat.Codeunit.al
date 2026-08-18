@@ -296,6 +296,9 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         if Rec."Document Format" <> Rec."Document Format"::"Peppol BIS 3.0 FR" then
             exit;
 
+        if Rec."Read into Draft Impl." = Rec."Read into Draft Impl."::Unspecified then
+            Rec."Read into Draft Impl." := Rec."Read into Draft Impl."::"Peppol BIS 3.0 FR";
+
         EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
         if not EDocServiceSupportedType.IsEmpty() then
             exit;

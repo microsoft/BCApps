@@ -31,6 +31,7 @@ page 20408 "Qlty. Inspection List"
     PageType = List;
     SourceTable = "Qlty. Inspection Header";
     SourceTableView = sorting("No.", "Re-inspection No.") order(descending);
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     RefreshOnActivate = true;
@@ -279,7 +280,7 @@ page 20408 "Qlty. Inspection List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Reopen';
+                ToolTip = 'Reopen a finished inspection. Only users with the Quality Admin & Supervisor role can perform this action.';
                 Enabled = CanReopen;
 
                 trigger OnAction()

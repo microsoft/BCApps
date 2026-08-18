@@ -44,7 +44,9 @@ pageextension 6106 "E-Doc. Posted Transfer Shpmnt." extends "Posted Transfer Shi
                         EDocumentProcessing: Codeunit "E-Document Processing";
                     begin
                         if EDocumentProcessing.CreateEDocumentFromPostedDocumentPage(Rec, Enum::"E-Document Type"::"Transfer Shipment") then
-                            Message(EDocumentCreatedMsg);
+                            Message(EDocumentCreatedMsg)
+                        else
+                            Message(EDocumentNotCreatedMsg);
                     end;
                 }
             }
@@ -54,6 +56,7 @@ pageextension 6106 "E-Doc. Posted Transfer Shpmnt." extends "Posted Transfer Shi
     var
         EDocumentExists: Boolean;
         EDocumentCreatedMsg: Label 'The e-document has been created.';
+        EDocumentNotCreatedMsg: Label 'The e-document could not be created.';
 
     trigger OnAfterGetRecord()
     var

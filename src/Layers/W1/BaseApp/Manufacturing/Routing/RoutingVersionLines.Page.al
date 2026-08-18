@@ -26,12 +26,12 @@ page 99000767 "Routing Version Lines"
                 field("Previous Operation No."; Rec."Previous Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    Visible = false;
+                    Visible = ParallelFieldsVisible;
                 }
                 field("Next Operation No."; Rec."Next Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    Visible = false;
+                    Visible = ParallelFieldsVisible;
                 }
                 field(Type; Rec.Type)
                 {
@@ -206,6 +206,16 @@ page 99000767 "Routing Version Lines"
     var
         RtngComment: Record "Routing Comment Line";
         ShowRelatedDataEnabled: Boolean;
+        ParallelFieldsVisible: Boolean;
+
+    /// <summary>
+    /// Sets the visibility of the Next/Previous Operation No. fields, which are only relevant for parallel routings.
+    /// </summary>
+    /// <param name="Visible">Whether the Next/Previous Operation No. fields should be visible.</param>
+    procedure SetParallelFieldsVisible(Visible: Boolean)
+    begin
+        ParallelFieldsVisible := Visible;
+    end;
 
     local procedure ShowComment()
     begin

@@ -80,17 +80,35 @@ table 'Item Ledger Entries'
 			VAR Endpoint = "&page=38&"
 			VAR BaseLink = [Base Link] & Endpoint
 			VAR ILEBaseLink = BaseLink & "filter='Item Ledger Entry'.'Open' IS 'Yes'"
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Item Ledger Entries'[Item No.]),'Item Ledger Entries'[Item No.], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|")
-			VAR Locations = CONCATENATEX(VALUES('Item Ledger Entries'[Location Code]), 'Item Ledger Entries'[Location Code], "|")
-			
-			VAR LocationFilter = " AND 'Item Ledger Entry'.'Location Code' IS '" & Locations & "'"
-			VAR ItemFilter = " AND 'Item Ledger Entry'.'Item No.' IS '" & Items & "'"
-			VAR DateFilter = " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( ILEBaseLink )
+			    + LEN ( " AND 'Item Ledger Entry'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Item Ledger Entries'[Item No.] ), LEN ( 'Item Ledger Entries'[Item No.] ) + 1 )
+			    + LEN ( " AND 'Item Ledger Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Item Ledger Entries'[dimensionSetID] ), LEN ( 'Item Ledger Entries'[dimensionSetID] ) + 1 )
+			    + LEN ( " AND 'Item Ledger Entry'.'Location Code' IS ''" )
+			    + SUMX ( VALUES ( 'Item Ledger Entries'[Location Code] ), LEN ( 'Item Ledger Entries'[Location Code] ) + 1 )
+			    + LEN ( " AND 'Item Ledger Entry'.'Posting Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			ILEBaseLink & ItemFilter & DimensionFilter & LocationFilter & DateFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        ILEBaseLink
+			            & " AND 'Item Ledger Entry'.'Item No.' IS '" & CONCATENATEX(VALUES('Item Ledger Entries'[Item No.]),'Item Ledger Entries'[Item No.], "|") & "'"
+			            & " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|") & "'"
+			            & " AND 'Item Ledger Entry'.'Location Code' IS '" & CONCATENATEX(VALUES('Item Ledger Entries'[Location Code]), 'Item Ledger Entries'[Location Code], "|") & "'" & " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'",
+			        BaseLink
+			    )
 		displayFolder: _Back Links
 		lineageTag: 0db0f775-f0bf-48cf-90ec-7d8a9d901d36
 
@@ -98,16 +116,33 @@ table 'Item Ledger Entries'
 			
 			VAR Endpoint = "&page=38&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Item Ledger Entries'[Item No.]),'Item Ledger Entries'[Item No.], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|")
-			
-			
-			VAR ItemFilter = "filter='Item Ledger Entry'.'Item No.' IS '" & Items & "'"
-			VAR DateFilter = " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Item Ledger Entry'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Item Ledger Entries'[Item No.] ), LEN ( 'Item Ledger Entries'[Item No.] ) + 1 )
+			    + LEN ( " AND 'Item Ledger Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Item Ledger Entries'[dimensionSetID] ), LEN ( 'Item Ledger Entries'[dimensionSetID] ) + 1 )
+			    + LEN ( " AND 'Item Ledger Entry'.'Posting Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			BaseLink & ItemFilter & DimensionFilter & DateFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Item Ledger Entry'.'Item No.' IS '" & CONCATENATEX(VALUES('Item Ledger Entries'[Item No.]),'Item Ledger Entries'[Item No.], "|") & "'"
+			            & " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|") & "'"
+			            & " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'",
+			BaseLink
+			    )
 		displayFolder: _Back Links
 		lineageTag: fd7edf49-9b06-4d6e-b6bf-693e05b7fc65
 
@@ -115,15 +150,33 @@ table 'Item Ledger Entries'
 			
 			VAR Endpoint = "&page=38&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|")
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
 			VAR LotNo = SELECTEDVALUE('Item Ledger Entries'[Lot No.])
-			
-			VAR LotNoFilter = "filter='Item Ledger Entry'.'Lot No.' IS '" & LotNo & "'"
-			VAR DateFilter = " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Item Ledger Entry'.'Lot No.' IS ''" ) + LEN ( LotNo )
+			    + LEN ( " AND 'Item Ledger Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Item Ledger Entries'[dimensionSetID] ), LEN ( 'Item Ledger Entries'[dimensionSetID] ) + 1 )
+			    + LEN ( " AND 'Item Ledger Entry'.'Posting Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			BaseLink & LotNoFilter & DimensionFilter & DateFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Item Ledger Entry'.'Lot No.' IS '" & LotNo & "'"
+			            & " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|") & "'"
+			            & " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'",
+			BaseLink
+			    )
 		displayFolder: _Back Links
 		lineageTag: a5f062eb-a79f-4a50-bfd4-477d6a222994
 
@@ -131,15 +184,33 @@ table 'Item Ledger Entries'
 			
 			VAR Endpoint = "&page=38&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|")
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
 			VAR SerialNo = SELECTEDVALUE('Item Ledger Entries'[Serial No.])
-			
-			VAR SerialNoFilter = "filter='Item Ledger Entry'.'Serial No.' IS '" & SerialNo & "'"
-			VAR DateFilter = " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Item Ledger Entry'.'Serial No.' IS ''" ) + LEN ( SerialNo )
+			    + LEN ( " AND 'Item Ledger Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Item Ledger Entries'[dimensionSetID] ), LEN ( 'Item Ledger Entries'[dimensionSetID] ) + 1 )
+			    + LEN ( " AND 'Item Ledger Entry'.'Posting Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			BaseLink & SerialNoFilter & DimensionFilter & DateFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Item Ledger Entry'.'Serial No.' IS '" & SerialNo & "'"
+			            & " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|") & "'"
+			            & " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'",
+			BaseLink
+			    )
 		displayFolder: _Back Links
 		lineageTag: 1d854284-5407-4c80-b325-9b06a0de6085
 

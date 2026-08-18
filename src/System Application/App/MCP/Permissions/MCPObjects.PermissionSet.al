@@ -17,5 +17,7 @@ permissionset 8350 "MCP - Objects"
                   table "MCP Configuration Tool" = X,
                   table "MCP Config Warning" = X,
                   table "MCP Entra Application" = X,
-                  table "MCP System Tool" = X;
+                  table "MCP System Tool" = X,
+                  table "MCP Server Feature" = X,
+                  table "MCP API Object Buffer" = X;
 }

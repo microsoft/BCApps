@@ -190,6 +190,9 @@ table 5407 "Prod. Order Component"
             begin
                 UpdateExpectedQuantity();
 
+                if IsTemporary() then
+                    exit;
+
                 ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
 
                 IsHandled := false;
@@ -230,8 +233,8 @@ table 5407 "Prod. Order Component"
                                 ProdOrderLine."Location Code");
                                 Validate("Location Code", SKU."Components at Location");
 #endif
+                            end;
                         end;
-                    end;
                 end;
                 if Format("Lead-Time Offset") <> '' then begin
                     "Due Date" :=
@@ -672,18 +675,23 @@ table 5407 "Prod. Order Component"
             DecimalPlaces = 2 : 5;
 
             trigger OnValidate()
+            var
+                IsHandled: Boolean;
             begin
                 TestField("Item No.");
 
                 Item.Get("Item No.");
                 GetGLSetup();
-                if Item."Costing Method" = Item."Costing Method"::Standard then begin
-                    if CurrFieldNo = FieldNo("Unit Cost") then
-                        Error(
-                          Text99000003,
-                          FieldCaption("Unit Cost"), Item.FieldCaption("Costing Method"), Item."Costing Method");
-                    UpdateUnitCost();
-                end;
+                IsHandled := false;
+                OnValidateUnitCostOnBeforeCheckCostingMethod(Rec, IsHandled);
+                if not IsHandled then
+                    if Item."Costing Method" = Item."Costing Method"::Standard then begin
+                        if CurrFieldNo = FieldNo("Unit Cost") then
+                            Error(
+                              Text99000003,
+                              FieldCaption("Unit Cost"), Item.FieldCaption("Costing Method"), Item."Costing Method");
+                        UpdateUnitCost();
+                    end;
                 Validate("Calculation Formula");
             end;
         }
@@ -1286,8 +1294,14 @@ table 5407 "Prod. Order Component"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
         NeededQty: Decimal;
+        IsHandled: Boolean;
     begin
-        ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
+        OnBeforeGetProdOrderNeeds(Rec, ProdOrderLine, IsHandled);
+        if IsHandled then
+            exit;
+
+        if ProdOrderLine."Prod. Order No." = '' then
+            ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
 
         if "Due Date" = 0D then begin
             "Due Date" := ProdOrderLine."Starting Date";
@@ -1363,6 +1377,11 @@ table 5407 "Prod. Order Component"
                     until CapLedgEntry.Next() = 0;
             end;
 
+            IsHandled := false;
+            OnGetNeededQtyOnBeforeCalcActNeededQtyBase(Rec, OutputQtyBase, NeededQty, IsHandled);
+            if IsHandled then
+                exit(NeededQty);
+
             CompQtyBase := MfgCostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, Rec, OutputQtyBase);
             OnGetNeededQtyAfterCalcCompQtyBase(Rec, CompQtyBase, OutputQtyBase);
 
@@ -1371,8 +1390,14 @@ table 5407 "Prod. Order Component"
                 if Status in [Status::Released, Status::Finished] then
                     CalcFields("Act. Consumption (Qty)");
                 OnGetNeededQtyAfterCalcActConsumptionQty(Rec);
-                exit(NeededQty -
-                  UOMMgt.RoundToItemRndPrecision("Act. Consumption (Qty)" / "Qty. per Unit of Measure", RoundingPrecision));
+                NeededQty :=
+                  NeededQty -
+                  UOMMgt.RoundToItemRndPrecision("Act. Consumption (Qty)" / "Qty. per Unit of Measure", RoundingPrecision);
+                IsHandled := false;
+                OnGetNeededQtyOnBeforeExitWithPreviousPosting(Rec, CompQtyBase, NeededQty, IsHandled);
+                if IsHandled then
+                    exit(NeededQty);
+                exit(NeededQty);
             end;
             exit(NeededQty);
         end;
@@ -1522,9 +1547,11 @@ table 5407 "Prod. Order Component"
         ProdOrderLine: Record "Prod. Order Line";
         IsHandled: Boolean;
     begin
-        IsHandled := false;
         OnBeforeCreateDim(Rec, DefaultDimSource, CurrFieldNo, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         SourceCodeSetup.Get();
@@ -1750,10 +1777,12 @@ table 5407 "Prod. Order Component"
     begin
         OnBeforeGetDefaultConsumptionBin(Rec, ProdOrderRtngLine, BinCode);
 
-        ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
-        if "Location Code" = ProdOrderLine."Location Code" then
-            if FindFirstRtngLine(ProdOrderRtngLine, ProdOrderLine) then
-                BinCode := GetBinCodeFromRtngLine(ProdOrderRtngLine);
+        if not IsTemporary() then begin
+            ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
+            if "Location Code" = ProdOrderLine."Location Code" then
+                if FindFirstRtngLine(ProdOrderRtngLine, ProdOrderLine) then
+                    BinCode := GetBinCodeFromRtngLine(ProdOrderRtngLine);
+        end;
 
         OnGetDefaultConsumptionBinOnAfterGetBinCodeFromRtngLine(Rec, ProdOrderRtngLine, BinCode);
         if BinCode <> '' then
@@ -1882,9 +1911,11 @@ table 5407 "Prod. Order Component"
         ProdOrderComp2: Record "Prod. Order Component";
         OverwriteBinCode, IsHandled : Boolean;
     begin
-        IsHandled := false;
         OnBeforeUpdateBin(ProdOrderComp, FieldNo, FieldCaption, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         ProdOrderComp2 := ProdOrderComp;
@@ -2194,6 +2225,8 @@ table 5407 "Prod. Order Component"
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
     begin
+        if IsTemporary() then
+            exit;
         InitDefaultDimensionSources(DefaultDimSource);
         CreateDim(DefaultDimSource);
     end;
@@ -2500,6 +2533,16 @@ table 5407 "Prod. Order Component"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnGetNeededQtyOnBeforeCalcActNeededQtyBase(var ProdOrderComponent: Record "Prod. Order Component"; var OutputQtyBase: Decimal; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetNeededQtyOnBeforeExitWithPreviousPosting(var ProdOrderComponent: Record "Prod. Order Component"; var CompQtyBase: Decimal; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnGetNeededQtyOnAfterCalcBasedOn(var ProdOrderComponent: Record "Prod. Order Component")
     begin
     end;
@@ -2636,8 +2679,17 @@ table 5407 "Prod. Order Component"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnValidateUnitCostOnBeforeCheckCostingMethod(var ProdOrderComponent: Record "Prod. Order Component"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDim(var ProdOrderComponent: Record "Prod. Order Component"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetProdOrderNeeds(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
+    end;
+}

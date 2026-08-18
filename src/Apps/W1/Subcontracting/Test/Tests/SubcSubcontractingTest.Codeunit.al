@@ -477,6 +477,70 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure CreateSubcOrderFromRtngLineIgnoresOtherLineComponentsAtSubcLocation()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+    begin
+        // [SCENARIO 639568] Creating a Subcontracting Purchase Order from a Prod. Order Routing Line must only
+        // consider the components of that line. Components belonging to a different Prod. Order Line that have
+        // already been moved to the vendor's Subcontracting Location must not trigger a false location-conflict warning.
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Item with routing link and a Transfer to Vendor component, and a vendor with a Subc. Location Code
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] Released production order whose current line component sits at a normal (non-blank, non-Subc.) location
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        // [GIVEN] The routing line we want to create the subcontracting order for
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [GIVEN] A component belonging to ANOTHER Prod. Order Line (same Routing Link Code) has already been moved to
+        // the vendor's Subcontracting Location - mirroring the first line whose components are already in transit.
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+        ProdOrderComponent.FindLast();
+        MockTransferToVendorCompOnOtherLine(
+            ProdOrderComponent, ProdOrderComponent."Prod. Order Line No." + 10000, Vendor."Subc. Location Code");
+
+        // [WHEN] Create the subcontracting purchase order from the current routing line
+        SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+
+        // [THEN] No false "same as Subcontracting Location" confirmation is raised for the current line
+        Assert.AreEqual(
+            0, LibraryVariableStorage.Length(),
+            'No location-conflict confirmation should be raised: the current line components are not at the Subc. Location.');
+
+        // [THEN] The subcontracting purchase order is created (the other line components at the Subc. Location are ignored)
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.AreEqual(false, PurchaseLine.IsEmpty(), 'Subcontracting purchase order should have been created.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure TestCreationOfPurchOrderFromRtngLineWithSubcontractorWithAddLine()
     var
@@ -3395,6 +3459,115 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,CapturePurchaseOrderPageNo,HandlePurchaseLinesPage')]
+    procedure CreateSubcontractingPOAfterReceiptOpensNewlyCreatedDeltaPO()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        ReceivedPurchaseOrderNo: Code[20];
+        NewPurchaseOrderNo: Code[20];
+    begin
+        // [SCENARIO 639381] After the existing subcontracting purchase order has been received and the prod. order quantity is increased,
+        // Create Subcontracting Order must open the newly created purchase order for the delta, not the old received one.
+
+        // [GIVEN] Subcontracting setup with a released production order (quantity 5)
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] A subcontracting purchase order is created and fully received
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        ReceivedPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(ReceivedPurchaseOrderNo));
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", ReceivedPurchaseOrderNo);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        PurchaseHeader.Get(PurchaseLine."Document Type", ReceivedPurchaseOrderNo);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] The prod. order line quantity is increased from 5 to 9
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, 9);
+        ProdOrderLine.Modify(true);
+
+        // [WHEN] Create Subcontracting Order is invoked again and both prompts are confirmed
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        NewPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(NewPurchaseOrderNo));
+
+        // [THEN] The newly created (delta) purchase order is opened, not the old received one
+        Assert.AreNotEqual(ReceivedPurchaseOrderNo, NewPurchaseOrderNo, 'Create Subcontracting Order should open the newly created purchase order, not the already received one.');
+
+        // [THEN] The opened purchase order is the open one (nothing received on it yet)
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", NewPurchaseOrderNo);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(0, PurchaseLine."Quantity Received", 'The opened purchase order should be the newly created one with nothing received.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,CapturePurchaseOrderPageNo,HandlePurchaseLinesPage')]
+    procedure CreateSubcontractingPOReopensUpdatedExistingOpenPO()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        WorkCenter: array[2] of Record "Work Center";
+        ExistingPurchaseOrderNo: Code[20];
+        ReopenedPurchaseOrderNo: Code[20];
+    begin
+        // [SCENARIO 639381] When Create Subcontracting Order updates an existing open purchase order (Change Qty.) instead of
+        // creating a new one, the confirmation prompt must still open that affected purchase order.
+
+        // [GIVEN] Subcontracting setup with a released production order and an open (not received) subcontracting purchase order
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        ExistingPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(ExistingPurchaseOrderNo));
+
+        // [GIVEN] The prod. order line quantity is increased from 5 to 9 (existing order stays open)
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, 9);
+        ProdOrderLine.Modify(true);
+
+        // [WHEN] Create Subcontracting Order is invoked again (updates the existing open order instead of creating a new one)
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        ReopenedPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(ReopenedPurchaseOrderNo));
+
+        // [THEN] The same (updated) purchase order is opened
+        Assert.AreEqual(ExistingPurchaseOrderNo, ReopenedPurchaseOrderNo, 'Create Subcontracting Order should open the updated existing purchase order.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     procedure StandardTaskCodePropagatedAndDrivesSubcPriceLookup()
     var
         Item: Record Item;
@@ -3657,7 +3830,9 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         LibraryVariableStorage.Enqueue(Question);
         case true of
-            Question.Contains('Do you want to create a production order from'):
+            Question.Contains('Do you really want to change Inventory Account although value entries exist?'),
+            Question.Contains('Do you want to create a production order from'),
+            Question.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?'):
                 Reply := true;
             else
                 Reply := false;
@@ -3864,6 +4039,20 @@ codeunit 139989 "Subc. Subcontracting Test"
                 ProdOrderComp.Validate("Location Code", LocationCode);
                 ProdOrderComp.Modify(true);
             until ProdOrderComp.Next() = 0;
+    end;
+
+    local procedure MockTransferToVendorCompOnOtherLine(TemplateComponent: Record "Prod. Order Component"; NewProdOrderLineNo: Integer; LocationCode: Code[10])
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // Simulate a Transfer to Vendor component that belongs to a different Prod. Order Line and whose
+        // Location Code has already been set to the vendor's Subcontracting Location (already in transit).
+        ProdOrderComponent := TemplateComponent;
+        ProdOrderComponent."Prod. Order Line No." := NewProdOrderLineNo;
+        ProdOrderComponent."Line No." := TemplateComponent."Line No." + 10000;
+        ProdOrderComponent."Location Code" := LocationCode;
+        ProdOrderComponent."Bin Code" := '';
+        ProdOrderComponent.Insert();
     end;
 
     local procedure UpdateProdBomAndRoutingWithRoutingLink(Item: Record Item; WorkCenterNo: Code[20])
@@ -4634,6 +4823,74 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             ReturnTransferHeader."No.", SubcPurchFactboxMgmt.GetReturnTransferOrderNo(PurchaseLine),
             'Return Transfer Order No. must match the created return transfer order');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TransferOrderActionDisabledOnNonSubcontractingPurchaseLine()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        NonSubcItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        SubcPurchaseLine: Record "Purchase Line";
+        NonSubcPurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrderPage: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [Subcontracting]
+        // [SCENARIO 638531] The "Transfer Order" action on the Purchase Order Subform must be disabled
+        // for a non-subcontracting line (no Prod. Order No.) and enabled for a subcontracting line.
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+
+        // [GIVEN] Work and Machine Centers, an Item with Routing and Prod. BOM configured for Transfer subcontracting
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order with its transfer components located
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        // [GIVEN] A subcontracting purchase order is created from the routing (with Prod. Order No. set on the subc. line)
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        SubcPurchaseLine.SetRange("Document Type", SubcPurchaseLine."Document Type"::Order);
+        SubcPurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        SubcPurchaseLine.FindFirst();
+        PurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
+
+        // [GIVEN] A second non-subcontracting line is added to the same purchase order (no Prod. Order No.)
+        LibraryInventory.CreateItem(NonSubcItem);
+        LibraryPurchase.CreatePurchaseLine(
+            NonSubcPurchaseLine, PurchaseHeader, NonSubcPurchaseLine.Type::Item, NonSubcItem."No.", 1);
+
+        // [WHEN] Opening the Purchase Order page
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+
+        // [THEN] "Transfer Order" action is enabled on the subcontracting line (Prod. Order No. is set)
+        PurchaseOrderPage.PurchLines.GoToRecord(SubcPurchaseLine);
+        Assert.IsTrue(
+            PurchaseOrderPage.PurchLines."Transfer Order".Enabled(),
+            'Transfer Order action must be enabled for a subcontracting purchase line (Prod. Order No. is set).');
+
+        // [THEN] "Transfer Order" action is disabled on the non-subcontracting line (no Prod. Order No.)
+        PurchaseOrderPage.PurchLines.GoToRecord(NonSubcPurchaseLine);
+        Assert.IsFalse(
+            PurchaseOrderPage.PurchLines."Transfer Order".Enabled(),
+            'Transfer Order action must be disabled for a non-subcontracting purchase line (no Prod. Order No.).');
+
+        PurchaseOrderPage.Close();
     end;
 
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]

@@ -12,7 +12,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing Line"
+tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing Line"
 {
     fields
     {
@@ -72,7 +72,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
                     "Transfer WIP Item" := false;
             end;
         }
-        field(99001550; "Vendor No. Subc. Price"; Code[20])
+        field(20550; "Vendor No. Subc. Price"; Code[20])
         {
             AllowInCustomizations = AsReadOnly;
             Caption = 'Vendor No. Subcontracting Prices';
@@ -80,7 +80,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             Editable = false;
             TableRelation = Vendor;
         }
-        field(99001551; Subcontracting; Boolean)
+        field(20551; Subcontracting; Boolean)
         {
             AllowInCustomizations = AsReadOnly;
             CalcFormula = exist("Work Center" where("No." = field("Work Center No."),
@@ -90,7 +90,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             FieldClass = FlowField;
             ToolTip = 'Specifies whether the Work Center Group is set up with a Vendor for Subcontracting.';
         }
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             AllowInCustomizations = AsReadWrite;
             Caption = 'Transfer WIP Item';
@@ -102,17 +102,18 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
                 if "Transfer WIP Item" then begin
                     CalcFields(Subcontracting);
                     TestField(Subcontracting, true);
+                    TestField(Type, Type::"Work Center");
                 end;
             end;
         }
-        field(99001561; "Transfer Description"; Text[100])
+        field(20561; "Transfer Description"; Text[100])
         {
             AllowInCustomizations = AsReadWrite;
             Caption = 'Transfer Description';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the operation-specific description used on transfer orders for the semi-finished item as it is shipped to the subcontracting location. If empty, the standard description is used.';
         }
-        field(99001562; "Transfer Description 2"; Text[50])
+        field(20562; "Transfer Description 2"; Text[50])
         {
             AllowInCustomizations = AsReadWrite;
             Caption = 'Transfer Description 2';
@@ -120,7 +121,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             ToolTip = 'Specifies an additional operation-specific description line used on transfer orders for the semi-finished item as it is shipped to the subcontracting location.';
         }
 #pragma warning disable AA0232
-        field(99001563; "WIP Qty. (Base) at Subc."; Decimal)
+        field(20563; "WIP Qty. (Base) at Subc."; Decimal)
 #pragma warning restore AA0232
         {
             AllowInCustomizations = AsReadOnly;
@@ -139,7 +140,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             FieldClass = FlowField;
             ToolTip = 'Specifies the total work-in-progress quantity (base) of the production order parent item currently held at the subcontractor location for this operation, as tracked by Subcontracting WIP Entries.';
         }
-        field(99001564; "WIP Qty. (Base) in Transit"; Decimal)
+        field(20564; "WIP Qty. (Base) in Transit"; Decimal)
         {
             AllowInCustomizations = AsReadOnly;
             AutoFormatType = 0;
@@ -156,14 +157,14 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             FieldClass = FlowField;
             ToolTip = 'Specifies the outstanding quantity of the production order parent item on transfer orders that is currently in transit to the subcontractor for this operation.';
         }
-        field(99001534; "WIP Location Filter"; Code[10])
+        field(20534; "WIP Location Filter"; Code[10])
         {
             Caption = 'WIP Location Filter';
             FieldClass = FlowFilter;
             TableRelation = Location;
             ToolTip = 'Specifies the location filter used for FlowField calculations.';
         }
-        field(99001535; "Prod. Order Line Filter"; Integer)
+        field(20535; "Prod. Order Line Filter"; Integer)
         {
             Caption = 'Prod. Order Line Filter';
             FieldClass = FlowFilter;

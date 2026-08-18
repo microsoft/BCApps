@@ -344,6 +344,7 @@
         <DataExchFieldGrouping FieldID="7" />
         <DataExchFieldGrouping FieldID="8" />
         <DataExchFieldGrouping FieldID="9" />
+        <DataExchFieldGrouping FieldID="24" />
         <DataExchFieldGrouping FieldID="26" />
         <DataExchFieldGrouping FieldID="27" />
       </DataExchMapping>
@@ -574,6 +575,7 @@
         <DataExchFieldGrouping FieldID="7" />
         <DataExchFieldGrouping FieldID="8" />
         <DataExchFieldGrouping FieldID="9" />
+        <DataExchFieldGrouping FieldID="24" />
         <DataExchFieldGrouping FieldID="26" />
         <DataExchFieldGrouping FieldID="27" />
         <DataExchFieldGrouping FieldID="29" />

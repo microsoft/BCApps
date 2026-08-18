@@ -34,5 +34,12 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
+  "internalsVisibleTo": [
+    {
+      "id": "64977288-facd-4b48-aaba-bc0e288edfb3",
+      "name": "Electronic VAT Declaration for Denmark Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "target": "OnPrem"
 }
