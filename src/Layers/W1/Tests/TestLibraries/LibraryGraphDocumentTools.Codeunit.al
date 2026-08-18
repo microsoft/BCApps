@@ -582,17 +582,14 @@ codeunit 130619 "Library - Graph Document Tools"
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         FixedAsset: Record "Fixed Asset";
         GLAccount: Record "G/L Account";
-        VATPostingSetup: Record "VAT Posting Setup";
     begin
         LibraryInventory.CreateItemCharge(ItemCharge);
         LibrarySales.CreateSalesLine(SalesLineCharge, SalesHeader, SalesLineCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
 
         LibraryERM.FindVATBusinessPostingGroup(VATBusinessPostingGroup);
         LibraryResource.CreateResource(Resource, VATBusinessPostingGroup.Code);
-        VATPostingSetup.SetRange("VAT Bus. Posting Group", SalesHeader."VAT Bus. Posting Group");
-        VATPostingSetup.SetRange("VAT Prod. Posting Group", Resource."VAT Prod. Posting Group");
-        if not VATPostingSetup.FINDFIRST() then
-            LibraryERM.CreateVATPostingSetup(VATPostingSetup, SalesHeader."VAT Bus. Posting Group", Resource."VAT Prod. Posting Group");
+        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+            SalesHeader."VAT Bus. Posting Group", Resource."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLineResource, SalesHeader, SalesLineResource.Type::Resource, Resource."No.", 1);
 
         LibraryFixedAsset.CreateFixedAsset(FixedAsset);
@@ -636,6 +633,8 @@ codeunit 130619 "Library - Graph Document Tools"
         GLAccount.SetRange("Direct Posting", true);
 #pragma warning restore AA0210
         GLAccount.FindFirst();
+        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+            PurchaseHeader."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLineGLAccount, PurchaseHeader, PurchaseLineGLAccount.Type::"G/L Account", GLAccount."No.", 1);
     end;
@@ -895,4 +894,3 @@ codeunit 130619 "Library - Graph Document Tools"
         Assert.AreEqual(ExpectedDiscountAmount, ActualInvoiceDiscountAmount, 'Invoice discount amount was not set');
     end;
 }
-

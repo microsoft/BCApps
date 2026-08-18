@@ -545,15 +545,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     local procedure CreatePaymentTermsWithDiscount(var PaymentTerms: Record "Payment Terms")
-    var
-        DateCalculation: DateFormula;
     begin
-        LibraryERM.CreatePaymentTerms(PaymentTerms);
-        Evaluate(DateCalculation, '1M');
-        PaymentTerms.Validate("Due Date Calculation", DateCalculation);
-        Evaluate(DateCalculation, '8D');
-        PaymentTerms.Validate("Discount Date Calculation", DateCalculation);
-        PaymentTerms.Validate("Discount %", 2);
-        PaymentTerms.Modify(true);
+        LibraryERM.CreatePaymentTermsDiscount(PaymentTerms, true);
     end;
 }

@@ -427,6 +427,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         LibrarySales: Codeunit "Library - Sales";
     begin
         LibrarySales.CreateSalesOrder(SalesHeader);
+        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+            SalesHeader."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
         SalesLine."Variant Code" := ItemVariant.Code;
         SalesLine.Modify();

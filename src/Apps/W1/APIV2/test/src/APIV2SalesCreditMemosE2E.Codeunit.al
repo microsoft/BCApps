@@ -758,11 +758,15 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
     local procedure CreateCorrectiveSalesCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
+        ReasonCode: Record "Reason Code";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesHeader: Record "Sales Header";
         InvoiceCode: Code[20];
     begin
         LibrarySales.CreateSalesInvoice(SalesHeader);
+        ReasonCode.FindFirst();
+        SalesHeader.Validate("Reason Code", ReasonCode.Code);
+        SalesHeader.Modify(true);
         InvoiceCode := LibrarySales.PostSalesDocument(SalesHeader, false, true);
         SalesInvoiceHeader.Get(InvoiceCode);
         Commit();
