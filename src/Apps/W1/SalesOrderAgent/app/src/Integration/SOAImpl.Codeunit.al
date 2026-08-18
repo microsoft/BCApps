@@ -110,11 +110,13 @@ codeunit 4587 "SOA Impl"
         if CurrentSOASetup.Get(SOASetup.ID) then begin
             RemoveScheduledTask(CurrentSOASetup);
             CurrentSOASetup.Modify();
-            Commit();
             SOASetup."Agent Scheduled Task ID" := CurrentSOASetup."Agent Scheduled Task ID";
             SOASetup."Recovery Scheduled Task ID" := CurrentSOASetup."Recovery Scheduled Task ID";
         end else
             CancelScheduledTasksForRecord(SOASetup.RecordId);
+
+        // The caller is a scheduled task that is about to stop, so make the cleanup durable right away.
+        Commit();
 
         TelemetryDimensions.Add('SOASetupId', Format(SOASetup.ID));
         FeatureTelemetry.LogUsage('0000V3K', SOASetupCU.GetFeatureName(), TelemetryInactiveAgentTasksRemovedLbl, TelemetryDimensions);
@@ -163,9 +165,17 @@ codeunit 4587 "SOA Impl"
             exit;
 
         repeat
+            // A session is not always allowed to cancel a task another user scheduled, and cleanup must
+            // never fail the caller, so a task that cannot be cancelled here is left to the next attempt.
             if TaskScheduler.TaskExists(ScheduledTask.ID) then
-                TaskScheduler.CancelTask(ScheduledTask.ID);
+                if not TryCancelTask(ScheduledTask.ID) then;
         until ScheduledTask.Next() = 0;
+    end;
+
+    [TryFunction]
+    local procedure TryCancelTask(TaskId: Guid)
+    begin
+        TaskScheduler.CancelTask(TaskId);
     end;
 
     local procedure ScheduleDelay(SOASetupCU: Codeunit "SOA Setup"; var SOASetup: Record "SOA Setup"): Integer
