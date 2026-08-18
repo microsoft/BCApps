@@ -16,6 +16,7 @@ pageextension 20524 "Subc. PO Subform" extends "Purchase Order Subform"
             {
                 ApplicationArea = Subcontracting;
                 Visible = false;
+                Editable = false;
             }
         }
     }
