@@ -527,7 +527,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DataTypeManagement: Codeunit "Data Type Management";
         HeaderRecordRef: RecordRef;
         HeaderTradeAgreementElement, SellerTradePartyElement, BuyerTradePartyElement, SpecifiedTaxRegistrationElement, IDElement : XmlElement;
-        SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement: XmlElement;
+        SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement : XmlElement;
         PostalTradeAddressElement, ContactElement : XmlElement;
         SellerIDAttr, BuyerIDAttr : XmlAttribute;
         CustomerNo: Code[20];
@@ -624,8 +624,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             ContactElement.Add(XmlElement.Create('TelephoneUniversalCommunication', XmlNamespaceRAM,
                 XmlElement.Create('CompleteNumber', XmlNamespaceRAM, SellerPhoneNumber)));
             if SellerEmailAddress <> '' then
-            ContactElement.Add(XmlElement.Create('EmailURIUniversalCommunication', XmlNamespaceRAM,
-                XmlElement.Create('URIID', XmlNamespaceRAM, SellerEmailAddress)));
+                ContactElement.Add(XmlElement.Create('EmailURIUniversalCommunication', XmlNamespaceRAM,
+                    XmlElement.Create('URIID', XmlNamespaceRAM, SellerEmailAddress)));
             SellerTradePartyElement.Add(ContactElement);
         end;
 
