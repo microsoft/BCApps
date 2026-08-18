@@ -4332,6 +4332,47 @@
         Assert.AreEqual(JobPlanningLine.Quantity, JobPlanningLine."Qty. Transferred to Invoice", QtyTransferredShouldEqualQtyErr);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,TransferToInvoiceHandler')]
+    [Scope('OnPrem')]
+    procedure LineDiscountAmountPreservedWhenTransferringJobPlanningLineToSalesInvoice()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+    begin
+        // [SCENARIO 647043] Line Discount Amount is preserved (no 0.01 rounding drift) when a Project Planning Line is transferred to a Sales Invoice.
+        Initialize();
+
+        // [GIVEN] A project with a billable item planning line: Quantity = 2, Unit Price = 72786, Line Discount Amount = 8511.37 (Line Discount % rounds to 5.84685).
+        CreateJob(Job, '', false);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryInventory.CreateItem(Item);
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::"Both Budget and Billable", JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, 2);
+        JobPlanningLine.Validate("Unit Price", 72786);
+        JobPlanningLine.Validate("Line Discount Amount", 8511.37);
+        JobPlanningLine.Modify(true);
+
+        // [GIVEN] The planning line retains the exact Line Discount Amount entered.
+        Assert.AreEqual(
+            8511.37, JobPlanningLine."Line Discount Amount",
+            StrSubstNo(ExpectedValueErr, JobPlanningLine.FieldCaption("Line Discount Amount"), Format(8511.37)));
+
+        // [WHEN] The planning line is transferred to a Sales Invoice.
+        TransferJobPlanningLine(JobPlanningLine, 1, false, SalesHeader);
+
+        // [THEN] The created sales line keeps the exact Line Discount Amount from the planning line (8511.37, not the recalculated 8511.38).
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        Assert.AreEqual(
+            JobPlanningLine."Line Discount Amount", SalesLine."Line Discount Amount",
+            StrSubstNo(ExpectedValueErr, SalesLine.FieldCaption("Line Discount Amount"), Format(JobPlanningLine."Line Discount Amount")));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
