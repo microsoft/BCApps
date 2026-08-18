@@ -425,9 +425,9 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
         Vendor.Validate("Payment Terms Code", PaymentTerms.Code);
         Vendor.Modify(true);
 
-        // [GIVEN] Create Invoice Json with Vendor No and Invoice Date
-        InvoiceJSON := CreateInvoiceJSON('vendorNumber', VendorNo, 'invoiceDate', WorkDate());
-        InvoiceJSON := LibraryGraphMgt.AddPropertytoJSON(InvoiceJSON, 'postingDate', WorkDate());
+        // [GIVEN] Create Invoice Json with dates before the vendor defaults are applied
+        InvoiceJSON := CreateInvoiceJSON('invoiceDate', WorkDate(), 'postingDate', WorkDate());
+        InvoiceJSON := LibraryGraphMgt.AddPropertytoJSON(InvoiceJSON, 'vendorNumber', VendorNo);
         COMMIT();
 
         // [WHEN] We POST the JSON to the Web Service

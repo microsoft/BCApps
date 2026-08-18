@@ -584,6 +584,8 @@ codeunit 130619 "Library - Graph Document Tools"
         GLAccount: Record "G/L Account";
     begin
         LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+            SalesHeader."VAT Bus. Posting Group", ItemCharge."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLineCharge, SalesHeader, SalesLineCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
 
         LibraryERM.FindVATBusinessPostingGroup(VATBusinessPostingGroup);
@@ -616,6 +618,8 @@ codeunit 130619 "Library - Graph Document Tools"
         GLAccount: Record "G/L Account";
     begin
         LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+            PurchaseHeader."VAT Bus. Posting Group", ItemCharge."VAT Prod. Posting Group");
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLineCharge, PurchaseHeader, PurchaseLineCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
 
