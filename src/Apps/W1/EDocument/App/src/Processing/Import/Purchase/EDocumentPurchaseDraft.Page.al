@@ -214,6 +214,7 @@ page 6181 "E-Document Purchase Draft"
                     begin
                         UpdateTotal();
                         EDocumentPurchaseHeader.Modify();
+                        GlobalEDocumentNotification.RefreshAndShowSubTotalMismatchAfterHeaderEdit(EDocumentPurchaseHeader);
                         CurrPage.Update();
                     end;
                 }
@@ -266,6 +267,7 @@ page 6181 "E-Document Purchase Draft"
                     trigger OnValidate()
                     begin
                         EDocumentPurchaseHeader.Modify();
+                        GlobalEDocumentNotification.RefreshAndShowSubTotalMismatchAfterHeaderEdit(EDocumentPurchaseHeader);
                         CurrPage.Update();
                     end;
                 }
@@ -509,7 +511,6 @@ page 6181 "E-Document Purchase Draft"
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        EDocumentNotification: Codeunit "E-Document Notification";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
@@ -528,7 +529,7 @@ page 6181 "E-Document Purchase Draft"
         HasErrors := false;
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
-        EDocumentNotification.SendPurchaseDocumentDraftNotifications(Rec."Entry No");
+        GlobalEDocumentNotification.RefreshAndShowPendingDraftNotifications(Rec."Entry No");
         if PurchasesPayablesSetup.Get() then
             ApplyVATDiffEnabled := PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc";
 
@@ -779,6 +780,7 @@ page 6181 "E-Document Purchase Draft"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        GlobalEDocumentNotification: Codeunit "E-Document Notification";
         EDocumentProcessing: Codeunit "E-Document Processing";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         GlobalEDocumentHelper: Codeunit "E-Document Helper";

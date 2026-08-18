@@ -620,8 +620,10 @@ codeunit 147140 "ERM Sales VAT Ledger Export"
 
     local procedure RunVATLedgerExportReport(CustomerNo: Code[20]; AddSheet: Boolean) VATLedgerCode: Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FileName: Text[1024];
     begin
+        BindSubscription(RUReportDownloadHandler);
         VATLedgerCode :=
           LibrarySales.CreateSalesVATLedger(LibraryRandom.RandDate(-2), LibraryRandom.RandDateFromInRange(WorkDate(), 5, 10), CustomerNo);
         if AddSheet then
@@ -631,6 +633,7 @@ codeunit 147140 "ERM Sales VAT Ledger Export"
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         FileName := LibraryReportValidation.GetFileName();
         LibrarySales.ExportSalesVATLedger(VATLedgerCode, AddSheet, FileName);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateAndPostSalesInvoice(var SalesHeader: Record "Sales Header"; CurrencyCode: Code[10]; VATRate: Decimal; AddSheet: Boolean): Code[20]

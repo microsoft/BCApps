@@ -131,9 +131,10 @@ codeunit 139629 "Library - E-Document"
 
     procedure GetGenericItem(var Item: Record Item)
     begin
-        if StandardItem."No." = '' then
+        if (StandardItem."No." = '') or not Item.Get(StandardItem."No.") then begin
             CreateGenericItem(StandardItem);
-        Item.Get(StandardItem."No.");
+            Item.Get(StandardItem."No.");
+        end;
     end;
 
 #if not CLEAN26
