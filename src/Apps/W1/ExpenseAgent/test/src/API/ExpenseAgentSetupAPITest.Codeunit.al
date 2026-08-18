@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using System.Agents;
 
 codeunit 148333 "Expense Agent Setup API Test"
 {
@@ -41,6 +42,7 @@ codeunit 148333 "Expense Agent Setup API Test"
             ExpenseAgentSetup.Init();
             ExpenseAgentSetup.Insert();
         end;
+
         ExpenseAgentSetup."Email Address" := 'receipts@contoso.com';
         ExpenseAgentSetup.Modify();
         Commit();
@@ -56,6 +58,33 @@ codeunit 148333 "Expense Agent Setup API Test"
         ExpectedEmailValue := StrSubstNo('"%1":"%2"', EmailAddressTok, ExpenseAgentSetup."Email Address");
         Assert.AreNotEqual(0, StrPos(ResponseText, ExpectedEmailValue),
             'The emailAddress field should carry the value configured on the Expense Agent Setup record.');
+    end;
+
+    [Test]
+    procedure EnsureExpenseAgentIsIdempotent()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        Agent: Record Agent;
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        FirstAgentUserSecurityId: Guid;
+        SecondAgentUserSecurityId: Guid;
+    begin
+        Initialize();
+
+        FirstAgentUserSecurityId := ExpenseTestHandlerAPI.EnsureExpenseAgent();
+        SecondAgentUserSecurityId := ExpenseTestHandlerAPI.EnsureExpenseAgent();
+
+        Assert.AreEqual(
+            FirstAgentUserSecurityId,
+            SecondAgentUserSecurityId,
+            'Repeated E2E initialization must reuse the same Expense Agent.');
+        Assert.IsTrue(Agent.Get(FirstAgentUserSecurityId), 'The Expense Agent must exist.');
+        Assert.IsTrue(ExpenseAgentSetup.Get(), 'Expense Agent Setup must exist.');
+        Assert.AreEqual(
+            FirstAgentUserSecurityId,
+            ExpenseAgentSetup."User Security ID",
+            'Expense Agent Setup must reference the created agent.');
+        Assert.IsTrue(ExpenseAgentSetup."Enable Agent", 'Expense Agent Setup must be enabled.');
     end;
 
     local procedure Initialize()
