@@ -26,7 +26,7 @@ codeunit 5231 "Create Incoming Document"
             EServiceDemoDataSetup.Modify();
         end;
 
-        NavApp.GetResource(IncomingDocumentsFolderTok + '/' + EServiceDemoDataSetup."Invoice Field Name" + '.pdf', DocumentInStream);
+        NavApp.GetResource(IncomingDocumentsFolderTok + '/' + EServiceDemoDataSetup."Invoice Field Name" + '.PDF', DocumentInStream);
         IncomingDocument.CreateIncomingDocument(DocumentInStream, EServiceDemoDataSetup."Invoice Field Name" + '.pdf');
     end;
 

@@ -1389,6 +1389,46 @@ codeunit 134689 "Email Message Unit Test"
         Assert.AreEqual(0 + OriginalCount, EmailRecipient.Count(), 'Orphaned email recipient for message id 2 was not deleted');
     end;
 
+    [Test]
+    procedure ContentTypeFromFilenameForKnownExtensions()
+    var
+        EmailMessageImpl: Codeunit "Email Message Impl.";
+    begin
+        Assert.AreEqual('application/pdf', EmailMessageImpl.GetContentTypeFromFilename('invoice.pdf'), 'pdf MIME type');
+        Assert.AreEqual('text/plain', EmailMessageImpl.GetContentTypeFromFilename('notes.txt'), 'txt MIME type');
+        Assert.AreEqual('application/json', EmailMessageImpl.GetContentTypeFromFilename('payload.json'), 'json MIME type');
+        Assert.AreEqual(
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document(.docx)',
+            EmailMessageImpl.GetContentTypeFromFilename('report.docx'),
+            'docx MIME type');
+        Assert.AreEqual(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet(.xlsx)',
+            EmailMessageImpl.GetContentTypeFromFilename('budget.xlsx'),
+            'xlsx MIME type');
+        Assert.AreEqual('application/png', EmailMessageImpl.GetContentTypeFromFilename('logo.png'), 'png MIME type');
+        Assert.AreEqual('text/csv', EmailMessageImpl.GetContentTypeFromFilename('export.csv'), 'csv MIME type');
+    end;
+
+    [Test]
+    procedure ContentTypeFromFilenameIsCaseInsensitive()
+    var
+        EmailMessageImpl: Codeunit "Email Message Impl.";
+    begin
+        Assert.AreEqual('application/pdf', EmailMessageImpl.GetContentTypeFromFilename('REPORT.PDF'), 'uppercase pdf MIME type');
+        Assert.AreEqual('text/plain', EmailMessageImpl.GetContentTypeFromFilename('Notes.TxT'), 'mixed case txt MIME type');
+        Assert.AreEqual('application/png', EmailMessageImpl.GetContentTypeFromFilename('Logo.Png'), 'mixed case png MIME type');
+    end;
+
+    [Test]
+    procedure ContentTypeFromFilenameForUnknownExtensionReturnsEmpty()
+    var
+        EmailMessageImpl: Codeunit "Email Message Impl.";
+    begin
+        Assert.AreEqual('', EmailMessageImpl.GetContentTypeFromFilename('binary.xyz'), 'unknown extension');
+        Assert.AreEqual('', EmailMessageImpl.GetContentTypeFromFilename('no-extension'), 'missing extension');
+        Assert.AreEqual('', EmailMessageImpl.GetContentTypeFromFilename(''), 'empty filename');
+    end;
+
     [StrMenuHandler]
     [Scope('OnPrem')]
     procedure CloseEmailEditorHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
