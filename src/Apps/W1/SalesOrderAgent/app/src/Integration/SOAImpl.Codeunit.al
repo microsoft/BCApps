@@ -125,7 +125,7 @@ codeunit 4587 "SOA Impl"
             FeatureTelemetry.LogUsage('0000V3K', SOASetupCU.GetFeatureName(), TelemetryInactiveAgentTasksRemovedLbl, TelemetryDimensions)
         else
             // A task this session was not allowed to cancel is retried the next time cleanup runs.
-            FeatureTelemetry.LogError('', SOASetupCU.GetFeatureName(), 'Remove scheduled tasks of inactive agent', TelemetryInactiveAgentTasksLeftLbl, CancelErrorCallStack, TelemetryDimensions);
+            FeatureTelemetry.LogError('0000V3L', SOASetupCU.GetFeatureName(), 'Remove scheduled tasks of inactive agent', TelemetryInactiveAgentTasksLeftLbl, CancelErrorCallStack, TelemetryDimensions);
         exit(true);
     end;
 
