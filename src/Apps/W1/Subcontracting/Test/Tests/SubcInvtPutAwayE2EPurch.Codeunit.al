@@ -223,7 +223,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         WarehouseActivityLine.FindFirst();
 
         // [THEN] Purchase-source activity lines do not inherit Transfer WIP Item.
-        Assert.IsFalse(WarehouseActivityLine."Transfer WIP Item", 'Transfer WIP Item must only be copied from transfer lines.');
+        Assert.IsFalse(WarehouseActivityLine."Subc. Transfer WIP Item", 'Transfer WIP Item must only be copied from transfer lines.');
     end;
 
     [Test]
@@ -1555,7 +1555,7 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
 
         // [THEN]  NotLastOperation and Transfer WIP Item lines post without balance errors
         WarehouseActivityLine.SetRange("No.");
-        WarehouseActivityLine.SetRange("Transfer WIP Item", true);
+        WarehouseActivityLine.SetRange("Subc. Transfer WIP Item", true);
         Assert.IsTrue(WarehouseActivityLine.IsEmpty(), 'Transfer WIP line should be fully posted without balance errors');
 
         // [THEN]  Standard and LastOperation lines post normally

@@ -87,13 +87,10 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SubcDefaultCompLocation: Enum "Components at Location";
         SubcontractingBatchName: Code[10];
         SubcontractingTemplateName: Code[10];
-        SubcDefaultCompLocation: Enum "Components at Location";
-        ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
-        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
     begin
         // [SCENARIO 642233] The setup wizard displays the installed company defaults and the next configuration links.
-                                     Initialize();
-                             
+        Initialize();
+
         // [GIVEN] The company has Subcontracting defaults
         ManufacturingSetup.Get();
         SubcontractingTemplateName := ManufacturingSetup."Subcontracting Template Name";
@@ -1264,7 +1261,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
-        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;

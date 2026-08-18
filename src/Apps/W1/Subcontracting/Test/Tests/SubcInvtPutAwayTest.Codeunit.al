@@ -828,7 +828,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         Assert.RecordCount(WarehouseActivityLine, 1);
         WarehouseActivityLine.FindFirst();
 
-        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'Activity Line should be marked as Transfer WIP Item');
+        Assert.IsTrue(WarehouseActivityLine."Subc. Transfer WIP Item", 'Activity Line should be marked as Transfer WIP Item');
 
         // [THEN] Qty. per Unit of Measure and Qty. (Base) remain 0 - no physical inventory movement
         Assert.AreEqual(0, WarehouseActivityLine."Qty. per Unit of Measure", 'WIP Item transfer activity line must keep Qty. per Unit of Measure = 0');

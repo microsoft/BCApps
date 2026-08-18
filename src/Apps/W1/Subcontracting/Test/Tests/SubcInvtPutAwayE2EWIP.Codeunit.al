@@ -92,14 +92,14 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", OnBeforeNewWhseActivLineInsert, '', false, false)]
     local procedure SetBeforeNewWhseActivLineInsertForWipCalled(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location)
     begin
-        if WarehouseActivityLine."Transfer WIP Item" then
+        if WarehouseActivityLine."Subc. Transfer WIP Item" then
             BeforeNewWhseActivLineInsertForWipCalled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Pick/Movement", OnAfterSetLineData, '', false, false)]
     local procedure SetAfterSetLineDataForWipCalled(WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location; var WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
-        if WarehouseActivityLine."Transfer WIP Item" then
+        if WarehouseActivityLine."Subc. Transfer WIP Item" then
             AfterSetLineDataForWipCalled := true;
     end;
 
@@ -286,7 +286,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
         WarehouseActivityLine.FindFirst();
-        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The inventory pick line must be a WIP transfer line.');
+        Assert.IsTrue(WarehouseActivityLine."Subc. Transfer WIP Item", 'The inventory pick line must be a WIP transfer line.');
         Assert.AreEqual('', WarehouseActivityLine."Lot No.", 'No lot number should be assigned to a WIP inventory pick line.');
         WarehouseActivityLine.Validate("Bin Code", '');
         WarehouseActivityLine.Modify(true);
@@ -309,7 +309,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
         WarehouseActivityLine.FindFirst();
-        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The inventory put-away line must be a WIP transfer line.');
+        Assert.IsTrue(WarehouseActivityLine."Subc. Transfer WIP Item", 'The inventory put-away line must be a WIP transfer line.');
         Assert.AreEqual('', WarehouseActivityLine."Lot No.", 'No lot number should be assigned to a WIP inventory put-away line.');
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
         LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
@@ -394,7 +394,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
         Assert.RecordCount(WarehouseActivityLine, 1);
         WarehouseActivityLine.FindFirst();
-        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
+        Assert.IsTrue(WarehouseActivityLine."Subc. Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
         Assert.AreEqual("Subc. Purchase Line Type"::None, WarehouseActivityLine."Subc. Purchase Line Type", 'A transfer WIP line must not have a purchase line type.');
         Assert.AreEqual('', WarehouseActivityLine."Bin Code", 'The WIP activity line must keep its bin code blank.');
         Assert.AreEqual('', WarehouseActivityLine."Special Equipment Code", 'A blank WIP bin must not require special equipment.');
@@ -483,7 +483,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
         WarehouseActivityLine.FindFirst();
-        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
+        Assert.IsTrue(WarehouseActivityLine."Subc. Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
         Assert.AreEqual('', WarehouseActivityLine."Bin Code", 'The WIP activity line must keep its bin code blank.');
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
         LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
@@ -495,7 +495,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         PostedInvtPickLine.SetRange("Source No.", ForwardTransferHeader."No.");
         Assert.RecordCount(PostedInvtPickLine, 1);
         PostedInvtPickLine.FindFirst();
-        Assert.IsTrue(PostedInvtPickLine."Transfer WIP Item", 'The posted Inventory Pick line must be marked as a WIP transfer line.');
+        Assert.IsTrue(PostedInvtPickLine."Subc. Transfer WIP Item", 'The posted Inventory Pick line must be marked as a WIP transfer line.');
         Assert.AreEqual("Subc. Purchase Line Type"::None, PostedInvtPickLine."Subc. Purchase Line Type", 'A posted WIP transfer line must have no purchase line type.');
         Assert.AreEqual(Quantity, PostedInvtPickLine.Quantity, 'The posted Inventory Pick line must preserve the handled non-base quantity.');
         Assert.AreEqual(0, PostedInvtPickLine."Qty. (Base)", 'The posted WIP Inventory Pick line must retain zero base quantity semantics.');
@@ -590,7 +590,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
         Assert.RecordCount(WarehouseActivityLine, 1);
         WarehouseActivityLine.FindFirst();
-        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
+        Assert.IsTrue(WarehouseActivityLine."Subc. Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
         Assert.AreEqual("Subc. Purchase Line Type"::None, WarehouseActivityLine."Subc. Purchase Line Type", 'A transfer WIP line must not have a purchase line type.');
         Assert.AreEqual('', WarehouseActivityLine."Bin Code", 'The WIP activity line must keep its bin code blank.');
         Assert.AreEqual(Quantity, WarehouseActivityLine.Quantity, 'The WIP activity line must retain the transfer quantity.');
@@ -690,7 +690,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
         WarehouseActivityLine.FindFirst();
-        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
+        Assert.IsTrue(WarehouseActivityLine."Subc. Transfer WIP Item", 'The activity line must be marked as a WIP transfer line.');
         Assert.AreEqual('', WarehouseActivityLine."Bin Code", 'The WIP activity line must keep its bin code blank.');
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
         LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
@@ -1230,7 +1230,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         WarehouseActivityLine.FindFirst();
 
         // [THEN] Quantity field is filled from Qty. Outstanding (not Quantity Base, which remains 0)
-        Assert.IsTrue(WarehouseActivityLine."Transfer WIP Item", 'The inventory pick line must inherit Transfer WIP Item from the transfer line.');
+        Assert.IsTrue(WarehouseActivityLine."Subc. Transfer WIP Item", 'The inventory pick line must inherit Transfer WIP Item from the transfer line.');
         Assert.AreEqual(0, WarehouseActivityLine."Qty. per Unit of Measure", 'WIP activity lines must have zero Qty. per Unit of Measure.');
         Assert.AreEqual(Quantity, WarehouseActivityLine."Qty. to Handle", 'AutoFill must populate Qty. to Handle from Quantity.');
         Assert.AreEqual(0, WarehouseActivityLine."Qty. to Handle (Base)", 'Qty. to Handle (Base) must remain zero for WIP lines.');
