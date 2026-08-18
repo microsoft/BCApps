@@ -75,6 +75,9 @@ codeunit 148307 "Expense Test Handler API"
     /// The approver uses the current BC service user's ID without exercising the email-based
     /// Expense User onboarding validation, which is outside the lifecycle test's scope.
     /// </summary>
+    /// <param name="submitterExpenseUserId">The SystemId of the Expense User that submits the expenses.</param>
+    /// <param name="approverExpenseUserId">The SystemId of the Expense User that approves the expenses.</param>
+    /// <returns>A completion message after the approval scenario is configured.</returns>
     [ServiceEnabled]
     procedure ConfigureApprovalScenario(submitterExpenseUserId: Guid; approverExpenseUserId: Guid): Text[50]
     var
@@ -84,7 +87,6 @@ codeunit 148307 "Expense Test Handler API"
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         CurrentApprovalUserId: Code[50];
-        SameExpenseUserErr: Label 'The submitter and approver must be different Expense Users.';
     begin
         SubmitterExpenseUser.GetBySystemId(submitterExpenseUserId);
         ApproverExpenseUser.GetBySystemId(approverExpenseUserId);
@@ -371,4 +373,7 @@ codeunit 148307 "Expense Test Handler API"
             exit(Customer."No.");
         exit('');
     end;
+
+    var
+        SameExpenseUserErr: Label 'The submitter and approver must be different Expense Users.';
 }
