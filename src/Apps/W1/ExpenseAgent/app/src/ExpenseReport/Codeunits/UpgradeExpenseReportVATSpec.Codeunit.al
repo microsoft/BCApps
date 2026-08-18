@@ -1,0 +1,118 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.ExpenseAgent;
+
+using Microsoft.Finance.Currency;
+using System.Upgrade;
+
+codeunit 7105 "Upgrade Exp. Report VAT Spec"
+{
+    Access = Internal;
+    Subtype = Upgrade;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata Currency = r,
+                  tabledata "Currency Exchange Rate" = r,
+                  tabledata "Expense Report Header" = r,
+                  tabledata "Expense Report Line VAT Spec." = rm,
+                  tabledata "General Ledger Setup" = r,
+                  tabledata "Posted Expense Report Header" = r,
+                  tabledata "Posted Exp. Rep. Line VAT Spec" = rm;
+
+    trigger OnUpgradePerCompany()
+    begin
+        BackfillReimbursementAmounts();
+    end;
+
+    local procedure BackfillReimbursementAmounts()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetBackfillReimbursementAmountsUpgradeTag()) then
+            exit;
+
+        BackfillExpenseReportLineVATSpecs();
+        BackfillPostedExpenseReportLineVATSpecs();
+
+        UpgradeTag.SetUpgradeTag(GetBackfillReimbursementAmountsUpgradeTag());
+    end;
+
+    local procedure BackfillExpenseReportLineVATSpecs()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+    begin
+        if not ExpenseReportLineVATSpec.FindSet(true) then
+            exit;
+
+        repeat
+            if ExpenseReportHeader.Get(ExpenseReportLineVATSpec."Document No.") then begin
+                ExpenseReportLineVATSpec.UpdateReimbursementAmounts(ExpenseReportHeader);
+                ExpenseReportLineVATSpec.Modify(false);
+            end;
+        until ExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    local procedure BackfillPostedExpenseReportLineVATSpecs()
+    var
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec";
+    begin
+        if not PostedExpenseReportLineVATSpec.FindSet(true) then
+            exit;
+
+        repeat
+            if PostedExpenseReportHeader.Get(PostedExpenseReportLineVATSpec."Expense Report No.") then begin
+                UpdatePostedReimbursementAmounts(PostedExpenseReportLineVATSpec, PostedExpenseReportHeader);
+                PostedExpenseReportLineVATSpec.Modify(false);
+            end;
+        until PostedExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    local procedure UpdatePostedReimbursementAmounts(var PostedExpenseReportLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        ReimbursementCurrency: Record Currency;
+    begin
+        ReimbursementCurrency.Initialize(PostedExpenseReportHeader."Reimbursement Currency Code");
+
+        if PostedExpenseReportHeader."Reimbursement Currency Code" = '' then begin
+            PostedExpenseReportLineVATSpec."VAT Base Amount (RCY)" := PostedExpenseReportLineVATSpec."VAT Base Amount (LCY)";
+            PostedExpenseReportLineVATSpec."VAT Amount (RCY)" := PostedExpenseReportLineVATSpec."VAT Amount (LCY)";
+            PostedExpenseReportLineVATSpec."Amount (RCY)" := PostedExpenseReportLineVATSpec."Amount (LCY)";
+        end else begin
+            PostedExpenseReportLineVATSpec."VAT Base Amount (RCY)" :=
+                Round(
+                    CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                        PostedExpenseReportHeader."Posting Date", PostedExpenseReportHeader."Reimbursement Currency Code",
+                        PostedExpenseReportLineVATSpec."VAT Base Amount (LCY)", PostedExpenseReportHeader."Reimbursement Currency Factor"),
+                    ReimbursementCurrency."Amount Rounding Precision");
+            PostedExpenseReportLineVATSpec."VAT Amount (RCY)" :=
+                Round(
+                    CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                        PostedExpenseReportHeader."Posting Date", PostedExpenseReportHeader."Reimbursement Currency Code",
+                        PostedExpenseReportLineVATSpec."VAT Amount (LCY)", PostedExpenseReportHeader."Reimbursement Currency Factor"),
+                    ReimbursementCurrency."Amount Rounding Precision");
+            PostedExpenseReportLineVATSpec."Amount (RCY)" :=
+                PostedExpenseReportLineVATSpec."VAT Base Amount (RCY)" + PostedExpenseReportLineVATSpec."VAT Amount (RCY)";
+        end;
+
+        PostedExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)" :=
+            Round(
+                PostedExpenseReportLineVATSpec."VAT Amount (RCY)" * PostedExpenseReportLineVATSpec."Reclaim %" / 100,
+                ReimbursementCurrency."Amount Rounding Precision");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
+    local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetBackfillReimbursementAmountsUpgradeTag());
+    end;
+
+    local procedure GetBackfillReimbursementAmountsUpgradeTag(): Code[250]
+    begin
+        exit('MS-ExpenseAgent-BackfillVATSpecReimbursementAmounts-20260818');
+    end;
+}
