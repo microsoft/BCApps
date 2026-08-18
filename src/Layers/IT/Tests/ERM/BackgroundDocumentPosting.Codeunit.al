@@ -479,7 +479,7 @@ codeunit 134893 "Background Document Posting"
         PostedQuantity: Decimal;
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 633198] Purchase order line quantities are not reverted when a credit memo copied from a posted invoice for an inventory item is posted via job queue (Bug 637795)
+        // [SCENARIO 633198] Purchase order line quantities are not reverted when a credit memo copied from a posted invoice for an inventory item is posted via job queue
         Initialize();
 
         // [GIVEN] Purchase Order "PO" with Item "I" and Quantity = 10

@@ -1051,7 +1051,8 @@ table 125 "Purch. Cr. Memo Line"
         end;
 
         if (ItemLedgerEntry."Entry No." = 0) and ("Order No." <> '') then begin
-            if IsInventoryItemLine() then
+            // Only a corrective/cancel credit memo may revert the order; a copied credit memo must not.
+            if not IsCorrectiveCreditMemo() then
                 exit;
             PurchInvLine.SetRange("Order No.", "Order No.");
             PurchInvLine.SetRange("Order Line No.", "Order Line No.");
@@ -1059,17 +1060,14 @@ table 125 "Purch. Cr. Memo Line"
         end;
     end;
 
-    local procedure IsInventoryItemLine(): Boolean
+    local procedure IsCorrectiveCreditMemo(): Boolean
     var
-        Item: Record Item;
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
     begin
-        if Rec.Type <> Rec.Type::Item then
+        if not PurchCrMemoHeader.Get("Document No.") then
             exit(false);
-        if "No." = '' then
-            exit(false);
-        if not Item.Get("No.") then
-            exit(false);
-        exit(Item.Type = Item.Type::Inventory);
+        PurchCrMemoHeader.CalcFields(Corrective);
+        exit(PurchCrMemoHeader.Corrective);
     end;
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
