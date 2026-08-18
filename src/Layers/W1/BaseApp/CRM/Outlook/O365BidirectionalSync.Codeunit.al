@@ -144,7 +144,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         DeltaUrl := GetDeltaUrl(FolderId);
         if not IsApprovedGraphRequestUri(DeltaUrl) then begin
             if DeltaUrl <> '' then
-                Session.LogMessage('0000UX8', StrSubstNo(InvalidGraphDeltaUrlResetTxt), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat(), DeltaUrl);
+                Session.LogMessage('0000UX8', StrSubstNo(InvalidGraphDeltaUrlResetTxt, FolderId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat(), DeltaUrl);
             DeltaUrl := '';
             UpdateDeltaUrl(FolderId, '');
         end;
