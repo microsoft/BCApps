@@ -881,8 +881,11 @@ codeunit 4400 "SOA Setup"
     var
         SOASetup: Record "SOA Setup";
     begin
+        // Archived agents keep their place in the series, so the next suggested identity continues after
+        // them instead of reusing a name that was already handed out. Validation still allows an admin to
+        // type an archived agent's name, so the identity can be reused deliberately.
         SOASetup.SetRange("Agent Name", AgentName);
-        exit(FindFirstNonArchivedSetup(SOASetup));
+        exit(not SOASetup.IsEmpty());
     end;
 
     local procedure UserNameExists(UserName: Text[50]): Boolean
@@ -897,8 +900,9 @@ codeunit 4400 "SOA Setup"
     var
         SOASetup: Record "SOA Setup";
     begin
+        // Archived agents keep their place in the series. See AgentNameExists.
         SOASetup.SetRange("Agent Initials", AgentInitials);
-        exit(FindFirstNonArchivedSetup(SOASetup));
+        exit(not SOASetup.IsEmpty());
     end;
 
     local procedure GetNextAvailableAgentIdentityIndex(): Integer

@@ -26,6 +26,7 @@ codeunit 4587 "SOA Impl"
         TelemetryAgentScheduledTaskCancelledLbl: Label 'Agent scheduled task cancelled.', Locked = true;
         TelemetryRecoveryScheduledTaskCancelledLbl: Label 'Recovery scheduled task cancelled.', Locked = true;
         TelemetryAgentScheduledLbl: Label 'Agent scheduled.', Locked = true;
+        TelemetryArchivedAgentTasksRemovedLbl: Label 'Scheduled tasks removed because the agent is archived.', Locked = true;
 
     internal procedure ScheduleSOAgent(var SOASetup: Record "SOA Setup")
     var
@@ -89,6 +90,33 @@ codeunit 4587 "SOA Impl"
     begin
         ScheduledTaskId := TaskScheduler.CreateTask(Codeunit::"SOA Recovery", Codeunit::"SOA Recovery", true, CompanyName(), CurrentDateTime() + ScheduleRecoveryDelay(), SOASetup.RecordId);
         SOASetup."Recovery Scheduled Task ID" := ScheduledTaskId;
+    end;
+
+    /// <summary>
+    /// Cancels the agent and recovery tasks of an archived agent and clears them from the setup record.
+    /// Archiving requires an inactive agent, so scheduled tasks are normally already removed on
+    /// deactivation. This handles a task that survived anyway, so it stops rather than running forever.
+    /// </summary>
+    internal procedure RemoveScheduledTasksIfAgentArchived(var SOASetup: Record "SOA Setup"): Boolean
+    var
+        CurrentSOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then
+            exit(false);
+
+        if CurrentSOASetup.Get(SOASetup.ID) then begin
+            RemoveScheduledTask(CurrentSOASetup);
+            CurrentSOASetup.Modify();
+            Commit();
+            SOASetup."Agent Scheduled Task ID" := CurrentSOASetup."Agent Scheduled Task ID";
+            SOASetup."Recovery Scheduled Task ID" := CurrentSOASetup."Recovery Scheduled Task ID";
+        end;
+
+        TelemetryDimensions.Add('SOASetupId', Format(SOASetup.ID));
+        FeatureTelemetry.LogUsage('0000VDX', SOASetupCU.GetFeatureName(), TelemetryArchivedAgentTasksRemovedLbl, TelemetryDimensions);
+        exit(true);
     end;
 
     internal procedure RemoveScheduledTask(var SOASetup: Record "SOA Setup")
