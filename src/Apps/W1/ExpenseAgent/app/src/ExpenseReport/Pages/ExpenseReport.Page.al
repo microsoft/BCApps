@@ -240,6 +240,14 @@ page 6910 "Expense Report"
                 SubPageLink = "Expense Report No." = field("Document No."), "Report Line No." = field("Line No.");
                 Visible = Rec."No." <> '';
             }
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Activity Log';
+                SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                              "Source Record System ID" = field(SystemId);
+                Visible = Rec."No." <> '';
+            }
             part("Expense Picture"; "Expense Picture")
             {
                 ApplicationArea = Basic, Suite;
