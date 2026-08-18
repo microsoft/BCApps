@@ -442,9 +442,9 @@ codeunit 6620 "Copy Document Mgt."
           FromDocType.AsInteger(), FromDocNo, ToSalesHeader, FromDocOccurrenceNo, FromDocVersionNo, IncludeHeader, RecalculateLines, MoveNegLines);
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIM', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'R', InherentPermissionsScope::Both)]
     procedure CopySalesDocSalesLine(FromSalesHeader: Record "Sales Header"; var ToSalesHeader: Record "Sales Header"; var LinesNotCopied: Integer; NextLineNo: Integer)
     var
         AssemblyHeader: Record "Assembly Header";
