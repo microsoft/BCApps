@@ -1,7 +1,7 @@
 namespace Microsoft.Integration.Shopify;
 
 using System.AI;
-// using System.Environment;
+using System.Environment;
 using System.Telemetry;
 
 /// <summary>
@@ -21,11 +21,11 @@ codeunit 30470 "Shpfy TMA Register"
     procedure RegisterCopilotCapability()
     var
         CopilotCapability: Codeunit "Copilot Capability";
-        // EnvironmentInformation: Codeunit "Environment Information";
+        EnvironmentInformation: Codeunit "Environment Information";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        // if not EnvironmentInformation.IsSaaSInfrastructure() then
-        //     exit;
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shopify Tax Matching Agent") then begin
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Shopify Tax Matching Agent", LearnMoreUrlTxt);
