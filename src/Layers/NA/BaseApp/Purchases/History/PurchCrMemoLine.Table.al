@@ -1071,12 +1071,12 @@ table 125 "Purch. Cr. Memo Line"
 
     local procedure IsCorrectiveCreditMemo(): Boolean
     var
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
     begin
-        if not PurchCrMemoHeader.Get("Document No.") then
+        if not PurchCrMemoHdr.Get("Document No.") then
             exit(false);
-        PurchCrMemoHeader.CalcFields(Corrective);
-        exit(PurchCrMemoHeader.Corrective);
+        PurchCrMemoHdr.CalcFields(Corrective);
+        exit(PurchCrMemoHdr.Corrective);
     end;
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
