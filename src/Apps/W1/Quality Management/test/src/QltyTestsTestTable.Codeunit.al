@@ -2164,8 +2164,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] The status-change guard was reset, so the finished inspection cannot be modified
         asserterror QltyInspectionHeader.Modify(true);
         LibraryAssert.ExpectedErrorCode('TestField');
-
-        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -2213,8 +2211,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] The status-change guard was reset, so the finished inspection cannot be modified through the trigger
         asserterror QltyInspectionHeader.Modify(true);
         LibraryAssert.ExpectedErrorCode('TestField');
-
-        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
