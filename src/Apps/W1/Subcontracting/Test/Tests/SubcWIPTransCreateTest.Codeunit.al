@@ -375,8 +375,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 641284] Creating WIP transfer orders for purchase lines from production orders at different locations opens all transfer orders.
