@@ -85,9 +85,9 @@ codeunit 104103 "Upgrade Derogatory Linkage"
     /// that the platform rolls back to on failure - this is the standard AL pattern required for Codeunit.Run
     /// boolean-context rollback to take effect; without it the platform cannot establish where to roll back to.
     /// If any step fails (for example an ambiguous depreciation-book relationship setup), every database change
-    /// made during that Run - including the clears - is automatically rolled back, leaving no partial state, per
-    /// ITEM-025/NFR-003. The corrective tag is set only after a successful rebuild, and only when a relationship
-    /// was configured to act on.
+    /// made during that Run - including the clears and corrective tag - is automatically rolled back, leaving no
+    /// partial state, per ITEM-025/NFR-003. The corrective tag is set inside that same Run only after a successful
+    /// rebuild, and only when a relationship was configured to act on.
     /// </summary>
     internal procedure RunCorrectiveUpgrade()
     var
@@ -102,8 +102,6 @@ codeunit 104103 "Upgrade Derogatory Linkage"
         Commit();
         if not DerogLinkageCorrectiveRun.Run() then
             Error(GetLastErrorText());
-
-        UpgradeTag.SetUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag());
     end;
 
     /// <summary>
@@ -115,6 +113,7 @@ codeunit 104103 "Upgrade Derogatory Linkage"
         ClearConfiguredRelationshipLinks();
         ValidateConfiguredRelationships();
         RunAfterRelationshipTransfer(true);
+        UpgradeTag.SetUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag());
     end;
 
     local procedure HasConfiguredRelationship(): Boolean
@@ -293,7 +292,9 @@ codeunit 104103 "Upgrade Derogatory Linkage"
         SetFACandidateBaseFilters(CandidateFALedgerEntry, SourceFALedgerEntry, DerogatoryDepreciationBookCode);
         if CandidateFALedgerEntry.FindSet() then
             repeat
-                if SameFAAssetIdentity(CandidateFALedgerEntry, SourceFANo) then
+                if SameFAAssetIdentity(CandidateFALedgerEntry, SourceFANo) and
+                   HasConsistentFAReversalChain(SourceFALedgerEntry, CandidateFALedgerEntry)
+                then
                     CandidateEntryNos.Add(CandidateFALedgerEntry."Entry No.");
             until CandidateFALedgerEntry.Next() = 0;
     end;
@@ -330,6 +331,68 @@ codeunit 104103 "Upgrade Derogatory Linkage"
             CandidateFALedgerEntry.SetRange("Reversed by Entry No.", 0)
         else
             CandidateFALedgerEntry.SetFilter("Reversed by Entry No.", '<>0');
+    end;
+
+    local procedure HasConsistentFAReversalChain(SourceFALedgerEntry: Record "FA Ledger Entry"; CandidateFALedgerEntry: Record "FA Ledger Entry"): Boolean
+    var
+        RelatedSourceFALedgerEntry: Record "FA Ledger Entry";
+        RelatedCandidateFALedgerEntry: Record "FA Ledger Entry";
+    begin
+        if SourceFALedgerEntry."Reversed Entry No." <> 0 then begin
+            if not RelatedSourceFALedgerEntry.Get(SourceFALedgerEntry."Reversed Entry No.") then
+                exit(false);
+            if not RelatedCandidateFALedgerEntry.Get(CandidateFALedgerEntry."Reversed Entry No.") then
+                exit(false);
+            if (RelatedSourceFALedgerEntry."Depreciation Book Code" <> SourceFALedgerEntry."Depreciation Book Code") or
+               (RelatedCandidateFALedgerEntry."Depreciation Book Code" <> CandidateFALedgerEntry."Depreciation Book Code") or
+               (RelatedSourceFALedgerEntry."Reversed by Entry No." <> SourceFALedgerEntry."Entry No.") or
+               (RelatedCandidateFALedgerEntry."Reversed by Entry No." <> CandidateFALedgerEntry."Entry No.") or
+               not HasMatchingFAIdentity(RelatedSourceFALedgerEntry, RelatedCandidateFALedgerEntry)
+            then
+                exit(false);
+        end;
+
+        if SourceFALedgerEntry."Reversed by Entry No." <> 0 then begin
+            if not RelatedSourceFALedgerEntry.Get(SourceFALedgerEntry."Reversed by Entry No.") then
+                exit(false);
+            if not RelatedCandidateFALedgerEntry.Get(CandidateFALedgerEntry."Reversed by Entry No.") then
+                exit(false);
+            if (RelatedSourceFALedgerEntry."Depreciation Book Code" <> SourceFALedgerEntry."Depreciation Book Code") or
+               (RelatedCandidateFALedgerEntry."Depreciation Book Code" <> CandidateFALedgerEntry."Depreciation Book Code") or
+               (RelatedSourceFALedgerEntry."Reversed Entry No." <> SourceFALedgerEntry."Entry No.") or
+               (RelatedCandidateFALedgerEntry."Reversed Entry No." <> CandidateFALedgerEntry."Entry No.") or
+               not HasMatchingFAIdentity(RelatedSourceFALedgerEntry, RelatedCandidateFALedgerEntry)
+            then
+                exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    local procedure HasMatchingFAIdentity(SourceFALedgerEntry: Record "FA Ledger Entry"; CandidateFALedgerEntry: Record "FA Ledger Entry"): Boolean
+    begin
+        exit(
+            (CandidateFALedgerEntry."Depreciation Book Code" <> SourceFALedgerEntry."Depreciation Book Code") and
+            SameFAAssetIdentity(CandidateFALedgerEntry, ResolveFANo(SourceFALedgerEntry)) and
+            (CandidateFALedgerEntry."FA Posting Type" = SourceFALedgerEntry."FA Posting Type") and
+            (CandidateFALedgerEntry.Amount = SourceFALedgerEntry.Amount) and
+            (CandidateFALedgerEntry."Document Type" = SourceFALedgerEntry."Document Type") and
+            (CandidateFALedgerEntry."Document No." = SourceFALedgerEntry."Document No.") and
+            (CandidateFALedgerEntry."External Document No." = SourceFALedgerEntry."External Document No.") and
+            (CandidateFALedgerEntry."FA Posting Date" = SourceFALedgerEntry."FA Posting Date") and
+            (CandidateFALedgerEntry."Posting Date" = SourceFALedgerEntry."Posting Date") and
+            (CandidateFALedgerEntry."Document Date" = SourceFALedgerEntry."Document Date") and
+            TransactionsMatch(SourceFALedgerEntry."Transaction No.", CandidateFALedgerEntry."Transaction No.") and
+            (CandidateFALedgerEntry.Reversed = SourceFALedgerEntry.Reversed) and
+            ((CandidateFALedgerEntry."Reversed Entry No." = 0) = (SourceFALedgerEntry."Reversed Entry No." = 0)) and
+            ((CandidateFALedgerEntry."Reversed by Entry No." = 0) = (SourceFALedgerEntry."Reversed by Entry No." = 0)));
+    end;
+
+    local procedure TransactionsMatch(SourceTransactionNo: Integer; CandidateTransactionNo: Integer): Boolean
+    begin
+        if SourceTransactionNo = 0 then
+            exit(CandidateTransactionNo = 0);
+        exit(CandidateTransactionNo in [SourceTransactionNo, 0]);
     end;
 
     local procedure AddReverseCandidateLinks(var CandidateToSources: Dictionary of [Integer, List of [Integer]]; CandidateEntryNos: List of [Integer]; SourceEntryNo: Integer)
@@ -428,7 +491,8 @@ codeunit 104103 "Upgrade Derogatory Linkage"
         SetMaintenanceCandidateBaseFilters(CandidateMaintenanceLedgerEntry, SourceMaintenanceLedgerEntry, DerogatoryDepreciationBookCode);
         if CandidateMaintenanceLedgerEntry.FindSet() then
             repeat
-                CandidateEntryNos.Add(CandidateMaintenanceLedgerEntry."Entry No.");
+                if HasConsistentMaintenanceReversalChain(SourceMaintenanceLedgerEntry, CandidateMaintenanceLedgerEntry) then
+                    CandidateEntryNos.Add(CandidateMaintenanceLedgerEntry."Entry No.");
             until CandidateMaintenanceLedgerEntry.Next() = 0;
     end;
 
@@ -465,6 +529,61 @@ codeunit 104103 "Upgrade Derogatory Linkage"
             CandidateMaintenanceLedgerEntry.SetRange("Reversed by Entry No.", 0)
         else
             CandidateMaintenanceLedgerEntry.SetFilter("Reversed by Entry No.", '<>0');
+    end;
+
+    local procedure HasConsistentMaintenanceReversalChain(SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; CandidateMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"): Boolean
+    var
+        RelatedSourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        RelatedCandidateMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+    begin
+        if SourceMaintenanceLedgerEntry."Reversed Entry No." <> 0 then begin
+            if not RelatedSourceMaintenanceLedgerEntry.Get(SourceMaintenanceLedgerEntry."Reversed Entry No.") then
+                exit(false);
+            if not RelatedCandidateMaintenanceLedgerEntry.Get(CandidateMaintenanceLedgerEntry."Reversed Entry No.") then
+                exit(false);
+            if (RelatedSourceMaintenanceLedgerEntry."Depreciation Book Code" <> SourceMaintenanceLedgerEntry."Depreciation Book Code") or
+               (RelatedCandidateMaintenanceLedgerEntry."Depreciation Book Code" <> CandidateMaintenanceLedgerEntry."Depreciation Book Code") or
+               (RelatedSourceMaintenanceLedgerEntry."Reversed by Entry No." <> SourceMaintenanceLedgerEntry."Entry No.") or
+               (RelatedCandidateMaintenanceLedgerEntry."Reversed by Entry No." <> CandidateMaintenanceLedgerEntry."Entry No.") or
+               not HasMatchingMaintenanceIdentity(RelatedSourceMaintenanceLedgerEntry, RelatedCandidateMaintenanceLedgerEntry)
+            then
+                exit(false);
+        end;
+
+        if SourceMaintenanceLedgerEntry."Reversed by Entry No." <> 0 then begin
+            if not RelatedSourceMaintenanceLedgerEntry.Get(SourceMaintenanceLedgerEntry."Reversed by Entry No.") then
+                exit(false);
+            if not RelatedCandidateMaintenanceLedgerEntry.Get(CandidateMaintenanceLedgerEntry."Reversed by Entry No.") then
+                exit(false);
+            if (RelatedSourceMaintenanceLedgerEntry."Depreciation Book Code" <> SourceMaintenanceLedgerEntry."Depreciation Book Code") or
+               (RelatedCandidateMaintenanceLedgerEntry."Depreciation Book Code" <> CandidateMaintenanceLedgerEntry."Depreciation Book Code") or
+               (RelatedSourceMaintenanceLedgerEntry."Reversed Entry No." <> SourceMaintenanceLedgerEntry."Entry No.") or
+               (RelatedCandidateMaintenanceLedgerEntry."Reversed Entry No." <> CandidateMaintenanceLedgerEntry."Entry No.") or
+               not HasMatchingMaintenanceIdentity(RelatedSourceMaintenanceLedgerEntry, RelatedCandidateMaintenanceLedgerEntry)
+            then
+                exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    local procedure HasMatchingMaintenanceIdentity(SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; CandidateMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"): Boolean
+    begin
+        exit(
+            (CandidateMaintenanceLedgerEntry."Depreciation Book Code" <> SourceMaintenanceLedgerEntry."Depreciation Book Code") and
+            (CandidateMaintenanceLedgerEntry."FA No." = SourceMaintenanceLedgerEntry."FA No.") and
+            (CandidateMaintenanceLedgerEntry."Maintenance Code" = SourceMaintenanceLedgerEntry."Maintenance Code") and
+            (CandidateMaintenanceLedgerEntry.Amount = SourceMaintenanceLedgerEntry.Amount) and
+            (CandidateMaintenanceLedgerEntry."Document Type" = SourceMaintenanceLedgerEntry."Document Type") and
+            (CandidateMaintenanceLedgerEntry."Document No." = SourceMaintenanceLedgerEntry."Document No.") and
+            (CandidateMaintenanceLedgerEntry."External Document No." = SourceMaintenanceLedgerEntry."External Document No.") and
+            (CandidateMaintenanceLedgerEntry."FA Posting Date" = SourceMaintenanceLedgerEntry."FA Posting Date") and
+            (CandidateMaintenanceLedgerEntry."Posting Date" = SourceMaintenanceLedgerEntry."Posting Date") and
+            (CandidateMaintenanceLedgerEntry."Document Date" = SourceMaintenanceLedgerEntry."Document Date") and
+            TransactionsMatch(SourceMaintenanceLedgerEntry."Transaction No.", CandidateMaintenanceLedgerEntry."Transaction No.") and
+            (CandidateMaintenanceLedgerEntry.Reversed = SourceMaintenanceLedgerEntry.Reversed) and
+            ((CandidateMaintenanceLedgerEntry."Reversed Entry No." = 0) = (SourceMaintenanceLedgerEntry."Reversed Entry No." = 0)) and
+            ((CandidateMaintenanceLedgerEntry."Reversed by Entry No." = 0) = (SourceMaintenanceLedgerEntry."Reversed by Entry No." = 0)));
     end;
 
     local procedure LinkMaintenanceEntryByNo(EntryNo: Integer; SourceEntryNo: Integer)

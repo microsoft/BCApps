@@ -11,7 +11,7 @@ namespace Microsoft.FixedAssets.Depreciation;
 /// Upgrade cannot be invoked via Codeunit.Run outside the schema synchronization process, so the atomic,
 /// rollback-on-failure scope is factored out into this separate codeunit. If any step fails (for example an
 /// ambiguous depreciation-book relationship setup), every database change made during this Run - including the
-/// clears - is automatically rolled back by the platform, leaving no partial state.
+/// clears and corrective upgrade tag - is automatically rolled back by the platform, leaving no partial state.
 /// </summary>
 codeunit 104104 "Derog. Linkage Corrective Run"
 {

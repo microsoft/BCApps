@@ -553,11 +553,16 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         InitializeLinkageTestData();
         CreateFALedgerEntry(10, SourceDepreciationBookCode, true, 100, 0);
         CreateFALedgerEntry(11, DerogatoryDepreciationBookCode, true, 200, 0);
+        CreateFALedgerEntry(100, SourceDepreciationBookCode, true, 0, 10);
+        CreateFALedgerEntry(200, DerogatoryDepreciationBookCode, true, 0, 11);
 
         UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
 
         DerogatoryFALedgerEntry.Get(11);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 10);
+        DerogatoryFALedgerEntry.Get(200);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 100);
+        Assert.AreEqual(2, LinkedCount, 'Both entries in the consistent FA reversal chain must be linked.');
     end;
 
     [Test]
@@ -573,11 +578,37 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         InitializeLinkageTestData();
         CreateFALedgerEntry(20, SourceDepreciationBookCode, true, 0, 100);
         CreateFALedgerEntry(21, DerogatoryDepreciationBookCode, true, 0, 200);
+        CreateFALedgerEntry(100, SourceDepreciationBookCode, true, 20, 0);
+        CreateFALedgerEntry(200, DerogatoryDepreciationBookCode, true, 21, 0);
 
         UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
 
         DerogatoryFALedgerEntry.Get(21);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 20);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CrossedFAReversalChainsAreNotLinked()
+    var
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+    begin
+        InitializeLinkageTestData();
+        CreateFALedgerEntry(10, 'FA1', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 100, 0);
+        CreateFALedgerEntry(11, 'FA1', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 201, 0);
+        CreateFALedgerEntry(100, 'FA1', SourceDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 0, 10);
+        CreateFALedgerEntry(21, 'FA2', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 201, 0);
+        CreateFALedgerEntry(201, 'FA2', DerogatoryDepreciationBookCode, false, 0, Enum::"FA Ledger Entry FA Posting Type"::Depreciation, true, 0, 21);
+
+        UpgradeDerogatoryLinkage.LinkFALedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        DerogatoryFALedgerEntry.Get(11);
+        DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        Assert.AreEqual(0, LinkedCount, 'Shape-compatible entries from crossed FA reversal chains must not be linked.');
     end;
 
     [Test]
@@ -643,6 +674,30 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         DerogatoryMaintenanceLedgerEntry.Get(2);
         DerogatoryMaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 1);
         Assert.AreEqual(1, LinkedCount, 'One maintenance pair must be linked.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CrossedMaintenanceReversalChainsAreNotLinked()
+    var
+        DerogatoryMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        LinkedCount: Integer;
+        AmbiguousCount: Integer;
+        MissingCount: Integer;
+    begin
+        InitializeLinkageTestData();
+        CreateMaintenanceLedgerEntry(10, SourceDepreciationBookCode, 'M1', 0, true, 100, 0);
+        CreateMaintenanceLedgerEntry(11, DerogatoryDepreciationBookCode, 'M1', 0, true, 201, 0);
+        CreateMaintenanceLedgerEntry(100, SourceDepreciationBookCode, 'M1', 0, true, 0, 10);
+        CreateMaintenanceLedgerEntry(21, DerogatoryDepreciationBookCode, 'M2', 0, true, 201, 0);
+        CreateMaintenanceLedgerEntry(201, DerogatoryDepreciationBookCode, 'M2', 0, true, 0, 21);
+
+        UpgradeDerogatoryLinkage.LinkMaintenanceLedgerEntries(LinkedCount, AmbiguousCount, MissingCount);
+
+        DerogatoryMaintenanceLedgerEntry.Get(11);
+        DerogatoryMaintenanceLedgerEntry.TestField("Derogatory Source Entry No.", 0);
+        Assert.AreEqual(0, LinkedCount, 'Shape-compatible entries from crossed maintenance reversal chains must not be linked.');
     end;
 
     [Test]
@@ -1024,6 +1079,8 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         SecondSourceFALedgerEntry: Record "FA Ledger Entry";
         DerogatoryFALedgerEntry: Record "FA Ledger Entry";
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
         // Simulate a stale outcome left by the pre-fix greedy algorithm (RISK-005): source 2 falsely "won" a link to
         // candidate 3 even though source 1 is an equally valid match, and source 1 was never flagged ambiguous.
@@ -1046,6 +1103,9 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         FirstSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
         SecondSourceFALedgerEntry.Get(2);
         SecondSourceFALedgerEntry.TestField("Legacy Derogatory Ambiguous", true);
+        Assert.IsTrue(
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()),
+            'A successful atomic rebuild must set the corrective upgrade tag.');
     end;
 
     [Test]
@@ -1155,6 +1215,8 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         SecondTaxDepreciationBook: Record "Depreciation Book";
         DerogatoryFALedgerEntry: Record "FA Ledger Entry";
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
+        UpgTagAcceleratedDepr: Codeunit "Upg. Tag Accelerated Depr.";
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
         InitializeLinkageTestData();
         EnsureDerogatoryLinkageCorrectiveUpgradeTagIsCleared();
@@ -1176,6 +1238,9 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         Assert.ExpectedError('More than one derogatory depreciation book is configured for depreciation book');
         DerogatoryFALedgerEntry.Get(2);
         DerogatoryFALedgerEntry.TestField("Derogatory Source Entry No.", 1);
+        Assert.IsFalse(
+            UpgradeTag.HasUpgradeTag(UpgTagAcceleratedDepr.GetDerogatoryLinkageCorrectiveUpgradeTag(), CompanyName()),
+            'A failed atomic rebuild must roll back the corrective upgrade tag with the cleared links.');
     end;
 
     local procedure AssertFALedgerInvariants(var BeforeFALedgerEntry: Record "FA Ledger Entry" temporary)
