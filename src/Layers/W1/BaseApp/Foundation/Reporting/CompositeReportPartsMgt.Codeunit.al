@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.Reporting;
 
 using System.Reflection;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Seeds the reusable Composite Layout header/footer and theme parts that ship with the Base Application into
@@ -21,7 +22,7 @@ using System.Reflection;
 /// The layout files ship as app resources from the .resources folder declared in app.json and are read with
 /// NavApp.GetResource, which keeps the binaries out of the AL source.
 /// </remarks>
-codeunit 9667 "Default Report Parts Mgt."
+codeunit 9667 "Composite Report Parts Mgt."
 {
     Access = Internal;
     Permissions = tabledata "Tenant Report Layout" = RIMD;
@@ -41,9 +42,16 @@ codeunit 9667 "Default Report Parts Mgt."
         UpsertPart(ExternalMinimalisticDetailedTxt, 'ReportParts/HeaderFooterDesign/ExternalMinimalisticDetailed.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalMinimalisticDetailedDescTxt);
         UpsertPart(ExternalModernTxt, 'ReportParts/HeaderFooterDesign/ExternalModern.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalModernDescTxt);
         UpsertPart(ExternalModernLogoTxt, 'ReportParts/HeaderFooterDesign/ExternalModernLogo.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalModernLogoDescTxt);
+
+        //Internal
         UpsertPart(InternalDefaultTxt, 'ReportParts/HeaderFooterDesign/InternalDefault.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalDefaultDescTxt);
         UpsertPart(InternalMinimalisticCenteredTxt, 'ReportParts/HeaderFooterDesign/InternalMinimalisticCentered.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalMinimalisticCenteredDescTxt);
-        UpsertPart(BCDefaultThemeTxt, 'ReportParts/ReportTheme/BCDefault.dotx', Enum::"Report Layout Subtype"::Theme, BCDefaultThemeDescTxt);
+        UpsertPart(InternalMinimalisticTxt, 'ReportParts/HeaderFooterDesign/InternalMinimalistic.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalMinimalisticDescTxt);
+        UpsertPart(InternalModernTxt, 'ReportParts/HeaderFooterDesign/InternalModern.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalModernDescTxt);
+        UpsertPart(InternalModernMaxiTxt, 'ReportParts/HeaderFooterDesign/InternalModernMaxi.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalModernMaxiDescTxt);
+
+        //Theme
+        UpsertPart(DefaultThemeTxt, 'ReportParts/ReportTheme/Default.dotx', Enum::"Report Layout Subtype"::Theme, DefaultThemeDescTxt);
         UpsertPart(CalmThemeTxt, 'ReportParts/ReportTheme/Calm.dotx', Enum::"Report Layout Subtype"::Theme, CalmThemeDescTxt);
         UpsertPart(PlayfulThemeTxt, 'ReportParts/ReportTheme/Playful.dotx', Enum::"Report Layout Subtype"::Theme, PlayfulThemeDescTxt);
     end;
@@ -114,7 +122,10 @@ codeunit 9667 "Default Report Parts Mgt."
         ExternalModernLogoTxt: Label 'External Modern Logo', Locked = true;
         InternalDefaultTxt: Label 'Internal Default', Locked = true;
         InternalMinimalisticCenteredTxt: Label 'Internal Minimalistic Centered', Locked = true;
-        BCDefaultThemeTxt: Label 'BC Default', Locked = true;
+        InternalMinimalisticTxt: Label 'Internal Minimalistic', Locked = true;
+        InternalModernTxt: Label 'Internal Modern', Locked = true;
+        InternalModernMaxiTxt: Label 'Internal Modern Maxi', Locked = true;
+        DefaultThemeTxt: Label 'Default', Locked = true;
         CalmThemeTxt: Label 'Calm', Locked = true;
         PlayfulThemeTxt: Label 'Playful', Locked = true;
 
@@ -126,7 +137,11 @@ codeunit 9667 "Default Report Parts Mgt."
         ExternalModernLogoDescTxt: Label 'Header/footer design for portrait or landscape. Header with company logo, report name, document date and page number; footer with homepage, phone, email, fax plus bank, bank account, VAT reg. no. and giro no. Modern external layout.';
         InternalDefaultDescTxt: Label 'Header/footer design for portrait or landscape, for internal documents. Header with company logo, report name and document date; footer with page number.';
         InternalMinimalisticCenteredDescTxt: Label 'Header/footer design for portrait or landscape, minimalist and centred, for internal documents. Header with centred logo, report name and document date; footer with page number.';
-        BCDefaultThemeDescTxt: Label 'Simple and clear, so the details that matter stand out. Styling-only theme: neutral Segoe UI in semibold and regular for hierarchy, dark-grey text on white, calm accent colours, and softly banded table rows. Works for most reports out of the box.';
+        InternalMinimalisticDescTxt: Label 'Header/footer design for portrait or landscape, minimalistic, for internal documents. Header with report name and document date; footer with page number.';
+        InternalModernDescTxt: Label 'Header/footer design for portrait or landscape, modern style, for internal documents. Header with company logo, report name and document date; footer with page number.';
+        InternalModernMaxiDescTxt: Label 'Header/footer design for portrait or landscape, modern style with a large header, for internal documents. Header with company logo, report name and document date; footer with page number.';
+
+        DefaultThemeDescTxt: Label 'Simple and clear, so the details that matter stand out. Styling-only theme: neutral Segoe UI in semibold and regular for hierarchy, dark-grey text on white, calm accent colours, and softly banded table rows. Works for most reports out of the box.';
         CalmThemeDescTxt: Label 'Classic and calm, and easy to read. Styling-only theme: Sitka serif in semibold and regular for hierarchy, with dark-green text on a soft beige background. A timeless look that gives your reports a quieter, more classic feel.';
         PlayfulThemeDescTxt: Label 'Dynamic and lively, a fresh take on a professional report. Styling-only theme: geometric Bahnschrift in semibold and regular for hierarchy, with backgrounds alternating between green and pink for an energetic, modern feel.';
 
