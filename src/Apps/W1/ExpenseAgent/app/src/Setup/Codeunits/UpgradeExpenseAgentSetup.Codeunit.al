@@ -93,13 +93,13 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         PrivacyNotice: Record "Privacy Notice";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetRemoveLegacyPrivacyNoticeUpgradeTag()) then
+        if UpgradeTag.HasDatabaseUpgradeTag(GetRemoveLegacyPrivacyNoticeUpgradeTag()) then
             exit;
 
         if PrivacyNotice.Get(LegacyPrivacyNoticeIdTok) then
             if PrivacyNotice.Delete() then;
 
-        UpgradeTag.SetUpgradeTag(GetRemoveLegacyPrivacyNoticeUpgradeTag());
+        UpgradeTag.SetDatabaseUpgradeTag(GetRemoveLegacyPrivacyNoticeUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
