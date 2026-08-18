@@ -10,16 +10,16 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 
-tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
+tableextension 20501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
 {
     fields
     {
-        field(99001500; "Create Prod. Order Info Line"; Boolean)
+        field(20500; "Create Prod. Order Info Line"; Boolean)
         {
             Caption = 'Create Prod. Order Info Line';
             DataClassification = CustomerContent;
         }
-        field(99001501; "Subcontracting Template Name"; Code[10])
+        field(20501; "Subcontracting Template Name"; Code[10])
         {
             Caption = 'Subcontracting Worksheet Template Name';
             DataClassification = CustomerContent;
@@ -29,7 +29,7 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
 #pragma warning restore AL0432
 #pragma warning restore AL0520
         }
-        field(99001502; "Subcontracting Batch Name"; Code[10])
+        field(20502; "Subcontracting Batch Name"; Code[10])
         {
             Caption = 'Subcontracting Worksheet Batch Name';
             DataClassification = CustomerContent;
@@ -40,19 +40,19 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
 #pragma warning restore AL0432
 #pragma warning restore AL0520
         }
-        field(99001504; "Component Direct Unit Cost"; Option)
+        field(20504; "Component Direct Unit Cost"; Option)
         {
             Caption = 'Component Direct Unit Cost';
             DataClassification = CustomerContent;
             OptionCaption = 'Standard,Prod. Order Component';
             OptionMembers = Standard,"Prod. Order Component";
         }
-        field(99001505; "Subc. Comp. Transfer Lead Time"; DateFormula)
+        field(20505; "Subc. Comp. Transfer Lead Time"; DateFormula)
         {
             Caption = 'Subcontracting Component Transfer Lead Time';
             DataClassification = CustomerContent;
         }
-        field(99001509; "Subc. Default Comp. Location"; Enum "Components at Location")
+        field(20509; "Subc. Default Comp. Location"; Enum "Components at Location")
         {
             Caption = 'Default Component Location Source';
             DataClassification = CustomerContent;

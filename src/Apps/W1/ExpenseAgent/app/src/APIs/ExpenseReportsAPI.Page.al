@@ -221,6 +221,14 @@ page 6928 "Expense Reports API"
                     EntitySetName = 'expenseReportLines';
                     SubPageLink = "Document No." = field("No.");
                 }
+                part(activityLogEntries; "Expense Activity Log API")
+                {
+                    Caption = 'Activity Log Entries';
+                    EntityName = 'expenseActivityLogEntry';
+                    EntitySetName = 'expenseActivityLogEntries';
+                    SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                                  "Source Record System ID" = field(SystemId);
+                }
             }
         }
     }
@@ -459,4 +467,5 @@ page 6928 "Expense Reports API"
         ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
+
 }
