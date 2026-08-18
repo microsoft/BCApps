@@ -8,7 +8,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-codeunit 99001574 "Subc. Item Tracking Ext"
+codeunit 20574 "Subc. Item Tracking Ext"
 {
     [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", OnBeforeFillSourceQuantityArray, '', false, false)]
     local procedure SetSourceQuantityForSubcLastOperation_OnBeforeFillSourceQuantityArray(var SourceQuantityArray: array[5] of Decimal; TrackingSpecification: Record "Tracking Specification"; var IsHandled: Boolean)

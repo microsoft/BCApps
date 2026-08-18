@@ -6,18 +6,18 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.InventoryDocument;
 
-tableextension 99001575 "Subc. Posted Invt. Put-away" extends "Posted Invt. Put-away Line"
+tableextension 20575 "Subc. Posted Invt. Put-away" extends "Posted Invt. Put-away Line"
 {
     fields
     {
-        field(99001549; "Subc. Purchase Line Type"; Enum "Subc. Purchase Line Type")
+        field(20549; "Subc. Purchase Line Type"; Enum "Subc. Purchase Line Type")
         {
             Caption = 'Subcontracting Line Type';
             DataClassification = CustomerContent;
             Editable = false;
             ToolTip = 'Specifies the subcontracting purchase line type associated with the posted inventory put-away line.';
         }
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;

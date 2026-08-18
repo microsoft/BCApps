@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.InventoryDocument;
 
-pageextension 99001577 "Subc. Pstd. Invt. Putaway" extends "Posted Invt. Put-away Subform"
+pageextension 20577 "Subc. Pstd. Invt. Putaway" extends "Posted Invt. Put-away Subform"
 {
     layout
     {
@@ -17,7 +17,7 @@ pageextension 99001577 "Subc. Pstd. Invt. Putaway" extends "Posted Invt. Put-awa
                 ApplicationArea = Subcontracting;
                 Visible = false;
             }
-            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            field("Subc. Transfer WIP Item"; Rec."Transfer WIP Item")
             {
                 ApplicationArea = Subcontracting;
                 Visible = false;
