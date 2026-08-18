@@ -371,7 +371,7 @@ report 1702 "Deferral Summary - Purchasing"
         layout(WordBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Finance/Deferral/DeferralSummaryPurchasingBody.docx';
             Caption = 'Deferral Summary Purchasing Word';
             Summary = 'Landscape orientated. Shows posting date, document, line type, description, deferral account, start date, and number of periods for each vendor, with the amount recognized, the remaining amount, and the total deferred. Includes totals.';

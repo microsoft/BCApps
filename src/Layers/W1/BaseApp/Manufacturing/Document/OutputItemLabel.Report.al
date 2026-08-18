@@ -117,7 +117,7 @@ report 99000769 "Output Item Label"
         layout(WordBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Manufacturing/Document/OutputItemLabelBody.docx';
             Caption = 'Body-only: Production Output Item Label (Word)';
             Summary = 'Portrait orientated. Shows the item description, number, and base unit of measure with a linear barcode and a QR code. Use it to print labels for manufacturing output.';
