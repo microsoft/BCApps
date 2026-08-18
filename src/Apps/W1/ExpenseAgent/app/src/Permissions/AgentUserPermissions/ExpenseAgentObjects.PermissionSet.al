@@ -18,6 +18,7 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense User Cons. API" = X,
                   page "Approver View API" = X,
                   page "Expense Capabilities API" = X,
+                  page "Expense Activity Log API" = X,
                   page "Expense Agent Access Ctrl API" = X,
                   page "Expense Agent Setup API" = X,
                   page "Expense Approval Setup API" = X,
@@ -74,6 +75,7 @@ permissionset 6952 "Expense Agent - Objects"
                   table Expense = X,
                   table "Expense Approval Setup" = X,
                   table "Expense Capabilities Buffer" = X,
+                  table "Expense Activity Log Entry" = X,
                   table "Expense Project Buf" = X,
 #if not CLEAN29
 #pragma warning disable AL0432 // Object is obsoleted
@@ -122,6 +124,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Attachment Mgt." = X,
                   codeunit "Expense Auto Population" = X,
                   codeunit "Expense Capabilities Provider" = X,
+                  codeunit "Expense Activity Log Mgt." = X,
                   codeunit "Expense Projects Builder" = X,
                   codeunit "Expense Consumption Handler" = X,
                   codeunit "Expense Currency" = X,
