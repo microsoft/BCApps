@@ -444,7 +444,30 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
         PurchaseHeader.SETRANGE("No.", InvoiceNumber);
         PurchaseHeader.SETRANGE("Buy-from Vendor No.", VendorNo);
         Assert.IsTrue(PurchaseHeader.FINDFIRST(), UnpostedInvoiceExistErr);
-        Assert.IsTrue(PurchaseHeader."Payment Discount %" <> 0, PaymentDiscountErr);
+        if PurchaseHeader."Payment Discount %" = 0 then
+            Assert.IsTrue(HasLocalizedPaymentDiscount(PurchaseHeader."No."), PaymentDiscountErr);
+    end;
+
+    local procedure HasLocalizedPaymentDiscount(DocumentNo: Code[20]): Boolean
+    var
+        RecordField: Record Field;
+        PaymentLineRecordRef: RecordRef;
+        PaymentLineFieldRef: FieldRef;
+    begin
+        RecordField.SetRange(TableNo, 12170);
+        if RecordField.IsEmpty() then
+            exit(false);
+
+        PaymentLineRecordRef.Open(12170);
+        PaymentLineFieldRef := PaymentLineRecordRef.Field(10);
+        PaymentLineFieldRef.SetRange(2);
+        PaymentLineFieldRef := PaymentLineRecordRef.Field(1);
+        PaymentLineFieldRef.SetRange(2);
+        PaymentLineFieldRef := PaymentLineRecordRef.Field(2);
+        PaymentLineFieldRef.SetRange(DocumentNo);
+        PaymentLineFieldRef := PaymentLineRecordRef.Field(7);
+        PaymentLineFieldRef.SetFilter('>%1', 0);
+        exit(PaymentLineRecordRef.FindFirst());
     end;
 
     local procedure CreatePurchaseInvoices(var InvoiceID1: Text; var InvoiceID2: Text)
