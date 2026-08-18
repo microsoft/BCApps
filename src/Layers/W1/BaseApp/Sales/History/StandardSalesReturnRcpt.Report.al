@@ -642,7 +642,7 @@ report 1309 "Standard Sales - Return Rcpt."
         layout("StandardSalesReturnRcptBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesReturnRcptBody.docx';
             Caption = 'Body-only: Standard Sales Return Receipt (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address and a header with date, shipment date, and return order number. Item lines list number, description, quantity, and unit of measure.';

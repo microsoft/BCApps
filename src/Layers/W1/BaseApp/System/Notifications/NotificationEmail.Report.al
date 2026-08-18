@@ -144,7 +144,7 @@ report 1320 "Notification Email"
         layout("NotificationEmailBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './System/Notifications/NotificationEmailBody.docx';
             Caption = 'Body-only: Notification Email (Word)';
             Summary = 'Portrait orientated. Email body with four text lines, a document type, number, and action link, up to three labeled fields with values, a details section, and links to settings. Use it as a generic template.';

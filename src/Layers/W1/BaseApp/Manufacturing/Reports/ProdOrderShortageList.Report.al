@@ -390,7 +390,7 @@ report 99000788 "Prod. Order - Shortage List"
         layout(WordBody)
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Manufacturing/Reports/ProdOrderShortageListBody.docx';
             Caption = 'Body-only: Prod. Order - Shortage List Word';
             Summary = 'Landscape orientated. Shows description, remaining quantity, inventory, scheduled receipt, and need for each production order component, together with the quantities on purchase and sales orders and the needed quantity.';

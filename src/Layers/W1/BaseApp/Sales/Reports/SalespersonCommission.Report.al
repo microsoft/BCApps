@@ -477,7 +477,7 @@ report 115 "Salesperson - Commission"
         layout(WordBody)
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Sales/Reports/SalespersonCommissionBody.docx';
             Caption = 'Body-only: Salesperson Commission Word';
             Summary = 'Landscape orientated. Lists each entry for a salesperson with posting date, document, and customer number, followed by sales, profit, and adjusted profit with the matching commission amounts. Includes subtotals and totals, in LCY.';

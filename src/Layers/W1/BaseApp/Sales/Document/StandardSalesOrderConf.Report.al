@@ -1079,7 +1079,7 @@ report 1305 "Standard Sales - Order Conf."
         layout("StandardSalesOrderConfBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesOrderConfBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Body (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address and a header with document number, external document number, salesperson, quote number, and shipment method. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
@@ -1087,7 +1087,7 @@ report 1305 "Standard Sales - Order Conf."
         layout("StandardOrderConfirmationEmailBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             //HeaderFooterPart = 'External Minimalistic';
             LayoutFile = './Sales/Document/StandardOrderConfirmationEmailBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Email (Word)';

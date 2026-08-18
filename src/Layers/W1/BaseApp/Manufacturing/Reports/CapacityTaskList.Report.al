@@ -262,7 +262,7 @@ report 99000780 "Capacity Task List"
         layout(WordLayoutBody)
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Manufacturing/Reports/CapacityTaskListBody.docx';
             Caption = 'Body-only: Capacity Task List (Word)';
             Summary = 'Landscape orientated. Shows order and operation number, item, work or machine center, input quantity, start and end date and time, expected capacity need, and unit of measure for each production order routing line.';

@@ -282,7 +282,7 @@ report 99000789 "Subcontractor - Dispatch List"
         layout(WordLayoutBody)
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Manufacturing/Reports/SubcontractorDispatchListBody.docx';
             Caption = 'Subcontractor Dispatch List (Word)';
             Summary = 'Landscape orientated. Shows the routing line for each vendor and work center with operation, dates, remaining and outstanding purchase quantity, and unit of measure, together with the components that are needed.';

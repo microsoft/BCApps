@@ -78,7 +78,7 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
         layout("StandardESGSalesInvoiceBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = 'src\Reports\StandardESGSalesInvoiceBody.docx';
             Caption = 'Body-only: Standard ESG Sales Invoice (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address and a header with dates, references, and payment details. Item lines list CO2e per unit, quantity, price, discount %, VAT %, and amount, with VAT-inclusive totals and total CO2e.';

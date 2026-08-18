@@ -78,7 +78,7 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
         layout("StandardESGSalesQuoteBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = 'src\Reports\StandardESGSalesQuoteBody.docx';
             Caption = 'Body-only: Standard ESG Sales Quote (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address and a header with dates, valid-to date, and payment terms. Item lines list CO2e per unit, quantity, price, discount %, VAT %, and amount, with VAT-inclusive totals and total CO2e.';

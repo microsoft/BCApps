@@ -126,7 +126,7 @@ reportextension 8011 "Contract Standard Sales Quote" extends "Standard Sales - Q
         layout("SalesQuoteForSubscriptionBillingBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesQuoteForSubscriptionBillingBody.docx';
             Caption = 'Body-only: Sales Quote for Subscription Billing (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address and a header with dates, valid-to date, salesperson, and payment terms. Item lines list price, discount %, VAT %, and amount, followed by service commitment lines and VAT-inclusive totals.';

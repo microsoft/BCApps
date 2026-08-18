@@ -371,7 +371,7 @@ report 1701 "Deferral Summary - Sales"
         layout(WordBody)
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Finance/Deferral/DeferralSummarySalesBody.docx';
             Caption = 'Body-only: Deferral Summary Sales Word';
             Summary = 'Landscape orientated. Shows posting date, document, line type, description, deferral account, start date, and number of periods for each customer, with the amount recognized, the remaining amount, and the total deferred. Includes totals.';

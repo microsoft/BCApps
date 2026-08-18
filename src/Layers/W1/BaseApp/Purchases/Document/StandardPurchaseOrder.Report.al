@@ -1066,7 +1066,7 @@ report 1322 "Standard Purchase - Order"
         layout("StandardPurchaseOrderBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Purchases/Document/StandardPurchaseOrderBody.docx';
             Caption = 'Body-only: Standard Purchase Order (Word)';
             Summary = 'Portrait orientated. Shows the buy-from, ship-to, and company address and a header with order number, date, payment terms, buyer, shipment method, and vendor invoice number. Item lines list cost, VAT %, and amount, with VAT totals.';
@@ -1074,7 +1074,7 @@ report 1322 "Standard Purchase - Order"
         layout("StandardPurchaseOrderEmailBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Purchases/Document/StandardPurchaseOrderEmailBody.docx';
             Caption = 'Body-only: Standard Purchase Order Email (Word)';
             Summary = 'Portrait orientated. Email body with the company address, vendor number, greeting, and body text, followed by order number, date, total including VAT, and a closing with the buyer''s name. Use it as cover text for the email.';

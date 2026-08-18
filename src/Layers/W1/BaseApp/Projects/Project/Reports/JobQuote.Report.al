@@ -310,7 +310,7 @@ report 1016 "Job Quote"
         layout("JobQuoteBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Projects/Project/Reports/JobQuoteBody.docx';
             Caption = 'Body-only: Project Quote (Word)';
             Summary = 'Landscape orientated. Shows the bill-to and company address, project number, and description. Planning lines list type, number, quantity, unit price, line discount percentage, and amount, followed by the total project value.';

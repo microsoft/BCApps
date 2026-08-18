@@ -99,7 +99,7 @@ report 5084 "Email Merge"
         layout("DefaultEmailMergeDocBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './CRM/Interaction/DefaultEmailMergeDocBody.docx';
             Caption = 'Body-only: EMail Merge (Word)';
             Summary = 'Portrait orientated. Shows a salutation, free-text body content, and a closing signature with the salesperson''s name and job title. Use it for mail merge letters to contacts.';

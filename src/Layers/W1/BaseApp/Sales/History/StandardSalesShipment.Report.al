@@ -880,7 +880,7 @@ report 1308 "Standard Sales - Shipment"
         layout("StandardSalesShipmentBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesShipmentBody.docx';
             Caption = 'Body-only: Standard Sales Shipment (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address and a header with document number, date, shipping agent, tracking number, and project number. Item lines list quantity and unit of measure, with item tracking by lot or serial number.';

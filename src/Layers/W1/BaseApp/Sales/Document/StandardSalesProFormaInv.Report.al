@@ -453,7 +453,7 @@ report 1302 "Standard Sales - Pro Forma Inv"
         layout("StandardSalesProFormaInvBody.docx")
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesProFormaInvBody.docx';
             Caption = 'Body-only: Standard Sales Proforma Invoice (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address, VAT registration numbers, reference, and shipment method. Item lines list country of origin, tariff number, quantity, price, net weight, VAT, and amount, with total weight and VAT.';

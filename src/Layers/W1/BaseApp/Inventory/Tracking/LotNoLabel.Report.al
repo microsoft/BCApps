@@ -89,7 +89,7 @@ report 6628 "Lot No Label"
         layout(WordBody)
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Inventory/Tracking/LotNoLabelBody.docx';
             Caption = 'Body-only: Lot No Label (Word)';
             Summary = 'Portrait orientated. Shows the item description and number with the lot number as text and as a 2D barcode. Use it to print labels for lot tracked items.';

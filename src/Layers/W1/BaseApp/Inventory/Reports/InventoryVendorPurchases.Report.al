@@ -241,7 +241,7 @@ report 714 "Inventory - Vendor Purchases"
         layout(WordBody)
         {
             Type = Word;
-            Subtype = Body;
+            //Subtype = Body;
             LayoutFile = './Inventory/Reports/InventoryVendorPurchasesBody.docx';
             Caption = 'Body-only: Inventory - Vendor Purchases Word';
             Summary = 'Portrait orientated. Shows invoiced quantity, cost amount, and discount amount for each item and vendor, with subtotals for each item and overall totals.';
