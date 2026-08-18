@@ -97,6 +97,7 @@ codeunit 148307 "Expense Test Handler API"
         ExistingApprovalExpenseUser.SetRange("User Id For Approvals", CurrentApprovalUserId);
         ExistingApprovalExpenseUser.ModifyAll("User Id For Approvals", '');
 
+        ApproverExpenseUser.GetBySystemId(approverExpenseUserId);
         ApproverExpenseUser."User Id For Approvals" := CurrentApprovalUserId;
         ApproverExpenseUser.Validate("Can Approve", true);
         ApproverExpenseUser.Modify(true);
