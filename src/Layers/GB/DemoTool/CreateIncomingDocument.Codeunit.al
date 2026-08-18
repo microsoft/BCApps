@@ -9,12 +9,12 @@ codeunit 101130 "Create Incoming Document"
 
     local procedure GetInvoiceFileName(): Text
     begin
-        exit('London Postmaster Invoice W1.PDF');
+        exit('London Postmaster Invoice W1.pdf');
     end;
 
     local procedure GetEvaluationCompanyInvoiceFileName(): Text
     begin
-        exit('First Up Consultants Invoice GB D365F.PDF');
+        exit('First Up Consultants Invoice GB D365F.pdf');
     end;
 
     local procedure InsertData(FileName: Text)
@@ -53,4 +53,3 @@ codeunit 101130 "Create Incoming Document"
             IncomingDocumentsSetup.Modify();
     end;
 }
-
