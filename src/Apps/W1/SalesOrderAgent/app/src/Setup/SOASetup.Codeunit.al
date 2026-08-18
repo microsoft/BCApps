@@ -136,11 +136,26 @@ codeunit 4400 "SOA Setup"
         exit(CountNonArchivedSetups(SOASetup));
     end;
 
+    /// <summary>
+    /// Tells whether the company has at least one Sales Order Agent that is not archived. Kept to two
+    /// bounded queries because callers include paths that run for ordinary users.
+    /// </summary>
     internal procedure ActiveSOAgentSetupExists(): Boolean
     var
         SOASetup: Record "SOA Setup";
+        AgentRec: Record Agent;
     begin
-        exit(FindFirstNonArchivedSetup(SOASetup));
+        if SOASetup.IsEmpty() then
+            exit(false);
+
+        // A setup record without a readable agent is treated as active, matching IsAgentArchived.
+        if not AgentRec.ReadPermission() then
+            exit(true);
+
+        // Filtered exists check only, for the reason given in IsAgentArchived.
+        AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
+        AgentRec.SetRange(Substate, AgentRec.Substate::None);
+        exit(not AgentRec.IsEmpty());
     end;
 
     /// <summary>

@@ -62,7 +62,8 @@ codeunit 4589 "SOA Upgrade"
 
         repeat
             // Archived agents are read-only, so instructions cannot and need not be refreshed for them.
-            if not SOASetupCU.IsAgentArchived(SOASetupRec."User Security ID") then begin
+            // This is a write path, so it uses the check that blocks when the state cannot be read.
+            if not SOASetupCU.MustTreatAgentAsArchived(SOASetupRec."User Security ID") then begin
                 TempSOASetup := SOASetupRec;
                 TempSOASetup.Insert();
                 if not TryUpdateAgentInstructions(SOASetupRec, TempSOASetup) then
@@ -170,7 +171,8 @@ codeunit 4589 "SOA Upgrade"
         if SOASetup.FindSet() then
             repeat
                 // Archived agents keep the identity they had; their name and initials are free to reuse.
-                if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then begin
+                // This is a write path, so it uses the check that blocks when the state cannot be read.
+                if not SOASetupCU.MustTreatAgentAsArchived(SOASetup."User Security ID") then begin
                     IsModified := false;
 
                     if SOASetup."Agent Name" = '' then begin
@@ -221,6 +223,7 @@ codeunit 4589 "SOA Upgrade"
         SOASetup: Record "SOA Setup";
         LegacySOAKPI: Record "SOA KPI";
         SOAKPISummary: Record "SOA KPI Summary";
+        SOASetupCU: Codeunit "SOA Setup";
         UpgradeTag: Codeunit "Upgrade Tag";
         TargetAgentSecurityID: Guid;
         SkippedRecords: Integer;
@@ -233,7 +236,9 @@ codeunit 4589 "SOA Upgrade"
             exit;
         end;
 
-        if SOASetup.FindFirst() and (not IsNullGuid(SOASetup."User Security ID")) then
+        // Legacy KPI records predate per agent tracking, so they are attributed to an agent that is still
+        // in use. An archived agent is skipped here because the KPI pages never show it.
+        if SOASetupCU.FindFirstNonArchivedSetup(SOASetup) and (not IsNullGuid(SOASetup."User Security ID")) then
             TargetAgentSecurityID := SOASetup."User Security ID";
 
         repeat
