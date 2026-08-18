@@ -748,6 +748,11 @@ codeunit 57 "Document Totals"
 
         PurchLine.CalcVATAmountLines(0, PurchHeader, PurchLine, TempVATAmountLine);
         GroupedVATAmount := TempVATAmountLine.GetTotalVATAmount();
+
+        TempVATAmountLine.SetFilter("VAT Difference", '<>%1', 0);
+        if TempVATAmountLine.IsEmpty() then
+            exit(false);
+
         exit(true);
     end;
 
