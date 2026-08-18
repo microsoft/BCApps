@@ -218,7 +218,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        SubcontractingUIEnabled := Rec.Subcontracting;
+        SubcontractingUIEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
     end;
 
     internal procedure CreateSubcontractingOrders(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")

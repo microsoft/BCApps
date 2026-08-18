@@ -127,7 +127,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        SubcontractingUIEnabled := Rec.Subcontracting;
+        SubcontractingUIEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
     end;
 
     procedure ShowRelatedSubcontractorPrices()
