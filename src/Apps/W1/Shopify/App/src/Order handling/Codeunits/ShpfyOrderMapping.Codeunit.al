@@ -31,7 +31,6 @@ codeunit 30163 "Shpfy Order Mapping"
         CustomerTemplate: Record "Shpfy Customer Template";
         OrderLine: Record "Shpfy Order Line";
         Shop: Record "Shpfy Shop";
-        OrderEvents: Codeunit "Shpfy Order Events";
     begin
         Shop.Get(OrderHeader."Shop Code");
 
