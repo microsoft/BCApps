@@ -73,6 +73,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
     var
         Vendor: Record Vendor;
     begin
+        Vendor.SetLoadFields("Subc. Location Code");
         if Vendor.Get(VendorNo) then
             exit(Vendor."Subc. Location Code");
         exit('');

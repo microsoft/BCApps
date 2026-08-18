@@ -15,7 +15,6 @@ pageextension 20565 SubcTempProdOrdRtngListExt extends "Temp Prod. Ord. Rtng Lis
             field(SubcVendorNoSubcPrice; Rec."Vendor No. Subc. Price")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Vendor No. (Subc. Price)';
                 ToolTip = 'Specifies the vendor number used to look up the subcontracting price for this routing operation.';
             }
         }
