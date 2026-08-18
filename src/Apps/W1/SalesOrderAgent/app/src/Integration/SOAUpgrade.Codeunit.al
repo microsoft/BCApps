@@ -22,10 +22,10 @@ codeunit 4589 "SOA Upgrade"
     var
         SOAImpl: Codeunit "SOA Impl";
         FailedToUpdateSOAInstructionsTxt: Label 'Failed to update SOA agent instructions during upgrade.', Locked = true;
-#if not CLEAN29
-        SkippedKPIRecordsTxt: Label 'SOA KPI upgrade: %1 legacy records could not be attributed to an agent and were discarded.', Locked = true;
         SkippedAgentIdentityUpgradeTxt: Label 'SOA agent identity upgrade skipped because the agent state could not be read. The upgrade tag was not set.', Locked = true;
         SkippedInstructionsUpgradeTxt: Label 'SOA agent instructions were not refreshed because the agent state could not be read.', Locked = true;
+#if not CLEAN29
+        SkippedKPIRecordsTxt: Label 'SOA KPI upgrade: %1 legacy records could not be attributed to an agent and were discarded.', Locked = true;
 #endif
 
     trigger OnUpgradePerDatabase()
