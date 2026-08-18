@@ -272,7 +272,7 @@ page 6153 "E-Document Sales Draft"
 
                     trigger OnAction()
                     var
-                        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+                        TempEDocImportParameters: Record "E-Doc. Import Parameters" temporary;
                     begin
                         FinalizeEDocument(TempEDocImportParameters);
                     end;
@@ -412,7 +412,7 @@ page 6153 "E-Document Sales Draft"
 
     local procedure ResetDraft()
     var
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters" temporary;
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentHelper: Codeunit "E-Document Helper";
         ConfirmDialogMgt: Codeunit "Confirm Management";
@@ -437,7 +437,7 @@ page 6153 "E-Document Sales Draft"
 
     local procedure PrepareDraft()
     var
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters" temporary;
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentHelper: Codeunit "E-Document Helper";
         Progress: Dialog;
