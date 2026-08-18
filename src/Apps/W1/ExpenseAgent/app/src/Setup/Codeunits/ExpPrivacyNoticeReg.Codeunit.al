@@ -16,6 +16,9 @@ codeunit 6951 "Exp. Privacy Notice Reg."
 
     var
         AzureOpenAITok: Label 'Azure OpenAI', Locked = true;
+#if not CLEAN29
+        AnthropicProductNameTok: Label 'Anthropic', Locked = true;
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
@@ -37,6 +40,13 @@ codeunit 6951 "Exp. Privacy Notice Reg."
     begin
         exit(CopyStr(ExpenseAgentSetup.GetFeatureName(), 1, 50));
     end;
+
+#if not CLEAN29
+    internal procedure GetAnthropicName(): Text[50]
+    begin
+        exit(AnthropicProductNameTok);
+    end;
+#endif
 
     procedure IsPrivacyNoticeApproved(): Boolean
     var
