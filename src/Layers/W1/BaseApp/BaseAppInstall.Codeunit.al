@@ -25,10 +25,15 @@ codeunit 5000 "BaseApp Install"
 
     local procedure SeedDefaultReportParts()
     var
-        DefaultReportPartsMgt: Codeunit "Default Report Parts Mgt.";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
     begin
         // The header/footer and theme parts are global (Company Name = ''), so seeding once per database is enough.
-        DefaultReportPartsMgt.SeedDefaultParts();
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // Seeding only puts the parts in the pool; assigning is what makes the reports render with them. It has to run
+        // after the parts exist, because each assignment resolves its part in the pool by name.
+        CompositeLayoutAssignMgt.AssignDefaultParts();
     end;
 
     local procedure AddWordTemplateTables()

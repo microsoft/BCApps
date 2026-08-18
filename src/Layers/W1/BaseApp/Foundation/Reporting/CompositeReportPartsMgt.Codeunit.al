@@ -57,6 +57,26 @@ codeunit 9667 "Composite Report Parts Mgt."
     end;
 
     /// <summary>
+    /// Whether the given part name is one of the themes or header/footer designs that ship with the Base Application.
+    /// </summary>
+    /// <remarks>
+    /// Shipped parts are stored as Tenant Report Layout rows with the empty application ID - the only way to get a
+    /// layout onto the virtual Tenant Report Defaults report - so the platform reports no publisher for them and they
+    /// are indistinguishable from a part an administrator uploaded. This lets the UI name Microsoft as their publisher.
+    /// Matching is by name, which is what the pool is keyed on: a part carrying a shipped name is the shipped part,
+    /// because seeding replaces anything already stored under that name.
+    /// </remarks>
+    internal procedure IsShippedPart(PartName: Text): Boolean
+    begin
+        exit(
+            PartName in
+            [ExternalDefaultTxt, ExternalDefaultDetailedTxt, ExternalMinimalisticTxt, ExternalMinimalisticDetailedTxt,
+             ExternalModernTxt, ExternalModernLogoTxt,
+             InternalDefaultTxt, InternalMinimalisticCenteredTxt, InternalMinimalisticTxt, InternalModernTxt, InternalModernMaxiTxt,
+             DefaultThemeTxt, CalmThemeTxt, PlayfulThemeTxt]);
+    end;
+
+    /// <summary>
     /// Writes one part into the shared pool, inserting it when missing and replacing it when already there, so
     /// re-seeding picks up a changed layout file.
     /// </summary>

@@ -91,6 +91,69 @@ codeunit 9665 "Composite Layout Lookup Helper"
     procedure CountPartAssignments(PartLayout: Record "Report Layout List"): Integer
     var
         Cfg: Record "Tenant Report Layout Cfg";
+    begin
+        if not this.SetPartAssignmentFilter(Cfg, PartLayout) then
+            exit(0);
+        exit(Cfg.Count());
+    end;
+
+    /// <summary>
+    /// Collects the reports that assign the given part, as a Report ID filter ready for SetFilter, and reports whether
+    /// the part is also assigned as the global default. Lets a page listing parts show where a part is actually used.
+    /// </summary>
+    /// <remarks>
+    /// Report granularity, not layout granularity, and deliberately so: a Tenant Report Layout Cfg row with an empty
+    /// Layout Name governs every layout of its report, so a layout-level filter could not express those rows. Callers
+    /// list the reports and let the resolved Theme/Header/Footer columns show which of their layouts the part reaches.
+    ///
+    /// The global wildcard row (Report ID 0) is reported separately rather than filtered on, because it is not a
+    /// report: it applies to every report that has nothing more specific configured, which no filter can express.
+    /// </remarks>
+    /// <param name="PartLayout">The theme or header/footer part.</param>
+    /// <param name="ReportIDFilter">Out: '|'-separated Report IDs, empty when the part is only the global default.</param>
+    /// <param name="IsGlobalDefault">Out: true when the global wildcard row assigns the part.</param>
+    /// <returns>True when at least one configuration row assigns the part.</returns>
+    internal procedure GetPartAssignmentReportFilter(PartLayout: Record "Report Layout List"; var ReportIDFilter: Text; var IsGlobalDefault: Boolean): Boolean
+    var
+        Cfg: Record "Tenant Report Layout Cfg";
+        ReportIDs: List of [Integer];
+        ReportID: Integer;
+    begin
+        ReportIDFilter := '';
+        IsGlobalDefault := false;
+
+        if not this.SetPartAssignmentFilter(Cfg, PartLayout) then
+            exit(false);
+        if not Cfg.FindSet() then
+            exit(false);
+
+        repeat
+            if Cfg."Report ID" = 0 then
+                IsGlobalDefault := true
+            else
+                // The same report can hold several rows for the part - one per layout, plus a report-level row - and
+                // each report belongs in the filter once.
+                if not ReportIDs.Contains(Cfg."Report ID") then
+                    ReportIDs.Add(Cfg."Report ID");
+        until Cfg.Next() = 0;
+
+        foreach ReportID in ReportIDs do
+            if ReportIDFilter = '' then
+                // Format(_, 0, 9) is the invariant form, so no thousands separator ends up in the filter string.
+                ReportIDFilter := Format(ReportID, 0, 9)
+            else
+                ReportIDFilter += '|' + Format(ReportID, 0, 9);
+
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Filters Tenant Report Layout Cfg to the rows that reference the given part, matching its composite reference in
+    /// the column that carries parts of that subtype. Returns false for a layout that is neither a header/footer nor a
+    /// theme, in which case no filter is applied and the caller must not read the record.
+    /// </summary>
+    local procedure SetPartAssignmentFilter(var Cfg: Record "Tenant Report Layout Cfg"; PartLayout: Record "Report Layout List"): Boolean
+    var
         Composite: Text;
     begin
         Composite := this.EncodeCompositeName(PartLayout."Application ID", PartLayout.Name);
@@ -100,9 +163,9 @@ codeunit 9665 "Composite Layout Lookup Helper"
             PartLayout."Layout Subtype"::Theme:
                 Cfg.SetRange("Theme Part Name", CopyStr(Composite, 1, MaxStrLen(Cfg."Theme Part Name")));
             else
-                exit(0);
+                exit(false);
         end;
-        exit(Cfg.Count());
+        exit(true);
     end;
 
     /// <summary>
