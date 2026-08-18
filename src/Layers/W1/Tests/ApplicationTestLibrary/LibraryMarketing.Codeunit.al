@@ -1,7 +1,6 @@
 /// <summary>
 /// Provides utility functions for creating and managing marketing-related entities in test scenarios, including contacts, campaigns, and segments.
 /// </summary>
-#pragma warning disable AL0432, AS0105
 codeunit 131900 "Library - Marketing"
 {
 
@@ -548,6 +547,7 @@ codeunit 131900 "Library - Marketing"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     [Obsolete('Creates a layout in the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.', '29.0')]
     procedure CreateEmailMergeCustomLayoutNo(): Code[20]
     var
@@ -560,6 +560,7 @@ codeunit 131900 "Library - Marketing"
         CustomReportLayout.Insert(true);
         exit(CustomReportLayout.Code);
     end;
+#pragma warning restore AL0432, AS0105
 #endif
 
     procedure CreateEmailMergeAttachment(var Attachment: Record Attachment) ContentBodyText: Text
@@ -596,6 +597,7 @@ codeunit 131900 "Library - Marketing"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     [Obsolete('Reads the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection. Use FindEmailMergeCustomLayoutName instead.', '29.0')]
     procedure FindEmailMergeCustomLayoutNo(): Code[20]
     var
@@ -606,6 +608,7 @@ codeunit 131900 "Library - Marketing"
         CustomReportLayout.FindFirst();
         exit(CustomReportLayout.Code);
     end;
+#pragma warning restore AL0432, AS0105
 #endif
 
     procedure FindEmailMergeCustomLayoutName(): Text[250]
@@ -652,5 +655,4 @@ codeunit 131900 "Library - Marketing"
         Contact.Modify();
     end;
 }
-#pragma warning restore AL0432, AS0105
 

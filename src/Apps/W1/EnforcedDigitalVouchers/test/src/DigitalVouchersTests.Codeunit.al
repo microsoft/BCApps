@@ -36,7 +36,6 @@ using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-#pragma warning disable AL0432, AS0105
 codeunit 139515 "Digital Vouchers Tests"
 {
     Subtype = Test;
@@ -1970,6 +1969,7 @@ codeunit 139515 "Digital Vouchers Tests"
 #endif
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -1987,6 +1987,7 @@ codeunit 139515 "Digital Vouchers Tests"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#pragma warning restore AL0432, AS0105
 #endif
 
 #if not CLEAN29
@@ -2071,4 +2072,3 @@ codeunit 139515 "Digital Vouchers Tests"
         TestEmailEditor.Attachments.FileName.AssertEquals('');
     end;
 }
-#pragma warning restore AL0432, AS0105
