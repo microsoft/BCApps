@@ -8,8 +8,8 @@ using System.Reflection;
 using System.Environment.Configuration;
 
 /// <summary>
-/// Assigns the header/footer and theme parts that ship with the Base Application to the body-only Word layouts of the
-/// standard reports, so a fresh installation renders those reports with a header/footer and a theme instead of bare.
+/// Assigns the header/footer and theme parts that ship with the Base Application to the body layouts of the standard
+/// reports, so a fresh installation renders those reports with a header/footer and a theme instead of bare.
 /// </summary>
 /// <remarks>
 /// Assignments are written to Tenant Report Layout Cfg - the table the platform Composite Layout resolver consults when
@@ -31,15 +31,14 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     Permissions = tabledata "Tenant Report Layout Cfg" = RIMD;
 
     /// <summary>
-    /// Applies every assignment that ships with the Base Application: a header/footer per body-only layout, and the
-    /// theme once as the global default. Safe to call repeatedly - a layout that already has a part keeps it.
+    /// Applies every assignment that ships with the Base Application: the header/footer design listed for each body
+    /// layout, and the theme on every body layout. Safe to call repeatedly - a layout that already has a part keeps it.
     /// </summary>
     /// <returns>The number of assignments written. Rows for layouts or parts that are not installed are skipped.</returns>
     procedure AssignDefaultParts() AssignedCount: Integer
     begin
         AssignedCount := this.AssignShippedHeaderFooters();
-        if this.AssignGlobalTheme(this.DefaultThemeTxt) then
-            AssignedCount += 1;
+        AssignedCount += this.AssignThemeToBodyLayouts(this.DefaultThemeTxt);
     end;
 
     /// <summary>
@@ -58,8 +57,9 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     /// layout is resolved by name at run time, so these rows apply wherever that extension is installed and are skipped
     /// where it is not. The same holds for layouts that only exist in a localization layer.
     ///
-    /// The e-mail body layouts and the label layouts are deliberately absent. They already render as intended, and
-    /// merging a header/footer onto them would put one on a layout that was never meant to carry it.
+    /// The e-mail body layouts and the label layouts are deliberately absent from this list. They already render as
+    /// intended, and merging a header/footer onto them would put one on a layout that was never meant to carry it. They
+    /// do get the theme, which is styling only, because they declare the body subtype - see AssignThemeToBodyLayouts.
     /// </remarks>
     local procedure AssignShippedHeaderFooters() AssignedCount: Integer
     begin
@@ -138,68 +138,84 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     /// <returns>True when a row was written.</returns>
     local procedure AssignHeaderFooter(ReportID: Integer; LayoutName: Text; PartName: Text): Boolean
     var
-        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
         Composite: Text;
-        LayoutNameKey: Text[250];
-        RowExists: Boolean;
     begin
-        if not this.IsWordBodyLayoutInstalled(ReportID, LayoutName) then
+        if not this.IsBodyLayoutInstalled(ReportID, LayoutName) then
             exit(false);
         if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter, Composite) then
             exit(false);
 
+        exit(this.WriteLayoutPart(ReportID, LayoutName, Composite, Enum::"Report Layout Subtype"::HeaderFooter));
+    end;
+
+    /// <summary>
+    /// Assigns the theme to every body layout installed on the tenant, one Tenant Report Layout Cfg row per layout.
+    /// </summary>
+    /// <remarks>
+    /// Per body layout, deliberately not as the global wildcard row (Report ID 0). The wildcard row would theme every
+    /// layout of every report, including the e-mail bodies and the label layouts, because a blank Theme Part Name means
+    /// "not configured at this level" to the resolver and it keeps walking to the global default. Writing the theme only
+    /// where it belongs leaves every other layout resolving to None, which is what those layouts should show.
+    ///
+    /// Newly installed reports are therefore not themed until this runs again, which the upgrade does on every upgrade,
+    /// and the Assign default designs action does on demand.
+    /// </remarks>
+    /// <returns>The number of layouts the theme was written for.</returns>
+    local procedure AssignThemeToBodyLayouts(PartName: Text) AssignedCount: Integer
+    var
+        ReportLayoutList: Record "Report Layout List";
+        Composite: Text;
+    begin
+        if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::Theme, Composite) then
+            exit(0);
+
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("Layout Subtype", 4);
+        if not ReportLayoutList.FindSet() then
+            exit(0);
+
+        repeat
+            if this.WriteLayoutPart(ReportLayoutList."Report ID", ReportLayoutList.Name, Composite, Enum::"Report Layout Subtype"::Theme) then
+                AssignedCount += 1;
+        until ReportLayoutList.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Writes one part onto a layout's Tenant Report Layout Cfg row for all companies, filling the column that carries
+    /// parts of that subtype. Leaves an already configured column alone, so nothing overwrites an existing assignment.
+    /// </summary>
+    /// <returns>True when the row was written.</returns>
+    local procedure WriteLayoutPart(ReportID: Integer; LayoutName: Text; Composite: Text; Subtype: Enum "Report Layout Subtype"): Boolean
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        LayoutNameKey: Text[250];
+        RowExists: Boolean;
+    begin
         LayoutNameKey := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
         RowExists := TenantReportLayoutCfg.Get(ReportID, LayoutNameKey, '');
-        // Never overwrite a header/footer that is already configured, whoever configured it.
-        if RowExists and (TenantReportLayoutCfg."Header Part Name" <> '') then
-            exit(false);
 
-        if not RowExists then begin
+        if RowExists then
+            case Subtype of
+                Subtype::HeaderFooter:
+                    if TenantReportLayoutCfg."Header Part Name" <> '' then
+                        exit(false);
+                Subtype::Theme:
+                    if TenantReportLayoutCfg."Theme Part Name" <> '' then
+                        exit(false);
+            end
+        else begin
             TenantReportLayoutCfg.Init();
             TenantReportLayoutCfg."Report ID" := ReportID;
             TenantReportLayoutCfg."Layout Name" := LayoutNameKey;
             TenantReportLayoutCfg."Company Name" := ''; // '' = all companies
         end;
-        TenantReportLayoutCfg."Header Part Name" := CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Header Part Name"));
 
-        if RowExists then
-            TenantReportLayoutCfg.Modify(true)
-        else
-            TenantReportLayoutCfg.Insert(true);
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Assigns the theme once for the whole tenant, as the global wildcard row of Tenant Report Layout Cfg: Report ID 0,
-    /// empty Layout Name, empty Company Name. The resolver reads that row for every report and layout with no more
-    /// specific theme, so one row themes everything.
-    /// </summary>
-    /// <remarks>
-    /// The Header Part Name of the wildcard row is deliberately left untouched. A blank column means "not configured at
-    /// this level", so it does not reach the layouts that are deliberately given no header/footer; a header/footer
-    /// written here would leak onto the e-mail body layouts.
-    /// </remarks>
-    /// <returns>True when the theme resolved and the wildcard row was written.</returns>
-    local procedure AssignGlobalTheme(PartName: Text): Boolean
-    var
-        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
-        Composite: Text;
-        RowExists: Boolean;
-    begin
-        if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::Theme, Composite) then
-            exit(false);
-
-        RowExists := TenantReportLayoutCfg.Get(0, '', '');
-        if RowExists and (TenantReportLayoutCfg."Theme Part Name" <> '') then
-            exit(false);
-
-        if not RowExists then begin
-            TenantReportLayoutCfg.Init();
-            TenantReportLayoutCfg."Report ID" := 0;
-            TenantReportLayoutCfg."Layout Name" := '';
-            TenantReportLayoutCfg."Company Name" := '';
+        case Subtype of
+            Subtype::HeaderFooter:
+                TenantReportLayoutCfg."Header Part Name" := CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Header Part Name"));
+            Subtype::Theme:
+                TenantReportLayoutCfg."Theme Part Name" := CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name"));
         end;
-        TenantReportLayoutCfg."Theme Part Name" := CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name"));
 
         if RowExists then
             TenantReportLayoutCfg.Modify(true)
@@ -209,27 +225,18 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     end;
 
     /// <summary>
-    /// Whether the report has a Word body layout of that name installed on the tenant.
+    /// Whether the report has a body layout of that name installed on the tenant. Only a body layout can carry a
+    /// header/footer or a theme: the parts are merged onto it at render time.
     /// </summary>
-    /// <remarks>
-    /// Stated as "not one of the two part subtypes" rather than "equal to Default" on purpose. A body-only layout
-    /// reports Default while the platform's Subtype property is dormant and will report the dedicated body subtype once
-    /// it is live; requiring Default would reject every layout the moment that happens. Excluding HeaderFooter and
-    /// Theme holds either way.
-    /// </remarks>
-    local procedure IsWordBodyLayoutInstalled(ReportID: Integer; LayoutName: Text): Boolean
+    local procedure IsBodyLayoutInstalled(ReportID: Integer; LayoutName: Text): Boolean
     var
         ReportLayoutList: Record "Report Layout List";
     begin
         ReportLayoutList.SetRange("Report ID", ReportID);
         ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, MaxStrLen(ReportLayoutList.Name)));
-        if not ReportLayoutList.FindFirst() then
-            exit(false);
-
-        exit(
-            (ReportLayoutList."Layout Format" = ReportLayoutList."Layout Format"::Word) and
-            not (ReportLayoutList."Layout Subtype" in
-                [ReportLayoutList."Layout Subtype"::HeaderFooter, ReportLayoutList."Layout Subtype"::Theme]));
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("Layout Subtype", 4);
+        exit(not ReportLayoutList.IsEmpty());
     end;
 
     /// <summary>

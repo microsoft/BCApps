@@ -117,7 +117,7 @@ page 9666 "Report Theme and Header/Footer"
                 Caption = 'Assign default designs to report layouts';
                 Image = ApplyEntries;
                 AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
-                ToolTip = 'Assign the shipped header/footer design to every body-only Word layout that has none, and the default theme as the global default. This is the same assignment that runs on installation and upgrade; layouts that already have a header/footer keep it.';
+                ToolTip = 'Assign the shipped header/footer design to the body layouts that have none, and the default theme to every body layout. This is the same assignment that runs on installation and upgrade; a layout that already has a theme or header/footer keeps it.';
 
                 trigger OnAction()
                 begin
@@ -420,36 +420,24 @@ page 9666 "Report Theme and Header/Footer"
     end;
 
     /// <summary>
-    /// Shows where the selected part is used, by opening the Report Layout Themes and Header/Footers page filtered to
-    /// the reports that assign it. That page resolves the theme and header/footer per layout, so it also shows which
-    /// layouts of those reports the part reaches and at which level it applies.
+    /// Shows where the selected part is used: the report layout configuration list, filtered on the column that carries
+    /// the part - Header/Footer Part for a header/footer, Theme Part for a theme - so every row shown is a report and
+    /// layout the selected part applies to.
     /// </summary>
     local procedure ShowReportsUsingPart()
     var
-        ReportLayoutList: Record "Report Layout List";
-        LayoutThemeHeaderFooter: Page "Layout Theme and Header/Footer";
-        ReportIDFilter: Text;
-        IsGlobalDefault: Boolean;
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        TenantReportLayoutCfgList: Page "Tenant Report Layout Cfg";
     begin
-        if not LookupHelper.GetPartAssignmentReportFilter(Rec, ReportIDFilter, IsGlobalDefault) then begin
+        if not LookupHelper.SetPartAssignmentFilter(TenantReportLayoutCfg, Rec) then
+            exit;
+        if TenantReportLayoutCfg.IsEmpty() then begin
             Message(PartNotAssignedMsg, Rec.Name);
             exit;
         end;
 
-        // A global default reaches every report that has nothing more specific configured, which no report filter can
-        // express. Say that out loud, then show the reports the part is assigned to explicitly - if there are any.
-        if IsGlobalDefault then
-            Message(PartIsGlobalDefaultMsg, Rec.Name);
-        if ReportIDFilter = '' then
-            exit;
-
-        // Themes and header/footer parts apply to Word layouts only - the same filter the Report Layouts page applies
-        // when it opens this page for a single report.
-        ReportLayoutList.SetFilter("Report ID", ReportIDFilter);
-        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-        LayoutThemeHeaderFooter.SetTableView(ReportLayoutList);
-        LayoutThemeHeaderFooter.SetPartContext(Rec.Name);
-        LayoutThemeHeaderFooter.Run();
+        TenantReportLayoutCfgList.SetTableView(TenantReportLayoutCfg);
+        TenantReportLayoutCfgList.Run();
     end;
 
     local procedure SetStatus(NewStatus: Enum "Report Layout Status")
@@ -594,6 +582,5 @@ page 9666 "Report Theme and Header/Footer"
         ImportShippedPartsQst: Label 'Import all themes and header/footer designs that ship with Business Central?\\A part that already exists under a shipped name is replaced with the shipped file, so any change made to it is lost. Assignments to reports and layouts are kept.';
         ImportShippedPartsDoneMsg: Label 'The themes and header/footer designs that ship with Business Central were imported.';
         AssignShippedDesignsDoneMsg: Label '%1 assignment(s) were written. Layouts that already had a header/footer, and reports whose layouts are not installed, were left unchanged.', Comment = '%1 = number of assignments written';
-        PartNotAssignedMsg: Label 'The part %1 is not assigned to any report yet. Assign it to a layout from Report Layouts, to a company from Company Information, or as the global default from this page.', Comment = '%1 = part name';
-        PartIsGlobalDefaultMsg: Label 'The part %1 is assigned as the global default, so it applies to every report and layout that has no theme or header/footer of its own.', Comment = '%1 = part name';
+        PartNotAssignedMsg: Label 'The part %1 is not assigned to any report layout yet.', Comment = '%1 = part name';
 }
