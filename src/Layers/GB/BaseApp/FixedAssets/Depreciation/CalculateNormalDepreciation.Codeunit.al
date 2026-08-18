@@ -26,6 +26,7 @@ codeunit 5611 "Calculate Normal Depreciation"
         DerogFALedgEntry: Record "FA Ledger Entry";
         DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DeprBookCode: Code[10];
         DaysInFiscalYear: Integer;
         EntryAmounts: array[4] of Decimal;
@@ -594,8 +595,7 @@ codeunit 5611 "Calculate Normal Depreciation"
         end else
             BookValue := EntryAmounts[1];
         if DateFromProjection = 0D then begin
-            DerogDeprBook.SetRange("Derogatory Calc.", DeprBookCode);
-            if DerogDeprBook.FindFirst() then begin
+            if DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook) then begin
                 DerogFALedgEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date");
                 DerogFALedgEntry.SetRange("FA No.", FADeprBook."FA No.");
                 DerogFALedgEntry.SetRange("Depreciation Book Code", FADeprBook."Depreciation Book Code");
@@ -1165,4 +1165,3 @@ codeunit 5611 "Calculate Normal Depreciation"
     begin
     end;
 }
-

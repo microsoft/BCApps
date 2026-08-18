@@ -308,6 +308,8 @@ The schema remains one-way: source entries retain a zero link; counterpart entri
 
 Corrective remediation (2026-08-17, DME job 3621451): `RunALTests_RU_Bucket1` exposed that the RU full-copy `Depreciation Book` table still used the legacy relationship validation. ITEM-001 now also ports the current W1 one-to-one, self, and chain validation to RU, restoring AC-001 for `OnValidateDerogatoryCalcRelationshipChangeToUsedBookErrors`.
 
+Post-review remediation (2026-08-18): ITEM-002 now exposes record resolution through `Derogatory Posting Mgt.GetDerogatoryBook` and routes every active W1, FR-enabled/CLEAN29, GB, IT, and RU depreciation-calculation/report lookup through that sole policy authority. Imported ambiguous setup can no longer be silently reduced with `FindFirst`/`Find('-')` in those paths; the compatibility-only disabled French relationship remains on its distinct legacy field. The IS full-copy `Depreciation Book` validation is also aligned with W1 for changed relationships, closing the equivalent reassignment defect identified by review under ITEM-001. Test-first compilation failed on the new record-resolution contract with AL0132 before the manager API existed. After implementation, the W1 Base Application and Tests-Fixed Asset projects compiled with zero errors, and the active-calculation/report source sweep found no remaining direct `"Derogatory Calc."` filter. IS runtime execution remains part of the country CI gate because no local IS composed environment is available.
+
 - EPIC-002: Make reversal link-authoritative — DONE
 
 | Task | Description | Status | Relevant Files |
@@ -474,6 +476,7 @@ Final EPIC-009 closure evidence (2026-08-18):
 
 ## 15. Change Log
 
+- 2026-08-18: Remediated the implementation-review EPIC-001 findings by centralizing active calculation/report relationship resolution in `Derogatory Posting Mgt.`, adding ambiguity coverage for record resolution, and aligning the IS full-copy relationship reassignment validation with W1.
 - 2026-08-18: Closed EPIC-009 locally: refreshed the 14-layer semantic invariants, corrected the release-gate test's omitted independent derogatory-source reversal test-first (48/50 to targeted 3/3 and full 88/88), rebuilt/published W1, pushed the branch, and dispatched fresh CI run 32129755257 without claiming pending localization jobs green.
 - 2026-08-17: Remediated the two actionable failures from DME job 3621451 by making `ReverseDerogEntryInitAcqCost` assert automatic linked reversal and by porting current W1 relationship validation to the RU full-copy table; recorded the stale ES setup failures and unrelated infrastructure/runtime failures as rerun-only.
 - 2026-08-17: Remediated every non-infrastructure failure from DME job 3620308 across relationship validation, Czech account/report compatibility, purchase mirroring, Italian posting/compression checks, Russian schema parity, Spanish demo-data ordering, and the migrated gain/loss fixture; independent review added posted-LCY foreign-currency parity and focused W1 runtime passed 88/88.

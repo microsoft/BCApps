@@ -71,13 +71,13 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure ResolveImportedAmbiguousDerogatorySetupErrors()
+    procedure ResolveImportedAmbiguousDerogatoryRecordErrors()
     var
         NormalDepreciationBook: Record "Depreciation Book";
         TaxDepreciationBook: Record "Depreciation Book";
         OtherTaxDepreciationBook: Record "Depreciation Book";
+        DerogatoryDepreciationBook: Record "Depreciation Book";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
-        DerogatoryDepreciationBookCode: Code[10];
     begin
         CreateDepreciationBook(NormalDepreciationBook);
         CreateDepreciationBook(TaxDepreciationBook);
@@ -87,7 +87,8 @@ codeunit 134166 "UT TAB FA Derogatory Depr."
         OtherTaxDepreciationBook."Derogatory Calc." := NormalDepreciationBook.Code;
         OtherTaxDepreciationBook.Modify();
 
-        asserterror DerogatoryPostingMgt.GetDerogatoryBookCode(NormalDepreciationBook.Code, DerogatoryDepreciationBookCode);
+        asserterror DerogatoryPostingMgt.GetDerogatoryBook(
+            NormalDepreciationBook.Code, DerogatoryDepreciationBook);
 
         Assert.ExpectedError('More than one derogatory depreciation book');
     end;

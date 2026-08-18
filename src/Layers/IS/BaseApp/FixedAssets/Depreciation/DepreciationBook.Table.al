@@ -377,36 +377,37 @@ table 5611 "Depreciation Book"
                 DeprBook: Record "Depreciation Book";
                 FADeprBook: Record "FA Depreciation Book";
             begin
-                if ("Derogatory Calc." <> xRec."Derogatory Calc.") then begin
+                if "Derogatory Calc." <> xRec."Derogatory Calc." then begin
+                    if "Derogatory Calc." = Code then
+                        Error(Text10801, "Derogatory Calc.", Code);
+
                     if xRec."Derogatory Calc." <> '' then begin
                         FADeprBook.SetRange("Depreciation Book Code", xRec."Derogatory Calc.");
-                        if FADeprBook.Find('-') then
+                        if FADeprBook.FindSet() then
                             repeat
                                 FADeprBook.CalcFields("Derogatory Amount");
                                 FADeprBook.TestField("Derogatory Amount", 0);
                             until FADeprBook.Next() = 0;
-                    end else begin
-                        DeprBook.SetRange("Derogatory Calc.", "Derogatory Calc.");
-                        if DeprBook.Find('-') then
-                            if DeprBook.Code <> Code then
-                                Error(Text10802, "Derogatory Calc.", DeprBook.Code);
-                        DeprBook.SetRange("Derogatory Calc.");
-                        DeprBook.SetRange(Code, "Derogatory Calc.");
-#pragma warning disable AA0181
-                        if DeprBook.Find('-') then
-#pragma warning restore AA0181
-                            if (DeprBook."Derogatory Calc." <> '') then
-                                Error(Text10804, "Derogatory Calc.");
                     end;
-                    if ("Derogatory Calc." <> xRec."Derogatory Calc.") then
-                        if "Derogatory Book Code" <> '' then
-                            Error(Text10800, Code);
 
+                    if "Derogatory Calc." <> '' then begin
+                        DeprBook.SetRange("Derogatory Calc.", "Derogatory Calc.");
+                        DeprBook.SetFilter(Code, '<>%1', Code);
+                        if DeprBook.FindFirst() then
+                            Error(Text10802, "Derogatory Calc.", DeprBook.Code);
+
+                        DeprBook.Get("Derogatory Calc.");
+                        if DeprBook."Derogatory Calc." <> '' then
+                            Error(Text10804, "Derogatory Calc.");
+
+                        if Code <> '' then begin
+                            DeprBook.Reset();
+                            DeprBook.SetRange("Derogatory Calc.", Code);
+                            if not DeprBook.IsEmpty() then
+                                Error(Text10800, Code);
+                        end;
+                    end;
                 end;
-
-
-                if "Derogatory Calc." = Code then
-                    Error(Text10801, "Derogatory Calc.", Code);
 
                 CheckIntegrationFields();
             end;
@@ -599,4 +600,3 @@ table 5611 "Depreciation Book"
         exit('');
     end;
 }
-
