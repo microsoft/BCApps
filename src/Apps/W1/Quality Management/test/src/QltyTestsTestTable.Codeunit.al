@@ -2119,6 +2119,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure ReopenInspectionHandledResetsStatusChangeGuard()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -2168,6 +2169,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure FinishInspectionHandledResetsStatusChangeGuard()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
