@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7125 "Expense Policy Flags API"
+page 7126 "Expense Policy Flags API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
