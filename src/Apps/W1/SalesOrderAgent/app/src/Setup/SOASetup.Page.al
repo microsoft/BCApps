@@ -118,14 +118,17 @@ page 4400 "SOA Setup"
                         StyleExpr = true;
                         Style = StandardAccent;
                         Editable = false;
+                        Enabled = not AgentIsArchived;
                         ToolTip = 'Create a new task for the Sales Order Agent by entering the sender, message text, and any attachments.';
 
                         trigger OnDrillDown()
                         var
                             SOACreateTaskImpl: Codeunit "SOA Create Task Impl";
                         begin
-                            if AgentIsArchived then
+                            if AgentIsArchived then begin
+                                Message(AgentArchivedNotificationMsg);
                                 exit;
+                            end;
 
                             CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
                             if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) and (Rec."Email Monitoring" or (Rec."Email Address" <> '')) then begin
@@ -427,7 +430,7 @@ page 4400 "SOA Setup"
                             trigger OnValidate()
                             begin
                                 IsConfigUpdated := true;
-                                MailTemplateEditable := Rec."Configure Email Template";
+                                MailTemplateEditable := Rec."Configure Email Template" and not AgentIsArchived;
                             end;
                         }
                         field(EmailTemplate; EmailSignatureModifyLbl)
@@ -504,9 +507,9 @@ page 4400 "SOA Setup"
         UpdateAgentSetupBuffer();
 
         InitialState := TempAgentSetupBuffer.State;
+        AgentIsArchived := SOASetupCU.MustTreatAgentAsArchived(UserSecurityID);
         UpdateControls();
 
-        AgentIsArchived := SOASetupCU.IsAgentArchived(UserSecurityID);
         if AgentIsArchived then begin
             CurrPage.Editable(false);
             NotifyAgentArchived();
@@ -639,7 +642,7 @@ page 4400 "SOA Setup"
             LastSync := Format(Rec."Last Sync At");
         end;
 
-        MailTemplateEditable := Rec."Configure Email Template";
+        MailTemplateEditable := Rec."Configure Email Template" and not AgentIsArchived;
 
         CreateOrderFromQuoteActive := Rec."Create Order from Quote";
         OnlyAvailableItemsActive := Rec."Search Only Available Items";
@@ -734,8 +737,10 @@ page 4400 "SOA Setup"
         TempEmailFolder: Record "Email Folders" temporary;
         EmailFolders: Page "Email Account Folders";
     begin
-        if AgentIsArchived then
+        if AgentIsArchived then begin
+            Message(AgentArchivedNotificationMsg);
             exit;
+        end;
 
         if IsNullGuid(Rec."Email Account ID") then begin
             Message(SelectMailboxFirstMsg);
@@ -759,8 +764,10 @@ page 4400 "SOA Setup"
         SOASetupCU: Codeunit "SOA Setup";
         EmailAccounts: Page "Email Accounts";
     begin
-        if AgentIsArchived then
+        if AgentIsArchived then begin
+            Message(AgentArchivedNotificationMsg);
             exit;
+        end;
 
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
@@ -794,8 +801,10 @@ page 4400 "SOA Setup"
     var
         EmailTemplatePage: Page "SOA Email Template";
     begin
-        if AgentIsArchived then
+        if AgentIsArchived then begin
+            Message(AgentArchivedNotificationMsg);
             exit;
+        end;
 
         if not Rec."Configure Email Template" then
             exit;

@@ -128,18 +128,12 @@ codeunit 4400 "SOA Setup"
     /// Counts the Sales Order Agent instances owned by a user that still occupy a slot.
     /// Archived agents are excluded because they can never be reactivated.
     /// </summary>
-    internal procedure ActiveSOAgentCount(OwnerUserSecurityID: Guid) ActiveCount: Integer
+    internal procedure ActiveSOAgentCount(OwnerUserSecurityID: Guid): Integer
     var
         SOASetup: Record "SOA Setup";
     begin
         SOASetup.SetRange("Owner User Security ID", OwnerUserSecurityID);
-        if not SOASetup.FindSet() then
-            exit(0);
-
-        repeat
-            if not IsAgentArchived(SOASetup."User Security ID") then
-                ActiveCount += 1;
-        until SOASetup.Next() = 0;
+        exit(CountNonArchivedSetups(SOASetup));
     end;
 
     internal procedure ActiveSOAgentSetupExists(): Boolean
@@ -149,31 +143,24 @@ codeunit 4400 "SOA Setup"
         exit(FindFirstNonArchivedSetup(SOASetup));
     end;
 
-    internal procedure IsAgentArchived(AgentUserSecurityID: Guid): Boolean
-    var
-        AgentRec: Record Agent;
+    /// <summary>
+    /// Counts the records in an already filtered set of setup records whose agent is not archived.
+    /// </summary>
+    internal procedure CountNonArchivedSetups(var SOASetup: Record "SOA Setup") NonArchivedCount: Integer
     begin
-        if IsNullGuid(AgentUserSecurityID) then
-            exit(false);
+        if not SOASetup.FindSet() then
+            exit(0);
 
-        // Not every session can read the Agent table, and a setup record can outlive its agent.
-        // In both cases the agent is treated as not archived so callers are never blocked.
-        if not AgentRec.ReadPermission() then
-            exit(false);
-
-        if not AgentRec.Get(AgentUserSecurityID) then
-            exit(false);
-
-        exit(Agent.IsArchived(AgentUserSecurityID));
+        repeat
+            if not IsAgentArchived(SOASetup."User Security ID") then
+                NonArchivedCount += 1;
+        until SOASetup.Next() = 0;
     end;
 
-    internal procedure CheckAgentNotArchived(AgentUserSecurityID: Guid)
-    begin
-        if IsAgentArchived(AgentUserSecurityID) then
-            Error(AgentArchivedErr);
-    end;
-
-    local procedure FindFirstNonArchivedSetup(var SOASetup: Record "SOA Setup"): Boolean
+    /// <summary>
+    /// Finds the first record in an already filtered set of setup records whose agent is not archived.
+    /// </summary>
+    internal procedure FindFirstNonArchivedSetup(var SOASetup: Record "SOA Setup"): Boolean
     begin
         if not SOASetup.FindSet() then
             exit(false);
@@ -184,6 +171,48 @@ codeunit 4400 "SOA Setup"
         until SOASetup.Next() = 0;
 
         exit(false);
+    end;
+
+    internal procedure IsAgentArchived(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(false);
+
+        // Not every session can read the Agent table, and a setup record can outlive its agent.
+        // Counting and advisory callers treat both cases as not archived so they are never blocked.
+        if not AgentRec.ReadPermission() then
+            exit(false);
+
+        if not AgentRec.Get(AgentUserSecurityID) then
+            exit(false);
+
+        exit(Agent.IsArchived(AgentUserSecurityID));
+    end;
+
+    /// <summary>
+    /// Archived state for callers that block an operation. Unlike IsAgentArchived this fails closed:
+    /// an agent whose state cannot be read is treated as archived, so the guard cannot be bypassed
+    /// by running without access to the Agent table.
+    /// </summary>
+    internal procedure MustTreatAgentAsArchived(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(false);
+
+        if not AgentRec.ReadPermission() then
+            exit(true);
+
+        exit(IsAgentArchived(AgentUserSecurityID));
+    end;
+
+    internal procedure CheckAgentNotArchived(AgentUserSecurityID: Guid)
+    begin
+        if MustTreatAgentAsArchived(AgentUserSecurityID) then
+            Error(AgentArchivedErr);
     end;
 
     internal procedure MaxSOAInstances(): Integer
@@ -1122,7 +1151,7 @@ codeunit 4400 "SOA Setup"
         SalesOrderAgentInitialLbl: Label 'SO', MaxLength = 4;
         SOASummaryLbl: Label 'Monitors incoming emails for sales inquiries, matches senders to customers, checks inventory, and creates quotes. When processing replies, the agent converts accepted quotes into orders.';
         DelegateAdminErr: Label 'Delegated admin and helpdesk users are not allowed to update the agent.';
-        AgentArchivedErr: Label 'The Sales Order Agent is archived and its settings can no longer be changed.';
+        AgentArchivedErr: Label 'This Sales Order Agent is archived and is read-only.';
         SOAInterventionSuggestionCodeLbl: Label 'SOA-UPDATE-%1', Locked = true, Comment = '%1 = Sales Document Type';
         SOAInterventionSuggestionSummaryLbl: Label 'I have updated the %1', Comment = '%1 = Sales Document Type', MaxLength = 100;
         SOAInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to a sales %1 as part of reviewing it before sending it to a customer.', Comment = '%1 = Sales Document Type', Locked = true, MaxLength = 1024;

@@ -129,7 +129,6 @@ codeunit 4587 "SOA Impl"
         OtherSOASetup: Record "SOA Setup";
         SOASetupCU: Codeunit "SOA Setup";
         OwnerUserSecurityID: Guid;
-        InstanceOffset: Integer;
     begin
         // Give each instance a distinct ordinal (0-based) based on its position among the same owner user's
         // instances, so dispatcher staggering aligns with per-user task scheduling limits.
@@ -141,15 +140,7 @@ codeunit 4587 "SOA Impl"
         OtherSOASetup.ReadIsolation := IsolationLevel::ReadUncommitted;
         OtherSOASetup.SetRange("Owner User Security ID", OwnerUserSecurityID);
         OtherSOASetup.SetFilter(ID, '<%1', SOASetup.ID);
-        if not OtherSOASetup.FindSet() then
-            exit(0);
-
-        repeat
-            if not SOASetupCU.IsAgentArchived(OtherSOASetup."User Security ID") then
-                InstanceOffset += 1;
-        until OtherSOASetup.Next() = 0;
-
-        exit(InstanceOffset);
+        exit(SOASetupCU.CountNonArchivedSetups(OtherSOASetup));
     end;
 
     local procedure ScheduleRecoveryDelay(): Integer
