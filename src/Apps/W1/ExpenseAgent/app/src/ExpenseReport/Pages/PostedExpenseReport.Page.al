@@ -171,6 +171,14 @@ page 6998 "Posted Expense Report"
                 UpdatePropagation = Both;
                 SubPageLink = "Posted Expense Report No." = field("No.");
             }
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Activity Log';
+                SubPageLink = "Source Table ID" = const(Database::"Posted Expense Report Header"),
+                              "Source Record System ID" = field(SystemId);
+                Visible = Rec."No." <> '';
+            }
             part("Expense Picture"; "Expense Picture")
             {
                 ApplicationArea = Basic, Suite;

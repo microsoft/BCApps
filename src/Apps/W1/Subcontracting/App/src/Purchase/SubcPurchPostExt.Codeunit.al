@@ -16,7 +16,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
-codeunit 99001535 "Subc. Purch. Post Ext"
+codeunit 20535 "Subc. Purch. Post Ext"
 {
     var
 #if not CLEAN29
