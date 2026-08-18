@@ -593,6 +593,7 @@ codeunit 1002 "Job Create-Invoice"
     var
         Job: Record Job;
         Factor: Integer;
+        DiscountAmountFactor: Decimal;
         IsHandled: Boolean;
         ShouldUpdateCurrencyFactor: Boolean;
     begin
@@ -656,6 +657,16 @@ codeunit 1002 "Job Create-Invoice"
                 SalesLine.Validate("Unit Price", JobPlanningLine."Unit Price");
             SalesLine.Validate("Unit Cost (LCY)", JobPlanningLine."Unit Cost (LCY)");
             SalesLine.Validate("Line Discount %", JobPlanningLine."Line Discount %");
+            if (JobPlanningLine."Line Discount Amount" <> 0) and (JobPlanningLine.Quantity <> 0) then begin
+                DiscountAmountFactor := 1;
+                if JobInvCurrency then
+                    DiscountAmountFactor := SalesHeader."Currency Factor";
+
+                SalesLine.Validate(
+                    "Line Discount Amount",
+                    JobPlanningLine."Line Discount Amount" * DiscountAmountFactor *
+                    SalesLine.Quantity / JobPlanningLine.Quantity);
+            end;
             SalesLine."Inv. Discount Amount" := 0;
             SalesLine."Inv. Disc. Amount to Invoice" := 0;
             SalesLine.UpdateAmounts();
