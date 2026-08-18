@@ -7,10 +7,10 @@ namespace Microsoft.Foundation.Reporting;
 using System.Reflection;
 
 /// <summary>
-/// FactBox with details for the selected report layout: its name and description, and the theme and header/footer that
-/// apply to it. Bound to the layout through the host page's SubPageLink, like the other detail FactBoxes. The resolved
-/// part values are read-only: 'None' = no part applies, 'Default' = a broader configured default applies, otherwise the
-/// assigned part name.
+/// FactBox with details for the selected report layout: its description, and the theme and header/footer that apply to
+/// it. The layout's name is not repeated here; the host page's row already shows it. Bound to the layout through the
+/// host page's SubPageLink, like the other detail FactBoxes. The resolved part values are read-only: 'None' = no part
+/// applies, 'Default' = a broader configured default applies, otherwise the assigned part name.
 /// </summary>
 page 9669 "Report Layout FactBox"
 {
@@ -24,19 +24,13 @@ page 9669 "Report Layout FactBox"
     {
         area(content)
         {
-            field(LayoutNameField; Rec."Caption")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Layout Name';
-                ToolTip = 'Specifies the layout the details below apply to.';
-            }
             group(DescriptionGroup)
             {
-                Caption = 'Description';
+                ShowCaption = false;
 
-                // The caption is on the group so it renders as a heading above the value, and the field itself shows
-                // no label. That leaves the description the full width of the FactBox, so it wraps instead of being
-                // clipped to the right-hand half of a single line.
+                // Neither the group nor the field shows a caption: the FactBox opens with the description as bare
+                // text. Keeping the field inside a group is what leaves it the full width of the FactBox, so a long
+                // description wraps instead of being clipped to the right-hand half of a single line.
                 field(DescriptionField; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
