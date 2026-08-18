@@ -57,6 +57,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ZUGFeRDFormat: Codeunit "ZUGFeRD Format";
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
+        AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         IsInitialized: Boolean;
@@ -286,6 +287,30 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with customer data
         VerifyBuyerData(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyCustomerGLN();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
+        ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
+    begin
+        // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD format
+        Initialize();
+
+        // [GIVEN] Create and post a sales invoice for a customer that uses GLN in electronic documents
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN()));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Buyer and ship-to GlobalID contain the customer GLN with schemeID 0088
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok + '/@schemeID'));
+        Assert.AreEqual(ShipToGLN(), GetNodeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok + '/@schemeID'));
     end;
 
     [Test]
@@ -2179,6 +2204,44 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(Customer."No.");
     end;
 
+    local procedure CreateCustomerWithGLN(GLN: Code[13]): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CreateCustomer());
+        Customer.GLN := GLN;
+        Customer."Use GLN in Electronic Document" := true;
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(GLN: Code[13]; NewShipToGLN: Code[13]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        ShipToAddress: Record "Ship-to Address";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := CreateCustomerWithGLN(GLN);
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateShipToAddress(ShipToAddress, CustomerNo);
+        ShipToAddress.GLN := NewShipToGLN;
+        ShipToAddress.Modify(true);
+        SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CustomerGLN(): Code[13]
+    begin
+        exit('4313205158428');
+    end;
+
+    local procedure ShipToGLN(): Code[13]
+    begin
+        exit('1234567890128');
+    end;
+
     local procedure CreateResponsibilityCenter(var ResponsibilityCenter: Record "Responsibility Center")
     begin
         ResponsibilityCenter.Init();
@@ -3115,6 +3178,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         if TempXMLBuffer.FindFirst() then
             exit(TempXMLBuffer.GetValue());
         Error('Node not found: %1', XPath);
+    end;
+
+    local procedure GetAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, ElementXPath);
+        if TempXMLBuffer.FindFirst() then begin
+            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+            TempXMLBufferAttribute.Reset();
+            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+            TempXMLBufferAttribute.SetRange(Name, AttributeName);
+            if TempXMLBufferAttribute.FindFirst() then
+                exit(TempXMLBufferAttribute.Value);
+        end;
+        Error(AttributeNotFoundErr, AttributeName, ElementXPath);
     end;
 
     local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean

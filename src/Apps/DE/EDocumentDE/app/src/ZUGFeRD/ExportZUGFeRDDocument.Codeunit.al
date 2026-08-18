@@ -519,6 +519,7 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     local procedure InsertApplicableHeaderTradeAgreement(var RootXMLNode: XmlElement; RecordVariant: Variant)
     var
+        Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempBodyReportSelections: Record "Report Selections" temporary;
@@ -530,6 +531,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         PostalTradeAddressElement, ContactElement : XmlElement;
         SellerIDAttr, BuyerIDAttr : XmlAttribute;
         CustomerNo: Code[20];
+        CustomerGLN: Code[13];
         CustomerName: Text[100];
         Address: Text[100];
         Address2: Text[100];
@@ -601,6 +603,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
 
         GetSellerPostalAddr(RespCentrCode, SellerStreetName, SellerAdditionalStreetName, SellerCityName, SellerPostalZone, SellerCountryCode);
+        if Customer.Get(CustomerNo) then
+            if Customer."Use GLN in Electronic Document" then
+                CustomerGLN := Customer.GLN;
         HeaderTradeAgreementElement := XmlElement.Create('ApplicableHeaderTradeAgreement', XmlNamespaceRAM);
         HeaderTradeAgreementElement.Add(XmlElement.Create('BuyerReference', XmlNamespaceRAM, GetBuyerReference(RecordVariant)));
 
@@ -650,6 +655,8 @@ codeunit 13917 "Export ZUGFeRD Document"
 
         // Buyer
         BuyerTradePartyElement := XmlElement.Create('BuyerTradeParty', XmlNamespaceRAM);
+        if CustomerGLN <> '' then
+            BuyerTradePartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', '0088'), CustomerGLN));
         BuyerTradePartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, CustomerName));
 
         // Buyer Contact
@@ -703,6 +710,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryElement := XmlElement.Create('ApplicableHeaderTradeDelivery', XmlNamespaceRAM);
 
         ShipToPartyElement := XmlElement.Create('ShipToTradeParty', XmlNamespaceRAM);
+        InsertDeliveryGLN(ShipToPartyElement, SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code");
         ShipToPartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesInvoiceHeader."Sell-to Customer Name"));
 
         PostalAddressElement := XmlElement.Create('PostalTradeAddress', XmlNamespaceRAM);
@@ -730,6 +738,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryElement := XmlElement.Create('ApplicableHeaderTradeDelivery', XmlNamespaceRAM);
 
         ShipToPartyElement := XmlElement.Create('ShipToTradeParty', XmlNamespaceRAM);
+        InsertDeliveryGLN(ShipToPartyElement, SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code");
         ShipToPartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesCrMemoHeader."Sell-to Customer Name"));
 
         PostalAddressElement := XmlElement.Create('PostalTradeAddress', XmlNamespaceRAM);
@@ -748,6 +757,20 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryElement.Add(ActualDeliveryDateElement);
 
         RootXMLNode.Add(DeliveryElement);
+    end;
+
+    local procedure InsertDeliveryGLN(var ShipToPartyElement: XmlElement; CustomerNo: Code[20]; ShipToCode: Code[10])
+    var
+        Customer: Record Customer;
+        ShipToAddress: Record "Ship-to Address";
+        DeliveryGLN: Code[13];
+    begin
+        if ShipToAddress.Get(CustomerNo, ShipToCode) then
+            DeliveryGLN := ShipToAddress.GLN;
+        if (DeliveryGLN = '') and Customer.Get(CustomerNo) then
+            DeliveryGLN := Customer.GLN;
+        if DeliveryGLN <> '' then
+            ShipToPartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', '0088'), DeliveryGLN));
     end;
 
     local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesInvHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
