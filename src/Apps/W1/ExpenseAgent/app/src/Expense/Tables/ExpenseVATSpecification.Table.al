@@ -225,6 +225,7 @@ table 6918 "Expense VAT Specification"
         {
             Caption = 'Source';
             Editable = false;
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies how this VAT specification line was created, for example whether it was entered manually or extracted automatically from a receipt.';
         }
         field(41; Confidence; Decimal)

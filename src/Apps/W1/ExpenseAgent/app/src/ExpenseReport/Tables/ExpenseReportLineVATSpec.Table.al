@@ -486,13 +486,13 @@ table 6922 "Expense Report Line VAT Spec."
         "Reclaim VAT Amount (RCY)" := Round("VAT Amount (RCY)" * "Reclaim %" / 100, ReimbursementAmountRoundingPrecision);
     end;
 
-    procedure UpdateReimbursementAmounts()
+    internal procedure UpdateReimbursementAmounts()
     begin
         GetExpenseReportHeader();
         UpdateReimbursementAmounts(ExpenseReportHeader);
     end;
 
-    procedure UpdateReimbursementAmounts(NewExpenseReportHeader: Record "Expense Report Header")
+    internal procedure UpdateReimbursementAmounts(NewExpenseReportHeader: Record "Expense Report Header")
     var
         ReimbursementCurrency: Record Currency;
     begin

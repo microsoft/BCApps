@@ -104,6 +104,29 @@ page 7085 "Expense VAT Spec. API"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-        Source := Source::Agent;
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        VerifyExpenseAgentCaller();
+        Rec.Source := Rec.Source::Agent;
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        VerifyExpenseAgentCaller();
+        Rec.Source := Rec.Source::Agent;
+        exit(true);
+    end;
+
+    var
+        ExpenseAgentCallerRequiredErr: Label 'Only the Expense Agent application can create agent-authored VAT specifications.';
+
+    local procedure VerifyExpenseAgentCaller()
+    var
+        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+    begin
+        if not ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent() then
+            Error(ExpenseAgentCallerRequiredErr);
     end;
 }

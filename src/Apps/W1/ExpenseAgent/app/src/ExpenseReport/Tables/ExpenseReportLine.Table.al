@@ -1393,7 +1393,7 @@ table 6907 "Expense Report Line"
         exit(UpdatePostingDescription("Expense Category", "Expense Subcategory Code"));
     end;
 
-    procedure UpdatePostingDescription(ExpenseCategoryCode: Code[20]; ExpenseSubcategoryCode: Code[20]): Text[100]
+    internal procedure UpdatePostingDescription(ExpenseCategoryCode: Code[20]; ExpenseSubcategoryCode: Code[20]): Text[100]
     var
         ExpenseSubcategory: Record "Expense Subcategory";
         BaseDescription: Text[100];
