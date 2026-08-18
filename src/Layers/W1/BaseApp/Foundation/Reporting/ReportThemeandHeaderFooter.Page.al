@@ -16,8 +16,9 @@ using System.Reflection;
 page 9666 "Report Theme and Header/Footer"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Report themes and header-footer setup';
-    AdditionalSearchTerms = 'Composite Layout, Document Theme, Header Footer Part, Report Themes and Header/Footers';
+    Caption = 'Manage themes and header-footer layout';
+    // The former caption stays searchable so anyone who knows the page by its old name still finds it.
+    AdditionalSearchTerms = 'Composite Layout, Document Theme, Header Footer Part, Report Themes and Header/Footers, Report themes and header-footer setup';
     PageType = List;
     SourceTable = "Report Layout List";
     UsageCategory = Administration;
@@ -25,8 +26,8 @@ page 9666 "Report Theme and Header/Footer"
     InsertAllowed = false;
     ModifyAllowed = false;
     Extensible = true;
-    AboutTitle = 'About report themes and header/footer setup';
-    AboutText = 'Manage reusable theme and header/footer layout parts that can be assigned as defaults to your Word report layouts. Add, export, delete, and change the approval status of parts.';
+    AboutTitle = 'Manage themes and header-footer layout';
+    AboutText = 'Add, export, and delete the themes and header/footer layouts that you can set as defaults on your Word report layouts. Set a layout to **Approved** to make it available to choose.';
 
     layout
     {
@@ -449,25 +450,66 @@ page 9666 "Report Theme and Header/Footer"
 
     local procedure DeleteSelectedArtifact()
     var
+        SelectedLayouts: Record "Report Layout List";
+        PartsToDelete: Record "Tenant Report Layout" temporary;
         TenantReportLayout: Record "Tenant Report Layout";
+        SingleName: Text;
+        DeletableCount: Integer;
         AssignedCount: Integer;
     begin
-        if not Rec."User Defined" then
+        CurrPage.SetSelectionFilter(SelectedLayouts);
+
+        // Out-of-box parts are skipped rather than blocking the whole selection, the same way a status change only
+        // acts on the parts whose status can change.
+        if SelectedLayouts.FindSet() then
+            repeat
+                if SelectedLayouts."User Defined" then begin
+                    DeletableCount += 1;
+                    AssignedCount += LookupHelper.CountPartAssignments(SelectedLayouts);
+                end;
+            until SelectedLayouts.Next() = 0;
+
+        if DeletableCount = 0 then
             Error(CannotDeleteOobErr);
 
-        AssignedCount := LookupHelper.CountPartAssignments(Rec);
-        if AssignedCount > 0 then begin
-            if not Confirm(DeletePartWithReferencesQst, false, Rec.Name, AssignedCount) then
-                exit;
+        // Name the part when a single one is being deleted; fall back to the count for a multi-select.
+        if DeletableCount = 1 then begin
+            SingleName := GetSingleUserDefinedName(SelectedLayouts);
+            if AssignedCount > 0 then begin
+                if not Confirm(DeletePartWithReferencesQst, false, SingleName, AssignedCount) then
+                    exit;
+            end else
+                if not Confirm(DeleteArtifactQst, false, SingleName) then
+                    exit;
         end else
-            if not Confirm(DeleteArtifactQst, false, Rec.Name) then
-                exit;
+            if AssignedCount > 0 then begin
+                if not Confirm(DeletePartsWithReferencesQst, false, DeletableCount, AssignedCount) then
+                    exit;
+            end else
+                if not Confirm(DeleteArtifactsQst, false, DeletableCount) then
+                    exit;
 
-        // EmptyGuid is the App ID key part - empty for tenant-defined layouts.
-        if not TenantReportLayout.Get(Rec."Report ID", Rec.Name, EmptyGuid) then
-            exit;
-        LookupHelper.ClearPartAssignments(Rec);
-        ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
+        // Clear the assignments and stage the rows first: deleting the underlying Tenant Report Layout records while
+        // iterating the virtual Report Layout List would invalidate the cursor part-way through the selection, which
+        // is what left everything after the first part undeleted.
+        SelectedLayouts.FindSet();
+        repeat
+            if SelectedLayouts."User Defined" then begin
+                LookupHelper.ClearPartAssignments(SelectedLayouts);
+                PartsToDelete.Init();
+                PartsToDelete."Report ID" := SelectedLayouts."Report ID";
+                PartsToDelete.Name := SelectedLayouts.Name;
+                PartsToDelete.Insert();
+            end;
+        until SelectedLayouts.Next() = 0;
+
+        if PartsToDelete.FindSet() then
+            repeat
+                // EmptyGuid is the App ID key part - empty for tenant-defined layouts.
+                if TenantReportLayout.Get(PartsToDelete."Report ID", PartsToDelete.Name, EmptyGuid) then
+                    ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
+            until PartsToDelete.Next() = 0;
+
         CurrPage.Update(false);
     end;
 
@@ -489,6 +531,8 @@ page 9666 "Report Theme and Header/Footer"
         TenantDefinedTxt: Label 'Tenant-defined';
         PartInfoLbl: Label 'Name: %1\Description: %2\Type: %3\Status: %4\Publisher: %5\Used in %6 report configuration(s).', Comment = '%1 = part name; %2 = description; %3 = type (Theme or Header/Footer); %4 = status; %5 = publisher; %6 = number of report configurations that reference the part';
         DeleteArtifactQst: Label 'Delete the artifact %1?', Comment = '%1 = artifact name';
+        DeleteArtifactsQst: Label 'Delete the %1 selected artifacts?', Comment = '%1 = number of artifacts';
+        DeletePartsWithReferencesQst: Label 'The %1 selected parts are assigned in %2 report configuration(s). Deleting them will clear those assignments and the affected reports will render without these parts. Do you want to continue?', Comment = '%1 = number of parts; %2 = number of configurations';
         DeletePartWithReferencesQst: Label 'The part "%1" is assigned in %2 report configuration(s). Deleting it will clear those assignments and the affected reports will render without this part. Do you want to continue?', Comment = '%1 = artifact name; %2 = number of configurations';
         StatusChangedMsg: Label 'The status of %1 part(s) was changed to %2.', Comment = '%1 = number of parts; %2 = new status';
         StatusChangedSingleMsg: Label 'The status of "%1" was changed to %2.', Comment = '%1 = part name; %2 = new status';

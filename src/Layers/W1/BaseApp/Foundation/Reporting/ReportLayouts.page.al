@@ -426,11 +426,11 @@ page 9660 "Report Layouts"
                 action(AssignReportDefaults)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Manage theme/header-footer';
+                    Caption = 'Set report theme and header-footer';
                     Image = Setup;
                     Enabled = WordLayoutSelected;
                     AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
-                    ToolTip = 'Assign the theme and header/footer applied to the selected Word layout. Themes and header/footer parts apply to Word documents only. The assignment is stored per company/tenant for this layout, not per user.';
+                    ToolTip = 'Set the theme and header/footer applied to the selected Word layout. Themes and header/footer parts apply to Word documents only. The setting is stored per company/tenant for this layout, not per user.';
 
                     trigger OnAction()
                     var
@@ -443,7 +443,7 @@ page 9660 "Report Layouts"
                 action(ManageAllThemesAndHeaderFooters)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Manage all themes/header-footers';
+                    Caption = 'Set all report theme and header-footer';
                     Image = ViewDetails;
                     Enabled = WordLayoutSelected;
                     AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
@@ -464,11 +464,11 @@ page 9660 "Report Layouts"
                 action(LayoutConfiguration)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Layout configuration';
+                    Caption = 'Set report global default';
                     Image = Setup;
                     Enabled = WordLayoutSelected;
                     AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
-                    ToolTip = 'View the Tenant Report Layout Configuration defaults for the selected report. These defaults specify the header/footer and theme parts applied when no per-user selection override is present.';
+                    ToolTip = 'Set the theme and header/footer that apply when a layout has none of its own. The row with report ID 0 is the global default for every report; a row for this report covers all of its layouts.';
 
                     trigger OnAction()
                     var
@@ -476,6 +476,20 @@ page 9660 "Report Layouts"
                     begin
                         TenantReportLayoutCfg.SetFilter("Report ID", '%1|%2', Rec."Report ID", 0);
                         Page.RunModal(Page::"Tenant Report Layout Cfg", TenantReportLayoutCfg);
+                    end;
+                }
+                action(ManageThemesAndHeaderFooterLayouts)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Manage themes and header-footer layout';
+                    Image = List;
+                    ToolTip = 'Open the list of themes and header/footer layouts to add, export, or delete them. The list is shared by every report, so it does not depend on the layout selected here.';
+
+                    // No AccessByPermission and no Enabled gate, unlike the actions above: this one opens the shared
+                    // registry rather than writing a report configuration, and the page gates its own write actions.
+                    trigger OnAction()
+                    begin
+                        Page.Run(Page::"Report Theme and Header/Footer");
                     end;
                 }
             }
@@ -620,7 +634,7 @@ page 9660 "Report Layouts"
 
             group(CompositeLayout)
             {
-                Caption = 'Composite Layout';
+                Caption = 'Composite layout';
                 Visible = DocumentReportExperienceEnabled;
 
                 actionref(AssignReportDefaults_Promoted; AssignReportDefaults)
@@ -632,6 +646,10 @@ page 9660 "Report Layouts"
                 }
 
                 actionref(LayoutConfiguration_Promoted; LayoutConfiguration)
+                {
+                }
+
+                actionref(ManageThemesAndHeaderFooterLayouts_Promoted; ManageThemesAndHeaderFooterLayouts)
                 {
                 }
             }

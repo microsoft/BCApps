@@ -16,7 +16,7 @@ using System.Reflection;
 page 9667 "Header/Footer Theme Assignment"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Assign Theme and Header/Footer';
+    Caption = 'Set theme and header/footer';
     PageType = StandardDialog;
     SourceTable = "Tenant Report Layout Cfg";
     SourceTableTemporary = true;

@@ -25,6 +25,8 @@ page 9670 "Layout Theme and Header/Footer"
     DeleteAllowed = false;
     ModifyAllowed = false;
     Extensible = true;
+    AboutTitle = 'See the theme and header/footer each layout uses';
+    AboutText = 'Compare every layout of this report side by side, with the theme and header/footer that apply to each one. The **source** columns tell you where each comes from: the layout itself, the report, your company, or the global default. Select a layout and choose **Set theme and header-footer** to change it without affecting the others.';
 
     layout
     {
@@ -79,9 +81,9 @@ page 9670 "Layout Theme and Header/Footer"
             action(ManageThemeHeaderFooter)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Manage theme/header-footer';
+                Caption = 'Set theme and header-footer';
                 Image = Setup;
-                ToolTip = 'Change the theme and header/footer applied to the selected layout. The assignment is stored for this layout (per company/tenant), overriding any company or global default.';
+                ToolTip = 'Set the theme and header/footer applied to the selected layout. The setting is stored for this layout (per company/tenant), overriding any company or global default.';
 
                 trigger OnAction()
                 begin
