@@ -3809,6 +3809,8 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy: Record "Expense Policy";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         ExpenseReportPost: Codeunit "Expense Report-Post";
+        NoPolicyLineNo: Integer;
+        UnevaluatedPolicyLineNo: Integer;
     begin
         // [SCENARIO] Posting preserves the difference between no applicable policies and an unevaluated applicable policy.
         Initialize();
@@ -3826,9 +3828,11 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryExpense.CreateExpenseReportLine(
             ExpenseReportLine, ExpenseReportHeader, NoPolicyCategory.Code, false, '',
             ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        NoPolicyLineNo := ExpenseReportLine."Line No.";
         LibraryExpense.CreateExpenseReportLine(
             ExpenseReportLine, ExpenseReportHeader, UnevaluatedPolicyCategory.Code, false, '',
             ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        UnevaluatedPolicyLineNo := ExpenseReportLine."Line No.";
 
         ExpensePolicy.Init();
         ExpensePolicy."Expense Category Code" := UnevaluatedPolicyCategory.Code;
@@ -3841,12 +3845,10 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
-        PostedExpenseReportLine.SetRange("Expense Category", NoPolicyCategory.Code);
-        PostedExpenseReportLine.FindFirst();
+        PostedExpenseReportLine.Get(ExpenseReportHeader."No.", NoPolicyLineNo);
         Assert.AreEqual("Expense Policy Status"::"No Policies", PostedExpenseReportLine."Policy Status At Posting", 'A line with no applicable policies must preserve No Policies.');
 
-        PostedExpenseReportLine.SetRange("Expense Category", UnevaluatedPolicyCategory.Code);
-        PostedExpenseReportLine.FindFirst();
+        PostedExpenseReportLine.Get(ExpenseReportHeader."No.", UnevaluatedPolicyLineNo);
         Assert.AreEqual("Expense Policy Status"::"Not Evaluated", PostedExpenseReportLine."Policy Status At Posting", 'A line with an unevaluated applicable policy must preserve Not Evaluated.');
         LibraryVariableStorage.AssertEmpty();
     end;
