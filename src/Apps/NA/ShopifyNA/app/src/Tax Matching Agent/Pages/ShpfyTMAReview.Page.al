@@ -103,10 +103,6 @@ page 30471 "Shpfy TMA Review"
                 ApplicationArea = All;
                 Caption = 'Approve';
                 Image = Approve;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                PromotedOnly = true;
                 Visible = Rec."Tax Match Applied" and not Rec."Tax Match Reviewed" and (ReviewRequired or Rec."Tax Rate Conflict" or Rec."Tax Match Incomplete");
                 ToolTip = 'Confirms the tax match for this order and approves it. The Tax Area is (re)built from the Tax Jurisdiction Codes on the tax lines below — including any you changed — and the order is released so a Sales Document can be created. Review the per-line Business Central rates against Shopify''s (differences are highlighted) before approving.';
 
@@ -120,10 +116,6 @@ page 30471 "Shpfy TMA Review"
                 ApplicationArea = All;
                 Caption = 'Undo Approval';
                 Image = Undo;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                PromotedOnly = true;
                 // Only meaningful while the order is approved, still held-when-unapproved, and no
                 // Sales Document has been created yet — undoing cannot un-create an existing document.
                 Visible = Rec."Tax Match Applied" and Rec."Tax Match Reviewed" and (Rec."Sales Order No." = '') and (Rec."Sales Invoice No." = '') and (ReviewRequired or Rec."Tax Rate Conflict" or Rec."Tax Match Incomplete");
@@ -133,6 +125,16 @@ page 30471 "Shpfy TMA Review"
                 begin
                     UndoApprovalReview();
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(Approve_Promoted; Approve) { }
+                actionref(UndoApproval_Promoted; UndoApproval) { }
             }
         }
     }

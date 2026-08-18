@@ -226,15 +226,16 @@ page 30145 "Shpfy Refund"
                 var
                     OrderLine: Record "Shpfy Order Line";
                     OrderTaxLine: Record "Shpfy Order Tax Line";
-                    FilterTxt: Text;
+                    FilterBuilder: TextBuilder;
                 begin
                     OrderLine.SetRange("Shopify Order Id", Rec."Order Id");
                     if OrderLine.FindSet() then
                         repeat
-                            FilterTxt += Format(OrderLine."Line Id") + '|';
+                            if FilterBuilder.Length() > 0 then
+                                FilterBuilder.Append('|');
+                            FilterBuilder.Append(Format(OrderLine."Line Id"));
                         until OrderLine.Next() = 0;
-                    FilterTxt := FilterTxt.TrimEnd('|');
-                    OrderTaxLine.SetFilter("Parent Id", FilterTxt);
+                    OrderTaxLine.SetFilter("Parent Id", FilterBuilder.ToText());
                     Page.Run(Page::"Shpfy Order Tax Lines", OrderTaxLine);
                 end;
             }

@@ -38,6 +38,7 @@ codeunit 30162 "Shpfy Order Events"
     /// <param name="ShopifyOrderHeader">Parameter of type Record "Shopify Order Header".</param>
     /// <param name="Result">Whether all mappings succeeded.</param>
     [IntegrationEvent(false, false)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure OnAfterMapShopifyOrder(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
     begin
     end;

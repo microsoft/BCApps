@@ -1,5 +1,7 @@
 namespace Microsoft.Integration.Shopify;
 
+using System.Telemetry;
+
 /// <summary>
 /// PageExtension Shpfy TMA Shop Card (ID 30470) extends Shpfy Shop Card.
 /// Adds a Tax Matching Agent tab to the Shop Card. Dependent settings are disabled until
@@ -42,4 +44,12 @@ pageextension 30470 "Shpfy TMA Shop Card" extends "Shpfy Shop Card"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        TMARegister: Codeunit "Shpfy TMA Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUptake('0000UN8', TMARegister.FeatureName(), Enum::"Feature Uptake Status"::Discovered);
+    end;
 }

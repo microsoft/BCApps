@@ -234,7 +234,7 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
         if Rec."Tax Jurisdiction Code" = '' then
             Error(NoJurisdictionErr);
 
-        if not Confirm(StrSubstNo(UseShopifyRateQst, Rec."Tax Jurisdiction Code", Rec."Rate %"), false) then
+        if not Confirm(UseShopifyRateQst, false, Rec."Tax Jurisdiction Code", Rec."Rate %") then
             exit;
 
         if not TMAMatcher.SeedTaxDetailFromShopifyRate(Rec) then
@@ -245,6 +245,6 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
         ResolveBcRate();
         UseShopifyRateEnabled := (Rec."Tax Jurisdiction Code" <> '') and (RateStyleExpr <> 'Favorable');
         CurrPage.Update(false);
-        Message(StrSubstNo(UseShopifyRateDoneMsg, Rec."Rate %", Rec."Tax Jurisdiction Code"));
+        Message(UseShopifyRateDoneMsg, Rec."Rate %", Rec."Tax Jurisdiction Code");
     end;
 }

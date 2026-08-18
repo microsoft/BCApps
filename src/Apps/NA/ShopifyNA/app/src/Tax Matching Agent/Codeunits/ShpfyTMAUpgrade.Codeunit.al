@@ -23,14 +23,10 @@ codeunit 30478 "Shpfy TMA Upgrade"
     /// <summary>
     /// New Shop records pick up the tax defaults from the field InitValues, but Shop
     /// records that already exist when this app is installed keep the platform zero-values
-    /// ('' / false). Backfill the InitValue-backed fields (Tax Area auto-creation on, blocking
-    /// review on, standard Tax Area naming prefix) so existing shops start with the same defaults
+    /// ('' / false). Backfill the InitValue-backed fields (Tax Area auto-creation on, standard
+    /// review mode, standard Tax Area naming prefix) so existing shops start with the same defaults
     /// new shops get. Reading the values from an Init()'d record keeps this in sync with the
-    /// tableextension InitValues without duplicating the literals. The upgrade tag makes this run
-    /// exactly once per company; the tag is intentionally NOT registered in
-    /// OnGetPerCompanyUpgradeTags so a fresh install (which has no tag yet) still runs it against
-    /// any shops that already exist. The two intentionally-false defaults (Tax Matching Agent
-    /// Enabled, Auto Create Tax Jurisdictions) are left untouched.
+    /// tableextension InitValues without duplicating the literals.
     /// </summary>
     internal procedure BackfillShopDefaults()
     var
@@ -67,5 +63,11 @@ codeunit 30478 "Shpfy TMA Upgrade"
     internal procedure GetShopDefaultsUpgradeTag(): Code[250]
     begin
         exit('MS-445769-TMAShopDefaults-20260720');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
+    local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetShopDefaultsUpgradeTag());
     end;
 }

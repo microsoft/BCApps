@@ -16,17 +16,18 @@ codeunit 30473 "Shpfy TMA Events"
     InherentEntitlements = X;
 
     var
-        StartingMatchMsg: Label 'Starting match for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
+        StartingMatchMsg: Label 'Starting tax match for order', Locked = true;
         ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the tax match has been approved. Open the order, choose Review Tax Match, and approve the match on the review page — or change the shop''s Tax Match Review Mode.', Comment = '%1 = Shopify Order No.';
         RateConflictBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because a matched tax rate differs from Business Central. Open the order, choose Review Tax Match, and either approve the match to accept Business Central''s rates or correct the Tax Detail rate or Tax Jurisdiction, on the review page.', Comment = '%1 = Shopify Order No.';
         IncompleteBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because the Tax Matching Agent could not resolve one or more tax lines to a Tax Jurisdiction. Open the order, choose Review Tax Match, assign a Tax Jurisdiction to every tax line, and approve the match on the review page.', Comment = '%1 = Shopify Order No.';
         SecurityPromptUnavailableMsg: Label 'Security prompt unavailable from Key Vault; tax matching skipped for this order.', Locked = true;
-        MarkerSetMsg: Label 'Tax match marker set on order %1', Locked = true, Comment = '%1 = Shopify Order Id';
-        HeldRateConflictMsg: Label 'Order %1 held for review pending rate conflict resolution', Locked = true, Comment = '%1 = Shopify Order Id';
-        HeldUnresolvedMsg: Label 'Order %1 held for review pending unresolved tax line', Locked = true, Comment = '%1 = Shopify Order Id';
-        TaxLinesMatchedMsg: Label 'Tax lines matched for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
-        CreationBlockedMsg: Label 'Sales Document creation blocked pending tax match review for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
-        MarkerPropagatedMsg: Label 'Tax match marker propagated to Sales Header for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
+        MarkerSetMsg: Label 'Tax match marker set on order', Locked = true;
+        HeldRateConflictMsg: Label 'Order held for review pending rate conflict resolution', Locked = true;
+        HeldUnresolvedMsg: Label 'Order held for review pending unresolved tax line', Locked = true;
+        TaxLinesMatchedMsg: Label 'Tax lines matched for order', Locked = true;
+        CreationBlockedMsg: Label 'Sales Document creation blocked pending tax match review', Locked = true;
+        MarkerPropagatedMsg: Label 'Tax match marker propagated to Sales Header', Locked = true;
+        ShopifyOrderIdDimTok: Label 'ShopifyOrderId', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterMapShopifyOrder, '', false, false)]
     local procedure OnAfterMapShopifyOrder(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
@@ -78,8 +79,8 @@ codeunit 30473 "Shpfy TMA Events"
             ShopifyOrderHeader.Modify();
         end;
 
-        Session.LogMessage('0000UMK', StrSubstNo(StartingMatchMsg, ShopifyOrderHeader."Shopify Order Id"),
-            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+        Session.LogMessage('0000UMK', StartingMatchMsg,
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
 
         MatchApplied := TMAMatcher.MatchTaxLines(ShopifyOrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch);
         if not MatchApplied then
@@ -98,21 +99,21 @@ codeunit 30473 "Shpfy TMA Events"
                 ShopifyOrderHeader."Tax Match Incomplete" := HasUnresolvedLine;
                 ShopifyOrderHeader."Tax Match Low Confidence" := HasLowConfidenceMatch;
                 ShopifyOrderHeader.Modify();
-                Session.LogMessage('0000UMG', StrSubstNo(MarkerSetMsg, ShopifyOrderHeader."Shopify Order Id"),
-                    Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+                Session.LogMessage('0000UMG', MarkerSetMsg,
+                    Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
                 if HasRateConflict then
-                    Session.LogMessage('0000UMF', StrSubstNo(HeldRateConflictMsg, ShopifyOrderHeader."Shopify Order Id"),
-                        Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+                    Session.LogMessage('0000UMF', HeldRateConflictMsg,
+                        Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
                 if HasUnresolvedLine then
-                    Session.LogMessage('0000UNT', StrSubstNo(HeldUnresolvedMsg, ShopifyOrderHeader."Shopify Order Id"),
-                        Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+                    Session.LogMessage('0000UNT', HeldUnresolvedMsg,
+                        Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
 
                 CTActivityLog.LogPerLineEntries(ShopifyOrderHeader, MatchLog);
                 CTActivityLog.LogTaxAreaEntry(ShopifyOrderHeader, ResolvedTaxAreaCode, TaxAreaWasCreated, MatchedJurisdictions);
             end;
 
-        Session.LogMessage('0000UMH', StrSubstNo(TaxLinesMatchedMsg, ShopifyOrderHeader."Shopify Order Id"),
-            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+        Session.LogMessage('0000UMH', TaxLinesMatchedMsg,
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeCreateSalesHeader, '', false, false)]
@@ -131,22 +132,16 @@ codeunit 30473 "Shpfy TMA Events"
             exit;
 
         Handled := true;
-        Session.LogMessage('0000UMI', StrSubstNo(CreationBlockedMsg, ShopifyOrderHeader."Shopify Order Id"),
-            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+        Session.LogMessage('0000UMI', CreationBlockedMsg,
+            Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
 
-        // In an interactive session surface a clear error so the user knows what to do.
-        // In background flows (job queue, webhook) silently set Handled := true so the
-        // pending order is just skipped this cycle without polluting the error log. The
-        // message depends on which condition holds the order: a rate conflict cannot be
-        // cleared from the Shop Card, so only the review-required case mentions that toggle.
-        if GuiAllowed() then
-            if ShopifyOrderHeader."Tax Rate Conflict" then
-                Error(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
+        if ShopifyOrderHeader."Tax Rate Conflict" then
+            Error(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
+        else
+            if ShopifyOrderHeader."Tax Match Incomplete" then
+                Error(IncompleteBlockErr, ShopifyOrderHeader."Shopify Order No.")
             else
-                if ShopifyOrderHeader."Tax Match Incomplete" then
-                    Error(IncompleteBlockErr, ShopifyOrderHeader."Shopify Order No.")
-                else
-                    Error(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
+                Error(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
     end;
 
     /// <summary>
@@ -229,7 +224,7 @@ codeunit 30473 "Shpfy TMA Events"
         SalesHeader."Tax Match Applied" := true;
         SalesHeader.Modify();
 
-        Session.LogMessage('0000UMJ', StrSubstNo(MarkerPropagatedMsg, OrderHeader."Shopify Order Id"),
-            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+        Session.LogMessage('0000UMJ', MarkerPropagatedMsg,
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(OrderHeader."Shopify Order Id"));
     end;
 }

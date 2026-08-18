@@ -23,7 +23,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         NotSuccessfulRequestErr: Label 'Chat Completion Status Code: %1, Error: %2', Locked = true;
         NoFunctionCallErr: Label 'tool_calls not found in the completion answer', Locked = true;
         FunctionCallErr: Label 'Function call to %1 failed', Locked = true, Comment = '%1 = Function name';
-        SkippedLowConfidenceMsg: Label 'Skipped low-confidence match for tax line %1', Locked = true, Comment = '%1 = Tax line ID';
+        SkippedLowConfidenceMsg: Label 'Skipped low-confidence match for tax line', Locked = true;
         JurisdictionNotFoundMsg: Label 'Jurisdiction %1 not found and auto-create disabled', Locked = true, Comment = '%1 = Jurisdiction code';
         TaxDetailRateMismatchMsg: Label 'Existing Tax Detail for jurisdiction %1, tax group %2 has rate %3, but Shopify reported %4. Existing detail left untouched.', Locked = true, Comment = '%1 = jurisdiction code, %2 = tax group code, %3 = BC rate, %4 = Shopify rate';
         RateConflictReasonTok: Label 'Shopify charged %1%, but Business Central has a Tax Detail rate of %2% for tax group %3. Business Central will post at its own rate unless you correct the Tax Detail.', Comment = '%1 = Shopify rate, %2 = existing BC rate, %3 = tax group code';
@@ -31,7 +31,8 @@ codeunit 30471 "Shpfy TMA Matcher"
         SecurityPromptSecretNameTok: Label 'ShopifyTaxMatchingAgentSecurityPrompt', Locked = true;
         AuditJurisdictionCreatedLbl: Label 'Shopify Tax Matching Agent (AI) auto-created Tax Jurisdiction %1 from Shopify order %2, based on buyer-controlled Shopify tax data.', Comment = '%1 = Tax Jurisdiction code, %2 = Shopify order id';
         UnknownSentinelTok: Label 'UNKNOWN', Locked = true;
-        UnresolvedTaxLineMsg: Label 'Tax line %1 could not be resolved to a jurisdiction (model returned UNKNOWN); left unmatched for review.', Locked = true, Comment = '%1 = Tax line ID';
+        UnresolvedTaxLineMsg: Label 'Tax line could not be resolved to a jurisdiction (model returned UNKNOWN); left unmatched for review.', Locked = true;
+        TaxLineIdDimTok: Label 'TaxLineId', Locked = true;
 
     procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; SecurityPrompt: SecretText; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean; var HasLowConfidenceMatch: Boolean): Boolean
     var
@@ -62,12 +63,14 @@ codeunit 30471 "Shpfy TMA Matcher"
         // ordering the Tax Area Builder relies on is preserved; shipping jurisdictions typically
         // duplicate product ones and are de-duplicated.
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetLoadFields("Line Id");
         if OrderLine.FindSet() then
             repeat
                 GatherTaxLines(OrderLine."Line Id", TaxLinesArray, MatchedJurisdictions);
             until OrderLine.Next() = 0;
 
         ShippingCharge.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        ShippingCharge.SetLoadFields("Shopify Shipping Line Id");
         if ShippingCharge.FindSet() then
             repeat
                 GatherTaxLines(ShippingCharge."Shopify Shipping Line Id", TaxLinesArray, MatchedJurisdictions);
@@ -77,6 +80,7 @@ codeunit 30471 "Shpfy TMA Matcher"
             exit(false);
 
         // Gather all Tax Jurisdictions
+        TaxJurisdiction.SetLoadFields(Code, Description);
         if TaxJurisdiction.FindSet() then
             repeat
                 Clear(JurisdictionObj);
@@ -203,10 +207,10 @@ codeunit 30471 "Shpfy TMA Matcher"
                 // injection/obfuscation attempt). Do NOT create or assign anything: leave the line
                 // unmatched and record that the match is incomplete so the order is held for review.
                 HasUnresolvedLine := true;
-                Session.LogMessage('0000UNR', StrSubstNo(UnresolvedTaxLineMsg, TaxLineId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+                Session.LogMessage('0000UNR', UnresolvedTaxLineMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), TaxLineIdDimTok, TaxLineId);
             end else
                 if (JurisdictionCode = '') or ((Confidence = 'low') and not Shop."Auto Create Tax Jurisdictions") then
-                    Session.LogMessage('0000UMP', StrSubstNo(SkippedLowConfidenceMsg, TaxLineId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName())
+                    Session.LogMessage('0000UMP', SkippedLowConfidenceMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), TaxLineIdDimTok, TaxLineId)
                 else begin
                     // Parse tax line ID (format: ParentId-LineNo)
                     Parts := TaxLineId.Split('-');
@@ -417,11 +421,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         // A Tax Detail is keyed by jurisdiction + tax group + tax type + effective date. Adopt
         // Shopify's rate on the order's document date: modify a bracket that already exists on that
         // exact date, otherwise seed a new one. Later brackets (if any) are left untouched.
-        TaxDetail.SetRange("Tax Jurisdiction Code", TaxJurisdiction.Code);
-        TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
-        TaxDetail.SetRange("Tax Type", TaxDetail."Tax Type"::"Sales and Use Tax");
-        TaxDetail.SetRange("Effective Date", OrderHeader."Document Date");
-        if TaxDetail.FindFirst() then begin
+        if TaxDetail.Get(TaxJurisdiction.Code, TaxGroupCode, TaxDetail."Tax Type"::"Sales and Use Tax", OrderHeader."Document Date") then begin
             TaxDetail."Tax Below Maximum" := OrderTaxLine."Rate %";
             TaxDetail.Modify(true);
         end else
@@ -520,6 +520,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         OrderTaxLine: Record "Shpfy Order Tax Line";
     begin
         OrderTaxLine.SetRange("Parent Id", ParentId);
+        OrderTaxLine.SetLoadFields("Tax Jurisdiction Code", Title, "Rate %", "Channel Liable");
         if OrderTaxLine.FindSet() then
             repeat
                 if OrderTaxLine."Tax Jurisdiction Code" = '' then

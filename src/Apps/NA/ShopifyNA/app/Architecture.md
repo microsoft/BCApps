@@ -379,12 +379,12 @@ The tax config fields carry their defaults as field `InitValue`s (`Auto Create T
 
 | Event ID | Level | Location | Trigger |
 |----------|-------|----------|---------|
-| 0000UMF | Normal | Events | Order held for review due to a rate conflict |
+| 0000UMF | Warning | Events | Order held for review due to a rate conflict |
 | 0000UMG | Normal | Events | Tax Match Applied marker set on Order Header |
 | 0000UMH | Normal | Events | Tax lines matched (match successful) |
-| 0000UMI | Normal | Events | Sales Document creation blocked pending tax match review |
+| 0000UMI | Warning | Events | Sales Document creation blocked pending tax match review |
 | 0000UMJ | Normal | Events | Tax Match Applied marker propagated to Sales Header |
-| 0000UMK | Normal | Events | Match starting for order |
+| 0000UMK | Normal (ExtensionPublisher scope) | Events | Match starting for order |
 | 0000UML | Uptake: Used | Matcher | MatchTaxLines called |
 | 0000UMM | Error | Matcher | AOAI call failed (status code + error) |
 | 0000UMN | Error | Matcher | No function call in LLM response |
@@ -403,9 +403,10 @@ The tax config fields carry their defaults as field `InitValue`s (`Auto Create T
 | 0000UN1 | Uptake: Used | Activity Log | Per-tax-area entry written |
 | 0000UN7 | Usage | Notify | User undid an approval (order held for review again) |
 | 0000UNP | Usage | Order Tax Lines Part | Reviewer clicked **Use Shopify Rate** — adopted Shopify's rate into a Tax Detail |
-| 0000UNR | Normal | Matcher | Tax line unresolved (model returned `UNKNOWN`) — left unmatched for review |
-| 0000UNT | Normal | Events | Order held for review due to an unresolved (`UNKNOWN`) tax line |
+| 0000UNR | Warning | Matcher | Tax line unresolved (model returned `UNKNOWN`) — left unmatched for review |
+| 0000UNT | Warning | Events | Order held for review due to an unresolved (`UNKNOWN`) tax line |
 | 0000UNV | Warning | Events | Guardrail/security prompt unavailable from Key Vault — matching skipped, order proceeds via the normal tax path |
+| 0000UN8 | Uptake: Discovered | Shop Card | User opened the shop configuration surface where the Tax Matching Agent settings live |
 
 ## Test App
 
