@@ -11,7 +11,6 @@ using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using System.Utilities;
 
 codeunit 139799 "E-Doc. Helper Test"
 {
