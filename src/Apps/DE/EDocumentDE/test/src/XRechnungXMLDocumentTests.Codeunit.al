@@ -1675,6 +1675,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO 646443] Customer GLN is used when the ship-to address GLN is blank
         Initialize();
 
@@ -1685,8 +1686,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] Delivery location uses the customer GLN with schemeID 0088
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, DeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, DeliveryLocationIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, DeliveryLocationIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, DeliveryLocationIdTok + '/@schemeID'));
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, DeliveryLocationIdTok);
     end;
 
     [Test]
@@ -1695,6 +1695,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO 646443] Customer GLN is not exported in XRechnung format when GLN use is disabled
         Initialize();
 
@@ -1705,9 +1706,9 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] Customer and delivery GLN identifiers are not exported
-        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, CustomerPartyIdTok), StrSubstNo(UnexpectedNodeErr, CustomerPartyIdTok));
-        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, CustomerLegalEntityIdTok), StrSubstNo(UnexpectedNodeErr, CustomerLegalEntityIdTok));
-        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, DeliveryLocationIdTok), StrSubstNo(UnexpectedNodeErr, DeliveryLocationIdTok));
+        VerifyNodeDoesNotExist(TempXMLBuffer, CustomerPartyIdTok);
+        VerifyNodeDoesNotExist(TempXMLBuffer, CustomerLegalEntityIdTok);
+        VerifyNodeDoesNotExist(TempXMLBuffer, DeliveryLocationIdTok);
     end;
 
     [Test]
@@ -1716,6 +1717,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO 646443] Sell-to GLN identifies the customer party and delivery
         Initialize();
 
@@ -1725,10 +1727,10 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] Customer party and delivery use sell-to GLN
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerPartyIdTok), StrSubstNo(IncorrectValueErr, CustomerPartyIdTok));
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CustomerLegalEntityIdTok));
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, DeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, DeliveryLocationIdTok));
+        // [THEN] Customer party and delivery use sell-to GLN with schemeID 0088
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, CustomerPartyIdTok);
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, CustomerLegalEntityIdTok);
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, DeliveryLocationIdTok);
     end;
 
     [Test]
@@ -2471,6 +2473,17 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
         TempXMLBuffer.LoadFromStream(FileInStream);
+    end;
+
+    local procedure VerifyGLNIdentifier(ExpectedGLN: Code[13]; var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    begin
+        Assert.AreEqual(ExpectedGLN, GetNodeByPathWithError(TempXMLBuffer, XPath), StrSubstNo(IncorrectValueErr, XPath));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, XPath, 'schemeID'), StrSubstNo(IncorrectValueErr, XPath + '/@schemeID'));
+    end;
+
+    local procedure VerifyNodeDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    begin
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, XPath), StrSubstNo(UnexpectedNodeErr, XPath));
     end;
 
     local procedure VerifyHeaderData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);

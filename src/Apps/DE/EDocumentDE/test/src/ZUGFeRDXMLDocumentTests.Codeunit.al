@@ -297,6 +297,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD format
         Initialize();
 
@@ -307,10 +308,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] Buyer and ship-to GlobalID contain the customer GLN with schemeID 0088
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok + '/@schemeID'));
-        Assert.AreEqual(ShipToGLN(), GetNodeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok + '/@schemeID'));
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, BuyerGlobalIdTok);
+        VerifyGLNIdentifier(ShipToGLN(), TempXMLBuffer, ShipToGlobalIdTok);
     end;
 
     [Test]
@@ -319,6 +318,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO 646443] Customer GLN is not exported in ZUGFeRD format when GLN use is disabled
         Initialize();
 
@@ -329,8 +329,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] Buyer and ship-to GLN identifiers are not exported
-        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, BuyerGlobalIdTok), StrSubstNo(UnexpectedNodeErr, BuyerGlobalIdTok));
-        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, ShipToGlobalIdTok), StrSubstNo(UnexpectedNodeErr, ShipToGlobalIdTok));
+        VerifyNodeDoesNotExist(TempXMLBuffer, BuyerGlobalIdTok);
+        VerifyNodeDoesNotExist(TempXMLBuffer, ShipToGlobalIdTok);
     end;
 
     [Test]
@@ -935,6 +935,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD credit memo format
         Initialize();
 
@@ -945,10 +946,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
         // [THEN] Buyer and ship-to GlobalID contain the customer GLN with schemeID 0088
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok + '/@schemeID'));
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok + '/@schemeID'));
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, BuyerGlobalIdTok);
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, ShipToGlobalIdTok);
     end;
 
     [Test]
@@ -2588,6 +2587,17 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
+    end;
+
+    local procedure VerifyGLNIdentifier(ExpectedGLN: Code[13]; var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    begin
+        Assert.AreEqual(ExpectedGLN, GetNodeByPathWithError(TempXMLBuffer, XPath), StrSubstNo(IncorrectValueErr, XPath));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, XPath, 'schemeID'), StrSubstNo(IncorrectValueErr, XPath + '/@schemeID'));
+    end;
+
+    local procedure VerifyNodeDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    begin
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, XPath), StrSubstNo(UnexpectedNodeErr, XPath));
     end;
 
     local procedure VerifyHeaderData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
