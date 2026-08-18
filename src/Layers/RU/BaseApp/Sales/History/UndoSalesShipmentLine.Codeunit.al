@@ -89,7 +89,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         Text059: Label '%1 %2 %3', Comment = '%1 = SalesShipmentLine."Document No.". %2 = SalesShipmentLine.FIELDCAPTION("Line No."). %3 = SalesShipmentLine."Line No.". This is used in a progress window.';
 #pragma warning restore AA0074
         AlreadyReversedErr: Label 'This shipment has already been reversed.';
-        NoLinesToReverseErr: Label 'There are no lines with quantity to reverse.';
+        NoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
         InvoiceCancelledQst: Label 'The quantity to undo might differ from the original shipment because the invoice was cancelled. Do you want to proceed with the undo?';
 
     /// <summary>
@@ -128,6 +128,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         OnCodeOnAfterSalesShptLineSetFilters(SalesShipmentLine, UndoSalesShptLineParams."Hide Dialog");
         if SalesShipmentLine.IsEmpty() then
             Error(NoLinesToReverseErr);
+
         SalesShipmentLine.FindFirst();
         repeat
             if not UndoSalesShptLineParams."Hide Dialog" then
@@ -250,6 +251,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         ItemApplicationEntry.SetRange("Cost Application", true);
         ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Applies-to Entry");
         ItemApplicationEntry.SetRange("Outbound Item Entry No.", ItemLedgerEntry."Entry No.");
+        OnUnApplyDropShipmentOnBeforeFindItemApplicationEntry(ItemApplicationEntry, ItemLedgerEntry);
         ItemApplicationEntry.FindFirst();
 
         ItemJnlPostLine.UnApplyDropShipment(ItemApplicationEntry, RelevantUndoShipmentLedgerEntryNo);
@@ -1122,6 +1124,16 @@ codeunit 5815 "Undo Sales Shipment Line"
     /// <param name="UndoSalesShptLineParams">The undo parameters being used.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteRelatedItems(var SalesShipmentLine: Record "Sales Shipment Line"; UndoSalesShptLineParams: Record "Undo Sales Shpt. Line Params")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before finding the item application entry for a drop shipment being unapplied.
+    /// </summary>
+    /// <param name="ItemApplicationEntry">The item application entry with applied filters.</param>
+    /// <param name="ItemLedgerEntry">The item ledger entry for the drop shipment.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUnApplyDropShipmentOnBeforeFindItemApplicationEntry(var ItemApplicationEntry: Record "Item Application Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
 }

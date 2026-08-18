@@ -16,6 +16,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -58,6 +59,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportXRechnungDocument: Codeunit "Export XRechnung Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
+        UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -343,6 +345,73 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created with 2 invoice lines
         VerifyInvoiceLine(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatIncludesGTIN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        GTIN: Code[14];
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung item identification contains the item's GTIN and GS1 scheme
+        Initialize();
+        GTIN := '4006381333931';
+
+        // [GIVEN] A posted item invoice where the item has a GTIN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SetItemGTIN(SalesInvoiceHeader, GTIN);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification contains the GTIN with scheme 0160
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatOmitsBlankGTIN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung item identification omits a blank GTIN
+        Initialize();
+
+        // [GIVEN] A posted item invoice where the item has no GTIN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification does not exist
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatOmitsGTINForNonItemLine()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung item identification omits GTIN for a non-item line
+        Initialize();
+
+        // [GIVEN] A posted invoice with a non-item line
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::"G/L Account", false));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification does not exist
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
     [Test]
@@ -763,6 +832,73 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created
         VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatIncludesGTIN()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        GTIN: Code[14];
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung credit-memo item identification contains the item's GTIN and GS1 scheme
+        Initialize();
+        GTIN := '4006381333931';
+
+        // [GIVEN] A posted item credit memo where the item has a GTIN
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        SetItemGTIN(SalesCrMemoHeader, GTIN);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification contains the GTIN with scheme 0160
+        Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.AreEqual(GTIN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('0160', GetAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatOmitsBlankGTIN()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung credit-memo item identification omits a blank GTIN
+        Initialize();
+
+        // [GIVEN] A posted item credit memo where the item has no GTIN
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification does not exist
+        Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatOmitsGTINForNonItemLine()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported XRechnung credit-memo item identification omits GTIN for a non-item line
+        Initialize();
+
+        // [GIVEN] A posted credit memo with a non-item line
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::"G/L Account", false));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Standard item identification does not exist
+        Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
     [Test]
@@ -1976,18 +2112,51 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesLine: Record "Sales Line";
         UnitOfMeasure: Record "Unit of Measure";
+        LineNo: Code[20];
     begin
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         UnitOfMeasure."International Standard Code" := LibraryUtility.GenerateGUID();
         UnitOfMeasure.Modify(true);
+        if LineType = LineType::"G/L Account" then
+            LineNo := LibraryERM.CreateGLAccountWithSalesSetup()
+        else
+            LineNo := LibraryInventory.CreateItemNo();
         LibrarySales.CreateSalesLine(
-        SalesLine, SalesHeader, LineType, LibraryInventory.CreateItemNo(), LibraryRandom.RandDecInRange(10, 20, 5));
+        SalesLine, SalesHeader, LineType, LineNo, LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
         SalesLine.Validate("Unit of Measure", UnitOfMeasure.Code);
         SalesLine.Validate("Tax Category", LibraryRandom.RandText(2));
         if LineDiscount then
             SalesLine.Validate("Line Discount %", LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Modify(true);
+    end;
+
+    local procedure SetItemGTIN(SalesInvoiceHeader: Record "Sales Invoice Header"; GTIN: Code[14])
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.FindFirst();
+        SetItemGTIN(SalesInvoiceLine."No.", GTIN);
+    end;
+
+    local procedure SetItemGTIN(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; GTIN: Code[14])
+    var
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.FindFirst();
+        SetItemGTIN(SalesCrMemoLine."No.", GTIN);
+    end;
+
+    local procedure SetItemGTIN(ItemNo: Code[20]; GTIN: Code[14])
+    var
+        Item: Record Item;
+    begin
+        Item.Get(ItemNo);
+        Item.Validate(GTIN, GTIN);
+        Item.Modify(true);
     end;
 
     local procedure CreateServiceDocumentWithLine(): Code[20]
@@ -2915,6 +3084,14 @@ codeunit 13918 "XRechnung XML Document Tests"
         if TempXMLBuffer.FindFirst() then
             exit(TempXMLBuffer.Value);
         Error('Node not found: %1', XPath);
+    end;
+
+    local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        exit(TempXMLBuffer.FindFirst());
     end;
 
     local procedure GetLastNodeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
