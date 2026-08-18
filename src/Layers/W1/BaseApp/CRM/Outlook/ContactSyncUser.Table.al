@@ -111,7 +111,7 @@ table 7121 "Contact Sync User"
             exit(true);
         IsApproved := Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) = LowerCase(DeltaUrlToValidate);
         if not IsApproved then
-            Session.LogMessage('0000V1Y', StrSubstNo(DeltaUrlValidationTelemetryMsg, DeltaUrlToValidate, IsApproved, InvalidDeltaUrlErr), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
+            Session.LogMessage('0000V1Y', StrSubstNo(DeltaUrlValidationTelemetryMsg, DeltaUrlToValidate, IsApproved, InvalidDeltaUrlErr), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
         exit(IsApproved);
     end;
 
