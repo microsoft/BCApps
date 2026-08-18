@@ -60,6 +60,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
+        ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -294,14 +296,12 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
-        ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
     begin
         // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD format
         Initialize();
 
         // [GIVEN] Create and post a sales invoice for a customer that uses GLN in electronic documents
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN()));
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), true));
 
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
@@ -311,6 +311,26 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, BuyerGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, BuyerGlobalIdTok + '/@schemeID'));
         Assert.AreEqual(ShipToGLN(), GetNodeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok));
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, ShipToGlobalIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, ShipToGlobalIdTok + '/@schemeID'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatDoesNotExportCustomerGLNWhenDisabled();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 646443] Customer GLN is not exported in ZUGFeRD format when GLN use is disabled
+        Initialize();
+
+        // [GIVEN] A customer and ship-to address with GLNs, but GLN use in electronic documents disabled
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Buyer and ship-to GLN identifiers are not exported
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, BuyerGlobalIdTok), StrSubstNo(UnexpectedNodeErr, BuyerGlobalIdTok));
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, ShipToGlobalIdTok), StrSubstNo(UnexpectedNodeErr, ShipToGlobalIdTok));
     end;
 
     [Test]
@@ -2204,24 +2224,24 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(Customer."No.");
     end;
 
-    local procedure CreateCustomerWithGLN(GLN: Code[13]): Code[20]
+    local procedure CreateCustomerWithGLN(GLN: Code[13]; UseGLNInElectronicDocument: Boolean): Code[20]
     var
         Customer: Record Customer;
     begin
         Customer.Get(CreateCustomer());
         Customer.GLN := GLN;
-        Customer."Use GLN in Electronic Document" := true;
+        Customer."Use GLN in Electronic Document" := UseGLNInElectronicDocument;
         Customer.Modify(true);
         exit(Customer."No.");
     end;
 
-    local procedure CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(GLN: Code[13]; NewShipToGLN: Code[13]): Code[20]
+    local procedure CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(GLN: Code[13]; NewShipToGLN: Code[13]; UseGLNInElectronicDocument: Boolean): Code[20]
     var
         SalesHeader: Record "Sales Header";
         ShipToAddress: Record "Ship-to Address";
         CustomerNo: Code[20];
     begin
-        CustomerNo := CreateCustomerWithGLN(GLN);
+        CustomerNo := CreateCustomerWithGLN(GLN, UseGLNInElectronicDocument);
         CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
         LibrarySales.CreateShipToAddress(ShipToAddress, CustomerNo);
         ShipToAddress.GLN := NewShipToGLN;

@@ -539,12 +539,14 @@ codeunit 13916 "Export XRechnung Document"
         Customer: Record Customer;
         ShipToAddress: Record "Ship-to Address";
     begin
+        if not Customer.Get(CustomerNo) then
+            exit('');
+        if not Customer."Use GLN in Electronic Document" then
+            exit('');
         if ShipToAddress.Get(CustomerNo, ShipToCode) then
             if ShipToAddress.GLN <> '' then
                 exit(ShipToAddress.GLN);
-        if Customer.Get(CustomerNo) then
-            if Customer."Use GLN in Electronic Document" then
-                exit(Customer.GLN);
+        exit(Customer.GLN);
     end;
 
     local procedure InsertAddress(var RootElement: XmlElement; ElementName: Text; Address: Record "Standard Address");

@@ -40,6 +40,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         FeatureNameTok: Label 'E-document ZUGFeRD Format', Locked = true;
         StartEventNameTok: Label 'E-document ZUGFeRD export started', Locked = true;
         EndEventNameTok: Label 'E-document ZUGFeRD export completed', Locked = true;
+        GLNSchemeIDTok: Label '0088', Locked = true;
         XmlNamespaceRSM: Text;
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
@@ -612,7 +613,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         // Seller
         SellerTradePartyElement := XmlElement.Create('SellerTradeParty', XmlNamespaceRAM);
         if CompanyInformation."Use GLN in Electronic Document" and (CompanyInformation.GLN <> '') then begin
-            SellerIDAttr := XmlAttribute.Create('schemeID', '0088');
+            SellerIDAttr := XmlAttribute.Create('schemeID', GLNSchemeIDTok);
             SellerTradePartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, SellerIDAttr, CompanyInformation.GLN));
         end;
         SellerTradePartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, CompanyInformation.Name));
@@ -656,7 +657,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         // Buyer
         BuyerTradePartyElement := XmlElement.Create('BuyerTradeParty', XmlNamespaceRAM);
         if CustomerGLN <> '' then
-            BuyerTradePartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', '0088'), CustomerGLN));
+            BuyerTradePartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN));
         BuyerTradePartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, CustomerName));
 
         // Buyer Contact
@@ -765,12 +766,16 @@ codeunit 13917 "Export ZUGFeRD Document"
         ShipToAddress: Record "Ship-to Address";
         DeliveryGLN: Code[13];
     begin
+        if not Customer.Get(CustomerNo) then
+            exit;
+        if not Customer."Use GLN in Electronic Document" then
+            exit;
         if ShipToAddress.Get(CustomerNo, ShipToCode) then
             DeliveryGLN := ShipToAddress.GLN;
-        if (DeliveryGLN = '') and Customer.Get(CustomerNo) then
+        if DeliveryGLN = '' then
             DeliveryGLN := Customer.GLN;
         if DeliveryGLN <> '' then
-            ShipToPartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', '0088'), DeliveryGLN));
+            ShipToPartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), DeliveryGLN));
     end;
 
     local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesInvHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
