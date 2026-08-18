@@ -17,7 +17,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Document;
 
-codeunit 99001541 "Subc. Transfer WIP Posting"
+codeunit 20541 "Subc. Transfer WIP Posting"
 {
 
     Permissions = TableData "Subcontractor WIP Ledger Entry" = RIMD;
