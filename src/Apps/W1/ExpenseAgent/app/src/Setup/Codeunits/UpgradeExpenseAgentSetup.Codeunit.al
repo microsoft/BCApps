@@ -14,8 +14,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     Subtype = Upgrade;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Privacy Notice" = rd,
-                  tabledata "Privacy Notice Approval" = rd;
+    Permissions = tabledata "Privacy Notice" = rd;
 
     trigger OnUpgradePerDatabase()
     var
@@ -92,17 +91,13 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     local procedure UpgradeRemoveLegacyPrivacyNotice()
     var
         PrivacyNotice: Record "Privacy Notice";
-        PrivacyNoticeApproval: Record "Privacy Notice Approval";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if UpgradeTag.HasUpgradeTag(GetRemoveLegacyPrivacyNoticeUpgradeTag()) then
             exit;
 
-        PrivacyNoticeApproval.SetRange(ID, LegacyPrivacyNoticeIdTok);
-        PrivacyNoticeApproval.DeleteAll();
-
         if PrivacyNotice.Get(LegacyPrivacyNoticeIdTok) then
-            PrivacyNotice.Delete();
+            if PrivacyNotice.Delete() then;
 
         UpgradeTag.SetUpgradeTag(GetRemoveLegacyPrivacyNoticeUpgradeTag());
     end;
