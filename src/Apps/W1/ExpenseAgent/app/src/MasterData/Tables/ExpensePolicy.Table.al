@@ -124,7 +124,7 @@ table 7092 "Expense Policy"
         if CategoryCode <> '' then
             ExpenseReportLine.SetRange("Expense Category", CategoryCode);
         ExpenseReportLine.SetFilter("Policies Evaluated At", '<>%1', 0DT);
-        if ExpenseReportLine.FindSet() then
+        if ExpenseReportLine.FindSet(true) then
             repeat
                 ExpenseReportLine.InvalidatePolicyEvaluation();
             until ExpenseReportLine.Next() = 0;

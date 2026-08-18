@@ -1225,7 +1225,7 @@ table 6907 "Expense Report Line"
         exit(HideValidationDialog);
     end;
 
-    procedure GetPolicyStatus(): Enum "Expense Policy Status"
+    internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
     begin
         // A change made after the line was evaluated always needs a recheck - even a change that
         // removed the last applicable policy (deleting a policy must surface as Needs Recheck, not
@@ -1291,7 +1291,7 @@ table 6907 "Expense Report Line"
         exit(not ExpensePolicy.IsEmpty());
     end;
 
-    procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)
+    internal procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)
     var
         DocumentNo: Code[20];
         LineNo: Integer;

@@ -312,6 +312,14 @@ table 6930 "Expense Agent Setup"
             Caption = 'Evaluate policies';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. Enabling this consumes additional AI credits.';
+
+            trigger OnValidate()
+            var
+                FeatureTelemetry: Codeunit "Feature Telemetry";
+            begin
+                if "Evaluate Policies" and (not xRec."Evaluate Policies") then
+                    FeatureTelemetry.LogUptake('0000V3F', GetFeatureName(), Enum::"Feature Uptake Status"::Used);
+            end;
         }
         field(34; "Expense User Nos."; Code[20])
         {

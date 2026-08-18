@@ -581,6 +581,29 @@ codeunit 148300 "Library - Expense"
         ExpenseApprovalSetup.Insert();
     end;
 
+    internal procedure CreateExpensePolicy(var ExpensePolicy: Record "Expense Policy"; ExpenseCategoryCode: Code[20]; PolicyText: Text[2048])
+    begin
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategoryCode;
+        ExpensePolicy."Policy Text" := PolicyText;
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+    end;
+
+    internal procedure CreateExpensePolicyFlag(var ExpensePolicyFlag: Record "Expense Policy Flag"; ExpenseReportLine: Record "Expense Report Line"; ExpensePolicy: Record "Expense Policy"; FlagDescription: Text[2048]; Compliant: Boolean)
+    begin
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyFlag.Reason := FlagDescription;
+        ExpensePolicyFlag.Compliant := Compliant;
+        ExpensePolicyFlag.Insert(true);
+    end;
+
     procedure CleanUpBeforeTesting()
     var
         ExpenseGroup: Record "Expense Group";

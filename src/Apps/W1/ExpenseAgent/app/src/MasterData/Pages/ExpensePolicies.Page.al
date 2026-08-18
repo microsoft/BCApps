@@ -12,6 +12,8 @@ page 7127 "Expense Policies"
     ApplicationArea = All;
     UsageCategory = Lists;
     DelayedInsert = true;
+    AboutTitle = 'About expense policies';
+    AboutText = 'Define the policies that AI uses to evaluate expense report lines. Policies can apply to a specific expense category or all categories, and enabled policies must be evaluated before an expense report is submitted.';
 
     layout
     {

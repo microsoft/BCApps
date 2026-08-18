@@ -500,7 +500,7 @@ table 6916 "Posted Expense Report Line"
         ExpenseCommentSheet.RunModal();
     end;
 
-    procedure GetPolicyStatus(): Enum "Expense Policy Status"
+    internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
     begin
         exit(Rec."Policy Status At Posting");
     end;
