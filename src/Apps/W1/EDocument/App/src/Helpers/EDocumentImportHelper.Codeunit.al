@@ -564,7 +564,7 @@ codeunit 6109 "E-Document Import Helper"
             exit('');
 
         Vendor.SetLoadFields("No.");
-        Vendor.SetRange("Registration No.", RegistrationNo);
+        Vendor.SetRange("Registration Number", RegistrationNo);
         if Vendor.FindFirst() then
             exit(Vendor."No.");
     end;

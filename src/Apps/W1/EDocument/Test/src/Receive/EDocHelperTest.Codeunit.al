@@ -70,7 +70,7 @@ codeunit 139799 "E-Doc. Helper Test"
         // [SCENARIO 646793] A vendor can be resolved by Registration No. when other identifiers are unavailable.
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
         LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Validate("Registration No.", RegistrationNo);
+        Vendor.Validate("Registration Number", RegistrationNo);
         Vendor.Modify(true);
 
         Assert.AreEqual(Vendor."No.", EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should be matched by Registration No.');
