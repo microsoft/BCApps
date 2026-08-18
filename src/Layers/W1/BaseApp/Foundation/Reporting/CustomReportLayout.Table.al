@@ -19,10 +19,11 @@ table 9650 "Custom Report Layout"
     ObsoleteReason = 'Replaced by system tables "Tenant Report Layout" and "Report Layout Selection". This table will be removed in a future version.';
 #if not CLEAN29
     ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 #else
     ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
 #endif
-    ObsoleteTag = '29.0';
 #if not CLEAN28
 #pragma warning disable AL0432
     DrillDownPageID = "Custom Report Layouts";

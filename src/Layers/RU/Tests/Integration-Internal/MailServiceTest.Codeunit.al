@@ -1,4 +1,3 @@
-#pragma warning disable AL0432, AS0105
 codeunit 139111 "Mail Service Test"
 {
     Subtype = Test;
@@ -395,6 +394,7 @@ codeunit 139111 "Mail Service Test"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -411,6 +411,7 @@ codeunit 139111 "Mail Service Test"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#pragma warning restore AL0432, AS0105
 #endif
 
     local procedure CreateEmailPdfDefaultDocumentSendingProfile();
@@ -577,5 +578,4 @@ codeunit 139111 "Mail Service Test"
         ActiveDirectoryMockEvents.Enable();
     end;
 }
-#pragma warning restore AL0432, AS0105
 

@@ -57,7 +57,6 @@ using System.IO;
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
-#pragma warning disable AL0432, AS0105
 codeunit 136101 "Service Orders"
 {
     EventSubscriberInstance = Manual;
@@ -8178,6 +8177,7 @@ codeunit 136101 "Service Orders"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -8194,6 +8194,7 @@ codeunit 136101 "Service Orders"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#pragma warning restore AL0432, AS0105
 #endif
 
     local procedure CreateShipmentMethod(var ShipmentMethod: Record "Shipment Method")
@@ -8543,4 +8544,3 @@ codeunit 136101 "Service Orders"
         ServiceOrder.Cancel().Invoke();
     end;
 }
-#pragma warning restore AL0432, AS0105

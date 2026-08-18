@@ -17,7 +17,6 @@ using System.Reflection;
 using System.Utilities;
 #endif
 
-#pragma warning disable AL0432, AS0105
 codeunit 148217 "Sustainability Report Tests"
 {
     Subtype = Test;
@@ -59,7 +58,9 @@ codeunit 148217 "Sustainability Report Tests"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         ExpectedCO2ePerUnit: Decimal;
         ExpectedTotalCO2e: Decimal;
@@ -127,7 +128,9 @@ codeunit 148217 "Sustainability Report Tests"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         ExpectedCO2ePerUnitCaption: Text;
         ExpectedTotalCO2eCaption: Text;
@@ -175,7 +178,9 @@ codeunit 148217 "Sustainability Report Tests"
         SustainabilitySetup: Record "Sustainability Setup";
         UnitOfMeasure: Record "Unit of Measure";
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Quantity: Decimal;
@@ -242,7 +247,9 @@ codeunit 148217 "Sustainability Report Tests"
     var
         UnitOfMeasure: Record "Unit of Measure";
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Quantity: Decimal;
@@ -323,6 +330,7 @@ codeunit 148217 "Sustainability Report Tests"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout"; ReportID: Integer)
     var
         ReportLayoutList: Record "Report Layout List";
@@ -355,6 +363,7 @@ codeunit 148217 "Sustainability Report Tests"
         CopyStream(OutStr, InStr);
         CustomReportLayout.Insert();
     end;
+#pragma warning restore AL0432, AS0105
 #endif
 
     local procedure CreateSustainabilityCategory(var CategoryCode: Code[20]; i: Integer)
@@ -502,4 +511,3 @@ codeunit 148217 "Sustainability Report Tests"
         StandardSalesInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-#pragma warning restore AL0432, AS0105

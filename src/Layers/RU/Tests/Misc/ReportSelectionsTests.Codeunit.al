@@ -304,7 +304,6 @@
 #endif
 
 #if not CLEAN27
-#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TestHTMLEmailBodyLoad()
@@ -425,7 +424,6 @@
           EmailAddress = CustomLayoutEmailTxt,
           StrSubstNo('Destination email address does not match expected address %1', CustomLayoutEmailTxt));
     end;
-#endif
 #endif
 
 #if not CLEAN29
