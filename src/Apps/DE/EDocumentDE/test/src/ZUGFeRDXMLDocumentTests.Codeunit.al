@@ -297,11 +297,11 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD format
         Initialize();
 
-        // [GIVEN] Create and post a sales invoice for a customer that uses GLN in electronic documents
+        // [GIVEN] Customer "C" uses a GLN in electronic documents and has a posted sales invoice
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), true));
 
         // [WHEN] Export ZUGFeRD Electronic Document.
@@ -320,28 +320,34 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         RegistrationNo: Text[20];
     begin
-        // [SCENARIO 646793] Supplier Registration No. is exported as the FC tax identifier when GLN and VAT ID are unavailable.
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] Supplier Registration No. is exported as the FC tax identifier when GLN and VAT ID are unavailable
         Initialize();
+
+        // [GIVEN] Company "C" has a Registration No. but no GLN or VAT ID
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
         SetCompanyRegistrationNo(RegistrationNo);
         SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
 
+        // [WHEN] Export ZUGFeRD electronic document
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
+        // [THEN] Seller tax identifier contains the Registration No. with FC tax scheme
         Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SellerTaxRegistrationTok), StrSubstNo(IncorrectValueErr, SellerTaxRegistrationTok));
         Assert.AreEqual('FC', GetAttributeByPathWithError(TempXMLBuffer, SellerTaxRegistrationTok, 'schemeID'), StrSubstNo(IncorrectValueErr, SellerTaxRegistrationTok + '/@schemeID'));
     end;
+
     [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatDoesNotExportCustomerGLNWhenDisabled();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO 646443] Customer GLN is not exported in ZUGFeRD format when GLN use is disabled
         Initialize();
 
-        // [GIVEN] A customer and ship-to address with GLNs, but GLN use in electronic documents disabled
+        // [GIVEN] Customer "C" and ship-to address "SA" have GLNs, but GLN use is disabled for "C"
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), false));
 
         // [WHEN] Export ZUGFeRD Electronic Document.
@@ -954,11 +960,11 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD credit memo format
         Initialize();
 
-        // [GIVEN] Create and post a sales credit memo for a customer that uses GLN in electronic documents
+        // [GIVEN] Customer "C" uses a GLN in electronic documents and has a posted sales credit memo
         SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoForCustomerWithGLN(CustomerGLN()));
 
         // [WHEN] Export ZUGFeRD Electronic Document.

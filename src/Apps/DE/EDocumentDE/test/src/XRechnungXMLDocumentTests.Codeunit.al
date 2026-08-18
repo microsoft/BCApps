@@ -1675,11 +1675,11 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO 646443] Customer GLN is used when the ship-to address GLN is blank
         Initialize();
 
-        // [GIVEN] A customer with GLN and a ship-to address without GLN
+        // [GIVEN] Customer "C" has a GLN and ship-to address "SA" has no GLN
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), '', true));
 
         // [WHEN] Export XRechnung Electronic Document.
@@ -1695,11 +1695,11 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO 646443] Customer GLN is not exported in XRechnung format when GLN use is disabled
         Initialize();
 
-        // [GIVEN] A customer and ship-to address with GLNs, but GLN use in electronic documents disabled
+        // [GIVEN] Customer "C" and ship-to address "SA" have GLNs, but GLN use is disabled for "C"
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), false));
 
         // [WHEN] Export XRechnung Electronic Document.
@@ -1717,11 +1717,11 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [AI test]
         // [SCENARIO 646443] Sell-to GLN identifies the customer party and delivery
         Initialize();
 
-        // [GIVEN] A posted sales invoice with different sell-to and bill-to customer GLNs
+        // [GIVEN] Posted sales invoice has different sell-to customer "C1" and bill-to customer "C2" GLNs
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithDifferentSellToAndBillToGLNs(CustomerGLN(), SupplierGLN()));
 
         // [WHEN] Export XRechnung Electronic Document.
@@ -1731,6 +1731,31 @@ codeunit 13918 "XRechnung XML Document Tests"
         VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, CustomerPartyIdTok);
         VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, CustomerLegalEntityIdTok);
         VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, DeliveryLocationIdTok);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifySupplierRegistrationNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        SupplierTaxSchemeTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme', Locked = true;
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] Supplier Registration No. is exported as the FC tax identifier when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] Company "C" has a Registration No. but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        SetCompanyRegistrationNo(RegistrationNo);
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export XRechnung electronic document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Supplier tax identifier contains the Registration No. with FC tax scheme
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+        Assert.AreEqual('FC', GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
     end;
 
     [Test]
@@ -2177,26 +2202,6 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CreateCustomerWithGLN(GLN, true));
         CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
-    end;
-
-    [Test]
-    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifySupplierRegistrationNo()
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        TempXMLBuffer: Record "XML Buffer" temporary;
-        SupplierTaxSchemeTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme', Locked = true;
-        RegistrationNo: Text[20];
-    begin
-        // [SCENARIO 646793] Supplier Registration No. is exported as the FC tax identifier when GLN and VAT ID are unavailable.
-        Initialize();
-        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
-        SetCompanyRegistrationNo(RegistrationNo);
-        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
-
-        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
-
-        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
-        Assert.AreEqual('FC', GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
     end;
 
     local procedure SetCompanyGLN(GLN: Code[13])

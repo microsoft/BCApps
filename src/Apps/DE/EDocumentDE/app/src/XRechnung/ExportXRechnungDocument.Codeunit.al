@@ -860,13 +860,12 @@ codeunit 13916 "Export XRechnung Document"
         TempCompanyAddress.CopyFromCompanyInformation(CompanyInformation);
         UpdateSellerAddressFromResponsibilityCenter(RespCenterCode, TempCompanyAddress);
         InsertAddress(PartyElement, 'PostalAddress', TempCompanyAddress);
-        if CompanyInformation."VAT Registration No." = '' then
+        if CompanyInformation."VAT Registration No." = '' then begin
             if CompanyInformation."Registration No." <> '' then
-                InsertPartyRegistrationNoTaxScheme(PartyElement, CompanyInformation."Registration No.")
-            else
-        else
+                InsertPartyRegistrationNoTaxScheme(PartyElement, CompanyInformation."Registration No.");
+        end else
             if not AllLinesNotSubjectToVAT then
-            InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
+                InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
         InsertPartyLegalEntity(PartyElement);
         InsertSupplierContact(SalespersonCode, PartyElement);
         AccountingSupplierPartyElement.Add(PartyElement);
