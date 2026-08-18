@@ -177,7 +177,7 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine.Validate("Expense User No.", Expense."Expense User No.");
         ExpenseReportLine.Validate("Expense Category", Expense."Expense Category");
         ExpenseReportLine.Validate("Expense Subcategory Code", Expense."Expense Subcategory");
-        ExpenseReportLine.Validate("Expense Location", Expense."Expense Location");
+        ExpenseReportLine.Validate("Expense Location", CopyStr(Expense."Expense Location", 1, 20));
         if Expense.Description <> '' then
             ExpenseReportLine.Validate(Description, Expense.Description);
         if ExpenseReportLine."Expense Subcategory Code" <> '' then
@@ -337,12 +337,12 @@ codeunit 6983 "Create Expense Report"
             ExpenseReportLineVATSpec.Source := ExpenseVATSpec.Source;
             ExpenseReportLineVATSpec.Confidence := ExpenseVATSpec.Confidence;
             ExpenseReportLineVATSpec."Source Spec Line No." := ExpenseVATSpec."Line No.";
-            ExpenseReportLineVATSpec.UpdateReimbursementAmounts();
             if ExpenseSubcategory.Get(ExpenseVATSpec."Expense Category", ExpenseVATSpec."Expense Subcategory") then
                 ExpenseReportLineVATSpec.Validate("Reclaim %", ExpenseSubcategory."Default VAT Reclaim %")
             else
                 if ExpenseCategory.Get(ExpenseVATSpec."Expense Category") then
                     ExpenseReportLineVATSpec.Validate("Reclaim %", ExpenseCategory."Default VAT Reclaim %");
+            ExpenseReportLineVATSpec.UpdateReimbursementAmounts();
             ExpenseReportLineVATSpec.Insert();
         until ExpenseVATSpec.Next() = 0;
 

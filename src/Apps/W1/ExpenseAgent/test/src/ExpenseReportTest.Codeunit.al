@@ -4523,7 +4523,7 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, CopyStr(ExpenseReportPage."No.".Value, 1, 20));
 
         // [GIVEN] Update "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(20));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(20), 1, 100));
         ExpenseReportLine.Modify();
 
         // [GIVEN] Enqueue Expense Sub Category Code, Quantity and Amount for Expense Itemization.
@@ -4740,7 +4740,7 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, CopyStr(ExpenseReportPage."No.".Value, 1, 20));
 
         // [GIVEN] Update "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(20));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(20), 1, 100));
         ExpenseReportLine.Modify();
 
         // [GIVEN] Create Expense Report Line Itemization with Refundable and Non-Refundable Expense Sub Category.
@@ -5165,7 +5165,7 @@ codeunit 148306 "Expense Report Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         Amount: Decimal;
         CurrencyCode: Code[10];
-        NewStartingPoint: Text;
+        NewStartingPoint: Text[50];
     begin
         // [SCENARIO 617013] Verify Starting Point can be updated in Expense Report Line When Expense Report is created from Expense and Starting Point is blank in Expense.
         Initialize();
@@ -5192,7 +5192,7 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, Expense);
 
         // [GIVEN] Generate New Starting Point.
-        NewStartingPoint := LibraryRandom.RandText(50);
+        NewStartingPoint := CopyStr(LibraryRandom.RandText(50), 1, 50);
 
         // [WHEN] Update "Starting Point" in Expense Report Line.
         ExpenseReportLine.Validate("Starting Point", NewStartingPoint);
@@ -5215,7 +5215,7 @@ codeunit 148306 "Expense Report Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         Amount: Decimal;
         CurrencyCode: Code[10];
-        NewEndingPoint: Text;
+        NewEndingPoint: Text[50];
     begin
         // [SCENARIO 617013] Verify Ending Point can be updated in Expense Report Line When Expense Report is created from Expense and Ending Point is blank in Expense.
         Initialize();
@@ -5242,7 +5242,7 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, Expense);
 
         // [GIVEN] Generate New Ending Point.
-        NewEndingPoint := LibraryRandom.RandText(50);
+        NewEndingPoint := CopyStr(LibraryRandom.RandText(50), 1, 50);
 
         // [WHEN] Update "Ending Point" in Expense Report Line.
         ExpenseReportLine.Validate("Ending Point", NewEndingPoint);
@@ -6207,8 +6207,8 @@ codeunit 148306 "Expense Report Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         Amount: Decimal;
         CurrencyCode: Code[10];
-        MerchantName: Text;
-        ExpenseExtDocNo: Text;
+        MerchantName: Text[100];
+        ExpenseExtDocNo: Text[30];
         OriginalMileage: Decimal;
     begin
         // [SCENARIO 616955] Verify that Merchant Name and Ext. Doc. No. must flow from Expense to Expense Report.
@@ -6223,8 +6223,8 @@ codeunit 148306 "Expense Report Test"
         // [GIVEN] Generate Random Amount.
         Amount := LibraryRandom.RandInt(100);
         OriginalMileage := LibraryRandom.RandDecInRange(50, 500, 2);
-        MerchantName := LibraryRandom.RandText(20);
-        ExpenseExtDocNo := LibraryRandom.RandText(20);
+        MerchantName := CopyStr(LibraryRandom.RandText(20), 1, 100);
+        ExpenseExtDocNo := CopyStr(LibraryRandom.RandText(20), 1, 30);
 
         // [GIVEN] Create Expense with Mileage.
         CreateExpense(Expense, true, CurrencyCode, Amount);
@@ -6375,9 +6375,9 @@ codeunit 148306 "Expense Report Test"
         CurrencyCode: Code[10];
         JobNo: Code[20];
         Amount: array[3] of Decimal;
-        LineDescription: Text;
-        AdditionalInformation: Text;
-        LineJustification: Text;
+        LineDescription: Text[100];
+        AdditionalInformation: Text[100];
+        LineJustification: Text[100];
         i: Integer;
     begin
         // [SCENARIO 580731] Verify the data of "Expense Report Details".
@@ -6779,10 +6779,10 @@ codeunit 148306 "Expense Report Test"
         ExpenseUserNo: Code[20];
         CurrencyCode: Code[10];
         Amount: Decimal;
-        MerchantName: Text;
-        LineDescription: Text;
-        AdditionalInformation: Text;
-        LineJustification: Text;
+        MerchantName: Text[100];
+        LineDescription: Text[100];
+        AdditionalInformation: Text[100];
+        LineJustification: Text[100];
         IsBillable: Boolean;
         var JobNo: Code[20])
     var
@@ -6901,19 +6901,19 @@ codeunit 148306 "Expense Report Test"
         ExpenseUserNo: Code[20];
         CurrencyCode: Code[10];
         var Amount: array[3] of Decimal;
-        LineDescription: Text;
-        AdditionalInformation: Text;
-        LineJustification: Text;
+        LineDescription: Text[100];
+        AdditionalInformation: Text[100];
+        LineJustification: Text[100];
         Refundable: Boolean;
         var JobNo: Code[20];
         NumberOfLines: Integer)
     var
         i: Integer;
-        MerchantName: Text;
+        MerchantName: Text[100];
     begin
         for i := 1 to NumberOfLines do begin
             Amount[i] := LibraryRandom.RandIntInRange(100, 200);
-            MerchantName := LibraryRandom.RandText(20);
+            MerchantName := CopyStr(LibraryRandom.RandText(20), 1, 100);
             CreateExpenseReportLine(ExpenseReportLine[i], ExpenseReportHeader, ExpenseUserNo, CurrencyCode, Amount[i], MerchantName, LineDescription, AdditionalInformation, LineJustification, Refundable, JobNo);
         end;
     end;
