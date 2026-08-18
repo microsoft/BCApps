@@ -64,7 +64,7 @@ codeunit 99000779 "Manufacturing Setup Notif."
     end;
 #if not CLEAN29
 
-    procedure ShowInstallSubcontractingAppNotification()
+    internal procedure ShowInstallSubcontractingAppNotification()
     var
         MyNotifications: Record "My Notifications";
         EnvironmentInformation: Codeunit "Environment Information";
@@ -86,14 +86,14 @@ codeunit 99000779 "Manufacturing Setup Notif."
         Notification.Send();
     end;
 
-    procedure InstallSubcontractingApp(Notification: Notification)
+    internal procedure InstallSubcontractingApp(Notification: Notification)
     var
         ExtensionManagement: Codeunit "Extension Management";
     begin
         ExtensionManagement.InstallMarketplaceExtension(GetSubcontractingAppId());
     end;
 
-    procedure DisableInstallSubcontractingAppNotification(Notification: Notification)
+    internal procedure DisableInstallSubcontractingAppNotification(Notification: Notification)
     var
         MyNotifications: Record "My Notifications";
     begin
@@ -110,7 +110,7 @@ codeunit 99000779 "Manufacturing Setup Notif."
         exit(SubcontractingAppIdTok);
     end;
 
-    procedure GetInstallSubcontractingAppNotificationID(): Guid
+    local procedure GetInstallSubcontractingAppNotificationID(): Guid
     begin
         exit('a3f6c1e4-9b2d-4f0a-8c5e-6d7b1f2a3c4d');
     end;
