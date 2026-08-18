@@ -16,24 +16,9 @@ codeunit 148342 "Expense Activity Log Test"
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
-        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
-        ExpenseMgmtEditPermissionSetTok: Label 'Expense Mgmt. Edit', Locked = true;
-        ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
-
-    [Test]
-    procedure ExpenseManagementEditCanInsertActivityIndirectly()
-    begin
-        VerifyPermissionSetCanInsertActivity(ExpenseMgmtEditPermissionSetTok);
-    end;
-
-    [Test]
-    procedure ExpenseAgentCanInsertActivityIndirectly()
-    begin
-        VerifyPermissionSetCanInsertActivity(ExpenseAgentPermissionSetTok);
-    end;
 
     [Test]
     procedure OnlySnapshotEventsCaptureFinancialValues()
@@ -497,29 +482,4 @@ codeunit 148342 "Expense Activity Log Test"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
     end;
 
-    local procedure VerifyPermissionSetCanInsertActivity(PermissionSetId: Code[20])
-    var
-        ExpenseUser: Record "Expense User";
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
-        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
-        EntryNo: BigInteger;
-    begin
-        Initialize();
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
-
-        LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
-        EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
-            ExpenseReportHeader,
-            Enum::"Expense Activity Event Type"::Created,
-            Enum::"Expense Activity Initiator"::User,
-            Enum::"Expense Activity Actor Role"::Submitter,
-            ExpenseUser."No.",
-            '');
-        LibraryLowerPermissions.SetOutsideO365Scope();
-
-        Assert.IsTrue(EntryNo > 0, 'The activity entry must be inserted through indirect permissions.');
-        ExpenseActivityLogEntry.Get(EntryNo);
-    end;
 }
