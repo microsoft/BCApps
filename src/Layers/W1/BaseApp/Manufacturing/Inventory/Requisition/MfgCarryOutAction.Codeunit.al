@@ -276,7 +276,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
             ProdOrderChoice::"Released & Print":
                 ProductionOrder.Status := ProductionOrder.Status::Released;
             else begin
-#if not CLEAN28
+#if not CLEAN29
                 IsHandled := false;
                 OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
 #if not CLEAN27
@@ -897,7 +897,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
     begin
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Obsolete('Condition for calling this event has been changed. Use event OnBeforeSetProdOrderStatus instead.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
