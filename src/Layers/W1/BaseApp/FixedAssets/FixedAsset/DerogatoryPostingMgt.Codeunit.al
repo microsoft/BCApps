@@ -30,6 +30,17 @@ codeunit 5869 "Derogatory Posting Mgt."
         exit(true);
     end;
 
+    procedure GetDerogatoryBook(SourceDepreciationBookCode: Code[10]; var DerogatoryDepreciationBook: Record "Depreciation Book"): Boolean
+    var
+        DerogatoryDepreciationBookCode: Code[10];
+    begin
+        Clear(DerogatoryDepreciationBook);
+        if not GetDerogatoryBookCode(SourceDepreciationBookCode, DerogatoryDepreciationBookCode) then
+            exit(false);
+
+        exit(DerogatoryDepreciationBook.Get(DerogatoryDepreciationBookCode));
+    end;
+
     procedure IsEligible(FANo: Code[20]; SourceDepreciationBookCode: Code[10]; PostingRole: Enum "Derogatory Posting Role"; var DerogatoryDepreciationBookCode: Code[10]): Boolean
     var
         FADepreciationBook: Record "FA Depreciation Book";

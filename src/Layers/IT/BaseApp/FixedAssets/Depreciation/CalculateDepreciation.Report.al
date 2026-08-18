@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Posting;
 using Microsoft.FixedAssets.Setup;
 using System.Environment;
 using System.Utilities;
@@ -523,8 +524,7 @@ report 5692 "Calculate Depreciation"
 
         if DeprBook."Derogatory Calc." <> '' then
             Error(Text10800, DeprBook.Code);
-        DeprBook2.SetRange("Derogatory Calc.", DeprBookCode);
-        if DeprBook2.Find('-') then;
+        if DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DeprBook2) then;
 
         if DeprUntilDate = 0D then
             Error(Text000, FAJnlLine.FieldCaption("FA Posting Date"));
@@ -561,6 +561,7 @@ report 5692 "Calculate Depreciation"
         DeprBook2: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         CalculateDepr: Codeunit "Calculate Depreciation";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         FAInsertGLAcc: Codeunit "FA Insert G/L Account";
         ErrorMessageMgt: Codeunit "Error Message Management";
         ErrorContextElement: Codeunit "Error Context Element";

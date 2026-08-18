@@ -516,8 +516,7 @@ report 5605 "Fixed Asset - Book Value 01"
         NumberOfTypes := 7;
         Clear(DerogDeprBook);
         DeprBook.Get(DeprBookCode);
-        DerogDeprBook.SetRange("Derogatory Calc.", DeprBookCode);
-        if DerogDeprBook.Find('-') then;
+        if DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook) then;
 
         if GroupTotals = GroupTotals::"FA Posting Group" then
             FAGenReport.SetFAPostingGroup("Fixed Asset", DeprBook.Code);
@@ -546,6 +545,7 @@ report 5605 "Fixed Asset - Book Value 01"
         FAPostingTypeSetup: Record "FA Posting Type Setup";
         DerogDeprBook: Record "Depreciation Book";
         FADeprBook2: Record "FA Depreciation Book";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         FAGenReport: Codeunit "FA General Report";
         BudgetDepreciation: Codeunit "Budget Depreciation";
         FAFilter: Text;
@@ -834,4 +834,3 @@ report 5605 "Fixed Asset - Book Value 01"
         DerogDeprBookInfo[5] := Format(FADeprBook2."Declining-Balance %");
     end;
 }
-

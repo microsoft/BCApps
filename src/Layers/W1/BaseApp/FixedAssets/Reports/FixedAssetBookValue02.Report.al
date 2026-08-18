@@ -6,6 +6,7 @@ namespace Microsoft.FixedAssets.Reports;
 
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Posting;
 using Microsoft.FixedAssets.Setup;
 
 report 5606 "Fixed Asset - Book Value 02"
@@ -1557,8 +1558,7 @@ report 5606 "Fixed Asset - Book Value 02"
         Clear(DerogDeprBook);
         FAGenReport.ValidateDates(StartingDate, EndingDate);
         DeprBook.Get(DeprBookCode);
-        DerogDeprBook.SetRange("Derogatory Calc.", DeprBookCode);
-        if DerogDeprBook.Find('-') then;
+        if DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook) then;
 
         if GroupTotals = GroupTotals::"FA Posting Group" then
             FAGenReport.SetFAPostingGroup("Fixed Asset", DeprBook.Code);
@@ -1583,6 +1583,7 @@ report 5606 "Fixed Asset - Book Value 02"
         FA: Record "Fixed Asset";
         DerogDeprBook: Record "Depreciation Book";
         FADeprBook2: Record "FA Depreciation Book";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         FAGenReport: Codeunit "FA General Report";
         BudgetDepreciation: Codeunit "Budget Depreciation";
         DeprBookCode: Code[10];
@@ -1907,4 +1908,3 @@ report 5606 "Fixed Asset - Book Value 02"
     begin
     end;
 }
-
