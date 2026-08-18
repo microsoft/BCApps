@@ -42,7 +42,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
     var
         IsHandled: Boolean;
     begin
-        PrintOrder := ProdOrderChoice = ProdOrderChoice::"Firm Planned & Print";
+        PrintOrder := ProdOrderChoice in [ProdOrderChoice::"Firm Planned & Print", ProdOrderChoice::"Released & Print"];
         OnCarryOutActionsFromProdOrderOnAfterCalcPrintOrder(PrintOrder, ProdOrderChoice.AsInteger());
 #if not CLEAN27
         CarryOutAction.RunOnCarryOutActionsFromProdOrderOnAfterCalcPrintOrder(PrintOrder, ProdOrderChoice.AsInteger());
@@ -155,9 +155,9 @@ codeunit 99000818 "Mfg. Carry Out Action"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         CreateProdOrderLines: Codeunit "Create Prod. Order Lines";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
         Direction: Option Forward,Backward;
         HeaderExist: Boolean;
-        IsHandled: Boolean;
     begin
         Item.Get(RequisitionLine."No.");
         ManufacturingSetup.Get();
@@ -176,6 +176,9 @@ codeunit 99000818 "Mfg. Carry Out Action"
                 ProdOrderChoice::"Firm Planned",
                 ProdOrderChoice::"Firm Planned & Print":
                     ManufacturingSetup.TestField("Firm Planned Order Nos.");
+                ProdOrderChoice::Released,
+                ProdOrderChoice::"Released & Print":
+                    ManufacturingSetup.TestField("Released Order Nos.");
                 else
                     OnInsertProductionOrderOnProdOrderChoiceCaseElse(ProdOrderChoice);
             end;
@@ -187,17 +190,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
 
             Item.CheckItemAndVariantForProdBlocked(RequisitionLine."No.", RequisitionLine."Variant Code", Item."Production Blocked"::Output);
             ProductionOrder.Init();
-            if ProdOrderChoice = ProdOrderChoice::"Firm Planned & Print" then
-                ProductionOrder.Status := ProductionOrder.Status::"Firm Planned"
-            else begin
-                IsHandled := false;
-                OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
-#if not CLEAN27
-                CarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
-#endif
-                if not IsHandled then
-                    ProductionOrder.Status := Enum::"Production Order Status".FromInteger(ProdOrderChoice.AsInteger());
-            end;
+            SetProdOrderStatus(ProductionOrder, ProdOrderChoice);
             ProductionOrder."No. Series" := ProductionOrder.GetNoSeriesCode();
             if ProductionOrder."No. Series" = RequisitionLine."No. Series" then
                 ProductionOrder."No." := RequisitionLine."Ref. Order No.";
@@ -251,6 +244,35 @@ codeunit 99000818 "Mfg. Carry Out Action"
 #if not CLEAN27
         CarryOutAction.RunOnAfterInsertProdOrder(ProductionOrder, ProdOrderChoice.AsInteger(), RequisitionLine);
 #endif
+
+        if ProductionOrder.Status = ProductionOrder.Status::Released then
+            ProdOrderStatusMgt.FlushProdOrder(ProductionOrder, ProductionOrder.Status, WorkDate());
+    end;
+
+    local procedure SetProdOrderStatus(var ProductionOrder: Record "Production Order"; ProdOrderChoice: Enum "Planning Create Prod. Order")
+    var
+        IsHandled: Boolean;
+    begin
+        OnBeforeSetProdOrderStatus(ProductionOrder, ProdOrderChoice, IsHandled);
+        if IsHandled then
+            exit;
+
+        case ProdOrderChoice of
+            ProdOrderChoice::"Firm Planned",
+            ProdOrderChoice::"Firm Planned & Print":
+                ProductionOrder.Status := ProductionOrder.Status::"Firm Planned";
+            ProdOrderChoice::Released,
+            ProdOrderChoice::"Released & Print":
+                ProductionOrder.Status := ProductionOrder.Status::Released;
+            else begin
+                OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
+#if not CLEAN27
+                CarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
+#endif
+                if not IsHandled then
+                    ProductionOrder.Status := Enum::"Production Order Status".FromInteger(ProdOrderChoice.AsInteger());
+            end;
+        end;
     end;
 
     procedure InsertProdOrderLine(RequisitionLine: Record "Requisition Line"; ProductionOrder: Record "Production Order"; Item: Record Item)
@@ -863,6 +885,11 @@ codeunit 99000818 "Mfg. Carry Out Action"
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetProdOrderStatus(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
     begin
     end;
 
