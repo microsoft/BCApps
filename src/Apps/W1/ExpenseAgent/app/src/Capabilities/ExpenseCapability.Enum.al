@@ -54,4 +54,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'VAT Specifications', Locked = true;
     }
+
+    /// <summary>
+    /// Expense activity history API is available.
+    /// </summary>
+    value(4; ActivityLog)
+    {
+        Caption = 'Activity Log', Locked = true;
+    }
 }
