@@ -76,9 +76,9 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, 
 
     procedure IsManualAgentTaskCreationEnabled(AgentUserId: Guid; ManualTaskType: Enum "Manual Agent Task Creation Type"): Boolean
     begin
-        if SOASetupCU.MustTreatAgentAsArchived(AgentUserId) then
-            exit(false);
-
+        // The platform calls this for every agent record it builds, and it already hides task creation for
+        // archived agents. Keep this free of agent lookups so building a record stays cheap, and let
+        // CreateManualAgentTask guard the operation itself.
         exit(ManualTaskType = ManualTaskType::Default);
     end;
 

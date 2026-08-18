@@ -180,15 +180,20 @@ codeunit 4400 "SOA Setup"
         if IsNullGuid(AgentUserSecurityID) then
             exit(false);
 
-        // Not every session can read the Agent table, and a setup record can outlive its agent.
+        // A setup record can outlive its agent and not every session can read the Agent table.
         // Counting and advisory callers treat both cases as not archived so they are never blocked.
         if not AgentRec.ReadPermission() then
             exit(false);
 
-        if not AgentRec.Get(AgentUserSecurityID) then
-            exit(false);
-
-        exit(Agent.IsArchived(AgentUserSecurityID));
+        // Agent is a virtual table. Get and FindSet make the platform build the record, which calls back
+        // into the agent metadata provider of this app, so those must never be used from code that the
+        // metadata provider can reach. Every filter below is backed by a field of the underlying agent
+        // data table, so asking whether such a record exists stays a single keyed database lookup and
+        // never builds an agent record.
+        AgentRec.SetRange("User Security ID", AgentUserSecurityID);
+        AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
+        AgentRec.SetRange(Substate, AgentRec.Substate::Archived);
+        exit(not AgentRec.IsEmpty());
     end;
 
     /// <summary>
