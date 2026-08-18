@@ -12,7 +12,7 @@ codeunit 7100 "Contact Sync User Subscriber"
     local procedure OnBeforeInsertContactSyncUser(var Rec: Record "Contact Sync User"; RunTrigger: Boolean)
     begin
         Rec.EnforceRecordOwnership();
-        Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url", true);
+        Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Contact Sync User", 'OnBeforeModifyEvent', '', false, false)]
@@ -22,10 +22,6 @@ codeunit 7100 "Contact Sync User Subscriber"
         if Session.GetExecutionContext() in [ExecutionContext::Install, ExecutionContext::Upgrade] then
             exit;
         Rec.EnforceRecordOwnershipOnModify(Rec."User ID");
-        Session.LogMessage('0000V20', StrSubstNo(OnBeforeModifyTelemetryMsg, 'Record user passed', Rec."Delta Url"), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
-        Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url", true);
+        Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url");
     end;
-
-    var
-        OnBeforeModifyTelemetryMsg: Label 'Contact Sync User OnBeforeModifyEvent was triggered. xRec Delta URL: %1; Rec Delta URL: %2', Locked = true, Comment = '%1 = existing record delta URL (xRec), %2 = incoming record delta URL (Rec)';
 }
