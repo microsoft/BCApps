@@ -83,12 +83,7 @@ Test-ApplicationManifests -Path $allPaths -ExpectedAppVersion "$($currentMajorMi
 # Test that we are not adding new uncategorized tests (W1 only) - Disabled for now
 # Test-ApplicationTestTypes -SourceCodePaths $w1OnlyPaths -Exceptions $allowedUncategorizedTests
 
-# Test that object IDs introduced by the current changes are within the allowed ranges (W1 only).
-# Object ID ranges reserved for partners/ISVs must not be consumed by first-party apps (see the
-# Subcontracting/LS Retail overlap incident). Only objects that are newly introduced relative to the
-# pull request's base commit are validated; objects that already exist in the base are never flagged,
-# even when their IDs are outside the allowed ranges. Test objects are validated separately (above)
-# and are therefore excluded from this check.
+# Test that newly introduced object IDs do not overlap with partner ranges.
 $AllowedObjectIdRanges = @(
     [PSCustomObject]@{ From = 1;        To = 49999 },
     [PSCustomObject]@{ From = 99000750; To = 99001048 }
