@@ -68,7 +68,7 @@ table 7121 "Contact Sync User"
         if "ID" = 0 then
             exit;
 
-        ValidateApprovedGraphDeltaUrl(NewDeltaUrl, true);
+        ValidateApprovedGraphDeltaUrl(NewDeltaUrl);
 
         "Delta Url" := CopyStr(NewDeltaUrl, 1, MaxStrLen("Delta Url"));
         if StrLen(NewDeltaUrl) > MaxStrLen("Delta Url") then
@@ -102,21 +102,17 @@ table 7121 "Contact Sync User"
             Error(CannotChangeRecordOwnerErr);
     end;
 
-    internal procedure ValidateApprovedGraphDeltaUrl(DeltaUrlToValidate: Text; RaiseError: Boolean): Boolean
+    internal procedure ValidateApprovedGraphDeltaUrl(DeltaUrlToValidate: Text): Boolean
     var
         Uri: Codeunit Uri;
         IsApproved: Boolean;
     begin
-        if DeltaUrlToValidate = '' then begin
-            Session.LogMessage('0000V1X', StrSubstNo(DeltaUrlValidationTelemetryMsg, DeltaUrlToValidate, false, RaiseError, true), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
-            exit(RaiseError);
-        end;
-
+        if DeltaUrlToValidate = '' then
+            exit(true);
         IsApproved := Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) = LowerCase(DeltaUrlToValidate);
-        Session.LogMessage('0000V1Y', StrSubstNo(DeltaUrlValidationTelemetryMsg, DeltaUrlToValidate, IsApproved, RaiseError, false), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
-        if RaiseError and not IsApproved then
+        Session.LogMessage('0000V1Y', StrSubstNo(DeltaUrlValidationTelemetryMsg, DeltaUrlToValidate, IsApproved, false, false), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
+        if not IsApproved then
             Error(InvalidDeltaUrlErr);
-
         exit(IsApproved);
     end;
 
