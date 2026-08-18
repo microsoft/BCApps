@@ -2250,7 +2250,10 @@ codeunit 148148 "Factur-X CII XML Tests"
         VATPostingSetup: Record "VAT Posting Setup";
         PostingGroupCode: Code[20];
     begin
-        PostingGroupCode := '0FR';
+        PostingGroupCode := '0FRFACTURX';
+
+        if VATPostingSetup.Get(PostingGroupCode, PostingGroupCode) then
+            exit;
 
         if not GenBusinessPostingGroup.Get(PostingGroupCode) then begin
             GenBusinessPostingGroup.Code := PostingGroupCode;
@@ -2289,11 +2292,9 @@ codeunit 148148 "Factur-X CII XML Tests"
             VATProductPostingGroup.Insert(true);
         end;
 
-        if not VATPostingSetup.Get(PostingGroupCode, PostingGroupCode) then begin
-            VATPostingSetup."VAT Bus. Posting Group" := PostingGroupCode;
-            VATPostingSetup."VAT Prod. Posting Group" := PostingGroupCode;
-            VATPostingSetup.Insert(true);
-        end;
+        VATPostingSetup."VAT Bus. Posting Group" := PostingGroupCode;
+        VATPostingSetup."VAT Prod. Posting Group" := PostingGroupCode;
+        VATPostingSetup.Insert(true);
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
         VATPostingSetup.Validate("VAT %", 20);
         VATPostingSetup.Validate("Tax Category", 'S');
