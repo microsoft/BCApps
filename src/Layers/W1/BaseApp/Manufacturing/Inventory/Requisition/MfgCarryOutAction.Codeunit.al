@@ -226,13 +226,13 @@ codeunit 99000818 "Mfg. Carry Out Action"
         if CheckProductionOrderForStructure(ProductionOrder) then
             CreateProdOrderLines.CheckStructure(ProductionOrder.Status.AsInteger(), ProductionOrder."No.", Direction::Backward, true, false);
 
+        if ProductionOrder.Status = ProductionOrder.Status::Released then
+            ProdOrderStatusMgt.FlushProdOrder(ProductionOrder, ProductionOrder.Status, WorkDate());
+
         OnAfterInsertProdOrder(ProductionOrder, ProdOrderChoice.AsInteger(), RequisitionLine);
 #if not CLEAN27
         CarryOutAction.RunOnAfterInsertProdOrder(ProductionOrder, ProdOrderChoice.AsInteger(), RequisitionLine);
 #endif
-
-        if ProductionOrder.Status = ProductionOrder.Status::Released then
-            ProdOrderStatusMgt.FlushProdOrder(ProductionOrder, ProductionOrder.Status, WorkDate());
 
         if not HeaderExist then
             InsertTempProdOrder(RequisitionLine, ProductionOrder, TempDocumentEntry);
@@ -263,11 +263,13 @@ codeunit 99000818 "Mfg. Carry Out Action"
         IsHandled: Boolean;
     begin
         OnBeforeSetProdOrderStatus(ProductionOrder, ProdOrderChoice, IsHandled);
+#if not CLEAN27
+        CarryOutAction.RunOnBeforeSetProdOrderStatus(ProductionOrder, ProdOrderChoice, IsHandled);
+#endif
         if IsHandled then
             exit;
 
         case ProdOrderChoice of
-            ProdOrderChoice::"Firm Planned",
             ProdOrderChoice::"Firm Planned & Print":
                 ProductionOrder.Status := ProductionOrder.Status::"Firm Planned";
             ProdOrderChoice::Released,
