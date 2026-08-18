@@ -3628,7 +3628,6 @@ table 5050 Contact
         SIRENNo: Code[9];
         CustomerFound: Boolean;
     begin
-        ContactBusinessRelation.SetLoadFields("Link to Table");
         ContactBusinessRelation.SetRange("Contact No.", "No.");
         ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
         if ContactBusinessRelation.FindFirst() then begin
