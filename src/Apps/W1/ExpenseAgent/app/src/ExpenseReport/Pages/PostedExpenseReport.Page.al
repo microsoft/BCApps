@@ -5,6 +5,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Navigate;
 
@@ -74,6 +75,11 @@ page 6998 "Posted Expense Report"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT business posting group used for tax posting.';
                     Importance = Additional;
+                    Visible = false;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
             }
@@ -165,6 +171,14 @@ page 6998 "Posted Expense Report"
                 UpdatePropagation = Both;
                 SubPageLink = "Posted Expense Report No." = field("No.");
             }
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Activity Log';
+                SubPageLink = "Source Table ID" = const(Database::"Posted Expense Report Header"),
+                              "Source Record System ID" = field(SystemId);
+                Visible = Rec."No." <> '';
+            }
             part("Expense Picture"; "Expense Picture")
             {
                 ApplicationArea = Basic, Suite;
@@ -244,6 +258,16 @@ page 6998 "Posted Expense Report"
                     RunObject = Page "Expense User";
                     RunPageLink = "No." = field("Expense User No.");
                     ToolTip = 'View or edit detailed information about the expense user.';
+                }
+                action("Spend Request")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Image = ProjectExpense;
+                    Caption = 'Spend Request';
+                    ToolTip = 'View the details of the spend request associated with this posted expense report.';
+                    RunObject = Page "Spend Request Card";
+                    RunPageLink = "No." = field("Spend Request No.");
+                    Visible = Rec."Spend Request No." <> '';
                 }
             }
         }
@@ -326,6 +350,9 @@ page 6998 "Posted Expense Report"
                     {
                     }
                     actionref("Expense User_Promoted"; "Expense User")
+                    {
+                    }
+                    actionref("Spend Request_Promoted"; "Spend Request")
                     {
                     }
                 }

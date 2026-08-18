@@ -11,8 +11,8 @@ page 37045 "Finished Prod. Order Breakdown"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Finished Production Order Breakdown';
-    AboutTitle = 'About Finished Production Order Breakdown';
+    Caption = 'Finished Production Order Breakdown (Power BI)';
+    AboutTitle = 'About Finished Production Order Breakdown (Power BI)';
     AboutText = 'View Expected Quantities and Cost vs. Actual Quantities and Costs over time, analyze the detail per item and drill down to the Production Order to track where variances are occurring.';
 
     layout

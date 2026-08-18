@@ -1,0 +1,1527 @@
+[
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "DeletePurchCrMemoWithTrackedLines"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedPurchaseInvFullWhsePutAwayLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedPurchaseInvFullWhsePutAwaySerialNoLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedPurchaseInvMultiLineFullWhsePutAwayLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedPurchaseInvMultiLineWhsePutAwaySerialNoLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedPurchaseInvWhsePutAwaySerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvForAvailablePartialShipmentLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvForFullWarehouseShipmentSerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvForMultiLineShipmentSerialLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvForMultiPartialShipmentSerialNoLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvForPartialShipmentLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvForPartialShipmentSerialNoLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvForPartialWhseShipmentSerialLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvoiceLineDifferentLots"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesInvoiceWithMethodSpecific"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostedSalesShipmentForPartialWhseShipmentSerialNoLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PostingSalesShipmentDeletesWhseItemTrackingLine"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchOrderCompleteInvoiceWithMethodSpecific"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchOrderPartialInvoiceWithMethodSpecific"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseOrderWithDropShipmentSerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseOrderWithDropShipmentSerialNoLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseOrderWithItemTrackingLotNoAvailability"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseOrderWithItemTrackingSerialNoAvailability"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseOrderWithSameSerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseOrdersWithSameSerialNoOnInventoryPostingError"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseReturnSerialNoLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseTrackingInboundAndOutboundSerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseTrackingInboundSerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "PurchaseTrackingOutboundSerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveLotNoOnPurchaseOrderFromTransferOrder"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveLotNoOnPurchaseOrderFromTransferOrderPostingError"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveSerialNoOnPurchaseOrderFromTransferOrder"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveSerialNoOnPurchaseOrderFromTransferOrderPostingError"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "SalesOrderCancelReservationForOutboundOrder"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "SalesOrderCancelReservationSerialLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "SalesOrderCancelReserveSerialNoWithoutInventoryError"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "SalesOrderReserveSerialNoWithInventoryError"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "SalesOrderReservedForOutboundOrderError"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "SalesOrderReservedSerialLotNoError"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "SelectEntriesWithConsiderationOfNonSpecificReservation"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "WhseReceiptForMultiLinePartialWhsePutAwaySerialNoLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "WhseReceiptForPartialWhsePutAwaySerialNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "ClearSurplusForDropShipmentSalesAfterSynchronizeItemTrackingFromPurchase"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "HandledQtyForEachLotIsCalculatedSeparately"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "KeepExpirationDateLotTrackedItem"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "NegativeConsumptionDoesNotStartBranchInItemTracing"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "NoErrorOnShippingAfterUndoDropShipmentIsExecutedWithSerialNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "ParentItemOutputOnItemTracingPage"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PickForProductionOrderSerialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PostDropShipmentPurchaseSideTrackingOnPurchaseError"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PostDropShipmentSalesSideDifferentLotNosTrackingNotSynchedError"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PostDropShipmentSalesSideDifferentSerialNosTrackingNotSynchedError"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PostDropShipmentSalesSideTrackingOnPurchaseError"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PostedSalesShipmentPartialPickFromPickWorksheetSerialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PostedSalesShipmentPickFromPickWorksheetSerialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PostingDropShipmentSalesAfterReceivingTwoLinesOneTrackedAnotherNot"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PurchaseOrderWithCustomizedTrackingForSerialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PurchaseOrderWithCustomizedTrackingForSerialNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PurchaseOrderWithDropShipmentItemLotNoAndOrderTrackingPolicy"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PurchaseOrderWithDropShipmentPartialChangedSerialNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PurchaseOrderWithDropShipmentPartialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PurchaseOrderWithDropShipmentSerialNoSynchronizationError"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PurchaseOrderWithMultipleLinesDropShipmentPartialSerialNoLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PurchaseOrderWithMultipleLinesDropShipmentSerialNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PutAwayErrorWhenUsePutAwayWorksheetSerialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PutAwayForPartiallyPutAwayReceiptWhenItemEntryDoesNotMatchWhseEntry"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PutAwayForPostedWhseReceiptWhenLotConsistsOfSeveralItemEntries"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PutAwayForWhseReceiptWhenLotConsistsOfSeveralItemEntries"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PutAwayFromProductionOrderSerialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PutAwayUsingWorksheetForTransferWhenUsePutAwayWorksheetSerialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "PutAwayUsingWorksheetWhenUsePutAwayWorksheetSerialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "QuantityMustBeRestoredWhenUndoDropShipmentSalesShipmentIsExecutedWithSerialNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "QuantityReceiveFromConsumptionJournalLineWithSNWarehouseTracking"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "QuantityShipFromConsumptionJournalLineWithoutSNWarehouseTracking"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "QuantityShipFromItemJournalLineWithoutSNWarehouseTracking"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "RequisitionWorksheetWithDropShipmentForMultipleLinesPartialSerialNoLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "RequisitionWorksheetWithDropShipmentForMultipleLinesSerialNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "RequisitionWorksheetWithDropShipmentPartialLotNo"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "TrackingLineOnPickWorksheetWithoutSNWarehouseTrackingError"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "TrackingLineOnPutAwayWorksheetWithoutSNWarehouseTrackingError"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "TransferReceiptAndRegisterPutAwaySerialLotNo"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "RegisteredWhsePutAwayWithProductionBOMAndLotTracking"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "WarehousePickWithProductionBOMAndLotTracking"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "WarehousePutAwayWithProductionBOMAndLotTracking"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "DeletePurchaseLineErrorWithIT"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "DeleteSalesLineErrorUsingOrderTracking"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "ErrorUsingDeleteSalesLineWithOrderTracking"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "GetBinContentUsingTransferOrder"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "ITMessageUsingDeletePurchaseLine"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "LateBindingLot"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "LateBindingLotMultipleReceipts"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "LateBindingSerial"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "LateBindingSerialMultipleReceipts"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "MessageUsingDeletePOWithIT"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "MessageUsingDeleteSalesLineWithOrderTracking"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "PostWhseShptAfterPickDeletion"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "PurchaseHeaderExistErrorWithIT"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "ReservEntryErrorAfterDeletePOWithIT"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "ReservEntryErrorUsingDeletePurchaseLineWithIT"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "RevaluationJournalWithSerialNo"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "SerialNoErrorUsingDeletePurchaseLineWithIT"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "AssignItemTrackingNoToSupplyOrderWithDemand"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "AssignItemTrackingNoToSupplyOrderWithoutDemand"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "CreateInvPickOnSalesOrderWithIT"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "ExpirDateOnILEAfterRegisterPick"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "ExpirDateOnILEAfterRegisterPutAway"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "ExpirDateOnItemTrackingSummaryPage"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "ExpirDateOnPurchaseOrderWithLotNo"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "InventoryPutAwayExpirationCalculationNotBlank"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "MultipleExpirDateErrorForSameLotNo"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "MultipleExpirDateOnPurchOrder"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "PartialInvoicePurchaseWithIT"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "PostPartialPurchOrderWithSerialNo"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "PostPurchaseOrderWhenItemTrackingLinesWithLotNoAndPackageNoAssigned"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "PostSalesOrderWithExpirDateAndIT"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "RecalculateQtyOnITLinesPageWithMoreQtythanPurchase"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "RecalculateQtyOnItemTrackingLinesPage"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "RecalculateQtyOnPartiallyAssignedITLinesPage"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "ReclassificationOfLotWithNewExpDateForQtyLessThanQtyInILEGivesErr"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "ReservEntryErrorAfterPostInvPickOnSalesOrder"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "SalesLineErrorWithNegativeSelectedQty"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "SelectedQtyErrorAfterPostInvPickOnSalesOrder"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "SelectedQtyErrorOnSalesLine"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "SelectedQtyErrorOnSalesLineWithReserv"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "SelectedQtyErrorWithAssignITManually"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "SelectedQtyOnSalesLineWithReserv"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "UpdatedExpirDateOnPurchOrder"
+  },
+  {
+    "codeunitId": 137261,
+    "codeunitName": "SCM Inventory Item Tracking II",
+    "method": "VerifyRegisterPickWithMandatorySerialNoAndNonEssentialLotNo"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "ChangeBinWithLotITOnPurchLineTC1"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "ChangeBinWithLotITOnPurchLineTC7"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "ChangeBinWithLotITOnPurchLineTC8"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "ChangeBinWithSerialITOnPurchLineTC1"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "ChangeBinWithSerialITOnPurchLineTC7"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "ChangeBinWithSerialITOnPurchLineTC8"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "InvoicedQtyRoundedOneReceiptTwoInvoices"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "InvoicedQtyRoundedOneShipmentTwoInvoices"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "InvoicedQtyRoundedTwoReceiptsOneInvoice"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "InvoicedQtyRoundedTwoShipmentsOneInvoice"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "ItemDescWithMoreThan50CharactersIsPrintedInItemTracingReport"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "LOTLongTransferChainUsageOriginFIFO"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "LOTNoForLongChainPstdDocumentWithOriginUsage"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "LOTNoForLongChainPstdDocumentWithUsageOrigin"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "LOTNoForReclassJouranl"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "LOTNoPstdPurchDocumentWithOriginUsage"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "LOTNoPstdPurchDocumentWithUsageOrigin"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "LOTNoPstdSalesDocumentWithOriginUsage"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "LOTNoPstdSalesDocumentWithUsageOrigin"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "PostSalesReturnOrderWithReserveFromPurchaseReturnOrder"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "PurchCopyDocumentWithItemTracking"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "PurchCreditMemoWithLessQtyQtyError"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "PurchReturnOrderWithLessQtyQtyError"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "RoundingPrecisionIsLostWhenItemTrackingLinesIsReopened"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "S458041_ItemTrackingIsSetToInvoicedQuantities_PurchaseReturnOrder_GetPostedDocumentLinesToReverse"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "S458801_PreventPartialPurchaseQtyReturn_OverhandledItemTracking_PurchaseReturnOrder"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SNLOTLongProdChainUsageOrigin"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SalesCopyDocumentWithItemTracking"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SlNoForLongChainPstdDocumentWithOriginUsage"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SlNoForLongChainPstdDocumentWithUsageOrigin"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SlNoForReclassJouranl"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SlNoPstdPurchDocumentWithOriginUsage"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SlNoPstdPurchDocumentWithUsageOrigin"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SlNoPstdSalesDocumentWithOriginUsage"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "SlNoPstdSalesDocumentWithUsageOrigin"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "TraceOppositeFromLineForPstdPurchDocument"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "TraceOppositeFromLineForPstdPurchDocumentSlNo"
+  },
+  {
+    "codeunitId": 137269,
+    "codeunitName": "SCM Transfer Reservation",
+    "method": "DeleteItemTrackingOnPurchLineDeletesTrackingInTransferViaOrderToOrderBinding"
+  },
+  {
+    "codeunitId": 137269,
+    "codeunitName": "SCM Transfer Reservation",
+    "method": "InsertItemTrackingOnPurchLineManuallyInsertsTrackingInTransferViaOrderToOrderBinding"
+  },
+  {
+    "codeunitId": 137269,
+    "codeunitName": "SCM Transfer Reservation",
+    "method": "ItemTrackingOnTransferLineCopiedFromPostedRcptLine"
+  },
+  {
+    "codeunitId": 137269,
+    "codeunitName": "SCM Transfer Reservation",
+    "method": "ModifyItemTrackingOnPurchLineModifiesTrackingInTransferViaOrderToOrderBinding"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "CreatePickFromPickWkshUsingIT"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "CreatePickUsingGetSourceDocOnWhseShpt"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "ErrorWithPickWkshUsingCreatePick"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "ErrorWithReCreateWhseShptFromPO"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "ErrorWithReservUsingTransferOrder"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "GetSourceDocFromWhseShpt"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "GetWhseDocFromPickWkshUsingIT"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "ILEAfterPostTransferOrderWithIT"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "ITErrorOnPurchOrderUsingTransferOrder"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "OrderTrackingMessageAfterRegisterPick"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "OrderTrackingMessageAfterWhseRcpt"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "PickWkshUsingSalesOrderWithReserv"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "PutAwayUsingWhseRcptWithIT"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "PutAwayWkshUsingGetWhseDoc"
+  },
+  {
+    "codeunitId": 137270,
+    "codeunitName": "SCM Reservation III",
+    "method": "VerifyQtyOnWhsePickWithItemTracking"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "InvtPickFromProdOrderWithoutReserv"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "ItemAutoReservedOnSalesOrderAfterPickRegistered"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "ItemReservedOnSalesLineWithOpenWhsePick"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "ItemTrackingOnSalesLineFromPickWithBreakbulk"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotItemAutoReservedOnSalesOrderAfterPickRegistered"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotItemAutoreservedAfterPartialPick"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotItemAutoreservedAfterSplitLineAndPick"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotSpecificAutoReservationForAssemblyLine"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotSpecificAutoReservationForProdOrderComponent"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotSpecificAutoReservationForServiceLine"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotSpecificAutoReservationForTransferOutbound"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotSpecificAutoReservationFromMultiplePurchaseLineWithSameLotNo"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotSpecificAutoReservationFromPurchaseLine"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "LotSpecificAutoReservationFromPurchaseLineWithDifferentUoM"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "PostPartialWhsePickOnProdOrder"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "PostingWhseShipmentAfterPartialPickWithZeroQtyToHandleLines"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "QtyAfterReservationWithSerialSpecificTrue"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "QtyBeforeReservationWithSpecificSerialFalse"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "QtyBeforeReservationWithSpecificSerialTrue"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "ReservationDeletedWhenWhseShipmentDeleted"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "ReservationDeletedWhenWhseShipmentDeletedAfterSplitPlace"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "ReservationNotDoubledAfterPartialPickRegisteredWithPriorLotReservation"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "ReservedQuantityInPurchaseLineWithItemTrackingQtyDecreased"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "ReservingNonSpecificITWithWhseReceipt"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "TrackingInfoAddedByWhsePickDeletedWhenWhseShipmentDeleted"
+  },
+  {
+    "codeunitId": 137272,
+    "codeunitName": "SCM Reservation V",
+    "method": "QtyToHandleUpdatedInReservationEntryWithItemTracking"
+  },
+  {
+    "codeunitId": 137272,
+    "codeunitName": "SCM Reservation V",
+    "method": "ReserveSpecificLotNoVerifyAvailTrackingLines"
+  },
+  {
+    "codeunitId": 137272,
+    "codeunitName": "SCM Reservation V",
+    "method": "ReserveSpecificSerialNoVerifyAvailTrackingLines"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "AllNonspecificReservationEntriesReleasedOnJobJournalPostedWithDifferentItemTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "DecreaseLotTrackedPurchaseInvoice"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "E2EPurchaseAndSalesAssignSNBeforePickAndUOM"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "E2EPurchaseAndSalesWithSerialNumberAndUOM"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "E2EPurchaseAndSalesWithSerialNumberAndUOMWithBoxOf6"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ErrorNotThrownWhenCreateWhseReceiptAndPostWhenSNRequired"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ErrorNotThrownWhenPostingWhseReceiptWhenSNRequiredAndBinRequired"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "FillJobNoOnPurchaseLineWithLotTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "FillQtyResetQtyActionOnInvtPutawaySubformTest"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "InventoryPutAwayPostAfterExpirationDate"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ItemPostedByJobJournalInheritsTrackingFromJobPlanningLine"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ItemTrackingIsCopiedFromJobPlanningLineToJobJournal"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ItemTrackingSelectEntriesIsNotEditableWhenInvokedFromInboundLine"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "NonspecificReservationEntriesReleasedOnPartialJobJournalPostedWithDifferentItemTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "OrderToOrderBindingWithAsymmetricTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PartialPostAndUndoPurchaseOrderMultipleLinesWithJobAndLotTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PartialPostPurchaseOrderMultipleLinesWithJobAndLotTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PartialPostPurchaseOrderWithJobAndLotTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PartialPostPurchaseOrderWithJobAndMultipleLotTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PartialPostPurchaseReturnOrderWithJobAndLotTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PartialPostPurchaseReturnOrderWithJobAndMultipleLotTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PurchCreditMemoForExpiredItem"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PurchReturnOrderForExpiredItemWithApplication"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PurchReturnOrderForExpiredItemWithoutApplication"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PurchaseOrderPartialTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PurchaseOrderPartialTrackingError"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PurchaseOrderWithExpirationDate"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PurchaseOrderWithoutExpirationDate"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PurchaseReturnOrderPartialTracking"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "PutAwayWithSNCreatesWhseActivityLinesWithQty1WhenRndingPrecIs1"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "RetrieveDocumentItemTrackingFromPurchaseReceipt"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "RetrieveDocumentItemTrackingPreservesVariantCode"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "SalesOrderAfterExpirationDate"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "SalesOrderBeforeExpirationDate"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ServiceOrderPostWithItemTrackingLines"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ServiceOrderWithItemTrackingLines"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ShouldBeAbleToAddLotNoInWhseShipmentWhenLocationIsSetAsRequirePutAway"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "ShouldBeAbleToAddSerialNoInWhseShipmentWhenLocationIsSetAsRequirePutAway"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "UndoPurchaseReceiptContainsExpirationDate"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "UndoPurchaseReceiptWithExpirationDate"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferAssembly"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferILE"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferProduction"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferPurchase"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferAssembly"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferILE"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferProduction"
+  },
+  {
+    "codeunitId": 137049,
+    "codeunitName": "SCM Reservation",
+    "method": "RoundingIssuesTransferPurchase"
+  },
+  {
+    "codeunitId": 134084,
+    "codeunitName": "Item Avail. by Lot No Tests",
+    "method": "DateFilterOnEntries"
+  },
+  {
+    "codeunitId": 134084,
+    "codeunitName": "Item Avail. by Lot No Tests",
+    "method": "ExpirationDateOnItemAvailByLotPage"
+  },
+  {
+    "codeunitId": 134084,
+    "codeunitName": "Item Avail. by Lot No Tests",
+    "method": "LocationFilterOnEntries"
+  },
+  {
+    "codeunitId": 134084,
+    "codeunitName": "Item Avail. by Lot No Tests",
+    "method": "LocationFilterWithLogicalOperators"
+  },
+  {
+    "codeunitId": 134084,
+    "codeunitName": "Item Avail. by Lot No Tests",
+    "method": "ShouldOnlyIncludeEntriesWithALotNo"
+  },
+  {
+    "codeunitId": 134084,
+    "codeunitName": "Item Avail. by Lot No Tests",
+    "method": "VariantFilterOnEntries"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveLotNoOnTransferOrderFromConsumption"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveOnTransferOrderFromProdOrderComponentAvailableLotNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveOnTransferOrderFromProdOrderComponentAvailableSerialNo"
+  },
+  {
+    "codeunitId": 137052,
+    "codeunitName": "SCM RTAM Item Tracking",
+    "method": "ReserveSerialNoOnTransferOrderFromConsumption"
+  },
+  {
+    "codeunitId": 137059,
+    "codeunitName": "SCM RTAM Item Tracking-II",
+    "method": "VerifyReservationEntryMustExistWhenItemTrackingPageIsClosed"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "ComponentsReservationOnChangeFirmPlannedProdOrderToReleased"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "OutPutFromProductionOrderWithLotTrackingAndReservation"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "PickFromProductionOrderWithLotTrackingAndReservation"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "PlanningComponentForPlanningWorksheetLine"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "ProductionBOMLowLevelCodeWithCertifiedBOMVersion"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "ProductionOrderWithSurplusQuantityFromRegenerativePlanWithProductionBOM"
+  },
+  {
+    "codeunitId": 137065,
+    "codeunitName": "SCM Reservation II",
+    "method": "UnitCostPerOnProductionOrderWithRoutingAndRegenerativePlan"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "ItemTrackingLinesSynchedAfterPartialShipmentAndInvoice"
+  },
+  {
+    "codeunitId": 137260,
+    "codeunitName": "SCM Inventory Item Tracking",
+    "method": "RegisterPickWithDiffTrackedItems"
+  },
+  {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "ValidateBinCodeFromSalesLineWhenProdOrderIsCreated"
+  },
+  {
+    "codeunitId": 137269,
+    "codeunitName": "SCM Transfer Reservation",
+    "method": "SynchronizeTransferOutboundToInboundItemTrackingLotSpecific"
+  },
+  {
+    "codeunitId": 137269,
+    "codeunitName": "SCM Transfer Reservation",
+    "method": "SynchronizeTransferOutboundToInboundItemTrackingSNAndLot"
+  },
+  {
+    "codeunitId": 137269,
+    "codeunitName": "SCM Transfer Reservation",
+    "method": "SynchronizeTransferOutboundToInboundItemTrackingSNSpecific"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "EstablishingSpecificReservationForDocumentLineWithOrderTracking"
+  },
+  {
+    "codeunitId": 137271,
+    "codeunitName": "SCM Reservation IV",
+    "method": "QuantityToReserveForPlanningComponentIsCalculatedBasedOnExpectedQuantity"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "WhsePickIsCreatedForSrNoHavingExpDateAndNotForSrNoWithoutExpDateWhenStrictExpPostingIsTrueInItemTrkgCode"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingCurrentStockAndReservedQty"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingOutstandingQtyReservedQtyReservedFromStock"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandAndValidateFields"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithDateFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithLocationFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "ShowingSourceDocument"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingCurrentStockAndReservedQty"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingOutstandingQtyReservedQtyReservedFromStock"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandAndValidateFields"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithDateFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithLocationFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "ShowingSourceDocument"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingCurrentStockAndReservedQty"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "CheckingOutstandingQtyReservedQtyReservedFromStock"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandAndValidateFields"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithDateFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "GettingDemandWithLocationFilter"
+  },
+  {
+    "codeunitId": 137023,
+    "codeunitName": "SCM Reservation Worksheet",
+    "method": "ShowingSourceDocument"
+  }
+]

@@ -1057,6 +1057,7 @@ page 490 "Acc. Schedule Overview"
                 trigger OnAction()
                 begin
                     AccSchedManagement.ForceRecalculate(true);
+                    PreserveCurrentPageFilters := true;
                     ReloadPage();
                 end;
             }
@@ -1470,6 +1471,7 @@ page 490 "Acc. Schedule Overview"
 #endif
         RowDefinitionBlocked: Boolean;
         ColDefinitionBlocked: Boolean;
+        PreserveCurrentPageFilters: Boolean;
         IsPreview: Boolean;
         PreviewCaption: Text;
         PreviewLbl: Label 'Preview: %1', Comment = '%1 = row definition';
@@ -1619,7 +1621,10 @@ page 490 "Acc. Schedule Overview"
 
         // `FinancialReportTemp` contains the state of the filters the user interacts with
         // `LoadFinancialReportFiltersOrDefault` loads this temporary record considering user overriden filters (if any).
-        LoadFinancialReportFiltersOrDefault(TempFinancialReport);
+        if PreserveCurrentPageFilters then
+            PreserveCurrentPageFilters := false
+        else
+            LoadFinancialReportFiltersOrDefault(TempFinancialReport);
 
         // Afterwards, we update all page state variables 
         SetFinancialReportTxt();

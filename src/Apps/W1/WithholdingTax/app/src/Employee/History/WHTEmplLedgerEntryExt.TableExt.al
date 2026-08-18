@@ -14,6 +14,7 @@ tableextension 6810 "WHT Empl. Ledger Entry Ext" extends "Employee Ledger Entry"
         {
             Caption = 'Withholding Tax Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Editable = false;
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the withholding tax amount for the employee ledger entry.';
@@ -22,6 +23,7 @@ tableextension 6810 "WHT Empl. Ledger Entry Ext" extends "Employee Ledger Entry"
         {
             Caption = 'Withholding Tax Base Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Editable = false;
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the withholding tax base amount for the employee ledger entry.';
