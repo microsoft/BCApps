@@ -18,6 +18,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Service.History;
 using System.IO;
