@@ -145,12 +145,15 @@ codeunit 8217 "Create Posted Expense Report"
     local procedure PostExpenseReport()
     var
         ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
         if FromExpenseReportNo <> '' then
             ExpenseReportHeader.SetFilter("No.", '>%1', FromExpenseReportNo);
 
         if ExpenseReportHeader.FindSet() then
             repeat
+                if not ExpenseActivityLogMgt.HasEntriesForSource(Database::"Expense Report Header", ExpenseReportHeader.SystemId) then
+                    ExpenseActivityLogMgt.LogExpenseReportCreatedEvent(ExpenseReportHeader);
                 Codeunit.Run(Codeunit::"Expense Report-Post", ExpenseReportHeader);
             until ExpenseReportHeader.Next() = 0;
     end;
