@@ -2007,6 +2007,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProductionBOMLine: Record "Production BOM Line";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
+        ReqWkshName: Record "Requisition Wksh. Name";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         ReqWkshTemplateName: Code[10];
@@ -2073,6 +2074,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
         RequisitionLine.SetRange("No.", ProductionBOMLine."No.");
         Assert.RecordIsEmpty(RequisitionLine);
+
+        // [TEAR DOWN] Clean up the Planning Worksheet lines and names
+        RequisitionLine.Reset();
+        RequisitionLine.DeleteAll(true);
+        ReqWkshName.DeleteAll(true);
     end;
 
     [Test]
@@ -2190,8 +2196,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Requisition line is now suggested for the component
         RequisitionLine.SetRange("No.", ComponentItem."No.");
         Assert.RecordIsNotEmpty(RequisitionLine);
-        RequisitionLine.FindFirst();
-        RequisitionLine.TestField("No.", ComponentItem."No.");
+
+        // [TEAR DOWN] Clean up the Planning Worksheet lines and names
+        RequisitionLine.Reset();
+        RequisitionLine.DeleteAll(true);
+        RequisitionWkshName.DeleteAll(true);
     end;
 
     [Test]
