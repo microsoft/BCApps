@@ -1692,6 +1692,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatDoesNotExportCustomerGLNWhenDisabled();
     var
+        Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
@@ -1705,13 +1706,18 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] Customer and delivery GLN identifiers are not exported
-        VerifyNodeDoesNotExist(TempXMLBuffer, CustomerPartyIdTok);
+        // [THEN] Customer party uses the VAT registration number and GLN identifiers are not exported
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Assert.AreEqual(
+            GetVATRegistrationNo(Customer."VAT Registration No.", SalesInvoiceHeader."Bill-to Country/Region Code"),
+            GetNodeByPathWithError(TempXMLBuffer, CustomerPartyIdTok),
+            StrSubstNo(IncorrectValueErr, CustomerPartyIdTok));
         VerifyNodeDoesNotExist(TempXMLBuffer, CustomerLegalEntityIdTok);
         VerifyNodeDoesNotExist(TempXMLBuffer, DeliveryLocationIdTok);
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure ExportPostedSalesInvoiceInXRechnungFormatUsesSellToGLNForCustomerParty();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
