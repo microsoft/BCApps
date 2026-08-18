@@ -1358,9 +1358,7 @@ table 6900 Expense
                     end;
                 end;
             else
-                if (ExpenseCategory."VAT Prod. Posting Group" <> '') and
-                    (ExpenseCategory."Default VAT %" <> 0)
-                then begin
+                if ExpenseCategory."VAT Prod. Posting Group" <> '' then begin
                     ExpenseVATSpec.SetRange(Source);
                     ExpenseVATSpec.DeleteAll();
 

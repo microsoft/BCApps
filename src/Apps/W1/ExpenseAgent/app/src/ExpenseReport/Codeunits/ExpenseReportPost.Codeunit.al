@@ -73,6 +73,7 @@ codeunit 6987 "Expense Report-Post"
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending reimbursement notifications.';
         NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
+        ShowItLbl: Label 'Show it';
 
     internal procedure RunWithCheck(var ExpenseReportHeader: Record "Expense Report Header")
     var
@@ -232,13 +233,24 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLineVATSpec.SetRange("Document Line No.", ExpenseReportLine."Line No.");
         if ExpenseReportLineVATSpec.FindSet() then
             repeat
-                if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Pending" then begin
-                    if ExpenseReportLineVATSpec."Expense Subcategory" = '' then
-                        Error(NotApprovedForVATReclaimCategoryErr, ExpenseReportLineVATSpec."Expense Category");
-
-                    Error(NotApprovedForVATReclaimErr, ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
-                end;
+                if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Pending" then
+                    Error(GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec));
             until ExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    local procedure GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec."): ErrorInfo
+    var
+        PendingVATSpecErrorInfo: ErrorInfo;
+    begin
+        if ExpenseReportLineVATSpec."Expense Subcategory" = '' then
+            PendingVATSpecErrorInfo.Message := StrSubstNo(NotApprovedForVATReclaimCategoryErr, ExpenseReportLineVATSpec."Expense Category")
+        else
+            PendingVATSpecErrorInfo.Message := StrSubstNo(NotApprovedForVATReclaimErr, ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
+        PendingVATSpecErrorInfo.RecordId := ExpenseReportLineVATSpec.RecordId;
+        PendingVATSpecErrorInfo.FieldNo := ExpenseReportLineVATSpec.FieldNo("Reclaim Status");
+        PendingVATSpecErrorInfo.PageNo := Page::"Expense Report Line VAT Spec.";
+        PendingVATSpecErrorInfo.AddNavigationAction(ShowItLbl);
+        exit(PendingVATSpecErrorInfo);
     end;
 
     local procedure CheckMandatoryFields(var ExpenseReportLine: Record "Expense Report Line")

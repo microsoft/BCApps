@@ -352,6 +352,7 @@ table 6922 "Expense Report Line VAT Spec."
             AutoFormatType = 1;
             AutoFormatExpression = GetReimbursementCurrencyCode();
             Caption = 'VAT Base Amount (RCY)';
+            DataClassification = CustomerContent;
             Editable = false;
             ToolTip = 'Specifies the VAT base amount in reimbursement currency for this rate.';
         }
@@ -360,6 +361,7 @@ table 6922 "Expense Report Line VAT Spec."
             AutoFormatType = 1;
             AutoFormatExpression = GetReimbursementCurrencyCode();
             Caption = 'VAT Amount (RCY)';
+            DataClassification = CustomerContent;
             Editable = false;
             ToolTip = 'Specifies the VAT amount in reimbursement currency for this rate.';
         }
@@ -368,6 +370,7 @@ table 6922 "Expense Report Line VAT Spec."
             AutoFormatType = 1;
             AutoFormatExpression = GetReimbursementCurrencyCode();
             Caption = 'Amount (RCY)';
+            DataClassification = CustomerContent;
             Editable = false;
             ToolTip = 'Specifies the total amount in reimbursement currency for this rate.';
         }
@@ -376,6 +379,7 @@ table 6922 "Expense Report Line VAT Spec."
             AutoFormatType = 1;
             AutoFormatExpression = GetReimbursementCurrencyCode();
             Caption = 'Reclaim VAT Amount (RCY)';
+            DataClassification = CustomerContent;
             Editable = false;
             ToolTip = 'Specifies the reclaim VAT amount in reimbursement currency for this rate.';
         }

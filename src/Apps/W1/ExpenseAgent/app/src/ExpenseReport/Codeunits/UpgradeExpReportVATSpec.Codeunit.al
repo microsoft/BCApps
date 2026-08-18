@@ -5,6 +5,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
 using System.Upgrade;
 
 codeunit 7105 "Upgrade Exp. Report VAT Spec"
