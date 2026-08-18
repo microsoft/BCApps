@@ -21,6 +21,7 @@ codeunit 6334 "Power BI Upload Step Runner"
         GlobalReport: Interface "Power BI Uploadable Report";
         GlobalUploadTracker: Interface "Power BI Upload Tracker";
         GlobalContext: Text[50];
+        GlobalTargetWorkspaceId: Guid;
         FinalReportName: Text;
         IsConfigured: Boolean;
         ReportEnvNameTxt: Label '%1 (%2 - %3)', Locked = true;
@@ -47,6 +48,7 @@ codeunit 6334 "Power BI Upload Step Runner"
 
         PowerBIServiceMgt.CreateServiceProvider(PowerBIServiceProvider);
         FinalReportName := MakeReportNameForUpload(GlobalReport.GetReportName(), EnvironmentInformation.GetEnvironmentName(), CompanyName());
+        GlobalTargetWorkspaceId := GlobalReport.GetTargetWorkspaceId();
 
         case GlobalUploadTracker.GetStatus() of
             Enum::"Power BI Upload Status"::NotStarted:
@@ -95,6 +97,7 @@ codeunit 6334 "Power BI Upload Step Runner"
             BlobInStream,
             ReportName,
             Overwrite,
+            GlobalTargetWorkspaceId,
             ImportId,
             OperationResult);
 
@@ -116,7 +119,7 @@ codeunit 6334 "Power BI Upload Step Runner"
     begin
         Session.LogMessage('0000G1Z', StrSubstNo(StartRetrievingImportTelemetryMsg, GlobalUploadTracker.GetImportId()), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
 
-        PowerBIServiceProvider.GetImport(GlobalUploadTracker.GetImportId(), ImportState, ReturnedReport, OperationResult);
+        PowerBIServiceProvider.GetImport(GlobalUploadTracker.GetImportId(), GlobalTargetWorkspaceId, ImportState, ReturnedReport, OperationResult);
 
         if OperationResult.Successful then begin
             GlobalUploadTracker.TransitionTo(Enum::"Power BI Upload Status"::ImportFinished);
@@ -148,7 +151,7 @@ codeunit 6334 "Power BI Upload Step Runner"
         Session.LogMessage('0000G20', StrSubstNo(UpdatingDatasetParametersTelemetryMsg, DatasetId, CompanyValue, EnvironmentValue), Verbosity::Normal,
             DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
 
-        PowerBIServiceProvider.UpdateDatasetParameters(DatasetId, NewParameters, OperationResult);
+        PowerBIServiceProvider.UpdateDatasetParameters(DatasetId, NewParameters, GlobalTargetWorkspaceId, OperationResult);
 
         if (not OperationResult.Successful) and OperationResult.ShouldRetry then begin
             GlobalUploadTracker.ScheduleRetry(GetRetryAfterOrDefault(OperationResult.RetryAfter));
@@ -166,7 +169,7 @@ codeunit 6334 "Power BI Upload Step Runner"
         // Get datasource to update
         Clear(OperationResult);
 
-        PowerBIServiceProvider.GetDatasource(DatasetId, DataSourceId, GatewayId, OperationResult);
+        PowerBIServiceProvider.GetDatasource(DatasetId, GlobalTargetWorkspaceId, DataSourceId, GatewayId, OperationResult);
         Session.LogMessage('0000G21', StrSubstNo(GettingDatasourceForDatasetTelemetryMsg, DatasetId), Verbosity::Normal,
             DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
 
@@ -208,7 +211,7 @@ codeunit 6334 "Power BI Upload Step Runner"
         Session.LogMessage('0000G22', StrSubstNo(RefreshingDatasetTelemetryMsg, DatasetId), Verbosity::Normal,
             DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
 
-        PowerBIServiceProvider.RefreshDataset(DatasetId, OperationResult);
+        PowerBIServiceProvider.RefreshDataset(DatasetId, GlobalTargetWorkspaceId, OperationResult);
 
         if OperationResult.Successful then
             GlobalUploadTracker.TransitionTo(Enum::"Power BI Upload Status"::DataRefreshed)
