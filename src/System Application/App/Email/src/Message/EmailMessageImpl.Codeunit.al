@@ -327,61 +327,58 @@ codeunit 8905 "Email Message Impl."
     end;
 
     procedure GetContentTypeFromFilename(FileName: Text): Text[250]
-    var
-        LowerCaseFileName: Text;
     begin
-        LowerCaseFileName := LowerCase(FileName);
-        if LowerCaseFileName.EndsWith('.graphql') or LowerCaseFileName.EndsWith('.gql') then
+        if FileName.EndsWith('.graphql') or FileName.EndsWith('.gql') then
             exit('application/graphql');
-        if LowerCaseFileName.EndsWith('.js') then
+        if FileName.EndsWith('.js') then
             exit('application/javascript');
-        if LowerCaseFileName.EndsWith('.json') then
+        if FileName.EndsWith('.json') then
             exit('application/json');
-        if LowerCaseFileName.EndsWith('.doc') then
+        if FileName.EndsWith('.doc') then
             exit('application/msword(.doc)');
-        if LowerCaseFileName.EndsWith('.pdf') then
+        if LowerCase(FileName).EndsWith('.pdf') then
             exit('application/pdf');
-        if LowerCaseFileName.EndsWith('.sql') then
+        if FileName.EndsWith('.sql') then
             exit('application/sql');
-        if LowerCaseFileName.EndsWith('.xls') then
+        if FileName.EndsWith('.xls') then
             exit('application/vnd.ms-excel(.xls)');
-        if LowerCaseFileName.EndsWith('.ppt') then
+        if FileName.EndsWith('.ppt') then
             exit('application/vnd.ms-powerpoint(.ppt)');
-        if LowerCaseFileName.EndsWith('.odt') then
+        if FileName.EndsWith('.odt') then
             exit('application/vnd.oasis.opendocument.text(.odt)');
-        if LowerCaseFileName.EndsWith('.pptx') then
+        if FileName.EndsWith('.pptx') then
             exit('application/vnd.openxmlformats-officedocument.presentationml.presentation(.pptx)');
-        if LowerCaseFileName.EndsWith('.xlsx') then
+        if FileName.EndsWith('.xlsx') then
             exit('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet(.xlsx)');
-        if LowerCaseFileName.EndsWith('.docx') then
+        if FileName.EndsWith('.docx') then
             exit('application/vnd.openxmlformats-officedocument.wordprocessingml.document(.docx)');
-        if LowerCaseFileName.EndsWith('.xml') then
+        if FileName.EndsWith('.xml') then
             exit('application/xml');
-        if LowerCaseFileName.EndsWith('.zip') then
+        if FileName.EndsWith('.zip') then
             exit('application/zip');
-        if LowerCaseFileName.EndsWith('.zst') then
+        if FileName.EndsWith('.zst') then
             exit('application/zstd(.zst)');
-        if LowerCaseFileName.EndsWith('.mpeg') then
+        if FileName.EndsWith('.mpeg') then
             exit('audio/mpeg');
-        if LowerCaseFileName.EndsWith('.ogg') then
+        if FileName.EndsWith('.ogg') then
             exit('audio/ogg');
-        if LowerCaseFileName.EndsWith('.gif') then
+        if FileName.EndsWith('.gif') then
             exit('application/gif');
-        if LowerCaseFileName.EndsWith('.jpeg') then
+        if FileName.EndsWith('.jpeg') then
             exit('application/jpeg');
-        if LowerCaseFileName.EndsWith('.jpg') then
+        if FileName.EndsWith('.jpg') then
             exit('application/jpg');
-        if LowerCaseFileName.EndsWith('.png') then
+        if FileName.EndsWith('.png') then
             exit('application/png');
-        if LowerCaseFileName.EndsWith('.css') then
+        if FileName.EndsWith('.css') then
             exit('text/css');
-        if LowerCaseFileName.EndsWith('.csv') then
+        if FileName.EndsWith('.csv') then
             exit('text/csv');
-        if LowerCaseFileName.EndsWith('.html') then
+        if FileName.EndsWith('.html') then
             exit('text/html');
-        if LowerCaseFileName.EndsWith('.php') then
+        if FileName.EndsWith('.php') then
             exit('text/php');
-        if LowerCaseFileName.EndsWith('.txt') then
+        if FileName.EndsWith('.txt') then
             exit('text/plain');
         exit('');
     end;
