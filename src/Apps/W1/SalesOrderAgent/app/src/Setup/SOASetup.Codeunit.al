@@ -201,11 +201,11 @@ codeunit 4400 "SOA Setup"
         if not AgentRec.ReadPermission() then
             exit(false);
 
-        // Agent is a virtual table. Get and FindSet make the platform build the record, which calls back
-        // into the agent metadata provider of this app, so those must never be used from code that the
-        // metadata provider can reach. Every filter below is backed by a field of the underlying agent
-        // data table, so asking whether such a record exists stays a single keyed database lookup and
-        // never builds an agent record.
+        // Agent is a virtual table. Every read of it, including this filtered existence check, is served
+        // by building agent records, and building a record calls back into the agent metadata provider of
+        // this app. Nothing that the platform can invoke while it builds a record may call this, or the
+        // callback re-enters itself until the stack overflows. Filtering keeps the work small, it does
+        // not make the read safe from that context.
         AgentRec.SetRange("User Security ID", AgentUserSecurityID);
         AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
         AgentRec.SetRange(Substate, AgentRec.Substate::Archived);
