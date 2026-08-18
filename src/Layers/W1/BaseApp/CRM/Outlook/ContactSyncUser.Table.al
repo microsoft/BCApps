@@ -110,9 +110,8 @@ table 7121 "Contact Sync User"
         if DeltaUrlToValidate = '' then
             exit(true);
         IsApproved := Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) = LowerCase(DeltaUrlToValidate);
-        Session.LogMessage('0000V1Y', StrSubstNo(DeltaUrlValidationTelemetryMsg, DeltaUrlToValidate, IsApproved, false, false), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
         if not IsApproved then
-            Error(InvalidDeltaUrlErr);
+            Session.LogMessage('0000V1Y', StrSubstNo(DeltaUrlValidationTelemetryMsg, DeltaUrlToValidate, IsApproved, InvalidDeltaUrlErr), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
         exit(IsApproved);
     end;
 
@@ -122,5 +121,5 @@ table 7121 "Contact Sync User"
         CannotChangeRecordOwnerErr: Label 'You cannot change the owner of an existing Contact Sync record.';
         InvalidDeltaUrlErr: Label 'The Delta URL must be an HTTPS Microsoft Graph URL.';
         GraphUrlPrefixLbl: Label 'https://graph.microsoft.com/v1.0/', Locked = true;
-        DeltaUrlValidationTelemetryMsg: Label 'Contact Sync delta URL validation. URL: %1; Approved: %2; Raise error: %3; Empty: %4', Locked = true, Comment = '%1 = delta URL, %2 = whether URL is approved, %3 = whether validation raises errors, %4 = whether URL is empty';
+        DeltaUrlValidationTelemetryMsg: Label 'Contact Sync delta URL validation. URL: %1; Approved: %2; context : %3', Locked = true, Comment = '%1 = delta URL, %2 = whether URL is approved, %3 = whether validation raises errors, %4 = whether URL is empty';
 }
