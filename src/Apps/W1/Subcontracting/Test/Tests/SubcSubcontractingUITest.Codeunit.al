@@ -83,7 +83,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         SubcCompTransferLeadTime: DateFormula;
-        SubcCompTransferLeadTime: DateFormula;
         SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
         CreateProdOrderInfoLine: Boolean;
