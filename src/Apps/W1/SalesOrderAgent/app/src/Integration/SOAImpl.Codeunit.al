@@ -104,64 +104,46 @@ codeunit 4587 "SOA Impl"
         CurrentSOASetup: Record "SOA Setup";
         SOASetupCU: Codeunit "SOA Setup";
         TelemetryDimensions: Dictionary of [Text, Text];
-        CancelErrorCallStack: Text;
     begin
         if SOASetupCU.IsAgentActive(SOASetup."User Security ID") then
             exit(false);
 
         if CurrentSOASetup.Get(SOASetup.ID) then begin
-            RemoveScheduledTask(CurrentSOASetup, CancelErrorCallStack);
+            RemoveScheduledTask(CurrentSOASetup);
             CurrentSOASetup.Modify();
             SOASetup."Agent Scheduled Task ID" := CurrentSOASetup."Agent Scheduled Task ID";
             SOASetup."Recovery Scheduled Task ID" := CurrentSOASetup."Recovery Scheduled Task ID";
         end else
-            CancelScheduledTasksForRecord(SOASetup.RecordId, CancelErrorCallStack);
+            CancelScheduledTasksForRecord(SOASetup.RecordId);
 
         // The caller is a scheduled task that is about to stop, so make the cleanup durable right away.
         Commit();
 
         TelemetryDimensions.Add('SOASetupId', Format(SOASetup.ID));
-        if CancelErrorCallStack = '' then
+        // Report what is actually left rather than assuming the cancellations removed everything.
+        if not ScheduledTasksExistForRecord(SOASetup.RecordId) then
             FeatureTelemetry.LogUsage('0000V3K', SOASetupCU.GetFeatureName(), TelemetryInactiveAgentTasksRemovedLbl, TelemetryDimensions)
         else
-            // A task this session was not allowed to cancel is retried the next time cleanup runs.
-            FeatureTelemetry.LogError('0000V3L', SOASetupCU.GetFeatureName(), 'Remove scheduled tasks of inactive agent', TelemetryInactiveAgentTasksLeftLbl, CancelErrorCallStack, TelemetryDimensions);
+            // A task that survived is picked up the next time cleanup runs.
+            FeatureTelemetry.LogError('0000V3L', SOASetupCU.GetFeatureName(), 'Remove scheduled tasks of inactive agent', TelemetryInactiveAgentTasksLeftLbl, '', TelemetryDimensions);
         exit(true);
     end;
 
     internal procedure RemoveScheduledTask(var SOASetup: Record "SOA Setup")
     var
-        CancelErrorCallStack: Text;
-    begin
-        RemoveScheduledTask(SOASetup, CancelErrorCallStack);
-    end;
-
-    /// <summary>
-    /// Cancels the scheduled tasks of a setup record. The call stack of the first cancellation that was
-    /// refused is returned, so a caller that reports the outcome has the error of the failure itself
-    /// rather than whatever the last error happened to be by the time it logs.
-    /// </summary>
-    local procedure RemoveScheduledTask(var SOASetup: Record "SOA Setup"; var CancelErrorCallStack: Text)
-    var
         SOASetupCU: Codeunit "SOA Setup";
         NullGuid: Guid;
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        // Cancelling can be refused, and cleanup must never fail the caller, so every cancellation here
-        // is protected. A task that survives is picked up the next time cleanup runs.
-        if TaskScheduler.TaskExists(SOASetup."Agent Scheduled Task ID") then
-            if TryCancelTask(SOASetup."Agent Scheduled Task ID") then
-                FeatureTelemetry.LogUsage('0000NGN', SOASetupCU.GetFeatureName(), TelemetryAgentScheduledTaskCancelledLbl, TelemetryDimensions)
-            else
-                if CancelErrorCallStack = '' then
-                    CancelErrorCallStack := GetLastErrorCallStack();
+        if TaskScheduler.TaskExists(SOASetup."Agent Scheduled Task ID") then begin
+            TaskScheduler.CancelTask(SOASetup."Agent Scheduled Task ID");
+            FeatureTelemetry.LogUsage('0000NGN', SOASetupCU.GetFeatureName(), TelemetryAgentScheduledTaskCancelledLbl, TelemetryDimensions);
+        end;
 
-        if TaskScheduler.TaskExists(SOASetup."Recovery Scheduled Task ID") then
-            if TryCancelTask(SOASetup."Recovery Scheduled Task ID") then
-                FeatureTelemetry.LogUsage('0000NGO', SOASetupCU.GetFeatureName(), TelemetryRecoveryScheduledTaskCancelledLbl, TelemetryDimensions)
-            else
-                if CancelErrorCallStack = '' then
-                    CancelErrorCallStack := GetLastErrorCallStack();
+        if TaskScheduler.TaskExists(SOASetup."Recovery Scheduled Task ID") then begin
+            TaskScheduler.CancelTask(SOASetup."Recovery Scheduled Task ID");
+            FeatureTelemetry.LogUsage('0000NGO', SOASetupCU.GetFeatureName(), TelemetryRecoveryScheduledTaskCancelledLbl, TelemetryDimensions);
+        end;
 
         SOASetup."Agent Scheduled Task ID" := NullGuid;
         SOASetup."Recovery Scheduled Task ID" := NullGuid;
@@ -169,16 +151,16 @@ codeunit 4587 "SOA Impl"
         // The ids above only cover the tasks this setup record still knows about. Tasks whose id was lost,
         // for example when a scheduling attempt was rolled back, would otherwise keep running forever, so
         // cancel everything that is still registered for this setup record.
-        CancelScheduledTasksForRecord(SOASetup.RecordId, CancelErrorCallStack);
+        CancelScheduledTasksForRecord(SOASetup.RecordId);
     end;
 
-    local procedure CancelScheduledTasksForRecord(SOASetupRecordId: RecordId; var CancelErrorCallStack: Text)
+    local procedure CancelScheduledTasksForRecord(SOASetupRecordId: RecordId)
     begin
-        CancelScheduledTasksForCodeunit(Codeunit::"SOA Dispatcher", SOASetupRecordId, CancelErrorCallStack);
-        CancelScheduledTasksForCodeunit(Codeunit::"SOA Recovery", SOASetupRecordId, CancelErrorCallStack);
+        CancelScheduledTasksForCodeunit(Codeunit::"SOA Dispatcher", SOASetupRecordId);
+        CancelScheduledTasksForCodeunit(Codeunit::"SOA Recovery", SOASetupRecordId);
     end;
 
-    local procedure CancelScheduledTasksForCodeunit(RunCodeunitId: Integer; SOASetupRecordId: RecordId; var CancelErrorCallStack: Text)
+    local procedure CancelScheduledTasksForCodeunit(RunCodeunitId: Integer; SOASetupRecordId: RecordId)
     var
         ScheduledTask: Record "Scheduled Task";
         TaskIds: List of [Guid];
@@ -196,18 +178,18 @@ codeunit 4587 "SOA Impl"
         until ScheduledTask.Next() = 0;
 
         foreach TaskId in TaskIds do
-            // A session is not always allowed to cancel a task another user scheduled, and cleanup must
-            // never fail the caller, so a task that cannot be cancelled here is left to the next attempt.
             if TaskScheduler.TaskExists(TaskId) then
-                if not TryCancelTask(TaskId) then
-                    if CancelErrorCallStack = '' then
-                        CancelErrorCallStack := GetLastErrorCallStack();
+                TaskScheduler.CancelTask(TaskId);
     end;
 
-    [TryFunction]
-    local procedure TryCancelTask(TaskId: Guid)
+    local procedure ScheduledTasksExistForRecord(SOASetupRecordId: RecordId): Boolean
+    var
+        ScheduledTask: Record "Scheduled Task";
     begin
-        TaskScheduler.CancelTask(TaskId);
+        ScheduledTask.SetFilter("Run Codeunit", '%1|%2', Codeunit::"SOA Dispatcher", Codeunit::"SOA Recovery");
+        ScheduledTask.SetRange(Company, CompanyName());
+        ScheduledTask.SetRange(Record, SOASetupRecordId);
+        exit(not ScheduledTask.IsEmpty());
     end;
 
     local procedure ScheduleDelay(SOASetupCU: Codeunit "SOA Setup"; var SOASetup: Record "SOA Setup"): Integer
