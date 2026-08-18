@@ -162,15 +162,15 @@ codeunit 139980 "Subc. Wiz. Change Test"
         RoutingNo := SubCreateProdOrdWizLibrary.CreateRoutingWithTwoLines();
         ItemNo := SubCreateProdOrdWizLibrary.CreateItemWithBOMAndRouting(BOMNo, RoutingNo);
 
+        // Create purchase line
+        SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
+
         // Get original component count
         ProdOrderCheckLib.CreateTempProdOrderComponentFromBOM(TempProdOrderComponent, BOMNo, PurchLine);
         OriginalComponentCount := TempProdOrderComponent.Count();
 
         // Configure setup to edit components
         SubSetupLibrary.ConfigureSubManagementForBothPresentScenario("Prod. Definition Display"::Show, "Prod. Definition Display"::Edit);
-
-        // Create purchase line
-        SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
 
         // [WHEN] Run the Production Order Creation Wizard with component deletion
         WizardWasOpened := false;
@@ -597,7 +597,7 @@ codeunit 139980 "Subc. Wiz. Change Test"
                 Assert.IsTrue(ProductionDefinitionWizard.ProdOrderRoutingPart.Editable(), 'Routing part should be editable');
                 // Delete the first routing operation using Sub Delete action
                 ProductionDefinitionWizard.ProdOrderRoutingPart.First();
-                ProductionDefinitionWizard.ProdOrderRoutingPart.TestDelete.Invoke();
+                ProductionDefinitionWizard.ProdOrderRoutingPart."Subc. TestDelete".Invoke();
             end;
         end;
 

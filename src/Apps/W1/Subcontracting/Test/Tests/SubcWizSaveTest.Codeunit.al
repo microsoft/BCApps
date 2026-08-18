@@ -109,10 +109,10 @@ codeunit 139998 "Subc. Wiz. Save Test"
         Item: Record Item;
         TempProdOrderComponent: Record "Prod. Order Component" temporary;
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
+        ManufacturingSetup: Record "Manufacturing Setup";
         ProdOrder: Record "Production Order";
         PurchLine: Record "Purchase Line";
         ItemNo: Code[20];
-        ManufacturingSetup: Record "Manufacturing Setup";
     begin
         // [SCENARIO H2] SaveBomRtngToSource = Item - BOM should be saved to item
         // [GIVEN] Item without BOM/Routing, wizard creates new BOM

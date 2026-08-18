@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Wizard;
 
 pageextension 139982 "Subc. TST WizProdRtng" extends "Temp Prod. Ord. Rtng List"
@@ -13,10 +12,11 @@ pageextension 139982 "Subc. TST WizProdRtng" extends "Temp Prod. Ord. Rtng List"
     {
         addlast(processing)
         {
-            action(TestDelete)
+            action("Subc. TestDelete")
             {
                 ApplicationArea = All;
                 Caption = 'Test Delete';
+                Tooltip = 'Test Delete';
 
                 trigger OnAction()
                 begin

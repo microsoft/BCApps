@@ -4889,7 +4889,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     var
         ItemCharge: Record "Item Charge";
         ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
-        ManufacturingSetup: Record "Manufacturing Setup";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -4987,21 +4986,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
         PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
         PurchRcptLine.FindFirst();
-    end;
-
-    local procedure CreateAndCalculateNeededWorkCenter(var WorkCenter: Record "Work Center"; IsSubcontracting: Boolean)
-    var
-        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
-        ShopCalendarCode: Code[10];
-        WorkCenterNo: Code[20];
-    begin
-        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
-        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
-
-        // [GIVEN] Create and Calculate needed Work and Machine Center
-        CreateWorkCenter(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", IsSubcontracting, UnitCostCalculation, '');
-        WorkCenter.Get(WorkCenterNo);
-        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
     end;
 
     local procedure Initialize()

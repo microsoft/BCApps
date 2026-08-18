@@ -57,9 +57,6 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         IsInitialized: Boolean;
         ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
-        ErrorCounter: Integer;
-        ErrorMessageDescriptionList: List of [Text];
-        NotSupportedErr: Label 'Drop Shipment must be equal to', Locked = true;
 
     [Test]
     procedure VendorLocationWithBinMandatoryThrowsError()
