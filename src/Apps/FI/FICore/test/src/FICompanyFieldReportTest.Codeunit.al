@@ -1,3 +1,34 @@
+namespace Microsoft.Finance.FinancialReports;
+
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Reminder;
+using Microsoft.Sales.Setup;
+using Microsoft.Service.Contract;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using Microsoft.Service.Item;
+using Microsoft.Service.Reports;
+using Microsoft.Service.Test;
+using System.Environment.Configuration;
+using System.TestLibraries.Utilities;
+
 codeunit 148150 "FI Company Field Report Test"
 {
     Subtype = Test;
@@ -133,23 +164,23 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('VATVIESDeclarationTaxAuthReportRequestPageHandler')]
     procedure CompanyFieldsInVATVIESDeclaration()
     var
-        VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
+        FICoreVIESDeclarationFeature: Codeunit "FICore VIES Decl. Feature";
+        EmptyRecordVariant: Variant;
+        RequestPageXML: Text;
     begin
         // [Scenario] Test FI Core extension subscriber for Finnish company fields in the VIES declaration.
         Initialize();
         FIVIESFeatureHandler.SetEnabled(true);
+        Assert.IsTrue(FICoreVIESDeclarationFeature.IsEnabled(), 'The FI VIES feature should be enabled for the test.');
         CreateVATVIESEntry();
 
         // [WHEN] The VAT VIES declaration report is run.
-        VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
-        VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
-        VATVIESDeclarationTaxAuthReport.Run();
+        RequestPageXML := GetVATVIESDeclarationRequestPageXML();
+        LibraryReportDataset.RunReportAndLoad(Report::"VAT- VIES Declaration Tax Auth", EmptyRecordVariant, RequestPageXML);
 
         // [THEN] Finnish company fields and captions are initialized in the report dataset.
-        LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoBusinessIdentityCode', BusinessIdentityCodeTxt);
         LibraryReportDataset.AssertElementWithValueExists('BusinessIdentityCodeCaption', CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code"));
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', RegisteredHomeCityTxt);
@@ -158,22 +189,20 @@ codeunit 148150 "FI Company Field Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('VATVIESDeclarationTaxAuthReportRequestPageHandler')]
     procedure CompanyFieldsNotInVATVIESDeclarationWhenFeatureDisabled()
     var
-        VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
+        EmptyRecordVariant: Variant;
+        RequestPageXML: Text;
     begin
         // [Scenario] Finnish company fields are not added to the VIES declaration when the feature is disabled.
         Initialize();
         CreateVATVIESEntry();
 
         // [WHEN] The VAT VIES declaration report is run.
-        VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
-        VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
-        VATVIESDeclarationTaxAuthReport.Run();
+        RequestPageXML := GetVATVIESDeclarationRequestPageXML();
+        LibraryReportDataset.RunReportAndLoad(Report::"VAT- VIES Declaration Tax Auth", EmptyRecordVariant, RequestPageXML);
 
         // [THEN] Finnish company fields and captions remain empty in the report dataset.
-        LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoBusinessIdentityCode', '');
         LibraryReportDataset.AssertElementWithValueExists('BusinessIdentityCodeCaption', '');
         LibraryReportDataset.AssertElementWithValueExists('CompanyInfoRegisteredHomeCity', '');
@@ -213,6 +242,8 @@ codeunit 148150 "FI Company Field Report Test"
         VATEntry."Bill-to/Pay-to No." := LibraryUtility.GenerateGUID();
         VATEntry.Base := LibraryRandom.RandDec(1000, 2);
         VATEntry.Insert();
+
+        Commit();
     end;
 
     local procedure CreateSalesDocument(Type: Enum "Sales Document Type"): Code[20]
@@ -237,6 +268,8 @@ codeunit 148150 "FI Company Field Report Test"
         LibrarySales.CreateSalesLine(
             SalesLine, SalesHeader, SalesLine.Type::Item,
             CreateItemNo(Customer."Gen. Bus. Posting Group", Customer."VAT Bus. Posting Group"), LibraryRandom.RandInt(1000));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 1000, 2));
+        SalesLine.Modify(true);
         if Post then
             DocumentNumber := LibrarySales.PostSalesDocument(SalesHeader, true, true)
         else
@@ -373,13 +406,12 @@ codeunit 148150 "FI Company Field Report Test"
         Commit();
     end;
 
-    local procedure AssertCompanyFields(BusinessIdentityCodeElement: Text; RegisteredHomeCityElement: Text)
+    local procedure AssertCompanyFieldsInLoadedDataset(BusinessIdentityCodeElement: Text; RegisteredHomeCityElement: Text)
     var
         ActualBusinessIdentityCode: Variant;
         ActualRegisteredHomeCity: Variant;
         RowIndex: Integer;
     begin
-        LibraryReportDataset.LoadDataSetFile();
         Assert.IsTrue(LibraryReportDataset.RowCount() > 0, 'Empty Dataset');
         for RowIndex := 0 to LibraryReportDataset.RowCount() - 1 do begin
             LibraryReportDataset.GetNextRow();
@@ -391,15 +423,20 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-    local procedure AssertDatasetIsNotEmpty()
+    local procedure AssertLoadedDatasetIsNotEmpty()
     begin
-        LibraryReportDataset.LoadDataSetFile();
         Assert.IsTrue(LibraryReportDataset.RowCount() > 0, 'Empty Dataset');
     end;
 
-    local procedure AssertRegisteredHomeCityInStandardReport()
+    local procedure GetVATVIESDeclarationRequestPageXML(): Text
+    var
+        RequestPageXMLTxt: Label '<?xml version="1.0" standalone="yes"?><ReportParameters name="VAT- VIES Declaration Tax Auth" id="19"><Options><Field name="UseAmtsInAddCurr">true</Field><Field name="StartDate">%1</Field><Field name="EndDate">%2</Field><Field name="VATRegistrationNoFilter"></Field></Options><DataItems></DataItems></ReportParameters>', Comment = '%1 = Start Date, %2 = End Date', Locked = true;
     begin
-        LibraryReportDataset.LoadDataSetFile();
+        exit(StrSubstNo(RequestPageXMLTxt, Format(WorkDate(), 0, 9), Format(WorkDate() + 365, 0, 9)));
+    end;
+
+    local procedure AssertRegisteredHomeCityInLoadedStandardReport()
+    begin
         LibraryReportDataset.AssertElementWithValueExists('CompanyLegalOffice', RegisteredHomeCityTxt);
         LibraryReportDataset.AssertElementWithValueExists(
             'CompanyLegalOffice_Lbl', CompanyInformation.FieldCaption(CompanyInformation."Registered Home City"));
@@ -414,32 +451,26 @@ codeunit 148150 "FI Company Field Report Test"
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        StatementReport: Report Statement;
         PostedDocumentNo: Code[20];
+        RequestPageXML: Text;
     begin
         Initialize();
         PostedDocumentNo := CreateSalesDocument(SalesHeader."Document Type"::Invoice, true, false);
         SalesInvoiceHeader.Get(PostedDocumentNo);
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
         Customer.SetRecFilter();
-        StatementReport.SetTableView(Customer);
-        LibraryVariableStorage.Enqueue(SalesInvoiceHeader."Posting Date");
-        StatementReport.UseRequestPage(true);
-        StatementReport.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        RequestPageXML := Report.RunRequestPage(Report::Statement, RequestPageXML);
+        LibraryReportDataset.RunReportAndLoad(Report::Statement, Customer, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure StatementReportHandler(var StatementReport: TestRequestPage Statement)
-    var
-        PostingDate: Variant;
     begin
-        LibraryVariableStorage.Dequeue(PostingDate);
-        StatementReport."Start Date".SetValue(PostingDate);
-        StatementReport."End Date".SetValue(PostingDate);
+        StatementReport."Start Date".SetValue(WorkDate());
+        StatementReport."End Date".SetValue(WorkDate());
         StatementReport.IncludeAllCustomerswithLE.SetValue(true);
-        StatementReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        StatementReport.OK().Invoke();
     end;
 
     [Test]
@@ -447,24 +478,27 @@ codeunit 148150 "FI Company Field Report Test"
     [Scope('OnPrem')]
     procedure ReminderMemoReport()
     var
-        ReminderReport: Report Reminder;
+        IssuedReminderHeader: Record "Issued Reminder Header";
         IssueRemindersReport: Report "Issue Reminders";
+        RequestPageXML: Text;
     begin
         Initialize();
         InitializeReminderMemoReport();
 
         IssueRemindersReport.UseRequestPage(false);
         IssueRemindersReport.Run();
-        ReminderReport.UseRequestPage(true);
-        ReminderReport.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        IssuedReminderHeader.FindLast();
+        RequestPageXML := Report.RunRequestPage(Report::Reminder, RequestPageXML);
+        IssuedReminderHeader.SetRecFilter();
+        LibraryReportDataset.RunReportAndLoad(Report::Reminder, IssuedReminderHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure ReminderReportHandler(var ReminderReport: TestRequestPage Reminder)
     begin
-        ReminderReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ReminderReport.OK().Invoke();
     end;
 
     [Test]
@@ -472,21 +506,24 @@ codeunit 148150 "FI Company Field Report Test"
     [Scope('OnPrem')]
     procedure ReminderMemoTestReport()
     var
-        ReminderTestReport: Report "Reminder - Test";
+        ReminderHeader: Record "Reminder Header";
+        RequestPageXML: Text;
     begin
         Initialize();
         InitializeReminderMemoReport();
 
-        ReminderTestReport.UseRequestPage(true);
-        ReminderTestReport.Run();
-        AssertDatasetIsNotEmpty();
+        ReminderHeader.FindLast();
+        RequestPageXML := Report.RunRequestPage(Report::"Reminder - Test", RequestPageXML);
+        ReminderHeader.SetRecFilter();
+        LibraryReportDataset.RunReportAndLoad(Report::"Reminder - Test", ReminderHeader, RequestPageXML);
+        AssertLoadedDatasetIsNotEmpty();
     end;
 
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure ReminderTestReportHandler(var ReminderTestReport: TestRequestPage "Reminder - Test")
     begin
-        ReminderTestReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ReminderTestReport.OK().Invoke();
     end;
 
     [Test]
@@ -500,10 +537,10 @@ codeunit 148150 "FI Company Field Report Test"
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        FinanceChargeMemo: Report "Finance Charge Memo";
         CreateFinanceChargeMemos: Report "Create Finance Charge Memos";
         LibraryFinanceChargeMemo: Codeunit "Library - Finance Charge Memo";
         PostedDocumentNo: Code[20];
+        RequestPageXML: Text;
     begin
         Initialize();
 
@@ -518,7 +555,8 @@ codeunit 148150 "FI Company Field Report Test"
         Customer.SetRecFilter();
         CreateFinanceChargeMemos.SetTableView(Customer);
         CreateFinanceChargeMemos.UseRequestPage(false);
-        CreateFinanceChargeMemos.InitializeRequest(CalcDate('<2M>', SalesInvoiceHeader."Posting Date"), SalesInvoiceHeader."Posting Date");
+        CreateFinanceChargeMemos.InitializeRequest(
+            CalcDate('<1Y>', SalesInvoiceHeader."Posting Date"), CalcDate('<1Y>', SalesInvoiceHeader."Posting Date"));
         CreateFinanceChargeMemos.Run();
         FinanceChargeMemoHeader.SetRange("Customer No.", Customer."No.");
         FinanceChargeMemoHeader.FindFirst();
@@ -526,9 +564,10 @@ codeunit 148150 "FI Company Field Report Test"
         IssuedFinChargeMemoHeader.SetRange("Customer No.", Customer."No.");
         IssuedFinChargeMemoHeader.FindFirst();
         LibraryVariableStorage.Enqueue(IssuedFinChargeMemoHeader."No.");
-        FinanceChargeMemo.UseRequestPage(true);
-        FinanceChargeMemo.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        RequestPageXML := Report.RunRequestPage(Report::"Finance Charge Memo", RequestPageXML);
+        IssuedFinChargeMemoHeader.SetRecFilter();
+        LibraryReportDataset.RunReportAndLoad(Report::"Finance Charge Memo", IssuedFinChargeMemoHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -536,7 +575,7 @@ codeunit 148150 "FI Company Field Report Test"
     procedure FinanceChargeMemoReportHandler(var FinanceChargeMemoRequestPage: TestRequestPage "Finance Charge Memo")
     begin
         FinanceChargeMemoRequestPage."Issued Fin. Charge Memo Header".SetFilter("No.", LibraryVariableStorage.DequeueText());
-        FinanceChargeMemoRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        FinanceChargeMemoRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -545,14 +584,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure SalesInvoiceReport()
     var
         SalesHeader: Record "Sales Header";
-        StandardSalesInvoice: Report "Standard Sales - Invoice";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        DocumentNumber: Code[20];
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreateSalesDocument(SalesHeader."Document Type"::Invoice, true);
-        StandardSalesInvoice.UseRequestPage(true);
-        StandardSalesInvoice.Run();
-        AssertRegisteredHomeCityInStandardReport();
+        DocumentNumber := CreateSalesDocument(SalesHeader."Document Type"::Invoice, true);
+        RequestPageXML := Report.RunRequestPage(Report::"Standard Sales - Invoice", RequestPageXML);
+        SalesInvoiceHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Standard Sales - Invoice", SalesInvoiceHeader, RequestPageXML);
+        AssertRegisteredHomeCityInLoadedStandardReport();
     end;
 
     [RequestPageHandler]
@@ -563,7 +605,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         SalesInvoiceRequestPage.Header.SetFilter("No.", Format(DocumentNumber));
-        SalesInvoiceRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        SalesInvoiceRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -572,14 +614,19 @@ codeunit 148150 "FI Company Field Report Test"
     procedure SalesShipmentReport()
     var
         SalesHeader: Record "Sales Header";
-        SalesShipment: Report "Sales - Shipment";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        DocumentNumber: Code[20];
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreateSalesDocument(SalesHeader."Document Type"::Order, true);
-        SalesShipment.UseRequestPage(true);
-        SalesShipment.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreateSalesDocument(SalesHeader."Document Type"::Order, true);
+        RequestPageXML := Report.RunRequestPage(Report::"Sales - Shipment", RequestPageXML);
+        SalesInvoiceHeader.Get(DocumentNumber);
+        SalesShipmentHeader.SetRange("Order No.", SalesInvoiceHeader."Order No.");
+        LibraryReportDataset.RunReportAndLoad(Report::"Sales - Shipment", SalesShipmentHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -592,7 +639,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.Dequeue(DocumentNumber);
         SalesInvoiceHeader.Get(Format(DocumentNumber));
         SalesShipmentRequestPage."Sales Shipment Header".SetFilter("Order No.", SalesInvoiceHeader."Order No.");
-        SalesShipmentRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        SalesShipmentRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -601,14 +648,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure BlanketSalesOrderReport()
     var
         SalesHeader: Record "Sales Header";
-        BlanketSalesOrder: Report "Blanket Sales Order";
+        DocumentNumber: Code[20];
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreateSalesDocument(SalesHeader."Document Type"::"Blanket Order", false);
-        BlanketSalesOrder.UseRequestPage(true);
-        BlanketSalesOrder.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreateSalesDocument(SalesHeader."Document Type"::"Blanket Order", false);
+        RequestPageXML := Report.RunRequestPage(Report::"Blanket Sales Order", RequestPageXML);
+        SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Blanket Order");
+        SalesHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Blanket Sales Order", SalesHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -619,7 +669,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         BlanketSalesOrderRequestPage."Sales Header".SetFilter("No.", Format(DocumentNumber));
-        BlanketSalesOrderRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        BlanketSalesOrderRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -628,14 +678,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseQuoteReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseQuote: Report "Purchase - Quote";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreatePurchaseDocument(PurchaseHeader."Document Type"::Quote, false);
-        PurchaseQuote.UseRequestPage(true);
-        PurchaseQuote.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreatePurchaseDocument(PurchaseHeader."Document Type"::Quote, false);
+        RequestPageXML := Report.RunRequestPage(Report::"Purchase - Quote", RequestPageXML);
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Quote);
+        PurchaseHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Purchase - Quote", PurchaseHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -646,7 +699,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         PurchaseQuoteRequestPage."Purchase Header".SetFilter("No.", Format(DocumentNumber));
-        PurchaseQuoteRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        PurchaseQuoteRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -655,14 +708,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseOrderReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseOrder: Report Order;
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreatePurchaseDocument(PurchaseHeader."Document Type"::Order, false);
-        PurchaseOrder.UseRequestPage(true);
-        PurchaseOrder.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreatePurchaseDocument(PurchaseHeader."Document Type"::Order, false);
+        RequestPageXML := Report.RunRequestPage(Report::Order, RequestPageXML);
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::Order, PurchaseHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -673,7 +729,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         PurchaseOrderRequestPage."Purchase Header".SetFilter("No.", Format(DocumentNumber));
-        PurchaseOrderRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        PurchaseOrderRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -682,14 +738,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseInvoiceReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseInvoice: Report "Purchase - Invoice";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreatePurchaseDocument(PurchaseHeader."Document Type"::Invoice, true);
-        PurchaseInvoice.UseRequestPage(true);
-        PurchaseInvoice.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreatePurchaseDocument(PurchaseHeader."Document Type"::Invoice, true);
+        RequestPageXML := Report.RunRequestPage(Report::"Purchase - Invoice", RequestPageXML);
+        PurchInvHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Purchase - Invoice", PurchInvHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -700,7 +759,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         PurchaseInvoiceRequestPage."Purch. Inv. Header".SetFilter("No.", Format(DocumentNumber));
-        PurchaseInvoiceRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        PurchaseInvoiceRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -709,14 +768,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseCreditMemoReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseCreditMemo: Report "Purchase - Credit Memo";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreatePurchaseDocument(PurchaseHeader."Document Type"::"Credit Memo", true);
-        PurchaseCreditMemo.UseRequestPage(true);
-        PurchaseCreditMemo.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreatePurchaseDocument(PurchaseHeader."Document Type"::"Credit Memo", true);
+        RequestPageXML := Report.RunRequestPage(Report::"Purchase - Credit Memo", RequestPageXML);
+        PurchCrMemoHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Purchase - Credit Memo", PurchCrMemoHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -727,7 +789,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         PurchaseCreditMemoRequestPage."Purch. Cr. Memo Hdr.".SetFilter("No.", Format(DocumentNumber));
-        PurchaseCreditMemoRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        PurchaseCreditMemoRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -736,14 +798,19 @@ codeunit 148150 "FI Company Field Report Test"
     procedure PurchaseReceiptReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseReceipt: Report "Purchase - Receipt";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreatePurchaseDocument(PurchaseHeader."Document Type"::Order, true);
-        PurchaseReceipt.UseRequestPage(true);
-        PurchaseReceipt.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreatePurchaseDocument(PurchaseHeader."Document Type"::Order, true);
+        RequestPageXML := Report.RunRequestPage(Report::"Purchase - Receipt", RequestPageXML);
+        PurchInvHeader.Get(DocumentNumber);
+        PurchRcptHeader.SetRange("Order No.", PurchInvHeader."Order No.");
+        LibraryReportDataset.RunReportAndLoad(Report::"Purchase - Receipt", PurchRcptHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -756,7 +823,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.Dequeue(DocumentNumber);
         PurchInvHeader.Get(Format(DocumentNumber));
         PurchaseReceiptRequestPage."Purch. Rcpt. Header".SetFilter("Order No.", PurchInvHeader."Order No.");
-        PurchaseReceiptRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        PurchaseReceiptRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -765,14 +832,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure BlanketPurchaseOrderReport()
     var
         PurchaseHeader: Record "Purchase Header";
-        BlanketPurchaseOrder: Report "Blanket Purchase Order";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreatePurchaseDocument(PurchaseHeader."Document Type"::"Blanket Order", false);
-        BlanketPurchaseOrder.UseRequestPage(true);
-        BlanketPurchaseOrder.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreatePurchaseDocument(PurchaseHeader."Document Type"::"Blanket Order", false);
+        RequestPageXML := Report.RunRequestPage(Report::"Blanket Purchase Order", RequestPageXML);
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Blanket Order");
+        PurchaseHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Blanket Purchase Order", PurchaseHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -783,7 +853,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         BlanketPurchaseOrderRequestPage."Purchase Header".SetFilter("No.", Format(DocumentNumber));
-        BlanketPurchaseOrderRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        BlanketPurchaseOrderRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -792,14 +862,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure ServiceOrderReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceOrder: Report "Service Order (FI)";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreateServiceDocument(ServiceHeader."Document Type"::Order, false);
-        ServiceOrder.UseRequestPage(true);
-        ServiceOrder.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoegHomeCity');
+        DocumentNumber := CreateServiceDocument(ServiceHeader."Document Type"::Order, false);
+        RequestPageXML := Report.RunRequestPage(Report::"Service Order (FI)", RequestPageXML);
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Order);
+        ServiceHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Service Order (FI)", ServiceHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -810,7 +883,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceOrderRequestPage."Service Header".SetFilter("No.", Format(DocumentNumber));
-        ServiceOrderRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ServiceOrderRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -819,14 +892,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure ServiceQuoteReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceQuote: Report "Service Quote (FI)";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreateServiceDocument(ServiceHeader."Document Type"::Quote, false);
-        ServiceQuote.UseRequestPage(true);
-        ServiceQuote.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreateServiceDocument(ServiceHeader."Document Type"::Quote, false);
+        RequestPageXML := Report.RunRequestPage(Report::"Service Quote (FI)", RequestPageXML);
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Quote);
+        ServiceHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Service Quote (FI)", ServiceHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -837,7 +913,7 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceQuoteRequestPage."Service Header".SetFilter("No.", Format(DocumentNumber));
-        ServiceQuoteRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ServiceQuoteRequestPage.OK().Invoke();
     end;
 
     [Test]
@@ -846,14 +922,17 @@ codeunit 148150 "FI Company Field Report Test"
     procedure ServiceInvoiceReport()
     var
         ServiceHeader: Record "Service Header";
-        ServiceInvoice: Report "Service - Invoice (FI)";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreateServiceDocument(ServiceHeader."Document Type"::Invoice, true);
-        ServiceInvoice.UseRequestPage(true);
-        ServiceInvoice.Run();
-        AssertCompanyFields('CompanyInfoBusinessIDCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreateServiceDocument(ServiceHeader."Document Type"::Invoice, true);
+        RequestPageXML := Report.RunRequestPage(Report::"Service - Invoice (FI)", RequestPageXML);
+        ServiceInvoiceHeader.SetRange("No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Service - Invoice (FI)", ServiceInvoiceHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIDCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -864,23 +943,26 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceInvoiceRequestPage."Service Invoice Header".SetFilter("No.", Format(DocumentNumber));
-        ServiceInvoiceRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ServiceInvoiceRequestPage.OK().Invoke();
     end;
 
     [Test]
-    [HandlerFunctions('ServiceContractReportHandler')]
+    [HandlerFunctions('ConfirmHandlerFalse,ServiceContractReportHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractReport()
     var
-        FiledServiceContractHeader: Record "Filed Service Contract Header";
-        ServiceContract: Report "Service Contract (FI)";
+        ServiceContractHeader: Record "Service Contract Header";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreateServiceContract(FiledServiceContractHeader."Contract Type"::Contract);
-        ServiceContract.UseRequestPage(true);
-        ServiceContract.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreateServiceContract(ServiceContractHeader."Contract Type"::Contract);
+        RequestPageXML := Report.RunRequestPage(Report::"Service Contract (FI)", RequestPageXML);
+        ServiceContractHeader.SetRange("Contract Type", ServiceContractHeader."Contract Type"::Contract);
+        ServiceContractHeader.SetRange("Contract No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Service Contract (FI)", ServiceContractHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -891,23 +973,26 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceContractRequestPage."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
-        ServiceContractRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ServiceContractRequestPage.OK().Invoke();
     end;
 
     [Test]
-    [HandlerFunctions('ServiceContractQuoteReportHandler')]
+    [HandlerFunctions('ConfirmHandlerFalse,ServiceContractQuoteReportHandler')]
     [Scope('OnPrem')]
     procedure ServiceContractQuoteReport()
     var
-        FiledServiceContractHeader: Record "Filed Service Contract Header";
-        ServiceContractQuote: Report "Service Contract Quote (FI)";
+        ServiceContractHeader: Record "Service Contract Header";
+        DocumentNumber: Text;
+        RequestPageXML: Text;
     begin
         Initialize();
 
-        CreateServiceContract(FiledServiceContractHeader."Contract Type"::Quote);
-        ServiceContractQuote.UseRequestPage(true);
-        ServiceContractQuote.Run();
-        AssertCompanyFields('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
+        DocumentNumber := CreateServiceContract(ServiceContractHeader."Contract Type"::Quote);
+        RequestPageXML := Report.RunRequestPage(Report::"Service Contract Quote (FI)", RequestPageXML);
+        ServiceContractHeader.SetRange("Contract Type", ServiceContractHeader."Contract Type"::Quote);
+        ServiceContractHeader.SetRange("Contract No.", DocumentNumber);
+        LibraryReportDataset.RunReportAndLoad(Report::"Service Contract Quote (FI)", ServiceContractHeader, RequestPageXML);
+        AssertCompanyFieldsInLoadedDataset('CompanyInfoBusinessIdCode', 'CompanyInfoRegHomeCity');
     end;
 
     [RequestPageHandler]
@@ -918,18 +1003,19 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibraryVariableStorage.Dequeue(DocumentNumber);
         ServiceContractQuoteRequestPage."Service Contract Header".SetFilter("Contract No.", Format(DocumentNumber));
-        ServiceContractQuoteRequestPage.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ServiceContractQuoteRequestPage.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerFalse(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     [RequestPageHandler]
     procedure StandardSalesQuoteReportRequestPageHandler(var StandardSalesQuote: TestRequestPage "Standard Sales - Quote")
     begin
+        StandardSalesQuote.OK().Invoke();
     end;
 
-    [RequestPageHandler]
-    procedure VATVIESDeclarationTaxAuthReportRequestPageHandler(var VATVIESDeclarationTaxAuthReport: TestRequestPage "VAT- VIES Declaration Tax Auth")
-    begin
-        VATVIESDeclarationTaxAuthReport.SaveAsXml(
-            LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
 }
