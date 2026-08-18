@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
 
-pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
+pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
 {
     layout
     {
