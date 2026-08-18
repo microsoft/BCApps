@@ -83,7 +83,7 @@ Test-ApplicationManifests -Path $allPaths -ExpectedAppVersion "$($currentMajorMi
 # Test that we are not adding new uncategorized tests (W1 only) - Disabled for now
 # Test-ApplicationTestTypes -SourceCodePaths $w1OnlyPaths -Exceptions $allowedUncategorizedTests
 
-# Test that newly introduced object IDs do not overlap with partner ranges.
+# Test that newly introduced object IDs are within the allowed ranges.
 $AllowedObjectIdRanges = @(
     [PSCustomObject]@{ From = 1;        To = 49999 },
     [PSCustomObject]@{ From = 99000750; To = 99001048 }
