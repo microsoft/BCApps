@@ -92,12 +92,13 @@ codeunit 148307 "Expense Test Handler API"
         LibraryExpense: Codeunit "Library - Expense";
         CurrentApprovalUserId: Code[50];
     begin
+        if submitterExpenseUserId = approverExpenseUserId then
+            Error(SameExpenseUserErr);
+
         if not SubmitterExpenseUser.GetBySystemId(submitterExpenseUserId) then
             Error(SubmitterExpenseUserNotFoundErr, submitterExpenseUserId);
         if not ApproverExpenseUser.GetBySystemId(approverExpenseUserId) then
             Error(ApproverExpenseUserNotFoundErr, approverExpenseUserId);
-        if SubmitterExpenseUser."No." = ApproverExpenseUser."No." then
-            Error(SameExpenseUserErr);
 
         CurrentApprovalUserId := CopyStr(UserId(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
         ExistingApprovalExpenseUser.SetRange("User Id For Approvals", CurrentApprovalUserId);
@@ -108,10 +109,12 @@ codeunit 148307 "Expense Test Handler API"
         ApproverExpenseUser.Validate("Can Approve", true);
         ApproverExpenseUser.Modify(true);
 
-        ExpenseApprovalSetup.SetRange("Expense User No.", SubmitterExpenseUser."No.");
-        ExpenseApprovalSetup.DeleteAll(true);
-        LibraryExpense.CreateExpenseApprovalSetup(
-            ExpenseApprovalSetup, SubmitterExpenseUser."No.", ApproverExpenseUser."No.");
+        if ExpenseApprovalSetup.Get(SubmitterExpenseUser."No.") then begin
+            ExpenseApprovalSetup.Validate("Approver No.", ApproverExpenseUser."No.");
+            ExpenseApprovalSetup.Modify(true);
+        end else
+            LibraryExpense.CreateExpenseApprovalSetup(
+                ExpenseApprovalSetup, SubmitterExpenseUser."No.", ApproverExpenseUser."No.");
 
         LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
 
