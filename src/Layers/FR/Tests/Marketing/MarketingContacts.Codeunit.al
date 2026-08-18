@@ -6392,7 +6392,8 @@ codeunit 136201 "Marketing Contacts"
 
         // [GIVEN] Update the customer's phone number and SIREN No.
         Customer.Validate("Phone No.", LibraryUtility.GenerateRandomPhoneNo());
-        SIRENNo := LibraryUtility.GenerateRandomCodeWithLength(Customer.FieldNo("SIREN No."), Database::Customer, MaxStrLen(SIRENNo));
+        SIRENNo := CopyStr(LibraryUtility.GenerateRandomCodeWithLength(
+            Customer.FieldNo("SIREN No."), Database::Customer, MaxStrLen(SIRENNo)), 1, 9);
         Customer.Validate("SIREN No.", SIRENNo);
         Customer.Modify(true);
 
