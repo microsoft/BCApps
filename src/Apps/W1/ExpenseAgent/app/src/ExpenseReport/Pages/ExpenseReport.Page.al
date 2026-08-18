@@ -624,9 +624,11 @@ page 6910 "Expense Report"
                 actionref(dimension_Promoted; Dimensions)
                 {
                 }
+#if not CLEAN29
                 actionref(VATSpecification_Promoted; VATSpecification)
                 {
                 }
+#endif
                 actionref("Spend Request_Promoted"; "Spend Request")
                 {
                 }
@@ -688,7 +690,6 @@ page 6910 "Expense Report"
         DocNoVisible: Boolean;
         ExpenseUserNo: Code[20];
         ApproverComment: Text;
-        AllowVATReclaim: Boolean;
         ApprovalActionsEnabled: Boolean;
 
     protected var
@@ -705,9 +706,6 @@ page 6910 "Expense Report"
         ReopenSubmittedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Submitted");
         ApproveEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Approve);
         ReopenApprovedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Approved");
-
-        ExpenseAgentSetup.GetRecordOnce();
-        AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
         ApprovalActionsEnabled := ExpenseAgentSetup."Enable Agent" and ApproveEnabled and (Rec."Approver Expense User ID" = UserId());
     end;
 
