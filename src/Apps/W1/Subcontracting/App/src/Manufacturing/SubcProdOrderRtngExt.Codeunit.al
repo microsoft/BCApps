@@ -173,8 +173,9 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 #pragma warning restore AL0432
             exit;
 #endif
-        if Rec.IsTemporary then
+        if Rec.IsTemporary() then
             exit;
+
         SubcPriceManagement.GetSubcPriceList(Rec);
     end;
 
@@ -189,6 +190,9 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 #pragma warning restore AL0432
             exit;
 #endif
+        if ProdOrderRoutingLine.IsTemporary() then
+            exit;
+
         SubcPriceManagement.GetSubcPriceList(ProdOrderRoutingLine);
     end;
 

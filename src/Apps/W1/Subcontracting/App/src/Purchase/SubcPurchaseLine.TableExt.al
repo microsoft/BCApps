@@ -10,6 +10,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Document;
 
@@ -234,6 +235,20 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         IsValidLine := ProdOrderRoutingLine.Get("Production Order Status"::Released, Rec."Prod. Order No.", Rec."Routing Reference No.", Rec."Routing No.", Rec."Operation No.");
         IsValidLine := IsValidLine and (ProdOrderRoutingLine."Next Operation No." = '');
         exit(IsSubcontractingLine(ProdOrderLine) and IsValidLine);
+    end;
+
+    internal procedure CreateSubcontractingProductionOrder()
+    var
+        CurrPurchLine: Record "Purchase Line";
+        SubcProdDefSubscriber: Codeunit "Subc. Prod. Def. Subscriber";
+        ProdDefMgr: Codeunit "Production Definition Manager";
+    begin
+        CurrPurchLine := Rec;
+        SubcProdDefSubscriber.SetSubcontractingPurchaseLine(CurrPurchLine);
+        BindSubscription(SubcProdDefSubscriber);
+        Commit();
+        ProdDefMgr.RunForSource(CurrPurchLine, "Prod. Definition Mode"::CreateProductionOrder);
+        UnbindSubscription(SubcProdDefSubscriber);
     end;
 
     local procedure SetSubcontractingLineType()
