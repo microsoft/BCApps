@@ -3683,7 +3683,7 @@ codeunit 22 "Item Jnl.-Post Line"
             end;
         end;
 
-        if GLSetup."Additional Reporting Currency" <> '' then begin
+        if GLSetup."Additional Reporting Currency" <> '' then
             if ShouldUseDocumentAmountForACY() then begin
                 if Expected then
                     DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine.Quantity + RoundingResidualAmountACY
@@ -3721,7 +3721,6 @@ codeunit 22 "Item Jnl.-Post Line"
                 end;
                 PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
             end;
-        end;
         CalcUnitCost := (DirCost <> 0) and (ItemJnlLine."Unit Cost" = 0);
 
         OnAfterCalcPosShares(ItemJnlLine, DirCost, OvhdCost, PurchVar, DirCostACY, OvhdCostACY, PurchVarACY, CalcUnitCost, CalcPurchVar, Expected, GlobalItemLedgEntry);
