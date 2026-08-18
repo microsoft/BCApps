@@ -197,6 +197,29 @@ codeunit 4400 "SOA Setup"
     end;
 
     /// <summary>
+    /// Tells whether the agent behind a setup record is currently live, meaning it exists, is enabled and
+    /// is not archived. Sessions that cannot read the Agent table get true, so callers never act on a
+    /// state they were unable to determine.
+    /// </summary>
+    internal procedure IsAgentActive(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(false);
+
+        if not AgentRec.ReadPermission() then
+            exit(true);
+
+        // Filtered exists check only, for the reason given in IsAgentArchived.
+        AgentRec.SetRange("User Security ID", AgentUserSecurityID);
+        AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
+        AgentRec.SetRange(State, AgentRec.State::Enabled);
+        AgentRec.SetRange(Substate, AgentRec.Substate::None);
+        exit(not AgentRec.IsEmpty());
+    end;
+
+    /// <summary>
     /// Archived state for callers that block an operation. Unlike IsAgentArchived this fails closed:
     /// an agent whose state cannot be read is treated as archived, so the guard cannot be bypassed
     /// by running without access to the Agent table.

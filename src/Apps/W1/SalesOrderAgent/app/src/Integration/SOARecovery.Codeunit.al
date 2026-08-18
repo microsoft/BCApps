@@ -39,8 +39,8 @@ codeunit 4584 "SOA Recovery"
     begin
         TelemetryDimensions.Add('SOASetupId', Format(Setup.ID));
 
-        // An archived agent never runs again, so clean up instead of recovering the dispatcher task.
-        if SOAImpl.RemoveScheduledTasksIfAgentArchived(Setup) then
+        // An agent that is deactivated or archived must not keep scheduled tasks alive.
+        if SOAImpl.RemoveScheduledTasksIfAgentNotActive(Setup) then
             exit;
 
         // Check if capability is enabled

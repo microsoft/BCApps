@@ -50,8 +50,8 @@ codeunit 4586 "SOA Dispatcher"
         TelemetryDimensions: Dictionary of [Text, Text];
         LastSync: DateTime;
     begin
-        // An archived agent never runs again, so clean up instead of leaving the task to be rescheduled.
-        if SOAImpl.RemoveScheduledTasksIfAgentArchived(Setup) then
+        // An agent that is deactivated or archived must not keep scheduled tasks alive.
+        if SOAImpl.RemoveScheduledTasksIfAgentNotActive(Setup) then
             exit;
 
         if not SOASetupCU.CheckSOASetupStillValid(Setup) then

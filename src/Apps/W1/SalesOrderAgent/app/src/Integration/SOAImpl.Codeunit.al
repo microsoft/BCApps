@@ -26,7 +26,7 @@ codeunit 4587 "SOA Impl"
         TelemetryAgentScheduledTaskCancelledLbl: Label 'Agent scheduled task cancelled.', Locked = true;
         TelemetryRecoveryScheduledTaskCancelledLbl: Label 'Recovery scheduled task cancelled.', Locked = true;
         TelemetryAgentScheduledLbl: Label 'Agent scheduled.', Locked = true;
-        TelemetryArchivedAgentTasksRemovedLbl: Label 'Scheduled tasks removed because the agent is archived.', Locked = true;
+        TelemetryInactiveAgentTasksRemovedLbl: Label 'Scheduled tasks removed because the agent is not active.', Locked = true;
 
     internal procedure ScheduleSOAgent(var SOASetup: Record "SOA Setup")
     var
@@ -93,17 +93,18 @@ codeunit 4587 "SOA Impl"
     end;
 
     /// <summary>
-    /// Cancels the agent and recovery tasks of an archived agent and clears them from the setup record.
-    /// Archiving requires an inactive agent, so scheduled tasks are normally already removed on
-    /// deactivation. This handles a task that survived anyway, so it stops rather than running forever.
+    /// Cancels the scheduled tasks of an agent that is no longer live, either deactivated or archived,
+    /// and clears them from the setup record. Deactivation already removes the tasks when it goes through
+    /// the agent setup, so this covers tasks that survived, for example when the agent was deactivated
+    /// from the agent list.
     /// </summary>
-    internal procedure RemoveScheduledTasksIfAgentArchived(var SOASetup: Record "SOA Setup"): Boolean
+    internal procedure RemoveScheduledTasksIfAgentNotActive(var SOASetup: Record "SOA Setup"): Boolean
     var
         CurrentSOASetup: Record "SOA Setup";
         SOASetupCU: Codeunit "SOA Setup";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then
+        if SOASetupCU.IsAgentActive(SOASetup."User Security ID") then
             exit(false);
 
         if CurrentSOASetup.Get(SOASetup.ID) then begin
@@ -112,10 +113,11 @@ codeunit 4587 "SOA Impl"
             Commit();
             SOASetup."Agent Scheduled Task ID" := CurrentSOASetup."Agent Scheduled Task ID";
             SOASetup."Recovery Scheduled Task ID" := CurrentSOASetup."Recovery Scheduled Task ID";
-        end;
+        end else
+            CancelScheduledTasksForRecord(SOASetup.RecordId);
 
         TelemetryDimensions.Add('SOASetupId', Format(SOASetup.ID));
-        FeatureTelemetry.LogUsage('0000VDX', SOASetupCU.GetFeatureName(), TelemetryArchivedAgentTasksRemovedLbl, TelemetryDimensions);
+        FeatureTelemetry.LogUsage('', SOASetupCU.GetFeatureName(), TelemetryInactiveAgentTasksRemovedLbl, TelemetryDimensions);
         exit(true);
     end;
 
@@ -137,6 +139,33 @@ codeunit 4587 "SOA Impl"
 
         SOASetup."Agent Scheduled Task ID" := NullGuid;
         SOASetup."Recovery Scheduled Task ID" := NullGuid;
+
+        // The ids above only cover the tasks this setup record still knows about. Tasks whose id was lost,
+        // for example when a scheduling attempt was rolled back, would otherwise keep running forever, so
+        // cancel everything that is still registered for this setup record.
+        CancelScheduledTasksForRecord(SOASetup.RecordId);
+    end;
+
+    local procedure CancelScheduledTasksForRecord(SOASetupRecordId: RecordId)
+    begin
+        CancelScheduledTasksForCodeunit(Codeunit::"SOA Dispatcher", SOASetupRecordId);
+        CancelScheduledTasksForCodeunit(Codeunit::"SOA Recovery", SOASetupRecordId);
+    end;
+
+    local procedure CancelScheduledTasksForCodeunit(RunCodeunitId: Integer; SOASetupRecordId: RecordId)
+    var
+        ScheduledTask: Record "Scheduled Task";
+    begin
+        ScheduledTask.SetRange("Run Codeunit", RunCodeunitId);
+        ScheduledTask.SetRange(Company, CompanyName());
+        ScheduledTask.SetRange(Record, SOASetupRecordId);
+        if not ScheduledTask.FindSet() then
+            exit;
+
+        repeat
+            if TaskScheduler.TaskExists(ScheduledTask.ID) then
+                TaskScheduler.CancelTask(ScheduledTask.ID);
+        until ScheduledTask.Next() = 0;
     end;
 
     local procedure ScheduleDelay(SOASetupCU: Codeunit "SOA Setup"; var SOASetup: Record "SOA Setup"): Integer
