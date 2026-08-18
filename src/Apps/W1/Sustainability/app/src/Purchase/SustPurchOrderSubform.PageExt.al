@@ -155,6 +155,9 @@ pageextension 6211 "Sust. Purch. Order Subform" extends "Purchase Order Subform"
 
     local procedure SetFormulaInputEditability()
     begin
+        if not SustainabilityFormulasFieldVisible then
+            exit;
+
         SustainabilityCalcMgt.GetFormulaInputEditability(Rec, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
     end;
 
