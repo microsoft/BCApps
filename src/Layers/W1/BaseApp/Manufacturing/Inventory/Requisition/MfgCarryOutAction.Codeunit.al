@@ -23,6 +23,9 @@ codeunit 99000818 "Mfg. Carry Out Action"
 #if not CLEAN27
         CarryOutAction: Codeunit "Carry Out Action";
 #endif
+#if not CLEAN29
+        LegacyCarryOutAction: Codeunit "Carry Out Action";
+#endif
         CalculateProdOrder: Codeunit "Calculate Prod. Order";
         PlngComponentReserve: Codeunit "Plng. Component-Reserve";
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
@@ -263,8 +266,8 @@ codeunit 99000818 "Mfg. Carry Out Action"
         IsHandled: Boolean;
     begin
         OnBeforeSetProdOrderStatus(ProductionOrder, ProdOrderChoice, IsHandled);
-#if not CLEAN27
-        CarryOutAction.RunOnBeforeSetProdOrderStatus(ProductionOrder, ProdOrderChoice, IsHandled);
+#if not CLEAN29
+        LegacyCarryOutAction.RunOnBeforeSetProdOrderStatus(ProductionOrder, ProdOrderChoice, IsHandled);
 #endif
         if IsHandled then
             exit;
@@ -279,8 +282,8 @@ codeunit 99000818 "Mfg. Carry Out Action"
 #if not CLEAN29
                 IsHandled := false;
                 OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
-#if not CLEAN27
-                CarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
+#if not CLEAN29
+                LegacyCarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
 #endif
                 if not IsHandled then
 #endif
@@ -898,7 +901,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
     end;
 
 #if not CLEAN29
-    [Obsolete('Condition for calling this event has been changed. Use event OnBeforeSetProdOrderStatus instead.', '28.0')]
+    [Obsolete('Condition for calling this event has been changed. Use event OnBeforeSetProdOrderStatus instead.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
     begin
