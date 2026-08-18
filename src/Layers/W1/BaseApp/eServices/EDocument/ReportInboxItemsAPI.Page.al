@@ -120,6 +120,8 @@ page 690 "Report Inbox Items API"
         Rec.Reset();
 
         if AllCompanies then begin
+            if NameFilter <> '' then
+                CompanyRec.SetFilter(Name, NameFilter);
             if CompanyRec.FindSet() then
                 repeat
                     if CompanyPassesRequestFilter(CompanyRec.Name, NameFilter, LowerNameFilter) then
@@ -197,11 +199,11 @@ page 690 "Report Inbox Items API"
             exit;
 
         ReportInbox.SetRange("User ID", CopyStr(UserId(), 1, MaxStrLen(ReportInbox."User ID")));
+        ReportInbox.SetAutoCalcFields("Report Name");
         if not ReportInbox.FindSet() then
             exit;
 
         repeat
-            ReportInbox.CalcFields("Report Name");
             Rec.Init();
             Rec.Id := ReportInbox.SystemId;
             Rec."Company Name" := CompanyNameToRead;
