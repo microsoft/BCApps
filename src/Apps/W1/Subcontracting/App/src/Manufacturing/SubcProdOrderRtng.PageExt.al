@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
+pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 {
     layout
     {
@@ -216,14 +216,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             PurchaseLine.SetRange("Operation No.", Rec."Operation No.");
             if PurchaseLine.IsEmpty() then
                 Message(NoPurchOrderCreatedMsg, ProdOrderRoutingLine."Prod. Order No.")
-        end else begin
-            if NoOfCreatedPurchOrder = 1 then begin
-                SubcPurchaseOrderCreator.ClearOperationNoForCreatedPurchaseOrder();
-                SubcPurchaseOrderCreator.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
-                SubcPurchaseOrderCreator.ClearRoutingReferenceNoForCreatedPurchaseOrder();
-                SubcPurchaseOrderCreator.SetRoutingReferenceNoForCreatedPurchaseOrder(Rec."Routing Reference No.");
-            end;
+        end else
             SubcPurchaseOrderCreator.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
-        end;
     end;
 }

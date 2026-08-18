@@ -4705,7 +4705,10 @@ table 36 "Sales Header"
         ShouldCreateSalsesLine := not TempSalesLine.IsExtendedText();
         OnRecreateSalesLinesHandleSupplementTypesOnAfterCalcShouldCreateSalsesLine(TempSalesLine, ShouldCreateSalsesLine, SalesLine);
         if ShouldCreateSalsesLine then begin
-            CreateSalesLine(TempSalesLine);
+            IsHandled := false;
+            OnBeforeRecreateSalesLine(IsHandled, SalesLine, TempSalesLine, Rec);
+            if not IsHandled then
+                CreateSalesLine(TempSalesLine);
             ExtendedTextAdded := false;
             OnAfterRecreateSalesLine(SalesLine, TempSalesLine, Rec);
 
@@ -10104,6 +10107,18 @@ table 36 "Sales Header"
     /// <param name="Result">The result indicating if dimensions can be kept.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCouldDimensionsBeKept(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var Result: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before a sales line is recreated from temporary storage, allowing subscribers to replace the standard sales line creation.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the standard CreateSalesLine call.</param>
+    /// <param name="SalesLine">The sales line record being recreated.</param>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
+    /// <param name="SalesHeader">The parent sales header record.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeRecreateSalesLine(var IsHandled: Boolean; var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 

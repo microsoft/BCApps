@@ -25,7 +25,7 @@ interface IStructuredFormatReader
 
 
     /// <summary>
-    /// Presents a view of the data 
+    /// Presents a view of the data
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
     /// <param name="TempBlob">The temporary blob that contains the data to read</param>

@@ -11,8 +11,8 @@ page 37110 "Inventory Forecasting"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory Forecasting';
-    AboutTitle = 'About Inventory Forecasting';
+    Caption = 'Inventory Forecasting (Power BI)';
+    AboutTitle = 'About Inventory Forecasting (Power BI)';
     AboutText = 'The Inventory Forecasting report predicts future inventory trends based on historical data. It uses advanced forecasting techniques to project quantity values, helping users optimise stock levels.';
 
     layout

@@ -13,6 +13,7 @@ report 304 "Vendor - Detail Trial Balance"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Detail Trial Balance';
+    ToolTip = 'View the balance for vendors with balances on a specified date, for example, at the close of an accounting period or for an audit.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
