@@ -70,6 +70,46 @@ codeunit 148307 "Expense Test Handler API"
         exit(ExpenseUser.SystemId);
     end;
 
+    /// <summary>
+    /// Configures two existing Expense Users as a submitter and approver for integration tests.
+    /// The approver uses the current BC service user's ID without exercising the email-based
+    /// Expense User onboarding validation, which is outside the lifecycle test's scope.
+    /// </summary>
+    [ServiceEnabled]
+    procedure ConfigureApprovalScenario(submitterExpenseUserId: Guid; approverExpenseUserId: Guid): Text[50]
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        SameExpenseUserErr: Label 'The submitter and approver must be different Expense Users.';
+    begin
+        SubmitterExpenseUser.GetBySystemId(submitterExpenseUserId);
+        ApproverExpenseUser.GetBySystemId(approverExpenseUserId);
+        if SubmitterExpenseUser."No." = ApproverExpenseUser."No." then
+            Error(SameExpenseUserErr);
+
+        ApproverExpenseUser."User Id For Approvals" :=
+            CopyStr(UserId(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ApproverExpenseUser.Validate("Can Approve", true);
+        ApproverExpenseUser.Modify(true);
+
+        ExpenseApprovalSetup.SetRange("Expense User No.", SubmitterExpenseUser."No.");
+        ExpenseApprovalSetup.DeleteAll(true);
+        ExpenseApprovalSetup.Init();
+        ExpenseApprovalSetup.Validate("Expense User No.", SubmitterExpenseUser."No.");
+        ExpenseApprovalSetup.Validate("Approver No.", ApproverExpenseUser."No.");
+        ExpenseApprovalSetup.Insert(true);
+
+        ExpenseAgentSetup.Get();
+        if ExpenseAgentSetup."Enable Approval Workflow" then begin
+            ExpenseAgentSetup.Validate("Enable Approval Workflow", false);
+            ExpenseAgentSetup.Modify(true);
+        end;
+
+        exit('ConfigureApprovalScenario completed');
+    end;
+
     local procedure CreateExpenseUser(var ExpenseUser: Record "Expense User"; No: Code[20])
     begin
         ExpenseUser.Init();
