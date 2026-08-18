@@ -2647,6 +2647,48 @@ codeunit 137080 "SCM Planning And Manufacturing"
         VerifyConsumptionItemLedgerEntry(ComponentItem."No.", -ComponentItemQty);
     end;
 
+    [Test]
+    [HandlerFunctions('ProdOrderJobCardReportHandler,MessageHandler')]
+    procedure CarryOutTwoReleasedActionMessagesFirstFails()
+    var
+        MfgItems: array[2] of Record Item;
+        ComponentItems: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ComponentItemQty: Decimal;
+        ScheduleDirection: Option Forward,Backward;
+        ExpectedErrorTxt: Label 'You have insufficient quantity of Item %1 on inventory', Comment = '%1 = Item No.';
+    begin
+        // [SCENARIO 293048] Other accepted lines are carried out when one released production order fails during forward flushing.
+        Initialize();
+        ComponentItemQty := LibraryRandom.RandInt(10);
+
+        // [GIVEN] Manufacturing item "I1" has forward-flushed component "C1" without available inventory.
+        CreateProdItemWithForwardFlushingComponent(MfgItems[1], ComponentItems[1], ComponentItemQty);
+        CreateRequisitionLine(RequisitionLine, MfgItems[1]."No.", 1);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, ScheduleDirection::Forward, false, true);
+
+        // [GIVEN] Manufacturing item "I2" has forward-flushed component "C2" with sufficient inventory.
+        CreateProdItemWithForwardFlushingComponent(MfgItems[2], ComponentItems[2], ComponentItemQty);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItems[2]."No.", '', '', ComponentItemQty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        CreateRequisitionLine(RequisitionLine, MfgItems[2]."No.", 1);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, ScheduleDirection::Forward, false, true);
+
+        // [WHEN] Carry Out Action Message is run with the Released & Print option.
+        LibraryVariableStorage.Enqueue(StrSubstNo(ExpectedErrorTxt, ComponentItems[1]."No."));
+        CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::"Released & Print");
+
+        // [THEN] The failed line remains in the planning worksheet.
+        RequisitionLine.SetRange(Type, Enum::"Requisition Line Type"::Item);
+        RequisitionLine.SetRange("No.", MfgItems[1]."No.");
+        Assert.RecordIsNotEmpty(RequisitionLine);
+
+        // [THEN] The successful line creates and prints a released order and consumes component "C2".
+        VerifyProdOrderLineStatus(MfgItems[2]."No.", Enum::"Production Order Status"::Released);
+        VerifyConsumptionItemLedgerEntry(ComponentItems[2]."No.", -ComponentItemQty);
+    end;
+
     local procedure Initialize()
     var
         PlanningErrorLog: Record "Planning Error Log";
@@ -2702,6 +2744,19 @@ codeunit 137080 "SCM Planning And Manufacturing"
         RequisitionLine.Validate(Quantity, Quantity);
         RequisitionLine.Validate("Starting Date", WorkDate());
         RequisitionLine.Modify(true);
+    end;
+
+    local procedure CreateProdItemWithForwardFlushingComponent(var MfgItem: Record Item; var ComponentItem: Record Item; ComponentItemQty: Decimal)
+    var
+        ProdBOMHeader: Record "Production BOM Header";
+    begin
+        CreateItemWithReplenishmentSystem(MfgItem, Enum::"Replenishment System"::"Prod. Order");
+        LibraryInventory.CreateItem(ComponentItem);
+        ComponentItem.Validate("Flushing Method", Enum::"Flushing Method"::Forward);
+        ComponentItem.Modify(true);
+        CreateCertifiedProductionBOM(ProdBOMHeader, ComponentItem."No.", MfgItem."Base Unit of Measure", ComponentItemQty);
+        MfgItem.Validate("Production BOM No.", ProdBOMHeader."No.");
+        MfgItem.Modify(true);
     end;
 
     local procedure SalesForecastWithBlankLocationCodeForAssemblyProdOrderItemWhenComponentsAtLocation(ReplenishmentSystem: Enum "Replenishment System")
