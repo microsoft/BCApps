@@ -67,8 +67,9 @@ page 7084 "Expense VAT Specification"
         }
     }
 
-    trigger OnInit()
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         Rec.Source := Rec.Source::"Manual";
+        exit(true);
     end;
 }

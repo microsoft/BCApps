@@ -1389,14 +1389,33 @@ table 6907 "Expense Report Line"
     end;
 
     procedure UpdatePostingDescription(): Text[100]
+    begin
+        exit(UpdatePostingDescription("Expense Category", "Expense Subcategory Code"));
+    end;
+
+    procedure UpdatePostingDescription(ExpenseCategoryCode: Code[20]; ExpenseSubcategoryCode: Code[20]): Text[100]
     var
         ExpenseSubcategory: Record "Expense Subcategory";
+        BaseDescription: Text[100];
+        PostingDescriptionSuffix: Text;
     begin
-        if "Expense Subcategory Code" <> '' then begin
-            ExpenseSubcategory.Get("Expense Category", "Expense Subcategory Code");
-            exit(CopyStr(Description + ' - ' + ExpenseSubcategory."Posting Description", 1, 100));
+        BaseDescription := Description;
+        if ("Expense Subcategory Code" <> '') and
+           ExpenseSubcategory.Get("Expense Category", "Expense Subcategory Code") and
+           (ExpenseSubcategory."Posting Description" <> '')
+        then begin
+            PostingDescriptionSuffix := ' / ' + ExpenseSubcategory."Posting Description";
+            if BaseDescription.EndsWith(PostingDescriptionSuffix) then
+                BaseDescription := CopyStr(BaseDescription, 1, StrLen(BaseDescription) - StrLen(PostingDescriptionSuffix));
         end;
-        exit(CopyStr(Description, 1, 100));
+
+        if (ExpenseSubcategoryCode = '') or
+           (not ExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode)) or
+           (ExpenseSubcategory."Posting Description" = '')
+        then
+            exit(BaseDescription);
+
+        exit(CopyStr(BaseDescription + ' / ' + ExpenseSubcategory."Posting Description", 1, 100));
     end;
 
     local procedure InitDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)

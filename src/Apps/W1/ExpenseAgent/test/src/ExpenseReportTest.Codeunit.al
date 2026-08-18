@@ -3251,9 +3251,47 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, Expense);
         ExpenseSubcategory.Get(Expense."Expense Category", Expense."Expense Subcategory");
         Assert.AreEqual(
-            Format(Amount) + ' - ' + ExpenseSubcategory."Posting Description",
+            Format(Amount) + ' / ' + ExpenseSubcategory."Posting Description",
             ExpenseReportLine.Description,
             StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Description"), Format(Amount), ExpenseReportLine.TableCaption()));
+    end;
+
+    [Test]
+    procedure PostingDescriptionUsesAvailableSubcategoryDescription()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: array[2] of Record "Expense Subcategory";
+        ExpenseReportLine: Record "Expense Report Line";
+        BaseDescription: Text[100];
+    begin
+        // [SCENARIO] The posting description uses the selected subcategory description when it is available.
+        Initialize();
+
+        // [GIVEN] A report line whose description already includes its original subcategory description.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory[1], ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory[2], ExpenseCategory.Code, true);
+        BaseDescription := ExpenseCategory."Posting Description";
+        ExpenseReportLine."Expense Category" := ExpenseCategory.Code;
+        ExpenseReportLine."Expense Subcategory Code" := ExpenseSubcategory[1].Code;
+        ExpenseReportLine.Description := CopyStr(BaseDescription + ' / ' + ExpenseSubcategory[1]."Posting Description", 1, MaxStrLen(ExpenseReportLine.Description));
+
+        // [WHEN] A different subcategory is used for posting.
+        // [THEN] Its posting description replaces the original subcategory suffix.
+        Assert.AreEqual(
+            BaseDescription + ' / ' + ExpenseSubcategory[2]."Posting Description",
+            ExpenseReportLine.UpdatePostingDescription(ExpenseCategory.Code, ExpenseSubcategory[2].Code),
+            'The posting description must use the selected subcategory description.');
+
+        // [WHEN] The selected subcategory has no posting description.
+        ExpenseSubcategory[2]."Posting Description" := '';
+        ExpenseSubcategory[2].Modify();
+
+        // [THEN] The base description is retained without a separator.
+        Assert.AreEqual(
+            BaseDescription,
+            ExpenseReportLine.UpdatePostingDescription(ExpenseCategory.Code, ExpenseSubcategory[2].Code),
+            'The base posting description must be retained when the subcategory posting description is unavailable.');
     end;
 
     [Test]

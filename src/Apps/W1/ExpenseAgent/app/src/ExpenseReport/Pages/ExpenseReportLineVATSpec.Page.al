@@ -45,17 +45,22 @@ page 7081 "Expense Report Line VAT Spec."
                 field("VAT %"; Rec."VAT %")
                 {
                     Caption = 'VAT %';
-                    Editable = false;
+                }
+                field(Amount; Rec.Amount)
+                {
+                    Caption = 'Amount';
                 }
                 field("VAT Base Amount"; Rec."VAT Base Amount")
                 {
                     Caption = 'VAT Base Amount';
-                    Editable = false;
                 }
                 field("VAT Amount"; Rec."VAT Amount")
                 {
                     Caption = 'VAT Amount';
-                    Editable = false;
+                }
+                field("Amount (LCY)"; Rec."Amount (LCY)")
+                {
+                    Caption = 'Amount (LCY)';
                 }
                 field("VAT Base Amount (LCY)"; Rec."VAT Base Amount (LCY)")
                 {
@@ -65,6 +70,21 @@ page 7081 "Expense Report Line VAT Spec."
                 field("VAT Amount (LCY)"; Rec."VAT Amount (LCY)")
                 {
                     Caption = 'VAT Amount (LCY)';
+                    Editable = false;
+                }
+                field("Amount (RCY)"; Rec."Amount (RCY)")
+                {
+                    Caption = 'Amount (RCY)';
+                    Editable = false;
+                }
+                field("VAT Base Amount (RCY)"; Rec."VAT Base Amount (RCY)")
+                {
+                    Caption = 'VAT Base Amount (RCY)';
+                    Editable = false;
+                }
+                field("VAT Amount (RCY)"; Rec."VAT Amount (RCY)")
+                {
+                    Caption = 'VAT Amount (RCY)';
                     Editable = false;
                 }
                 field(Reclaimable; Rec.Reclaimable)
@@ -83,6 +103,11 @@ page 7081 "Expense Report Line VAT Spec."
                 field("Reclaim VAT Amount (LCY)"; Rec."Reclaim VAT Amount (LCY)")
                 {
                     Caption = 'Reclaim VAT Amount (LCY)';
+                    Editable = false;
+                }
+                field("Reclaim VAT Amount (RCY)"; Rec."Reclaim VAT Amount (RCY)")
+                {
+                    Caption = 'Reclaim VAT Amount (RCY)';
                     Editable = false;
                 }
                 field("Reclaim Reason"; Rec."Reclaim Reason")

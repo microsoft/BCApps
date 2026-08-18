@@ -327,6 +327,8 @@ codeunit 6983 "Create Expense Report"
             ExpenseReportLineVATSpec."VAT Amount" := ExpenseVATSpec."VAT Amount";
             ExpenseReportLineVATSpec.Amount := ExpenseVATSpec.Amount;
             ExpenseReportLineVATSpec."VAT Difference" := ExpenseVATSpec."VAT Difference";
+            ExpenseReportLineVATSpec."Currency Code" := Expense."Currency Code";
+            ExpenseReportLineVATSpec."Currency Factor" := Expense."Currency Factor";
             ExpenseReportLineVATSpec."VAT Bus. Posting Group" := ExpenseVATSpec."VAT Bus. Posting Group";
             ExpenseReportLineVATSpec."VAT Prod. Posting Group" := ExpenseVATSpec."VAT Prod. Posting Group";
             ExpenseReportLineVATSpec."VAT Amount (LCY)" := ExpenseVATSpec."VAT Amount (LCY)";
@@ -335,6 +337,7 @@ codeunit 6983 "Create Expense Report"
             ExpenseReportLineVATSpec.Source := ExpenseVATSpec.Source;
             ExpenseReportLineVATSpec.Confidence := ExpenseVATSpec.Confidence;
             ExpenseReportLineVATSpec."Source Spec Line No." := ExpenseVATSpec."Line No.";
+            ExpenseReportLineVATSpec.UpdateReimbursementAmounts();
             if ExpenseSubcategory.Get(ExpenseVATSpec."Expense Category", ExpenseVATSpec."Expense Subcategory") then
                 ExpenseReportLineVATSpec.Validate("Reclaim %", ExpenseSubcategory."Default VAT Reclaim %")
             else
