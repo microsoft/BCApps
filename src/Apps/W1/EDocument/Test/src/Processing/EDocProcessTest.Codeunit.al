@@ -1039,7 +1039,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure FinishDraftCreditMemoCanBeUndone()
     var
         EDocument: Record "E-Document";
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocLogRecord: Record "E-Document Log";
         EDocImport: Codeunit "E-Doc. Import";
@@ -1063,17 +1063,17 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] A credit memo is created via FinishDraft
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        TempEDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
-        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
 
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         PurchaseHeader.FindFirst();
         Assert.AreEqual("Purchase Document Type"::"Credit Memo", PurchaseHeader."Document Type", 'The document type should be Credit Memo.');
 
         // [WHEN] Undo is performed
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
-        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
 
         // [THEN] The credit memo is removed
         Assert.RecordIsEmpty(PurchaseHeader);
@@ -1139,7 +1139,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure ProcessingInboundCreditNoteCreatesCorrectDocumentType()
     var
         EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         EDocRecordLink: Record "E-Doc. Record Link";
@@ -1152,9 +1152,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocRecordLink.DeleteAll();
 
         // [GIVEN] An inbound credit note e-document is received and fully processed
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', TempEDocImportParams), 'The credit note e-document should be processed');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', EDocImportParameters), 'The credit note e-document should be processed');
 
         // [THEN] The E-Document type is Purchase Credit Memo
         EDocument.Get(EDocument."Entry No");
@@ -1184,7 +1184,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure ProcessingInboundInvoiceStillCreatesCorrectDocumentType()
     var
         EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
     begin
@@ -1193,9 +1193,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
 
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The invoice e-document should be processed');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParameters), 'The invoice e-document should be processed');
 
         // [THEN] The E-Document type is Purchase Invoice
         EDocument.Get(EDocument."Entry No");
@@ -1221,15 +1221,15 @@ codeunit 139883 "E-Doc Process Test"
     procedure FinishDraftSalesOrder_CreatesSalesOrder()
     var
         EDocument: Record "E-Document";
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
         SalesHeader: Record "Sales Header";
     begin
         // [SCENARIO] A PEPPOL Order XML is imported through the full pipeline with a mock customization. FinishDraft creates a Sales Header with Document Type = Order.
         Initialize(Enum::"Service Integration"::"Mock");
 
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        TempEDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Sales Order";
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters), 'The e-document should be fully processed.');
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Sales Order";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', EDocImportParameters), 'The e-document should be fully processed.');
         EDocument.Get(EDocument."Entry No");
 
         // [THEN] The e-document reaches Processed state
@@ -1247,16 +1247,16 @@ codeunit 139883 "E-Doc Process Test"
     procedure FinishDraftSalesOrder_CanBeUndone()
     var
         EDocument: Record "E-Document";
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
         SalesHeader: Record "Sales Header";
         EDocImport: Codeunit "E-Doc. Import";
     begin
         // [SCENARIO] After a PEPPOL Order XML is imported and a Sales Header created, requesting an earlier step undoes the FinishDraft and clears the Sales Header link.
         Initialize(Enum::"Service Integration"::"Mock");
 
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        TempEDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Sales Order";
-        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Sales Order";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', EDocImportParameters);
         EDocument.Get(EDocument."Entry No");
 
         // [GIVEN] FinishDraft has created a Sales Header linked to the e-document
@@ -1264,8 +1264,8 @@ codeunit 139883 "E-Doc Process Test"
         SalesHeader.FindFirst();
 
         // [WHEN] An earlier step is requested, causing FinishDraft to be undone
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
-        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
 
         // [THEN] The Sales Header is no longer linked to the e-document (E-Document Link cleared)
         Assert.RecordIsEmpty(SalesHeader);
@@ -1277,7 +1277,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         EDocSalesHeader: Record "E-Document Sales Header";
         EDocSalesLine: Record "E-Document Sales Line";
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
         SalesHeader: Record "Sales Header";
         Item: Record Item;
         EDocImport: Codeunit "E-Doc. Import";
@@ -1288,8 +1288,8 @@ codeunit 139883 "E-Doc Process Test"
         WorkDate(DMY2Date(1, 1, 2027));
 
         // [GIVEN] The XML is parsed into staging records (ReadIntoDraft sets OrderTypeCode = '221' from the XML)
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
-        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-typecode-221.xml', TempEDocImportParameters);
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-typecode-221.xml', EDocImportParameters);
         EDocument.Get(EDocument."Entry No");
 
         // [GIVEN] BC-resolved fields are set (customer + item), simulating what PrepareDraft would do
@@ -1310,8 +1310,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
 
         // [WHEN] FinishDraft runs with the real EDocCreateSalesOrder implementation
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
         EDocument.Get(EDocument."Entry No");
 
         // [THEN] The e-document is Processed and the resulting Sales Header is a Sales Order (OrderTypeCode is ignored)
@@ -1327,7 +1327,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         EDocSalesHeader: Record "E-Document Sales Header";
         EDocSalesLine: Record "E-Document Sales Line";
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
         ExistingSalesHeader: Record "Sales Header";
         Item: Record Item;
         EDocImport: Codeunit "E-Doc. Import";
@@ -1347,8 +1347,8 @@ codeunit 139883 "E-Doc Process Test"
         ExistingSalesHeader.Insert();
 
         // [GIVEN] The XML is parsed into staging records; Buyer Order No. = 'ORD-1001' matches the pre-existing order
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
-        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', EDocImportParameters);
         EDocument.Get(EDocument."Entry No");
 
         // [GIVEN] BC-resolved fields are set on the staging records
@@ -1369,8 +1369,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
 
         // [WHEN] FinishDraft detects a duplicate — error is captured internally by the "if codeunit.run" pattern
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
 
         // [THEN] The e-document is NOT in Processed state
         EDocument.CalcFields("Import Processing Status");
