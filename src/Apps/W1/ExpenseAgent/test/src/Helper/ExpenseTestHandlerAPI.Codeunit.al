@@ -80,8 +80,10 @@ codeunit 148307 "Expense Test Handler API"
     var
         SubmitterExpenseUser: Record "Expense User";
         ApproverExpenseUser: Record "Expense User";
+        ExistingApprovalExpenseUser: Record "Expense User";
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        CurrentApprovalUserId: Code[50];
         SameExpenseUserErr: Label 'The submitter and approver must be different Expense Users.';
     begin
         SubmitterExpenseUser.GetBySystemId(submitterExpenseUserId);
@@ -89,8 +91,11 @@ codeunit 148307 "Expense Test Handler API"
         if SubmitterExpenseUser."No." = ApproverExpenseUser."No." then
             Error(SameExpenseUserErr);
 
-        ApproverExpenseUser."User Id For Approvals" :=
-            CopyStr(UserId(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        CurrentApprovalUserId := CopyStr(UserId(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ExistingApprovalExpenseUser.SetRange("User Id For Approvals", CurrentApprovalUserId);
+        ExistingApprovalExpenseUser.ModifyAll("User Id For Approvals", '');
+
+        ApproverExpenseUser."User Id For Approvals" := CurrentApprovalUserId;
         ApproverExpenseUser.Validate("Can Approve", true);
         ApproverExpenseUser.Modify(true);
 
