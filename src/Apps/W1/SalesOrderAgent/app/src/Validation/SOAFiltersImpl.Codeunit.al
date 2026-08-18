@@ -212,7 +212,7 @@ codeunit 4305 "SOA Filters Impl."
     var
         Choice: Integer;
     begin
-        Choice := StrMenu(ContactActionsMenuQst, 0, ContactActionsInstructionQst);
+        Choice := StrMenu(ContactActionsMenuQst, 0, StrSubstNo(ContactActionsInstructionQst, ContactEmail));
         DispatchContactLinkChoice(Choice, ContactEmail, ContactName, TaskID, TaskMessageID);
     end;
 
@@ -297,7 +297,7 @@ codeunit 4305 "SOA Filters Impl."
             exit(false);
         ContactList.GetRecord(SelectedContact);
         if SelectedContact."E-Mail 2" <> '' then
-            if not Confirm(ContactAlreadyHasAlternateEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail 2", SelectedContact.FieldCaption("E-Mail 2"), ContactEmail) then
+            if not Confirm(ContactAlreadyHasAlternateEmailQst, false, SelectedContact."No.", SelectedContact.FieldCaption("E-Mail 2"), SelectedContact."E-Mail 2", ContactEmail) then
                 exit(false);
         // Direct assignment is intentional: ContactEmail originates from an incoming email's From address,
         // which has already been accepted by the mail system. Validate() is skipped to avoid rejecting
@@ -345,7 +345,7 @@ codeunit 4305 "SOA Filters Impl."
             exit;
 
         Commit();
-        Choice := StrMenu(ContactActionsMenuQst, 0, ContactActionsInstructionQst);
+        Choice := StrMenu(ContactActionsMenuQst, 0, StrSubstNo(ContactActionsInstructionQst, FromEmail));
         DispatchContactLinkChoice(Choice, FromEmail, ContactName, TaskID, TaskMessageID);
     end;
 
@@ -445,11 +445,11 @@ codeunit 4305 "SOA Filters Impl."
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;
         LearnMoreLbl: Label 'Learn more';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
-        ContactAlreadyHasAlternateEmailQst: Label 'Contact %1 already has %2 in %3. Replace it with %4?', Comment = '%1 = Contact No., %2 = Existing alternate email, %3 = Alternate email field caption, %4 = New email';
-        ContactActionsMenuQst: Label 'Create a new contact,Use another contact once,Use another contact always', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
-        ContactActionsInstructionQst: Label 'Select one option for how this email should be handled.';
+        ContactAlreadyHasAlternateEmailQst: Label 'Contact %1 has %2 set to %3. Choosing Yes will replace it with %4. Do you want to continue?', Comment = '%1 = Contact No., %2 = Alternate email field caption, %3 = Existing alternate email, %4 = New email';
+        ContactActionsMenuQst: Label 'Create a new contact,Use an existing contact and their email for this task,Select an existing contact and update their alternate email with this sender''s email', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
+        ContactActionsInstructionQst: Label 'No contact has <%1> as their email or alternate email. Choose how to proceed:', Comment = '%1 = Sender email address';
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;
-        MissingContactNotificationLbl: Label 'A contact with email <%1> is not found. Without it, document access and creation are not possible.', Comment = '%1 - email address';
+        MissingContactNotificationLbl: Label 'No contact has <%1> as their email or alternate email address. The agent matches contacts by the E-Mail and E-Mail 2 fields on contact cards. To proceed, select an existing contact or create a new one.', Comment = '%1 = Sender email address';
         ContactAlreadyExistQst: Label 'A contact with the same email already exists. Contact number is %1. Do you want to open it?', Comment = '%1 = Contact number';
         DuplicateContactNotificationLbl: Label 'There are %1 contacts with the same email address <%2>. The first matching contact will be used.', Comment = '%1 - number of contacts, %2 - email address';
         ContactMappingNotAuthorizedErr: Label 'You are not authorized to change the contact mapping for this message.';
