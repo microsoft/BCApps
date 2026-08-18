@@ -1667,7 +1667,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
-    procedure ExportPostedSalesInvoiceInXRechnungFormatUsesBillToGLNForCustomerParty();
+    procedure ExportPostedSalesInvoiceInXRechnungFormatUsesSellToGLNForCustomerParty();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
@@ -1675,7 +1675,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         CustomerLegalEntityIdTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
         DeliveryLocationIdTok: Label '/ubl:Invoice/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
     begin
-        // [SCENARIO 646443] Bill-to GLN identifies the customer party while sell-to GLN identifies delivery
+        // [SCENARIO 646443] Sell-to GLN identifies the customer party and delivery
         Initialize();
 
         // [GIVEN] A posted sales invoice with different sell-to and bill-to customer GLNs
@@ -1684,9 +1684,9 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] Customer party uses bill-to GLN and delivery falls back to sell-to GLN
-        Assert.AreEqual(SupplierGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerPartyIdTok), StrSubstNo(IncorrectValueErr, CustomerPartyIdTok));
-        Assert.AreEqual(SupplierGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CustomerLegalEntityIdTok));
+        // [THEN] Customer party and delivery use sell-to GLN
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerPartyIdTok), StrSubstNo(IncorrectValueErr, CustomerPartyIdTok));
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CustomerLegalEntityIdTok));
         Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, DeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, DeliveryLocationIdTok));
     end;
 

@@ -543,7 +543,8 @@ codeunit 13916 "Export XRechnung Document"
             if ShipToAddress.GLN <> '' then
                 exit(ShipToAddress.GLN);
         if Customer.Get(CustomerNo) then
-            exit(Customer.GLN);
+            if Customer."Use GLN in Electronic Document" then
+                exit(Customer.GLN);
     end;
 
     local procedure InsertAddress(var RootElement: XmlElement; ElementName: Text; Address: Record "Standard Address");
@@ -864,7 +865,7 @@ codeunit 13916 "Export XRechnung Document"
         BillToAddress."Post Code" := SalesInvoiceHeader."Bill-to Post Code";
         BillToAddress."Country/Region Code" := SalesInvoiceHeader."Bill-to Country/Region Code";
 
-        if Customer.Get(SalesInvoiceHeader."Bill-to Customer No.") then;
+        if Customer.Get(SalesInvoiceHeader."Sell-to Customer No.") then;
         AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
         if Customer."Use GLN in Electronic Document" then
             CustomerGLN := Customer.GLN;
@@ -892,7 +893,7 @@ codeunit 13916 "Export XRechnung Document"
         BillToAddress."Post Code" := SalesCrMemoHeader."Bill-to Post Code";
         BillToAddress."Country/Region Code" := SalesCrMemoHeader."Bill-to Country/Region Code";
 
-        if Customer.Get(SalesCrMemoHeader."Bill-to Customer No.") then;
+        if Customer.Get(SalesCrMemoHeader."Sell-to Customer No.") then;
         AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
         if Customer."Use GLN in Electronic Document" then
             CustomerGLN := Customer.GLN;
