@@ -873,6 +873,18 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
         CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
 
+        // [WHEN] The derogatory source is reversed from company book
+        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Derogatory);
+        FALedgerEntry.FindLast();
+        FindLinkedFAEntry(CounterpartFALedgerEntry, FALedgerEntry."Entry No.", TaxDeprBookCode);
+        ReverseFALedgerEntries(FALedgerEntry);
+
+        // [THEN] The linked derogatory counterpart is automatically reversed
+        FALedgerEntry.Get(FALedgerEntry."Entry No.");
+        FindLinkedFAEntry(CounterpartReversal, FALedgerEntry."Reversed by Entry No.", TaxDeprBookCode);
+        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
+        CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
+
         // [THEN] The FA ledger entries created by the report are all reversed
         VerifyAllFALedgEntriesReversed(LastFALedgerEntryNo);
 
