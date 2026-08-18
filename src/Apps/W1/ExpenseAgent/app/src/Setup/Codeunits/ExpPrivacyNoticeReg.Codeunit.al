@@ -6,6 +6,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using System.AI;
+using System.Environment;
 using System.Privacy;
 
 codeunit 6951 "Exp. Privacy Notice Reg."
