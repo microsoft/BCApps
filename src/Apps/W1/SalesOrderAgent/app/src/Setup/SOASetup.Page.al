@@ -543,8 +543,12 @@ page 4400 "SOA Setup"
         ActivateWithoutMonitoringLbl: Label 'The monitoring of email is not enabled. Are you sure you want to continue?';
         DeactivateWarningLbl: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account (activated by %1). Are you sure you want continue?', Comment = '%1=Username of user who activated the agent.';
     begin
-        if AgentIsArchived then
+        if AgentIsArchived then begin
+            // The agent setup part stays editable, so a change made there is discarded here. Say so
+            // instead of closing as if the change had been applied.
+            Message(AgentArchivedNotificationMsg);
             exit(true);
+        end;
 
         if EnabledAgentFirstConfig() then
             if Confirm(ReadyToActivateLbl) then

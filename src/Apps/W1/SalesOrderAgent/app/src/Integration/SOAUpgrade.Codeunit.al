@@ -6,6 +6,7 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.SalesOrderAgent;
 
+using System.Agents;
 using System.AI;
 using System.Environment;
 using System.Upgrade;
@@ -23,6 +24,8 @@ codeunit 4589 "SOA Upgrade"
         FailedToUpdateSOAInstructionsTxt: Label 'Failed to update SOA agent instructions during upgrade.', Locked = true;
 #if not CLEAN29
         SkippedKPIRecordsTxt: Label 'SOA KPI upgrade: %1 legacy records could not be attributed to an agent and were discarded.', Locked = true;
+        SkippedAgentIdentityUpgradeTxt: Label 'SOA agent identity upgrade skipped because the agent state could not be read. The upgrade tag was not set.', Locked = true;
+        SkippedInstructionsUpgradeTxt: Label 'SOA agent instructions were not refreshed because the agent state could not be read.', Locked = true;
 #endif
 
     trigger OnUpgradePerDatabase()
@@ -51,11 +54,18 @@ codeunit 4589 "SOA Upgrade"
     var
         SOASetupRec: Record "SOA Setup";
         TempSOASetup: Record "SOA Setup" temporary;
+        AgentRec: Record Agent;
         SOASetupCU: Codeunit "SOA Setup";
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
+
+        // The archived check treats an unreadable agent as archived, so record why nothing was refreshed.
+        if not AgentRec.ReadPermission() then begin
+            Session.LogMessage('0000V3P', SkippedInstructionsUpgradeTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade');
+            exit;
+        end;
 
         if not SOASetupRec.FindSet() then
             exit;
@@ -161,12 +171,20 @@ codeunit 4589 "SOA Upgrade"
     local procedure UpgradeAgentIdentity()
     var
         SOASetup: Record "SOA Setup";
+        AgentRec: Record Agent;
         SOASetupCU: Codeunit "SOA Setup";
         UpgradeTag: Codeunit "Upgrade Tag";
         IsModified: Boolean;
     begin
         if UpgradeTag.HasUpgradeTag(GetAgentIdentityTag()) then
             exit;
+
+        // The archived check treats an unreadable agent as archived, which would skip every setup record.
+        // Leaving the tag unset lets a later upgrade run do the work rather than marking it done.
+        if not AgentRec.ReadPermission() then begin
+            Session.LogMessage('0000V3Q', SkippedAgentIdentityUpgradeTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade');
+            exit;
+        end;
 
         if SOASetup.FindSet() then
             repeat

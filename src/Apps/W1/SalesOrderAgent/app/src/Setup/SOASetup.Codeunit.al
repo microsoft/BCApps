@@ -152,9 +152,10 @@ codeunit 4400 "SOA Setup"
         if not AgentRec.ReadPermission() then
             exit(true);
 
-        // Filtered exists check only, for the reason given in IsAgentArchived.
+        // Filtered exists check only, for the reason given in IsAgentArchived. Any substate other than
+        // archived is a live agent, so a substate added later does not silently hide the agent.
         AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
-        AgentRec.SetRange(Substate, AgentRec.Substate::None);
+        AgentRec.SetFilter(Substate, '<>%1', AgentRec.Substate::Archived);
         exit(not AgentRec.IsEmpty());
     end;
 
@@ -226,11 +227,12 @@ codeunit 4400 "SOA Setup"
         if not AgentRec.ReadPermission() then
             exit(true);
 
-        // Filtered exists check only, for the reason given in IsAgentArchived.
+        // Filtered exists check only, for the reason given in IsAgentArchived. Any substate other than
+        // archived is a live agent, so a substate added later does not silently make agents look inactive.
         AgentRec.SetRange("User Security ID", AgentUserSecurityID);
         AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
         AgentRec.SetRange(State, AgentRec.State::Enabled);
-        AgentRec.SetRange(Substate, AgentRec.Substate::None);
+        AgentRec.SetFilter(Substate, '<>%1', AgentRec.Substate::Archived);
         exit(not AgentRec.IsEmpty());
     end;
 
