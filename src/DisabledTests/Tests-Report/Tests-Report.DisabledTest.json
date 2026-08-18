@@ -1555,5 +1555,36 @@
     "codeunitName": "Remittance REP Check UT",
     "method": "RemittanceAdviceEntrieShouldAllPayedDocumentsWithPartiallyPaid",
     "bug": "RU: shared W1 test fails under RU base-app behavior in the merged RU build; runs+passes for W1/other countries. Disabled globally (low value, RU pipeline enablement)."
+  },
+  {
+    "codeunitId": 134619,
+    "codeunitName": "Composite Layout Tests",
+    "method": "LayoutLevelAssignmentResolvesAsThisLayout",
+    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
+  }
+  ,
+  {
+    "codeunitId": 134619,
+    "codeunitName": "Composite Layout Tests",
+    "method": "HeaderAndThemeResolveIndependently",
+    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
+  },
+  {
+    "codeunitId": 134619,
+    "codeunitName": "Composite Layout Tests",
+    "method": "MoreSpecificLevelWinsOverGlobal",
+    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
+  },
+  {
+    "codeunitId": 134619,
+    "codeunitName": "Composite Layout Tests",
+    "method": "PageShowsDecodedPartNamesNotComposite",
+    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
+  },
+  {
+    "codeunitId": 134619,
+    "codeunitName": "Composite Layout Tests",
+    "method": "ShowInfoReportsPartDetailsAndUsage",
+    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
   }
 ]
