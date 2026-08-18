@@ -212,14 +212,17 @@ codeunit 8068 "Vendor Deferrals Mngmt."
                     PeriodLineDiscountAmount := FullMonthLineDiscountAmount;
                 end;
 
-            // Determine number of days: partial months use actual day count, full months use calendar month days
-            if (i = NumberOfPeriods) and (NumberOfPeriods > 1) and (FirstMonthIsPartial or LastMonthIsPartial) then
-                VendorContractDeferral."Number of Days" := LastMonthDays
+            // Determine number of days: a single period covers the billing period, partial months use actual day count, full months use calendar month days
+            if NumberOfPeriods = 1 then
+                VendorContractDeferral."Number of Days" := NumberOfDaysInSchedule
             else
-                if (i = 1) and FirstMonthIsPartial then
-                    VendorContractDeferral."Number of Days" := FirstMonthDays
+                if (i = NumberOfPeriods) and (FirstMonthIsPartial or LastMonthIsPartial) then
+                    VendorContractDeferral."Number of Days" := LastMonthDays
                 else
-                    VendorContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1);
+                    if (i = 1) and FirstMonthIsPartial then
+                        VendorContractDeferral."Number of Days" := FirstMonthDays
+                    else
+                        VendorContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1);
 
             RunningLineAmount += PeriodLineAmount;
             RunningLineDiscountAmount += PeriodLineDiscountAmount;
