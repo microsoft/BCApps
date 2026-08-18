@@ -838,8 +838,8 @@ codeunit 6987 "Expense Report-Post"
             AmountToEmployeeLCY += ExpenseReportLine."Reimbursable Amount (LCY)";
         end;
 
-        GenJournalLine."Spend Request No." := ExpenseReportLine."Spend Request No.";
-        GenJournalLine."Spend Request Close" := ExpenseReportLine."Spend Request Close";
+        GenJournalLine."Spend Request No." := ExpenseReportLine."Travel Request No.";
+        GenJournalLine."Spend Request Close" := ExpenseReportLine."Travel Request Close";
         GenJournalLine."System-Created Entry" := true;
     end;
 
@@ -912,8 +912,8 @@ codeunit 6987 "Expense Report-Post"
         GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
         GenJournalLine."Account No." := ExpensePostingGroup."Refundable Debit Account";
 
-        GenJournalLine."Spend Request No." := ExpenseReportLine."Spend Request No.";
-        GenJournalLine."Spend Request Close" := ExpenseReportLine."Spend Request Close";
+        GenJournalLine."Spend Request No." := ExpenseReportLine."Travel Request No.";
+        GenJournalLine."Spend Request Close" := ExpenseReportLine."Travel Request Close";
         GenJournalLine."System-Created Entry" := true;
     end;
 

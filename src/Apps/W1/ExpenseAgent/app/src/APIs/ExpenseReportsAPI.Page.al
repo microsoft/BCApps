@@ -206,13 +206,13 @@ page 6928 "Expense Reports API"
                     Caption = 'Modified By Expense User Id';
                     Editable = false;
                 }
-                field(spendRequestNo; Rec."Spend Request No.")
+                field(travelRequestNo; Rec."Travel Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
-                field(spendRequestClose; Rec."Spend Request Close")
+                field(travelRequestClose; Rec."Travel Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 part(expenseReportLines; "Expense Report Lines API")
                 {

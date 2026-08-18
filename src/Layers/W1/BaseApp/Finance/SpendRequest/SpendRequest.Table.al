@@ -370,7 +370,7 @@ table 6840 "Spend Request"
     /// <summary>
     /// Allows the user to select a number from another no. series.
     /// </summary>
-    internal procedure AssistEditNo() Result: Boolean
+    procedure AssistEditNo() Result: Boolean
     var
         GLSetup: Record "General Ledger Setup";
         NoSeries: Codeunit "No. Series";

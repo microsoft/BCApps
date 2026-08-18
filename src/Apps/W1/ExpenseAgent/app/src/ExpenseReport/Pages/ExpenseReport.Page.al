@@ -6,7 +6,6 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
@@ -116,7 +115,7 @@ page 6910 "Expense Report"
                     Importance = Additional;
                     Visible = false;
                 }
-                field("Spend Request No."; Rec."Spend Request No.")
+                field("Travel Request No."; Rec."Travel Request No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
@@ -478,15 +477,15 @@ page 6910 "Expense Report"
                     ToolTip = 'View the VAT details for the record.';
                     Visible = (Rec."No." <> '') and AllowVATReclaim;
                 }
-                action("Spend Request")
+                action("Travel Request")
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this expense report.';
-                    RunObject = Page "Spend Request Card";
-                    RunPageLink = "No." = field("Spend Request No.");
-                    Visible = Rec."Spend Request No." <> '';
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this expense report.';
+                    RunObject = Page "Travel Request Card";
+                    RunPageLink = "No." = field("Travel Request No.");
+                    Visible = Rec."Travel Request No." <> '';
                 }
                 action(Statistics)
                 {
@@ -630,7 +629,7 @@ page 6910 "Expense Report"
                 actionref(VATSpecification_Promoted; VATSpecification)
                 {
                 }
-                actionref("Spend Request_Promoted"; "Spend Request")
+                actionref("Travel Request_Promoted"; "Travel Request")
                 {
                 }
                 actionref(Statistics_Promoted; Statistics)
