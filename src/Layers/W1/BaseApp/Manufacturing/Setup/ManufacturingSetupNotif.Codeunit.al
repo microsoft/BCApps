@@ -5,9 +5,11 @@
 namespace System.DataAdministration;
 
 using Microsoft.Inventory.Setup;
+using System.Environment.Configuration;
+#if not CLEAN29
 using System.Apps;
 using System.Environment;
-using System.Environment.Configuration;
+#endif
 
 codeunit 99000779 "Manufacturing Setup Notif."
 {
