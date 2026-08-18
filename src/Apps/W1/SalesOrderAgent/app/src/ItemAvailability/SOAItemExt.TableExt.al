@@ -11,12 +11,12 @@ tableextension 4412 "SOA Item Ext" extends Item
 {
     fields
     {
-        // Only physical field filters are preserved in the URL when opening this page from the agent timeline.
-        field(4412; "Item Availability Filter"; Text[150])
+        field(4412; "Item Availability Filter"; Text[250])
         {
+            CalcFormula = Lookup(Item."Block Reason" where("No." = field("No.")));
             Caption = 'Item Availability Filter';
-            DataClassification = SystemMetadata;
             Editable = false;
+            FieldClass = FlowField;
             ToolTip = 'Specifies the filter used to determine the availability of the item.';
         }
     }

@@ -720,7 +720,7 @@ page 4410 "SOA Multi Items Availability"
         if IsAgentSession then
             if SOASetup.FindLast() then begin
                 ItemAvailabilityEnabled := SOASetup."Search Only Available Items";
-                OptionsVisible := ItemAvailabilityEnabled;
+                OptionsVisible := true;
                 IncludeCapableToPromiseItems := SOASetup."Incl. Capable to Promise";
             end;
 
