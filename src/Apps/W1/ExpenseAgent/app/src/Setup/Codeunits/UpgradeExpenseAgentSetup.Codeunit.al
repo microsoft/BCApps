@@ -151,7 +151,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
 
     local procedure GetRemoveLegacyPrivacyNoticeUpgradeTag(): Code[250]
     begin
-        exit('MS-ExpenseAgent-RemoveLegacyPrivacyNotice-20260818');
+        exit('MS-646070-RemoveLegacyPrivacyNotice-20260818');
     end;
 
     local procedure GetClearStaleCopyCompanyStateUpgradeTag(): Code[250]
