@@ -634,7 +634,8 @@ codeunit 148342 "Expense Activity Log Test"
     var
         UserSetup: Record "User Setup";
     begin
-        LibraryDocumentApprovals.CreateOrFindUserSetup(UserSetup, UserId());
+        LibraryDocumentApprovals.CreateOrFindUserSetup(
+            UserSetup, CopyStr(UserId(), 1, MaxStrLen(UserSetup."User ID")));
         UserSetup."Unlimited Expense Approval" := UnlimitedExpenseApproval;
         UserSetup.Modify();
     end;
