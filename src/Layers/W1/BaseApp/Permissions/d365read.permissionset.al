@@ -408,6 +408,7 @@ permissionset 1044 "D365 READ"
                   tabledata "Booking Sync" = R,
                   tabledata "Budget Buffer" = R,
                   tabledata "Bus. Unit In Cons. Process" = R,
+                  tabledata "Business Activity" = R,
                   tabledata "Business Chart Buffer" = R,
                   tabledata "Business Chart Map" = R,
                   tabledata "Business Chart User Setup" = RIM,

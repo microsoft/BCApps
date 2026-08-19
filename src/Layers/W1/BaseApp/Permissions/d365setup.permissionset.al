@@ -227,6 +227,7 @@ permissionset 191 "D365 SETUP"
                   tabledata "Bin Content" = IMD,
                   tabledata "BOM Component" = RIMD,
                   tabledata "Bus. Unit In Cons. Process" = D,
+                  tabledata "Business Activity" = D,
                   tabledata "Business Relation" = D,
                   tabledata "Business Unit" = D,
                   tabledata "Business Unit Information" = D,
