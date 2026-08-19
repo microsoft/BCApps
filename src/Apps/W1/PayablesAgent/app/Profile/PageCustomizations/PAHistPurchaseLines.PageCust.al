@@ -5,12 +5,16 @@
 
 #pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
+
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-pagecustomization "PA EDoc Purchase Draft Subform" customizes "E-Doc. Purchase Draft Subform"
+pagecustomization "PA Hist. Purchase Lines" customizes "E-Doc. Historical Lines List"
 {
     ClearActions = true;
     ClearLayout = true;
+    ModifyAllowed = false;
+    InsertAllowed = false;
+    DeleteAllowed = false;
 
     layout
     {
@@ -18,23 +22,19 @@ pagecustomization "PA EDoc Purchase Draft Subform" customizes "E-Doc. Purchase D
         {
             Visible = true;
         }
-        modify(Quantity)
-        {
-            Visible = true;
-        }
-        modify(OrderMatched)
-        {
-            Visible = true;
-        }
-        modify("Line Type")
-        {
-            Visible = true;
-        }
         modify("No.")
         {
             Visible = true;
         }
-        modify("Item Reference No.")
+        modify(Type)
+        {
+            Visible = true;
+        }
+        modify("Buy-from Vendor No.")
+        {
+            Visible = true;
+        }
+        modify("Allocation Account No.")
         {
             Visible = true;
         }
@@ -42,38 +42,7 @@ pagecustomization "PA EDoc Purchase Draft Subform" customizes "E-Doc. Purchase D
         {
             Visible = true;
         }
-        modify("Unit Of Measure")
-        {
-            Visible = true;
-        }
-    }
-    actions
-    {
-        modify(MatchToOrderLine)
-        {
-            Visible = true;
-        }
-        modify(LookupItemReferences)
-        {
-            Visible = true;
-        }
-        modify(OpenTextToAccountMappings)
-        {
-            Visible = true;
-        }
-        modify(OpenHistoricalPurchaseLines)
-        {
-            Visible = true;
-        }
-        modify(OpenChartOfAccounts)
-        {
-            Visible = true;
-        }
-        modify(OpenItems)
-        {
-            Visible = true;
-        }
-        modify(OpenDeferralTemplates)
+        modify("Posting Date")
         {
             Visible = true;
         }
