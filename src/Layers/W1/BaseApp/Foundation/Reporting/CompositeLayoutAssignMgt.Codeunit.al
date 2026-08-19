@@ -145,13 +145,10 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     local procedure WriteLayoutPart(ReportID: Integer; LayoutName: Text; Composite: Text; Subtype: Enum "Report Layout Subtype"): Boolean
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
-        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
         LayoutNameKey: Text[250];
         RowExists: Boolean;
     begin
-        // The key is the body layout's composite reference: the platform resolves it as a body part, and a plain name
-        // is read as the empty app ID, which never matches a layout shipped by an extension.
-        LayoutNameKey := CopyStr(CompositeLayoutLookupHelper.GetBodyLayoutReference(ReportID, LayoutName), 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
+        LayoutNameKey := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
         RowExists := TenantReportLayoutCfg.Get(ReportID, LayoutNameKey, '');
 
         if RowExists then

@@ -169,32 +169,6 @@ codeunit 9665 "Composite Layout Lookup Helper"
     end;
 
     /// <summary>
-    /// Returns the reference to store in the Layout Name key of Tenant Report Layout Cfg for a body layout: the same
-    /// <c>&lt;AppId&gt;::&lt;LayoutName&gt;</c> composite the part columns use. The platform resolves the key as a body
-    /// part reference and reads a missing prefix as the empty app ID, which never matches a layout shipped by an
-    /// extension, so the owning application ID has to be part of the key.
-    /// </summary>
-    /// <param name="ReportID">The report the body layout belongs to.</param>
-    /// <param name="LayoutName">The plain layout name.</param>
-    /// <returns>The composite reference, or the plain name when no such layout is installed.</returns>
-    internal procedure GetBodyLayoutReference(ReportID: Integer; LayoutName: Text): Text
-    var
-        ReportLayoutList: Record "Report Layout List";
-    begin
-        if LayoutName = '' then
-            exit('');
-        if StrPos(LayoutName, '::') > 0 then
-            exit(LayoutName);
-
-        ReportLayoutList.SetRange("Report ID", ReportID);
-        ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, MaxStrLen(ReportLayoutList.Name)));
-        if not ReportLayoutList.FindFirst() then
-            exit(LayoutName);
-
-        exit(this.EncodeCompositeName(ReportLayoutList."Application ID", ReportLayoutList.Name));
-    end;
-
-    /// <summary>
     /// Resolves the header/footer and theme parts that effectively apply to a report layout and reports both the part
     /// name and where it resolved from. Mirrors the platform resolver (Stage 2 of ReportLayoutSelection), walking the
     /// same six Tenant Report Layout Cfg precedence levels — most specific first — with header and theme resolved
@@ -246,7 +220,6 @@ codeunit 9665 "Composite Layout Lookup Helper"
     internal procedure GetLayoutLevelPartDisplays(ReportID: Integer; LayoutName: Text; var HeaderDisplay: Text; var HeaderSource: Text; var ThemeDisplay: Text; var ThemeSource: Text; var HeaderResolved: Boolean; var ThemeResolved: Boolean)
     var
         CompanyFilter: Text;
-        LayoutKey: Text;
     begin
         HeaderDisplay := NoneTxt;
         ThemeDisplay := NoneTxt;
@@ -255,11 +228,9 @@ codeunit 9665 "Composite Layout Lookup Helper"
         HeaderResolved := false;
         ThemeResolved := false;
         CompanyFilter := CompanyName();
-        // Layout-level rows are keyed by the body layout's composite reference, not by its plain name.
-        LayoutKey := this.GetBodyLayoutReference(ReportID, LayoutName);
 
-        this.TryApplyCfgLevel(ReportID, LayoutKey, CompanyFilter, ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
-        this.TryApplyCfgLevel(ReportID, LayoutKey, '', ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        this.TryApplyCfgLevel(ReportID, LayoutName, CompanyFilter, ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        this.TryApplyCfgLevel(ReportID, LayoutName, '', ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
     end;
 
     /// <summary>

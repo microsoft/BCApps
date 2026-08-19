@@ -86,8 +86,7 @@ page 9667 "Header/Footer Theme Assignment"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        // The stored key is the body layout's composite reference; the dialog still shows the plain name.
-        LayoutKey := CopyStr(LookupHelper.GetBodyLayoutReference(ReportID, LayoutName), 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
+        LayoutKey := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
 
         Rec.Reset();
         Rec.DeleteAll();
