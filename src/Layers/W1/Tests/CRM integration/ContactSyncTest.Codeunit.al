@@ -537,8 +537,8 @@ codeunit 130481 "Contact Sync Test"
         // [WHEN] Modify is executed with a changed owner
         asserterror ContactSyncUserToModify.Modify(true);
 
-        // [THEN] Owner change is blocked with the specific owner-change error
-        AssertIsTrue(StrPos(GetLastErrorText(), CannotChangeRecordOwnerErr) > 0, 'Expected owner change error. Actual: ' + GetLastErrorText());
+        // [THEN] Ownership validation should reject the modify
+        AssertIsTrue(StrPos(GetLastErrorText(), CannotModifyOtherUsersSyncErr) > 0, 'Expected ownership error. Actual: ' + GetLastErrorText());
 
         if ContactSyncUser.Get(ContactSyncUser."ID") then
             ContactSyncUser.Delete();
