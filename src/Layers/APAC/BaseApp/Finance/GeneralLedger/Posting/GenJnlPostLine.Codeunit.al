@@ -11097,10 +11097,28 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GenJnlLine."System-Created Entry" then
             exit(GenJnlLine."Source Currency Amount");
 
+<<<<<<< src/Layers/APAC/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+        if GenJnlLine."Source Currency Code" <> '' then begin
+            if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
+                exit(GenJnlLine."Source Curr. VAT Base Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY))
+            else
+                exit(GenJnlLine."Source Currency Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY));
+        end else
+            exit(CalcAmountSrcCurr(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)" + WHTAmountLCY));
+||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+        if GenJnlLine."Source Currency Code" <> '' then begin
+            if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
+                exit(GenJnlLine."Source Curr. VAT Base Amount")
+            else
+                exit(GenJnlLine."Source Currency Amount");
+        end else
+            exit(CalcAmountSrcCurr(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)"));
+=======
         if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
             exit(GenJnlLine."Source Curr. VAT Base Amount")
         else
             exit(GenJnlLine."Source Currency Amount");
+>>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
     end;
 
     local procedure GetVendorPayablesAccount2(var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var GenJournalLine: Record "Gen. Journal Line"; VendPostingGr: Record "Vendor Posting Group"): Code[20]
