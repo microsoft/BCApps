@@ -53,9 +53,10 @@ page 694 "Report Inbox Companies API"
         View := Rec.GetView();
         Rec.Reset();
 
+        CompanyRec.SetLoadFields(Name);
         if CompanyRec.FindSet() then
             repeat
-                AddCompany(CompanyRec.Name);
+                AddCompany(CompanyRec.Name, CompanyRec.SystemId);
             until CompanyRec.Next() = 0;
 
         Rec.SetView(View);
@@ -66,10 +67,9 @@ page 694 "Report Inbox Companies API"
     var
         Initialized: Boolean;
 
-    local procedure AddCompany(CompanyNameToRead: Text[30])
+    local procedure AddCompany(CompanyNameToRead: Text[30]; CompanyId: Guid)
     var
         ReportInbox: Record "Report Inbox";
-        CompanyRec: Record Company;
     begin
         if not ReportInbox.ChangeCompany(CompanyNameToRead) then
             exit;
@@ -85,8 +85,7 @@ page 694 "Report Inbox Companies API"
         Rec.Init();
         Rec."Company Name" := CompanyNameToRead;
         Rec."Company Name Lower" := CompanyNameToRead.ToLower();
-        if CompanyRec.Get(CompanyNameToRead) then
-            Rec.Id := CompanyRec.SystemId;
+        Rec.Id := CompanyId;
 
         repeat
             Rec."Entry Count" += 1;

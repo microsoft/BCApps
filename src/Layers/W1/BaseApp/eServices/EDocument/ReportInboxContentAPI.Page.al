@@ -53,6 +53,7 @@ page 691 "Report Inbox Content API"
 
     trigger OnOpenPage()
     begin
+        Rec.ReadIsolation := IsolationLevel::ReadCommitted;
         Rec.SetRange("User ID", CopyStr(UserId(), 1, MaxStrLen(Rec."User ID")));
     end;
 

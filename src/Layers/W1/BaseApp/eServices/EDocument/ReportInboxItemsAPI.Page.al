@@ -122,6 +122,7 @@ page 690 "Report Inbox Items API"
         if AllCompanies then begin
             if NameFilter <> '' then
                 CompanyRec.SetFilter(Name, NameFilter);
+            CompanyRec.SetLoadFields(Name);
             if CompanyRec.FindSet() then
                 repeat
                     if CompanyPassesRequestFilter(CompanyRec.Name, NameFilter, LowerNameFilter) then
