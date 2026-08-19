@@ -139,3 +139,117 @@ Describe "ParallelTestExecution transient retry scheduling" {
         }
     }
 }
+
+Describe "ParallelTestExecution warmup dispatch" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    It "dispatches the first app alone and awaits it before fanning out the rest" {
+        # The first app must run alone and be awaited before any parallel dispatch. This asserts
+        # exactly that ordering: dispatch(first) -> wait -> rest.
+        InModuleScope ParallelTestExecution {
+            $script:events = [System.Collections.Generic.List[string]]::new()
+
+            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Medium', 'Small') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Wait-ForFreeTenant { 'tenant2' }
+            Mock Merge-TenantTestResults { }
+            Mock Start-TestAppDispatch { $script:events.Add("dispatch:$AppName") }
+            Mock Wait-ForAllTestJobs { $script:events.Add('wait'); $true }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $null = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Medium', 'Small')
+
+            # First app dispatched alone, then awaited, before any other app is dispatched.
+            $script:events[0] | Should -Be 'dispatch:Big'
+            $script:events[1] | Should -Be 'wait'
+            $waitIndex = $script:events.IndexOf('wait')
+            $script:events.IndexOf('dispatch:Medium') | Should -BeGreaterThan $waitIndex
+            $script:events.IndexOf('dispatch:Small')  | Should -BeGreaterThan $waitIndex
+        }
+    }
+
+    It "skips the warmup dispatch when only one tenant is available" {
+        InModuleScope ParallelTestExecution {
+            $script:events = [System.Collections.Generic.List[string]]::new()
+
+            Mock Get-AvailableBcTenants { @('default') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Medium') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Merge-TenantTestResults { }
+            Mock Start-TestAppDispatch { $script:events.Add("dispatch:$AppName") }
+            Mock Wait-ForAllTestJobs { $script:events.Add('wait'); $true }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $null = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Medium')
+
+            # No warmup dispatch: the two apps are dispatched by the normal loop with no leading
+            # solo dispatch+await. (Start-TestAppDispatch is mocked so no jobs accumulate, hence
+            # the loop's terminal Wait-ForAllTestJobs is not reached.)
+            $script:events | Should -Be @('dispatch:Big', 'dispatch:Medium')
+            $script:events | Should -Not -Contain 'wait'
+        }
+    }
+
+    It "returns the pending list unchanged when there is a single tenant" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('A', 'B', 'C') -AppIdByName @{ A = 'id-A'; B = 'id-B'; C = 'id-C' } `
+                -Tenants @('default') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
+            $result | Should -Be @('A', 'B', 'C')
+        }
+    }
+
+    It "returns the pending list unchanged when there is a single app" {
+        InModuleScope ParallelTestExecution {
+            Mock Start-TestAppDispatch { }
+            Mock Wait-ForAllTestJobs { $true }
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('Only') -AppIdByName @{ Only = 'id-Only' } `
+                -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
+            $result | Should -Be @('Only')
+            Should -Invoke Start-TestAppDispatch -Times 0
+        }
+    }
+
+    It "warms up the first app and returns the remaining apps" {
+        InModuleScope ParallelTestExecution {
+            Mock Start-TestAppDispatch { }
+            Mock Wait-ForAllTestJobs { $true }
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('A', 'B', 'C') -AppIdByName @{ A = 'id-A'; B = 'id-B'; C = 'id-C' } `
+                -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
+            $result | Should -Be @('B', 'C')
+            Should -Invoke Start-TestAppDispatch -Times 1
+        }
+    }
+
+    It "leaves a transient warmup failure in State.transient for the caller to re-queue" {
+        InModuleScope ParallelTestExecution {
+            Mock Start-TestAppDispatch { }
+            # Simulate Wait-ForAllTestJobs classifying the warmup app as a transient race.
+            Mock Wait-ForAllTestJobs { $State.transient = @('A'); $true }
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('A', 'B', 'C') -AppIdByName @{ A = 'id-A'; B = 'id-B'; C = 'id-C' } `
+                -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
+            $result | Should -Be @('B', 'C')
+            $state.transient | Should -Contain 'A'
+            $state.hasFailures | Should -BeFalse
+        }
+    }
+}
