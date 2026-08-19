@@ -272,9 +272,9 @@ table 12185 "Vendor Bill Withholding Tax"
     }
 
     var
+        Currency: Record Currency;
         MustBeGreaterErr: Label '%1 must be greater than 0.', Comment = '%1 - field caption';
         DoesNotExistErr: Label '%1 %2 does not exist in table %3.', Comment = '%1 - field caption, %2 - field value, %3 - table caption';
-        Currency: Record Currency;
 
     [Scope('OnPrem')]
     procedure CalculateWithholdingTax()
