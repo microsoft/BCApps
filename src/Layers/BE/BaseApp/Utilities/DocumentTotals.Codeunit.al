@@ -787,21 +787,6 @@ codeunit 57 "Document Totals"
         exit(true);
     end;
 
-    local procedure PurchaseDocHasRevChargeOrNonDeductibleVAT(PurchHeader: Record "Purchase Header"): Boolean
-    var
-        PurchLine: Record "Purchase Line";
-    begin
-        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
-        PurchLine.SetRange("Document No.", PurchHeader."No.");
-        PurchLine.SetRange("VAT Calculation Type", PurchLine."VAT Calculation Type"::"Reverse Charge VAT");
-        if not PurchLine.IsEmpty() then
-            exit(true);
-
-        PurchLine.SetRange("VAT Calculation Type");
-        PurchLine.SetFilter("Non Deductible VAT %", '<>%1', 0);
-        exit(not PurchLine.IsEmpty());
-    end;
-
     procedure CalculatePostedPurchInvoiceTotals(var PurchInvHeader: Record "Purch. Inv. Header"; var VATAmount: Decimal; PurchInvLine: Record "Purch. Inv. Line")
     var
         CurrPurchInvLine: Record "Purch. Inv. Line";
