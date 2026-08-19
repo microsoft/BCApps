@@ -617,6 +617,9 @@ function Start-TestAppDispatch {
     $appParams['appName'] = $AppName
     $appParams['extensionId'] = $AppId
     $appParams.Remove('ReRun') | Out-Null
+    if ($SkipAutomaticDisabledPass) {
+        $appParams['requiredTestIsolation'] = 'Codeunit'
+    }
 
     $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType `
         -skipAutomaticDisabledPass:$SkipAutomaticDisabledPass
