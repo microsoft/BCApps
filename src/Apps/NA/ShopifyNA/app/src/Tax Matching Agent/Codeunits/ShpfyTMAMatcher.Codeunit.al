@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.GeneralLedger.Account;
@@ -602,6 +607,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         Item: Record Item;
     begin
         OrderLine.SetRange("Line Id", OrderTaxLine."Parent Id");
+        OrderLine.SetLoadFields("Item No.");
         if OrderLine.FindFirst() then begin
             if Item.Get(OrderLine."Item No.") then
                 exit(Item."Tax Group Code");
