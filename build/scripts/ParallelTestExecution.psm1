@@ -23,6 +23,27 @@ $script:MaxAppReruns = 1
 
 <#
 .SYNOPSIS
+    Returns the rerun budget for the current build.
+.DESCRIPTION
+    Reruns are a pull request convenience: they keep unrelated instability from blocking a review.
+    CI/CD builds get a budget of 0 so a failure stays a failure. Those runs are the signal for the
+    real state of the branch and they feed the unstable-tests data, so masking instability there
+    would hide exactly what we want to measure. This mirrors the test tolerance check in
+    RunTestsInBcContainer.ps1, which is also limited to pull request builds.
+.OUTPUTS
+    [int] $script:MaxAppReruns on pull request builds, otherwise 0.
+#>
+function Get-AppRerunBudget {
+    if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
+        return $script:MaxAppReruns
+    }
+
+    Write-Host "Build event is '$($env:GITHUB_EVENT_NAME)', not 'pull_request'. Failed test apps will NOT be re-run."
+    return 0
+}
+
+<#
+.SYNOPSIS
     Returns the cached parallel-test-run result for a container, or $null if no run has finished.
 .DESCRIPTION
     The first call into Invoke-ParallelTestExecution dispatches every test app in parallel,
@@ -418,7 +439,9 @@ function Register-TestJobOutcome {
             if ($canRerun) {
                 $State.rerunBudget = $State.rerunBudget - 1
                 $State.rerunDone[$Result.AppName] = $true
-                $suffix = "rerun$($script:MaxAppReruns - $State.rerunBudget)"
+                # Suffix is derived from the number of reruns so far, so it stays unique and
+                # correct regardless of what the starting budget was.
+                $suffix = "rerun$($State.rerunDone.Count)"
                 Write-Host "::warning::Tests FAILED for '$($Result.AppName)' on tenant '$($Result.Tenant)'. Re-running the app once on a different tenant. A rerun that passes still means this app is unstable - please investigate it."
                 $State.rerun = @($State.rerun) + @([PSCustomObject]@{
                     appName       = $Result.AppName
@@ -748,7 +771,7 @@ function Invoke-ParallelTestExecution {
     $state = [PSCustomObject]@{
         jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false
         transient = @(); retried = @{}
-        rerun = @(); rerunDone = @{}; rerunBudget = $script:MaxAppReruns; tenantCount = $tenants.Count
+        rerun = @(); rerunDone = @{}; rerunBudget = (Get-AppRerunBudget); tenantCount = $tenants.Count
     }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
@@ -874,4 +897,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Invoke-WarmupDispatch, Merge-TestResultFiles
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget

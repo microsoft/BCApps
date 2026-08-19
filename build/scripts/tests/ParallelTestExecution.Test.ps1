@@ -274,6 +274,7 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
                 }
             }
             Mock Invoke-WarmupDispatch { @($Pending) }
+            Mock Get-AppRerunBudget { 1 }
             Mock Wait-ForAllTestJobs { $true }
             Mock Merge-TenantTestResults { }
             Mock Wait-ForFreeTenant {
@@ -350,6 +351,82 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
             })
             $state.rerun.Count | Should -Be 0
             $state.hasFailures | Should -BeTrue
+        }
+    }
+}
+
+Describe "ParallelTestExecution rerun budget is limited to pull request builds" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    BeforeEach {
+        $script:savedEvent = $env:GITHUB_EVENT_NAME
+    }
+
+    AfterEach {
+        $env:GITHUB_EVENT_NAME = $script:savedEvent
+    }
+
+    It "grants a rerun budget on pull request builds" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Get-AppRerunBudget | Should -BeGreaterThan 0
+    }
+
+    It "grants no rerun budget on push (CI/CD) builds" {
+        # CI/CD runs are the signal for the real state of the branch and feed the unstable-tests
+        # data, so a failure there must stay a failure.
+        $env:GITHUB_EVENT_NAME = 'push'
+        Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "grants no rerun budget for schedule, merge_group or workflow_dispatch builds" {
+        foreach ($evt in @('schedule', 'merge_group', 'workflow_dispatch')) {
+            $env:GITHUB_EVENT_NAME = $evt
+            Get-AppRerunBudget | Should -Be 0
+        }
+    }
+
+    It "grants no rerun budget outside of GitHub Actions" {
+        $env:GITHUB_EVENT_NAME = $null
+        Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "does not re-dispatch a failed app on a CI/CD build" {
+        # End-to-end guard: the budget gate must actually suppress the rerun dispatch, not just
+        # return 0 from the helper.
+        $env:GITHUB_EVENT_NAME = 'push'
+        InModuleScope ParallelTestExecution {
+            $script:dispatched = [System.Collections.Generic.List[object]]::new()
+            $script:failed = $false
+
+            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Small') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Invoke-WarmupDispatch { @($Pending) }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults { }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Start-TestAppDispatch {
+                $script:dispatched.Add($AppName)
+                if ($AppName -eq 'Big' -and -not $script:failed) {
+                    $script:failed = $true
+                    Register-TestJobOutcome -State $State -Result ([PSCustomObject]@{
+                        Outcome = 'Failed'; AppName = $AppName; Tenant = $Tenant; JobState = 'Failed'
+                    })
+                }
+            }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $result = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Small')
+
+            # Each app dispatched exactly once, and the failure is final.
+            $script:dispatched | Should -Be @('Big', 'Small')
+            $result | Should -BeFalse
         }
     }
 }
