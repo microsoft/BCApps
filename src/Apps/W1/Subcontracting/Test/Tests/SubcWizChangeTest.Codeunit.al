@@ -11,6 +11,7 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139980 "Subc. Wiz. Change Test"
 {
@@ -26,6 +27,7 @@ codeunit 139980 "Subc. Wiz. Change Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
@@ -69,12 +71,14 @@ codeunit 139980 "Subc. Wiz. Change Test"
 
         // Set test parameters for handler
         ModifiedQuantity := 5.5; // Change quantity from default
+        EnqueueComponentQuantityChange(ModifiedQuantity);
 
         // [WHEN] Run the Production Order Creation Wizard with component modifications
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and component changes should be applied
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -120,12 +124,14 @@ codeunit 139980 "Subc. Wiz. Change Test"
 
         // Set test parameters for handler
         ModifiedQuantity := 2.0;
+        EnqueueComponentAddition(NewComponentNo, ModifiedQuantity);
 
         // [WHEN] Run the Production Order Creation Wizard with component addition
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and new component should be added
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -175,8 +181,10 @@ codeunit 139980 "Subc. Wiz. Change Test"
         // [WHEN] Run the Production Order Creation Wizard with component deletion
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueComponentDeletion();
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and component should be deleted
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -225,12 +233,14 @@ codeunit 139980 "Subc. Wiz. Change Test"
 
         // Set test parameters for handler
         ModifiedRunTime := 120.5; // Change run time from default
+        EnqueueRoutingRuntimeChange(ModifiedRunTime);
 
         // [WHEN] Run the Production Order Creation Wizard with routing modifications
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and routing changes should be applied
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -280,12 +290,14 @@ codeunit 139980 "Subc. Wiz. Change Test"
         // Set test parameters for handler
         ModifiedRunTime := 60.0;
         NewWorkCenterNo := CreateWorkCenterNo(); // Create or use existing work center
+        EnqueueRoutingOperationAddition(NewWorkCenterNo, ModifiedRunTime);
 
         // [WHEN] Run the Production Order Creation Wizard with routing operation addition
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and new operation should be added
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -340,8 +352,10 @@ codeunit 139980 "Subc. Wiz. Change Test"
         // [WHEN] Run the Production Order Creation Wizard with routing operation deletion
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueRoutingOperationDeletion();
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and operation should be deleted
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -391,12 +405,14 @@ codeunit 139980 "Subc. Wiz. Change Test"
         // Set test parameters for handler
         ModifiedQuantity := 3.5;
         ModifiedRunTime := 90.0;
+        EnqueueBothChanges(ModifiedQuantity, ModifiedRunTime);
 
         // [WHEN] Run the Production Order Creation Wizard with both modifications
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and all changes should be applied
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -445,8 +461,10 @@ codeunit 139980 "Subc. Wiz. Change Test"
         // [WHEN] Run the Production Order Creation Wizard without modifications
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueWizardNavigation(4);
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and original data should be used
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -466,6 +484,7 @@ codeunit 139980 "Subc. Wiz. Change Test"
     procedure HandleProductionDefinitionWizardModifyComponents(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
     var
         Step: Option Intro,BOM,Routing,Components,ProdRouting;
+        Quantity: Decimal;
     begin
         // Handle wizard with component modifications
         WizardWasOpened := true;
@@ -473,17 +492,21 @@ codeunit 139980 "Subc. Wiz. Change Test"
         Step := Step::Intro;
         // Navigate through all wizard steps
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
             Step := Step + 1;
             // Check if we're on the components step
             if Step = Step::Components then begin
                 Assert.IsTrue(ProductionDefinitionWizard.ComponentsPart.Editable(), 'Components part should be editable');
                 // Modify the first component's quantity
+                VerifyExpectedInteraction('First');
                 ProductionDefinitionWizard.ComponentsPart.First();
-                ProductionDefinitionWizard.ComponentsPart."Quantity per".SetValue(ModifiedQuantity);
+                Quantity := LibraryVariableStorage.DequeueDecimal();
+                ProductionDefinitionWizard.ComponentsPart."Quantity per".SetValue(Quantity);
             end;
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -492,6 +515,8 @@ codeunit 139980 "Subc. Wiz. Change Test"
     procedure HandleProductionDefinitionWizardAddComponent(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
     var
         Step: Option Intro,BOM,Routing,Components,ProdRouting;
+        ComponentNo: Code[20];
+        Quantity: Decimal;
     begin
         // Handle wizard with component addition
         WizardWasOpened := true;
@@ -499,21 +524,27 @@ codeunit 139980 "Subc. Wiz. Change Test"
         Step := Step::Intro;
         // Navigate to components step
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
             Step := Step + 1;
             // Check if we're on the components step
             if Step = Step::Components then begin
                 // Add a new component line
                 Assert.IsTrue(ProductionDefinitionWizard.ComponentsPart.Editable(), 'Components part should be editable');
-                ProductionDefinitionWizard.ComponentsPart."Item No.".SetValue(NewComponentNo);
-                ProductionDefinitionWizard.ComponentsPart."Quantity per".SetValue(ModifiedQuantity);
+                ComponentNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(ComponentNo));
+                Quantity := LibraryVariableStorage.DequeueDecimal();
+                ProductionDefinitionWizard.ComponentsPart."Item No.".SetValue(ComponentNo);
+                ProductionDefinitionWizard.ComponentsPart."Quantity per".SetValue(Quantity);
             end;
         end;
 
         // Continue to finish
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -529,21 +560,27 @@ codeunit 139980 "Subc. Wiz. Change Test"
         Step := Step::Intro;
         // Navigate to components step
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
             Step := Step + 1;
             // Check if we're on the components step
             if Step = Step::Components then begin
                 Assert.IsTrue(ProductionDefinitionWizard.ComponentsPart.Editable(), 'Components part should be editable');
                 // Delete the first component using Sub Delete action
+                VerifyExpectedInteraction('First');
                 ProductionDefinitionWizard.ComponentsPart.First();
+                VerifyExpectedInteraction('Delete');
                 ProductionDefinitionWizard.ComponentsPart."Sub Delete".Invoke();
             end;
         end;
 
         // Continue to finish
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -552,6 +589,10 @@ codeunit 139980 "Subc. Wiz. Change Test"
     procedure HandleProductionDefinitionWizardAddRoutingOperation(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
     var
         Step: Option Intro,BOM,Routing,Components,ProdRouting;
+        OperationNo: Code[10];
+        CapacityType: Enum "Capacity Type";
+        WorkCenterNo: Code[20];
+        RunTime: Decimal;
     begin
         // Handle wizard with routing operation addition
         WizardWasOpened := true;
@@ -560,21 +601,28 @@ codeunit 139980 "Subc. Wiz. Change Test"
 
         // Navigate to routing step
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
             Step := Step + 1;
             // Check if we're on the routing step
             if Step = Step::ProdRouting then begin
                 // Add a new routing operation
                 Assert.IsTrue(ProductionDefinitionWizard.ProdOrderRoutingPart.Editable(), 'Routing part should be editable');
+                VerifyExpectedInteraction('New');
                 ProductionDefinitionWizard.ProdOrderRoutingPart.New();
-                ProductionDefinitionWizard.ProdOrderRoutingPart."Operation No.".SetValue('0030');
-                ProductionDefinitionWizard.ProdOrderRoutingPart.Type.SetValue("Capacity Type"::"Work Center");
-                ProductionDefinitionWizard.ProdOrderRoutingPart."No.".SetValue(NewWorkCenterNo);
-                ProductionDefinitionWizard.ProdOrderRoutingPart."Run Time".SetValue(ModifiedRunTime);
+                OperationNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(OperationNo));
+                CapacityType := Enum::"Capacity Type".FromInteger(LibraryVariableStorage.DequeueInteger());
+                WorkCenterNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(WorkCenterNo));
+                RunTime := LibraryVariableStorage.DequeueDecimal();
+                ProductionDefinitionWizard.ProdOrderRoutingPart."Operation No.".SetValue(OperationNo);
+                ProductionDefinitionWizard.ProdOrderRoutingPart.Type.SetValue(CapacityType);
+                ProductionDefinitionWizard.ProdOrderRoutingPart."No.".SetValue(WorkCenterNo);
+                ProductionDefinitionWizard.ProdOrderRoutingPart."Run Time".SetValue(RunTime);
             end;
         end;
 
         // ProdRouting is the last step - ActionFinish commits the pending subpart insert
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -590,21 +638,27 @@ codeunit 139980 "Subc. Wiz. Change Test"
         Step := Step::Intro;
         // Navigate to routing step
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
             Step := Step + 1;
             // Check if we're on the routing step
             if Step = Step::ProdRouting then begin
                 Assert.IsTrue(ProductionDefinitionWizard.ProdOrderRoutingPart.Editable(), 'Routing part should be editable');
                 // Delete the first routing operation using Sub Delete action
+                VerifyExpectedInteraction('First');
                 ProductionDefinitionWizard.ProdOrderRoutingPart.First();
+                VerifyExpectedInteraction('Delete');
                 ProductionDefinitionWizard.ProdOrderRoutingPart."Subc. TestDelete".Invoke();
             end;
         end;
 
         // Continue to finish
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -613,6 +667,7 @@ codeunit 139980 "Subc. Wiz. Change Test"
     procedure HandleProductionDefinitionWizardModifyRouting(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
     var
         Step: Option Intro,BOM,Routing,Components,ProdRouting;
+        RunTime: Decimal;
     begin
         // Handle wizard with routing modifications
         WizardWasOpened := true;
@@ -620,16 +675,20 @@ codeunit 139980 "Subc. Wiz. Change Test"
         Step := Step::Intro;
         // Navigate through all wizard steps
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
             Step := Step + 1;
             if Step = Step::ProdRouting then begin
                 // Modify the first routing line's run time
                 Assert.IsTrue(ProductionDefinitionWizard.ProdOrderRoutingPart.Editable(), 'Routing part should be editable');
+                VerifyExpectedInteraction('First');
                 ProductionDefinitionWizard.ProdOrderRoutingPart.First();
-                ProductionDefinitionWizard.ProdOrderRoutingPart."Run Time".SetValue(ModifiedRunTime);
+                RunTime := LibraryVariableStorage.DequeueDecimal();
+                ProductionDefinitionWizard.ProdOrderRoutingPart."Run Time".SetValue(RunTime);
             end;
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -638,6 +697,8 @@ codeunit 139980 "Subc. Wiz. Change Test"
     procedure HandleProductionDefinitionWizardModifyBoth(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
     var
         Step: Option Intro,BOM,Routing,Components,ProdRouting;
+        Quantity: Decimal;
+        RunTime: Decimal;
     begin
         // Handle wizard with both component and routing modifications
         WizardWasOpened := true;
@@ -645,22 +706,28 @@ codeunit 139980 "Subc. Wiz. Change Test"
         Step := Step::Intro;
         // Navigate through all wizard steps
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
             Step := Step + 1;
             if Step = Step::Components then begin
                 // Modify the first component's quantity
                 Assert.IsTrue(ProductionDefinitionWizard.ComponentsPart.Editable(), 'Components part should be editable');
+                VerifyExpectedInteraction('First');
                 ProductionDefinitionWizard.ComponentsPart.First();
-                ProductionDefinitionWizard.ComponentsPart."Quantity per".SetValue(ModifiedQuantity);
+                Quantity := LibraryVariableStorage.DequeueDecimal();
+                ProductionDefinitionWizard.ComponentsPart."Quantity per".SetValue(Quantity);
             end else
                 if Step = Step::ProdRouting then begin
                     // Modify the first routing line's run time
                     Assert.IsTrue(ProductionDefinitionWizard.ProdOrderRoutingPart.Editable(), 'Routing part should be editable');
+                    VerifyExpectedInteraction('First');
                     ProductionDefinitionWizard.ProdOrderRoutingPart.First();
-                    ProductionDefinitionWizard.ProdOrderRoutingPart."Run Time".SetValue(ModifiedRunTime);
+                    RunTime := LibraryVariableStorage.DequeueDecimal();
+                    ProductionDefinitionWizard.ProdOrderRoutingPart."Run Time".SetValue(RunTime);
                 end;
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -672,9 +739,12 @@ codeunit 139980 "Subc. Wiz. Change Test"
         WizardWasOpened := true;
 
         // Navigate through all wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -682,6 +752,7 @@ codeunit 139980 "Subc. Wiz. Change Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Wiz. Change Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         if IsInitialized then
@@ -698,6 +769,90 @@ codeunit 139980 "Subc. Wiz. Change Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Wiz. Change Test");
+    end;
+
+    local procedure VerifyExpectedInteraction(ExpectedInteraction: Text)
+    begin
+        Assert.AreEqual(ExpectedInteraction, LibraryVariableStorage.DequeueText(), 'Unexpected wizard interaction');
+    end;
+
+    local procedure EnqueueNextActions(NextCount: Integer)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to NextCount do
+            LibraryVariableStorage.Enqueue('Next');
+    end;
+
+    local procedure EnqueueWizardNavigation(NextCount: Integer)
+    begin
+        EnqueueNextActions(NextCount);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueComponentQuantityChange(Quantity: Decimal)
+    begin
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue(Quantity);
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueComponentAddition(ComponentNo: Code[20]; Quantity: Decimal)
+    begin
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue(ComponentNo);
+        LibraryVariableStorage.Enqueue(Quantity);
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueComponentDeletion()
+    begin
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue('Delete');
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueRoutingRuntimeChange(RunTime: Decimal)
+    begin
+        EnqueueNextActions(4);
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue(RunTime);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueRoutingOperationAddition(WorkCenterNo: Code[20]; RunTime: Decimal)
+    begin
+        EnqueueNextActions(4);
+        LibraryVariableStorage.Enqueue('New');
+        LibraryVariableStorage.Enqueue('0030');
+        LibraryVariableStorage.Enqueue("Capacity Type"::"Work Center".AsInteger());
+        LibraryVariableStorage.Enqueue(WorkCenterNo);
+        LibraryVariableStorage.Enqueue(RunTime);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueRoutingOperationDeletion()
+    begin
+        EnqueueNextActions(4);
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue('Delete');
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueBothChanges(Quantity: Decimal; RunTime: Decimal)
+    begin
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue(Quantity);
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue(RunTime);
+        LibraryVariableStorage.Enqueue('Finish');
     end;
 
     local procedure UpdateTempComponentQuantity(var TempProdOrderComponent: Record "Prod. Order Component" temporary; NewQuantity: Decimal)
@@ -731,7 +886,7 @@ codeunit 139980 "Subc. Wiz. Change Test"
 
         ManufacturingSetup.SetLoadFields();
         ManufacturingSetup.Get();
-        TempProdOrderComponent."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        TempProdOrderComponent."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
         TempProdOrderComponent.Insert();
     end;
 
@@ -760,7 +915,7 @@ codeunit 139980 "Subc. Wiz. Change Test"
         // Add a new routing operation to temporary records
         TempProdOrderRoutingLine.Reset();
 
-        ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+        ManufacturingSetup.SetLoadFields("Subc. Rtng. Link Purch Prov");
         ManufacturingSetup.Get();
 
         TempProdOrderRoutingLine.Init();
@@ -768,7 +923,7 @@ codeunit 139980 "Subc. Wiz. Change Test"
         TempProdOrderRoutingLine.Type := TempProdOrderRoutingLine.Type::"Work Center";
         TempProdOrderRoutingLine."No." := NewWorkCenterNo;
         TempProdOrderRoutingLine."Work Center No." := NewWorkCenterNo;
-        TempProdOrderRoutingLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        TempProdOrderRoutingLine."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
         TempProdOrderRoutingLine."Run Time" := RunTime;
         TempProdOrderRoutingLine.Insert();
     end;

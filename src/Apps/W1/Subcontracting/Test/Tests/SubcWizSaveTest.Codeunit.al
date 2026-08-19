@@ -12,6 +12,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139998 "Subc. Wiz. Save Test"
 {
@@ -27,6 +28,7 @@ codeunit 139998 "Subc. Wiz. Save Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
@@ -36,10 +38,8 @@ codeunit 139998 "Subc. Wiz. Save Test"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
-        SaveBOMRouting: Boolean;
         WizardFinishedSuccessfully: Boolean;
         WizardWasOpened: Boolean;
-        SaveBomRtngToSource: Enum "Prod. Definition Source";
         BOMShouldExistLbl: Label 'BOM %1 should exist', Locked = true;
         RoutingShouldExistLbl: Label 'Routing %1 should exist', Locked = true;
 
@@ -68,14 +68,15 @@ codeunit 139998 "Subc. Wiz. Save Test"
         SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
 
         // Set save flags for handler
-        SaveBOMRouting := false;
-        Clear(SaveBomRtngToSource);
+        EnqueueWizardSaveOptions(false, "Prod. Definition Source"::Empty);
+        EnqueueWizardNavigation(4);
 
         // [WHEN] Run the Production Order Creation Wizard without saving
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully but BOM should not be saved to item
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -129,14 +130,15 @@ codeunit 139998 "Subc. Wiz. Save Test"
         SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
 
         // Set save flags for handler
-        SaveBOMRouting := true;
-        SaveBomRtngToSource := SaveBomRtngToSource::Item;
+        EnqueueWizardSaveOptions(true, "Prod. Definition Source"::Item);
+        EnqueueWizardNavigation(4);
 
         // [WHEN] Run the Production Order Creation Wizard with save to item
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and BOM should be saved to item
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -209,14 +211,15 @@ codeunit 139998 "Subc. Wiz. Save Test"
         LocationCode := PurchLine."Location Code";
 
         // Set save flags for handler
-        SaveBOMRouting := true;
-        SaveBomRtngToSource := SaveBomRtngToSource::StockkeepingUnit;
+        EnqueueWizardSaveOptions(true, "Prod. Definition Source"::StockkeepingUnit);
+        EnqueueWizardNavigation(4);
 
         // [WHEN] Run the Production Order Creation Wizard with save to stockkeeping unit
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and BOM should be saved to SKU
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -293,14 +296,14 @@ codeunit 139998 "Subc. Wiz. Save Test"
         SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
 
         // Set save flags for handler (no save to source, but create new version)
-        SaveBOMRouting := false;
-        Clear(SaveBomRtngToSource);
+        EnqueueWizardVersionCreation(false, "Prod. Definition Source"::Empty);
 
         // [WHEN] Run the Production Order Creation Wizard with new version creation
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and version should be saved
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -360,14 +363,14 @@ codeunit 139998 "Subc. Wiz. Save Test"
         SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
 
         // Set save flags for handler (no save to source, create new version)
-        SaveBOMRouting := false;
-        Clear(SaveBomRtngToSource);
+        EnqueueWizardVersionCreation(false, "Prod. Definition Source"::Empty);
 
         // [WHEN] Run the Production Order Creation Wizard with new version creation but no save
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully but version should not be saved
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -415,14 +418,14 @@ codeunit 139998 "Subc. Wiz. Save Test"
         SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
 
         // Set save flags for handler (save to item, create new version)
-        SaveBOMRouting := true;
-        SaveBomRtngToSource := SaveBomRtngToSource::Item;
+        EnqueueWizardVersionCreation(true, "Prod. Definition Source"::Item);
 
         // [WHEN] Run the Production Order Creation Wizard with new version creation and save to item
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and version should be saved
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -444,146 +447,218 @@ codeunit 139998 "Subc. Wiz. Save Test"
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardNoSave(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        SaveBOMRouting: Boolean;
     begin
         // Handle wizard without saving BOM/Routing
         WizardWasOpened := true;
 
         // Set save options
+        SaveBOMRouting := LibraryVariableStorage.DequeueBoolean();
         ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(SaveBOMRouting);
 
         // Navigate through all wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardSaveToItem(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        SaveBOMRouting: Boolean;
+        SaveBomRtngToSource: Enum "Prod. Definition Source";
     begin
         // Handle wizard with save to item
         WizardWasOpened := true;
 
         // Set save options
+        SaveBOMRouting := LibraryVariableStorage.DequeueBoolean();
         ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(SaveBOMRouting);
-        if SaveBOMRouting then
+        if SaveBOMRouting then begin
+            SaveBomRtngToSource := Enum::"Prod. Definition Source".FromInteger(LibraryVariableStorage.DequeueInteger());
             ProductionDefinitionWizard.SaveBomRtngToSourceField.SetValue(SaveBomRtngToSource);
+        end;
 
         // Navigate through all wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardSaveToStockkeepingUnit(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        SaveBOMRouting: Boolean;
+        SaveBomRtngToSource: Enum "Prod. Definition Source";
     begin
         // Handle wizard with save to stockkeeping unit
         WizardWasOpened := true;
 
         // Set save options
+        SaveBOMRouting := LibraryVariableStorage.DequeueBoolean();
         ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(SaveBOMRouting);
-        if SaveBOMRouting then
+        if SaveBOMRouting then begin
+            SaveBomRtngToSource := Enum::"Prod. Definition Source".FromInteger(LibraryVariableStorage.DequeueInteger());
             ProductionDefinitionWizard.SaveBomRtngToSourceField.SetValue(SaveBomRtngToSource);
+        end;
 
         // Navigate through all wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardCreateNewVersion(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        CreateBOMVersion: Boolean;
+        CreateRoutingVersion: Boolean;
+        SaveBOMRouting: Boolean;
+        SaveBomRtngToSource: Enum "Prod. Definition Source";
     begin
         // Handle wizard with new version creation
         WizardWasOpened := true;
 
         // Set save options
+        SaveBOMRouting := LibraryVariableStorage.DequeueBoolean();
         ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(SaveBOMRouting);
-        if SaveBOMRouting then
+        if SaveBOMRouting then begin
+            SaveBomRtngToSource := Enum::"Prod. Definition Source".FromInteger(LibraryVariableStorage.DequeueInteger());
             ProductionDefinitionWizard.SaveBomRtngToSourceField.SetValue(SaveBomRtngToSource);
+        end;
 
         // Navigate to BOM step and create new version
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
-        ProductionDefinitionWizard.CreateBOMVersionField.SetValue(true);
+        CreateBOMVersion := LibraryVariableStorage.DequeueBoolean();
+        ProductionDefinitionWizard.CreateBOMVersionField.SetValue(CreateBOMVersion);
 
         // Navigate to Routing step and create new version
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
-        ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(true);
+        CreateRoutingVersion := LibraryVariableStorage.DequeueBoolean();
+        ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(CreateRoutingVersion);
 
         // Navigate through remaining wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardCreateNewVersionNoSave(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        CreateBOMVersion: Boolean;
+        CreateRoutingVersion: Boolean;
+        SaveBOMRouting: Boolean;
     begin
         // Handle wizard with new version creation but no save
         WizardWasOpened := true;
 
         // Set save options (no save)
+        SaveBOMRouting := LibraryVariableStorage.DequeueBoolean();
         ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(SaveBOMRouting);
 
         // Navigate to BOM step and create new version
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
-        ProductionDefinitionWizard.CreateBOMVersionField.SetValue(true);
+        CreateBOMVersion := LibraryVariableStorage.DequeueBoolean();
+        ProductionDefinitionWizard.CreateBOMVersionField.SetValue(CreateBOMVersion);
 
         // Navigate to Routing step and create new version
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
-        ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(true);
+        CreateRoutingVersion := LibraryVariableStorage.DequeueBoolean();
+        ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(CreateRoutingVersion);
 
         // Navigate through remaining wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardCreateNewVersionSaveToItem(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        CreateBOMVersion: Boolean;
+        CreateRoutingVersion: Boolean;
+        SaveBOMRouting: Boolean;
+        SaveBomRtngToSource: Enum "Prod. Definition Source";
     begin
         // Handle wizard with new version creation and save to item
         WizardWasOpened := true;
 
         // Set save options
+        SaveBOMRouting := LibraryVariableStorage.DequeueBoolean();
         ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(SaveBOMRouting);
-        if SaveBOMRouting then
+        if SaveBOMRouting then begin
+            SaveBomRtngToSource := Enum::"Prod. Definition Source".FromInteger(LibraryVariableStorage.DequeueInteger());
             ProductionDefinitionWizard.SaveBomRtngToSourceField.SetValue(SaveBomRtngToSource);
+        end;
 
         // Navigate to BOM step and create new version
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
-        ProductionDefinitionWizard.CreateBOMVersionField.SetValue(true);
+        CreateBOMVersion := LibraryVariableStorage.DequeueBoolean();
+        ProductionDefinitionWizard.CreateBOMVersionField.SetValue(CreateBOMVersion);
 
         // Navigate to Routing step and create new version
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
-        ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(true);
+        CreateRoutingVersion := LibraryVariableStorage.DequeueBoolean();
+        ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(CreateRoutingVersion);
 
         // Navigate through remaining wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -632,6 +707,7 @@ codeunit 139998 "Subc. Wiz. Save Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Wiz. Save Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         if IsInitialized then
@@ -648,5 +724,33 @@ codeunit 139998 "Subc. Wiz. Save Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Wiz. Save Test");
+    end;
+
+    local procedure EnqueueWizardSaveOptions(SaveBOMRouting: Boolean; SaveBomRtngToSource: Enum "Prod. Definition Source")
+    begin
+        LibraryVariableStorage.Enqueue(SaveBOMRouting);
+        if SaveBOMRouting then
+            LibraryVariableStorage.Enqueue(SaveBomRtngToSource.AsInteger());
+    end;
+
+    local procedure EnqueueWizardNavigation(NextCount: Integer)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to NextCount do
+            LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueWizardVersionCreation(SaveBOMRouting: Boolean; SaveBomRtngToSource: Enum "Prod. Definition Source")
+    begin
+        EnqueueWizardSaveOptions(SaveBOMRouting, SaveBomRtngToSource);
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
     end;
 }

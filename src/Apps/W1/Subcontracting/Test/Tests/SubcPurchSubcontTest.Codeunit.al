@@ -1068,7 +1068,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Commit();
         PurchOrder.OpenEdit();
         PurchOrder.GoToRecord(PurchaseHeader);
-        PurchOrder.PurchLines.CreateProdOrder.Invoke();
+        PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
 
         // [THEN]
         PurchLine.Reset();
@@ -1148,7 +1148,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Commit();
         PurchOrder.OpenEdit();
         PurchOrder.GoToRecord(PurchaseHeader);
-        PurchOrder.PurchLines.CreateProdOrder.Invoke();
+        PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
 
         // [THEN]
         PurchLine.Reset();
@@ -1212,7 +1212,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Commit();
         PurchOrder.OpenEdit();
         PurchOrder.GoToRecord(PurchaseHeader);
-        asserterror PurchOrder.PurchLines.CreateProdOrder.Invoke();
+        asserterror PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
 
         // [THEN] Error occurs as drop shipment is not supported
         Assert.ExpectedError('Drop Shipment');
@@ -1605,7 +1605,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
         ManufacturingSetup.Get();
-        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RtngLink;
+        ManufacturingSetup."Subc. Rtng. Link Purch Prov" := RtngLink;
         ManufacturingSetup.Modify();
     end;
 }

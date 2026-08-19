@@ -27,13 +27,13 @@ pageextension 20564 SubcTempProdOrderCompExt extends "Temp Prod. Order Comp. Lis
 
                     if (Rec."Routing Link Code" = '') and (Rec."Component Supply Method" <> Rec."Component Supply Method"::Empty) then begin
                         GetManufacturingSetup();
-                        Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+                        Rec."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
                     end;
 
                     if Rec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
                         Rec.Validate("Location Code", Rec."Subc. Original Location Code")
                     else
-                        OnAfterSubcontractingTypeChangedToNonTransfer(Rec);
+                        OnValidateOnAfterSubcontractingTypeChangedToNonTransfer(Rec);
                 end;
             }
         }
@@ -52,14 +52,14 @@ pageextension 20564 SubcTempProdOrderCompExt extends "Temp Prod. Order Comp. Lis
     local procedure GetManufacturingSetup()
     begin
         if not ManufacturingSetupRead then begin
-            ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+            ManufacturingSetup.SetLoadFields("Subc. Rtng. Link Purch Prov");
             ManufacturingSetup.Get();
             ManufacturingSetupRead := true;
         end;
     end;
 
     [IntegrationEvent(false, false)]
-    internal procedure OnAfterSubcontractingTypeChangedToNonTransfer(var ProdOrderComponent: Record "Prod. Order Component")
+    internal procedure OnValidateOnAfterSubcontractingTypeChangedToNonTransfer(var ProdOrderComponent: Record "Prod. Order Component")
     begin
     end;
 }

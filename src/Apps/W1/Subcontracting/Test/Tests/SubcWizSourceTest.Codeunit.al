@@ -8,6 +8,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139997 "Subc. Wiz. Source Test"
 {
@@ -23,6 +24,7 @@ codeunit 139997 "Subc. Wiz. Source Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
@@ -33,7 +35,6 @@ codeunit 139997 "Subc. Wiz. Source Test"
         IsInitialized: Boolean;
         WizardFinishedSuccessfully: Boolean;
         WizardWasOpened: Boolean;
-        ExpectedSourceType: Enum "Prod. Definition Source";
         ManSetupLbl: Label 'Manufacturing Setup', Locked = true;
 
 
@@ -79,13 +80,14 @@ codeunit 139997 "Subc. Wiz. Source Test"
         PurchLine.Modify();
 
         // Set expected source type for handler verification
-        ExpectedSourceType := ExpectedSourceType::StockkeepingUnit;
+        EnqueueExpectedSource(Format("Prod. Definition Source"::StockkeepingUnit));
 
         // [WHEN] Run the Production Order Creation Wizard
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should show Stockkeeping Unit as source
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -126,13 +128,14 @@ codeunit 139997 "Subc. Wiz. Source Test"
         PurchLine.Modify();
 
         // Set expected source type for handler verification
-        ExpectedSourceType := ExpectedSourceType::Item;
+        EnqueueExpectedSource(Format("Prod. Definition Source"::Item));
 
         // [WHEN] Run the Production Order Creation Wizard
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should show Item as source
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -160,13 +163,14 @@ codeunit 139997 "Subc. Wiz. Source Test"
         SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
 
         // Set expected source type for handler verification (should be Empty when using setup)
-        ExpectedSourceType := ExpectedSourceType::Empty;
+        EnqueueExpectedSource(ManSetupLbl);
 
         // [WHEN] Run the Production Order Creation Wizard
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should show Empty as source (setup is used)
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -194,13 +198,14 @@ codeunit 139997 "Subc. Wiz. Source Test"
         SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
 
         // Set expected source type for handler verification
-        ExpectedSourceType := ExpectedSourceType::Empty;
+        EnqueueExpectedSource(ManSetupLbl);
 
         // [WHEN] Run the Production Order Creation Wizard
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should show Empty as source
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -234,13 +239,14 @@ codeunit 139997 "Subc. Wiz. Source Test"
         ManufacturingSetup.Modify();
 
         // Set expected source type for handler verification
-        ExpectedSourceType := ExpectedSourceType::Empty;
+        EnqueueExpectedSource(ManSetupLbl);
 
         // [WHEN] Run the Production Order Creation Wizard with changed setup
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should use the new setup
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -254,13 +260,16 @@ codeunit 139997 "Subc. Wiz. Source Test"
         WizardWasOpened := true;
 
         // Verify that the source field shows StockkeepingUnit
-        Assert.AreEqual(Format(ExpectedSourceType::StockkeepingUnit), ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
             'BomRtngFromSource should show StockkeepingUnit when stockkeeping unit has data');
 
         // Navigate through wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -272,13 +281,16 @@ codeunit 139997 "Subc. Wiz. Source Test"
         WizardWasOpened := true;
 
         // Verify that the source field shows Item
-        Assert.AreEqual(Format(ExpectedSourceType::Item), ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
             'BomRtngFromSource should show Item when item has data and stockkeeping unit is empty');
 
         // Navigate through wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -289,13 +301,16 @@ codeunit 139997 "Subc. Wiz. Source Test"
         // [SCENARIO G5] Verify that BomRtngFromSource reflects new setup
         WizardWasOpened := true;
 
-        Assert.AreEqual(ManSetupLbl, ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
             'BomRtngFromSource should reflect new setup configuration');
 
         // Navigate through wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -306,13 +321,16 @@ codeunit 139997 "Subc. Wiz. Source Test"
         // [SCENARIO G4] Verify that BomRtngFromSource shows Empty when no setup exists
         WizardWasOpened := true;
 
-        Assert.AreEqual(ManSetupLbl, ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
             'BomRtngFromSource should show Empty when no data and no setup exists');
 
         // Navigate through wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -324,13 +342,16 @@ codeunit 139997 "Subc. Wiz. Source Test"
         WizardWasOpened := true;
 
         // Verify that the source field shows Empty (new setup is used)
-        Assert.AreEqual(ManSetupLbl, ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ProductionDefinitionWizard.BomRtngFromSourceField.Value(),
             'BomRtngFromSource should reflect new setup configuration');
 
         // Navigate through wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -338,6 +359,7 @@ codeunit 139997 "Subc. Wiz. Source Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Wiz. Source Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         if IsInitialized then
@@ -354,5 +376,15 @@ codeunit 139997 "Subc. Wiz. Source Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Wiz. Source Test");
+    end;
+
+    local procedure EnqueueExpectedSource(ExpectedSource: Text)
+    var
+        Index: Integer;
+    begin
+        LibraryVariableStorage.Enqueue(ExpectedSource);
+        for Index := 1 to 4 do
+            LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
     end;
 }

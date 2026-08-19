@@ -63,7 +63,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         TempProdOrderComponent."Line No." := LineNo;
         TempProdOrderComponent."Item No." := ManufacturingSetup."Def. Wiz. Comp Item No.";
         TempProdOrderComponent."Location Code" := GetVendorSubcontractingLocation(PurchLine."Buy-from Vendor No.");
-        TempProdOrderComponent."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        TempProdOrderComponent."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
         TempProdOrderComponent."Flushing Method" := ManufacturingSetup."Def. Wiz. Flushing Method";
 
         TempProdOrderComponent.Insert();
@@ -89,7 +89,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         TempProdOrderRoutingLine."Operation No." := OperationNo;
         TempProdOrderRoutingLine.Type := TempProdOrderRoutingLine.Type::"Work Center";
         TempProdOrderRoutingLine."No." := ManufacturingSetup."Def. Wiz. Work Center No.";
-        TempProdOrderRoutingLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        TempProdOrderRoutingLine."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
 
         if ManufacturingSetup."Def. Wiz. Work Center No." <> '' then
             if WorkCenter.Get(ManufacturingSetup."Def. Wiz. Work Center No.") then begin

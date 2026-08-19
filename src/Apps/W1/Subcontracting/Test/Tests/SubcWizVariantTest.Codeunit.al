@@ -11,6 +11,7 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139996 "Subc. Wiz. Variant Test"
 {
@@ -26,6 +27,7 @@ codeunit 139996 "Subc. Wiz. Variant Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
@@ -37,7 +39,6 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         IsInitialized: Boolean;
         WizardFinishedSuccessfully: Boolean;
         WizardWasOpened: Boolean;
-        NoToSelect, VersionToSelect : Code[20];
 
 
     [Test]
@@ -67,8 +68,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard and create new BOM variant
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueNewBOMVariant();
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have opened and new BOM variant should be creatable with editable lines
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -104,8 +107,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard and modify BOM lines
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueModifyBOMLines();
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and changes should be applied to production order components
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -158,8 +163,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard and create new Routing variant
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueNewRoutingVariant();
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have opened and new Routing variant should be creatable with editable lines
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -195,8 +202,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard and modify Routing lines
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueModifyRoutingLines();
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and changes should be applied to production order routing lines
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -259,8 +268,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard and save new variant to stockkeeping
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueSaveVariant("Prod. Definition Source"::StockkeepingUnit);
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and new BOM variant should be saved to stockkeeping unit
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -310,8 +321,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard and save new variant to item
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueSaveVariant("Prod. Definition Source"::Item);
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and new BOM variant should be saved to item
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -362,8 +375,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard without making changes
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueWizardNavigation(4);
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully but no new variant should be created
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -413,8 +428,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard with new BOM version available
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueWizardNavigation(4);
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should use the new BOM version
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -463,8 +480,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard with new Routing version available
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueWizardNavigation(4);
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should use the new Routing version
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -514,8 +533,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard and select alternate BOM variant
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueSelectBOMVariant(BOMNo);
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and used alternate BOM version
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -567,8 +588,10 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [WHEN] Run the Production Order Creation Wizard and select alternate Routing variant
         WizardWasOpened := false;
         WizardFinishedSuccessfully := false;
+        EnqueueSelectRoutingVariant(RoutingNo);
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should have finished successfully and used alternate Routing version
         Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
@@ -589,6 +612,8 @@ codeunit 139996 "Subc. Wiz. Variant Test"
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardNewBOMVariant(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        CreateBOMVersion: Boolean;
     begin
         // [SCENARIO C1] Handle wizard to create new BOM variant
         WizardWasOpened := true;
@@ -597,19 +622,26 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // Check if we can create a new BOM version on this step
             if ProductionDefinitionWizard.CreateBOMVersionField.Visible() then begin
-                ProductionDefinitionWizard.CreateBOMVersionField.SetValue(true);
+                VerifyExpectedInteraction('CreateBOMVersion');
+                CreateBOMVersion := LibraryVariableStorage.DequeueBoolean();
+                ProductionDefinitionWizard.CreateBOMVersionField.SetValue(CreateBOMVersion);
                 // Verify that BOM lines are now editable
                 Assert.IsTrue(ProductionDefinitionWizard.BOMLinesPart.Editable(), 'BOM lines should be editable when creating new version');
             end;
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardModifyBOMLines(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        CreateBOMVersion: Boolean;
+        Quantity: Decimal;
     begin
         // [SCENARIO C2] Handle wizard to modify BOM lines
         WizardWasOpened := true;
@@ -618,22 +650,30 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // Check if we can create a new BOM version on this step
             if ProductionDefinitionWizard.CreateBOMVersionField.Visible() then begin
-                ProductionDefinitionWizard.CreateBOMVersionField.SetValue(true);
+                VerifyExpectedInteraction('CreateBOMVersion');
+                CreateBOMVersion := LibraryVariableStorage.DequeueBoolean();
+                ProductionDefinitionWizard.CreateBOMVersionField.SetValue(CreateBOMVersion);
                 // Verify that BOM lines are now editable
                 Assert.IsTrue(ProductionDefinitionWizard.BOMLinesPart.Editable(), 'BOM lines should be editable when creating new version');
+                VerifyExpectedInteraction('First');
                 ProductionDefinitionWizard.BOMLinesPart.First();
                 // Modify the quantity per of the first BOM line
-                ProductionDefinitionWizard.BOMLinesPart."Quantity per".SetValue(5);
+                Quantity := LibraryVariableStorage.DequeueDecimal();
+                ProductionDefinitionWizard.BOMLinesPart."Quantity per".SetValue(Quantity);
             end;
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardNewRoutingVariant(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        CreateRoutingVersion: Boolean;
     begin
         // [SCENARIO C3] Handle wizard to create new Routing variant
         WizardWasOpened := true;
@@ -642,19 +682,27 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // Check if we can create a new Routing version on this step
             if ProductionDefinitionWizard.CreateRoutingVersionField.Visible() then begin
-                ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(true);
+                VerifyExpectedInteraction('CreateRoutingVersion');
+                CreateRoutingVersion := LibraryVariableStorage.DequeueBoolean();
+                ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(CreateRoutingVersion);
                 // Verify that Routing lines are now editable
                 Assert.IsTrue(ProductionDefinitionWizard.RoutingLinesPart.Editable(), 'Routing lines should be editable when creating new version');
             end;
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardModifyRoutingLines(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        CreateRoutingVersion: Boolean;
+        RunTime: Decimal;
+        SetupTime: Decimal;
     begin
         // [SCENARIO C4] Handle wizard to modify Routing lines
         WizardWasOpened := true;
@@ -663,65 +711,98 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // Check if we can create a new Routing version on this step
             if ProductionDefinitionWizard.CreateRoutingVersionField.Visible() then begin
-                ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(true);
+                VerifyExpectedInteraction('CreateRoutingVersion');
+                CreateRoutingVersion := LibraryVariableStorage.DequeueBoolean();
+                ProductionDefinitionWizard.CreateRoutingVersionField.SetValue(CreateRoutingVersion);
                 // Verify that Routing lines are now editable
                 Assert.IsTrue(ProductionDefinitionWizard.RoutingLinesPart.Editable(), 'Routing lines should be editable when creating new version');
+                VerifyExpectedInteraction('First');
                 ProductionDefinitionWizard.RoutingLinesPart.First();
                 // Modify some routing lines here
-                ProductionDefinitionWizard.RoutingLinesPart."Run Time".SetValue(10);
-                ProductionDefinitionWizard.RoutingLinesPart."Setup Time".SetValue(20);
+                RunTime := LibraryVariableStorage.DequeueDecimal();
+                SetupTime := LibraryVariableStorage.DequeueDecimal();
+                ProductionDefinitionWizard.RoutingLinesPart."Run Time".SetValue(RunTime);
+                ProductionDefinitionWizard.RoutingLinesPart."Setup Time".SetValue(SetupTime);
             end;
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardSaveToStockkeeping(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        SaveBOMRouting: Boolean;
+        SaveBomRtngToSource: Enum "Prod. Definition Source";
+        CreateBOMVersion: Boolean;
     begin
         // [SCENARIO H1] Handle wizard to save new variant to stockkeeping unit
         WizardWasOpened := true;
 
         Assert.IsFalse(ProductionDefinitionWizard.SaveBomRtngToSourceField.Editable(), 'Save to source should not be Editable initially');
-        ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(true);
+        VerifyExpectedInteraction('SetSaveBOMRouting');
+        SaveBOMRouting := LibraryVariableStorage.DequeueBoolean();
+        ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(SaveBOMRouting);
         Assert.IsTrue(ProductionDefinitionWizard.SaveBomRtngToSourceField.Editable(), 'Save to source should be Editable after enabling save');
-        ProductionDefinitionWizard.SaveBomRtngToSourceField.SetValue("Prod. Definition Source"::StockkeepingUnit);
+        VerifyExpectedInteraction('SetSaveBomRtngToSource');
+        SaveBomRtngToSource := Enum::"Prod. Definition Source".FromInteger(LibraryVariableStorage.DequeueInteger());
+        ProductionDefinitionWizard.SaveBomRtngToSourceField.SetValue(SaveBomRtngToSource);
 
         // Navigate through wizard steps and enable saving to stockkeeping
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // Check if we can create a new BOM version and save it
-            if ProductionDefinitionWizard.CreateBOMVersionField.Visible() then
-                ProductionDefinitionWizard.CreateBOMVersionField.SetValue(true);
+            if ProductionDefinitionWizard.CreateBOMVersionField.Visible() then begin
+                VerifyExpectedInteraction('CreateBOMVersion');
+                CreateBOMVersion := LibraryVariableStorage.DequeueBoolean();
+                ProductionDefinitionWizard.CreateBOMVersionField.SetValue(CreateBOMVersion);
+            end;
             // Enable saving the variant (simulated)
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardSaveToItem(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        SaveBOMRouting: Boolean;
+        SaveBomRtngToSource: Enum "Prod. Definition Source";
+        CreateBOMVersion: Boolean;
     begin
         // [SCENARIO H2] Handle wizard to save new variant to item
         WizardWasOpened := true;
 
         Assert.IsFalse(ProductionDefinitionWizard.SaveBomRtngToSourceField.Editable(), 'Save to source should not be Editable initially');
-        ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(true);
+        VerifyExpectedInteraction('SetSaveBOMRouting');
+        SaveBOMRouting := LibraryVariableStorage.DequeueBoolean();
+        ProductionDefinitionWizard.SaveBOMRoutingField.SetValue(SaveBOMRouting);
         Assert.IsTrue(ProductionDefinitionWizard.SaveBomRtngToSourceField.Editable(), 'Save to source should be Editable after enabling save');
-        ProductionDefinitionWizard.SaveBomRtngToSourceField.SetValue("Prod. Definition Source"::Item);
+        VerifyExpectedInteraction('SetSaveBomRtngToSource');
+        SaveBomRtngToSource := Enum::"Prod. Definition Source".FromInteger(LibraryVariableStorage.DequeueInteger());
+        ProductionDefinitionWizard.SaveBomRtngToSourceField.SetValue(SaveBomRtngToSource);
 
         // Navigate through wizard steps and enable saving to item
         while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // Check if we can create a new BOM version and save it
-            if ProductionDefinitionWizard.CreateBOMVersionField.Visible() then
-                ProductionDefinitionWizard.CreateBOMVersionField.SetValue(true);
+            if ProductionDefinitionWizard.CreateBOMVersionField.Visible() then begin
+                VerifyExpectedInteraction('CreateBOMVersion');
+                CreateBOMVersion := LibraryVariableStorage.DequeueBoolean();
+                ProductionDefinitionWizard.CreateBOMVersionField.SetValue(CreateBOMVersion);
+            end;
             // Enable saving the variant (simulated)
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
         end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -735,10 +816,13 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         Assert.AreEqual(Format("Prod. Definition Source"::Empty), ProductionDefinitionWizard.SaveBomRtngToSourceField.Value(), 'Save to source should be empty initially');
 
         // Navigate through wizard steps without making changes
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // Don't create new versions or make changes
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -750,10 +834,13 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         WizardWasOpened := true;
 
         // Navigate through wizard steps and use new BOM version
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // The wizard should automatically select the newest version
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -765,10 +852,13 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         WizardWasOpened := true;
 
         // Navigate through wizard steps and use new Routing version
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // The wizard should automatically select the newest version
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -784,24 +874,27 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [SCENARIO J1] Handle wizard to select existing BOM variant and verify lines are updated
         WizardWasOpened := true;
 
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
         // Get the current BOM lines before changing version
+        VerifyExpectedInteraction('First');
         if ProductionDefinitionWizard.BOMLinesPart.First() then
             OriginalItemNo := ProductionDefinitionWizard.BOMLinesPart."No.".Value();
 
         // Find and select the alternate BOM version 'B'
         BOMVersion.SetRange("Production BOM No.", ProductionDefinitionWizard.ProductionBOMNoField.Value());
         BOMVersion.SetRange("Version Code", 'A');
-        Assert.IsTrue(BOMVersion.FindFirst(), 'BOM version A should exist for selected BOM');
+        Assert.IsFalse(BOMVersion.IsEmpty(), 'BOM version A should exist for selected BOM');
 
         // Select the alternate BOM version
-        NoToSelect := BOMVersion."Production BOM No.";
-        VersionToSelect := BOMVersion."Version Code";
+        VerifyExpectedInteraction('AssistEdit');
         ProductionDefinitionWizard.SelectedBOMVersionField.AssistEdit();
 
         // Verify that the BOM lines have been updated after version change
+        VerifyExpectedInteraction('First');
         if ProductionDefinitionWizard.BOMLinesPart.First() then begin
             NewItemNo := ProductionDefinitionWizard.BOMLinesPart."No.".Value();
             // The lines should be different between versions (different component items)
@@ -809,9 +902,12 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         end;
 
         // Navigate through remaining wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -827,27 +923,32 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         // [SCENARIO J2] Handle wizard to select existing Routing variant and verify lines are updated
         WizardWasOpened := true;
 
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke(); //Components
+        end;
 
-        if ProductionDefinitionWizard.ActionNext.Enabled() then
+        if ProductionDefinitionWizard.ActionNext.Enabled() then begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke(); //Routing
+        end;
 
         // Get the current Routing lines before changing version
+        VerifyExpectedInteraction('First');
         if ProductionDefinitionWizard.RoutingLinesPart.First() then
             OriginalWorkCenterNo := ProductionDefinitionWizard.RoutingLinesPart."No.".Value();
 
         // Find and select the alternate Routing version 'A'
         RoutingVersion.SetRange("Routing No.", ProductionDefinitionWizard.RoutingNoField.Value());
         RoutingVersion.SetRange("Version Code", 'A');
-        Assert.IsTrue(RoutingVersion.FindFirst(), 'Routing version A should exist for selected Routing');
+        Assert.IsFalse(RoutingVersion.IsEmpty(), 'Routing version A should exist for selected Routing');
 
-        // Set global variables for the SelectRoutingVersion handler
-        NoToSelect := RoutingVersion."Routing No.";
-        VersionToSelect := RoutingVersion."Version Code";
+        // Select the alternate Routing version
+        VerifyExpectedInteraction('AssistEdit');
         ProductionDefinitionWizard.SelectedRoutingVersionField.AssistEdit();
 
         // Verify that the Routing lines have been updated after version change
+        VerifyExpectedInteraction('First');
         if ProductionDefinitionWizard.RoutingLinesPart.First() then begin
             NewWorkCenterNo := ProductionDefinitionWizard.RoutingLinesPart."No.".Value();
             // The lines should be different between versions (different work centers)
@@ -855,9 +956,12 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         end;
 
         // Navigate through remaining wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -869,10 +973,13 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         WizardWasOpened := true;
 
         // Navigate through wizard steps and switch between variants
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
             // Switch between variants (simulated)
+            VerifyExpectedInteraction('Next');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
+        VerifyExpectedInteraction('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -891,10 +998,17 @@ codeunit 139996 "Subc. Wiz. Variant Test"
     procedure SelectBOMVersion(var BOMVersionList: TestPage "Prod. BOM Version List")
     var
         BOMVersion: Record "Production BOM Version";
+        BOMNo: Code[20];
+        VersionCode: Code[20];
     begin
+        VerifyExpectedInteraction('First');
         BOMVersionList.First();
-        BOMVersion.Get(NoToSelect, VersionToSelect);
+        BOMNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(BOMNo));
+        VersionCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(VersionCode));
+        BOMVersion.Get(BOMNo, VersionCode);
+        VerifyExpectedInteraction('GoToRecord');
         BOMVersionList.GoToRecord(BOMVersion);
+        VerifyExpectedInteraction('OK');
         BOMVersionList.OK().Invoke();
     end;
 
@@ -902,16 +1016,24 @@ codeunit 139996 "Subc. Wiz. Variant Test"
     procedure SelectRoutingVersion(var RoutingVersionList: TestPage "Routing Version List")
     var
         RoutingVersion: Record "Routing Version";
+        RoutingNo: Code[20];
+        VersionCode: Code[20];
     begin
+        VerifyExpectedInteraction('First');
         RoutingVersionList.First();
-        RoutingVersion.Get(NoToSelect, VersionToSelect);
+        RoutingNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(RoutingNo));
+        VersionCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(VersionCode));
+        RoutingVersion.Get(RoutingNo, VersionCode);
+        VerifyExpectedInteraction('GoToRecord');
         RoutingVersionList.GoToRecord(RoutingVersion);
+        VerifyExpectedInteraction('OK');
         RoutingVersionList.OK().Invoke();
     end;
 
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Wiz. Variant Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         if IsInitialized then
@@ -928,5 +1050,108 @@ codeunit 139996 "Subc. Wiz. Variant Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Wiz. Variant Test");
+    end;
+
+    local procedure VerifyExpectedInteraction(ExpectedInteraction: Text)
+    begin
+        Assert.AreEqual(ExpectedInteraction, LibraryVariableStorage.DequeueText(), 'Unexpected wizard interaction');
+    end;
+
+    local procedure EnqueueNextActions(NextCount: Integer)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to NextCount do
+            LibraryVariableStorage.Enqueue('Next');
+    end;
+
+    local procedure EnqueueWizardNavigation(NextCount: Integer)
+    begin
+        EnqueueNextActions(NextCount);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueNewBOMVariant()
+    begin
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('CreateBOMVersion');
+        LibraryVariableStorage.Enqueue(true);
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueModifyBOMLines()
+    begin
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('CreateBOMVersion');
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue(5);
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueNewRoutingVariant()
+    begin
+        EnqueueNextActions(2);
+        LibraryVariableStorage.Enqueue('CreateRoutingVersion');
+        LibraryVariableStorage.Enqueue(true);
+        EnqueueNextActions(2);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueModifyRoutingLines()
+    begin
+        EnqueueNextActions(2);
+        LibraryVariableStorage.Enqueue('CreateRoutingVersion');
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue(10);
+        LibraryVariableStorage.Enqueue(20);
+        EnqueueNextActions(2);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueSaveVariant(SaveBomRtngToSource: Enum "Prod. Definition Source")
+    begin
+        LibraryVariableStorage.Enqueue('SetSaveBOMRouting');
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue('SetSaveBomRtngToSource');
+        LibraryVariableStorage.Enqueue(SaveBomRtngToSource.AsInteger());
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('CreateBOMVersion');
+        LibraryVariableStorage.Enqueue(true);
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueSelectBOMVariant(BOMNo: Code[20])
+    begin
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue('AssistEdit');
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue(BOMNo);
+        LibraryVariableStorage.Enqueue('A');
+        LibraryVariableStorage.Enqueue('GoToRecord');
+        LibraryVariableStorage.Enqueue('OK');
+        LibraryVariableStorage.Enqueue('First');
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueSelectRoutingVariant(RoutingNo: Code[20])
+    begin
+        EnqueueNextActions(2);
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue('AssistEdit');
+        LibraryVariableStorage.Enqueue('First');
+        LibraryVariableStorage.Enqueue(RoutingNo);
+        LibraryVariableStorage.Enqueue('A');
+        LibraryVariableStorage.Enqueue('GoToRecord');
+        LibraryVariableStorage.Enqueue('OK');
+        LibraryVariableStorage.Enqueue('First');
+        EnqueueNextActions(2);
+        LibraryVariableStorage.Enqueue('Finish');
     end;
 }

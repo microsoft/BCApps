@@ -20,6 +20,7 @@ using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.TestLibraries.Utilities;
 
 codeunit 139981 "Subc. Location Handler Test"
 {
@@ -42,6 +43,7 @@ codeunit 139981 "Subc. Location Handler Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
@@ -54,6 +56,7 @@ codeunit 139981 "Subc. Location Handler Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Location Handler Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         if IsInitialized then
@@ -613,8 +616,14 @@ codeunit 139981 "Subc. Location Handler Test"
 
         // [WHEN] Run the Production Order Creation Wizard
         WizardFinishedSuccessfully := false;
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Verify wizard completed successfully
         Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
@@ -682,7 +691,7 @@ codeunit 139981 "Subc. Location Handler Test"
           'Subcontracting order must not use the Work Center location.');
     end;
 
- 
+
     local procedure UpdateSubManagementSetup(ComponentAtLocation: Enum "Components at Location")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -846,11 +855,14 @@ codeunit 139981 "Subc. Location Handler Test"
         // The wizard should navigate through all steps and finish successfully
 
         // Click Next to proceed through the wizard steps
-        while PurchProvisionWizard.ActionNext.Enabled() do
+        while PurchProvisionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             PurchProvisionWizard.ActionNext.Invoke();
+        end;
 
         // Click Finish to complete the wizard
         if PurchProvisionWizard.ActionFinish.Enabled() then begin
+            Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
             PurchProvisionWizard.ActionFinish.Invoke();
             WizardFinishedSuccessfully := true;
         end;

@@ -26,7 +26,7 @@ pageextension 20573 SubcTempBOMLineExt extends "Temp BOM Lines"
 
                     if (Rec."Routing Link Code" = '') and (Rec."Component Supply Method" <> Rec."Component Supply Method"::Empty) then begin
                         GetManufacturingSetup();
-                        Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+                        Rec."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
                     end;
                 end;
             }
@@ -45,7 +45,7 @@ pageextension 20573 SubcTempBOMLineExt extends "Temp BOM Lines"
     local procedure GetManufacturingSetup()
     begin
         if not ManufacturingSetupRead then begin
-            ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+            ManufacturingSetup.SetLoadFields("Subc. Rtng. Link Purch Prov");
             ManufacturingSetup.Get();
             ManufacturingSetupRead := true;
         end;

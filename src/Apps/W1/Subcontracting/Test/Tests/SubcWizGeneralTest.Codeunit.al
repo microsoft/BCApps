@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 149918 "Subc. Wiz. General Test"
 {
@@ -22,6 +23,7 @@ codeunit 149918 "Subc. Wiz. General Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -54,6 +56,7 @@ codeunit 149918 "Subc. Wiz. General Test"
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Verify wizard completed successfully
         Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
@@ -83,6 +86,7 @@ codeunit 149918 "Subc. Wiz. General Test"
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Verify wizard completed successfully
         Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
@@ -127,6 +131,7 @@ codeunit 149918 "Subc. Wiz. General Test"
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Verify wizard completed successfully
         Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
@@ -168,6 +173,7 @@ codeunit 149918 "Subc. Wiz. General Test"
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Verify wizard completed successfully
         Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
@@ -209,6 +215,7 @@ codeunit 149918 "Subc. Wiz. General Test"
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Verify wizard completed successfully
         Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
@@ -260,6 +267,7 @@ codeunit 149918 "Subc. Wiz. General Test"
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard completed successfully
         Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
@@ -297,11 +305,14 @@ codeunit 149918 "Subc. Wiz. General Test"
         // This handler works for both NothingPresent and BothPresent scenarios
 
         // Click Next to proceed through the wizard steps
-        while ProductionDefinitionWizard.ActionNext.Enabled() do
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
             ProductionDefinitionWizard.ActionNext.Invoke();
+        end;
 
         // Click Finish to complete the wizard
         if ProductionDefinitionWizard.ActionFinish.Enabled() then begin
+            Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
             ProductionDefinitionWizard.ActionFinish.Invoke();
             WizardFinishedSuccessfully := true;
         end;
@@ -310,7 +321,9 @@ codeunit 149918 "Subc. Wiz. General Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Wiz. General Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
+        EnqueueWizardNavigation(4);
 
         if IsInitialized then
             exit;
@@ -326,5 +339,14 @@ codeunit 149918 "Subc. Wiz. General Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Wiz. General Test");
+    end;
+
+    local procedure EnqueueWizardNavigation(NextCount: Integer)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to NextCount do
+            LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
     end;
 }

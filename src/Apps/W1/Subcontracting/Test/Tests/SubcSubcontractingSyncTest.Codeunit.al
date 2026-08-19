@@ -295,7 +295,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         Commit();
         PurchOrder.OpenEdit();
         PurchOrder.GoToRecord(PurchaseHeader);
-        PurchOrder.PurchLines.CreateProdOrder.Invoke();
+        PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
 
         // [THEN]
         PurchLine.Reset();
@@ -357,7 +357,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
         ManufacturingSetup.Get();
-        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RtngLink;
+        ManufacturingSetup."Subc. Rtng. Link Purch Prov" := RtngLink;
         ManufacturingSetup.Modify();
     end;
 

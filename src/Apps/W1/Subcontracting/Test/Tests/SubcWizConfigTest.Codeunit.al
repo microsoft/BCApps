@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 140000 "Subc. Wiz. Config Test"
 {
@@ -21,6 +22,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -64,6 +66,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         WizardFinishedSuccessfully := false;
         Commit();
         PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Wizard should not have opened, but production order should be created automatically
         Assert.IsFalse(WizardWasOpened, 'Wizard should not have opened when both are set to Hide');
@@ -655,27 +658,22 @@ codeunit 140000 "Subc. Wiz. Config Test"
     begin
         Clear(ExpectedSteps);
         StepArray := StepsList.Split(',');
-        foreach Step in StepArray do
+        foreach Step in StepArray do begin
             ExpectedSteps.Add(Step);
+            LibraryVariableStorage.Enqueue(Step);
+        end;
+        LibraryVariableStorage.Enqueue('Finish');
     end;
 
     local procedure VerifyExpectedStepsVisited()
-    var
-        i: Integer;
-        ExpectedStep: Text;
     begin
-        Assert.AreEqual(ExpectedSteps.Count(), StepsVisited.Count(), 'Number of visited steps should match expected steps');
-
-        for i := 1 to ExpectedSteps.Count() do begin
-            ExpectedSteps.Get(i, ExpectedStep);
-            Assert.IsTrue(StepsVisited.Contains(ExpectedStep), StrSubstNo(ExpectedStepWasNotVisitedLbl, ExpectedStep));
-        end;
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure RecordStepVisited(StepName: Text)
     begin
-        if not StepsVisited.Contains(StepName) then
-            StepsVisited.Add(StepName);
+        StepsVisited.Add(StepName);
+        Assert.AreEqual(StepName, LibraryVariableStorage.DequeueText(), StrSubstNo(ExpectedStepWasNotVisitedLbl, StepName));
     end;
 
     [ModalPageHandler]
@@ -719,6 +717,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         Assert.AreEqual(2, StepCount, 'Should have navigated through 2 steps (BOM, Routing) when ProdComp/Routing are hidden');
 
         // Finish the wizard
+        RecordStepVisited('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -756,6 +755,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         Assert.AreEqual(2, StepCount, 'Should have navigated through 2 steps (Components, ProdRouting) when BOM/Routing are hidden');
 
         // Finish the wizard
+        RecordStepVisited('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -809,6 +809,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         Assert.AreEqual(4, StepCount, 'Should have navigated through 4 steps (BOM, Routing, Components, ProdRouting) when both are enabled');
 
         // Finish the wizard
+        RecordStepVisited('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -850,6 +851,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         Assert.AreEqual(4, StepCount, 'Should have navigated through 4 steps (BOM, Routing, Components, ProdRouting) with default Edit behavior');
 
         // Finish the wizard
+        RecordStepVisited('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -891,6 +893,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         Assert.AreEqual(2, StepCount, 'Should have navigated through 2 steps (BOM, Routing) when ProdComp/Routing are hidden');
 
         // Finish the wizard
+        RecordStepVisited('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -936,6 +939,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         Assert.AreEqual(2, StepCount, 'Should have navigated through 2 steps (Components, ProdRouting) when BOM/Routing are hidden');
 
         // Finish the wizard
+        RecordStepVisited('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -981,6 +985,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         Assert.AreEqual(2, StepCount, 'Should have navigated through 2 steps (Components, ProdRouting) when BOM/Routing are hidden');
 
         // Finish the wizard
+        RecordStepVisited('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -1018,6 +1023,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
         Assert.AreEqual(2, StepCount, 'Should have navigated through 2 steps (BOM, Routing) when Components/ProdRouting are hidden');
 
         // Finish the wizard
+        RecordStepVisited('Finish');
         ProductionDefinitionWizard.ActionFinish.Invoke();
         WizardFinishedSuccessfully := true;
     end;
@@ -1026,6 +1032,7 @@ codeunit 140000 "Subc. Wiz. Config Test"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Wiz. Config Test");
         LibrarySetupStorage.Restore();
+        LibraryVariableStorage.Clear();
 
         if IsInitialized then
             exit;

@@ -24,7 +24,7 @@ pageextension 20524 "Subc. PO Subform" extends "Purchase Order Subform"
     {
         addlast("F&unctions")
         {
-            action(CreateProdOrder)
+            action("Subc. CreateProdOrder")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Create Production Order';

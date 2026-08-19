@@ -106,7 +106,7 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
     begin
         GetManufacturingSetup();
         TempBOMLine."Component Supply Method" := "Component Supply Method"::"Consignment at Vendor";
-        TempBOMLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        TempBOMLine."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
         if ManufacturingSetup."Def. Wiz. Comp Item No." <> '' then
             TempBOMLine."No." := ManufacturingSetup."Def. Wiz. Comp Item No.";
     end;
@@ -123,7 +123,7 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
         TempProdOrderComponent."Subc. Orig. Bin Code" := TempProdOrderComponent."Bin Code";
 
         GetManufacturingSetup();
-        if TempProdOrderComponent."Routing Link Code" = ManufacturingSetup."Rtng. Link Code Purch. Prov." then
+        if TempProdOrderComponent."Routing Link Code" = ManufacturingSetup."Subc. Rtng. Link Purch Prov" then
             case TempProdOrderComponent."Component Supply Method" of
                 "Component Supply Method"::"Consignment at Vendor", "Component Supply Method"::"Vendor-Supplied":
                     begin
@@ -162,8 +162,8 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
         ProdOrderRoutingLine."Vendor No. Subc. Price" := TempProdOrderRoutingLine."Vendor No. Subc. Price";
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Temp Prod. Order Comp. List", 'OnAfterSubcontractingTypeChangedToNonTransfer', '', false, false)]
-    local procedure OnAfterSubcontractingTypeChangedToNonTransfer(var ProdOrderComponent: Record "Prod. Order Component")
+    [EventSubscriber(ObjectType::Page, Page::"Temp Prod. Order Comp. List", 'OnValidateOnAfterSubcontractingTypeChangedToNonTransfer', '', false, false)]
+    local procedure OnValidateOnAfterSubcontractingTypeChangedToNonTransfer(var ProdOrderComponent: Record "Prod. Order Component")
     var
         Vendor: Record Vendor;
     begin
@@ -186,7 +186,7 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
             TempRoutingLine.Validate("No.");
             TempRoutingLine.Validate("Work Center No.", Vendor."Subc. Work Center No.");
         end;
-        TempRoutingLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        TempRoutingLine."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Management", 'OnBeforeGetSubcontractor', '', false, false)]
@@ -212,28 +212,28 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
     local procedure OnNewRecordEventInitializeSubcSetupFields(var Rec: Record "Prod. Order Routing Line")
     begin
         GetManufacturingSetup();
-        Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        Rec."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Temp BOM Lines", OnNewRecordEvent, '', false, false)]
     local procedure OnNewRecordEventInitializeBOMLineSubcSetupFields(var Rec: Record "Production BOM Line")
     begin
         GetManufacturingSetup();
-        Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        Rec."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Temp Prod. Order Comp. List", OnNewRecordEvent, '', false, false)]
     local procedure OnNewRecordEventInitializeProdOrderCompSubcSetupFields(var Rec: Record "Prod. Order Component")
     begin
         GetManufacturingSetup();
-        Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        Rec."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Temp Routing Lines", OnNewRecordEvent, '', false, false)]
     local procedure OnNewRecordEventInitializeRoutingLineSubcSetupFields(var Rec: Record "Routing Line")
     begin
         GetManufacturingSetup();
-        Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
+        Rec."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
     end;
 
     local procedure GetSubcontractorForPurchaseProvision(var Vendor: Record Vendor; var HasSubcontractor: Boolean; var IsHandled: Boolean)
@@ -251,7 +251,7 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
         ComponentsLocationCode: Code[10];
     begin
         GetManufacturingSetup();
-        if (ProdOrderComponent."Routing Link Code" <> ManufacturingSetup."Rtng. Link Code Purch. Prov.") or
+        if (ProdOrderComponent."Routing Link Code" <> ManufacturingSetup."Subc. Rtng. Link Purch Prov") or
            (ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Transfer to Vendor")
         then
             exit;
@@ -406,7 +406,7 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
     begin
         if not ManufacturingSetupRead then begin
             ManufacturingSetup.SetLoadFields(
-                "Rtng. Link Code Purch. Prov.",
+                "Subc. Rtng. Link Purch Prov",
                 "Def. Wiz. Comp Item No.",
                 "Def. Wiz. Flushing Method",
                 "Released Order Nos.",

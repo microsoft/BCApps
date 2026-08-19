@@ -86,9 +86,9 @@ tableextension 20501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                 end;
             end;
         }
-        field(20510; "Rtng. Link Code Purch. Prov."; Code[10])
+        field(20510; "Subc. Rtng. Link Purch Prov"; Code[10])
         {
-            Caption = 'Routing Link Code Purchase Provision';
+            Caption = 'Purchase Provision Routing Link Code';
             DataClassification = CustomerContent;
             TableRelation = "Routing Link";
             ToolTip = 'Specifies the routing link code used to identify the purchase provision operation in subcontracting routing lines.';

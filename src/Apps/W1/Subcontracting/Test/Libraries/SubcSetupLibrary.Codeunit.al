@@ -38,7 +38,7 @@ codeunit 139988 "Subc. Setup Library"
         end;
 
         ManufacturingSetup."Def. Wiz. Work Center No." := WorkCenter."No.";
-        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RoutingLink."Code";
+        ManufacturingSetup."Subc. Rtng. Link Purch Prov" := RoutingLink."Code";
         ManufacturingSetup."Def. Wiz. Flushing method" := "Flushing Method Routing"::Backward;
         ManufacturingSetup."Def. Wiz. Comp Item No." := Item."No.";
 
@@ -50,7 +50,7 @@ codeunit 139988 "Subc. Setup Library"
         ManufacturingSetup."Show Prod Comp Select Partial" := ManufacturingSetup."Show Prod Comp Select Partial"::Edit;
         ManufacturingSetup."Show Prod Comp Select Both" := ManufacturingSetup."Show Prod Comp Select Both"::Edit;
 
-        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RoutingLink."Code";
+        ManufacturingSetup."Subc. Rtng. Link Purch Prov" := RoutingLink."Code";
         ManufacturingSetup."Subc. Default Comp. Location" := ManufacturingSetup."Subc. Default Comp. Location"::Purchase;
         ManufacturingSetup.Modify();
     end;
