@@ -288,6 +288,12 @@ codeunit 11038 "E-Document DE Helper"
         end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Document Import Helper", OnGetReceivingCompanyRegistrationNo, '', false, false)]
+    local procedure GetReceivingCompanyRegistrationNo(EDocument: Record "E-Document"; var ReceivingCompanyRegistrationNo: Text[20])
+    begin
+        ReceivingCompanyRegistrationNo := EDocument."Receiving Company Reg. No. DE";
+    end;
+
     [TryFunction]
     local procedure TryValidateRoutingNo(RoutingNo: Text[50])
     begin
