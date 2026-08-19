@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Test;
 using Microsoft.Assembly.Document;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -82,6 +83,9 @@ codeunit 137080 "SCM Planning And Manufacturing"
         OnlyOneRecordErr: Label 'Only one record is expected.';
         BinCodesNotEqualErr: Label 'Bin Codes are not equal.';
         InsufficientInventoryErr: Label 'You have insufficient quantity of Item %1 on inventory', Comment = '%1 = Item No.';
+        ReleasedProdOrderNotInPrintDatasetErr: Label 'The released production order was not included in the print dataset.';
+        VerifyReleasedProdOrderPrintDataset: Boolean;
+        ReleasedProdOrderPrintDatasetVerified: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -2616,10 +2620,12 @@ codeunit 137080 "SCM Planning And Manufacturing"
         FindRequisitionLine(RequisitionLine, Item."No.");
 
         // [WHEN] Carry Out Action Message is run with the Released & Print option.
+        VerifyReleasedProdOrderPrintDataset := true;
         CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::"Released & Print");
 
-        // [THEN] A released production order is created and the job card report is invoked.
+        // [THEN] A released production order is created and included in the job card report dataset.
         VerifyProdOrderLineStatus(Item."No.", Enum::"Production Order Status"::Released);
+        Assert.IsTrue(ReleasedProdOrderPrintDatasetVerified, ReleasedProdOrderNotInPrintDatasetErr);
     end;
 
     [Test]
@@ -2713,6 +2719,8 @@ codeunit 137080 "SCM Planning And Manufacturing"
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Planning And Manufacturing");
         LibraryVariableStorage.Clear();
+        VerifyReleasedProdOrderPrintDataset := false;
+        ReleasedProdOrderPrintDatasetVerified := false;
         LibrarySetupStorage.Restore();
 
         LibraryApplicationArea.EnablePremiumSetup();
@@ -4248,5 +4256,22 @@ codeunit 137080 "SCM Planning And Manufacturing"
     [ReportHandler]
     procedure ProdOrderJobCardReportHandler(var ProdOrderJobCard: Report "Prod. Order - Job Card")
     begin
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnBeforePrintWithGUIYesNoWithCheck', '', false, false)]
+    local procedure VerifyReleasedProdOrderInPrintDataset(ReportUsage: Integer; RecordVariant: Variant; IsGUI: Boolean; CustomerNoFieldNo: Integer; var Handled: Boolean)
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        if not VerifyReleasedProdOrderPrintDataset or
+           (ReportUsage <> Enum::"Report Selection Usage"::"Prod.Order".AsInteger())
+        then
+            exit;
+
+        ProductionOrder := RecordVariant;
+        Assert.RecordIsNotEmpty(ProductionOrder);
+        ProductionOrder.FindFirst();
+        ProductionOrder.TestField(Status, ProductionOrder.Status::Released);
+        ReleasedProdOrderPrintDatasetVerified := true;
     end;
 }

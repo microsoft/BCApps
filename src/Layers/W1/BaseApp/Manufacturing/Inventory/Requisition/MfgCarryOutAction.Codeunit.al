@@ -275,18 +275,18 @@ codeunit 99000818 "Mfg. Carry Out Action"
         case ProdOrderChoice of
             ProdOrderChoice::"Firm Planned & Print":
                 ProductionOrder.Status := ProductionOrder.Status::"Firm Planned";
-            ProdOrderChoice::Released,
-            ProdOrderChoice::"Released & Print":
-                ProductionOrder.Status := ProductionOrder.Status::Released;
             else begin
 #if not CLEAN29
                 IsHandled := false;
                 OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
-#if not CLEAN27
-                CarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
+                LegacyCarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
+                if IsHandled then
+                    exit;
 #endif
-                if not IsHandled then
-#endif
+
+                if ProdOrderChoice in [ProdOrderChoice::Released, ProdOrderChoice::"Released & Print"] then
+                    ProductionOrder.Status := ProductionOrder.Status::Released
+                else
                     ProductionOrder.Status := Enum::"Production Order Status".FromInteger(ProdOrderChoice.AsInteger());
             end;
         end;
@@ -928,7 +928,6 @@ codeunit 99000818 "Mfg. Carry Out Action"
     begin
     end;
 
-    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertProdOrder(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Integer; var RequisitionLine: Record "Requisition Line")
     begin
