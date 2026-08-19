@@ -111,7 +111,7 @@ page 9670 "Layout Theme and Header/Footer"
             ReportLevelResolved := true;
         end;
 
-        LookupHelper.GetLayoutLevelPartDisplays(Rec."Report ID", Rec.Name, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        LookupHelper.GetLayoutLevelPartDisplays(Rec."Report ID", LookupHelper.CompositeLayoutKey(Rec), HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
         if not HeaderResolved then begin
             HeaderDisplay := ReportHeaderDisplay;
             HeaderSource := ReportHeaderSource;
@@ -126,7 +126,7 @@ page 9670 "Layout Theme and Header/Footer"
     var
         HeaderFooterThemeAssignment: Page "Header/Footer Theme Assignment";
     begin
-        HeaderFooterThemeAssignment.SetLayout(Rec."Report ID", Rec.Name);
+        HeaderFooterThemeAssignment.SetLayout(Rec."Report ID", LookupHelper.CompositeLayoutKey(Rec));
         HeaderFooterThemeAssignment.RunModal();
         CurrPage.Update(false);
     end;

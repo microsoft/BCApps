@@ -90,9 +90,22 @@ page 9662 "Report Layout New Dialog"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Subtype';
-                Visible = SubtypeVisible;
-                Editable = not ImpliedSubtypeSet;
-                ToolTip = 'Specifies the role of the layout in the Composite Layout Merge: Default (full body), Header/Footer (header and footer sections), or Theme (styles and fonts).';
+                Visible = PartSubtypeVisible;
+                Editable = false;
+                ToolTip = 'Specifies the role of this layout in the Composite Layout Merge. It is fixed because the layout is being created as a theme or a header/footer.';
+            }
+            field(BodySubtype; BodySubtype)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Subtype';
+                Visible = BodySubtypeVisible;
+                OptionCaption = 'Default,Body';
+                ToolTip = 'Specifies the role of the layout in the Composite Layout Merge: Default for a stand-alone layout that renders on its own, or Body for a body layout that a theme and header/footer are merged into. It applies to Word layouts only.';
+
+                trigger OnValidate()
+                begin
+                    LayoutSubtype := SelectedBodySubtype();
+                end;
             }
             field(AvailableInAllCompanies; AvailableInAllCompanies)
             {
@@ -158,9 +171,11 @@ page 9662 "Report Layout New Dialog"
         ReportNotFoundErr: Label 'A report with ID "%1" does not exist.', Comment = '%1 = ReportID';
         FormatOptions: Option "RDLC","Word","Excel","Custom"; // For Custom type, 'External' will be shown in UI
         LayoutSubtype: Enum "Report Layout Subtype";
+        BodySubtype: Option "Default","Body";
         AvailableInAllCompanies: Boolean;
         CreateEmptyLayout: Boolean;
-        SubtypeVisible: Boolean;
+        PartSubtypeVisible: Boolean;
+        BodySubtypeVisible: Boolean;
         ImpliedSubtypeSet: Boolean;
         DocumentReportExperienceEnabled: Boolean;
         ExcelMultipleDataSheets: enum "Excel Sheet Configuration";
@@ -232,11 +247,26 @@ page 9662 "Report Layout New Dialog"
         exit(LayoutSubtype);
     end;
 
+    local procedure SelectedBodySubtype(): Enum "Report Layout Subtype"
+    begin
+        if BodySubtype = BodySubtype::Body then
+            exit(Enum::"Report Layout Subtype"::Body);
+        exit(Enum::"Report Layout Subtype"::Default);
+    end;
+
     local procedure UpdateSubtypeVisibility()
     begin
-        SubtypeVisible := DocumentReportExperienceEnabled and (FormatOptions = FormatOptions::Word);
-        if not SubtypeVisible then
-            LayoutSubtype := Enum::"Report Layout Subtype"::Default;
+        PartSubtypeVisible := DocumentReportExperienceEnabled and ImpliedSubtypeSet;
+        BodySubtypeVisible := DocumentReportExperienceEnabled and (not ImpliedSubtypeSet);
+
+        if ImpliedSubtypeSet then
+            exit;
+
+        if FormatOptions = FormatOptions::Word then
+            BodySubtype := BodySubtype::Body
+        else
+            BodySubtype := BodySubtype::Default;
+        LayoutSubtype := SelectedBodySubtype();
     end;
 
 }

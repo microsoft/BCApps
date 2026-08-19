@@ -82,7 +82,7 @@ page 9669 "Report Layout FactBox"
         // Only resolve when a report is selected; with no report there is nothing to show.
         if Rec."Report ID" <> 0 then
             LookupHelper.GetResolvedPartDisplays(
-                Rec."Report ID", Rec.Name, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+                Rec."Report ID", LookupHelper.CompositeLayoutKey(Rec), HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
 
     end;
 

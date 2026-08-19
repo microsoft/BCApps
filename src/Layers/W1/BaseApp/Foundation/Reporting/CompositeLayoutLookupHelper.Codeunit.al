@@ -162,6 +162,11 @@ codeunit 9665 "Composite Layout Lookup Helper"
     /// header/footer layouts) are stored so they can be assigned as defaults for any report.
     /// </summary>
     /// <returns>The Tenant Report Defaults report ID.</returns>
+    procedure CompositeLayoutKey(LayoutRec: Record "Report Layout List"): Text
+    begin
+        exit(this.EncodeCompositeName(LayoutRec."Application ID", this.DecodeLayoutName(LayoutRec.Name)));
+    end;
+
     internal procedure GetTenantReportDefaultsReportID(): Integer
     begin
         exit(2000000001); // The platform's virtual "Tenant Report Defaults" report.

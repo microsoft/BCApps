@@ -436,7 +436,7 @@ page 9660 "Report Layouts"
                     var
                         HeaderFooterThemeAssignment: Page "Header/Footer Theme Assignment";
                     begin
-                        HeaderFooterThemeAssignment.SetLayout(Rec."Report ID", Rec.Name);
+                        HeaderFooterThemeAssignment.SetLayout(Rec."Report ID", LookupHelper.CompositeLayoutKey(Rec));
                         HeaderFooterThemeAssignment.RunModal();
                     end;
                 }
@@ -700,7 +700,7 @@ page 9660 "Report Layouts"
         DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
         if DocumentReportExperienceEnabled and (not CurrPage.LookupMode) and (ImpliedSubtype = Enum::"Report Layout Subtype"::Default) then begin
             Rec.FilterGroup(2);
-            Rec.SetRange("Layout Subtype", Rec."Layout Subtype"::Default);
+            Rec.SetFilter("Layout Subtype", '<>%1&<>%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
             Rec.FilterGroup(0);
         end;
     end;
