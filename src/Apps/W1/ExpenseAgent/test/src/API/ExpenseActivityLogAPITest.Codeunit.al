@@ -575,8 +575,8 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log API Test");
-        LibraryGraphMgt.BindAuthentication();
         CleanupTestData();
+        LibraryGraphMgt.BindAuthentication();
         if IsInitialized then
             exit;
 
