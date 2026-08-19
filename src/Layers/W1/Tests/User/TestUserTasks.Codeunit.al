@@ -16,6 +16,7 @@ codeunit 134769 "Test User Tasks"
         UserTaskGroupMember: Record "User Task Group Member";
         Assert: Codeunit Assert;
         LibraryUtility: Codeunit "Library - Utility";
+        RecordsWithNewUsernameErr: Label 'Records with new username should exist in %1.', Comment = '%1 = table name';
 
     [Test]
     [Scope('OnPrem')]
@@ -176,9 +177,9 @@ codeunit 134769 "Test User Tasks"
         Company: Record Company;
         TableInformation: Record "Table Information";
         TempTablesAlreadyInserted: Record Integer temporary;
+        UserCodeunit: Codeunit User;
         RecRef: RecordRef;
         FldRef: FieldRef;
-        UserCodeunit: Codeunit User;
     begin
         // [GIVEN] Create data for tables with fields having relation with User table
         Company.FindFirst();
@@ -224,7 +225,7 @@ codeunit 134769 "Test User Tasks"
                         RecRef.Open(FieldRec.TableNo, false, Company.Name);
                         FldRef := RecRef.Field(FieldRec."No.");
                         FldRef.SetRange('NEW');
-                        Assert.AreEqual(1, RecRef.Count(), StrSubstNo('Records with new username should exist in %1.', TableInformation."Table Name"));
+                        Assert.AreEqual(1, RecRef.Count(), StrSubstNo(RecordsWithNewUsernameErr, TableInformation."Table Name"));
                         RecRef.Close();
                     end;
             until FieldRec.Next() = 0;
