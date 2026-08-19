@@ -153,6 +153,7 @@ report 114 "Salesperson - Sales Statistics"
 
     rendering
     {
+        
         layout(RDLCLayout)
         {
             Caption = 'Salesperson Sales Statistics Excel';
