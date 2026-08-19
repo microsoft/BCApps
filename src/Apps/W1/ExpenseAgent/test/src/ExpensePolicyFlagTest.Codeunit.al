@@ -75,6 +75,7 @@ codeunit 148340 "Expense Policy Flag Test"
         // [GIVEN] A policy-relevant field changes after the caller captured the subject version.
         ExpenseReportLine."Merchant Name" := 'Changed after evaluation started';
         ExpenseReportLine.Modify(true);
+        Commit();
 
         // [WHEN] The caller tries to complete the older evaluation.
         asserterror ExpenseReportLine.MarkPoliciesEvaluated(EvaluatedSubjectVersion);
@@ -219,14 +220,14 @@ codeunit 148340 "Expense Policy Flag Test"
         CreateTestReportLine(ExpenseReportLine);
         CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Policy text.');
 
+        // [GIVEN] The policy is modified once so its Version is 1 (not the trivial 0).
+        ExpensePolicy."Policy Text" := 'Policy text v2.';
+        ExpensePolicy.Modify(true);
+
         // [GIVEN] The line is evaluated then invalidated once so Policy Eval Version is 1 (not the trivial 0).
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-
-        // [GIVEN] The policy is modified once so its Version is 1 (not the trivial 0).
-        ExpensePolicy."Policy Text" := 'Policy text v2.';
-        ExpensePolicy.Modify(true);
 
         // [WHEN] A flag is inserted.
         AddFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Some violation.');

@@ -3808,6 +3808,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         ExpenseReportPost: Codeunit "Expense Report-Post";
         NoPolicyLineNo: Integer;
@@ -3846,10 +3847,11 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
-        PostedExpenseReportLine.Get(ExpenseReportHeader."No.", NoPolicyLineNo);
+        FindPostedExpenseReport(PostedExpenseReportHeader, ExpenseUser);
+        PostedExpenseReportLine.Get(PostedExpenseReportHeader."No.", NoPolicyLineNo);
         Assert.AreEqual("Expense Policy Status"::"No Policies", PostedExpenseReportLine."Policy Status At Posting", 'A line with no applicable policies must preserve No Policies.');
 
-        PostedExpenseReportLine.Get(ExpenseReportHeader."No.", UnevaluatedPolicyLineNo);
+        PostedExpenseReportLine.Get(PostedExpenseReportHeader."No.", UnevaluatedPolicyLineNo);
         Assert.AreEqual("Expense Policy Status"::"Not Evaluated", PostedExpenseReportLine."Policy Status At Posting", 'A line with an unevaluated applicable policy must preserve Not Evaluated.');
         LibraryVariableStorage.AssertEmpty();
     end;
