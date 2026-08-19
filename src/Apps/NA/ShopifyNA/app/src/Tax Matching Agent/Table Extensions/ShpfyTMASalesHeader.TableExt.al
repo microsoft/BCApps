@@ -16,7 +16,7 @@ tableextension 30477 "Shpfy TMA Sales Header" extends "Sales Header"
 {
     fields
     {
-        field(30476; "Tax Match Applied"; Boolean)
+        field(30476; "Shpfy Tax Match Applied"; Boolean)
         {
             Caption = 'Tax Match Applied';
             DataClassification = SystemMetadata;

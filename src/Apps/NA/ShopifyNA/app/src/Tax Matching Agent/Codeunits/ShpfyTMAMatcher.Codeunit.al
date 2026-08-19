@@ -239,7 +239,7 @@ codeunit 30471 "Shpfy TMA Matcher"
                             // actually hold and approve orders — in Never mode nothing is held and a
                             // jurisdiction is never verified, so the downgrade would serve no purpose.
                             EffectiveConfidence := Capitalize(Confidence);
-                            if TaxJurisdiction."Created by Agent" and not TaxJurisdiction.Verified and
+                            if TaxJurisdiction."Shpfy Created by Agent" and not TaxJurisdiction."Shpfy Verified" and
                                 (Shop."Tax Match Review Mode" <> Shop."Tax Match Review Mode"::Never)
                             then begin
                                 EffectiveConfidence := 'Low';
@@ -387,8 +387,8 @@ codeunit 30471 "Shpfy TMA Matcher"
         CollectAssignedJurisdictions(OrderHeader, Jurisdictions);
         foreach JurisdictionCode in Jurisdictions do
             if TaxJurisdiction.Get(JurisdictionCode) then
-                if TaxJurisdiction."Created by Agent" and TaxJurisdiction.Verified then begin
-                    TaxJurisdiction.Verified := false;
+                if TaxJurisdiction."Shpfy Created by Agent" and TaxJurisdiction."Shpfy Verified" then begin
+                    TaxJurisdiction."Shpfy Verified" := false;
                     TaxJurisdiction.Modify();
                 end;
     end;
@@ -498,8 +498,8 @@ codeunit 30471 "Shpfy TMA Matcher"
         TaxJurisdiction.Code := JurisdictionCode;
         TaxJurisdiction.Description := CopyStr(JurisdictionCode, 1, MaxStrLen(TaxJurisdiction.Description));
         Evaluate(TaxJurisdiction."Country/Region", OrderHeader."Ship-to Country/Region Code");
-        TaxJurisdiction."Created by Agent" := true;
-        TaxJurisdiction.Verified := false;
+        TaxJurisdiction."Shpfy Created by Agent" := true;
+        TaxJurisdiction."Shpfy Verified" := false;
         TaxJurisdiction.Insert(true);
 
         LogJurisdictionAuditEntry(TaxJurisdiction, OrderHeader);
