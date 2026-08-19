@@ -127,7 +127,7 @@ codeunit 9668 "Composite Layout Assign. Mgt."
             exit(0);
 
         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-        ReportLayoutList.SetFilter(Name, this.BodyLayoutFilterTok);
+        ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
         if not ReportLayoutList.FindSet() then
             exit(0);
 
@@ -145,10 +145,13 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     local procedure WriteLayoutPart(ReportID: Integer; LayoutName: Text; Composite: Text; Subtype: Enum "Report Layout Subtype"): Boolean
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
         LayoutNameKey: Text[250];
         RowExists: Boolean;
     begin
-        LayoutNameKey := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
+        // The key is the body layout's composite reference: the platform resolves it as a body part, and a plain name
+        // is read as the empty app ID, which never matches a layout shipped by an extension.
+        LayoutNameKey := CopyStr(CompositeLayoutLookupHelper.GetBodyLayoutReference(ReportID, LayoutName), 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
         RowExists := TenantReportLayoutCfg.Get(ReportID, LayoutNameKey, '');
 
         if RowExists then
@@ -189,12 +192,10 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     var
         ReportLayoutList: Record "Report Layout List";
     begin
-        if StrPos(LowerCase(LayoutName), this.BodyLayoutNameTok) = 0 then
-            exit(false);
-
         ReportLayoutList.SetRange("Report ID", ReportID);
         ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, MaxStrLen(ReportLayoutList.Name)));
         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
         exit(not ReportLayoutList.IsEmpty());
     end;
 
@@ -228,8 +229,6 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     end;
 
     var
-        BodyLayoutFilterTok: Label '@*body*', Locked = true;
-        BodyLayoutNameTok: Label 'body', Locked = true;
         InternalDefaultTxt: Label 'Internal Default', Locked = true;
         InternalMinimalisticCenteredTxt: Label 'Internal Minimalistic Centered', Locked = true;
         ExternalDefaultTxt: Label 'External Default', Locked = true;

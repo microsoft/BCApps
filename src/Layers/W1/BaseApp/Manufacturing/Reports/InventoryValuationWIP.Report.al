@@ -500,7 +500,7 @@ report 5802 "Inventory Valuation - WIP"
         layout(WordBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIPBody.docx';
             Caption = 'Body-only: Production Order - WIP Word';
             Summary = 'Landscape orientated. Shows status, number, description, and source for each production order, with the work in process value split into material consumption, capacity, and output at the end date, plus the cost posted to G/L and totals.';

@@ -89,7 +89,7 @@ report 6627 "SN Label"
         layout(WordBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Inventory/Tracking/SNLabelBody.docx';
             Caption = 'Body-only: SN Label (Word)';
             Summary = 'Portrait orientated. Shows the item description and number with the serial number as text and as a 2D barcode. Use it to print labels for serial tracked items.';

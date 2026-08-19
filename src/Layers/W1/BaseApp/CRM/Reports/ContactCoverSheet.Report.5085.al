@@ -243,7 +243,7 @@ report 5085 "Contact Cover Sheet"
         layout(WordLayoutBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './CRM/Reports/ContactCoverSheetBody.docx';
             Caption = 'Body-only: Contact Cover Sheet (Word)';
             Summary = 'Portrait orientated. Shows the contact and company address blocks, followed by the company VAT registration number, giro number, and bank details, and closes with a regards line.';
