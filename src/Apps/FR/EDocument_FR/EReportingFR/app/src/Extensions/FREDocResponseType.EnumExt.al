@@ -12,4 +12,8 @@ enumextension 10974 "FR E-Doc. Response Type" extends "E-Doc. Response Type"
     {
         Caption = 'Submitted';
     }
+    value(10971; Refused)
+    {
+        Caption = 'Refused';
+    }
 }

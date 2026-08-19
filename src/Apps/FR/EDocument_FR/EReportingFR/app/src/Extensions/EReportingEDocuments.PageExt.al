@@ -25,6 +25,27 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
     {
         addlast(Processing)
         {
+            action(RefuseFREInvoice)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Refuse E-Invoice';
+                Image = Reject;
+                ToolTip = 'Refuse the incoming French electronic purchase invoice and send the refusal to the supplier.';
+                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice");
+
+                trigger OnAction()
+                var
+                    FREInvoiceRefusalDialog: Page "FR E-Invoice Refusal Dialog";
+                    FREInvoiceRefusalMgt: Codeunit "FR E-Invoice Refusal Mgt.";
+                    ReasonCode: Code[20];
+                    ReasonDescription: Text[500];
+                begin
+                    if FREInvoiceRefusalDialog.RunModal() <> Action::OK then
+                        exit;
+                    FREInvoiceRefusalDialog.GetReason(ReasonCode, ReasonDescription);
+                    FREInvoiceRefusalMgt.RefuseInvoice(Rec, ReasonCode, ReasonDescription);
+                end;
+            }
             action(ViewFREInvoiceLifecycles)
             {
                 ApplicationArea = Basic, Suite;
