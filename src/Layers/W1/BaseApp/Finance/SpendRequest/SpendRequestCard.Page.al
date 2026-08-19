@@ -247,7 +247,7 @@ page 6841 "Spend Request Card"
         {
             action(Print)
             {
-                Caption = 'Print';
+                Caption = 'Spend Request Document';
                 ToolTip = 'Prints the spend request so it can be sent to the requester.';
                 ApplicationArea = Basic, Suite;
                 Image = Print;
@@ -305,6 +305,11 @@ page 6841 "Spend Request Card"
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
+            }
+            group(Category_Report)
+            {
+                Caption = 'Reports';
+
                 actionref(Print_Promoted; Print)
                 {
                 }
