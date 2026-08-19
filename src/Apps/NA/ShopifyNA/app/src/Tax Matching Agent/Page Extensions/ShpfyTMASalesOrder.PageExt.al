@@ -20,7 +20,7 @@ pageextension 30476 "Shpfy TMA Sales Order" extends "Sales Order"
     {
         addafter("Tax Liable")
         {
-            field(ShpfyTaxMatchApplied; Rec."Tax Match Applied")
+            field(ShpfyTaxMatchApplied; Rec."Shpfy Tax Match Applied")
             {
                 ApplicationArea = All;
                 Caption = 'Shopify Tax Match Applied';
@@ -40,7 +40,7 @@ pageextension 30476 "Shpfy TMA Sales Order" extends "Sales Order"
                 Caption = 'Review Shopify Tax Match';
                 Image = SparkleFilled;
                 ToolTip = 'Opens the tax match review for the originating Shopify order, where you can see the resolved Tax Area and per-line Tax Jurisdiction Codes together with the AI confidence and explanation for each agent-matched field.';
-                Visible = Rec."Tax Match Applied";
+                Visible = Rec."Shpfy Tax Match Applied";
 
                 trigger OnAction()
                 var
@@ -64,7 +64,7 @@ pageextension 30476 "Shpfy TMA Sales Order" extends "Sales Order"
     var
         TMANotify: Codeunit "Shpfy TMA Notify";
     begin
-        if not Rec."Tax Match Applied" then
+        if not Rec."Shpfy Tax Match Applied" then
             exit;
         if NotifiedSystemId = Rec.SystemId then
             exit;
