@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.DataAdministration;
 using System.Security.AccessControl;
 
 codeunit 6926 "Expense Activity Log Mgt."
@@ -11,6 +12,9 @@ codeunit 6926 "Expense Activity Log Mgt."
     Access = Internal;
     Permissions = tabledata "Expense Activity Log Entry" = rimd,
                   tabledata User = r;
+
+    var
+        NoRetentionFiltersErr: Label 'No filters were set on table %1, %2. Please contact your Microsoft Partner for assistance.', Comment = '%1 = table number, %2 = table name';
 
     /// <summary>
     /// Appends an activity entry for an in-flight expense report.
@@ -128,6 +132,33 @@ codeunit 6926 "Expense Activity Log Mgt."
         ExpenseActivityLogEntry.SetRange("Source Table ID", SourceTableID);
         ExpenseActivityLogEntry.SetRange("Source Record System ID", SourceRecordSystemID);
         exit(not ExpenseActivityLogEntry.IsEmpty());
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Apply Retention Policy", OnApplyRetentionPolicyIndirectPermissionRequired, '', true, true)]
+    local procedure DeleteEntriesWithIndirectPermissions(var RecRef: RecordRef; var Handled: Boolean)
+    var
+        RetentionPolicyLog: Codeunit "Retention Policy Log";
+    begin
+        if Handled then
+            exit;
+
+        if RecRef.Number <> Database::"Expense Activity Log Entry" then
+            exit;
+
+        if (RecRef.GetFilters() = '') or (not RecRef.MarkedOnly()) then
+            RetentionPolicyLog.LogError(
+                RetentionPolicyLogCategory(),
+                StrSubstNo(NoRetentionFiltersErr, RecRef.Number, RecRef.Name));
+
+        RecRef.DeleteAll(true);
+        Handled := true;
+    end;
+
+    local procedure RetentionPolicyLogCategory(): Enum "Retention Policy Log Category"
+    var
+        RetentionPolicyLogCategory: Enum "Retention Policy Log Category";
+    begin
+        exit(RetentionPolicyLogCategory::"Retention Policy - Apply");
     end;
 
     local procedure InitializeExpenseReportEntry(

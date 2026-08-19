@@ -6,8 +6,10 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Foundation.Company;
 using System.AI;
+using System.DataAdministration;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Upgrade;
 
 codeunit 6992 "Install Expense Agent Setup"
 {
@@ -21,6 +23,7 @@ codeunit 6992 "Install Expense Agent Setup"
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         ExpenseAgentSetup.InitRecord();
+        RegisterActivityLogRetentionPolicy();
     end;
 
     trigger OnInstallAppPerDatabase()
@@ -34,6 +37,7 @@ codeunit 6992 "Install Expense Agent Setup"
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         ExpenseAgentSetup.InitRecord();
+        RegisterActivityLogRetentionPolicy();
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
@@ -54,6 +58,59 @@ codeunit 6992 "Install Expense Agent Setup"
                 Enum::"Copilot Availability"::Preview,
                 Enum::"Copilot Billing Type"::"Microsoft Billed",
                 LearnMoreUrlTxt);
+    end;
+
+    internal procedure RegisterActivityLogRetentionPolicy(): Boolean
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetActivityLogRetentionPolicyUpgradeTag()) then
+            exit(true);
+
+        if not AddActivityLogToAllowedTables() then
+            exit(false);
+
+        UpgradeTag.SetUpgradeTag(GetActivityLogRetentionPolicyUpgradeTag());
+        exit(true);
+    end;
+
+    local procedure AddActivityLogToAllowedTables(): Boolean
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+        RecRef: RecordRef;
+        TableFilters: JsonArray;
+    begin
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Expense Report Header");
+        RecRef.GetTable(ExpenseActivityLogEntry);
+        RetenPolAllowedTables.AddTableFilterToJsonArray(
+            TableFilters,
+            Enum::"Retention Period Enum"::"Never Delete",
+            ExpenseActivityLogEntry.FieldNo("Occurred At"),
+            true,
+            true,
+            RecRef);
+
+        ExpenseActivityLogEntry.Reset();
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Posted Expense Report Header");
+        RecRef.GetTable(ExpenseActivityLogEntry);
+        RetenPolAllowedTables.AddTableFilterToJsonArray(
+            TableFilters,
+            Enum::"Retention Period Enum"::"Never Delete",
+            ExpenseActivityLogEntry.FieldNo("Occurred At"),
+            true,
+            false,
+            RecRef);
+
+        exit(RetenPolAllowedTables.AddAllowedTable(
+            Database::"Expense Activity Log Entry",
+            ExpenseActivityLogEntry.FieldNo("Occurred At"),
+            TableFilters));
+    end;
+
+    internal procedure GetActivityLogRetentionPolicyUpgradeTag(): Code[250]
+    begin
+        exit('MS-646820-ExpenseActivityLogRetentionPolicy-20260819');
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]

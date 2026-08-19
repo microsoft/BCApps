@@ -34,8 +34,16 @@ codeunit 6978 "Upgrade Expense Agent Setup"
 
     trigger OnUpgradePerCompany()
     begin
+        UpgradeRegisterActivityLogRetentionPolicy();
         UpgradeClearStaleCopyCompanyState();
         UpgradeEnableCommunicationDefault();
+    end;
+
+    local procedure UpgradeRegisterActivityLogRetentionPolicy()
+    var
+        InstallExpenseAgentSetup: Codeunit "Install Expense Agent Setup";
+    begin
+        InstallExpenseAgentSetup.RegisterActivityLogRetentionPolicy();
     end;
 
     local procedure UpgradeClearStaleCopyCompanyState()
@@ -117,7 +125,10 @@ codeunit 6978 "Upgrade Expense Agent Setup"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    var
+        InstallExpenseAgentSetup: Codeunit "Install Expense Agent Setup";
     begin
+        PerCompanyUpgradeTags.Add(InstallExpenseAgentSetup.GetActivityLogRetentionPolicyUpgradeTag());
         PerCompanyUpgradeTags.Add(GetClearStaleCopyCompanyStateUpgradeTag());
         PerCompanyUpgradeTags.Add(GetEnableCommunicationDefaultUpgradeTag());
     end;
