@@ -120,10 +120,6 @@ page 8700 "Table Information"
                 ApplicationArea = All;
                 Caption = 'Manage Indexes';
                 Image = "Table";
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                PromotedOnly = true;
                 Scope = Repeater;
                 ToolTip = 'Manage indexes on the selected table. You can investigate index cost and usage, and turn indexes on/off.';
 
@@ -131,6 +127,15 @@ page 8700 "Table Information"
                 begin
                     OpenTableDataManagement();
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(ManageIndexesPromoted; "Manage Indexes")
+                {
+                }
             }
         }
         area(Navigation)
