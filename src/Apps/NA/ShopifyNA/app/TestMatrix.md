@@ -179,7 +179,7 @@ A shipping-line rate conflict holds the order for review exactly like a product-
 
 | # | Scenario | Expected Result |
 |---|----------|-----------------|
-| HITL-1 | Order Header marker set; Sales Header created | `Sales Header."Tax Match Applied" = true` (propagated via `OnAfterCreateSalesHeader`) |
+| HITL-1 | Order Header marker set; Sales Header created | `Sales Header."Shpfy Tax Match Applied" = true` (propagated via `OnAfterCreateSalesHeader`) |
 | HITL-2 | Order Header marker false; Sales Header created | Sales Header marker stays false (no propagation) |
 | HITL-3 | `MarkReviewed` from the Sales Order notification | Sets the originating order's `Tax Match Reviewed = true` (resolved via `Sales Order No.`) |
 | HITL-4 | `DisableForUser` from the Sales Order notification | Sets the order's `Tax Match Reviewed = true` and disables the prompt via `My Notifications` |
@@ -188,7 +188,7 @@ A shipping-line rate conflict holds the order for review exactly like a product-
 | HITL-7 | Review page Approve visibility (held order) | On a held order (the review mode holds it, or a live rate conflict) that isn't yet approved, **Approve** is visible; it sets `Tax Match Reviewed = true` and the order's Sales Document is created on the next process run |
 | HITL-8 | Review page Approve hidden (auto-released, no conflict) | When the review mode does not hold the order and there is no rate conflict, the order isn't held (its Sales Document is created automatically), so the page's **Approve** action is hidden and the page is informational |
 | HITL-9 | Review page scoping + content | The tax lines ListPart shows exactly the tax lines of the current order (filtered by the order's order line ids via `SetTaxLineFilter`), each with its applies-to Item No./description; AI confidence indicators render on Tax Jurisdiction Code |
-| HITL-10 | Sales Order prompt is stateless | With `Sales Header."Tax Match Applied"` set, the prompt fires iff the originating order's `Tax Match Reviewed = false` and `My Notifications` is enabled; no `Shpfy TMA Notification` table exists |
+| HITL-10 | Sales Order prompt is stateless | With `Sales Header."Shpfy Tax Match Applied"` set, the prompt fires iff the originating order's `Tax Match Reviewed = false` and `My Notifications` is enabled; no `Shpfy TMA Notification` table exists |
 | HITL-11 | Order-page review notification | On opening a matched, not-yet-reviewed Shopify order, `SendOrderReviewNotification` fires once per order/session; **Review** opens the review page; **Don't show again** disables it via `MyNotifications` |
 | HITL-12 | Page review actions | Shpfy Order page: **Review and Approve Tax Match** shows while the order is held (per the review mode or a live rate conflict) and it isn't yet approved, else **Review Tax Match**; both open the review page (hidden when not agent-matched). BC Sales Order page: **Review Tax Match** opens the review page when the marker is set |
 | HITL-13 | Review page close guard | When the order is being held (per the review mode, or a rate conflict) and it is not yet approved, closing the Tax Match Review page raises the `OnQueryClosePage` confirmation; declining keeps the page open. No warning once the order is approved |

@@ -371,8 +371,8 @@ page 30471 "Shpfy TMA Review"
         // Non-agent and already-verified jurisdictions are skipped (no-op).
         foreach JurisdictionCode in MatchedJurisdictions do
             if TaxJurisdiction.Get(JurisdictionCode) then
-                if TaxJurisdiction."Created by Agent" and not TaxJurisdiction.Verified then begin
-                    TaxJurisdiction.Verified := true;
+                if TaxJurisdiction."Shpfy Created by Agent" and not TaxJurisdiction."Shpfy Verified" then begin
+                    TaxJurisdiction."Shpfy Verified" := true;
                     TaxJurisdiction.Modify();
                 end;
     end;

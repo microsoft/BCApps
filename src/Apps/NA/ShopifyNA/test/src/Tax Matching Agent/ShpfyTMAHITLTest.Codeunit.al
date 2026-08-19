@@ -36,7 +36,7 @@ codeunit 134716 "Shpfy TMA HITL Test"
 
         TMAEvents.HandleSalesHeaderCreated(OrderHeader, SalesHeader);
 
-        LibraryAssert.IsTrue(SalesHeader."Tax Match Applied", 'Sales Header marker should be set when Order Header marker is true.');
+        LibraryAssert.IsTrue(SalesHeader."Shpfy Tax Match Applied", 'Sales Header marker should be set when Order Header marker is true.');
     end;
 
     // HITL-2
@@ -53,7 +53,7 @@ codeunit 134716 "Shpfy TMA HITL Test"
 
         TMAEvents.HandleSalesHeaderCreated(OrderHeader, SalesHeader);
 
-        LibraryAssert.IsFalse(SalesHeader."Tax Match Applied", 'Sales Header marker must remain false when Order Header marker is false.');
+        LibraryAssert.IsFalse(SalesHeader."Shpfy Tax Match Applied", 'Sales Header marker must remain false when Order Header marker is false.');
     end;
 
     // HITL-3
