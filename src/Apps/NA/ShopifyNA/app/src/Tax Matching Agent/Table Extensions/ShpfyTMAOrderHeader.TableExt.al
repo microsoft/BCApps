@@ -48,4 +48,11 @@ tableextension 30476 "Shpfy TMA Order Header" extends "Shpfy Order Header"
             ToolTip = 'Specifies whether the Tax Matching Agent produced at least one match on this order that is not high confidence. This includes a match to a provisional (agent-created, not yet verified) Tax Jurisdiction, which is always forced to low confidence. When the shop uses the Low Confidence Only review mode, such an order is held for human review.';
         }
     }
+
+    keys
+    {
+        key(TMASalesOrderNo; "Sales Order No.")
+        {
+        }
+    }
 }

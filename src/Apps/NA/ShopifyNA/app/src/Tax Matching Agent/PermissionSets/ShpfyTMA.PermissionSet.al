@@ -10,10 +10,10 @@ permissionset 30470 "Shpfy TMA"
     IncludedPermissionSets = "Shpfy - Edit";
 
     Permissions =
-        tabledata "Tax Area" = RIMD,
-        tabledata "Tax Area Line" = RIMD,
-        tabledata "Tax Detail" = RIMD,
-        tabledata "Tax Jurisdiction" = RIMD,
+        tabledata "Tax Area" = rimd,
+        tabledata "Tax Area Line" = rimd,
+        tabledata "Tax Detail" = rimd,
+        tabledata "Tax Jurisdiction" = rimd,
         page "Shpfy TMA Review" = X,
         page "Shpfy TMA Order Tax Lines Part" = X,
         codeunit "Shpfy TMA Register" = X,

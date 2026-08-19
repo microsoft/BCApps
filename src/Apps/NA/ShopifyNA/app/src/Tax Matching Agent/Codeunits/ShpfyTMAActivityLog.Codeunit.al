@@ -126,15 +126,17 @@ codeunit 30477 "Shpfy TMA Activity Log"
         exit(StrSubstNo(PerLineExplanationLbl, OrderTaxLine.Title, OrderTaxLine."Rate %", JurisdictionCode));
     end;
 
-    local procedure FormatJurisdictions(Jurisdictions: List of [Code[10]]) Result: Text
+    local procedure FormatJurisdictions(Jurisdictions: List of [Code[10]]): Text
     var
         JurisdictionCode: Code[10];
+        ResultBuilder: TextBuilder;
     begin
         foreach JurisdictionCode in Jurisdictions do begin
-            if Result <> '' then
-                Result += ', ';
-            Result += JurisdictionCode;
+            if ResultBuilder.Length() > 0 then
+                ResultBuilder.Append(', ');
+            ResultBuilder.Append(JurisdictionCode);
         end;
+        exit(ResultBuilder.ToText());
     end;
 
     local procedure GetTextField(Obj: JsonObject; FieldName: Text): Text

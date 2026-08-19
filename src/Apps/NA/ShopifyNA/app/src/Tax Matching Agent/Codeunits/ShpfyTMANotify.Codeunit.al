@@ -245,6 +245,7 @@ codeunit 30476 "Shpfy TMA Notify"
     begin
         if SalesHeader."No." = '' then
             exit(false);
+        OrderHeader.SetCurrentKey("Sales Order No.");
         OrderHeader.SetRange("Sales Order No.", SalesHeader."No.");
         exit(OrderHeader.FindFirst());
     end;
