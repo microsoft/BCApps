@@ -277,6 +277,13 @@ codeunit 148343 "Expense Activity Log API Test"
         // [THEN] The endpoint explains that the role is required.
         Assert.ExpectedError('The historyActorRole filter must be specified as Submitter or Approver.');
 
+        // [WHEN] Administrator history is requested through the first Expense User.
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText, TargetURL + '?$filter=historyActorRole eq ''Administrator''', 400);
+
+        // [THEN] The endpoint rejects roles that do not grant expense-user history participation.
+        Assert.ExpectedError('The historyActorRole filter must be specified as Submitter or Approver.');
+
         // [WHEN] Submitter history is requested through the first Expense User.
         TargetURL += '?$filter=historyActorRole eq ''Submitter''';
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);

@@ -211,12 +211,13 @@ page 7122 "Expense Activity Log API"
             HistoryActorRoleFilter := Rec.GetFilter("History Actor Role Filter");
         Rec.FilterGroup(0);
         if HasHistoryActorFilters then begin
-            if HistoryActorRoleFilter <> '' then begin
-                Rec.SetCurrentKey("Occurred At", "Entry No.");
-                Rec.Ascending(false);
-                Rec.SetRange("History Subject Match", true)
-            end else
+            if (HistoryActorRoleFilter <> Format(Enum::"Expense Activity Actor Role"::Submitter)) and
+               (HistoryActorRoleFilter <> Format(Enum::"Expense Activity Actor Role"::Approver))
+            then
                 Error(HistoryActorRoleRequiredErr);
+            Rec.SetCurrentKey("Occurred At", "Entry No.");
+            Rec.Ascending(false);
+            Rec.SetRange("History Subject Match", true)
         end else
             if HasSourceFilters then begin
                 Rec.SetCurrentKey("Source Table ID", "Source Record System ID", "Occurred At", "Entry No.");

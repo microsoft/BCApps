@@ -19,7 +19,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ReopenApprovedConfirmQst: Label 'Do you want to reopen approved Expense Report?';
         NoExpenseReportLinesToProcessErr: Label 'There are no Expense Report Lines to process in %1 action.', Comment = '%1 = Action';
         NotAuthorizedToOpenExpReportErr: Label 'You are not authorized to open expense reports. Please configure your %1 in the %2.', Comment = '%1 = Field Caption,%2 = Table Caption';
-        NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with Unlimited Expense Approval can recall a submitted expense report.';
+        NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = User Setup field caption';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
 
@@ -336,7 +336,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if UserSetup.Get(UserId()) and UserSetup."Unlimited Expense Approval" then
             exit(Enum::"Expense Activity Actor Role"::Administrator);
 
-        Error(NotAuthorizedToRecallExpReportErr);
+        Error(NotAuthorizedToRecallExpReportErr, UserSetup.FieldCaption("Unlimited Expense Approval"));
     end;
 
     internal procedure NoExpenseLinesToProcess(ExpenseApprovalAction: Enum "Expense Approval Action")
