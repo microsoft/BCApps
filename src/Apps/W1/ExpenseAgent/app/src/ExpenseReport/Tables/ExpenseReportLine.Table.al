@@ -1968,10 +1968,9 @@ table 6907 "Expense Report Line"
         ExpenseReport.CopyReportLineComments(SourceDocNo, SourceLineNo, NewLine."Document No.", NewLine."Line No.");
         ExpenseReport.CopyReportLineAttachments(SourceDocNo, SourceLineNo, NewLine."Document No.", NewLine."Line No.");
 
-        NewLine.UpdateAmounts();
-
         Rec.Delete(true);
 
+        NewLine.UpdateAmounts();
         NewLine.ApplyRule(false, true);
         NewLine.Modify();
 
