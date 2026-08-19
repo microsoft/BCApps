@@ -155,10 +155,11 @@ report 6850 "Spend Request Document"
     labels
     {
         ReportLbl = 'Spend Request';
+        EmployeeFullNameLbl = 'Employee Name';
         DetailsHeaderLbl = 'Details';
         PostedEntriesHeaderLbl = 'Posted Entries';
     }
 
     var
-        EmployeeFullName: Text[200];
+        EmployeeFullName: Text;
 }

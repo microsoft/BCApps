@@ -21,6 +21,7 @@ page 6841 "Spend Request Card"
 
                 field("No."; Rec."No.")
                 {
+                    Editable = Rec."No." = '';
                     trigger OnAssistEdit()
                     begin
                         Rec.AssistEditNo();
@@ -28,10 +29,12 @@ page 6841 "Spend Request Card"
                 }
                 field("Requested By"; Rec."Requested By")
                 {
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field(Purpose; Rec.Purpose)
                 {
                     MultiLine = true;
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field(Status; Rec.Status)
                 {
@@ -74,10 +77,12 @@ page 6841 "Spend Request Card"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     Importance = Additional;
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     Importance = Additional;
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
             }
             part(Lines; "Spend Request Subform")
@@ -94,10 +99,12 @@ page 6841 "Spend Request Card"
                 field("Expected Start Date"; Rec."Expected Start Date")
                 {
                     Importance = Promoted;
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Expected End Date"; Rec."Expected End Date")
                 {
                     Importance = Promoted;
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
             }
             group(Approval)
@@ -183,12 +190,7 @@ page 6841 "Spend Request Card"
 
                     trigger OnAction()
                     begin
-                        if Rec.Status = Rec.Status::Approved then
-                            exit;
-                        Rec.Status := Rec.Status::Approved;
-                        Rec."Approved/Rejected At" := CurrentDateTime();
-                        Rec."Approved/Rejected by User ID" := UserSecurityId();
-                        Rec.Modify();
+                        Rec.Approve();
                     end;
                 }
                 action(Reject)
@@ -196,18 +198,12 @@ page 6841 "Spend Request Card"
                     Caption = 'Reject';
                     ToolTip = 'Manually set the status field to Rejected';
                     ApplicationArea = Basic, Suite;
-                    Enabled = Rec.Status <> Rec.Status::Rejected;
+                    Enabled = Rec.Status <> Rec.Status::Closed;
                     Image = Reject;
 
                     trigger OnAction()
                     begin
-                        if Rec.Status = Rec.Status::Rejected then
-                            exit;
-                        Rec.TestField(Status, Rec.Status::Released);
-                        Rec.Status := Rec.Status::Rejected;
-                        Rec."Approved/Rejected At" := CurrentDateTime();
-                        Rec."Approved/Rejected by User ID" := UserSecurityId();
-                        Rec.Modify();
+                        Rec.Reject();
                     end;
                 }
             }
@@ -261,7 +257,7 @@ page 6841 "Spend Request Card"
                     SpendRequestDocument: Report "Spend Request Document";
                 begin
                     Rec.SetRecFilter();
-                    SpendRequestDocument.SetTableView(Rec);    
+                    SpendRequestDocument.SetTableView(Rec);
                     SpendRequestDocument.Run();
                 end;
             }
