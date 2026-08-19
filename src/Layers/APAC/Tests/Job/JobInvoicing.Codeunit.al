@@ -4335,7 +4335,7 @@ codeunit 136306 "Job Invoicing"
         SalesLine: Record "Sales Line";
         Item: Record Item;
     begin
-        // [SCENARIO 647043] Line Discount Amount is preserved (no 0.01 rounding drift) when a Project Planning Line is transferred to a Sales Invoice.
+        // [SCENARIO 647197] Line Discount Amount is preserved (no 0.01 rounding drift) when a Project Planning Line is transferred to a Sales Invoice.
         Initialize();
 
         // [GIVEN] A project with a billable item planning line: Quantity = 2, Unit Price = 72786, Line Discount Amount = 8511.37 (Line Discount % rounds to 5.84685).
@@ -4380,7 +4380,7 @@ codeunit 136306 "Job Invoicing"
         ExpectedDiscountAmount: Decimal;
     begin
         // [AI] v0.2
-        // [SCENARIO 647043] For a Prices Including VAT customer, the transferred Line Discount Amount is preserved and only the VAT conversion is applied, instead of re-deriving it from the rounded Line Discount %.
+        // [SCENARIO 647197] For a Prices Including VAT customer, the transferred Line Discount Amount is preserved and only the VAT conversion is applied, instead of re-deriving it from the rounded Line Discount %.
         Initialize();
 
         // [GIVEN] A VAT posting setup with a fixed 25% VAT rate.
@@ -4430,12 +4430,13 @@ codeunit 136306 "Job Invoicing"
         JobPlanningLine: Record "Job Planning Line";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        JobPlanningLineInvoice: Record "Job Planning Line Invoice";
         Item: Record Item;
         FirstInvoiceNo: Code[20];
         FirstDiscountAmount: Decimal;
         SecondDiscountAmount: Decimal;
     begin
-        // [SCENARIO 647043] Staged (partial) invoicing preserves the total Line Discount Amount; the rounding remainder lands on the final transfer.
+        // [SCENARIO 647197] Staged (partial) invoicing preserves the total Line Discount Amount; the rounding remainder lands on the final transfer.
         // [AI] v0.2
         Initialize();
 
@@ -4463,10 +4464,13 @@ codeunit 136306 "Job Invoicing"
         TransferJobPlanningLine(JobPlanningLine, 1 / 2, false, SalesHeader);
 
         // [THEN] The second sales line (a separate invoice) carries the rest, including the rounding remainder.
-        SalesLine.SetRange("Document Type", SalesLine."Document Type"::Invoice);
-        SalesLine.SetRange("Job No.", JobPlanningLine."Job No.");
-        SalesLine.SetFilter("Document No.", '<>%1', FirstInvoiceNo);
-        SalesLine.FindFirst();
+        JobPlanningLineInvoice.SetRange("Job No.", JobPlanningLine."Job No.");
+        JobPlanningLineInvoice.SetRange("Job Task No.", JobPlanningLine."Job Task No.");
+        JobPlanningLineInvoice.SetRange("Job Planning Line No.", JobPlanningLine."Line No.");
+        JobPlanningLineInvoice.SetRange("Document Type", JobPlanningLineInvoice."Document Type"::Invoice);
+        JobPlanningLineInvoice.SetFilter("Document No.", '<>%1', FirstInvoiceNo);
+        JobPlanningLineInvoice.FindFirst();
+        FindSalesLine(SalesLine, SalesLine."Document Type"::Invoice, JobPlanningLineInvoice."Document No.");
         SecondDiscountAmount := SalesLine."Line Discount Amount";
 
         // [THEN] The sum of both partial discounts equals the exact planning-line discount, with no rounding drift across the staged transfers.
@@ -4491,7 +4495,7 @@ codeunit 136306 "Job Invoicing"
         Item: Record Item;
         ExpectedDiscountAmount: Decimal;
     begin
-        // [SCENARIO 647043] When the project is invoiced in a foreign currency, the transferred Line Discount Amount is grossed up by the currency factor exactly once.
+        // [SCENARIO 647197] When the project is invoiced in a foreign currency, the transferred Line Discount Amount is grossed up by the currency factor exactly once.
         // [AI] v0.2
         Initialize();
 
@@ -4541,7 +4545,7 @@ codeunit 136306 "Job Invoicing"
         SalesLine: Record "Sales Line";
         Item: Record Item;
     begin
-        // [SCENARIO 647043] Transferring a project planning line to a credit memo preserves the discount magnitude and applies the correct credit-memo factor sign.
+        // [SCENARIO 647197] Transferring a project planning line to a credit memo preserves the discount magnitude and applies the correct credit-memo factor sign.
         // [AI] v0.2
         Initialize();
 

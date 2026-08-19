@@ -657,7 +657,7 @@ codeunit 1002 "Job Create-Invoice"
             SalesLine.Validate("Unit Cost (LCY)", JobPlanningLine."Unit Cost (LCY)");
             SalesLine.Validate("Line Discount %", JobPlanningLine."Line Discount %");
             if (JobPlanningLine."Line Discount Amount" <> 0) and (JobPlanningLine.Quantity <> 0) then
-                SalesLine.Validate("Line Discount Amount", CalcTransferredLineDiscountAmount(JobPlanningLine, SalesLine, Factor));
+                SalesLine.Validate("Line Discount Amount", CalcTransferredLineDiscountAmount(JobPlanningLine, SalesLine."Currency Code", Factor));
             SalesLine."Inv. Discount Amount" := 0;
             SalesLine."Inv. Disc. Amount to Invoice" := 0;
             SalesLine.UpdateAmounts();
@@ -721,7 +721,7 @@ codeunit 1002 "Job Create-Invoice"
         OnAfterCreateSalesLine(SalesLine, SalesHeader, Job, JobPlanningLine);
     end;
 
-    local procedure CalcTransferredLineDiscountAmount(JobPlanningLine: Record "Job Planning Line"; SalesLine: Record "Sales Line"; Factor: Integer): Decimal
+    local procedure CalcTransferredLineDiscountAmount(JobPlanningLine: Record "Job Planning Line"; CurrencyCode: Code[10]; Factor: Integer): Decimal
     var
         DiscountAmountFactor: Decimal;
         DiscountBase: Decimal;
@@ -732,7 +732,7 @@ codeunit 1002 "Job Create-Invoice"
         if JobInvCurrency then
             DiscountAmountFactor := SalesHeader."Currency Factor";
 
-        Currency.Initialize(SalesLine."Currency Code");
+        Currency.Initialize(CurrencyCode);
         JobPlanningLine.CalcFields("Qty. Transferred to Invoice");
         DiscountBase := JobPlanningLine."Line Discount Amount" * DiscountAmountFactor;
         PreviouslyTransferredDiscount :=
