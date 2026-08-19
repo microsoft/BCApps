@@ -200,10 +200,10 @@ codeunit 148342 "Expense Activity Log Test"
         EntryCountBeforeRejectedReopen: Integer;
     begin
         // [SCENARIO] Returning a pending report to Open is a recall, while reopening a rejected report is not logged.
-        // [GIVEN] A submitted expense report whose submitter is the current BC user with Unlimited Expense Approval.
+        // [GIVEN] A submitted expense report whose submitter is the current BC user without Unlimited Expense Approval.
         Initialize();
         CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
-        SetCurrentUserUnlimitedExpenseApproval(true);
+        SetCurrentUserUnlimitedExpenseApproval(false);
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
 
         // [WHEN] The pending report is reopened.
@@ -227,6 +227,32 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseActivityLogEntry.Reset();
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         Assert.AreEqual(EntryCountBeforeRejectedReopen, ExpenseActivityLogEntry.Count(), 'Reopening a rejected report must not create an activity entry.');
+    end;
+
+    [Test]
+    procedure SubmitterWithUnlimitedApprovalRecallStillLogsSubmitter()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        // [SCENARIO] A submitter with Unlimited Expense Approval is still classified as the submitter.
+        // [GIVEN] A submitted expense report whose submitter is the current unlimited BC user.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        SetCurrentUserUnlimitedExpenseApproval(true);
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+
+        // [WHEN] The submitter recalls the pending report.
+        ExpenseReportApprovalMgt.ReopenSubmitted(ExpenseReportHeader);
+
+        // [THEN] Submitter identity takes precedence over the administrator capability.
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.FindLast();
+        Assert.AreEqual(Enum::"Expense Activity Actor Role"::Submitter, ExpenseActivityLogEntry."Actor Role", 'A submitter with unlimited approval must retain the Submitter role.');
+        Assert.AreEqual(SubmitterExpenseUser.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'The recall must identify the captured submitter.');
     end;
 
     [Test]

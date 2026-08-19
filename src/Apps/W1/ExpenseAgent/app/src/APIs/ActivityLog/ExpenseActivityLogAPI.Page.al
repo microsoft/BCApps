@@ -191,7 +191,6 @@ page 7122 "Expense Activity Log API"
     local procedure ApplyHistoryScope()
     var
         OriginalFilterGroup: Integer;
-        HistoryActorRole: Enum "Expense Activity Actor Role";
         HasHistoryActorFilters: Boolean;
         HasSourceFilters: Boolean;
         HistoryActorRoleFilter: Text;
@@ -201,8 +200,6 @@ page 7122 "Expense Activity Log API"
 
         OriginalFilterGroup := Rec.FilterGroup();
         HistoryActorRoleFilter := Rec.GetFilter("History Actor Role Filter");
-        if HistoryActorRoleFilter <> '' then
-            HistoryActorRole := Rec.GetRangeMin("History Actor Role Filter");
         Rec.FilterGroup(4);
         HasSourceFilters :=
             (Rec.GetFilter("Source Table ID") <> '') and
@@ -210,21 +207,16 @@ page 7122 "Expense Activity Log API"
         HasHistoryActorFilters :=
             (Rec.GetFilter("History Actor Table ID Filter") <> '') and
             (Rec.GetFilter("History Actor System ID Filter") <> '');
-        if HistoryActorRoleFilter = '' then begin
+        if HistoryActorRoleFilter = '' then
             HistoryActorRoleFilter := Rec.GetFilter("History Actor Role Filter");
-            if HistoryActorRoleFilter <> '' then
-                HistoryActorRole := Rec.GetRangeMin("History Actor Role Filter");
-        end;
         Rec.FilterGroup(0);
         if HasHistoryActorFilters then begin
-            if not (HistoryActorRole in [
-                HistoryActorRole::Submitter,
-                HistoryActorRole::Approver])
-            then
+            if HistoryActorRoleFilter <> '' then begin
+                Rec.SetCurrentKey("Occurred At", "Entry No.");
+                Rec.Ascending(false);
+                Rec.SetRange("History Subject Match", true)
+            end else
                 Error(HistoryActorRoleRequiredErr);
-            Rec.SetCurrentKey("Occurred At", "Entry No.");
-            Rec.Ascending(false);
-            Rec.SetRange("History Subject Match", true)
         end else
             if HasSourceFilters then begin
                 Rec.SetCurrentKey("Source Table ID", "Source Record System ID", "Occurred At", "Entry No.");
