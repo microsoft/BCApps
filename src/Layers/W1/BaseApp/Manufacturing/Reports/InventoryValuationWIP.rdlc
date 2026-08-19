@@ -3248,41 +3248,41 @@ End Function
         <Field Name="LastWIPFormat">
           <DataField>LastWIPFormat</DataField>
         </Field>
-        <Field Name="LatWipSum">
-          <DataField>LatWipSum</DataField>
+        <Field Name="Totals_LastWip">
+          <DataField>Totals_LastWip</DataField>
         </Field>
-        <Field Name="LatWipSumFormat">
-          <DataField>LatWipSumFormat</DataField>
+        <Field Name="Totals_LastWipFormat">
+          <DataField>Totals_LastWipFormat</DataField>
         </Field>
-        <Field Name="ValueOfMatConsumptionSum">
-          <DataField>ValueOfMatConsumptionSum</DataField>
+        <Field Name="Totals_ValueOfMatConsumption">
+          <DataField>Totals_ValueOfMatConsumption</DataField>
         </Field>
-        <Field Name="ValueOfMatConsumptionSumFormat">
-          <DataField>ValueOfMatConsumptionSumFormat</DataField>
+        <Field Name="Totals_ValueOfMatConsumptionFormat">
+          <DataField>Totals_ValueOfMatConsumptionFormat</DataField>
         </Field>
-        <Field Name="ValueOfCapSum">
-          <DataField>ValueOfCapSum</DataField>
+        <Field Name="Totals_ValueOfCap">
+          <DataField>Totals_ValueOfCap</DataField>
         </Field>
-        <Field Name="ValueOfCapSumFormat">
-          <DataField>ValueOfCapSumFormat</DataField>
+        <Field Name="Totals_ValueOfCapFormat">
+          <DataField>Totals_ValueOfCapFormat</DataField>
         </Field>
-        <Field Name="ValueOfOutputSum">
-          <DataField>ValueOfOutputSum</DataField>
+        <Field Name="Totals_ValueOfOutput">
+          <DataField>Totals_ValueOfOutput</DataField>
         </Field>
-        <Field Name="ValueOfOutputSumFormat">
-          <DataField>ValueOfOutputSumFormat</DataField>
+        <Field Name="Totals_ValueOfOutputFormat">
+          <DataField>Totals_ValueOfOutputFormat</DataField>
         </Field>
-        <Field Name="AtLastDateSum">
-          <DataField>AtLastDateSum</DataField>
+        <Field Name="Totals_AtLastDate">
+          <DataField>Totals_AtLastDate</DataField>
         </Field>
-        <Field Name="AtLastDateSumFormat">
-          <DataField>AtLastDateSumFormat</DataField>
+        <Field Name="Totals_AtLastDateFormat">
+          <DataField>Totals_AtLastDateFormat</DataField>
         </Field>
-        <Field Name="ValueEntryCostPostedToGLSum">
-          <DataField>ValueEntryCostPostedToGLSum</DataField>
+        <Field Name="Totals_ValueEntryCostPostedToGL">
+          <DataField>Totals_ValueEntryCostPostedToGL</DataField>
         </Field>
-        <Field Name="ValueEntryCostPostedToGLSumFormat">
-          <DataField>ValueEntryCostPostedToGLSumFormat</DataField>
+        <Field Name="Totals_ValueEntryCostPostedToGLFormat">
+          <DataField>Totals_ValueEntryCostPostedToGLFormat</DataField>
         </Field>
       </Fields>
       <Query>

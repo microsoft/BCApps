@@ -3025,14 +3025,14 @@
       </DefaultValue>
       <Prompt>InvPurchOrdersAnalysisLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="DataRetrievedLbl">
+    <ReportParameter Name="DataRetrieved">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>DataRetrievedLbl</Value>
+          <Value>DataRetrieved</Value>
         </Values>
       </DefaultValue>
-      <Prompt>DataRetrievedLbl</Prompt>
+      <Prompt>DataRetrieved</Prompt>
     </ReportParameter>
     <ReportParameter Name="ItemNoLbl">
       <DataType>String</DataType>
@@ -3238,7 +3238,7 @@
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>3</RowIndex>
-          <ParameterName>DataRetrievedLbl</ParameterName>
+          <ParameterName>DataRetrieved</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
