@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
@@ -24,8 +23,7 @@ codeunit 148148 "Factur-X CII XML Tests"
 {
     Subtype = Test;
     Permissions = tabledata "Company Information" = rimd,
-                  tabledata Customer = rimd,
-                  tabledata "VAT Business Posting Group" = rimd;
+                  tabledata Customer = rimd;
 
     trigger OnRun()
     begin
@@ -42,6 +40,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         CIIXMLBuilder: Codeunit "CII XML Builder";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
+        CustomerVATNoSequence: Integer;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -362,6 +361,14 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller postal address from Company Information
         Initialize();
 
+        // [GIVEN] Company Information with address
+        CompanyInformation.Get();
+        if CompanyInformation.Address = '' then begin
+            CompanyInformation.Address := '123 Test Street';
+            CompanyInformation.City := 'Paris';
+            CompanyInformation."Post Code" := '75001';
+            CompanyInformation.Modify(true);
+        end;
 
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
@@ -469,18 +476,18 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML buyer electronic address URIID has schemeID from customer setting
         Initialize();
 
-        // [GIVEN] Customer with FR Electronic Address and a French CTC electronic address scheme
+        // [GIVEN] Customer with FR Electronic Address and a SIRET electronic address scheme
         ElecAddress := '98765432101234';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress(ElecAddress));
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
-        Customer.Validate("FR Elec. Address Scheme", Customer."FR Elec. Address Scheme"::"0225");
+        Customer.Validate("FR Elec. Address Scheme", Customer."FR Elec. Address Scheme"::"0009");
         Customer.Modify(true);
 
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
         // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID/@schemeID = bare scheme code (not the enum caption)
-        Assert.AreEqual('0225',
+        Assert.AreEqual('0009',
             GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
     end;
@@ -1009,14 +1016,14 @@ codeunit 148148 "Factur-X CII XML Tests"
         CompanyInformation.Get();
         CompanyInformation.Validate("Registration No.", '123456789');
         CompanyInformation.Validate("SIRET No.", '12345678901234');
-        CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
-        CompanyInformation.Name := 'Test Company FR';
-        EnsureCountryRegionExists('FR');
-        CompanyInformation.Validate("Country/Region Code", 'FR');
-
-        CompanyInformation.Address := '123 Test Street';
-        CompanyInformation.City := 'Paris';
-        CompanyInformation."Post Code" := '75001';
+        if CompanyInformation."VAT Registration No." = '' then
+            CompanyInformation.Validate("VAT Registration No.", 'FR12345678901');
+        if CompanyInformation.Name = '' then
+            CompanyInformation.Name := 'Test Company FR';
+        if CompanyInformation."Country/Region Code" = '' then begin
+            EnsureCountryRegionExists('FR');
+            CompanyInformation.Validate("Country/Region Code", 'FR');
+        end;
         CompanyInformation.Modify(true);
 
         SetupGeneralLedger();
@@ -1080,14 +1087,11 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryUtility.UpdateSetupNoSeriesCode(
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Credit Memo Nos."));
         GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
-        EnsureVATBusinessPostingGroupExists(GLAccount."VAT Bus. Posting Group");
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
         Customer.Modify(true);
         LibrarySales.CreateSalesHeader(SalesHeader, DocType, CustomerNo);
-        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
-        SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
@@ -1100,28 +1104,23 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer: Record Customer;
     begin
         LibrarySales.CreateCustomer(Customer);
-        EnsureVATBusinessPostingGroupExists(Customer."VAT Bus. Posting Group");
-        Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
-        Customer.City := 'Paris';
-        Customer."Post Code" := '75001';
-        Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
+        if Customer."Country/Region Code" = '' then
+            Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        Customer.Validate("VAT Registration No.", GetNextCustomerVATRegistrationNo());
         Customer.Validate("FR Electronic Address", FRElecAddress);
         Customer.Modify(true);
         exit(Customer."No.");
     end;
 
-    local procedure EnsureVATBusinessPostingGroupExists(VATBusPostingGroupCode: Code[20])
+    local procedure GetNextCustomerVATRegistrationNo(): Text[20]
     var
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATNoBody: Text[11];
+        SequenceText: Text;
     begin
-        if (VATBusPostingGroupCode = '') or VATBusinessPostingGroup.Get(VATBusPostingGroupCode) then
-            exit;
-
-        VATBusinessPostingGroup.Init();
-        VATBusinessPostingGroup.Code := VATBusPostingGroupCode;
-        VATBusinessPostingGroup.Description := VATBusPostingGroupCode;
-        VATBusinessPostingGroup.Insert();
+        CustomerVATNoSequence += 1;
+        SequenceText := Format(CustomerVATNoSequence);
+        VATNoBody := CopyStr(PadStr('', 11 - StrLen(SequenceText), '0') + SequenceText, 1, 11);
+        exit('FR' + VATNoBody);
     end;
 
     local procedure CreateSalesInvoiceCIIXML(var TempBlob: Codeunit "Temp Blob")
@@ -1262,14 +1261,13 @@ codeunit 148148 "Factur-X CII XML Tests"
     var
         UnitOfMeasure: Record "Unit of Measure";
     begin
-        if not UnitOfMeasure.Get('EA') then begin
+        UnitOfMeasure.SetRange(Code, 'EA');
+        if not UnitOfMeasure.FindFirst() then begin
             UnitOfMeasure.Init();
             UnitOfMeasure.Code := 'EA';
             UnitOfMeasure.Description := 'Each';
             UnitOfMeasure.Insert(true);
         end;
-        UnitOfMeasure.Validate("International Standard Code", 'EA');
-        UnitOfMeasure.Modify(true);
         exit(UnitOfMeasure.Code);
     end;
 

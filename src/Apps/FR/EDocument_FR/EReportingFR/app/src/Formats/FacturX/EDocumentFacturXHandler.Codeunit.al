@@ -49,7 +49,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     /// <param name="EDocument">The E-Document record that contains the document metadata and information.</param>
     /// <param name="TempBlob">A temporary blob containing the Factur-X PDF/A-3 file or its CII XML.</param>
     /// <returns>The draft preparation implementation that should process the created draft.</returns>
-    procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
+    internal procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         CIIXml: XmlDocument;
@@ -87,7 +87,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     /// </summary>
     /// <param name="EDocument">The E-Document record that contains the document to be displayed.</param>
     /// <param name="TempBlob">A temporary blob containing the document data. Not used by this implementation.</param>
-    procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
+    internal procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     var
         EDocPurchaseHeader: Record "E-Document Purchase Header";
         EDocPurchaseLine: Record "E-Document Purchase Line";
@@ -120,7 +120,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     /// </summary>
     /// <param name="EDocumentDataStorage">The data storage entry that holds the received file.</param>
     /// <returns>The structured data that the Read into Draft stage consumes.</returns>
-    procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
+    internal procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
         CIIXml: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
@@ -138,17 +138,17 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
         SourceBlob.FromRecord(EDocumentDataStorage, EDocumentDataStorage.FieldNo("Data Storage"));
     end;
 
-    procedure GetFileFormat(): Enum "E-Doc. File Format"
+    internal procedure GetFileFormat(): Enum "E-Doc. File Format"
     begin
         exit("E-Doc. File Format"::XML);
     end;
 
-    procedure GetContent(): Text
+    internal procedure GetContent(): Text
     begin
         exit(StructuredData);
     end;
 
-    procedure GetReadIntoDraftImpl(): Enum "E-Doc. Read into Draft"
+    internal procedure GetReadIntoDraftImpl(): Enum "E-Doc. Read into Draft"
     begin
         exit("E-Doc. Read into Draft"::"Factur-X FR");
     end;
@@ -171,29 +171,17 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     end;
 
     /// <summary>
-    /// Returns the embedded CII XML of a PDF/A-3 container. Non-PDF blobs are returned unchanged so
-    /// that plain CII XML is supported; PDFs without an embedded invoice are rejected.
+    /// Returns the embedded CII XML of a PDF/A-3 container. When the blob is not a PDF, or the PDF does
+    /// not embed an attachment, the blob is returned unchanged so that plain CII XML is supported too.
     /// </summary>
     local procedure ExtractCIIXml(TempBlob: Codeunit "Temp Blob"): Codeunit "Temp Blob"
     var
         PdfInStream: InStream;
     begin
         TempBlob.CreateInStream(PdfInStream);
-        if not IsPdf(PdfInStream) then
-            exit(TempBlob);
-
-        TempBlob.CreateInStream(PdfInStream);
-        if not TryGetEmbeddedAttachment(PdfInStream) then
-            Error(NoEmbeddedInvoiceErr);
-        exit(GlobalEmbeddedBlob);
-    end;
-
-    local procedure IsPdf(PdfInStream: InStream): Boolean
-    var
-        Signature: Text;
-    begin
-        PdfInStream.Read(Signature, 4);
-        exit(Signature = '%PDF');
+        if TryGetEmbeddedAttachment(PdfInStream) then
+            exit(GlobalEmbeddedBlob);
+        exit(TempBlob);
     end;
 
     [TryFunction]

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-codeunit 10985 "FR E-Invoice Lifecycle Error"
+codeunit 10989 "FR E-Invoice Lifecycle Error"
 {
     Access = Internal;
     InherentEntitlements = X;

@@ -698,7 +698,6 @@ codeunit 148145 "Export E-Reporting Tests"
         CreateEDocumentServiceStatus(EDocument."Entry No", 'ERFR-APPR', "E-Document Service Status"::Approved);
 
         // [WHEN] E-Document is modified
-        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         // [THEN] Clearance Date is set to non-zero DateTime
@@ -724,7 +723,6 @@ codeunit 148145 "Export E-Reporting Tests"
         CreateEDocumentServiceStatus(EDocument."Entry No", 'ERFR-CLR', "E-Document Service Status"::Cleared);
 
         // [WHEN] E-Document is modified
-        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         // [THEN] Clearance Date is set to non-zero DateTime
@@ -752,7 +750,6 @@ codeunit 148145 "Export E-Reporting Tests"
         CreateEDocumentServiceStatus(EDocument."Entry No", 'ERFR-REJ', "E-Document Service Status"::Rejected);
 
         // [WHEN] E-Document is modified
-        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         // [THEN] Clearance Date is reset to 0DT
@@ -780,7 +777,6 @@ codeunit 148145 "Export E-Reporting Tests"
         CreateEDocumentServiceStatus(EDocument."Entry No", 'ERFR-NCLR', "E-Document Service Status"::"Not Cleared");
 
         // [WHEN] E-Document is modified
-        EDocument.Validate(Status, EDocument.Status::Processed);
         EDocument.Modify(true);
 
         // [THEN] Clearance Date is reset to 0DT
@@ -834,29 +830,6 @@ codeunit 148145 "Export E-Reporting Tests"
         // [THEN] Clearance Date remains 0DT
         EDocument.Get(EDocument."Entry No");
         Assert.AreEqual(0DT, EDocument."Clearance Date", 'Clearance Date should remain 0DT for blank Service');
-    end;
-
-    [Test]
-    procedure BlankServiceUsesFacturXStatusForClearanceDate()
-    var
-        EDocument: Record "E-Document";
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO] A blank document service uses its Factur-X service status to set the clearance date
-        Initialize();
-
-        // [GIVEN] An E-Document with no direct service and an approved Factur-X service status
-        CreateEDocumentService('FACTURX-FALLBACK', "E-Document Format"::"Factur-X FR");
-        CreateEDocumentWithService(EDocument, '');
-        CreateEDocumentServiceStatus(EDocument."Entry No", 'FACTURX-FALLBACK', "E-Document Service Status"::Approved);
-
-        // [WHEN] The E-Document status changes
-        EDocument.Validate(Status, EDocument.Status::Processed);
-        EDocument.Modify(true);
-
-        // [THEN] The fallback service status sets the clearance date
-        EDocument.Get(EDocument."Entry No");
-        Assert.AreNotEqual(0DT, EDocument."Clearance Date", 'The approved Factur-X fallback status must set the clearance date.');
     end;
     #endregion
 
