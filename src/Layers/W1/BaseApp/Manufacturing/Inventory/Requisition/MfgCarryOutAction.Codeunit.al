@@ -23,9 +23,6 @@ codeunit 99000818 "Mfg. Carry Out Action"
 #if not CLEAN27
         CarryOutAction: Codeunit "Carry Out Action";
 #endif
-#if not CLEAN29
-        LegacyCarryOutAction: Codeunit "Carry Out Action";
-#endif
         CalculateProdOrder: Codeunit "Calculate Prod. Order";
         PlngComponentReserve: Codeunit "Plng. Component-Reserve";
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
@@ -279,7 +276,9 @@ codeunit 99000818 "Mfg. Carry Out Action"
 #if not CLEAN29
                 IsHandled := false;
                 OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
-                LegacyCarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
+#if not CLEAN27
+                CarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
+#endif
                 if IsHandled then
                     exit;
 #endif
