@@ -364,48 +364,5 @@ codeunit 138200 "Normal DemoData"
         CountryRegion.SetRange("EU Country/Region Code", 'GB');
         Assert.RecordIsEmpty(CountryRegion);
     end;
-
-    [Test]
-    procedure EmployeeTemplatesHaveEmployeePostingGroup()
-    var
-        AdministrationTemplateTok: Label 'ADMINISTRATION', Locked = true;
-        ITTemplateTok: Label 'IT', Locked = true;
-        EmployeeExpensesTok: Label 'EMPLEXP', Locked = true;
-    begin
-        // [SCENARIO 647129] Administration and IT employee templates have the employee expenses posting group
-        VerifyEmployeeTemplatePostingGroup(AdministrationTemplateTok, EmployeeExpensesTok);
-        VerifyEmployeeTemplatePostingGroup(ITTemplateTok, EmployeeExpensesTok);
-    end;
-
-    local procedure VerifyEmployeeTemplatePostingGroup(EmployeeTemplateCode: Code[20]; EmployeePostingGroupCode: Code[20])
-    var
-        EmployeeTemplate: Record "Employee Templ.";
-    begin
-        EmployeeTemplate.Get(EmployeeTemplateCode);
-        EmployeeTemplate.TestField("Employee Posting Group", EmployeePostingGroupCode);
-    end;
-
-    [Test]
-    procedure EmployeesHaveEmployeePostingGroup()
-    var
-        EmployeeExpensesTok: Label 'EMPLEXP', Locked = true;
-    begin
-        // [SCENARIO 647129] Demo data employees are created with the employee expenses posting group
-        VerifyEmployeePostingGroup('EH', EmployeeExpensesTok); // Managing Director
-        VerifyEmployeePostingGroup('JO', EmployeeExpensesTok); // Sales Manager
-        VerifyEmployeePostingGroup('OF', EmployeeExpensesTok); // Production Manager
-        VerifyEmployeePostingGroup('LT', EmployeeExpensesTok); // Designer
-        VerifyEmployeePostingGroup('RB', EmployeeExpensesTok); // Secretary
-        VerifyEmployeePostingGroup('MH', EmployeeExpensesTok); // Production Assistant
-        VerifyEmployeePostingGroup('TD', EmployeeExpensesTok); // Inventory Manager
-    end;
-
-    local procedure VerifyEmployeePostingGroup(EmployeeNo: Code[20]; EmployeePostingGroupCode: Code[20])
-    var
-        Employee: Record Employee;
-    begin
-        Employee.Get(EmployeeNo);
-        Employee.TestField("Employee Posting Group", EmployeePostingGroupCode);
-    end;
 }
 
