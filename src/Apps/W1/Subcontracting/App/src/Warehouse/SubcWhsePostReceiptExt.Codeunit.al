@@ -197,6 +197,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
             exit;
         if PostedWhseRcptLine."Transfer WIP Item" then
             exit;
+        Location.SetLoadFields("Require Put-away");
         if not Location.Get(PostedWhseRcptLine."Location Code") then
             exit;
 

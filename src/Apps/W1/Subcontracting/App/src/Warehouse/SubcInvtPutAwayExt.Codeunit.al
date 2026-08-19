@@ -56,6 +56,7 @@ codeunit 20575 "Subc. Invt. Put-away Ext"
     begin
         if not ItemJournalLine.Subcontracting then
             exit;
+        Location.SetLoadFields("Require Put-away");
         if not Location.Get(ItemJournalLine."Location Code") then
             exit;
         if Location."Require Put-away" then
@@ -73,6 +74,7 @@ codeunit 20575 "Subc. Invt. Put-away Ext"
             exit;
         if WarehouseActivityLine."Source Subtype" <> "Purchase Document Type"::Order.AsInteger() then
             exit;
+        PurchaseLine.SetLoadFields("Prod. Order No.", "Prod. Order Line No.");
         if not PurchaseLine.Get("Purchase Document Type"::Order, WarehouseActivityLine."Source No.", WarehouseActivityLine."Source Line No.") then
             exit;
 
