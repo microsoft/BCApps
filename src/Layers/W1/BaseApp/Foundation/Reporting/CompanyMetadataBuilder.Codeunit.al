@@ -13,7 +13,6 @@ using Microsoft.Foundation.Company;
 /// mismatch would just yield blank fields). Keys mirror the platform ReportInformationStrings and
 /// are scoped by the &lt;CompanyMetadata&gt; container emitted into BCReportInformation.
 /// </summary>
-
 codeunit 9666 "Company Metadata Builder"
 {
     Access = Internal;

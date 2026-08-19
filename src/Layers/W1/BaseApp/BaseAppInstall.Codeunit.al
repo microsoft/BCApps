@@ -26,11 +26,8 @@ codeunit 5000 "BaseApp Install"
     local procedure SeedDefaultReportParts()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
     begin
         CompositeReportPartsMgt.SeedDefaultParts();
-
-        CompositeLayoutAssignMgt.AssignDefaultParts();
     end;
 
     local procedure AddWordTemplateTables()

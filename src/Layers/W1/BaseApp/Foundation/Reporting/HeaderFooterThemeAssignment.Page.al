@@ -86,14 +86,12 @@ page 9667 "Header/Footer Theme Assignment"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        LayoutKey := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
-
         Rec.Reset();
         Rec.DeleteAll();
         Rec.Init();
         Rec."Report ID" := ReportID;
         Rec."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(Rec."Layout Name"));
-        if TenantReportLayoutCfg.Get(ReportID, LayoutKey, '') then begin
+        if TenantReportLayoutCfg.Get(ReportID, Rec."Layout Name", '') then begin
             Rec."Header Part Name" := TenantReportLayoutCfg."Header Part Name";
             Rec."Theme Part Name" := TenantReportLayoutCfg."Theme Part Name";
         end;
@@ -117,7 +115,7 @@ page 9667 "Header/Footer Theme Assignment"
             exit(true);
 
         BothPartsEmpty := (Rec."Header Part Name" = '') and (Rec."Theme Part Name" = '');
-        if TenantReportLayoutCfg.Get(ReportID, LayoutKey, '') then begin
+        if TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then begin
             if BothPartsEmpty then
                 TenantReportLayoutCfg.Delete(true)
             else begin
@@ -129,7 +127,7 @@ page 9667 "Header/Footer Theme Assignment"
             if not BothPartsEmpty then begin
                 TenantReportLayoutCfg.Init();
                 TenantReportLayoutCfg."Report ID" := ReportID;
-                TenantReportLayoutCfg."Layout Name" := LayoutKey;
+                TenantReportLayoutCfg."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
                 TenantReportLayoutCfg."Header Part Name" := Rec."Header Part Name";
                 TenantReportLayoutCfg."Theme Part Name" := Rec."Theme Part Name";
                 TenantReportLayoutCfg.Insert(true);
@@ -171,7 +169,6 @@ page 9667 "Header/Footer Theme Assignment"
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
         ReportID: Integer;
         LayoutName: Text;
-        LayoutKey: Text[250];
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
