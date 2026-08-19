@@ -22,14 +22,14 @@ tableextension 30481 "Shpfy TMA Tax Jurisdiction" extends "Tax Jurisdiction"
 {
     fields
     {
-        field(30470; "Created by Agent"; Boolean)
+        field(30470; "Shpfy Created by Agent"; Boolean)
         {
             Caption = 'Created by Agent';
             DataClassification = SystemMetadata;
             Editable = false;
             ToolTip = 'Specifies whether the Tax Matching Agent auto-created this Tax Jurisdiction from a Shopify order. Such a jurisdiction is treated as provisional until a user has verified it by approving an order that uses it.';
         }
-        field(30471; Verified; Boolean)
+        field(30471; "Shpfy Verified"; Boolean)
         {
             Caption = 'Verified';
             DataClassification = SystemMetadata;
