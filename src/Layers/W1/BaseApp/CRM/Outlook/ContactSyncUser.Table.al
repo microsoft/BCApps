@@ -68,7 +68,8 @@ table 7121 "Contact Sync User"
         if "ID" = 0 then
             exit;
 
-        ValidateApprovedGraphDeltaUrl(NewDeltaUrl);
+        if not ValidateApprovedGraphDeltaUrl(NewDeltaUrl) then
+            exit;
 
         "Delta Url" := CopyStr(NewDeltaUrl, 1, MaxStrLen("Delta Url"));
         if StrLen(NewDeltaUrl) > MaxStrLen("Delta Url") then
@@ -110,8 +111,10 @@ table 7121 "Contact Sync User"
         if DeltaUrlToValidate = '' then
             exit(true);
         IsApproved := Uri.ValidateIntegrationURL(LowerCase(DeltaUrlToValidate), LowerCase(GraphUrlPrefixLbl)) = LowerCase(DeltaUrlToValidate);
-        if not IsApproved then
+        if not IsApproved then begin
             Session.LogMessage('0000V1Y', StrSubstNo(DeltaUrlValidationTelemetryMsg, DeltaUrlToValidate, IsApproved, InvalidDeltaUrlErr), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
+            Error(InvalidDeltaUrlErr);
+        end;
         exit(IsApproved);
     end;
 

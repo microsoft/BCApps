@@ -144,9 +144,9 @@ codeunit 7106 "O365 Bidirectional Sync"
         DeltaUrl := GetDeltaUrl(FolderId);
         if not IsApprovedGraphRequestUri(DeltaUrl) then begin
             if DeltaUrl <> '' then
-                Session.LogMessage('0000UX8', StrSubstNo(InvalidGraphDeltaUrlResetTxt, FolderId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat(), DeltaUrl);
+                Session.LogMessage('0000UX8', StrSubstNo(InvalidGraphDeltaUrlResetTxt, FolderId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
             DeltaUrl := '';
-            UpdateDeltaUrl(FolderId, '');
+            UpdateDeltaUrlEmpty(FolderId, '');
         end;
 
         if not FullSync then begin
@@ -245,6 +245,21 @@ codeunit 7106 "O365 Bidirectional Sync"
         ContactSyncUserRec.SetRange("Folder ID", CopyStr(FolderId, 1, 250));
         ContactSyncUserRec.SetLoadFields("Delta Url");
         if ContactSyncUserRec.FindFirst() and not (NewDeltaLink = '') then begin
+            ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
+            ContactSyncUserRec.Modify(false);
+        end;
+    end;
+
+    local procedure UpdateDeltaUrlEmpty(FolderId: Text; NewDeltaLink: Text)
+    var
+        ContactSyncUserRec: Record "Contact Sync User";
+    begin
+        ContactSyncUserRec.Reset();
+        ContactSyncUserRec.SetCurrentKey("User ID", "Folder ID");
+        ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
+        ContactSyncUserRec.SetRange("Folder ID", CopyStr(FolderId, 1, 250));
+        ContactSyncUserRec.SetLoadFields("Delta Url");
+        if ContactSyncUserRec.FindFirst() then begin
             ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
             ContactSyncUserRec.Modify(false);
         end;
