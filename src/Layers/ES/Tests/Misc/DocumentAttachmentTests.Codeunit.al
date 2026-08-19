@@ -43,6 +43,7 @@ codeunit 134776 "Document Attachment Tests"
         ExpectedFieldNotVisibleErr: Label 'Expected field %1 is not visible in %2', Comment = '%1=FieldName, %2=PageName';
         ExpectedFieldNotEditableErr: Label 'Expected field %1 is not editable in %2', Comment = '%1=FieldName, %2=PageName';
         UnexpectedFieldVisibleErr: Label 'Unexpected field visible! %1', Comment = '%1=FieldName';
+        UnexpectedFieldVisibilityErr: Label 'Unexpected visibility for field %1', Comment = '%1=FieldCaption';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         FirstAttachmentFileNameMismatchErr: Label 'First file name not equal to saved attachment.';
         FlowPurchaseValueForFirstAttachmentMismatchErr: Label 'Flow purchase value not equal for first attachment.';
@@ -5421,7 +5422,7 @@ codeunit 134776 "Document Attachment Tests"
         Assert.IsTrue(DocumentAttachmentDetails."Document Flow Production".Visible(), StrSubstNo(ExpectedFieldNotVisibleErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
         Assert.IsTrue(DocumentAttachmentDetails."Document Flow Production".Editable(), StrSubstNo(ExpectedFieldNotEditableErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Sales".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Sales".Caption));
-        Assert.IsFalse(DocumentAttachmentDetails."Document Flow Purchase".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Purchase".Caption));
+        Assert.AreEqual(IsSubcontractingAppInstalled(), DocumentAttachmentDetails."Document Flow Purchase".Visible(), StrSubstNo(UnexpectedFieldVisibilityErr, DocumentAttachmentDetails."Document Flow Purchase".Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Service".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Service".Caption));
     end;
 
@@ -5432,8 +5433,16 @@ codeunit 134776 "Document Attachment Tests"
         Assert.IsTrue(DocumentAttachmentDetails."Document Flow Production".Visible(), StrSubstNo(ExpectedFieldNotVisibleErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Production".Editable(), StrSubstNo(ExpectedFieldNotEditableErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Sales".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Sales".Caption));
-        Assert.IsFalse(DocumentAttachmentDetails."Document Flow Purchase".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Purchase".Caption));
+        Assert.AreEqual(IsSubcontractingAppInstalled(), DocumentAttachmentDetails."Document Flow Purchase".Visible(), StrSubstNo(UnexpectedFieldVisibilityErr, DocumentAttachmentDetails."Document Flow Purchase".Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Service".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Service".Caption));
+    end;
+
+    local procedure IsSubcontractingAppInstalled(): Boolean
+    var
+        NAVAppInstalledApp: Record "NAV App Installed App";
+    begin
+        NAVAppInstalledApp.SetRange("App ID", '1f32a50d-0057-4b95-b5df-cc04d7e89470');
+        exit(not NAVAppInstalledApp.IsEmpty());
     end;
 
     [ModalPageHandler]
