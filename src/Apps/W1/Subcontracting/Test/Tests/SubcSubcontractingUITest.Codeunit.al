@@ -367,12 +367,12 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         RoutingPage.RoutingLine.GotoRecord(NonSubcontractingRoutingLine);
 
         // [THEN] Subcontracting comments are disabled for a regular routing line
-        Assert.IsFalse(RoutingPage.RoutingLine."Subcontracting Comments".Enabled(), 'Subcontracting comments should be disabled for a regular routing line.');
+        Assert.IsFalse(RoutingPage.RoutingLine."Subc. Subcontracting Comments".Enabled(), 'Subcontracting comments should be disabled for a regular routing line.');
 
         RoutingPage.RoutingLine.GotoRecord(SubcontractingRoutingLine);
 
         // [THEN] Subcontracting comments are enabled for a subcontracting routing line
-        Assert.IsTrue(RoutingPage.RoutingLine."Subcontracting Comments".Enabled(), 'Subcontracting comments should be enabled for a subcontracting routing line.');
+        Assert.IsTrue(RoutingPage.RoutingLine."Subc. Subcontracting Comments".Enabled(), 'Subcontracting comments should be enabled for a subcontracting routing line.');
         RoutingPage.Close();
 
         // [WHEN] Routing Version Lines is inspected for each operation type
@@ -381,12 +381,12 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         RoutingVersionPage.RoutingLine.GotoRecord(NonSubcontractingRoutingVersionLine);
 
         // [THEN] Subcontracting comments are disabled for a regular routing version line
-        Assert.IsFalse(RoutingVersionPage.RoutingLine."Subcontracting Comments".Enabled(), 'Subcontracting comments should be disabled for a regular routing version line.');
+        Assert.IsFalse(RoutingVersionPage.RoutingLine."Subc. Subcontracting Comments".Enabled(), 'Subcontracting comments should be disabled for a regular routing version line.');
 
         RoutingVersionPage.RoutingLine.GotoRecord(SubcontractingRoutingVersionLine);
 
         // [THEN] Subcontracting comments are enabled for a subcontracting routing version line
-        Assert.IsTrue(RoutingVersionPage.RoutingLine."Subcontracting Comments".Enabled(), 'Subcontracting comments should be enabled for a subcontracting routing version line.');
+        Assert.IsTrue(RoutingVersionPage.RoutingLine."Subc. Subcontracting Comments".Enabled(), 'Subcontracting comments should be enabled for a subcontracting routing version line.');
         RoutingVersionPage.Close();
 
         // [GIVEN] A released production order with regular and subcontracting operations
@@ -408,12 +408,12 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ProdOrderRouting.GotoRecord(NonSubcontractingProdOrderRoutingLine);
 
         // [THEN] Subcontracting comments are disabled for a regular production operation
-        Assert.IsFalse(ProdOrderRouting."Subcontracting Comments".Enabled(), 'Subcontracting comments should be disabled for a regular production operation.');
+        Assert.IsFalse(ProdOrderRouting."Subc. Subcontracting Comments".Enabled(), 'Subcontracting comments should be disabled for a regular production operation.');
 
         ProdOrderRouting.GotoRecord(SubcontractingProdOrderRoutingLine);
 
         // [THEN] Subcontracting comments are enabled for a subcontracting production operation
-        Assert.IsTrue(ProdOrderRouting."Subcontracting Comments".Enabled(), 'Subcontracting comments should be enabled for a subcontracting production operation.');
+        Assert.IsTrue(ProdOrderRouting."Subc. Subcontracting Comments".Enabled(), 'Subcontracting comments should be enabled for a subcontracting production operation.');
         ProdOrderRouting.Close();
     end;
 

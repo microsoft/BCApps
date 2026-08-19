@@ -12,7 +12,7 @@ pageextension 20515 "Subc. Standard Tasks" extends "Standard Tasks"
     {
         addafter(Description)
         {
-            action("Subcontracting Comments")
+            action("Subc. Subcontracting Comments")
             {
                 ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Comments';
@@ -24,7 +24,7 @@ pageextension 20515 "Subc. Standard Tasks" extends "Standard Tasks"
         }
         addafter(Description_Promoted)
         {
-            actionref(SubcontractingComments_Promoted; "Subcontracting Comments")
+            actionref("Subc. SubcontractingComments_Promoted"; "Subc. Subcontracting Comments")
             {
             }
         }

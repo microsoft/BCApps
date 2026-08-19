@@ -56,7 +56,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
     {
         addafter("Co&mments")
         {
-            action("Subcontracting Comments")
+            action("Subc. Subcontracting Comments")
             {
                 ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Comments';

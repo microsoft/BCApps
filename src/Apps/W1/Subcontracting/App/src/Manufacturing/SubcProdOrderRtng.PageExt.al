@@ -79,7 +79,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     {
         addafter("Co&mments")
         {
-            action("Subcontracting Comments")
+            action("Subc. Subcontracting Comments")
             {
                 ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Comments';
@@ -96,7 +96,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         }
         addafter("Co&mments_Promoted")
         {
-            actionref(SubcontractingComments_Promoted; "Subcontracting Comments")
+            actionref("Subc. SubcontractingComments_Promoted"; "Subc. Subcontracting Comments")
             {
             }
         }

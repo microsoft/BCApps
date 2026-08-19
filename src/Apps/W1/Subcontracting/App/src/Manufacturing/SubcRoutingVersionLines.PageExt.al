@@ -50,7 +50,7 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
     {
         addafter("Co&mments")
         {
-            action("Subcontracting Comments")
+            action("Subc. Subcontracting Comments")
             {
                 ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Comments';

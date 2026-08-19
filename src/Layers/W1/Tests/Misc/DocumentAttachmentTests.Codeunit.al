@@ -43,7 +43,7 @@ codeunit 134776 "Document Attachment Tests"
         ExpectedFieldNotVisibleErr: Label 'Expected field %1 is not visible in %2', Comment = '%1=FieldName, %2=PageName';
         ExpectedFieldNotEditableErr: Label 'Expected field %1 is not editable in %2', Comment = '%1=FieldName, %2=PageName';
         UnexpectedFieldVisibleErr: Label 'Unexpected field visible! %1', Comment = '%1=FieldName';
-        UnexpectedFieldVisibilityErr: Label 'Unexpected visibility for field %1', Comment = '%1=FieldName';
+        UnexpectedFieldVisibilityErr: Label 'Unexpected visibility for field %1', Comment = '%1=FieldCaption';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         FirstAttachmentFileNameMismatchErr: Label 'First file name not equal to saved attachment.';
         FlowPurchaseValueForFirstAttachmentMismatchErr: Label 'Flow purchase value not equal for first attachment.';

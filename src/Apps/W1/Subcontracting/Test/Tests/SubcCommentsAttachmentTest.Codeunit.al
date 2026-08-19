@@ -126,6 +126,8 @@ codeunit 139995 "Subc. Comments Attachment Test"
         ProdRtngComments.Description.SetValue('Edited production routing comment');
         ProdRtngComments.Close();
 
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
         SubcStandardTaskComment.Get(StandardTask.Code, 10000);
         Assert.AreEqual('Edited standard task comment', SubcStandardTaskComment.Description, 'The Standard Task comment page should allow edits with the edit permission set.');
         SubcRoutingCommentLine.Get(RoutingLine."Routing No.", RoutingLine."Version Code", RoutingLine."Operation No.", 10000);
