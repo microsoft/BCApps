@@ -226,68 +226,68 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Initialize();
 
         // [WHEN] Source pages expose navigation to dedicated subcontracting comments
-        AssertPageActionRunsPage(PageAction, Page::"Standard Tasks", 'Subcontracting Comments', Page::"Subc. Standard Task Comments");
-        AssertPageActionRunsPage(PageAction, Page::"Routing Lines", 'Subcontracting Comments', Page::"Subc. Routing Comments");
-        AssertPageActionRunsPage(PageAction, Page::"Routing Version Lines", 'Subcontracting Comments', Page::"Subc. Routing Comments");
-        AssertPageActionRunsPage(PageAction, Page::"Prod. Order Routing", 'Subcontracting Comments', Page::"Subc. Prod. Rtng. Comments");
+        AssertPageActionRunsPage(PageAction, Page::"Standard Tasks", 'Subc. Subcontracting Comments', Page::"Subc. Standard Task Comments");
+        AssertPageActionRunsPage(PageAction, Page::"Routing Lines", 'Subc. Subcontracting Comments', Page::"Subc. Routing Comments");
+        AssertPageActionRunsPage(PageAction, Page::"Routing Version Lines", 'Subc. Subcontracting Comments', Page::"Subc. Routing Comments");
+        AssertPageActionRunsPage(PageAction, Page::"Prod. Order Routing", 'Subc. Subcontracting Comments', Page::"Subc. Prod. Rtng. Comments");
 
         // [WHEN] Controls on each dedicated comment page are inspected
         AssertPageControlExists(
             Database::"Subc. Standard Task Comment", Page::"Subc. Standard Task Comments",
-            SubcStandardTaskComment.FieldNo("Standard Task Code"), SubcStandardTaskComment.FieldCaption("Standard Task Code"));
+            SubcStandardTaskComment.FieldNo("Standard Task Code"), 'Standard Task Code');
         AssertPageControlExists(
             Database::"Subc. Standard Task Comment", Page::"Subc. Standard Task Comments",
-            SubcStandardTaskComment.FieldNo("Line No."), SubcStandardTaskComment.FieldCaption("Line No."));
+            SubcStandardTaskComment.FieldNo("Line No."), 'Line No.');
         AssertPageControlExists(
             Database::"Subc. Standard Task Comment", Page::"Subc. Standard Task Comments",
-            SubcStandardTaskComment.FieldNo(Description), SubcStandardTaskComment.FieldCaption(Description));
+            SubcStandardTaskComment.FieldNo(Description), 'Description');
         AssertPageControlExists(
             Database::"Subc. Standard Task Comment", Page::"Subc. Standard Task Comments",
-            SubcStandardTaskComment.FieldNo("Description 2"), SubcStandardTaskComment.FieldCaption("Description 2"));
+            SubcStandardTaskComment.FieldNo("Description 2"), 'Description 2');
 
         AssertPageControlExists(
             Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
-            SubcRoutingCommentLine.FieldNo("Routing No."), SubcRoutingCommentLine.FieldCaption("Routing No."));
+            SubcRoutingCommentLine.FieldNo("Routing No."), 'Routing No.');
         AssertPageControlExists(
             Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
-            SubcRoutingCommentLine.FieldNo("Version Code"), SubcRoutingCommentLine.FieldCaption("Version Code"));
+            SubcRoutingCommentLine.FieldNo("Version Code"), 'Version Code');
         AssertPageControlExists(
             Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
-            SubcRoutingCommentLine.FieldNo("Operation No."), SubcRoutingCommentLine.FieldCaption("Operation No."));
+            SubcRoutingCommentLine.FieldNo("Operation No."), 'Operation No.');
         AssertPageControlExists(
             Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
-            SubcRoutingCommentLine.FieldNo("Line No."), SubcRoutingCommentLine.FieldCaption("Line No."));
+            SubcRoutingCommentLine.FieldNo("Line No."), 'Line No.');
         AssertPageControlExists(
             Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
-            SubcRoutingCommentLine.FieldNo(Description), SubcRoutingCommentLine.FieldCaption(Description));
+            SubcRoutingCommentLine.FieldNo(Description), 'Description');
         AssertPageControlExists(
             Database::"Subc. Routing Comment Line", Page::"Subc. Routing Comments",
-            SubcRoutingCommentLine.FieldNo("Description 2"), SubcRoutingCommentLine.FieldCaption("Description 2"));
+            SubcRoutingCommentLine.FieldNo("Description 2"), 'Description 2');
 
         AssertPageControlExists(
             Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
-            SubcProdOrderRoutingComment.FieldNo(Status), SubcProdOrderRoutingComment.FieldCaption(Status));
+            SubcProdOrderRoutingComment.FieldNo(Status), 'Status');
         AssertPageControlExists(
             Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
-            SubcProdOrderRoutingComment.FieldNo("Prod. Order No."), SubcProdOrderRoutingComment.FieldCaption("Prod. Order No."));
+            SubcProdOrderRoutingComment.FieldNo("Prod. Order No."), 'Prod. Order No.');
         AssertPageControlExists(
             Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
-            SubcProdOrderRoutingComment.FieldNo("Routing Reference No."), SubcProdOrderRoutingComment.FieldCaption("Routing Reference No."));
+            SubcProdOrderRoutingComment.FieldNo("Routing Reference No."), 'Routing Reference No.');
         AssertPageControlExists(
             Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
-            SubcProdOrderRoutingComment.FieldNo("Routing No."), SubcProdOrderRoutingComment.FieldCaption("Routing No."));
+            SubcProdOrderRoutingComment.FieldNo("Routing No."), 'Routing No.');
         AssertPageControlExists(
             Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
-            SubcProdOrderRoutingComment.FieldNo("Operation No."), SubcProdOrderRoutingComment.FieldCaption("Operation No."));
+            SubcProdOrderRoutingComment.FieldNo("Operation No."), 'Operation No.');
         AssertPageControlExists(
             Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
-            SubcProdOrderRoutingComment.FieldNo("Line No."), SubcProdOrderRoutingComment.FieldCaption("Line No."));
+            SubcProdOrderRoutingComment.FieldNo("Line No."), 'Line No.');
         AssertPageControlExists(
             Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
-            SubcProdOrderRoutingComment.FieldNo(Description), SubcProdOrderRoutingComment.FieldCaption(Description));
+            SubcProdOrderRoutingComment.FieldNo(Description), 'Description');
         AssertPageControlExists(
             Database::"Subc. Prod. Rtng. Comment", Page::"Subc. Prod. Rtng. Comments",
-            SubcProdOrderRoutingComment.FieldNo("Description 2"), SubcProdOrderRoutingComment.FieldCaption("Description 2"));
+            SubcProdOrderRoutingComment.FieldNo("Description 2"), 'Description 2');
 
         // [THEN] Ordinary routing comments are not a source for the dedicated page surface
         PageControl.SetRange(TableNo, Database::"Routing Comment Line");
@@ -1043,14 +1043,15 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, RoutingLine.FieldCaption("Transfer Description")));
     end;
 
-    local procedure AssertPageControlExists(ControlTableNo: Integer; ControlPageNo: Integer; ControlFieldNo: Integer; ControlFieldCaption: Text)
+    local procedure AssertPageControlExists(ControlTableNo: Integer; ControlPageNo: Integer; ControlFieldNo: Integer; ControlNameValue: Text)
     var
         PageControl: Record "Page Control Field";
     begin
         PageControl.SetRange(TableNo, ControlTableNo);
         PageControl.SetRange(PageNo, ControlPageNo);
         PageControl.SetRange(FieldNo, ControlFieldNo);
-        Assert.IsFalse(PageControl.IsEmpty(), StrSubstNo(ControlNotExistMsg, ControlFieldCaption));
+        PageControl.SetRange(ControlName, ControlNameValue);
+        Assert.IsFalse(PageControl.IsEmpty(), StrSubstNo(ControlNotExistMsg, ControlNameValue));
     end;
 
     local procedure AssertPageControlIsInitiallyHidden(var PageControl: Record "Page Control Field"; ControlTableNo: Integer; ControlPageNo: Integer; ControlFieldNo: Integer; ControlFieldCaption: Text)

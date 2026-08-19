@@ -2449,7 +2449,7 @@ codeunit 139995 "Subc. Comments Attachment Test"
     end;
 
     [Test]
-    [HandlerFunctions('SelectSendingOptionsOKModalPageHandler,EmailEditorCheckAndDiscardModalPageHandler')]
+    [HandlerFunctions('SelectSendingOptionsOKModalPageHandler,EmailEditorCheckAndDiscardModalPageHandler,ConfirmHandlerFalse,KeepDraftOrDiscardStrMenuHandler')]
     procedure PurchaseLineAttachmentIsNotAutomaticallyAddedToVendorEmail()
     var
         DocumentAttachment: Record "Document Attachment";
@@ -2599,6 +2599,24 @@ codeunit 139995 "Subc. Comments Attachment Test"
     procedure EmailEditorCheckAndDiscardModalPageHandler(var EmailEditor: TestPage "Email Editor")
     begin
         EmailEditor.Discard.Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerFalse(Question: Text; var Reply: Boolean)
+    var
+        GoAheadLbl: Label 'Go ahead and discard?';
+    begin
+        if Question = GoAheadLbl then
+            Reply := false;
+    end;
+
+    [StrMenuHandler]
+    procedure KeepDraftOrDiscardStrMenuHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
+    var
+        DiscardLbl: Label 'Discard email';
+    begin
+        if StrPos(Options, DiscardLbl) <> 0 then
+            Choice := 2;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document-Mailing", 'OnBeforeSendEmail', '', false, false)]
