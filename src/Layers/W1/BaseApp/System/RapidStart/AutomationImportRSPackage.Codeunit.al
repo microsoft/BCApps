@@ -24,9 +24,9 @@ codeunit 5432 "Automation - Import RSPackage"
         ConfigXMLExchange.SetHideDialog(true);
         ConfigXMLExchange.DecompressPackageToBlob(TempBlob, TempBlobDecompressed);
         TempBlobDecompressed.CreateInStream(InStream);
-        ConfigXMLExchange.ImportPackageXMLWithCodeFromStream(InStream, Rec.Code);
+        ConfigXMLExchange.ImportPackageXMLWithCode(InStream, Rec.Code);
 
-        // refreshing the record as ImportPackageXMLWithCodeFromStream updated the Configuration package with the number of records in the package, etc.
+        // refreshing the record as ImportPackageXMLWithCode updated the Configuration package with the number of records in the package, etc.
         Rec.Find();
         Rec.Validate("Import Status", Rec."Import Status"::Completed);
         Rec.Modify(true);
