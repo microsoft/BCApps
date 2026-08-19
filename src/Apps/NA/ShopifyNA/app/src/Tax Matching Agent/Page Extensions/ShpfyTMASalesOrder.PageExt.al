@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Sales.Document;
@@ -15,12 +20,13 @@ pageextension 30476 "Shpfy TMA Sales Order" extends "Sales Order"
     {
         addafter("Tax Liable")
         {
-            field("Tax Match Applied"; Rec."Tax Match Applied")
+            field(ShpfyTaxMatchApplied; Rec."Tax Match Applied")
             {
                 ApplicationArea = All;
+                Caption = 'Shopify Tax Match Applied';
                 Editable = false;
                 Importance = Additional;
-                ToolTip = 'Specifies that the Tax Matching Agent populated the Tax Area Code on the originating Shopify order. Use the Review Tax Match action to review the AI-generated decisions.';
+                ToolTip = 'Specifies that the Tax Matching Agent populated the Tax Area Code on the originating Shopify order. Use the Review Shopify Tax Match action to review the AI-generated decisions.';
             }
         }
     }
@@ -31,7 +37,7 @@ pageextension 30476 "Shpfy TMA Sales Order" extends "Sales Order"
             action(ShpfyReviewTaxMatch)
             {
                 ApplicationArea = All;
-                Caption = 'Review Tax Match';
+                Caption = 'Review Shopify Tax Match';
                 Image = SparkleFilled;
                 ToolTip = 'Opens the tax match review for the originating Shopify order, where you can see the resolved Tax Area and per-line Tax Jurisdiction Codes together with the AI confidence and explanation for each agent-matched field.';
                 Visible = Rec."Tax Match Applied";

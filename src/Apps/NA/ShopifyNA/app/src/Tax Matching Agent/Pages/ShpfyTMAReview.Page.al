@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.SalesTax;
@@ -213,6 +218,7 @@ page 30471 "Shpfy TMA Review"
         if FilterText = '' then
             exit;
         OrderTaxLine.SetFilter("Parent Id", FilterText);
+        OrderTaxLine.SetLoadFields("Line No.", "Tax Jurisdiction Code");
         if OrderTaxLine.FindSet() then
             repeat
                 SnapshotJurisdictions.Set(LineKey(OrderTaxLine), OrderTaxLine."Tax Jurisdiction Code");
@@ -229,6 +235,7 @@ page 30471 "Shpfy TMA Review"
         if FilterText = '' then
             exit(false);
         OrderTaxLine.SetFilter("Parent Id", FilterText);
+        OrderTaxLine.SetLoadFields("Line No.", "Tax Jurisdiction Code");
         if OrderTaxLine.FindSet() then
             repeat
                 LineKeyText := LineKey(OrderTaxLine);
@@ -249,6 +256,7 @@ page 30471 "Shpfy TMA Review"
         if FilterText = '' then
             exit;
         OrderTaxLine.SetFilter("Parent Id", FilterText);
+        OrderTaxLine.SetLoadFields("Line No.", "Tax Jurisdiction Code");
         if OrderTaxLine.FindSet() then
             repeat
                 LineKeyText := LineKey(OrderTaxLine);
@@ -278,11 +286,13 @@ page 30471 "Shpfy TMA Review"
         FilterBuilder: TextBuilder;
     begin
         OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
+        OrderLine.SetLoadFields("Line Id");
         if OrderLine.FindSet() then
             repeat
                 AppendParentId(FilterBuilder, OrderLine."Line Id");
             until OrderLine.Next() = 0;
         ShippingCharge.SetRange("Shopify Order Id", Rec."Shopify Order Id");
+        ShippingCharge.SetLoadFields("Shopify Shipping Line Id");
         if ShippingCharge.FindSet() then
             repeat
                 AppendParentId(FilterBuilder, ShippingCharge."Shopify Shipping Line Id");
