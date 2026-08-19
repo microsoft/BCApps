@@ -168,7 +168,6 @@ page 7122 "Expense Activity Log API"
 
     trigger OnOpenPage()
     begin
-        Rec.ReadIsolation := IsolationLevel::ReadCommitted;
         // Avoid JIT load consistency errors by including fields read in OnAfterGetRecord in the initial record buffer.
         Rec.AddLoadFields("Reimbursement Currency Code");
     end;
