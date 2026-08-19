@@ -318,8 +318,10 @@ codeunit 10978 "CII XML Builder"
     end;
 
     local procedure GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo: Text; CountryCode: Text): Text
+    var
+        Regex: Codeunit Regex;
     begin
-        if (StrLen(VATRegistrationNo) >= 2) and (DelChr(CopyStr(VATRegistrationNo, 1, 2), '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz') = '') then
+        if Regex.IsMatch(VATRegistrationNo, '^[A-Za-z]{2}') then
             exit(VATRegistrationNo);
 
         exit(CountryCode.ToUpper() + VATRegistrationNo);

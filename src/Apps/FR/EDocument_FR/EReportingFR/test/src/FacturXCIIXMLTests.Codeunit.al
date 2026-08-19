@@ -27,7 +27,8 @@ using System.Utilities;
 codeunit 148148 "Factur-X CII XML Tests"
 {
     Subtype = Test;
-    Permissions = tabledata "Company Information" = rimd,
+    Permissions = tabledata "E-Document Service" = rimd,
+                  tabledata "Company Information" = rimd,
                   tabledata "Sales Invoice Header" = m,
                   tabledata Customer = rimd;
 
@@ -515,6 +516,81 @@ codeunit 148148 "Factur-X CII XML Tests"
         Assert.AreEqual('VA',
             GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID/@schemeID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID/@schemeID'));
+    end;
+
+    [Test]
+    procedure FacturXSalesInvoiceXMLPreservesLowercaseBuyerVATCountryPrefix()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X CII XML preserves a buyer VAT registration starting with a lowercase country prefix
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with buyer country "FR" and VAT registration "fr12345678901"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        SalesInvoiceHeader."Sell-to Country/Region Code" := 'FR';
+        SalesInvoiceHeader."VAT Registration No." := 'fr12345678901';
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Buyer VAT registration remains "fr12345678901"
+        Assert.AreEqual('fr12345678901',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'));
+    end;
+
+    [Test]
+    procedure FacturXSalesInvoiceXMLPrefixesBuyerVATStartingWithLetterAndDigit()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X CII XML prefixes a buyer VAT registration whose first two characters are not letters
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with buyer country "FR" and VAT registration "F12345678901"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        SalesInvoiceHeader."Sell-to Country/Region Code" := 'FR';
+        SalesInvoiceHeader."VAT Registration No." := 'F12345678901';
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Buyer VAT registration is "FRF12345678901"
+        Assert.AreEqual('FRF12345678901',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'));
+    end;
+
+    [Test]
+    procedure FacturXSalesInvoiceXMLPrefixesSingleCharacterBuyerVAT()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X CII XML prefixes a single-character buyer VAT registration
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with buyer country "FR" and VAT registration "1"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        SalesInvoiceHeader."Sell-to Country/Region Code" := 'FR';
+        SalesInvoiceHeader."VAT Registration No." := '1';
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Buyer VAT registration is "FR1"
+        Assert.AreEqual('FR1',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'));
     end;
 
     [Test]
@@ -1717,8 +1793,11 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     local procedure Initialize()
+    var
+        EDocumentService: Record "E-Document Service";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Factur-X CII XML Tests");
+        EDocumentService.DeleteAll();
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Factur-X CII XML Tests");

@@ -318,19 +318,23 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
         CommentText: Text[80];
+        OrdinaryCommentText: Text[80];
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A French regulatory comment is carried through posting and exported with its type in a UBL header note
         Initialize();
 
+        // [GIVEN] Sales invoice "SI" with an ordinary comment and an AAB regulatory comment
         CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
         InvoiceNo := CreateSalesInvoiceWithLine(CustomerNo);
         CommentText := 'No discount is granted for early payment.';
+        OrdinaryCommentText := 'Ordinary comment that must not be exported';
         SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
         SalesCommentLine."No." := InvoiceNo;
         SalesCommentLine."Line No." := 5000;
-        SalesCommentLine.Comment := 'Ordinary comment that must not be exported';
+        SalesCommentLine.Comment := OrdinaryCommentText;
         SalesCommentLine.Insert();
         SalesCommentLine.Init();
         SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
@@ -342,9 +346,18 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesHeader.Get("Sales Document Type"::Invoice, InvoiceNo);
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
+        // [WHEN] Posted sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        Assert.AreEqual('#AAB#' + CommentText, GetNodeByPath(XmlDoc, '/Invoice/cbc:Note'), StrSubstNo(IncorrectValueErr, 'Note'));
+        // [THEN] The AAB regulatory comment is exported as a UBL header note
+        Assert.AreEqual('#AAB#' + CommentText,
+            GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''#AAB#'')]'),
+            StrSubstNo(IncorrectValueErr, 'AAB regulatory note'));
+
+        // [THEN] The ordinary comment is not exported as a UBL header note
+        Assert.AreEqual('',
+            GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''' + OrdinaryCommentText + ''')]'),
+            StrSubstNo(IncorrectValueErr, 'Ordinary note should be empty'));
     end;
 
     [Test]
