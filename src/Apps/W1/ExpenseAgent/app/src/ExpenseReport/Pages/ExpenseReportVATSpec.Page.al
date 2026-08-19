@@ -100,6 +100,7 @@ page 7096 "Expense Report VAT Spec."
         if Rec.GetFilter("Document No.") = '' then
             exit;
 
+        ExpenseReportHeader.SetLoadFields("Reimbursement Currency Code");
         if ExpenseReportHeader.Get(Rec.GetRangeMin("Document No.")) then
             ShowRCYFields := ExpenseReportHeader."Reimbursement Currency Code" <> '';
     end;

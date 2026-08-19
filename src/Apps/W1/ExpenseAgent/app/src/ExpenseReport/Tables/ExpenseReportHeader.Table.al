@@ -697,7 +697,7 @@ table 6906 "Expense Report Header"
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
     begin
         ExpenseReportLineVATSpec.SetRange("Document No.", "No.");
-        if ExpenseReportLineVATSpec.FindSet() then
+        if ExpenseReportLineVATSpec.FindSet(true) then
             repeat
                 ExpenseReportLineVATSpec.UpdateReimbursementAmounts(Rec);
 #pragma warning disable AA0214

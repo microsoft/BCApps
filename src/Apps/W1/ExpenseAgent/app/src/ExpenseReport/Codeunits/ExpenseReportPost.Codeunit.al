@@ -17,6 +17,7 @@ using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Posting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
+using System.Telemetry;
 using System.Utilities;
 
 codeunit 6987 "Expense Report-Post"
@@ -60,6 +61,7 @@ codeunit 6987 "Expense Report-Post"
         VATSetup: Record "VAT Setup";
         SourceCodeSetup: Record "Source Code Setup";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         PreviewMode: Boolean;
         AmountToEmployee: Decimal;
         AmountToEmployeeLCY: Decimal;
@@ -73,12 +75,14 @@ codeunit 6987 "Expense Report-Post"
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending reimbursement notifications.';
         NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
+        AgentVATSpecificationsPostedLbl: Label 'Agent-authored VAT specifications posted.', Locked = true;
         ShowItLbl: Label 'Show it';
 
     internal procedure RunWithCheck(var ExpenseReportHeader: Record "Expense Report Header")
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         ReleaseExpenseReport: Codeunit "Release Exp. Report Document";
+        AgentVATSpecificationCount: Integer;
     begin
         SourceCodeSetup.Get();
         SourceCodeSetup.TestField(Expense);
@@ -93,16 +97,38 @@ codeunit 6987 "Expense Report-Post"
                 ReleaseExpenseReport.Run(ExpenseReportHeader);
 
         ExpenseReportHeader.Get(ExpenseReportHeader."No."); // Refresh after release
+        AgentVATSpecificationCount := GetAgentVATSpecificationCount(ExpenseReportHeader."No.");
 
         CheckAndCreatePostedDocument(ExpenseReportHeader);
 
         if not PreviewMode then begin
             if TrySendReimbursementNotification(PostedExpenseReportHeader) then;
             ExpenseReportHeader.Delete(true);
+            LogAgentVATSpecificationUsage(AgentVATSpecificationCount);
         end;
 
         if PreviewMode then
             GenJnlPostPreview.ThrowError();
+    end;
+
+    local procedure GetAgentVATSpecificationCount(ExpenseReportNo: Code[20]): Integer
+    var
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+    begin
+        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportNo);
+        ExpenseReportLineVATSpec.SetRange(Source, ExpenseReportLineVATSpec.Source::Agent);
+        exit(ExpenseReportLineVATSpec.Count());
+    end;
+
+    local procedure LogAgentVATSpecificationUsage(AgentVATSpecificationCount: Integer)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        if AgentVATSpecificationCount = 0 then
+            exit;
+
+        TelemetryDimensions.Add('VATSpecificationCount', Format(AgentVATSpecificationCount));
+        FeatureTelemetry.LogUsage('0000UZ8', ExpenseAgentSetup.GetFeatureName(), AgentVATSpecificationsPostedLbl, TelemetryDimensions);
     end;
 
     internal procedure PostExpenseReport(var ExpenseReportHeader: Record "Expense Report Header")
@@ -245,9 +271,27 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLineVATSpec.SetRange("Document Line No.", ExpenseReportLine."Line No.");
         if ExpenseReportLineVATSpec.FindSet() then
             repeat
+                ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec);
                 if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Pending" then
                     Error(GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec));
             until ExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    local procedure ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+    begin
+        if ExpenseReportLineVATSpec."Expense Category" = '' then
+            exit;
+
+        ExpenseCategory.Get(ExpenseReportLineVATSpec."Expense Category");
+        ExpenseCategory.TestField(Inactive, false);
+
+        if ExpenseReportLineVATSpec."Expense Subcategory" <> '' then begin
+            ExpenseSubcategory.Get(ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
+            ExpenseSubcategory.TestField(Inactive, false);
+        end;
     end;
 
     local procedure GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec."): ErrorInfo
@@ -258,6 +302,8 @@ codeunit 6987 "Expense Report-Post"
             PendingVATSpecErrorInfo.Message := StrSubstNo(NotApprovedForVATReclaimCategoryErr, ExpenseReportLineVATSpec."Expense Category")
         else
             PendingVATSpecErrorInfo.Message := StrSubstNo(NotApprovedForVATReclaimErr, ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
+        PendingVATSpecErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        PendingVATSpecErrorInfo.ErrorType := ErrorType::Client;
         PendingVATSpecErrorInfo.RecordId := ExpenseReportLineVATSpec.RecordId;
         PendingVATSpecErrorInfo.FieldNo := ExpenseReportLineVATSpec.FieldNo("Reclaim Status");
         PendingVATSpecErrorInfo.PageNo := Page::"Expense Report Line VAT Spec.";

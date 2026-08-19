@@ -34,42 +34,125 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
         if UpgradeTag.HasUpgradeTag(GetBackfillReimbursementAmountsUpgradeTag()) then
             exit;
 
+        CopyReimbursementAmountsFromLCY();
         BackfillExpenseReportLineVATSpecs();
         BackfillPostedExpenseReportLineVATSpecs();
 
-        UpgradeTag.SetUpgradeTag(GetBackfillReimbursementAmountsUpgradeTag());
+        SetBackfillReimbursementAmountsUpgradeTag();
+    end;
+
+    internal procedure SetBackfillReimbursementAmountsUpgradeTag()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if not UpgradeTag.HasUpgradeTag(GetBackfillReimbursementAmountsUpgradeTag()) then
+            UpgradeTag.SetUpgradeTag(GetBackfillReimbursementAmountsUpgradeTag());
+    end;
+
+    local procedure CopyReimbursementAmountsFromLCY()
+    var
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        PostedExpenseReportLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec";
+        ExpenseReportLineVATSpecDataTransfer: DataTransfer;
+        PostedExpenseReportLineVATSpecDataTransfer: DataTransfer;
+    begin
+        ExpenseReportLineVATSpecDataTransfer.SetTables(Database::"Expense Report Line VAT Spec.", Database::"Expense Report Line VAT Spec.");
+        ExpenseReportLineVATSpecDataTransfer.AddFieldValue(ExpenseReportLineVATSpec.FieldNo("VAT Base Amount (LCY)"), ExpenseReportLineVATSpec.FieldNo("VAT Base Amount (RCY)"));
+        ExpenseReportLineVATSpecDataTransfer.AddFieldValue(ExpenseReportLineVATSpec.FieldNo("VAT Amount (LCY)"), ExpenseReportLineVATSpec.FieldNo("VAT Amount (RCY)"));
+        ExpenseReportLineVATSpecDataTransfer.AddFieldValue(ExpenseReportLineVATSpec.FieldNo("Amount (LCY)"), ExpenseReportLineVATSpec.FieldNo("Amount (RCY)"));
+        ExpenseReportLineVATSpecDataTransfer.CopyFields();
+
+        PostedExpenseReportLineVATSpecDataTransfer.SetTables(Database::"Posted Exp. Rep. Line VAT Spec", Database::"Posted Exp. Rep. Line VAT Spec");
+        PostedExpenseReportLineVATSpecDataTransfer.AddFieldValue(PostedExpenseReportLineVATSpec.FieldNo("VAT Base Amount (LCY)"), PostedExpenseReportLineVATSpec.FieldNo("VAT Base Amount (RCY)"));
+        PostedExpenseReportLineVATSpecDataTransfer.AddFieldValue(PostedExpenseReportLineVATSpec.FieldNo("VAT Amount (LCY)"), PostedExpenseReportLineVATSpec.FieldNo("VAT Amount (RCY)"));
+        PostedExpenseReportLineVATSpecDataTransfer.AddFieldValue(PostedExpenseReportLineVATSpec.FieldNo("Amount (LCY)"), PostedExpenseReportLineVATSpec.FieldNo("Amount (RCY)"));
+        PostedExpenseReportLineVATSpecDataTransfer.CopyFields();
     end;
 
     local procedure BackfillExpenseReportLineVATSpecs()
     var
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        CachedDocumentNo: Code[20];
+        HasCachedDocumentNo: Boolean;
+        HeaderFound: Boolean;
     begin
-        if not ExpenseReportLineVATSpec.FindSet(true) then
+        ExpenseReportLineVATSpec.SetCurrentKey("Document No.", "Document Line No.", "Line No.");
+        if not ExpenseReportLineVATSpec.FindSet() then
             exit;
 
+        CachedDocumentNo := '';
         repeat
-            if ExpenseReportHeader.Get(ExpenseReportLineVATSpec."Document No.") then begin
-                ExpenseReportLineVATSpec.UpdateReimbursementAmounts(ExpenseReportHeader);
-                ExpenseReportLineVATSpec.Modify(false);
+            if (not HasCachedDocumentNo) or (CachedDocumentNo <> ExpenseReportLineVATSpec."Document No.") then begin
+                CachedDocumentNo := ExpenseReportLineVATSpec."Document No.";
+                HasCachedDocumentNo := true;
+                HeaderFound := ExpenseReportHeader.Get(CachedDocumentNo);
             end;
+
+            if HeaderFound then
+                if ExpenseReportHeader."Reimbursement Currency Code" <> '' then begin
+                    ExpenseReportLineVATSpec.UpdateReimbursementAmounts(ExpenseReportHeader);
+                    ExpenseReportLineVATSpec.Modify(false);
+                end else
+                    if ExpenseReportLineVATSpec."Reclaim %" <> 0 then begin
+                        UpdateExpenseReportLineReclaimAmount(ExpenseReportLineVATSpec);
+                        ExpenseReportLineVATSpec.Modify(false);
+                    end;
         until ExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    local procedure UpdateExpenseReportLineReclaimAmount(var ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
+    var
+        ReimbursementCurrency: Record Currency;
+    begin
+        ReimbursementCurrency.Initialize('');
+        ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)" :=
+            Round(
+                ExpenseReportLineVATSpec."VAT Amount (RCY)" * ExpenseReportLineVATSpec."Reclaim %" / 100,
+                ReimbursementCurrency."Amount Rounding Precision");
     end;
 
     local procedure BackfillPostedExpenseReportLineVATSpecs()
     var
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec";
+        CachedExpenseReportNo: Code[20];
+        HasCachedExpenseReportNo: Boolean;
+        HeaderFound: Boolean;
     begin
-        if not PostedExpenseReportLineVATSpec.FindSet(true) then
+        PostedExpenseReportLineVATSpec.SetCurrentKey("Expense Report No.", "Expense Report Line No.", "Line No.");
+        if not PostedExpenseReportLineVATSpec.FindSet() then
             exit;
 
+        CachedExpenseReportNo := '';
         repeat
-            if PostedExpenseReportHeader.Get(PostedExpenseReportLineVATSpec."Expense Report No.") then begin
-                UpdatePostedReimbursementAmounts(PostedExpenseReportLineVATSpec, PostedExpenseReportHeader);
-                PostedExpenseReportLineVATSpec.Modify(false);
+            if (not HasCachedExpenseReportNo) or (CachedExpenseReportNo <> PostedExpenseReportLineVATSpec."Expense Report No.") then begin
+                CachedExpenseReportNo := PostedExpenseReportLineVATSpec."Expense Report No.";
+                HasCachedExpenseReportNo := true;
+                HeaderFound := PostedExpenseReportHeader.Get(CachedExpenseReportNo);
             end;
+
+            if HeaderFound then
+                if PostedExpenseReportHeader."Reimbursement Currency Code" <> '' then begin
+                    UpdatePostedReimbursementAmounts(PostedExpenseReportLineVATSpec, PostedExpenseReportHeader);
+                    PostedExpenseReportLineVATSpec.Modify(false);
+                end else
+                    if PostedExpenseReportLineVATSpec."Reclaim %" <> 0 then begin
+                        UpdatePostedReclaimAmount(PostedExpenseReportLineVATSpec);
+                        PostedExpenseReportLineVATSpec.Modify(false);
+                    end;
         until PostedExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    local procedure UpdatePostedReclaimAmount(var PostedExpenseReportLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec")
+    var
+        ReimbursementCurrency: Record Currency;
+    begin
+        ReimbursementCurrency.Initialize('');
+        PostedExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)" :=
+            Round(
+                PostedExpenseReportLineVATSpec."VAT Amount (RCY)" * PostedExpenseReportLineVATSpec."Reclaim %" / 100,
+                ReimbursementCurrency."Amount Rounding Precision");
     end;
 
     local procedure UpdatePostedReimbursementAmounts(var PostedExpenseReportLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
@@ -79,26 +162,20 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
     begin
         ReimbursementCurrency.Initialize(PostedExpenseReportHeader."Reimbursement Currency Code");
 
-        if PostedExpenseReportHeader."Reimbursement Currency Code" = '' then begin
-            PostedExpenseReportLineVATSpec."VAT Base Amount (RCY)" := PostedExpenseReportLineVATSpec."VAT Base Amount (LCY)";
-            PostedExpenseReportLineVATSpec."VAT Amount (RCY)" := PostedExpenseReportLineVATSpec."VAT Amount (LCY)";
-            PostedExpenseReportLineVATSpec."Amount (RCY)" := PostedExpenseReportLineVATSpec."Amount (LCY)";
-        end else begin
-            PostedExpenseReportLineVATSpec."VAT Base Amount (RCY)" :=
-                Round(
-                    CurrencyExchangeRate.ExchangeAmtLCYToFCY(
-                        PostedExpenseReportHeader."Posting Date", PostedExpenseReportHeader."Reimbursement Currency Code",
-                        PostedExpenseReportLineVATSpec."VAT Base Amount (LCY)", PostedExpenseReportHeader."Reimbursement Currency Factor"),
-                    ReimbursementCurrency."Amount Rounding Precision");
-            PostedExpenseReportLineVATSpec."VAT Amount (RCY)" :=
-                Round(
-                    CurrencyExchangeRate.ExchangeAmtLCYToFCY(
-                        PostedExpenseReportHeader."Posting Date", PostedExpenseReportHeader."Reimbursement Currency Code",
-                        PostedExpenseReportLineVATSpec."VAT Amount (LCY)", PostedExpenseReportHeader."Reimbursement Currency Factor"),
-                    ReimbursementCurrency."Amount Rounding Precision");
-            PostedExpenseReportLineVATSpec."Amount (RCY)" :=
-                PostedExpenseReportLineVATSpec."VAT Base Amount (RCY)" + PostedExpenseReportLineVATSpec."VAT Amount (RCY)";
-        end;
+        PostedExpenseReportLineVATSpec."VAT Base Amount (RCY)" :=
+            Round(
+                CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                    PostedExpenseReportHeader."Posting Date", PostedExpenseReportHeader."Reimbursement Currency Code",
+                    PostedExpenseReportLineVATSpec."VAT Base Amount (LCY)", PostedExpenseReportHeader."Reimbursement Currency Factor"),
+                ReimbursementCurrency."Amount Rounding Precision");
+        PostedExpenseReportLineVATSpec."VAT Amount (RCY)" :=
+            Round(
+                CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                    PostedExpenseReportHeader."Posting Date", PostedExpenseReportHeader."Reimbursement Currency Code",
+                    PostedExpenseReportLineVATSpec."VAT Amount (LCY)", PostedExpenseReportHeader."Reimbursement Currency Factor"),
+                ReimbursementCurrency."Amount Rounding Precision");
+        PostedExpenseReportLineVATSpec."Amount (RCY)" :=
+            PostedExpenseReportLineVATSpec."VAT Base Amount (RCY)" + PostedExpenseReportLineVATSpec."VAT Amount (RCY)";
 
         PostedExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)" :=
             Round(

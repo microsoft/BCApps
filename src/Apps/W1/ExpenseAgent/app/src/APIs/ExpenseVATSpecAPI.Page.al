@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.Telemetry;
+
 page 7085 "Expense VAT Spec. API"
 {
     APIGroup = 'expense';
@@ -18,6 +20,8 @@ page 7085 "Expense VAT Spec. API"
     ODataKeyFields = SystemId;
     SourceTable = "Expense VAT Specification";
     AboutText = 'Provides access to data from the Expense VAT Specification table';
+    ModifyAllowed = false;
+    DeleteAllowed = false;
     AutoSplitKey = true;
 
     layout
@@ -114,9 +118,26 @@ page 7085 "Expense VAT Spec. API"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
+        InsertVATSpecification(Rec);
+        exit(false);
+    end;
+
+    internal procedure InsertVATSpecification(var ExpenseVATSpecification: Record "Expense VAT Specification")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
         VerifyExpenseAgentCaller();
-        Rec.Source := Rec.Source::Agent;
-        exit(true);
+        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
+        ExpenseAgentAPIValidation.AuthorizeAgentVATSpecificationInsert();
+        ExpenseVATSpecification.Insert(true);
+
+        TelemetryDimensions.Add('HasExpenseCategory', Format(ExpenseVATSpecification."Expense Category" <> ''));
+        TelemetryDimensions.Add('HasExpenseSubcategory', Format(ExpenseVATSpecification."Expense Subcategory" <> ''));
+        TelemetryDimensions.Add('HasVATProductPostingGroup', Format(ExpenseVATSpecification."VAT Prod. Posting Group" <> ''));
+        FeatureTelemetry.LogUptake('0000UZ7', ExpenseAgentSetup.GetFeatureName(), Enum::"Feature Uptake Status"::Used, TelemetryDimensions);
     end;
 
     var

@@ -193,7 +193,7 @@ page 7081 "Expense Report Line VAT Spec."
                         ExpenseReportLineVATSpec.SetRange("Document No.", Rec."Document No.");
                         ExpenseReportLineVATSpec.SetRange("Document Line No.", Rec."Document Line No.");
                         ExpenseReportLineVATSpec.SetRange("Reclaim Status", ExpenseReportLineVATSpec."Reclaim Status"::Pending);
-                        if ExpenseReportLineVATSpec.FindSet() then
+                        if ExpenseReportLineVATSpec.FindSet(true) then
                             repeat
                                 ExpenseReportLineVATSpec.Validate("Reclaim Status", Rec."Reclaim Status"::Approved);
                                 ExpenseReportLineVATSpec.Modify(true);
