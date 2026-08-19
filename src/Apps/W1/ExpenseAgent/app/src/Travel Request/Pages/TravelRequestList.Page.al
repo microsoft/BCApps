@@ -13,6 +13,7 @@ page 7106 "Travel Request List"
     ApplicationArea = Basic, Suite;
     UsageCategory = Lists;
     SourceTable = "Spend Request";
+    SourceTableView = where("Document Type" = const("Travel Request"));
     CardPageId = "Travel Request Card";
     Editable = false;
     RefreshOnActivate = true;

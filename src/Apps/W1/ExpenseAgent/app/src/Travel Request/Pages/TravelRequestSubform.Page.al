@@ -26,6 +26,20 @@ page 7105 "Travel Request Subform"
                     Visible = false;
                     ToolTip = 'Specifies the line number of the travel request line.';
                 }
+                field(Type; Rec.Type)
+                {
+                    ToolTip = 'Specifies whether the line covers a specific expense category or a lump sum amount.';
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(false);
+                    end;
+                }
+                field("Expense Category Code"; Rec."Expense Category Code")
+                {
+                    ToolTip = 'Specifies the expense category for the line. Available only when Type is Category.';
+                    Editable = Rec.Type = Rec.Type::Category;
+                }
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies a description of the travel request line.';

@@ -19,6 +19,7 @@ page 7099 "Travel Requests API"
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request";
+    SourceTableView = where("Document Type" = const("Travel Request"));
     AboutText = 'Provides access to data from the Travel Request table';
 
     layout

@@ -13,6 +13,7 @@ page 7104 "Travel Request Card"
     PageType = Document;
     ApplicationArea = Basic, Suite;
     SourceTable = "Spend Request";
+    SourceTableView = where("Document Type" = filter("Travel Request"));
 
     AboutTitle = 'About the travel request';
     AboutText = 'A travel request captures the intent to travel, its purpose, expected cost, schedule, and travelers, so it can be reviewed and approved before any expense is incurred.';
@@ -307,4 +308,8 @@ page 7104 "Travel Request Card"
         }
     }
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec."Document Type" := Rec."Document Type"::"Travel Request";
+    end;
 }

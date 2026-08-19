@@ -1041,7 +1041,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Travel Request No.';
             ToolTip = 'Specifies the travel request number that is associated with this expense report line. The travel request must be approved and released before it can be selected.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var

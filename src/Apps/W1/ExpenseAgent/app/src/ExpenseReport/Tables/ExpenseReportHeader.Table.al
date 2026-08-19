@@ -507,7 +507,7 @@ table 6906 "Expense Report Header"
         {
             Caption = 'Travel Request No.';
             ToolTip = 'Specifies the travel request number that is associated with this expense report.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var
