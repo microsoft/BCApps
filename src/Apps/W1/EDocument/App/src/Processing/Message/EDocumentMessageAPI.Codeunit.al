@@ -45,6 +45,17 @@ codeunit 6532 "E-Document Message API"
     begin
         exit(EDocMessageMgt.CreateMessage(EDocument, MessageType, Direction, ServiceCode, TempBlob));
     end;
+
+    /// <summary>
+    /// Creates an E-Document message with an explicit response type and stores its payload.
+    /// </summary>
+    procedure CreateMessage(EDocument: Record "E-Document"; MessageType: Enum "E-Document Message Type"; Direction: Enum "E-Document Direction"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob"): Integer
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        exit(EDocMessageMgt.CreateMessage(EDocument, MessageType, Direction, ResponseType, TempBlob));
+    end;
+
     /// <summary>
     /// Loads the payload for the specified E-Document message.
     /// </summary>
