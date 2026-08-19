@@ -11,13 +11,12 @@ codeunit 148308 "Expense Test Install"
 
     trigger OnInstallAppPerCompany()
     begin
-        if not TryRegisterExpenseTestHandlerService() then
-            if StrPos(GetLastErrorText(), ReadOnlyApplicationDatabaseErrFragmentLbl) = 0 then
-                Error(GetLastErrorText());
+#if not E2E_MULTITENANT
+        RegisterExpenseTestHandlerService();
+#endif
     end;
 
-    [TryFunction]
-    local procedure TryRegisterExpenseTestHandlerService()
+    local procedure RegisterExpenseTestHandlerService()
     var
         WebService: Record "Web Service";
         WebServiceManagement: Codeunit "Web Service Management";
@@ -25,7 +24,4 @@ codeunit 148308 "Expense Test Install"
         WebServiceManagement.CreateWebService(WebService."Object Type"::Codeunit, Codeunit::"Expense Test Handler API", 'ExpenseTestHandler',
           true);
     end;
-
-    var
-        ReadOnlyApplicationDatabaseErrFragmentLbl: Label 'application database as read-only', Locked = true;
 }
