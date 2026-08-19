@@ -1,0 +1,77 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "73714a8f07753d4a87c6",
+  "displayName": "Employee Ledger Entries",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "88e6b623cbb4ab6ab185",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Employees"
+              }
+            },
+            "Property": "Employee No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "7ac8ad6d80265505db3e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Employee Qualifications"
+              }
+            },
+            "Property": "Employee No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "265c029e14eaabb53389",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "c810dad57c405002cb5b",
+        "boundFilter": "88e6b623cbb4ab6ab185",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Employees"
+              }
+            },
+            "Property": "Employee No."
+          }
+        }
+      },
+      {
+        "name": "727ee9c19088b017936a",
+        "boundFilter": "7ac8ad6d80265505db3e",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Employee Qualifications"
+              }
+            },
+            "Property": "Employee No."
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode"
+}

@@ -204,7 +204,9 @@ page 20462 "Qlty. Prod. Gen. Rule S. Guide"
 
                         trigger OnValidate()
                         begin
-                            UpdateFullTextRuleStringsFromFilters();
+                            ClearLastError();
+                            if not UpdateFullTextRuleStringsFromFilters() then
+                                Error(DescriptionFilterErr, GetLastErrorText());
                         end;
                     }
                 }
@@ -451,6 +453,7 @@ page 20462 "Qlty. Prod. Gen. Rule S. Guide"
         ItemFilterErr: Label 'This Item filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         ItemCategoryFilterErr: Label 'This Item Category filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         InventoryPostingGroupErr: Label 'This Inventory Posting Group filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
+        DescriptionFilterErr: Label 'This Description filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
         WorkCenterNoErr: Label 'This Work Center No. filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         RuleAlreadyThereQst: Label 'You already have at least one rule with these same conditions. Are you sure you want to proceed?';

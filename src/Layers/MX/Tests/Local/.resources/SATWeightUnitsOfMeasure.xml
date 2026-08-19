@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<data-set-PesoUnidados xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<PesoUnidad>
+		<Code>Tu</Code>
+		<Name>Contenedor externo</Name>
+		<Descripcion>Tipo de caja de contención que sirve como contenedor de transporte externo, no especificado como equipo de transporte.</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>X1A</Code>
+		<Name>Tambor de acero</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>X1B</Code>
+		<Name>Tambor de aluminio</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>X1D</Code>
+		<Name>Tambor contrachapado</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>X1F</Code>
+		<Name>Contenedor flexible</Name>
+		<Descripcion>Contenedor de empaque de construcción flexible.</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>X1G</Code>
+		<Name>Tambor de fibra</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>X1w</Code>
+		<Name>Tambor de madera</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>X2C</Code>
+		<Name>Barril de madera</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>X3A</Code>
+		<Name>Bidón de acero</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>Q33</Code>
+		<Name>Picolitro</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>Q34</Code>
+		<Name>Nanolitro</Name>
+		<Descripcion>-</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>NM3</Code>
+		<Name>Metro cúbico normalizado</Name>
+		<Descripcion>Metros cúbicos normalizados (temperatura 0 ° C y presión 101325 milibares)</Descripcion>
+	</PesoUnidad>
+	<PesoUnidad>
+		<Code>SM3</Code>
+		<Name>Metro cúbico estándar</Name>
+		<Descripcion>Metro cúbico estándar (temperatura 15 ° C y presión 101325 milibares)</Descripcion>
+	</PesoUnidad>
+</data-set-PesoUnidados>

@@ -5,12 +5,14 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 enum 6121 "E-Document Type" implements IEDocumentFinishDraft
 {
     Extensible = true;
     DefaultImplementation = IEDocumentFinishDraft = "E-Doc. Unspecified Impl.";
+    UnknownValueImplementation = IEDocumentFinishDraft = "E-Doc. Unspecified Impl.";
 
     value(0; "None")
     {
@@ -23,6 +25,7 @@ enum 6121 "E-Document Type" implements IEDocumentFinishDraft
     value(2; "Sales Order")
     {
         Caption = 'Sales Order';
+        Implementation = IEDocumentFinishDraft = "E-Doc. Create Sales Order";
     }
     value(3; "Sales Invoice")
     {
@@ -101,5 +104,13 @@ enum 6121 "E-Document Type" implements IEDocumentFinishDraft
     value(21; "Transfer Shipment")
     {
         Caption = 'Transfer Shipment';
+    }
+    value(22; "Order Response")
+    {
+        Caption = 'Order Response';
+    }
+    value(23; "Remittance Advice")
+    {
+        Caption = 'Remittance Advice';
     }
 }

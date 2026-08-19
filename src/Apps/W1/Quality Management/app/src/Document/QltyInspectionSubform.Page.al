@@ -59,7 +59,7 @@ page 20407 "Qlty. Inspection Subform"
                     trigger OnAssistEdit()
                     begin
                         Rec.CalcFields("Test Value Type");
-                        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Label" then
+                        if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Label", Rec."Test Value Type"::"Value Type Text Expression"] then
                             exit;
                         UpdateRowData();
 
@@ -371,10 +371,10 @@ page 20407 "Qlty. Inspection Subform"
     begin
         OnBeforeCanEditTestValue(Rec, Result, IsHandled);
         if IsHandled then
-            exit;
+            exit(Result);
 
         Rec.CalcFields("Test Value Type");
-        exit(not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Label"]));
+        exit(not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Label", Rec."Test Value Type"::"Value Type Text Expression"]));
     end;
 
     /// <summary>

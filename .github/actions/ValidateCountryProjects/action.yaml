@@ -1,0 +1,13 @@
+name: Validate Country Projects
+author: Microsoft Corporation
+description: Validates that country project settings.json files have correct W1 app dependencies.
+runs:
+  using: composite
+  steps:
+    - name: Validate Country Projects
+      shell: pwsh
+      run: |
+        ${{ github.action_path }}/action.ps1
+branding:
+  icon: terminal
+  color: blue

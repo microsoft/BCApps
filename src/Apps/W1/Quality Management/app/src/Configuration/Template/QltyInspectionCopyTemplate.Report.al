@@ -6,6 +6,7 @@ namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Result;
+using Microsoft.QualityManagement.Telemetry;
 
 /// <summary>
 /// Copy/Duplicate an Existing Quality Inspection Template.
@@ -100,6 +101,13 @@ report 20402 "Qlty. Inspection Copy Template"
             }
         }
     }
+
+    trigger OnPreReport()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeSetup(ObjectType::Report, Report::"Qlty. Inspection Copy Template");
+    end;
 
     var
         CreateFromItems: Boolean;

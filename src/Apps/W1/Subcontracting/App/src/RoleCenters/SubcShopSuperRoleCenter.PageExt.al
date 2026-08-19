@@ -15,7 +15,7 @@ pageextension 99001540 "Subc. Shop Super. Role Center" extends "Shop Supervisor 
         {
             action("Subc. Subcontracting Worksheets")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Worksheets';
                 RunObject = Page "Req. Wksh. Names";
                 RunPageView = where("Template Type" = const(Subcontracting),

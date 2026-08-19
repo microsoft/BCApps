@@ -7,6 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Telemetry;
 using System.Text;
 
 /// <summary>
@@ -25,6 +26,7 @@ page 20401 "Qlty. Tests"
     PageType = List;
     SourceTable = "Qlty. Test";
     SourceTableView = sorting(Code);
+    AccessByPermission = tabledata "Qlty. Test" = R;
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 
@@ -270,8 +272,11 @@ page 20401 "Qlty. Tests"
 
     trigger OnOpenPage()
     var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
         MatrixVisibleState: array[10] of Boolean;
     begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Tests");
+
         QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];

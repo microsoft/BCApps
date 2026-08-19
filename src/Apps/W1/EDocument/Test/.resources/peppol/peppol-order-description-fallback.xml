@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PEPPOL BIS Ordering 3.0 — Description fallback test.
+     Line 1: cbc:Name only       → Description = 'Widget Alpha'
+     Line 2: cbc:Description only (no cbc:Name) → Description = 'Detailed description of Widget Beta'
+     Line 3: both cbc:Name and cbc:Description  → Description = 'Widget Gamma' (Name takes priority)
+     Tests PopulateSalesLine description cascade logic. -->
+<Order xmlns="urn:oasis:names:specification:ubl:schema:xsd:Order-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+    <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order:3</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:ordering:01:1.0</cbc:ProfileID>
+    <cbc:ID>ORD-DESC-001</cbc:ID>
+    <cbc:IssueDate>2026-04-10</cbc:IssueDate>
+    <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+    <cac:BuyerCustomerParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="0088">1234567890128</cbc:EndpointID>
+            <cac:PartyName>
+                <cbc:Name>Buyer Corp AS</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:BuyerCustomerParty>
+    <cac:SellerSupplierParty>
+        <cac:Party>
+            <cac:PartyName>
+                <cbc:Name>Seller Ltd.</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:SellerSupplierParty>
+    <cac:AnticipatedMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="XYZ">1500.00</cbc:LineExtensionAmount>
+        <cbc:PayableAmount currencyID="XYZ">1875.00</cbc:PayableAmount>
+    </cac:AnticipatedMonetaryTotal>
+    <cac:OrderLine>
+        <!-- Line 1: Name only -->
+        <cac:LineItem>
+            <cbc:ID>1</cbc:ID>
+            <cbc:Quantity unitCode="EA">5</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">500.00</cbc:LineExtensionAmount>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">100.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Widget Alpha</cbc:Name>
+                <cac:ClassifiedTaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>25</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>VAT</cbc:ID>
+                    </cac:TaxScheme>
+                </cac:ClassifiedTaxCategory>
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+    <cac:OrderLine>
+        <!-- Line 2: cbc:Description only, no cbc:Name -->
+        <cac:LineItem>
+            <cbc:ID>2</cbc:ID>
+            <cbc:Quantity unitCode="EA">5</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">500.00</cbc:LineExtensionAmount>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">100.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Description>Detailed description of Widget Beta</cbc:Description>
+                <!-- No cbc:Name — parser should fall back to cbc:Description -->
+                <cac:ClassifiedTaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>25</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>VAT</cbc:ID>
+                    </cac:TaxScheme>
+                </cac:ClassifiedTaxCategory>
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+    <cac:OrderLine>
+        <!-- Line 3: both Name and Description — Name takes priority -->
+        <cac:LineItem>
+            <cbc:ID>3</cbc:ID>
+            <cbc:Quantity unitCode="EA">5</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">500.00</cbc:LineExtensionAmount>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">100.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Widget Gamma</cbc:Name>
+                <cbc:Description>Verbose description that should be ignored when Name is present</cbc:Description>
+                <cac:ClassifiedTaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>25</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>VAT</cbc:ID>
+                    </cac:TaxScheme>
+                </cac:ClassifiedTaxCategory>
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+</Order>

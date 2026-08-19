@@ -106,7 +106,9 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
 
                     trigger OnValidate()
                     begin
-                        UpdateFullTextRuleStringsFromFilters();
+                        ClearLastError();
+                        if not UpdateFullTextRuleStringsFromFilters() then
+                            Error(DescriptionFilterErr, GetLastErrorText());
                     end;
                 }
                 field(ChooseadvancedAssembly; 'Click here to choose advanced fields...')
@@ -341,6 +343,7 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
         ItemFilterErr: Label 'This Item filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         ItemCategoryFilterErr: Label 'This Item Category filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         InventoryPostingGroupErr: Label 'This Inventory Posting Group filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
+        DescriptionFilterErr: Label 'This Description filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
         RuleAlreadyThereQst: Label 'You already have at least one rule with these same conditions. Are you sure you want to proceed?';
         FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';

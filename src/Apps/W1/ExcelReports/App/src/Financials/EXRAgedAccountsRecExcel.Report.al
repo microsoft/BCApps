@@ -83,8 +83,9 @@ report 4402 "EXR Aged Accounts Rec Excel"
                 {
                     IncludeCaption = true;
                 }
-                column(CurrencyCode; CurrencyCodeDisplayCode)
+                column(CurrencyCode; "Currency Code")
                 {
+                    IncludeCaption = true;
                 }
                 column(PostingDate; "Posting Date")
                 {
@@ -125,11 +126,7 @@ report 4402 "EXR Aged Accounts Rec Excel"
                 Clear(AgingData);
                 AgingData.DeleteAll();
                 InsertAgingData(CustomerAgingData);
-
-                if AgingData."Currency Code" = '' then
-                    CurrencyCodeDisplayCode := GeneralLedgerSetup.GetCurrencyCode('')
-                else
-                    CurrencyCodeDisplayCode := AgingData."Currency Code";
+                CurrencyCodeDisplayCode := AgingData."Currency Code";
             end;
         }
 
@@ -270,7 +267,6 @@ report 4402 "EXR Aged Accounts Rec Excel"
         DueByCurrencies = 'Due by Currencies', MaxLength = 31, Comment = 'Excel worksheet name.';
         OpenByFCY = 'Open by (FCY)';
         DataRetrieved = 'Data retrieved:';
-        CurrencyCodeDisplay = 'Currency Code';
         AgedAsOf = 'Aged as of:';
         AgedAccountsReceivable = 'Aged Accounts Receivable';
         AgedAccountsReceivablePrint = 'Aged Accounts Rec. (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
@@ -321,6 +317,9 @@ report 4402 "EXR Aged Accounts Rec Excel"
         if PeriodCount = 0 then
             PeriodCount := 5;
 
+        if not GeneralLedgerSetup.Get() then
+            Clear(GeneralLedgerSetup);
+
         WorkingEndDate := EndingDate;
         WorkingStartDate := CalcDate(PeriodLength, WorkingEndDate);
         repeat
@@ -342,11 +341,23 @@ report 4402 "EXR Aged Accounts Rec Excel"
     local procedure InsertAgingData(var Customer: Record Customer)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        EarliestPeriodStart: Date;
     begin
+        EarliestPeriodStart := PeriodStarts.Get(PeriodStarts.Count());
         CustLedgerEntry.SetCurrentKey("Customer No.", Open, Positive, "Due Date", "Currency Code");
         CustLedgerEntry.SetRange("Customer No.", Customer."No.");
         CustLedgerEntry.SetRange("Posting Date", 0D, EndingDate);
         CustLedgerEntry.SetRange("Date Filter", 0D, EndingDate);
+
+        case TempEXRAgingReportBuffer."Aged By" of
+            TempEXRAgingReportBuffer."Aged By"::"Due Date":
+                CustLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Posting Date":
+                CustLedgerEntry.SetRange("Posting Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Document Date":
+                CustLedgerEntry.SetRange("Document Date", EarliestPeriodStart, EndingDate);
+        end;
+
         CustLedgerEntry.SetAutoCalcFields("Remaining Amt. (LCY)", "Remaining Amount", "Original Amount", "Original Amt. (LCY)");
         CustLedgerEntry.SetFilter("Remaining Amt. (LCY)", '<>0');
         if CustLedgerEntry.FindSet() then
@@ -365,7 +376,10 @@ report 4402 "EXR Aged Accounts Rec Excel"
         AgingData."Document Type" := CustLedgerEntry."Document Type";
         AgingData."Dimension 1 Code" := CustLedgerEntry."Global Dimension 1 Code";
         AgingData."Dimension 2 Code" := CustLedgerEntry."Global Dimension 2 Code";
-        AgingData."Currency Code" := CustLedgerEntry."Currency Code";
+        if CustLedgerEntry."Currency Code" = '' then
+            AgingData."Currency Code" := GeneralLedgerSetup.GetCurrencyCode('')
+        else
+            AgingData."Currency Code" := CustLedgerEntry."Currency Code";
         AgingData."Posting Date" := CustLedgerEntry."Posting Date";
         AgingData."Document Date" := CustLedgerEntry."Document Date";
         AgingData."Due Date" := CustLedgerEntry."Due Date";

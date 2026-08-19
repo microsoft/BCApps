@@ -19,31 +19,31 @@ pageextension 99001550 "Subc. ShopSuperbasicActivity" extends "Shop Super. basic
                 Caption = 'Subcontracting';
                 field("Subcontracting Purchase Orders"; Rec."Subcontracting Purchase Orders")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     DrillDownPageId = "Purchase Order List";
                     ToolTip = 'Specifies the number of open purchase orders that are subcontracting orders.';
                 }
                 field("Subc. Purch. Lines Outstd."; Rec."Subc. Purch. Lines Outstd.")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     ToolTip = 'Specifies the number of outstanding subcontracting purchase order lines that have not yet been fully received.';
                     Visible = false;
                 }
                 field("Subc. Purch. Lines Total"; Rec."Subc. Purch. Lines Total")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     ToolTip = 'Specifies the total number of subcontracting purchase order lines.';
                     Visible = false;
                 }
                 field("Transfers to Subcontractor"; Rec."Transfers to Subcontractor")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     DrillDownPageId = "Transfer Orders";
                     ToolTip = 'Specifies the number of transfer orders to subcontractors.';
                 }
                 field("Returns from Subcontractor"; Rec."Returns from Subcontractor")
                 {
-                    ApplicationArea = Manufacturing;
+                    ApplicationArea = Subcontracting;
                     DrillDownPageId = "Transfer Orders";
                     ToolTip = 'Specifies the number of transfer orders that are returns from subcontractors.';
                 }
@@ -56,7 +56,7 @@ pageextension 99001550 "Subc. ShopSuperbasicActivity" extends "Shop Super. basic
                 {
                     action("Subc. Edit Subcontracting Worksheet")
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Subcontracting;
                         Caption = 'Edit Subcontracting Worksheet';
                         RunObject = Page "Subc. Subcontracting Worksheet";
                         ToolTip = 'Plan outsourcing of operation on released production orders.';

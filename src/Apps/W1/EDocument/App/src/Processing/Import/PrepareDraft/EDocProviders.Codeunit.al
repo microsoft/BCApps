@@ -32,18 +32,23 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
         ServiceParticipant: Record "Service Participant";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocumentHasNoVendorInformation: Boolean;
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         EDocumentHasNoVendorInformation := (EDocumentPurchaseHeader."Vendor GLN" = '') and (EDocumentPurchaseHeader."Vendor VAT Id" = '') and (EDocumentPurchaseHeader."Vendor External Id" = '') and (EDocumentPurchaseHeader."Vendor Company Name" = '') and (EDocumentPurchaseHeader."Vendor Address" = '');
-        if EDocumentHasNoVendorInformation then
+
+        EDocImpSessionTelemetry.SetBool('Vendor Info Present', not EDocumentHasNoVendorInformation);
+
+        if EDocumentHasNoVendorInformation then begin
             // We warn if there's no vendor information extracted from the E-Document, unless we are aware that it is a blank draft
             if EDocument."Read into Draft Impl." <> "E-Doc. Read into Draft"::"Blank Draft" then
                 EDocErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("[BC] Vendor No."), NoVendorInformationErr);
 
-        // If the E-Document has no vendor information, we can't find the vendor, so we exit early
-        if EDocumentHasNoVendorInformation then
+            // If the E-Document has no vendor information, we can't find the vendor, so we exit early
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'None - No Vendor Info');
             exit;
+        end;
 
         if Vendor.Get(EDocumentImportHelper.FindVendor('', EDocumentPurchaseHeader."Vendor GLN", CopyStr(EDocumentPurchaseHeader."Vendor VAT Id", 1, 20))) then
             exit;
@@ -55,10 +60,17 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
             ServiceParticipant.SetRange(Service);
             if ServiceParticipant.FindFirst() then;
         end;
-        if Vendor.Get(ServiceParticipant.Participant) then
+        if Vendor.Get(ServiceParticipant.Participant) then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Service Participant');
             exit;
+        end;
 
-        if Vendor.Get(EDocumentImportHelper.FindVendorByNameAndAddress(EDocumentPurchaseHeader."Vendor Company Name", EDocumentPurchaseHeader."Vendor Address")) then;
+        if Vendor.Get(EDocumentImportHelper.FindVendorByNameAndAddress(EDocumentPurchaseHeader."Vendor Company Name", EDocumentPurchaseHeader."Vendor Address")) then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Name and Address');
+            exit;
+        end;
+
+        EDocImpSessionTelemetry.SetText('Vendor Match Method', 'None - No Match');
     end;
 
     procedure GetUnitOfMeasure(EDocumentHeader: Record "E-Document"; EDocumentLineId: Integer; ExternalUnitOfMeasure: Text) UnitOfMeasure: Record "Unit of Measure"

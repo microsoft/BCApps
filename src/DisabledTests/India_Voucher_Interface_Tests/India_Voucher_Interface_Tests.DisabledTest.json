@@ -1,0 +1,372 @@
+[
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankPaymentVoucherForGLEntries"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankPaymentVoucherUsingCompanyInformation"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankPaymentVoucherWithChequeNumberAndChequeDate"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankPaymentVoucherWithCorrectGLEntries"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankPaymentVoucherWithDebitAccount"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankPaymentVoucherWithDifferentPostingDates"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankPaymentVoucherWithLineNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankPaymentVoucherWithVoucherNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankReceiptVocuherForGLEntries"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankReceiptVoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankReceiptVoucherUsingCompanyInformation"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankReceiptVoucherWithCreditAccount"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "BankReceiptVoucherwithdifferentPostingDateVoucherNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashAccountInBankReceiptVoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashPaymentVoucherMultiLineWithDifferentPostingDate"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashPaymentVoucherMultiLineWithDifferentPostingDateWithLineNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashPaymentVoucherMultiLineWithDifferentPostingDateWithNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashPaymentVoucherMultiLineWithLineNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashPaymentVoucherUsingCompanyInformation"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashPaymentVoucherWithDebitAccount"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashReceiptVoucherUsingCompanyInformation"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashReceiptVoucherWithCorrectGLEntries"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashReceiptVoucherWithDifferentPostingDate"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashReceiptVoucherWithLineNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CashReceiptVoucherWithNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CheckBankReceiptvVoucherWithsSecificNoseries"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CheckIfSystemIsAllowingTotalVoucherInBankreceiptvoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CheckLocationCodeWithNoSeriesOnBankPaymentVoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CheckLocationCodeWithNoSeriesOnCashReceiptVoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CheckLocationCodeWithNoSeriesOnContraVoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CheckMultilineBankReceiptVoucherWithLineNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "ContraVoucherWithCashAndBankAccount"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "ContraVoucherWithDifferentPostingDates"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CreateContraVoucherWithChequeDateAndChequeNumber"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CreatedCashReceiptVoucherWithSpecificNoseries"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CreateJournalVoucherWithSpecficNoSeries"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CreateVoucherSetupThroughCompanyInformation"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "CreateVoucherSetupThroughLocation"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromContraVoucherWithCompanyInformation"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromContraVoucherWithVoucherNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromJournalVoucherWithMultiLines"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromJournalVoucherWithVoucherNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromMultiLineCashPaymentVoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromMultiLineContraVoucherwithVoucherSetup"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromMultiLineJournalVoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromMultiLineJournalVoucherNotAffectingCashandBankAccounts"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromMultiLineJournalVoucherWithDifferentPostingDates"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "PostFromMultiLineJournalVoucherWithVoucherNarration"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "ToCheckChequeNumberAndDateInBankReceiptVoucher"
+  },
+  {
+    "codeunitId": 18996,
+    "codeunitName": "Voucher Interface Tests",
+    "method": "ToCheckPagesofDifferentTypeofVoucher"
+  },
+  {
+    "codeunitId": 18998,
+    "codeunitName": "Voucher Reports Tests",
+    "method": "VerifyFieldValuesOnBankBookReport"
+  },
+  {
+    "codeunitId": 18998,
+    "codeunitName": "Voucher Reports Tests",
+    "method": "VerifyFieldValuesOnDayBookReport"
+  },
+  {
+    "codeunitId": 18998,
+    "codeunitName": "Voucher Reports Tests",
+    "method": "VerifyFieldValuesOnVoucherRegisterReport"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyCheckLedgerEntriesWithBankPaymentTypeManualCheck"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyCheckLedgerEntriesWithChequeDateOnBankPaymentVoucher"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyCheckLedgerEntriesWithChequeDateOnPaymentJournal"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyCheckLedgerEntriesWithChequeDateThrougBankPaymentVoucher"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyCheckLedgerEntriesWithChequeNo"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyCheckLedgerEntriesWithChequeNoThrougBankPaymentVoucher"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyCheckLedgerEntriesWithChequeNoThrougPaymentJournal"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyCheckMarkedStaleErrorOnBankLedgerEntry"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleCheckOnBankAccLedgerEntriesWithActivateChequeNo"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleCheckOnBankLedgerEntriesNotActiveThroughBankPaymnt"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleCheckOnBankLedgerEntriesNotActiveThroughPaymntJnl"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleCheckOnCheckLedgerEntries"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleCheckOnCheckLedgerEntriesWithActivateChequeNo"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleCheckOnCheckLedgerEntriesWithoutActivateChequeNo"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleCheckOnCheckLedgerEntriesWithTDS"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleCheckOnCheckLedgerEntriesWithTDSComputerCheque"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyStaleChequeExpiryDateErrorOnBankLedgerEntry"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyVoidCheckOnCheckLedgerEntries"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyVoidCheckOnCheckLedgerEntriesCheckNotActiveThroughBankPaymentVoucher"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyVoidCheckOnCheckLedgerEntriesCheckNotActiveThroughPaymentJnlManual"
+  },
+  {
+    "codeunitId": 18999,
+    "codeunitName": "Stale Cheque Tests",
+    "method": "VerifyVoidCheckOnCheckLedgerEntriesCheckNotActiveThroughPaymentJournal"
+  }
+]

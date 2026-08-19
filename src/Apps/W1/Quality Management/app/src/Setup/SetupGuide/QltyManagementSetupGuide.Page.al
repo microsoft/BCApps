@@ -6,10 +6,10 @@ namespace Microsoft.QualityManagement.Setup.SetupGuide;
 
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Telemetry;
 using System.Utilities;
 
 page 20438 "Qlty. Management Setup Guide"
@@ -97,10 +97,8 @@ page 20438 "Qlty. Management Setup Guide"
     var
         MediaRepositoryStandard: Record "Media Repository";
         MediaResourcesStandard: Record "Media Resources";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         TopBannerVisible: Boolean;
         MainPageVisible: Boolean;
-        QualityManagementTok: Label 'Quality Management', Locked = true;
         SettingsLinkLbl: Label 'Open My Settings';
 
     trigger OnInit();
@@ -110,19 +108,22 @@ page 20438 "Qlty. Management Setup Guide"
     end;
 
     trigger OnOpenPage();
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIC', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Management Setup Guide");
     end;
 
     local procedure DoneAction();
     var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
         GuidedExperience: Codeunit "Guided Experience";
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Qlty. Management Setup Guide");
 
-        FeatureTelemetry.LogUptake('0000QIB', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeSetup(ObjectType::Page, Page::"Qlty. Management Setup Guide");
 
         QltyNotificationMgmt.InitializeAllNotifications();
         QltyApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();

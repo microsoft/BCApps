@@ -106,11 +106,11 @@
             "allowance_charge_reason": "",
             "amount": {
                 "currency_id": "",
-                "value": "0"
+                "value": 0
             },
             "tax_category": {
                 "id": "",
-                "percent": "0",
+                "percent": 0,
                 "tax_scheme": {
                     "id": ""
                 }
@@ -118,14 +118,14 @@
         }
     ],
     "tax_total": {
-        "tax_amount": "0",
+        "tax_amount": 0,
         "tax_subtotal": [
             {
-                "taxable_amount": "0",
-                "tax_amount": "0",
+                "taxable_amount": 0,
+                "tax_amount": 0,
                 "tax_category": {
                     "id": "",
-                    "percent": "0",
+                    "percent": 0,
                     "tax_scheme": {
                         "id": ""
                     }
@@ -134,32 +134,33 @@
         ]
     },
     "legal_monetary_total": {
-        "line_extension_amount": "0",
-        "tax_exclusive_amount": "0",
-        "tax_inclusive_amount": "0",
-        "allowance_total_amount": "0",
-        "charge_total_amount": "0",
-        "payable_amount": "0"
+        "line_extension_amount": 0,
+        "tax_exclusive_amount": 0,
+        "tax_inclusive_amount": 0,
+        "allowance_total_amount": 0,
+        "charge_total_amount": 0,
+        "payable_amount": 0
     },
     "invoice_line": [
         {
             "id": "",
             "invoiced_quantity": {
                 "unit_code": "",
-                "value": "0"
+                "value": 0
             },
-            "line_extension_amount": "0",
+            "line_extension_amount": 0,
             "allowance_charge": {
                 "charge_indicator": false,
                 "allowance_charge_reason_code": 0,
                 "allowance_charge_reason": "",
+                "percent": 0,
                 "amount": {
                     "currency_id": "",
-                    "value": "0"
+                    "value": 0
                 },
                 "tax_category": {
                     "id": "",
-                    "percent": "0",
+                    "percent": 0,
                     "tax_scheme": {
                         "id": ""
                     }
@@ -172,14 +173,14 @@
                 },
                 "classified_tax_category": {
                     "id": "",
-                    "percent": "0",
+                    "percent": 0,
                     "tax_scheme": {
                         "id": ""
                     }
                 }
             },
             "price": {
-                "price_amount": "0"
+                "price_amount": 0
             }
         }
     ]

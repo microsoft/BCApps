@@ -470,7 +470,7 @@ page 20414 "Qlty. Inspections API"
     /// <param name="optionalDestinationLocation">When left blank this assumes the same location as the from location.</param>
     /// <param name="optionalDestinationBin">The target bin to move to.</param>
     /// <param name="optionalSpecificQuantity">Quantity to move, if updating a specific quantity</param>
-    /// <param name="postImmediately">When set to TRUE this will post journals immediately or create the warehouse movement.  Verify you have sufficient licensing to use this flag.</param>
+    /// <param name="postImmediately">When set to TRUE this will post journals immediately or create the warehouse movement. Verify you have sufficient licensing to use this flag.</param>
     /// <param name="optionalSourceLocationFilter">Optionally restrict the locations to move from. </param>
     /// <param name="optionalSourceBinFilter">Optionally restrict the specific bins to move from.</param>
     /// <param name="useMoveSheet">When set to TRUE, will use the Movement Worksheet instead of a reclassification journal.</param>

@@ -1,0 +1,3 @@
+Code,Description,ReceivablesAccount,ServiceChargeAcc,PaymentDiscDebitAcc,InvoiceRoundingAccount,AdditionalFeeAccount,InterestAccount,DebitCurrApplnRndgAcc,CreditCurrApplnRndgAcc,DebitRoundingAccount,CreditRoundingAccount,PaymentDiscCreditAcc,PaymentToleranceDebitAcc,PaymentToleranceCreditAcc,AddFeePerLineAccount
+TCPG1,Test Cust Posting Grp 1,,,,,,,,,,,,,,
+TCPG2,Test Cust Posting Grp 2,,,,,,,,,,,,,,

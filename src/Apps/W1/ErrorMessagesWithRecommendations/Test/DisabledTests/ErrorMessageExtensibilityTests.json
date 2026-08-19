@@ -1,8 +1,0 @@
-[
-    {
-        "bug": "602230",
-        "codeunitId": 139621,
-        "CodeunitName": "ErrorMessageExtensibilityTests",
-        "Method": "GlobalDimensionsWhenDimensionMustBeSameErrorFixWithDrillDownUI"
-    }
-]

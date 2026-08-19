@@ -1,0 +1,131 @@
+table 'Emission Fees'
+	lineageTag: 3a19b8b1-42d9-483b-8642-4b80854e6852
+
+	measure 'CO2e Target' =
+			
+			( [CO2 Target] * [CO2 Carbon Equivalent] ) + ( [CH4 Target] * [CH4 Carbon Equivalent] ) + ( [N2O Target] * [N2O Carbon Equivalent] )
+		formatString: 0.00
+		displayFolder: _Emissions Fees Measures
+		lineageTag: 56c15b36-8a7f-4061-a605-199039d691ce
+
+	measure 'CO2 Carbon Equivalent' =
+			
+			CALCULATE (
+			    SUM ( 'Emission Fees'[Carbon Equivalent Factor] ),
+			    'Emission Fees'[Emission Type] = "CO2"
+			)
+		displayFolder: _Emissions Fees Measures
+		lineageTag: 7098868a-fe63-4514-bfd5-d87690bf39b8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CH4 Carbon Equivalent' =
+			
+			CALCULATE (
+			    SUM ( 'Emission Fees'[Carbon Equivalent Factor] ),
+			    'Emission Fees'[Emission Type] = "CH4"
+			)
+		displayFolder: _Emissions Fees Measures
+		lineageTag: 8544e1fc-381c-41ab-bb7c-c6d30fc8406b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'N2O Carbon Equivalent' =
+			
+			CALCULATE (
+			    SUM ( 'Emission Fees'[Carbon Equivalent Factor] ),
+			    'Emission Fees'[Emission Type] = "N2O"
+			)
+		formatString: 0.0000000000
+		displayFolder: _Emissions Fees Measures
+		lineageTag: b5b8d805-dbc9-4331-8c7a-b665305a04fb
+
+	column 'Emission Type'
+		dataType: string
+		lineageTag: 0a8ab281-ab77-4f60-bf8d-18c5a098dad3
+		summarizeBy: none
+		sourceColumn: Emission Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Scope Type'
+		dataType: string
+		lineageTag: 9d5b9e9b-c336-4ab4-ab1e-9ddf260b08ff
+		summarizeBy: none
+		sourceColumn: Scope Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Starting Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0eb56f57-e7a0-4574-addc-849e08017ebc
+		summarizeBy: none
+		sourceColumn: Starting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Ending Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 00c07462-4b47-452b-aa03-d63933c657a0
+		summarizeBy: none
+		sourceColumn: Ending Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Country Region Code'
+		dataType: string
+		lineageTag: f597564c-4f8d-447b-aaa6-55bc4303bbe5
+		summarizeBy: none
+		sourceColumn: Country Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Responsibility Centre'
+		dataType: string
+		lineageTag: 3505d97f-87bb-474f-92af-97c95b56cda2
+		summarizeBy: none
+		sourceColumn: Responsibility Centre
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Carbon Fee'
+		dataType: double
+		lineageTag: 1ac537aa-360e-437b-8bb1-e4eecf6ea941
+		summarizeBy: sum
+		sourceColumn: Carbon Fee
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Carbon Equivalent Factor'
+		dataType: double
+		formatString: 0.0000000000
+		lineageTag: 28b5df6a-4754-4ccb-9823-8d0975405b5d
+		summarizeBy: none
+		sourceColumn: Carbon Equivalent Factor
+
+		annotation SummarizationSetBy = User
+
+	partition 'Emission Fees' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiEmissionFees",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"emissionType", "Emission Type"}, {"scopeType", "Scope Type"}, {"startingDate", "Starting Date"}, {"endingDate", "Ending Date"}, {"countryRegionCode", "Country Region Code"}, {"responsibilityCentre", "Responsibility Centre"}, {"carbonFee", "Carbon Fee"}, {"carbonEquivalentFactor", "Carbon Equivalent Factor"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

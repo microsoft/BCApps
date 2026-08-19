@@ -298,7 +298,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if SourceJsonObject.Get('invoice_line', LinesToken) then
             if LinesToken.IsArray() then begin
                 LinesArray := LinesToken.AsArray();
-                EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, EDocument."Entry No", TempEDocPurchaseLine);
+                EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, EDocument."Entry No", TempEDocPurchaseLine, TempEDocPurchaseHeader."Currency Code");
             end;
     end;
 
@@ -328,4 +328,5 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Analysis") then
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis", '');
     end;
+
 }

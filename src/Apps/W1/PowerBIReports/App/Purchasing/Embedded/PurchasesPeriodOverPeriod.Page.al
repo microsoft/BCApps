@@ -11,9 +11,9 @@ page 37014 "Purchases Period-Over-Period"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Period-Over-Period';
-    AboutTitle = 'About Purchases Period-Over-Period';
-    AboutText = 'The Purchases Period Over Period report compares procurement performance across different periods, such as month-over-month or year-over-year. Completed up to here';
+    Caption = 'Purchases Period-Over-Period (Power BI)';
+    AboutTitle = 'About Purchases Period-Over-Period (Power BI)';
+    AboutText = 'The Purchases Period Over Period report compares procurement performance across different periods, such as month-over-month or year-over-year.';
 
     layout
     {

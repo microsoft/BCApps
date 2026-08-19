@@ -37,6 +37,7 @@ using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Setup.ManualSetup;
 using Microsoft.QualityManagement.Setup.SetupGuide;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
@@ -97,6 +98,7 @@ permissionset 20406 "QltyMgmt - Objects"
         codeunit "Qlty. Item Tracking" = X,
         codeunit "Qlty. Traversal" = X,
         codeunit "Qlty. Workflow Setup" = X,
+        codeunit "Qlty. Mgmt. Feature Telemetry" = X,
 
         // Pages
         page "Qlty. Lookup Field Choose" = X,
@@ -107,6 +109,7 @@ permissionset 20406 "QltyMgmt - Objects"
         page "Qlty. Tests" = X,
         page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Result List" = X,
+        page "Qlty. Inspection Result Card" = X,
         page "Qlty. Test Lookup Values" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,

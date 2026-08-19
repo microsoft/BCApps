@@ -1,0 +1,28 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.Inventory.Transfer;
+
+pageextension 99001530 "Subc. Transfer Lines" extends "Transfer Lines"
+{
+    layout
+    {
+        addlast(Control1)
+        {
+            field("Subc. Return Order"; Rec."Subc. Return Order")
+            {
+                ApplicationArea = Subcontracting;
+                Editable = false;
+                Visible = false;
+            }
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Subcontracting;
+                Editable = false;
+            }
+        }
+    }
+}
