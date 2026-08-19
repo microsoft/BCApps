@@ -275,8 +275,8 @@ codeunit 148338 "Expense Permissions Test"
 
         LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
         Assert.IsFalse(
-            ExpenseActivityLogEntry.InsertPermission(),
-            'The caller must not have direct insert permission on the activity log.');
+            ExpenseActivityLogEntry.WritePermission(),
+            'The caller must not have direct write permission on the activity log.');
         EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
             ExpenseReportHeader,
             Enum::"Expense Activity Event Type"::Created,
