@@ -127,6 +127,7 @@ jobs:
           skippedProjectsJson: ${{ inputs.skippedProjectsJson }}
           project: ${{ inputs.project }}
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
+          buildMode: ${{ inputs.buildMode }}
 
       - name: Read secrets
         id: ReadSecrets
@@ -230,7 +231,7 @@ jobs:
 
       - name: Run Tests
         uses: spetersenms/AL-Go/Actions/RunTests@spetersen/separateTestAction
-        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.useSeparateTestAction == 'True' && env.doNotPublishApps == 'False' && env.doNotRunTests == 'False'
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.runTestsInSeparateAction == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
           BuildMode: ${{ inputs.buildMode }}
