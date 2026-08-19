@@ -47,6 +47,16 @@ codeunit 6532 "E-Document Message API"
     end;
 
     /// <summary>
+    /// Creates an E-Document message for an explicit service and response type, and stores its payload.
+    /// </summary>
+    procedure CreateMessage(EDocument: Record "E-Document"; MessageType: Enum "E-Document Message Type"; Direction: Enum "E-Document Direction"; ResponseType: Enum "E-Doc. Response Type"; ServiceCode: Code[20]; var TempBlob: Codeunit "Temp Blob"): Integer
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        exit(EDocMessageMgt.CreateMessage(EDocument, MessageType, Direction, ResponseType, ServiceCode, TempBlob));
+    end;
+
+    /// <summary>
     /// Creates an E-Document message with an explicit response type and stores its payload.
     /// </summary>
     procedure CreateMessage(EDocument: Record "E-Document"; MessageType: Enum "E-Document Message Type"; Direction: Enum "E-Document Direction"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob"): Integer
@@ -66,6 +76,17 @@ codeunit 6532 "E-Document Message API"
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
     begin
         EDocMessageMgt.GetMessageBlob(MessageEntryNo, TempBlob);
+    end;
+
+    /// <summary>
+    /// Gets the current status of an E-Document message.
+    /// </summary>
+    procedure GetMessageStatus(MessageEntryNo: Integer): Enum "E-Doc. Message Status"
+    var
+        EDocumentMessage: Record "E-Document Message";
+    begin
+        EDocumentMessage.Get(MessageEntryNo);
+        exit(EDocumentMessage.Status);
     end;
 
     /// <summary>

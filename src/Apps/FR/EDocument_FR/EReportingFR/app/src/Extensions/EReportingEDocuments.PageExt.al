@@ -26,6 +26,44 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
     {
         addlast(Processing)
         {
+            action(AcceptFREInvoice)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Accept E-Invoice';
+                Image = Approve;
+                ToolTip = 'Accept the incoming French electronic purchase invoice and send the response to the supplier.';
+                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice");
+
+                trigger OnAction()
+                var
+                    FREInvoiceBuyerResponseMgt: Codeunit "FR E-Inv. Buyer Resp. Mgt.";
+                begin
+                    FREInvoiceBuyerResponseMgt.AcceptInvoice(Rec);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(RefuseFREInvoice)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Refuse E-Invoice';
+                Image = Reject;
+                ToolTip = 'Refuse the incoming French electronic purchase invoice and send the response to the supplier.';
+                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice");
+
+                trigger OnAction()
+                var
+                    FREInvoiceRefusalDialog: Page "FR E-Invoice Refusal Dialog";
+                    FREInvoiceBuyerResponseMgt: Codeunit "FR E-Inv. Buyer Resp. Mgt.";
+                    ReasonCode: Code[20];
+                    ReasonDescription: Text[500];
+                begin
+                    if FREInvoiceRefusalDialog.RunModal() <> Action::OK then
+                        exit;
+                    FREInvoiceRefusalDialog.GetReason(ReasonCode, ReasonDescription);
+                    FREInvoiceBuyerResponseMgt.RefuseInvoice(Rec, ReasonCode, ReasonDescription);
+                    CurrPage.Update(false);
+                end;
+            }
             action(ImportFREInvoiceLifecycleResponse)
             {
                 ApplicationArea = Basic, Suite;

@@ -11,6 +11,7 @@ enumextension 148151 "FR Service Integration" extends "Service Integration"
 {
     value(148150; "FR Message Mock")
     {
-        Implementation = IDocumentSender = "FR E-Doc. Msg. Sender Mock", IDocumentReceiver = "FR E-Doc. Msg. Sender Mock", IConsentManager = "FR E-Doc. Msg. Sender Mock", IMessageSender = "FR E-Doc. Msg. Sender Mock";
+        Implementation = IDocumentSender = "FR E-Doc. Msg. Sender Mock", IDocumentReceiver = "FR E-Doc. Msg. Sender Mock", IConsentManager = "FR E-Doc. Msg. Sender Mock",
+                 IMessageSender = "FR E-Doc. Msg. Sender Mock", IMessageResponseHandler = "FR E-Doc. Msg. Sender Mock";
     }
 }
