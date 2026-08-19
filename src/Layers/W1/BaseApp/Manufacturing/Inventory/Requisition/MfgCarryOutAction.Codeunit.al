@@ -928,6 +928,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
     begin
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertProdOrder(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Integer; var RequisitionLine: Record "Requisition Line")
     begin
