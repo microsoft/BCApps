@@ -332,6 +332,7 @@ codeunit 148217 "Sustainability Report Tests"
 #if not CLEAN29
 #pragma warning disable AL0432, AS0105
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout"; ReportID: Integer)
+#pragma warning restore AL0432, AS0105
     var
         ReportLayoutList: Record "Report Layout List";
         TempBlob: Codeunit "Temp Blob";
@@ -363,7 +364,6 @@ codeunit 148217 "Sustainability Report Tests"
         CopyStream(OutStr, InStr);
         CustomReportLayout.Insert();
     end;
-#pragma warning restore AL0432, AS0105
 #endif
 
     local procedure CreateSustainabilityCategory(var CategoryCode: Code[20]; i: Integer)

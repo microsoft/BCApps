@@ -1524,13 +1524,14 @@ codeunit 134425 "Payment Services Test"
     end;
 
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
     local procedure GetReportID(): Integer
     begin
         exit(REPORT::"Standard Sales - Invoice");
     end;
 
+#pragma warning disable AL0432, AS0105
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
+#pragma warning restore AL0432, AS0105
     var
         ReportLayoutList: Record "Report Layout List";
         TempBlob: Codeunit "Temp Blob";
@@ -1563,7 +1564,6 @@ codeunit 134425 "Payment Services Test"
             CustomReportLayout.Insert();
         end;
     end;
-#pragma warning restore AL0432, AS0105
 #endif
 
     local procedure AssignMockSetupRecordID(var TempPaymentServiceSetup: Record "Payment Service Setup" temporary)

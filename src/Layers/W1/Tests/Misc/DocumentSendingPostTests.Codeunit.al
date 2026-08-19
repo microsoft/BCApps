@@ -4770,10 +4770,11 @@ codeunit 139197 DocumentSendingPostTests
     end;
 
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
     local procedure FindCustomReportLayout(ReportID: Integer): Code[20]
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportLayoutList: Record "Report Layout List";
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
@@ -4803,7 +4804,6 @@ codeunit 139197 DocumentSendingPostTests
         end;
         exit(CustomReportLayout.Code);
     end;
-#pragma warning restore AL0432, AS0105
 #endif
 
     local procedure UnsupportedDocumentType(DocumentType: Enum "Sales Document Type")

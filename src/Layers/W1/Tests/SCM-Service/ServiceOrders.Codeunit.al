@@ -8249,11 +8249,12 @@ codeunit 136101 "Service Orders"
     end;
 
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         CustomReportSelection.Init();
         CustomReportSelection.Validate("Source Type", Database::Customer);
@@ -8266,7 +8267,6 @@ codeunit 136101 "Service Orders"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
-#pragma warning restore AL0432, AS0105
 #endif
 
     local procedure CreateShipmentMethod(var ShipmentMethod: Record "Shipment Method")

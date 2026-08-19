@@ -3064,9 +3064,9 @@ codeunit 134421 "Report Selections Tests"
 #if not CLEAN29
 #pragma warning disable AL0432, AS0105
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
+#pragma warning restore AL0432, AS0105
     var
         ReportLayoutList: Record "Report Layout List";
-#pragma warning restore AL0432, AS0105
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
         OutStr: OutStream;
@@ -3343,9 +3343,9 @@ codeunit 134421 "Report Selections Tests"
 
 #pragma warning disable AL0432, AS0105
     local procedure GeSalesShipmentCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
+#pragma warning restore AL0432, AS0105
     var
         ReportLayoutList: Record "Report Layout List";
-#pragma warning restore AL0432, AS0105
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
         OutStr: OutStream;
@@ -3446,9 +3446,9 @@ codeunit 134421 "Report Selections Tests"
 
 #pragma warning disable AL0432, AS0105
     local procedure GeSalesReturnReceiptCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
+#pragma warning restore AL0432, AS0105
     var
         ReportLayoutList: Record "Report Layout List";
-#pragma warning restore AL0432, AS0105
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
         OutStr: OutStream;

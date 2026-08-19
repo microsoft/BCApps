@@ -899,9 +899,9 @@ codeunit 134600 "Report Layout Test"
 #if not CLEAN29
 #pragma warning disable AL0432, AS0105
     local procedure InitCustomReportLayout(var CustomReportLayout: Record "Custom Report Layout"; LayoutType: Enum "Custom Report Layout Type"; WithCompanyName: Boolean)
+#pragma warning restore AL0432, AS0105
     var
         LayoutCode: Code[20];
-#pragma warning restore AL0432, AS0105
     begin
         LayoutCode := CustomReportLayout.InitBuiltInLayout(StandardSalesInvoiceReportID(), LayoutType.AsInteger());
         CustomReportLayout.Get(LayoutCode);
