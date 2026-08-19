@@ -75,6 +75,8 @@ codeunit 6987 "Expense Report-Post"
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending reimbursement notifications.';
         NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
+        PendingVATSpecTitleErr: Label 'VAT reclaim status is pending';
+        PendingVATSpecDetailedErr: Label 'Open the VAT specification line and approve or reject the reclaim, and then retry posting the expense report.';
         AgentVATSpecificationsPostedLbl: Label 'Agent-authored VAT specifications posted.', Locked = true;
         ShowItLbl: Label 'Show it';
 
@@ -302,7 +304,9 @@ codeunit 6987 "Expense Report-Post"
             PendingVATSpecErrorInfo.Message := StrSubstNo(NotApprovedForVATReclaimCategoryErr, ExpenseReportLineVATSpec."Expense Category")
         else
             PendingVATSpecErrorInfo.Message := StrSubstNo(NotApprovedForVATReclaimErr, ExpenseReportLineVATSpec."Expense Category", ExpenseReportLineVATSpec."Expense Subcategory");
-        PendingVATSpecErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        PendingVATSpecErrorInfo.Title := PendingVATSpecTitleErr;
+        PendingVATSpecErrorInfo.DetailedMessage := PendingVATSpecDetailedErr;
+        PendingVATSpecErrorInfo.DataClassification := DataClassification::CustomerContent;
         PendingVATSpecErrorInfo.ErrorType := ErrorType::Client;
         PendingVATSpecErrorInfo.RecordId := ExpenseReportLineVATSpec.RecordId;
         PendingVATSpecErrorInfo.FieldNo := ExpenseReportLineVATSpec.FieldNo("Reclaim Status");
@@ -1355,16 +1359,19 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLineVATSpec.DeleteAll();
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessExpenseReportLine(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpenseReportLine: Record "Posted Expense Report Line"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
     begin
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostEmployeeEntry(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
     begin
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostEmployeeEntry(GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
     begin

@@ -8442,11 +8442,16 @@ codeunit 148301 "Expense Rule Test"
 
     local procedure Initialize()
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         Workflow: Record Workflow;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Rule Test");
+        LibraryExpense.CleanTransactionalData();
         LibraryExpense.CleanUpBeforeTesting();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Default VAT Bus. Posting Group" := '';
+        ExpenseAgentSetup.Modify();
         LibraryVariableStorage.Clear();
         if IsInitialized then
             exit;

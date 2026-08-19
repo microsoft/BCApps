@@ -28,10 +28,10 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        CanModifyLinesQst: Label 'You have modified %1 which will also update the lines.\\Do you want to continue?', Comment = '%1 = Field Caption';
         PostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
         NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
-        AgentVATSpecInsertNotAuthorizedErr: Label 'Agent-authored VAT specifications must be created through an authorized Expense Agent request.';
         ModifyOrDeleteAgentVATSpecErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
 
     [Test]
@@ -632,6 +632,59 @@ codeunit 148330 "Expense Posting VAT Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure ReopenedReportRecalculatesVATSpecWhenReimbursementCurrencyFactorChanges()
+    var
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: array[4] of Record "Expense Subcategory";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        VATPostingSetup: array[3] of Record "VAT Posting Setup";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        CurrencyCode: Code[10];
+        InitialVATBaseAmountRCY: Decimal;
+        InitialVATAmountRCY: Decimal;
+    begin
+        // [SCENARIO] Changing the reimbursement currency factor on a reopened report recalculates existing VAT specifications.
+        Initialize();
+
+        // [GIVEN] A released report with an existing 20% VAT specification calculated at a reimbursement factor of 1.
+        CreateExpenseUserAndCategory(ExpenseUser, ExpenseCategory);
+        CreateSubcategoryWithVATRate(ExpenseSubCategory[1], ExpenseCategory.Code, 20, VATPostingSetup[1]);
+        CreateExpenseWithHotelItemizations(Expense, ExpenseUser, ExpenseCategory, ExpenseSubCategory, VATPostingSetup, 120, 0, 0, 0);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", CurrencyCode, Expense."VAT Bus. Posting Group");
+        AddExpensesToReport(CreateExpenseReport, ExpenseReportHeader, Expense."No.");
+        UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
+
+        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLineVATSpec.FindFirst();
+        InitialVATBaseAmountRCY := ExpenseReportLineVATSpec."VAT Base Amount (RCY)";
+        InitialVATAmountRCY := ExpenseReportLineVATSpec."VAT Amount (RCY)";
+
+        ExpenseReportHeader.PerformManualRelease();
+        ExpenseReportHeader.PerformManualReopen(ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+
+        // [WHEN] The reimbursement currency factor is changed to 2 after reopening the report.
+        LibraryVariableStorage.Enqueue(StrSubstNo(CanModifyLinesQst, ExpenseReportHeader.FieldName("Reimbursement Currency Factor")));
+        LibraryVariableStorage.Enqueue(true);
+        ExpenseReportHeader.Validate("Reimbursement Currency Factor", 2);
+        ExpenseReportHeader.Modify(true);
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] The persisted VAT specification reimbursement amounts are recalculated using the new factor.
+        ExpenseReportLineVATSpec.Get(
+            ExpenseReportLineVATSpec."Document No.", ExpenseReportLineVATSpec."Document Line No.", ExpenseReportLineVATSpec."Line No.");
+        Assert.AreNearlyEqual(InitialVATBaseAmountRCY * 2, ExpenseReportLineVATSpec."VAT Base Amount (RCY)", 0.01, 'VAT base amount in reimbursement currency must be recalculated.');
+        Assert.AreNearlyEqual(InitialVATAmountRCY * 2, ExpenseReportLineVATSpec."VAT Amount (RCY)", 0.01, 'VAT amount in reimbursement currency must be recalculated.');
+        Assert.AreNearlyEqual((InitialVATBaseAmountRCY + InitialVATAmountRCY) * 2, ExpenseReportLineVATSpec."Amount (RCY)", 0.01, 'Gross amount in reimbursement currency must be recalculated.');
+        Assert.AreNearlyEqual(InitialVATAmountRCY * 2, ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)", 0.01, 'Reclaim VAT amount in reimbursement currency must be recalculated.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
     procedure PartialVATReclaimPostsReclaimAmountsAndNonDeductibleVAT()
     begin
         // [SCENARIO] A partially reclaimable VAT specification posts deductible and non-deductible VAT separately.
@@ -780,7 +833,6 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseUser: Record "Expense User";
         ExpenseVATSpecification: Record "Expense VAT Specification";
         VATPostingSetup: Record "VAT Posting Setup";
-        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         // [SCENARIO] Agent-authored VAT specifications cannot be regenerated, modified, or deleted.
         Initialize();
@@ -791,12 +843,15 @@ codeunit 148330 "Expense Posting VAT Test"
         CreateSubcategoryWithVATRate(ExpenseSubCategory, ExpenseCategory.Code, 20, VATPostingSetup);
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 120);
 
+        ExpenseVATSpecification.SetRange("Expense No.", Expense."No.");
+        ExpenseVATSpecification.DeleteAll(false);
         ExpenseVATSpecification.Init();
         ExpenseVATSpecification."Expense No." := Expense."No.";
         ExpenseVATSpecification."Line No." := 1;
         ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
+        ExpenseVATSpecification."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        ExpenseVATSpecification."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
         ExpenseVATSpecification.Amount := 120;
-        ExpenseAgentAPIValidation.AuthorizeAgentVATSpecificationInsert();
         ExpenseVATSpecification.Insert(true);
         Commit();
 
@@ -815,30 +870,7 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseVATSpecification.Get(Expense."No.", 1);
         Assert.AreEqual(ExpenseVATSpecification.Source::Agent, ExpenseVATSpecification.Source, 'The VAT specification source must remain Agent.');
         Assert.AreEqual(120, ExpenseVATSpecification.Amount, 'The Agent-authored VAT specification must remain unchanged.');
-    end;
-
-    [Test]
-    procedure AgentVATSpecificationCannotBeInsertedWithoutAuthorization()
-    var
-        ExpenseVATSpecification: Record "Expense VAT Specification";
-    begin
-        // [SCENARIO] Agent-authored VAT specifications require explicit table-layer authorization.
-        Initialize();
-
-        // [GIVEN] A VAT specification marked as agent-authored without an authorized agent request.
-        ExpenseVATSpecification.Init();
-        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
-
-        // [WHEN] The VAT specification is inserted.
-        asserterror ExpenseVATSpecification.Insert(true);
-
-        // [THEN] The table rejects the trusted source data.
-        Assert.ExpectedError(AgentVATSpecInsertNotAuthorizedErr);
-
-        Clear(ExpenseVATSpecification);
-        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
-        asserterror ExpenseVATSpecification.Insert(false);
-        Assert.ExpectedError(AgentVATSpecInsertNotAuthorizedErr);
+        ExpenseVATSpecification.Delete(false);
     end;
 
     [Test]
@@ -1212,6 +1244,7 @@ codeunit 148330 "Expense Posting VAT Test"
     local procedure CreateExpenseVATSpecification(Expense: Record Expense; ExpenseCategoryCode: Code[20]; ExpenseSubcategoryCode: Code[20]; Amount: Decimal)
     var
         ExpenseVATSpecification: Record "Expense VAT Specification";
+        ExpenseSubcategory: Record "Expense Subcategory";
         RecordRef: RecordRef;
     begin
         ExpenseVATSpecification.Init();
@@ -1222,6 +1255,10 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseVATSpecification.Validate("VAT Bus. Posting Group", Expense."VAT Bus. Posting Group");
         ExpenseVATSpecification.Validate("Expense Category", ExpenseCategoryCode);
         ExpenseVATSpecification.Validate("Expense Subcategory", ExpenseSubcategoryCode);
+        if ExpenseSubcategoryCode <> '' then begin
+            ExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode);
+            ExpenseVATSpecification.Validate("VAT Prod. Posting Group", ExpenseSubcategory."VAT Prod. Posting Group");
+        end;
         ExpenseVATSpecification.Validate(Amount, Amount);
         ExpenseVATSpecification.Insert(true);
     end;

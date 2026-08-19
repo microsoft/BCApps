@@ -78,6 +78,10 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
         HeaderFound: Boolean;
     begin
         ExpenseReportLineVATSpec.SetCurrentKey("Document No.", "Document Line No.", "Line No.");
+        ExpenseReportLineVATSpec.SetLoadFields(
+            "Document No.", "Currency Code", "VAT Base Amount (LCY)", "VAT Amount", "VAT Amount (LCY)", "Reclaim %",
+            "VAT Base Amount (RCY)", "VAT Amount (RCY)", "Amount (RCY)", "Reclaim VAT Amount",
+            "Reclaim VAT Amount (LCY)", "Reclaim VAT Amount (RCY)");
         if not ExpenseReportLineVATSpec.FindSet() then
             exit;
 
@@ -121,6 +125,9 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
         HeaderFound: Boolean;
     begin
         PostedExpenseReportLineVATSpec.SetCurrentKey("Expense Report No.", "Expense Report Line No.", "Line No.");
+        PostedExpenseReportLineVATSpec.SetLoadFields(
+            "Expense Report No.", "VAT Base Amount (LCY)", "VAT Amount (LCY)", "Reclaim %",
+            "VAT Base Amount (RCY)", "VAT Amount (RCY)", "Amount (RCY)", "Reclaim VAT Amount (RCY)");
         if not PostedExpenseReportLineVATSpec.FindSet() then
             exit;
 

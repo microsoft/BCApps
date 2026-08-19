@@ -131,8 +131,9 @@ page 7085 "Expense VAT Spec. API"
     begin
         VerifyExpenseAgentCaller();
         ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
-        ExpenseAgentAPIValidation.AuthorizeAgentVATSpecificationInsert();
+        BindSubscription(ExpenseAgentAPIValidation);
         ExpenseVATSpecification.Insert(true);
+        UnbindSubscription(ExpenseAgentAPIValidation);
 
         TelemetryDimensions.Add('HasExpenseCategory', Format(ExpenseVATSpecification."Expense Category" <> ''));
         TelemetryDimensions.Add('HasExpenseSubcategory', Format(ExpenseVATSpecification."Expense Subcategory" <> ''));
