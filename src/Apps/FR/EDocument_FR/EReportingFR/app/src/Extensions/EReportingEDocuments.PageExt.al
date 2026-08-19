@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
+using System.Utilities;
 
 pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
 {
@@ -25,6 +26,33 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
     {
         addlast(Processing)
         {
+            action(ImportFREInvoiceLifecycleResponse)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Import E-Invoice Lifecycle Response';
+                Image = Import;
+                ToolTip = 'Import a French electronic invoice lifecycle response for this e-document.';
+
+                trigger OnAction()
+                var
+                    FREInvoiceLifecycleImport: Codeunit "FR E-Invoice Lifecycle Import";
+                    TempBlob: Codeunit "Temp Blob";
+                    InStream: InStream;
+                    OutStream: OutStream;
+                    FileName: Text;
+                    ResponseEntryNo: Integer;
+                begin
+                    Rec.TestField(Direction, Rec.Direction::Outgoing);
+                    if not UploadIntoStream(ImportResponseDialogTitleLbl, '', XmlFileFilterTxt, FileName, InStream) then
+                        exit;
+
+                    TempBlob.CreateOutStream(OutStream);
+                    CopyStream(OutStream, InStream);
+                    ResponseEntryNo := FREInvoiceLifecycleImport.ImportResponse(Rec, TempBlob);
+                    Message(ResponseImportedMsg, ResponseEntryNo);
+                    CurrPage.Update(false);
+                end;
+            }
             action(ViewFREInvoiceLifecycles)
             {
                 ApplicationArea = Basic, Suite;
@@ -43,4 +71,9 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
             }
         }
     }
+
+    var
+        ImportResponseDialogTitleLbl: Label 'Select a French e-invoice lifecycle response';
+        XmlFileFilterTxt: Label 'XML files (*.xml)|*.xml', Locked = true;
+        ResponseImportedMsg: Label 'French e-invoice lifecycle response %1 was imported.', Comment = '%1 = lifecycle response entry number';
 }

@@ -170,6 +170,60 @@ codeunit 148151 "FR Lifecycle Response Tests"
     end;
 
     [Test]
+    procedure ImportResponseForExplicitEDocumentIgnoresAmbiguousDocumentNumber()
+    var
+        FirstEDocument: Record "E-Document";
+        SecondEDocument: Record "E-Document";
+        FREInvoiceLifecycleResponse: Record "FR E-Invoice Lifecycle Resp.";
+        ResponseEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A connector can route a response to an explicit outgoing E-Document
+        Initialize();
+
+        // [GIVEN] Two outgoing E-Documents have the same invoice number
+        CreateEDocument(FirstEDocument, 'INV-EXPLICIT', FirstEDocument.Direction::Outgoing);
+        CreateEDocument(SecondEDocument, 'INV-EXPLICIT', SecondEDocument.Direction::Outgoing);
+
+        // [WHEN] The response is imported for the connector-selected E-Document
+        ResponseEntryNo := ImportResponse(FirstEDocument, 'RESP-EXPLICIT', FirstEDocument."Document No.", 'ACCEPTED');
+
+        // [THEN] The response is linked to that E-Document
+        FREInvoiceLifecycleResponse.Get(ResponseEntryNo);
+        Assert.AreEqual(FirstEDocument."Entry No", FREInvoiceLifecycleResponse."E-Document Entry No.", 'The response must use the explicit E-Document.');
+    end;
+
+    [Test]
+    procedure ImportResponseForExplicitEDocumentRejectsDifferentInvoiceId()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] An explicitly routed response must identify the selected invoice
+        Initialize();
+
+        CreateEDocument(EDocument, 'INV-SELECTED', EDocument.Direction::Outgoing);
+
+        asserterror ImportResponse(EDocument, 'RESP-MISMATCH', 'INV-DIFFERENT', 'ACCEPTED');
+        Assert.ExpectedError('does not match E-Document invoice INV-SELECTED');
+    end;
+
+    [Test]
+    procedure ImportResponseForExplicitEDocumentRejectsIncomingDocument()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Lifecycle responses cannot be routed to incoming E-Documents
+        Initialize();
+
+        CreateEDocument(EDocument, 'INV-INCOMING', EDocument.Direction::Incoming);
+
+        asserterror ImportResponse(EDocument, 'RESP-INCOMING', EDocument."Document No.", 'ACCEPTED');
+        Assert.ExpectedError('Direction must be equal to ''Outgoing''');
+    end;
+
+    [Test]
     procedure ImportResponseDoesNotCreatePaymentLifecycle()
     var
         EDocument: Record "E-Document";
@@ -223,6 +277,17 @@ codeunit 148151 "FR Lifecycle Response Tests"
     local procedure ImportResponse(ResponseID: Text; InvoiceID: Text; StatusText: Text; ReasonCode: Text; ReasonDescription: Text): Integer
     begin
         exit(ImportXml(CreateResponseXml(ResponseID, InvoiceID, StatusText, ReasonCode, ReasonDescription)));
+    end;
+
+    local procedure ImportResponse(EDocument: Record "E-Document"; ResponseID: Text; InvoiceID: Text; StatusText: Text): Integer
+    var
+        FREInvoiceLifecycleImport: Codeunit "FR E-Invoice Lifecycle Import";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(CreateResponseXml(ResponseID, InvoiceID, StatusText, '', ''));
+        exit(FREInvoiceLifecycleImport.ImportResponse(EDocument, TempBlob));
     end;
 
     local procedure ImportXml(XmlText: Text): Integer

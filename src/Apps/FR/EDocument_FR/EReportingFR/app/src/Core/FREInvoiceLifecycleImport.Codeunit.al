@@ -18,17 +18,36 @@ codeunit 10987 "FR E-Invoice Lifecycle Import"
     procedure ImportResponse(var TempBlob: Codeunit "Temp Blob"): Integer
     var
         EDocument: Record "E-Document";
-        FREInvoiceLifecycleResponse: Record "FR E-Invoice Lifecycle Resp.";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         ResponseType: Enum "E-Doc. Response Type";
         InvoiceID: Text;
         ResponseID: Text;
         ReasonCode: Text;
         ReasonDescription: Text;
-        MessageEntryNo: Integer;
     begin
         ParseResponse(TempBlob, ResponseID, InvoiceID, ResponseType, ReasonCode, ReasonDescription);
         FindOutgoingEDocument(InvoiceID, EDocument);
+        exit(ImportResponse(EDocument, TempBlob, ResponseID, InvoiceID, ResponseType, ReasonCode, ReasonDescription));
+    end;
+
+    procedure ImportResponse(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"): Integer
+    var
+        ResponseType: Enum "E-Doc. Response Type";
+        InvoiceID: Text;
+        ResponseID: Text;
+        ReasonCode: Text;
+        ReasonDescription: Text;
+    begin
+        ParseResponse(TempBlob, ResponseID, InvoiceID, ResponseType, ReasonCode, ReasonDescription);
+        ValidateOutgoingEDocument(EDocument, InvoiceID);
+        exit(ImportResponse(EDocument, TempBlob, ResponseID, InvoiceID, ResponseType, ReasonCode, ReasonDescription));
+    end;
+
+    local procedure ImportResponse(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; ResponseID: Text; InvoiceID: Text; ResponseType: Enum "E-Doc. Response Type"; ReasonCode: Text; ReasonDescription: Text): Integer
+    var
+        FREInvoiceLifecycleResponse: Record "FR E-Invoice Lifecycle Resp.";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        MessageEntryNo: Integer;
+    begin
 
         FREInvoiceLifecycleResponse.SetRange("Response ID", ResponseID);
         if not FREInvoiceLifecycleResponse.IsEmpty() then
@@ -78,6 +97,13 @@ codeunit 10987 "FR E-Invoice Lifecycle Import"
             Error(AmbiguousInvoiceErr, InvoiceID);
     end;
 
+    local procedure ValidateOutgoingEDocument(EDocument: Record "E-Document"; InvoiceID: Text)
+    begin
+        EDocument.TestField(Direction, EDocument.Direction::Outgoing);
+        if EDocument."Document No." <> InvoiceID then
+            Error(InvoiceMismatchErr, InvoiceID, EDocument."Document No.");
+    end;
+
     local procedure MapResponseType(StatusText: Text): Enum "E-Doc. Response Type"
     var
         ResponseType: Enum "E-Doc. Response Type";
@@ -119,5 +145,6 @@ codeunit 10987 "FR E-Invoice Lifecycle Import"
         UnsupportedStatusErr: Label 'French invoice lifecycle status %1 is not supported.', Comment = '%1 = lifecycle status';
         InvoiceNotFoundErr: Label 'No outgoing E-Document was found for InvoiceID %1.', Comment = '%1 = invoice identifier';
         AmbiguousInvoiceErr: Label 'More than one outgoing E-Document was found for InvoiceID %1.', Comment = '%1 = invoice identifier';
+        InvoiceMismatchErr: Label 'The lifecycle response InvoiceID %1 does not match E-Document invoice %2.', Comment = '%1 = response invoice identifier, %2 = E-Document invoice identifier';
         DuplicateResponseErr: Label 'French invoice lifecycle response %1 has already been imported.', Comment = '%1 = response identifier';
 }
