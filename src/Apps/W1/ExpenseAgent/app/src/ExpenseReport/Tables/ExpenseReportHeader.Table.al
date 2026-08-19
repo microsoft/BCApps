@@ -587,7 +587,9 @@ table 6906 "Expense Report Header"
     var
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
+        ExpenseActivityLogMgt.DeleteEntriesForSource(Database::"Expense Report Header", Rec.SystemId);
         ExpenseReportCommentLine.DeleteComments(ExpenseReportCommentLine."Document Type"::"Expense Report", Rec."No.");
 
         ExpenseReportLine.SetRange("Document No.", Rec."No.");

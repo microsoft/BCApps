@@ -259,13 +259,17 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         Assert.RecordCount(WarehouseReceiptLine, 2);
 
         // [GIVEN] The not-last operation has no operational bin or inventory quantity
+#pragma warning disable AA0210
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::NotLastOperation);
+#pragma warning restore AA0210
         WarehouseReceiptLine.FindFirst();
         Assert.AreEqual('', WarehouseReceiptLine."Bin Code", 'Not-last operation should not use a bin');
         Assert.AreEqual(0, WarehouseReceiptLine."Qty. (Base)", 'Not-last operation should have zero base quantity');
 
         // [GIVEN] The last operation uses the receipt bin and carries the inventory quantity
+#pragma warning disable AA0210
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::LastOperation);
+#pragma warning restore AA0210
         WarehouseReceiptLine.FindFirst();
         Assert.AreEqual(ReceiveBin.Code, WarehouseReceiptLine."Bin Code", 'Last operation should use the receipt bin');
         Assert.AreEqual(Quantity, WarehouseReceiptLine."Qty. (Base)", 'Last operation should have the production quantity');
@@ -327,7 +331,9 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
             Item, Location, ProductionOrder, PurchaseHeader, ReceiveBin, WarehouseReceiptHeader, WorkCenter, Quantity);
         WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
         WarehouseReceiptLine.SetRange("Source No.", PurchaseHeader."No.");
+#pragma warning disable AA0210        
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::NotLastOperation);
+#pragma warning restore AA0210
         WarehouseReceiptLine.FindFirst();
 
         // [WHEN] Item tracking is opened for the not-last operation
