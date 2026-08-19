@@ -1810,7 +1810,7 @@ codeunit 137402 "SCM Costing Batch"
     end;
 
     [Test]
-    [HandlerFunctions('AdjustCostItemEntriesHandler,ImplementStandardCostChangeHandler,MessageHandler')]
+    [HandlerFunctions('ImplementStandardCostChangeHandler,MessageHandler')]
     procedure SKUCostNotUpdatedWhenLoadSKUCostOnMfgEnabled()
     var
         Item: Record Item;
@@ -1822,7 +1822,6 @@ codeunit 137402 "SCM Costing Batch"
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO 637759] SKU Standard Cost is not updated when "Load SKU Cost on Manufacturing" is enabled
-        Initialize();
 
         // [GIVEN] Item "I" with Standard Cost
         CreateItem(Item);
@@ -1856,7 +1855,7 @@ codeunit 137402 "SCM Costing Batch"
     end;
 
     [Test]
-    [HandlerFunctions('AdjustCostItemEntriesHandler,StrMenuHandler,ImplementStandardCostChangeHandler,MessageHandler')]
+    [HandlerFunctions('StrMenuHandler,ImplementStandardCostChangeHandler,MessageHandler')]
     procedure SKUWithOwnRoutingRetainsCostWhenLoadSKUCostOnMfgEnabled()
     var
         Item: Record Item;
@@ -1873,7 +1872,6 @@ codeunit 137402 "SCM Costing Batch"
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO 637759] SKU with its own routing retains its independently calculated Standard Cost after Implement Standard Cost Change when "Load SKU Cost on Manufacturing" is enabled
-        Initialize();
 
         // [GIVEN] Two Work Centers "WC1" and "WC2" with different unit costs
         LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter[1]);
@@ -1929,7 +1927,7 @@ codeunit 137402 "SCM Costing Batch"
     end;
 
     [Test]
-    [HandlerFunctions('AdjustCostItemEntriesHandler,ImplementStandardCostChangeHandler,CaptureMessageHandler')]
+    [HandlerFunctions('ImplementStandardCostChangeHandler,CaptureMessageHandler')]
     procedure InstructionMsgShownWhenSKUCostUpdateSkipped()
     var
         Item: Record Item;
@@ -1940,7 +1938,6 @@ codeunit 137402 "SCM Costing Batch"
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO 637759] Instruction message is shown when SKU cost update is skipped due to "Load SKU Cost on Manufacturing" being enabled
-        Initialize();
 
         // [GIVEN] Item "I" with Standard Cost
         CreateItem(Item);
