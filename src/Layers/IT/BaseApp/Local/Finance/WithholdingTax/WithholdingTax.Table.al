@@ -246,10 +246,12 @@ table 12116 "Withholding Tax"
     end;
 
     trigger OnModify()
+    var
+        PreviousWithholdingTax: Record "Withholding Tax";
     begin
-        if Reported or
-           Paid
-        then
+        if not PreviousWithholdingTax.Get(Rec."Entry No.") then
+            exit;
+        if (Reported or Paid) and StandardFieldModified(PreviousWithholdingTax) then
             Error(Text1033);
     end;
 
@@ -343,6 +345,28 @@ table 12116 "Withholding Tax"
     begin
         WithholdingTaxLine.SetRange("Withholding Tax Entry No.", "Entry No.");
         WithholdingTaxLine.DeleteAll(true);
+    end;
+
+    local procedure StandardFieldModified(PreviousWithholdingTax: Record "Withholding Tax"): Boolean
+    var
+        CurrentRecordRef: RecordRef;
+        PreviousRecordRef: RecordRef;
+        CurrentFieldRef: FieldRef;
+        PreviousFieldRef: FieldRef;
+        FieldIndex: Integer;
+    begin
+        CurrentRecordRef.GetTable(Rec);
+        PreviousRecordRef.GetTable(PreviousWithholdingTax);
+        for FieldIndex := 1 to CurrentRecordRef.FieldCount() do begin
+            CurrentFieldRef := CurrentRecordRef.FieldIndex(FieldIndex);
+            // Field numbers below 50000 belong to the standard table; 50000 and above are extension fields.
+            if (CurrentFieldRef.Class = FieldClass::Normal) and (CurrentFieldRef.Number < 50000) then begin
+                PreviousFieldRef := PreviousRecordRef.Field(CurrentFieldRef.Number);
+                if CurrentFieldRef.Value <> PreviousFieldRef.Value then
+                    exit(true);
+            end;
+        end;
+        exit(false);
     end;
 
     [IntegrationEvent(false, false)]

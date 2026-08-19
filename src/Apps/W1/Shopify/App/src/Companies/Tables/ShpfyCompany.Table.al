@@ -37,13 +37,13 @@ table 30150 "Shpfy Company"
         }
         field(4; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = CustomerContent;
         }
 
         field(5; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = CustomerContent;
         }
         field(6; "Last Updated by BC"; DateTime)

@@ -111,7 +111,6 @@ page 9012 "Shop Supervisor Role Center"
                 Caption = 'Capacity Tas&k List';
                 Image = "Report";
                 RunObject = Report "Capacity Task List";
-                ToolTip = 'View the production orders that are waiting to be processed at the work centers and machine centers. Printouts are made for the capacity of the work center or machine center. The report includes information such as starting and ending time, date per production order and input quantity.';
             }
             action("Subcontractor - Dis&patch List")
             {
@@ -147,7 +146,6 @@ page 9012 "Shop Supervisor Role Center"
                 Caption = 'Production Order Statistics';
                 Image = "Report";
                 RunObject = report "Production Order Statistics";
-                ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
             }
             action("S&tatus")
             {

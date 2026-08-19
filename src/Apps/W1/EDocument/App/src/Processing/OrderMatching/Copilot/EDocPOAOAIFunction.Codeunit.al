@@ -1,9 +1,13 @@
+#if not CLEAN29
 #pragma warning disable AA0247
 codeunit 6167 "E-Doc. PO AOAI Function" implements "AOAI Function"
 {
     Access = Internal;
     InherentPermissions = X;
     InherentEntitlements = X;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+    ObsoleteTag = '29.0';
 
     [NonDebuggable]
     procedure GetPrompt() Prompt: JsonObject
@@ -89,3 +93,4 @@ codeunit 6167 "E-Doc. PO AOAI Function" implements "AOAI Function"
         MatchLineTxt: Label 'Matched to Purchase Order Line %1', Comment = '%1 = Number of the order line that the E-Document line is matched to';
         FailedToGetPromptSecretErr: Label 'Failed to get the prompt secret from Azure Key Vault', Locked = true;
 }
+#endif

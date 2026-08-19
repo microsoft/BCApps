@@ -22,6 +22,7 @@ codeunit 6212 "Sustainability Post Mgt"
     var
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        IsHandled: Boolean;
         SustainabilityLedgerEntryAddedLbl: Label 'Sustainability Ledger Entry Added', Locked = true;
     begin
         SustainabilityLedgerEntry.Init();
@@ -42,7 +43,11 @@ codeunit 6212 "Sustainability Post Mgt"
         UpdateCarbonFeeEmission(SustainabilityLedgerEntry);
 
         OnBeforeInsertSustainabilityLedgerEntry(SustainabilityLedgerEntry, SustainabilityJnlLine);
-        SustainabilityLedgerEntry.Insert(true);
+
+        IsHandled := false;
+        OnInsertLedgerEntryOnBeforeInsert(SustainabilityLedgerEntry, IsHandled);
+        if not IsHandled then
+            SustainabilityLedgerEntry.Insert(true);
     end;
 
     procedure InsertValueEntry(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
@@ -281,12 +286,6 @@ codeunit 6212 "Sustainability Post Mgt"
         if TotalCO2e < 0 then
             IsNegativeEntry := true;
 
-        if ItemLedgerEntry."Entry Type" = ItemLedgerEntry."Entry Type"::Transfer then begin
-            TotalCO2e := Abs(CO2ePerUnit * ItemLedgerEntry.Quantity);
-            CorrectSign(TotalCO2e, IsNegativeEntry);
-            exit;
-        end;
-
         ShowAppliedEntries.FindAppliedEntries(ItemLedgerEntry, TempItemLedgerEntry);
         if TempItemLedgerEntry.IsEmpty() then
             GetILEForAssemblyOutputs(ItemLedgerEntry, TempItemLedgerEntry);
@@ -295,6 +294,15 @@ codeunit 6212 "Sustainability Post Mgt"
             repeat
                 GetCO2eAmountAndQuantity(TempItemLedgerEntry."Entry No.", AppliedAmount, AppliedQuantity);
             until TempItemLedgerEntry.Next() = 0;
+
+        if ItemLedgerEntry."Entry Type" = ItemLedgerEntry."Entry Type"::Transfer then begin
+            if AppliedQuantity <> 0 then
+                TotalCO2e := Abs((AppliedAmount / AppliedQuantity) * ItemLedgerEntry.Quantity)
+            else
+                TotalCO2e := Abs(CO2ePerUnit * ItemLedgerEntry.Quantity);
+            CorrectSign(TotalCO2e, IsNegativeEntry);
+            exit;
+        end;
 
         if AppliedAmount = 0 then
             exit;
@@ -515,6 +523,11 @@ codeunit 6212 "Sustainability Post Mgt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertSustainabilityLedgerEntry(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnInsertLedgerEntryOnBeforeInsert(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 }
