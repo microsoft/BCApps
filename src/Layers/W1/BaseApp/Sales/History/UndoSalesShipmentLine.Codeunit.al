@@ -248,13 +248,11 @@ codeunit 5815 "Undo Sales Shipment Line"
 
         ItemApplicationEntry.SetBaseLoadFields();
         ItemApplicationEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
-        ItemApplicationEntry.SetRange("Cost Application", true);
         ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Applies-to Entry");
         ItemApplicationEntry.SetRange("Outbound Item Entry No.", ItemLedgerEntry."Entry No.");
         OnUnApplyDropShipmentOnBeforeFindItemApplicationEntry(ItemApplicationEntry, ItemLedgerEntry);
-        ItemApplicationEntry.FindFirst();
-
-        ItemJnlPostLine.UnApplyDropShipment(ItemApplicationEntry, RelevantUndoShipmentLedgerEntryNo);
+        if ItemApplicationEntry.FindFirst() then
+            ItemJnlPostLine.UnApplyDropShipment(ItemApplicationEntry, RelevantUndoShipmentLedgerEntryNo);
     end;
 
     local procedure FindRelevantNewSalesShptLedgerEntryNo(SalesShptLine: Record "Sales Shipment Line"; NewSalesShptLine: Record "Sales Shipment Line"; ItemLedgerEntry: Record "Item Ledger Entry"): Integer

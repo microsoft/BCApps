@@ -12,7 +12,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-report 99001502 "Subc. Create SubCReturnOrder"
+report 20502 "Subc. Create SubCReturnOrder"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Return Order';

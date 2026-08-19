@@ -232,6 +232,7 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Event Subs. Perm. Test");
+        RestoreFullPermissions();
         LibraryExpense.CleanTransactionalData();
         LibraryExpense.CleanUpBeforeTesting();
         if IsInitialized then

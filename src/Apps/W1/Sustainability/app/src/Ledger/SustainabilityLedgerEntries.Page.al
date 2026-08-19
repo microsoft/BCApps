@@ -162,6 +162,18 @@ page 6220 "Sustainability Ledger Entries"
                 {
                     ToolTip = 'Specifies the Energy Consumption.';
                 }
+                field(Reversed; Rec.Reversed)
+                {
+                    ToolTip = 'Specifies whether this entry has been reversed.';
+                }
+                field("Reversed by Entry No."; Rec."Reversed by Entry No.")
+                {
+                    ToolTip = 'Specifies the entry number that reversed this entry.';
+                }
+                field("Reversed Entry No."; Rec."Reversed Entry No.")
+                {
+                    ToolTip = 'Specifies the original entry number that this entry reverses.';
+                }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ToolTip = 'Specifies the country/region code of the entry.';
@@ -277,6 +289,30 @@ page 6220 "Sustainability Ledger Entries"
                     NavigatePage.Run();
                 end;
             }
+            action(ReverseTransaction)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Reverse Transaction';
+                ToolTip = 'Reverse the selected sustainability ledger entry by creating a new entry with negated emission values.';
+                Image = ReverseRegister;
+
+                trigger OnAction()
+                var
+                    SustLedgEntry: Record "Sustainability Ledger Entry";
+                    SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
+                    ReversedCount: Integer;
+                begin
+                    CurrPage.SetSelectionFilter(SustLedgEntry);
+                    ReversedCount := SustEntryReverseMgt.ReverseEntries(SustLedgEntry);
+                    if ReversedCount > 0 then begin
+                        CurrPage.Update(false);
+                        if ReversedCount = 1 then
+                            Message(ReversalSuccessMsg)
+                        else
+                            Message(ReversalMultipleSuccessMsg, ReversedCount);
+                    end;
+                end;
+            }
         }
         area(Promoted)
         {
@@ -284,6 +320,7 @@ page 6220 "Sustainability Ledger Entries"
             {
                 Caption = 'Process';
                 actionref("Navigate_Promoted"; "Navigate") { }
+                actionref(ReverseTransaction_Promoted; ReverseTransaction) { }
             }
             group(Category_Category4)
             {
@@ -299,6 +336,8 @@ page 6220 "Sustainability Ledger Entries"
         NavigatePage: Page Navigate;
         Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible : Boolean;
         DimensionCaptionLbl: Label '%1 %2', Locked = true;
+        ReversalSuccessMsg: Label 'The entry has been successfully reversed.';
+        ReversalMultipleSuccessMsg: Label '%1 entries have been successfully reversed.', Comment = '%1 = Count';
 
     trigger OnOpenPage()
     begin
