@@ -1,0 +1,37 @@
+namespace Microsoft.Bc2Fabric;
+
+page 150007 "Fabric Config Package Subform"
+{
+    Caption = 'Fabric Config Package Lines';
+    PageType = ListPart;
+    SourceTable = "Fabric Config Package Line";
+    Editable = false;
+    InsertAllowed = false;
+    ModifyAllowed = false;
+    DeleteAllowed = false;
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(Lines)
+            {
+                field("Table ID"; Rec."Table ID")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the ID of the table included in this configuration package.';
+                }
+                field("Table Name"; Rec."Table Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the name of the table.';
+                }
+                field("Per Company"; Rec."Per Company")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether the table is exported per company.';
+                }
+            }
+        }
+    }
+}

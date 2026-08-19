@@ -1,0 +1,99 @@
+namespace Microsoft.Bc2Fabric;
+
+using System.Fabric;
+using System.Reflection;
+
+page 150005 "Fabric Platform Tables"
+{
+    Caption = 'Fabric Platform Tables';
+    PageType = List;
+    SourceTable = "Tenant Fabric Tables";
+    UsageCategory = Lists;
+    ApplicationArea = All;
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(Lines)
+            {
+                field("Table ID"; Rec."Table ID")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the ID of the Business Central table to export.';
+                }
+                field("Table Name"; Rec."Table Name")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies the name of the Business Central table to export.';
+                }
+                field("Per Company"; Rec."Per Company")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether the table stores data per company.';
+                }
+                field("Fabric Entity Name"; Rec."Fabric Entity Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the destination entity name used in Microsoft Fabric.';
+                }
+                field("Fabric Schema Type"; Rec."Fabric Schema Type")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether the table is exported as data or logging.';
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(AddTable)
+            {
+                Caption = 'Add Table';
+                ApplicationArea = All;
+                Image = New;
+                ToolTip = 'Adds a Business Central table to the export selection. A maximum of 500 tables can be selected.';
+
+                trigger OnAction()
+                var
+                    AllObjWithCaption: Record AllObjWithCaption;
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    ObjectsPage: Page Objects;
+                begin
+                    FabricPlatformMgt.CheckCanAddTable();
+
+                    AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+                    ObjectsPage.SetTableView(AllObjWithCaption);
+                    ObjectsPage.LookupMode(true);
+                    if ObjectsPage.RunModal() <> Action::LookupOK then
+                        exit;
+
+                    ObjectsPage.GetRecord(AllObjWithCaption);
+                    FabricPlatformMgt.AddTable(AllObjWithCaption."Object ID");
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(AddTable_Promoted; AddTable) { }
+            }
+        }
+    }
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.CheckCanAddTable();
+    end;
+}

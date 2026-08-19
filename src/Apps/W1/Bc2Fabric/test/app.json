@@ -1,0 +1,53 @@
+{
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "BC2Fabric Tests",
+    "publisher": "Microsoft",
+    "brief": "Test extension for BC2Fabric.",
+    "description": "AL test codeunits for the BC2Fabric export to Microsoft Fabric app.",
+    "version": "1.0.0.0",
+    "privacyStatement": "",
+    "EULA": "",
+    "help": "",
+    "url": "",
+    "logo": "",
+    "dependencies": [
+        {
+            "id": "cafecafe-1111-4111-8111-cafecafe1111",
+            "publisher": "Microsoft",
+            "name": "BC2Fabric",
+            "version": "1.0.0.0"
+        },
+        {
+            "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+            "publisher": "Microsoft",
+            "name": "Tests-TestLibraries",
+            "version": "28.0.0.0"
+        },
+        {
+            "id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
+            "publisher": "Microsoft",
+            "name": "Application Test Library",
+            "version": "28.0.0.0"
+        }
+    ],
+    "screenshots": [],
+    "platform": "29.0.0.0",
+    "application": "29.0.0.0",
+    "idRanges": [
+        {
+            "from": 150201,
+            "to": 150400
+        }
+    ],
+    "runtime": "18.0",
+    "target": "Cloud",
+    "features": [
+        "TranslationFile",
+        "NoImplicitWith"
+    ],
+    "resourceExposurePolicy": {
+        "allowDebugging": true,
+        "allowDownloadingSource": true,
+        "includeSourceInSymbolFile": true
+    }
+}
