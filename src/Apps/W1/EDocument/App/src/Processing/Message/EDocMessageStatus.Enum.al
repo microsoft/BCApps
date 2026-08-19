@@ -19,4 +19,8 @@ enum 6429 "E-Doc. Message Status"
     {
         Caption = 'Sent';
     }
+    value(2; "Pending Response")
+    {
+        Caption = 'Pending Response';
+    }
 }

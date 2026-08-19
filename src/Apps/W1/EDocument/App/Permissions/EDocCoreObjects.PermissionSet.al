@@ -103,7 +103,9 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. PO Copilot Matching" = X,
 #endif
         codeunit "E-Doc. Attachment Processor" = X,
+        codeunit "E-Doc. Message Context" = X,
         codeunit "E-Doc. Message Mgt." = X,
+        codeunit "E-Doc. Msg. Transport Default" = X,
         codeunit "Service Participant" = X,
         page "E-Doc. Changes Part" = X,
         page "E-Doc. Changes Preview" = X,

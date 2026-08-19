@@ -58,8 +58,7 @@ codeunit 6532 "E-Document Message API"
     end;
 
     /// <summary>
-    /// Sends an outgoing E-Document message through the integration configured on its service.
-    /// Only synchronous service integrations are supported.
+    /// Sends an outgoing E-Document message through the message integration configured on its service.
     /// </summary>
     /// <param name="MessageEntryNo">The entry number of the E-Document message to send.</param>
     procedure SendMessage(MessageEntryNo: Integer)
@@ -67,5 +66,16 @@ codeunit 6532 "E-Document Message API"
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
     begin
         EDocMessageMgt.SendMessage(MessageEntryNo);
+    end;
+
+    /// <summary>
+    /// Retrieves the response for an asynchronously sent E-Document message.
+    /// </summary>
+    /// <param name="MessageEntryNo">The entry number of the E-Document message whose response to retrieve.</param>
+    procedure GetMessageResponse(MessageEntryNo: Integer)
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        EDocMessageMgt.GetMessageResponse(MessageEntryNo);
     end;
 }
