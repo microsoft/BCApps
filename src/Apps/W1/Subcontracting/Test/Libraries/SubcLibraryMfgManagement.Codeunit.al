@@ -320,18 +320,11 @@ codeunit 139984 "Subc. Library Mfg. Management"
     end;
 
     procedure CreateProdOrderSubcComment(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; LineNo: Integer; CommentDescription: Text[100]; CommentDescription2: Text[50])
-    begin
-        CreateProdOrderSubcCommentForLine(
-            ProdOrderRoutingLine, ProdOrderRoutingLine."Routing Reference No.", LineNo, CommentDescription, CommentDescription2);
-    end;
-
-    procedure CreateProdOrderSubcCommentForLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderLineNo: Integer; LineNo: Integer; CommentDescription: Text[100]; CommentDescription2: Text[50])
     var
         SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";
     begin
         SubcProdRtngComment.Status := ProdOrderRoutingLine.Status;
         SubcProdRtngComment."Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
-        SubcProdRtngComment."Prod. Order Line No." := ProdOrderLineNo;
         SubcProdRtngComment."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
         SubcProdRtngComment."Routing No." := ProdOrderRoutingLine."Routing No.";
         SubcProdRtngComment."Operation No." := ProdOrderRoutingLine."Operation No.";

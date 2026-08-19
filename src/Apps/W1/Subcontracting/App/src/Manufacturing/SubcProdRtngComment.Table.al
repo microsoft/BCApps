@@ -26,14 +26,6 @@ table 20574 "Subc. Prod. Rtng. Comment"
             TableRelation = "Production Order"."No." where(Status = field(Status));
             ToolTip = 'Specifies the production order number for the subcontracting comment.';
         }
-        field(3; "Prod. Order Line No."; Integer)
-        {
-            Caption = 'Prod. Order Line No.';
-            Editable = false;
-            TableRelation = "Prod. Order Line"."Line No." where(Status = field(Status), "Prod. Order No." = field("Prod. Order No."));
-            ValidateTableRelation = false;
-            ToolTip = 'Specifies the production order line for the subcontracting comment.';
-        }
         field(4; "Routing Reference No."; Integer)
         {
             Caption = 'Routing Reference No.';
@@ -83,7 +75,7 @@ table 20574 "Subc. Prod. Rtng. Comment"
 
     keys
     {
-        key(PK; Status, "Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Line No.")
+        key(PK; Status, "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.", "Line No.")
         {
             Clustered = true;
         }
@@ -93,9 +85,6 @@ table 20574 "Subc. Prod. Rtng. Comment"
     begin
         if Status = Status::Finished then
             Error(ModifyInsertOnFinishedErr, Status, TableCaption);
-
-        if "Prod. Order Line No." = 0 then
-            "Prod. Order Line No." := "Routing Reference No.";
     end;
 
     trigger OnDelete()

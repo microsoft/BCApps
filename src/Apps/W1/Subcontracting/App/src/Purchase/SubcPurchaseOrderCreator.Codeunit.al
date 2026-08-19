@@ -156,7 +156,6 @@ codeunit 20557 "Subc. Purchase Order Creator"
 
         ProdOrderRoutingComment.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderRoutingComment.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        ProdOrderRoutingComment.SetFilter("Prod. Order Line No.", '%1|0', RequisitionLine."Prod. Order Line No.");
         ProdOrderRoutingComment.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         ProdOrderRoutingComment.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         ProdOrderRoutingComment.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
@@ -194,11 +193,13 @@ codeunit 20557 "Subc. Purchase Order Creator"
               (RequisitionLine."Operation No." = '')
         then
             exit;
+        ProdOrderRoutingLine.SetLoadFields("Work Center No.");
         if not ProdOrderRoutingLine.Get(
             "Production Order Status"::Released, RequisitionLine."Prod. Order No.",
             RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.")
         then
             exit;
+        WorkCenter.SetLoadFields("Subcontractor No.");
         if not WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then
             exit;
         if WorkCenter."Subcontractor No." = '' then

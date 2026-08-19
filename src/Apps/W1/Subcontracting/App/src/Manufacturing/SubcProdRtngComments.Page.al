@@ -30,10 +30,6 @@ page 20577 "Subc. Prod. Rtng. Comments"
                 {
                     Visible = false;
                 }
-                field("Prod. Order Line No."; Rec."Prod. Order Line No.")
-                {
-                    Visible = false;
-                }
                 field("Routing Reference No."; Rec."Routing Reference No.")
                 {
                     Visible = false;
