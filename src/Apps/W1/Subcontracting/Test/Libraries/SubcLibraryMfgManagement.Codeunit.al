@@ -326,6 +326,13 @@ codeunit 139984 "Subc. Library Mfg. Management"
         SubcStandardTaskComment.Insert();
     end;
 
+    /// <summary>
+    /// Creates a subcontracting production-order routing comment.
+    /// </summary>
+    /// <param name="ProdOrderRoutingLine">The production-order routing line for the comment.</param>
+    /// <param name="LineNo">The line number of the comment.</param>
+    /// <param name="CommentDescription">The main description of the comment.</param>
+    /// <param name="CommentDescription2">The additional description of the comment.</param>
     procedure CreateProdOrderSubcComment(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; LineNo: Integer; CommentDescription: Text[100]; CommentDescription2: Text[50])
     var
         SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";

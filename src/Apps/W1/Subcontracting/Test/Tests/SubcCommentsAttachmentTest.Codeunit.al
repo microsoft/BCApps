@@ -73,6 +73,7 @@ codeunit 139995 "Subc. Comments Attachment Test"
 
     [Test]
     [Scope('OnPrem')]
+    [TestPermissions(TestPermissions::Restrictive)]
     procedure SubcontractingCommentPagesHonorReadAndEditPermissionSets()
     var
         RoutingHeader: Record "Routing Header";
