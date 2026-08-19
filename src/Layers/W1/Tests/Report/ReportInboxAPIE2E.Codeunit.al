@@ -316,7 +316,7 @@ codeunit 135549 "Report Inbox API E2E"
 
     [Test]
     [Scope('OnPrem')]
-    procedure TestGetReportInboxFileForEntryInAnotherCompany()
+    procedure TestGetReportInboxFileForEntryInAnotherCompanyIsNotWidenedSilently()
     var
         OtherCompany: Text;
         ListURL: Text;
@@ -325,7 +325,7 @@ codeunit 135549 "Report Inbox API E2E"
         ResponseText: Text;
         ForeignSystemId: Text;
     begin
-        // [SCENARIO] An entry discovered in another company via the wider scope can be fetched
+        // [SCENARIO] reportInboxFiles resolves an id only in the company addressed by the URL unless another company is named
         Initialize();
         OtherCompany := OtherCompanyName();
         SeedEntryForApiCallerIn(OtherCompany, SeededEntryTxt);
@@ -338,8 +338,42 @@ codeunit 135549 "Report Inbox API E2E"
         ForeignSystemId := SystemIdForCompany(ListResponse, OtherCompany);
         Assert.AreNotEqual('', ForeignSystemId, 'The wider scope returned no entry from ' + OtherCompany);
 
-        // [WHEN] the caller fetches that entry without changing the company in the URL
+        // [WHEN] the caller fetches that entry without naming the other company
         TargetURL := LibraryGraphMgt.CreateTargetURL(ForeignSystemId, Page::"Report Inbox File API", ReportInboxFilesTxt);
+
+        // [THEN] it is not found - the URL company is the boundary
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.ExpectedError('404');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetReportInboxFileForEntryInAnotherCompanyWhenNamed()
+    var
+        OtherCompany: Text;
+        ListURL: Text;
+        ListResponse: Text;
+        TargetURL: Text;
+        ResponseText: Text;
+        ForeignSystemId: Text;
+    begin
+        // [SCENARIO] Naming the other company explicitly widens reportInboxFiles to resolve the id there
+        Initialize();
+        OtherCompany := OtherCompanyName();
+        SeedEntryForApiCallerIn(OtherCompany, SeededEntryTxt);
+
+        // [GIVEN] a systemId discovered in the other company
+        ListURL := LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox Items API", ReportInboxItemsTxt) + AllCompaniesFilterTxt;
+        Commit();
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ListResponse, ListURL, 200);
+        Commit();
+        ForeignSystemId := SystemIdForCompany(ListResponse, OtherCompany);
+        Assert.AreNotEqual('', ForeignSystemId, 'The wider scope returned no entry from ' + OtherCompany);
+
+        // [WHEN] the caller fetches that entry and names the other company
+        TargetURL :=
+            LibraryGraphMgt.CreateTargetURL('', Page::"Report Inbox File API", ReportInboxFilesTxt) +
+            '?$filter=id eq ' + ForeignSystemId + ' and companyName eq ''' + OtherCompany + '''';
 
         // [THEN] the file is returned
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);

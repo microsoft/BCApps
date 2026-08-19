@@ -46,7 +46,6 @@ page 692 "Report Inbox File API"
         CompanyRec: Record Company;
         IdFilter: Text;
         CompanyFilter: Text;
-        CurrentCompany: Text[30];
     begin
         if Loaded then
             exit(FileFound and Rec.Find(Which));
@@ -58,18 +57,16 @@ page 692 "Report Inbox File API"
 
         CompanyFilter := Rec.GetFilter("Company Name");
 
-        if CompanyFilter = '' then begin
-            CurrentCompany := CopyStr(CompanyName(), 1, MaxStrLen(Rec."Company Name"));
-            FileFound := LoadFromCompany(CurrentCompany, IdFilter);
-        end else
+        if CompanyFilter = '' then
+            FileFound := LoadFromCompany(CopyStr(CompanyName(), 1, MaxStrLen(Rec."Company Name")), IdFilter)
+        else begin
+            CompanyRec.SetLoadFields(Name);
             CompanyRec.SetFilter(Name, CompanyFilter);
-
-        if not FileFound then
             if CompanyRec.FindSet() then
                 repeat
-                    if CompanyRec.Name <> CurrentCompany then
-                        FileFound := LoadFromCompany(CompanyRec.Name, IdFilter);
+                    FileFound := LoadFromCompany(CompanyRec.Name, IdFilter);
                 until (CompanyRec.Next() = 0) or FileFound;
+        end;
 
         exit(FileFound and Rec.Find(Which));
     end;
