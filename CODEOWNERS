@@ -150,6 +150,7 @@
 /src/Apps/W1/EU3PartyTradePurchase/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/ExcelReports/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/ExciseTaxes/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/ExpenseAgent/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/ExpenseWithholdingTax/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/FieldServiceIntegration/ @microsoft/d365-bc-scm
 /src/Apps/W1/ImageAnalysis/ @microsoft/d365-bc-scm
