@@ -14,13 +14,6 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
-# Maximum number of test app reruns allowed per job. A failed app is re-run once on a DIFFERENT
-# tenant than the one it failed on: tests are not guaranteed to clean up after themselves, so a
-# same-tenant retry can re-fail on the residue the failed run just left behind. The budget is
-# deliberately small - it exists to absorb instability, and more failures than this means
-# something is genuinely broken rather than flaky.
-$script:MaxAppReruns = 1
-
 <#
 .SYNOPSIS
     Returns the rerun budget for the current build.
@@ -30,12 +23,22 @@ $script:MaxAppReruns = 1
     real state of the branch and they feed the unstable-tests data, so masking instability there
     would hide exactly what we want to measure. This mirrors the test tolerance check in
     RunTestsInBcContainer.ps1, which is also limited to pull request builds.
+.PARAMETER MaxAppReruns
+    Rerun budget granted to a pull request build. A failed app is re-run once on a DIFFERENT tenant
+    than the one it failed on: tests are not guaranteed to clean up after themselves, so a
+    same-tenant retry can re-fail on the residue the failed run just left behind. Deliberately
+    small - it exists to absorb instability, and more failures than this means something is
+    genuinely broken rather than flaky.
 .OUTPUTS
-    [int] $script:MaxAppReruns on pull request builds, otherwise 0.
+    [int] MaxAppReruns on pull request builds, otherwise 0.
 #>
 function Get-AppRerunBudget {
+    param(
+        [int]$MaxAppReruns = 1
+    )
+
     if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
-        return $script:MaxAppReruns
+        return $MaxAppReruns
     }
 
     Write-Host "Build event is '$($env:GITHUB_EVENT_NAME)', not 'pull_request'. Failed test apps will NOT be re-run."
