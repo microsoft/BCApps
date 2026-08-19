@@ -556,7 +556,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         TMANotify.UndoApproval(OrderHeader);
 
         TaxJurisdiction.Get('AGENTJUR');
-        LibraryAssert.IsFalse(TaxJurisdiction.Verified,
+        LibraryAssert.IsFalse(TaxJurisdiction."Shpfy Verified",
             'Undo Approval must un-verify an agent-created jurisdiction no other approved order uses.');
     end;
 
@@ -581,7 +581,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         TMANotify.UndoApproval(OrderA);
 
         TaxJurisdiction.Get('AGENTJUR');
-        LibraryAssert.IsFalse(TaxJurisdiction.Verified,
+        LibraryAssert.IsFalse(TaxJurisdiction."Shpfy Verified",
             'Undo Approval un-verifies the agent-created jurisdiction the undone order used (re-quarantined until re-approved).');
     end;
 
@@ -858,8 +858,8 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
     begin
         EnsureJurisdiction(JurisdictionCode);
         TaxJurisdiction.Get(JurisdictionCode);
-        TaxJurisdiction."Created by Agent" := true;
-        TaxJurisdiction.Verified := IsVerified;
+        TaxJurisdiction."Shpfy Created by Agent" := true;
+        TaxJurisdiction."Shpfy Verified" := IsVerified;
         TaxJurisdiction.Modify();
     end;
 

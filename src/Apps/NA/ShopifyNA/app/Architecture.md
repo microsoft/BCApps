@@ -50,9 +50,9 @@ US environments to install this app (see *Localization promotion* below).
 | 30476 | Codeunit | Shpfy TMA Notify | Owns both review notifications (Sales Order + Shopify Order) and the review-page drills (`RunReviewForSalesHeader`, `OpenReviewForOrder`, single `RunReviewPage`). Notifications are stateless — no table |
 | 30477 | Codeunit | Shpfy TMA Activity Log | Wraps `Activity Log Builder` chain for per-line + per-area AI audit entries |
 | 30476 | TableExtension | Shpfy TMA Order Header | Per-order markers on `Shpfy Order Header`: `Tax Match Applied`, `Tax Match Reviewed`, `Tax Rate Conflict`, `Tax Match Incomplete`, and `Tax Match Low Confidence` (set when a match is not high confidence — e.g. a provisional-jurisdiction match forced low) |
-| 30477 | TableExtension | Shpfy TMA Sales Header | `Tax Match Applied` Boolean marker on `Sales Header` |
+| 30477 | TableExtension | Shpfy TMA Sales Header | `Shpfy Tax Match Applied` Boolean marker on `Sales Header` |
 | 30480 | TableExtension | Shpfy TMA Order Tax Line | `Tax Jurisdiction Code` (Code[10], `TableRelation = "Tax Jurisdiction"`) — moved out of the connector since the connector itself does not read or write it |
-| 30481 | TableExtension | Shpfy TMA Tax Jurisdiction | Provenance on `Tax Jurisdiction`: `Created by Agent`, `Verified`. Marks agent-auto-created jurisdictions as **provisional** until a human verifies them |
+| 30481 | TableExtension | Shpfy TMA Tax Jurisdiction | Provenance on `Tax Jurisdiction`: `Shpfy Created by Agent`, `Shpfy Verified`. Marks agent-auto-created jurisdictions as **provisional** until a human verifies them |
 | 30470 | TableExtension | Shpfy TMA Shop | 5 config fields on `Shpfy Shop` (incl. `Tax Match Review Mode` — Always / Low Confidence Only / Never) |
 | 30478 | PageExtension | Shpfy TMA Order Tax Lines | Adds the Tax Jurisdiction Code column to the standalone Tax Lines list, visible only when the parent order's shop has Tax Matching Agent enabled |
 | 30471 | Page (Card) | Shpfy TMA Review | Per-order review summary: resolved Tax Area (with AI confidence indicator), ship-to context, and the tax lines ListPart (each line shows the item it taxes). Hosts the **Approve** action that sets `Tax Match Reviewed` |
@@ -187,7 +187,7 @@ ShpfyProcessOrder.CreateHeaderFromShopifyOrder()
         v
       TMA Events (30473) — OnAfterCreateSalesHeader subscriber
         |-- If OrderHeader."Tax Match Applied" -> true:
-        |     |-- Set SalesHeader."Tax Match Applied" = true
+        |     |-- Set SalesHeader."Shpfy Tax Match Applied" = true
         |           (badge only — no notification queued; the Sales Order prompt
         |            is derived live on page open)
         |
