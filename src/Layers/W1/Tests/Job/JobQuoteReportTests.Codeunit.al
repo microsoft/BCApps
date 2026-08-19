@@ -1,4 +1,3 @@
-#pragma warning disable AL0432, AS0105
 codeunit 136314 "Job Quote Report Tests"
 {
     Subtype = Test;
@@ -426,7 +425,9 @@ codeunit 136314 "Job Quote Report Tests"
 #if not CLEAN29
     local procedure SetReportLayoutForCustomWord()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         CustomReportLayoutCode: Code[20];
     begin
         Clear(CustomReportLayout);
@@ -540,5 +541,4 @@ codeunit 136314 "Job Quote Report Tests"
         RequestPage.Cancel().Invoke();
     end;
 }
-#pragma warning restore AL0432, AS0105
 

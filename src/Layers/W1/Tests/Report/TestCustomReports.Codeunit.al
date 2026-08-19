@@ -1,4 +1,3 @@
-#pragma warning disable AL0432, AS0105
 codeunit 134761 "Test Custom Reports"
 {
     EventSubscriberInstance = Manual;
@@ -15,7 +14,9 @@ codeunit 134761 "Test Custom Reports"
         CustomerPartialMod: Record Customer;
         CustomerNoMod: Record Customer;
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         QuoteSalesHeaderFullMod: Record "Sales Header";
         OrderSalesHeaderFullMod: Record "Sales Header";
@@ -796,7 +797,9 @@ codeunit 134761 "Test Custom Reports"
     procedure UT_CleanEmailBodyLayoutCode_OnReportIdValidate()
     var
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportId: array[2] of Integer;
         LayoutCode: Code[20];
     begin
@@ -1990,9 +1993,11 @@ codeunit 134761 "Test Custom Reports"
 #if not CLEAN28
     [ModalPageHandler]
     [Scope('OnPrem')]
+#pragma warning disable AL0432, AS0105
     procedure CustomReportLayoutHandler(var CustomReportLayouts: TestPage "Custom Report Layouts")
     var
         ExpectedCustomLayoutDescription: Text;
+#pragma warning restore AL0432, AS0105
         ExpectedCustomLayoutReportID: Text;
         RowFound: Boolean;
     begin
@@ -2276,9 +2281,9 @@ codeunit 134761 "Test Custom Reports"
     [Scope('OnPrem')]
     procedure CustomerReportSelectionHandler(var CustomerReportSelections: TestPage "Customer Report Selections")
     var
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
         ExpectedCustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
     begin
         ExpectedCustomReportLayout.Get(LibraryVariableStorage.DequeueText());
 
@@ -2323,4 +2328,3 @@ codeunit 134761 "Test Custom Reports"
         TestMode := true
     end;
 }
-#pragma warning restore AL0432, AS0105

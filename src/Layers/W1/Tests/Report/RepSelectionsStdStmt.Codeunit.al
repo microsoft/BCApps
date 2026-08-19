@@ -1,4 +1,3 @@
-#pragma warning disable AL0432, AS0105
 codeunit 134422 "Rep. Selections - Std. Stmt."
 {
     EventSubscriberInstance = Manual;
@@ -2153,7 +2152,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     procedure UT_CustomReportSelection_CheckSendToEmail()
     var
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         CustomReportSelection: Record "Custom Report Selection";
         Customer: Record Customer;
@@ -2356,7 +2357,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         SendingProfileCode: Code[20];
         CustomReportLayoutCode: Code[20];
@@ -2402,7 +2405,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         SendingProfileCode: Code[20];
         CustomReportLayoutCode: Code[20];
@@ -2737,7 +2742,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         CustomReportLayoutCode: Code[20];
     begin
@@ -2769,7 +2776,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         CustomReportLayoutCode: Code[20];
     begin
@@ -3028,4 +3037,3 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         StandardStatement.SaveAsPdf(FileManagement.ServerTempFileName('.pdf'));
     end;
 }
-#pragma warning restore AL0432, AS0105

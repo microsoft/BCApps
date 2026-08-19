@@ -1,4 +1,3 @@
-#pragma warning disable AL0432, AS0105
 codeunit 134421 "Report Selections Tests"
 {
     Subtype = Test;
@@ -398,8 +397,10 @@ codeunit 134421 "Report Selections Tests"
 
         // Save a report to get some HTML to test the email item with
         SalesInvoiceHeader.SetRecFilter();
+#pragma warning disable AL0432, AS0105
         ReportSelections.GetEmailBodyForCust(
           FileName, ReportSelections.Usage::"S.Invoice", SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", DummyEmailAddress);
+#pragma warning restore AL0432, AS0105
         GetEmailItem(TempEmailItem, TempEmailItem."Message Type"::"From Email Body Template", FileName, false);
 
         // Verify
@@ -431,8 +432,10 @@ codeunit 134421 "Report Selections Tests"
 
         // Save a report to get some HTML to test the email item with
         SalesInvoiceHeader.SetRecFilter();
+#pragma warning disable AL0432, AS0105
         ReportSelections.GetEmailBodyForCust(
           FileName, ReportSelections.Usage::"S.Invoice", SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", EmailAddress);
+#pragma warning restore AL0432, AS0105
 
         // Verify
         Assert.IsTrue(
@@ -459,8 +462,10 @@ codeunit 134421 "Report Selections Tests"
 
         // Save a report to get some HTML to test the email item with
         SalesInvoiceHeader.SetRecFilter();
+#pragma warning disable AL0432, AS0105
         ReportSelections.GetEmailBodyForCust(
           FileName, ReportSelections.Usage::"S.Invoice", SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", EmailAddress);
+#pragma warning restore AL0432, AS0105
 
         // Verify
         Assert.IsTrue(
@@ -489,8 +494,10 @@ codeunit 134421 "Report Selections Tests"
 
         // Save a report to get some HTML to test the email item with
         SalesInvoiceHeader.SetRecFilter();
+#pragma warning disable AL0432, AS0105
         ReportSelections.GetEmailBodyForCust(
           FileName, ReportSelections.Usage::"S.Invoice", SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", EmailAddress);
+#pragma warning restore AL0432, AS0105
 
         // Verify
         Assert.IsTrue(
@@ -1007,7 +1014,9 @@ codeunit 134421 "Report Selections Tests"
     var
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         InteractionLogEntry: Record "Interaction Log Entry";
@@ -1950,7 +1959,9 @@ codeunit 134421 "Report Selections Tests"
     procedure VerifySalesInvoiceCustomReportNotRevertsBackToRdlc()
     var
         ReportLayoutSelection: Record "Report Layout Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportLayoutSelectionPage: TestPage "Report Layout Selection";
         LayoutCode: Code[20];
     begin
@@ -2913,7 +2924,9 @@ codeunit 134421 "Report Selections Tests"
     local procedure SetupReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         GetCustomBodyLayout(CustomReportLayout);
 
@@ -3002,7 +3015,9 @@ codeunit 134421 "Report Selections Tests"
     local procedure UpdateCustomReportSelections(NewCustNo: Code[20]; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200])
     var
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         GetCustomBodyLayout(CustomReportLayout);
         InsertCustomReportSelectionCustomer(
@@ -3047,9 +3062,11 @@ codeunit 134421 "Report Selections Tests"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
     var
         ReportLayoutList: Record "Report Layout List";
+#pragma warning restore AL0432, AS0105
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
         OutStr: OutStream;
@@ -3085,7 +3102,9 @@ codeunit 134421 "Report Selections Tests"
     begin
         EmailItem.Validate("Plaintext Formatted", Plaintext);
         EmailItem.Validate("Message Type", MessageType);
+#pragma warning disable AL0432, AS0105
         EmailItem.Validate("Body File Path", BodyFilePath);
+#pragma warning restore AL0432, AS0105
     end;
 #endif
 
@@ -3309,7 +3328,9 @@ codeunit 134421 "Report Selections Tests"
     local procedure SetupSalesShipmentReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         GeSalesShipmentCustomBodyLayout(CustomReportLayout);
 
@@ -3320,9 +3341,11 @@ codeunit 134421 "Report Selections Tests"
         UpdateReportSelections(OldReportSelections.Usage::"S.Shipment", CustomReportLayout."Report ID", UseForEmailAttachment, UseForEmailBody, CustomReportLayout.Code);
     end;
 
+#pragma warning disable AL0432, AS0105
     local procedure GeSalesShipmentCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
     var
         ReportLayoutList: Record "Report Layout List";
+#pragma warning restore AL0432, AS0105
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
         OutStr: OutStream;
@@ -3355,7 +3378,9 @@ codeunit 134421 "Report Selections Tests"
     local procedure UpdateSalesShipmentCustomReportSelections(NewCustNo: Code[20]; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200])
     var
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         GeSalesShipmentCustomBodyLayout(CustomReportLayout);
         InsertCustomReportSelectionCustomer(
@@ -3406,7 +3431,9 @@ codeunit 134421 "Report Selections Tests"
     local procedure SetupSalesReturnReceiptReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         GeSalesReturnReceiptCustomBodyLayout(CustomReportLayout);
 
@@ -3417,9 +3444,11 @@ codeunit 134421 "Report Selections Tests"
         UpdateReportSelections(OldReportSelections.Usage::"S.Ret.Rcpt.", CustomReportLayout."Report ID", UseForEmailAttachment, UseForEmailBody, CustomReportLayout.Code);
     end;
 
+#pragma warning disable AL0432, AS0105
     local procedure GeSalesReturnReceiptCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
     var
         ReportLayoutList: Record "Report Layout List";
+#pragma warning restore AL0432, AS0105
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
         OutStr: OutStream;
@@ -3452,7 +3481,9 @@ codeunit 134421 "Report Selections Tests"
     local procedure UpdateSalesReturnReceiptCustomReportSelections(NewCustNo: Code[20]; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200])
     var
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         GeSalesReturnReceiptCustomBodyLayout(CustomReportLayout);
         InsertCustomReportSelectionCustomer(
@@ -3704,9 +3735,11 @@ codeunit 134421 "Report Selections Tests"
 #if not CLEAN28
     [ModalPageHandler]
     [Scope('OnPrem')]
+#pragma warning disable AL0432, AS0105
     procedure CustomReportLayoutsHandlerCancel(var CustomReportLayouts: TestPage "Custom Report Layouts")
     begin
         CustomReportLayouts.Cancel().Invoke();
+#pragma warning restore AL0432, AS0105
     end;
 #endif
 
@@ -3725,4 +3758,3 @@ codeunit 134421 "Report Selections Tests"
         ReportLayouts.OK().Invoke();
     end;
 }
-#pragma warning restore AL0432, AS0105
