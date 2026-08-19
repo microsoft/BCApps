@@ -15,7 +15,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-report 99001501 "Subc. Create Transf. Order"
+report 20501 "Subc. Create Transf. Order"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Transfer Order';
