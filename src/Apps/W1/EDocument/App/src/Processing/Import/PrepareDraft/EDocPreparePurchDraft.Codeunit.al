@@ -72,6 +72,9 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
                     EDocumentPurchaseLine.Modify();
                 until EDocumentPurchaseLine.Next() = 0;
 
+            // Resolve VAT Product Posting Groups from extracted VAT rates
+            ResolveVATProductPostingGroups(EDocument."Entry No", EDocumentPurchaseHeader);
+
             CopilotLineMatching(EDocument."Entry No");
         end;
 
