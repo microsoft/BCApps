@@ -456,17 +456,20 @@
 /tools/ @microsoft/d365-bc-integrations
 /src/Layers/.config/ @microsoft/d365-bc-finance-1
 
-# TIER 7 - reconciliation pending (NOT generated).
-# The triage agent routes these to SCM, today's CODEOWNERS routes them to
-# Finance. Current ownership is preserved here so this change takes nothing away
-# from a team. Settle it in ownership-rules.js in BCAppsTriage, then regenerate
-# and delete this tier.
+# TIER 7 - documented review overrides (NOT generated).
+# The triage agent routes PowerBIReports and ServiceManagement to SCM, while
+# today's CODEOWNERS routes them to Finance. Current ownership is preserved here
+# so this change takes nothing away from a team. Settle those two mappings in
+# ownership-rules.js in BCAppsTriage, then regenerate.
 #   PowerBIReports per-area report folders: triage resolves App/<Area> to the
 #     area owner (e.g. App/Sales -> SCM); CODEOWNERS has owned the whole app as
 #     Finance since #9752.
 #   ServiceManagement: appFolderRules says SCM; CODEOWNERS says Finance.
+#   ExpenseAgent: review ownership follows the Finance app team, matching the
+#     other expense-management apps. Its ownership label is managed separately.
 /src/Apps/W1/PowerBIReports @microsoft/d365-bc-finance-1
 /src/Apps/W1/ServiceManagement @microsoft/d365-bc-finance-1
+/src/Apps/W1/ExpenseAgent/ @microsoft/d365-bc-finance-1
 
 # App Rulesets
 /src/rulesets/ @microsoft/d365-bc-app-rulesets
