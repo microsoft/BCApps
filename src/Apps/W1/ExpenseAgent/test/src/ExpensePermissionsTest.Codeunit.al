@@ -24,16 +24,16 @@ codeunit 148338 "Expense Permissions Test"
         EmployeeOnlyPermissionSetTok: Label 'Exp. Emp. Only Test', Locked = true;
         HREditPermissionSetTok: Label 'Exp. HR Edit Test', Locked = true;
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
-        ExpenseMgmtEditPermissionSetTok: Label 'Expense Mgmt. Edit', Locked = true;
+        D365BasicPermissionSetTok: Label 'D365 BASIC', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
 
     [Test]
-    procedure ExpenseManagementEditCanInsertActivityIndirectly()
+    procedure D365BasicCanInsertActivityIndirectly()
     begin
-        VerifyPermissionSetCanInsertActivity(ExpenseMgmtEditPermissionSetTok);
+        VerifyPermissionSetCanInsertActivity(D365BasicPermissionSetTok);
     end;
 
     [Test]
@@ -274,6 +274,9 @@ codeunit 148338 "Expense Permissions Test"
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
 
         LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
+        Assert.IsFalse(
+            ExpenseActivityLogEntry.InsertPermission(),
+            'The caller must not have direct insert permission on the activity log.');
         EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
             ExpenseReportHeader,
             Enum::"Expense Activity Event Type"::Created,
