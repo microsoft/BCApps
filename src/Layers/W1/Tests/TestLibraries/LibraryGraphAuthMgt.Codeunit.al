@@ -14,7 +14,6 @@ using System.Text;
 codeunit 131022 "Library - Graph Auth Mgt."
 {
     Access = Internal;
-    EventSubscriberInstance = Manual;
 
     var
         ApiTestPasswordFileTok: Label 'C:\Run\my\ApiTestPassword', Locked = true;
@@ -25,8 +24,7 @@ codeunit 131022 "Library - Graph Auth Mgt."
         PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.', Locked = true;
 
     [NonDebuggable]
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Graph Mgt", OnAfterInitializeWebRequestWithURL, '', false, false)]
-    local procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
     var
         User: Record User;
         Password: SecretText;
