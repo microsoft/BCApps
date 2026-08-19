@@ -43,7 +43,6 @@ report 1305 "Standard Sales - Order Conf."
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 
-
     dataset
     {
         dataitem(Header; "Sales Header")
