@@ -29,11 +29,6 @@ page 7105 "Travel Request Subform"
                 field(Type; Rec.Type)
                 {
                     ToolTip = 'Specifies whether the line covers a specific expense category or a lump sum amount.';
-
-                    trigger OnValidate()
-                    begin
-                        CurrPage.Update(false);
-                    end;
                 }
                 field("Expense Category Code"; Rec."Expense Category Code")
                 {
