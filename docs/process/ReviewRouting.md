@@ -52,13 +52,14 @@ classify issues and pull requests:
 - `microsoft/BCAppsTriage` → `plugins/triage/skills/triage/scripts/ownership/ownership-resolver.js`
 
 which are in turn seeded from the Business Central Ownership Matrix. That agent already decides which
-team owns an issue or pull request; deriving `CODEOWNERS` from the same data keeps the team label
-and requested reviewer aligned by default. Explicit review-only exceptions are documented below.
+team owns an issue or pull request; deriving `CODEOWNERS` from the same data means **the team label
+on an item and the reviewer GitHub requests cannot disagree**.
 
 Previously this file was going to be hand-derived from the ownership matrix separately. That was a
 mistake: a second, hand-maintained copy of the same mapping drifts from the first one immediately.
 It also got several areas wrong — most of `src/Layers/*` and the country localization trees were not
-routed at all, and `Intrastat`, `Projects` and `Invoicing` were assigned to the wrong team.
+routed at all, and `ExpenseAgent`, `Intrastat`, `Projects` and `Invoicing` were assigned to the wrong
+team.
 
 ### Structure
 
@@ -119,7 +120,7 @@ Exact one-to-one agreement is neither expected nor desirable, for two structural
   namespace, and only then path. `CODEOWNERS` can only ever see the path, so the two must diverge
   wherever a file's namespace or object id disagrees with its folder.
 
-### Documented exceptions and disagreements
+### Two disagreements left unresolved on purpose
 
 The triage rules and today's `CODEOWNERS` genuinely disagree in two places. Taking ownership away
 from a team is not something this change should do silently, so current ownership is preserved in
@@ -131,12 +132,6 @@ tier 7 and the disagreement is recorded instead:
 
 Both should be settled in `ownership-rules.js`, after which tier 7 disappears on the next
 regeneration.
-
-Tier 7 also contains one deliberate review-only exception:
-
-- **`ExpenseAgent`** — review requests go to the Finance app team, matching the other
-  expense-management apps. Its ownership label is managed separately and does not drive the
-  required reviewer.
 
 ### Findings for whoever maintains `ownership-rules.js`
 
@@ -172,10 +167,11 @@ Integration changes the most: it previously owned almost nothing in `CODEOWNERS`
 System Application, Business Foundation, the migration and connector apps, and every unlisted W1 app.
 
 ### Regenerating
-Edit `ownership-rules.js` in `BCAppsTriage` and regenerate. The generator reads `ownership-rules.js`
-and `ownership-resolver.js` directly, so it lives alongside them in `BCAppsTriage` rather than here.
-Do not hand-edit the generated block.
-Hand edits are lost on the next regeneration and silently diverge from issue and pull request triage.
+Edit `ownership-rules.js` in `BCAppsTriage`, add a resolver regression test, and update the generated
+block here from the same rules. The original generator is not currently checked in or run by
+automation, so the BCAppsTriage and BCApps changes must be submitted together and their path
+resolution verified explicitly. Do not change only the generated block: doing so silently diverges
+from issue and pull request triage.
 ## What still needs to change (requires an administrator)
 `CODEOWNERS` alone does not finish the job. The `Official Branches` ruleset still contains:
 
