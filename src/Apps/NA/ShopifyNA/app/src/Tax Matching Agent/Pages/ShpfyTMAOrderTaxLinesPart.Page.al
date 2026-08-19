@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Integration.Shopify;
 
 using System.Telemetry;
@@ -161,7 +166,7 @@ page 30479 "Shpfy TMA Order Tax Lines Part"
     /// expression of the order's order line ids (e.g. '1001|1002'), since tax lines link
     /// to order lines through Parent Id. An empty expression leaves the part empty.
     /// </summary>
-    procedure SetTaxLineFilter(ParentIdFilter: Text)
+    internal procedure SetTaxLineFilter(ParentIdFilter: Text)
     begin
         if ParentIdFilter = '' then
             Rec.SetRange("Parent Id", 0)
