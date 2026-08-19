@@ -365,6 +365,64 @@ codeunit 30471 "Shpfy TMA Matcher"
     end;
 
     /// <summary>
+    /// Reverses the jurisdiction verification that an order's approval performed: for each
+    /// agent-created jurisdiction the order used that is Verified, clears Verified so the
+    /// jurisdiction returns to its provisional state (later matches to it are forced low
+    /// confidence and held again). User-created or pre-existing jurisdictions are left untouched.
+    /// A jurisdiction that other approved orders also use is intentionally re-quarantined too — a
+    /// later order re-verifies it on approval, so this stays cheap (only the order's own lines are
+    /// read) and self-heals.
+    /// </summary>
+    internal procedure UnverifyAgentJurisdictions(OrderHeader: Record "Shpfy Order Header")
+    var
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        Jurisdictions: List of [Code[10]];
+        JurisdictionCode: Code[10];
+    begin
+        CollectAssignedJurisdictions(OrderHeader, Jurisdictions);
+        foreach JurisdictionCode in Jurisdictions do
+            if TaxJurisdiction.Get(JurisdictionCode) then
+                if TaxJurisdiction."Created by Agent" and TaxJurisdiction.Verified then begin
+                    TaxJurisdiction.Verified := false;
+                    TaxJurisdiction.Modify();
+                end;
+    end;
+
+    local procedure CollectAssignedJurisdictions(OrderHeader: Record "Shpfy Order Header"; var Jurisdictions: List of [Code[10]])
+    var
+        OrderLine: Record "Shpfy Order Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
+    begin
+        Clear(Jurisdictions);
+        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetLoadFields("Line Id");
+        if OrderLine.FindSet() then
+            repeat
+                CollectAssignedJurisdictionsForParent(OrderLine."Line Id", Jurisdictions);
+            until OrderLine.Next() = 0;
+
+        ShippingCharge.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        ShippingCharge.SetLoadFields("Shopify Shipping Line Id");
+        if ShippingCharge.FindSet() then
+            repeat
+                CollectAssignedJurisdictionsForParent(ShippingCharge."Shopify Shipping Line Id", Jurisdictions);
+            until ShippingCharge.Next() = 0;
+    end;
+
+    local procedure CollectAssignedJurisdictionsForParent(ParentId: BigInteger; var Jurisdictions: List of [Code[10]])
+    var
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+    begin
+        OrderTaxLine.SetRange("Parent Id", ParentId);
+        OrderTaxLine.SetLoadFields("Tax Jurisdiction Code");
+        if OrderTaxLine.FindSet() then
+            repeat
+                if (OrderTaxLine."Tax Jurisdiction Code" <> '') and not Jurisdictions.Contains(OrderTaxLine."Tax Jurisdiction Code") then
+                    Jurisdictions.Add(OrderTaxLine."Tax Jurisdiction Code");
+            until OrderTaxLine.Next() = 0;
+    end;
+
+    /// <summary>
     /// Returns the Business Central Tax Detail rate that would apply to a tax line's item, given
     /// the jurisdiction currently assigned to the line and the order's effective date. Used by
     /// the review page to show BC's rate next to Shopify's and highlight a difference. Returns

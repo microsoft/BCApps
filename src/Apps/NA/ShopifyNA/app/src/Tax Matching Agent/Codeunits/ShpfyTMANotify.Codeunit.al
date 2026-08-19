@@ -205,11 +205,14 @@ codeunit 30476 "Shpfy TMA Notify"
 
     /// <summary>
     /// Reverses an approval: clears the order's Tax Match Reviewed flag so the order is
-    /// held for review again (it is created only once re-approved). Exposed as internal so the
-    /// review page's Undo Approval action and tests both drive the same state change.
+    /// held for review again (it is created only once re-approved), and un-verifies the
+    /// agent-created Tax Jurisdictions the order used so they return to their provisional state.
+    /// Exposed as internal so the review page's Undo Approval action and tests both drive the
+    /// same state change.
     /// </summary>
     internal procedure UndoApproval(var OrderHeader: Record "Shpfy Order Header")
     var
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
         TMARegister: Codeunit "Shpfy TMA Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
@@ -218,6 +221,8 @@ codeunit 30476 "Shpfy TMA Notify"
 
         OrderHeader."Tax Match Reviewed" := false;
         OrderHeader.Modify();
+
+        TMAMatcher.UnverifyAgentJurisdictions(OrderHeader);
 
         FeatureTelemetry.LogUsage('0000UN7', TMARegister.FeatureName(), 'tax match approval undone');
     end;

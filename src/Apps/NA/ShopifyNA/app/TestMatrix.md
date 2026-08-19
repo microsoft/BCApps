@@ -85,6 +85,8 @@ effect on Approve and are reverted if the page is closed without approving.
 | RD5 | Resolved then approved / re-run | After RD1 the reviewer either (a) accepts BC's 10% and clicks Approve, or (b) corrects the Tax Detail rate to 20% then Approves (or re-runs Find Mappings on the Shopify order) | On Approve the Tax Area is rebuilt from the line jurisdictions, `Tax Rate Conflict` is recomputed (clears when rates now agree), and the order is released. A re-run rebuilds from the order's **full** jurisdiction set (carried in from persisted codes), not just the re-matched line |
 | RD8 | Edit discarded on close | On a held order the reviewer changes a line's Tax Jurisdiction Code, then closes the page **without** Approve | A confirmation warns the edit will be discarded; on confirm the line's Tax Jurisdiction Code is reverted to its pre-edit value and `Tax Rate Conflict` is unchanged (still authoritative) |
 | RD9 | Undo Approval | On an approved, held order with no Sales Document yet (`Sales Order No.`/`Sales Invoice No.` blank), **Undo Approval** (after a confirm) clears `Tax Match Reviewed` so the order is held again; the action is hidden once a Sales Document exists or the order is not held-when-unapproved |
+| RD11 | Undo un-verifies agent jurisdiction | An approved order uses an agent-created, `Verified` jurisdiction; reviewer clicks **Undo Approval** | The jurisdiction is set back to `Verified` = false (returns to provisional/held) — `UndoApprovalUnverifiesAgentJurisdiction` |
+| RD12 | Undo re-quarantines a shared jurisdiction | Two approved orders use the same agent-created, `Verified` jurisdiction; reviewer undoes one | The jurisdiction is un-verified (deliberately re-quarantined; a later approval re-verifies it) — `UndoApprovalUnverifiesJurisdictionSharedByAnotherOrder` |
 | RD10 | Use Shopify Rate resolves the conflict | On a conflict line the reviewer clicks **Use Shopify Rate** (after a confirm warning it changes shared tax setup beyond this order): a Tax Detail is created/updated for the line's jurisdiction + tax group, effective the order's document date, at Shopify's rate. The row turns green (BC rate now equals Shopify's); on Approve the Tax Area is rebuilt and `Tax Rate Conflict` clears. The action is disabled when the rates already agree or no jurisdiction is assigned. **Verified manually / by TestPage** (page action + Confirm) |
 
 ---
@@ -98,7 +100,9 @@ or an incomplete match always holds regardless of the mode. An agent-auto-create
 modes a match to a provisional jurisdiction is deterministically forced to low confidence and sets
 the order's `Tax Match Low Confidence` flag, so the order is held (in Never mode the downgrade is
 skipped, since nothing is held). Approving any order that uses the jurisdiction sets `Verified` = true,
-clearing the provisional state (`MarkJurisdictionsVerified`). The gate rows RM1–RM7
+clearing the provisional state (`MarkJurisdictionsVerified`). Undoing an order's approval reverses this
+(`UnverifyAgentJurisdictions`): the agent-created jurisdictions the order used are set back to
+`Verified` = false (re-quarantined; a later approval re-verifies them). The gate rows RM1–RM7
 are deterministic in-memory unit tests; the provisional rows PV1–PV3 exercise the LLM path and live in
 the internal RAI app.
 

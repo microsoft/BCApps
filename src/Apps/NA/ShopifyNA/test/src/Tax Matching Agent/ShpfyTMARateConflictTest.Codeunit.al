@@ -533,6 +533,53 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         LibraryAssert.IsFalse(OrderHeader."Tax Match Reviewed", 'Undo Approval on a not-reviewed order stays not-reviewed.');
     end;
 
+    // Undo Approval un-verifies an agent-created jurisdiction the order used, returning it to its
+    // provisional (low-confidence, held) state.
+    [Test]
+    procedure UndoApprovalUnverifiesAgentJurisdiction()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        Shop: Record "Shpfy Shop";
+        TMANotify: Codeunit "Shpfy TMA Notify";
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        EnsureAgentJurisdiction('AGENTJUR', true);
+        CreateReviewedOrderForJurisdiction(Shop, 'AGENTJUR', OrderHeader);
+
+        TMANotify.UndoApproval(OrderHeader);
+
+        TaxJurisdiction.Get('AGENTJUR');
+        LibraryAssert.IsFalse(TaxJurisdiction.Verified,
+            'Undo Approval must un-verify an agent-created jurisdiction no other approved order uses.');
+    end;
+
+    // Undo Approval also un-verifies a jurisdiction shared with another approved order: the
+    // jurisdiction is intentionally re-quarantined (a later approval re-verifies it). This keeps
+    // undo cheap — only the order's own lines are read.
+    [Test]
+    procedure UndoApprovalUnverifiesJurisdictionSharedByAnotherOrder()
+    var
+        OrderA: Record "Shpfy Order Header";
+        OrderB: Record "Shpfy Order Header";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        Shop: Record "Shpfy Shop";
+        TMANotify: Codeunit "Shpfy TMA Notify";
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        EnsureAgentJurisdiction('AGENTJUR', true);
+        CreateReviewedOrderForJurisdiction(Shop, 'AGENTJUR', OrderA);
+        CreateReviewedOrderForJurisdiction(Shop, 'AGENTJUR', OrderB);
+
+        TMANotify.UndoApproval(OrderA);
+
+        TaxJurisdiction.Get('AGENTJUR');
+        LibraryAssert.IsFalse(TaxJurisdiction.Verified,
+            'Undo Approval un-verifies the agent-created jurisdiction the undone order used (re-quarantined until re-approved).');
+    end;
+
     // Install/upgrade backfill: a shop that pre-dates the config fields (zero-values) gets the
     // documented defaults applied — Tax Area auto-creation on, blocking review on, SHPFY- prefix.
     [Test]
@@ -798,6 +845,39 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         TaxJurisdiction.Code := JurisdictionCode;
         TaxJurisdiction.Description := JurisdictionCode;
         TaxJurisdiction.Insert(true);
+    end;
+
+    local procedure EnsureAgentJurisdiction(JurisdictionCode: Code[10]; IsVerified: Boolean)
+    var
+        TaxJurisdiction: Record "Tax Jurisdiction";
+    begin
+        EnsureJurisdiction(JurisdictionCode);
+        TaxJurisdiction.Get(JurisdictionCode);
+        TaxJurisdiction."Created by Agent" := true;
+        TaxJurisdiction.Verified := IsVerified;
+        TaxJurisdiction.Modify();
+    end;
+
+    local procedure CreateReviewedOrderForJurisdiction(Shop: Record "Shpfy Shop"; JurisdictionCode: Code[10]; var OrderHeader: Record "Shpfy Order Header")
+    var
+        OrderLine: Record "Shpfy Order Line";
+        LineId: BigInteger;
+    begin
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Document Date" := 20260115D;
+        OrderHeader."Tax Match Applied" := true;
+        OrderHeader."Tax Match Reviewed" := true;
+        OrderHeader.Insert();
+
+        LineId := OrderHeader."Shopify Order Id" + 1;
+        OrderLine.Init();
+        OrderLine."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderLine."Line Id" := LineId;
+        OrderLine.Insert();
+
+        InsertMatchedTaxLine(LineId, 1, 'AGENT TAX', 5, JurisdictionCode);
     end;
 
     local procedure CreateShop(): Record "Shpfy Shop"

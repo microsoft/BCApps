@@ -44,7 +44,7 @@ pageextension 30479 "Shpfy TMA Order" extends "Shpfy Order"
                 end;
             }
         }
-        addlast(Category_Process)
+        addfirst(Category_Process)
         {
             actionref(ShpfyReviewAndApproveTaxMatch_Promoted; ShpfyReviewAndApproveTaxMatch) { }
             actionref(ShpfyReviewTaxMatch_Promoted; ShpfyReviewTaxMatch) { }
