@@ -6,6 +6,7 @@ namespace Microsoft.Foundation.Attachment;
 
 using Microsoft.CRM.Outlook;
 using System.Integration;
+using System.Reflection;
 
 page 1178 "Doc. Attachment List Factbox"
 {
@@ -79,7 +80,7 @@ page 1178 "Doc. Attachment List Factbox"
                     if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
                         OnAfterGetRecRefFail(Rec, RecRef);
                         if RecRef.Number() = 0 then
-                            Error(CannotResolveSourceRecordErr, Rec."Table ID");
+                            Error(CannotResolveSourceRecordErr, GetTableCaption(Rec."Table ID"));
                     end;
                     DocumentAttachment.SaveAttachment(files, RecRef);
                     CurrPage.Update();
@@ -201,7 +202,7 @@ page 1178 "Doc. Attachment List Factbox"
         if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
             OnAfterGetRecRefFail(Rec, RecRef);
             if RecRef.Number() = 0 then
-                Error(CannotResolveSourceRecordErr, Rec."Table ID");
+                Error(CannotResolveSourceRecordErr, GetTableCaption(Rec."Table ID"));
         end;
         DocumentAttachmentDetails.OpenForRecRef(RecRef);
         OnBeforeDocumentAttachmentDetailsRunModal(Rec, RecRef, DocumentAttachmentDetails);
@@ -216,7 +217,7 @@ page 1178 "Doc. Attachment List Factbox"
         if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
             OnAfterGetRecRefFail(Rec, RecRef);
             if RecRef.Number() = 0 then
-                Error(CannotResolveSourceRecordErr, Rec."Table ID");
+                Error(CannotResolveSourceRecordErr, GetTableCaption(Rec."Table ID"));
         end;
         OfficeMgmt.InitiateSendToAttachments(RecRef);
         CurrPage.Update(true);
@@ -239,6 +240,15 @@ page 1178 "Doc. Attachment List Factbox"
             ShareOptionsVisible := (Rec.HasContent()) and (DocumentSharing.ShareEnabled());
             ShareEditOptionVisible := DocumentSharing.EditEnabledForFile('.' + Rec."File Extension");
         end;
+    end;
+
+    local procedure GetTableCaption(TableID: Integer): Text
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        if TableMetadata.Get(TableID) then
+            exit(TableMetadata.Caption);
+        exit(Format(TableID));
     end;
 
     trigger OnInit()
@@ -272,7 +282,7 @@ page 1178 "Doc. Attachment List Factbox"
         IsOfficeAddIn: Boolean;
         EmailHasAttachments: Boolean;
         CannotDownloadOrViewFileWithEmptyNameErr: Label 'The file must have a name.';
-        CannotResolveSourceRecordErr: Label 'Attachments are not supported for table %1.', Comment = '%1 = Table ID of the record that the attachment belongs to.';
+        CannotResolveSourceRecordErr: Label 'Attachments are not supported for table %1.', Comment = '%1 = Table caption of the record that the attachment belongs to.';
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterGetRecRefFail(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
