@@ -154,6 +154,7 @@ codeunit 20575 "Subc. Invt. Put-away Ext"
     begin
         if TempTrackingSpecification."Source Type" <> Database::"Purchase Line" then
             exit;
+        PurchaseLine.SetLoadFields("No.", "Unit of Measure Code", "Outstanding Quantity", "Subc. Purchase Line Type");
         if not PurchaseLine.Get(Enum::"Purchase Document Type".FromInteger(TempTrackingSpecification."Source Subtype"), TempTrackingSpecification."Source ID", TempTrackingSpecification."Source Ref. No.") then
             exit;
         if PurchaseLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::LastOperation then

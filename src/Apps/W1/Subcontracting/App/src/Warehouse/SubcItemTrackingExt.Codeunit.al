@@ -18,6 +18,7 @@ codeunit 20574 "Subc. Item Tracking Ext"
     begin
         if TrackingSpecification."Source Type" <> Database::"Prod. Order Line" then
             exit;
+        ProdOrderLine.SetLoadFields("Prod. Order No.", "Line No.", "Quantity (Base)");
         if not ProdOrderLine.Get(
                 Enum::"Production Order Status".FromInteger(TrackingSpecification."Source Subtype"),
                 TrackingSpecification."Source ID", TrackingSpecification."Source Prod. Order Line")

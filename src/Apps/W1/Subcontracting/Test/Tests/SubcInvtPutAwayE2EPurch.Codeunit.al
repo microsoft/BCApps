@@ -1056,10 +1056,10 @@ codeunit 149919 "Subc. Invt. Put-away E2E Purch"
         PurchaseOrderPage.GoToRecord(PurchaseHeader);
         PurchaseOrderPage.PurchLines.GoToRecord(PurchaseLine);
         asserterror PurchaseOrderPage.PurchLines."Item Tracking Lines".Invoke();
-        PurchaseOrderPage.Close();
 
         // [THEN]  Entry is blocked (spec §3.5) — field disabled or validation error raised
         Assert.ExpectedError('Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.');
+        PurchaseOrderPage.Close();
 
         // [THEN]  Posting succeeds without any tracking value (Qty.(Base)=0, no Item Ledger Entry expected)
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
