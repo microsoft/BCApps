@@ -191,6 +191,7 @@ page 7122 "Expense Activity Log API"
     local procedure ApplyHistoryScope()
     var
         OriginalFilterGroup: Integer;
+        HistoryActorRole: Enum "Expense Activity Actor Role";
         HasHistoryActorFilters: Boolean;
         HasSourceFilters: Boolean;
         HistoryActorRoleFilter: Text;
@@ -200,6 +201,8 @@ page 7122 "Expense Activity Log API"
 
         OriginalFilterGroup := Rec.FilterGroup();
         HistoryActorRoleFilter := Rec.GetFilter("History Actor Role Filter");
+        if HistoryActorRoleFilter <> '' then
+            HistoryActorRole := Rec.GetRangeMin("History Actor Role Filter");
         Rec.FilterGroup(4);
         HasSourceFilters :=
             (Rec.GetFilter("Source Table ID") <> '') and
@@ -207,12 +210,16 @@ page 7122 "Expense Activity Log API"
         HasHistoryActorFilters :=
             (Rec.GetFilter("History Actor Table ID Filter") <> '') and
             (Rec.GetFilter("History Actor System ID Filter") <> '');
-        if HistoryActorRoleFilter = '' then
+        if HistoryActorRoleFilter = '' then begin
             HistoryActorRoleFilter := Rec.GetFilter("History Actor Role Filter");
+            if HistoryActorRoleFilter <> '' then
+                HistoryActorRole := Rec.GetRangeMin("History Actor Role Filter");
+        end;
         Rec.FilterGroup(0);
         if HasHistoryActorFilters then begin
-            if (HistoryActorRoleFilter <> Format(Enum::"Expense Activity Actor Role"::Submitter)) and
-               (HistoryActorRoleFilter <> Format(Enum::"Expense Activity Actor Role"::Approver))
+            if not (HistoryActorRole in [
+                HistoryActorRole::Submitter,
+                HistoryActorRole::Approver])
             then
                 Error(HistoryActorRoleRequiredErr);
             Rec.SetCurrentKey("Occurred At", "Entry No.");

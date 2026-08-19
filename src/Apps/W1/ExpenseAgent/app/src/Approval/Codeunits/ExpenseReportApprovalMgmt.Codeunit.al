@@ -8,7 +8,8 @@ using System.Security.User;
 codeunit 6901 "Expense Report Approval Mgmt"
 {
     Access = Internal;
-    Permissions = TableData "Expense User" = r;
+    Permissions = TableData "Expense User" = r,
+                  TableData "User Setup" = r;
 
     var
         ExpenseApprovalSetupDoesNotExistErr: Label '%1 does not exist with filters %2.', Comment = '%1 = Expense Approval Setup, %2 = Filters';

@@ -200,9 +200,10 @@ codeunit 148342 "Expense Activity Log Test"
         EntryCountBeforeRejectedReopen: Integer;
     begin
         // [SCENARIO] Returning a pending report to Open is a recall, while reopening a rejected report is not logged.
-        // [GIVEN] A submitted expense report whose submitter is the current BC user.
+        // [GIVEN] A submitted expense report whose submitter is the current BC user with Unlimited Expense Approval.
         Initialize();
         CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        SetCurrentUserUnlimitedExpenseApproval(true);
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
 
         // [WHEN] The pending report is reopened.
@@ -311,6 +312,7 @@ codeunit 148342 "Expense Activity Log Test"
         ApproverExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        UserSetup: Record "User Setup";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
         EntryCountBeforeRecall: Integer;
     begin
@@ -329,7 +331,7 @@ codeunit 148342 "Expense Activity Log Test"
         asserterror ExpenseReportApprovalMgt.ReopenSubmitted(ExpenseReportHeader);
 
         // [THEN] The operation is denied before status or history changes.
-        Assert.ExpectedError('Only the original submitter or a user with Unlimited Expense Approval can recall a submitted expense report.');
+        Assert.ExpectedError(UserSetup.FieldCaption("Unlimited Expense Approval"));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'An unauthorized recall must not change the report status.');
         Assert.AreEqual(EntryCountBeforeRecall, ExpenseActivityLogEntry.Count(), 'An unauthorized recall must not append activity.');
