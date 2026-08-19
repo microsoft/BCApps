@@ -19,7 +19,7 @@ codeunit 130618 "Library - Graph Mgt"
     procedure BindAuthentication()
     begin
         if IsAuthenticationBound then
-            exit;
+            UnbindSubscription(LibraryGraphAuthMgt);
 
         IsAuthenticationBound := BindSubscription(LibraryGraphAuthMgt);
     end;
