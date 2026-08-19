@@ -561,7 +561,7 @@ codeunit 130481 "Contact Sync Test"
         asserterror ContactSyncUser.Insert(true);
 
         // [THEN] Delta URL validation should reject the insert
-        AssertIsTrue(StrPos(GetLastErrorText(), InvalidDeltaUrlErr) > 0, 'Expected invalid delta URL error. Actual: ' + GetLastErrorText());
+        AssertIsTrue(StrPos(GetLastErrorText(), InvalidDeltaUrlErr) > 0, 'Expected error containing: "' + InvalidDeltaUrlErr + '". Actual: ' + GetLastErrorText());
     end;
 
     [Test]
@@ -579,7 +579,7 @@ codeunit 130481 "Contact Sync Test"
         asserterror ContactSyncUser.SetDeltaUrl('https://contoso.example.com/v1.0/me/contactFolders/folder-set-invalid-url/contacts/delta');
 
         // [THEN] Delta URL validation should reject the value
-        AssertIsTrue(StrPos(GetLastErrorText(), InvalidDeltaUrlErr) > 0, 'Expected invalid delta URL error. Actual: ' + GetLastErrorText());
+        AssertIsTrue(StrPos(GetLastErrorText(), InvalidDeltaUrlErr) > 0, 'Expected error containing: "' + InvalidDeltaUrlErr + '". Actual: ' + GetLastErrorText());
 
         if ContactSyncUser.Get(ContactSyncUser."ID") then
             ContactSyncUser.Delete();
