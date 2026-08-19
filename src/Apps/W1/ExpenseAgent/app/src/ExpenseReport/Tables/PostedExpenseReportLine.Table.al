@@ -441,7 +441,13 @@ table 6916 "Posted Expense Report Line"
             ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
-        field(102; "Policy Status At Posting"; Enum "Expense Policy Status")
+        field(102; "Policies Evaluated At"; DateTime)
+        {
+            Caption = 'Policies Evaluated At';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(106; "Policy Status At Posting"; Enum "Expense Policy Status")
         {
             Caption = 'Policy Status At Posting';
             DataClassification = CustomerContent;

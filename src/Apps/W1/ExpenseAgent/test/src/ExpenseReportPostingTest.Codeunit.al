@@ -3782,6 +3782,7 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [THEN] The posted line carries the copied policy flag.
         FindPostedExpenseReportLine(PostedExpenseReportLine, ExpenseUser);
+        Assert.AreEqual(ExpenseReportLine."Policies Evaluated At", PostedExpenseReportLine."Policies Evaluated At", 'The posted line must preserve when policies were evaluated.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine."Policy Status At Posting", 'The posted line must preserve the Flagged status.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine.GetPolicyStatus(), 'The posted status accessor must return the posting snapshot.');
         PostedExpPolicyFlag.SetRange("Subject System Id", PostedExpenseReportLine.SystemId);
