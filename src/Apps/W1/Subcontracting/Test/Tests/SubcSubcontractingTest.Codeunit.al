@@ -2560,6 +2560,68 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure ChangingVendorKeepsBlankRoutingDescriptionAndUsesWorkCenterDescription2()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor keeps a blank routing description and uses work center description 2
+        Initialize();
+
+        // [GIVEN] A released production order with blank descriptions on its subcontracting routing line
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        ExpectedDescription2 := 'Work center details';
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        Clear(ProdOrderRoutingLine.Description);
+        Clear(ProdOrderRoutingLine."Description 2");
+        ProdOrderRoutingLine.Modify();
+
+        // [GIVEN] The production routing line is suggested on the subcontracting worksheet
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine.Description := 'Description before vendor validation';
+        RequisitionLine."Description 2" := 'Description 2 before validation';
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] The description remains blank and description 2 comes from the subcontracting work center
+        Assert.AreEqual('', RequisitionLine.Description, 'The blank routing line description must be kept when the vendor changes.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The work center description 2 must be used when the routing line description 2 is blank.');
+    end;
+
+    [Test]
     procedure ChangingVendorUsesWorkCenterDescriptionsWhenRoutingLineNotFound()
     var
         Item: Record Item;
