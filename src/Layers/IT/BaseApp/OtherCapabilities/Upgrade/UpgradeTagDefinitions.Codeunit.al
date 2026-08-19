@@ -183,6 +183,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetLegacySubcontractingUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
@@ -1284,5 +1285,10 @@ codeunit 9998 "Upgrade Tag Definitions"
     begin
         // Upgrade legacy Job-related warehouse records from (Database::Job, 0) to (Database::"Job Planning Line", Order)
         exit('MS-625654-WarehouseActivitySourceTypeForJobPlanningLineUpgradeTag-20260518');
+    end;
+
+    internal procedure GetProdDefinitionDisplaySetupUpgradeTag(): Code[250]
+    begin
+        exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
     end;
 }

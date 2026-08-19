@@ -631,14 +631,6 @@ page 20479 "Qlty. Test Card"
         UpdateRowData();
     end;
 
-    trigger OnQueryClosePage(CloseAction: Action): Boolean
-    begin
-        if CloseAction in [Action::OK, Action::LookupOK] then
-            if Rec.Code <> '' then
-                Rec.TestField(Description);
-        exit(true);
-    end;
-
     /// <summary>
     /// Updates value-type controls and loads promoted result conditions for the current test.
     /// </summary>

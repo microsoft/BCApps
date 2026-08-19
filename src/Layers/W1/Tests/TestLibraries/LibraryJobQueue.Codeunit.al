@@ -71,7 +71,9 @@ codeunit 132458 "Library - Job Queue"
         JobQueueEntry.Status := JobQueueEntry.Status::Ready;
         JobQueueEntry.Modify();
         if WithErrorHandler then begin
+            #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
             asserterror RunJobQueueDispatcher(JobQueueEntry);
+            #pragma warning restore AS0058, PTE0007
             RunJobQueueErrorHandler(JobQueueEntry);
         end
         else
