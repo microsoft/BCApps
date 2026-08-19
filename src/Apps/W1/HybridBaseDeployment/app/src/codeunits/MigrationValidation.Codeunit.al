@@ -164,8 +164,11 @@ codeunit 40032 "Migration Validation"
         if not HybridCompanyStatus.Get(Company) then
             exit;
 
-        HybridCompanyStatus.Validate(Validated, false);
-        HybridCompanyStatus.Modify(true);
+        if HybridCompanyStatus.Validated then begin
+            HybridCompanyStatus.Validate(Validated, false);
+            HybridCompanyStatus.Modify(true);
+        end;
+
         Commit(); // Commit after deleting prior tests
     end;
 
