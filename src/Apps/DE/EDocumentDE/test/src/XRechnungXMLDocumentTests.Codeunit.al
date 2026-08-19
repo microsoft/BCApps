@@ -1707,12 +1707,13 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] Customer and delivery GLN identifiers are not exported
-        VerifyNodeDoesNotExist(TempXMLBuffer, CustomerPartyIdTok);
-        VerifyNodeDoesNotExist(TempXMLBuffer, CustomerLegalEntityIdTok);
-        VerifyNodeDoesNotExist(TempXMLBuffer, DeliveryLocationIdTok);
+        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, CustomerPartyIdTok);
+        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, CustomerLegalEntityIdTok);
+        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, DeliveryLocationIdTok);
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure ExportPostedSalesInvoiceInXRechnungFormatUsesSellToGLNForCustomerParty();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2514,6 +2515,25 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         Assert.AreEqual(ExpectedGLN, GetNodeByPathWithError(TempXMLBuffer, XPath), StrSubstNo(IncorrectValueErr, XPath));
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, XPath, 'schemeID'), StrSubstNo(IncorrectValueErr, XPath + '/@schemeID'));
+    end;
+
+    local procedure VerifyGLNIdentifierDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+                TempXMLBufferAttribute.Reset();
+                TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+                TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+                TempXMLBufferAttribute.SetRange(Name, 'schemeID');
+                TempXMLBufferAttribute.SetRange(Value, '0088');
+                Assert.IsTrue(TempXMLBufferAttribute.IsEmpty(), StrSubstNo(UnexpectedNodeErr, XPath));
+            until TempXMLBuffer.Next() = 0;
     end;
 
     local procedure VerifyNodeDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)

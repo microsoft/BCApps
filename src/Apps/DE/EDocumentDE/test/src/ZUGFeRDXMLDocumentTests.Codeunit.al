@@ -63,6 +63,10 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
+        OriginalCompanyGLN: Code[13];
+        OriginalCompanyVATRegistrationNo: Text[20];
+        OriginalCompanyRegistrationNo: Text[20];
+        OriginalUseGLNInElectronicDocument: Boolean;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -3533,14 +3537,30 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         CompanyInformation.Modify();
     end;
 
+    local procedure RestoreCompanyIdentifiers()
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := OriginalCompanyGLN;
+        CompanyInformation."Use GLN in Electronic Document" := OriginalUseGLNInElectronicDocument;
+        CompanyInformation."VAT Registration No." := OriginalCompanyVATRegistrationNo;
+        CompanyInformation."Registration No." := OriginalCompanyRegistrationNo;
+        CompanyInformation.Modify();
+    end;
+
     local procedure Initialize();
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ZUGFeRD XML Document Tests");
-        if IsInitialized then
+        if IsInitialized then begin
+            RestoreCompanyIdentifiers();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ZUGFeRD XML Document Tests");
         IsInitialized := true;
         CompanyInformation.Get();
+        OriginalCompanyGLN := CompanyInformation.GLN;
+        OriginalUseGLNInElectronicDocument := CompanyInformation."Use GLN in Electronic Document";
+        OriginalCompanyVATRegistrationNo := CompanyInformation."VAT Registration No.";
+        OriginalCompanyRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
         CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
         CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
