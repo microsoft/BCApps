@@ -1358,7 +1358,7 @@ codeunit 99000813 "Carry Out Action"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN27
     internal procedure RunOnBeforeSetProdOrderStatus(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
     begin
         OnBeforeSetProdOrderStatus(ProdOrder, ProdOrderChoice, IsHandled);
