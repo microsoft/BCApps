@@ -308,6 +308,13 @@ codeunit 139984 "Subc. Library Mfg. Management"
         SubcRoutingCommentLine.Insert();
     end;
 
+    /// <summary>
+    /// Creates a subcontracting standard task comment line.
+    /// </summary>
+    /// <param name="StandardTaskCode">The standard task code for the comment.</param>
+    /// <param name="LineNo">The line number of the comment.</param>
+    /// <param name="CommentDescription">The main description of the comment.</param>
+    /// <param name="CommentDescription2">The additional description of the comment.</param>
     procedure CreateStandardTaskComment(StandardTaskCode: Code[10]; LineNo: Integer; CommentDescription: Text[100]; CommentDescription2: Text[50])
     var
         SubcStandardTaskComment: Record "Subc. Standard Task Comment";

@@ -179,7 +179,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
     /// </summary>
     /// <param name="PurchOrderLine">The purchase order line to copy the attachments to.</param>
     /// <param name="RequisitionLine">The requisition line for the subcontracting production order line.</param>
-    procedure TransferSubcontractingProdOrderLineAttachments(PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
+    internal procedure TransferSubcontractingProdOrderLineAttachments(PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";

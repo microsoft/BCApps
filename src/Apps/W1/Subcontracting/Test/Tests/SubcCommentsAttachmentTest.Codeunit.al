@@ -89,11 +89,13 @@ codeunit 139995 "Subc. Comments Attachment Test"
         Initialize();
         LibraryManufacturing.CreateStandardTask(StandardTask);
         LibraryMfgManagement.CreateStandardTaskComment(StandardTask.Code, 10000, 'Standard task comment', 'Standard task detail');
+        SubcStandardTaskComment.Get(StandardTask.Code, 10000);
 
         LibraryManufacturing.CreateWorkCenter(WorkCenter);
         LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
         LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, WorkCenter."No.", '010', 1, 1);
         LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, 'Routing comment', 'Routing detail');
+        SubcRoutingCommentLine.Get(RoutingLine."Routing No.", RoutingLine."Version Code", RoutingLine."Operation No.", 10000);
 
         SubcProdRtngComment.Status := "Production Order Status"::Released;
         SubcProdRtngComment."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SubcProdRtngComment."Prod. Order No."));
@@ -105,24 +107,31 @@ codeunit 139995 "Subc. Comments Attachment Test"
         SubcProdRtngComment.Validate("Description 2", 'Production routing detail');
         SubcProdRtngComment.Insert();
 
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
         LibraryLowerPermissions.SetExactPermissionSet('Subcontract. - Read');
 
         StandardTaskComments.OpenView();
+        StandardTaskComments.GoToRecord(SubcStandardTaskComment);
         StandardTaskComments.Close();
         RoutingComments.OpenView();
+        RoutingComments.GoToRecord(SubcRoutingCommentLine);
         RoutingComments.Close();
         ProdRtngComments.OpenView();
+        ProdRtngComments.GoToRecord(SubcProdRtngComment);
         ProdRtngComments.Close();
 
         LibraryLowerPermissions.SetExactPermissionSet('Subcontract. - Edit');
 
         StandardTaskComments.OpenEdit();
+        StandardTaskComments.GoToRecord(SubcStandardTaskComment);
         StandardTaskComments.Description.SetValue('Edited standard task comment');
         StandardTaskComments.Close();
         RoutingComments.OpenEdit();
+        RoutingComments.GoToRecord(SubcRoutingCommentLine);
         RoutingComments.Description.SetValue('Edited routing comment');
         RoutingComments.Close();
         ProdRtngComments.OpenEdit();
+        ProdRtngComments.GoToRecord(SubcProdRtngComment);
         ProdRtngComments.Description.SetValue('Edited production routing comment');
         ProdRtngComments.Close();
 
@@ -2440,7 +2449,7 @@ codeunit 139995 "Subc. Comments Attachment Test"
     end;
 
     [Test]
-    [HandlerFunctions('SelectSendingOptionsOKModalPageHandler,EmailEditorCheckAndDiscardModalPageHandler,ConfirmHandlerFalse,KeepDraftOrDiscardStrMenuHandler')]
+    [HandlerFunctions('SelectSendingOptionsOKModalPageHandler,EmailEditorCheckAndDiscardModalPageHandler')]
     procedure PurchaseLineAttachmentIsNotAutomaticallyAddedToVendorEmail()
     var
         DocumentAttachment: Record "Document Attachment";
@@ -2590,18 +2599,6 @@ codeunit 139995 "Subc. Comments Attachment Test"
     procedure EmailEditorCheckAndDiscardModalPageHandler(var EmailEditor: TestPage "Email Editor")
     begin
         EmailEditor.Discard.Invoke();
-    end;
-
-    [ConfirmHandler]
-    procedure ConfirmHandlerFalse(Question: Text; var Reply: Boolean)
-    begin
-        Reply := false;
-    end;
-
-    [StrMenuHandler]
-    procedure KeepDraftOrDiscardStrMenuHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
-    begin
-        Choice := 2;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document-Mailing", 'OnBeforeSendEmail', '', false, false)]
