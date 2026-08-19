@@ -93,6 +93,7 @@ codeunit 7771 "Azure OpenAI"
     /// <param name="Response">Contains the resolved template and any error information.</param>
     /// <returns>True when a fast prompt template was resolved successfully.</returns>
     [NonDebuggable]
+    [Scope('OnPrem')]
     procedure GetFastPrompt(ConfigKey: Text; var Response: Codeunit "AOAI Fast Prompt Response"): Boolean
     var
         CallerModuleInfo: ModuleInfo;
