@@ -1405,9 +1405,11 @@ table 6907 "Expense Report Line"
            (ExpenseSubcategory."Posting Description" <> '')
         then begin
             PostingDescriptionSuffix := ' / ' + ExpenseSubcategory."Posting Description";
+#pragma warning disable AA0139
             if BaseDescription.EndsWith(PostingDescriptionSuffix) then
                 BaseDescription := CopyStr(BaseDescription, 1, StrLen(BaseDescription) - StrLen(PostingDescriptionSuffix));
         end;
+#pragma warning restore AA0139
 
         if (ExpenseSubcategoryCode = '') or
            (not ExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode)) or
