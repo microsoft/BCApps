@@ -58,17 +58,9 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportXRechnungFormat: Codeunit "XRechnung Format";
         ExportXRechnungDocument: Codeunit "Export XRechnung Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
-        AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
+        AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
-        SupplierPartyIdTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
-        SupplierLegalEntityIdTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
         SupplierTaxSchemeTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme', Locked = true;
-        CustomerPartyIdTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
-        CustomerLegalEntityIdTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
-        DeliveryLocationIdTok: Label '/ubl:Invoice/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
-        CreditMemoCustomerPartyIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
-        CreditMemoCustomerLegalEntityIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
-        CreditMemoDeliveryLocationIdTok: Label '/ns0:CreditNote/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -1631,6 +1623,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
+        SupplierPartyIdTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
     begin
         // [SCENARIO 588110] Supplier GLN is exported with schemeID 0088 in XRechnung format
         Initialize();
@@ -1647,8 +1640,6 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] Supplier PartyIdentification ID is the GLN with schemeID = 0088
         Assert.AreEqual(SupplierGLN(), GetNodeByPathWithError(TempXMLBuffer, SupplierPartyIdTok), StrSubstNo(IncorrectValueErr, SupplierPartyIdTok));
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, SupplierPartyIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, SupplierPartyIdTok + '/@schemeID'));
-        Assert.AreEqual(SupplierGLN(), GetNodeByPathWithError(TempXMLBuffer, SupplierLegalEntityIdTok), StrSubstNo(IncorrectValueErr, SupplierLegalEntityIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, SupplierLegalEntityIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, SupplierLegalEntityIdTok + '/@schemeID'));
     end;
 
     [Test]
@@ -1656,12 +1647,13 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
+        CustomerPartyIdTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
     begin
         // [SCENARIO 588110] Customer GLN is exported with schemeID 0088 in XRechnung format
         Initialize();
 
         // [GIVEN] Create and Post Sales Invoice for a customer that uses GLN in electronic documents
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), true));
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLN(CustomerGLN()));
 
         // [WHEN] Export XRechnung Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
@@ -1669,75 +1661,6 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] Customer PartyIdentification ID is the GLN with schemeID = 0088
         Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerPartyIdTok), StrSubstNo(IncorrectValueErr, CustomerPartyIdTok));
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CustomerPartyIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CustomerPartyIdTok + '/@schemeID'));
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CustomerLegalEntityIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CustomerLegalEntityIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CustomerLegalEntityIdTok + '/@schemeID'));
-        Assert.AreEqual(ShipToGLN(), GetNodeByPathWithError(TempXMLBuffer, DeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, DeliveryLocationIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, DeliveryLocationIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, DeliveryLocationIdTok + '/@schemeID'));
-    end;
-
-    [Test]
-    procedure ExportPostedSalesInvoiceInXRechnungFormatFallsBackToCustomerGLNWhenShipToGLNIsBlank();
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        TempXMLBuffer: Record "XML Buffer" temporary;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 646443] Customer GLN is used when the ship-to address GLN is blank
-        Initialize();
-
-        // [GIVEN] Customer "C" has a GLN and ship-to address "SA" has no GLN
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), '', true));
-
-        // [WHEN] Export XRechnung Electronic Document.
-        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
-
-        // [THEN] Delivery location uses the customer GLN with schemeID 0088
-        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, DeliveryLocationIdTok);
-    end;
-
-    [Test]
-    procedure ExportPostedSalesInvoiceInXRechnungFormatDoesNotExportCustomerGLNWhenDisabled();
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        TempXMLBuffer: Record "XML Buffer" temporary;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 646443] Customer GLN is not exported in XRechnung format when GLN use is disabled
-        Initialize();
-
-        // [GIVEN] Customer "C" and ship-to address "SA" have GLNs, but GLN use is disabled for "C"
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), false));
-
-        // [WHEN] Export XRechnung Electronic Document.
-        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
-
-        // [THEN] Customer and delivery GLN identifiers are not exported
-        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, CustomerPartyIdTok);
-        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, CustomerLegalEntityIdTok);
-        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, DeliveryLocationIdTok);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandlerYes')]
-    procedure ExportPostedSalesInvoiceInXRechnungFormatUsesSellToGLNForCustomerParty();
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        TempXMLBuffer: Record "XML Buffer" temporary;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 646443] Sell-to GLN identifies the customer party and delivery
-        Initialize();
-
-        // [GIVEN] Posted sales invoice has different sell-to customer "C1" and bill-to customer "C2" GLNs
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithDifferentSellToAndBillToGLNs(CustomerGLN(), SupplierGLN()));
-
-        // [WHEN] Export XRechnung Electronic Document.
-        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
-
-        // [THEN] Customer party and delivery use sell-to GLN with schemeID 0088
-        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, CustomerPartyIdTok);
-        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, CustomerLegalEntityIdTok);
-        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, DeliveryLocationIdTok);
     end;
 
     [Test]
@@ -1769,6 +1692,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
+        CustomerPartyIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
     begin
         // [SCENARIO 588110] Customer GLN is exported with schemeID 0088 in XRechnung credit memo format
         Initialize();
@@ -1779,13 +1703,9 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
-        // [THEN] Customer and delivery identifiers contain the customer GLN with schemeID 0088
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CreditMemoCustomerPartyIdTok), StrSubstNo(IncorrectValueErr, CreditMemoCustomerPartyIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CreditMemoCustomerPartyIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CreditMemoCustomerPartyIdTok + '/@schemeID'));
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CreditMemoCustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CreditMemoCustomerLegalEntityIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CreditMemoCustomerLegalEntityIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CreditMemoCustomerLegalEntityIdTok + '/@schemeID'));
-        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, CreditMemoDeliveryLocationIdTok));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CreditMemoDeliveryLocationIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CreditMemoDeliveryLocationIdTok + '/@schemeID'));
+        // [THEN] Customer PartyIdentification ID is the GLN with schemeID = 0088
+        Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CustomerPartyIdTok), StrSubstNo(IncorrectValueErr, CustomerPartyIdTok));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CustomerPartyIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CustomerPartyIdTok + '/@schemeID'));
     end;
     #endregion
 
@@ -2157,46 +2077,22 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(Customer."No.");
     end;
 
-    local procedure CreateCustomerWithGLN(GLN: Code[13]; UseGLNInElectronicDocument: Boolean): Code[20]
+    local procedure CreateCustomerWithGLN(GLN: Code[13]): Code[20]
     var
         Customer: Record Customer;
     begin
         Customer.Get(CreateCustomer());
         Customer.GLN := GLN;
-        Customer."Use GLN in Electronic Document" := UseGLNInElectronicDocument;
+        Customer."Use GLN in Electronic Document" := true;
         Customer.Modify(true);
         exit(Customer."No.");
     end;
 
-    local procedure CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(GLN: Code[13]; NewShipToGLN: Code[13]; UseGLNInElectronicDocument: Boolean): Code[20]
+    local procedure CreateAndPostSalesInvoiceForCustomerWithGLN(GLN: Code[13]): Code[20]
     var
         SalesHeader: Record "Sales Header";
-        ShipToAddress: Record "Ship-to Address";
-        CustomerNo: Code[20];
     begin
-        CustomerNo := CreateCustomerWithGLN(GLN, UseGLNInElectronicDocument);
-        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
-        LibrarySales.CreateShipToAddress(ShipToAddress, CustomerNo);
-        ShipToAddress.GLN := NewShipToGLN;
-        ShipToAddress.Modify(true);
-        SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
-        SalesHeader.Modify(true);
-        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
-        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
-    end;
-
-    local procedure CreateAndPostSalesInvoiceWithDifferentSellToAndBillToGLNs(SellToGLN: Code[13]; BillToGLN: Code[13]): Code[20]
-    var
-        BillToCustomer: Record Customer;
-        SalesHeader: Record "Sales Header";
-    begin
-        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithGLN(SellToGLN, true));
-        LibrarySales.CreateCustomer(BillToCustomer);
-        BillToCustomer.GLN := BillToGLN;
-        BillToCustomer."Use GLN in Electronic Document" := true;
-        BillToCustomer.Modify(true);
-        SalesHeader.Validate("Bill-to Customer No.", BillToCustomer."No.");
-        SalesHeader.Modify(true);
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithGLN(GLN));
         CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
@@ -2205,7 +2101,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesHeader: Record "Sales Header";
     begin
-        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CreateCustomerWithGLN(GLN, true));
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CreateCustomerWithGLN(GLN));
         CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
@@ -2237,11 +2133,6 @@ codeunit 13918 "XRechnung XML Document Tests"
     local procedure CustomerGLN(): Code[13]
     begin
         exit('4313205158428');
-    end;
-
-    local procedure ShipToGLN(): Code[13]
-    begin
-        exit('1234567890128');
     end;
 
     local procedure CreateResponsibilityCenter(var ResponsibilityCenter: Record "Responsibility Center")
@@ -2515,36 +2406,6 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
         TempXMLBuffer.LoadFromStream(FileInStream);
-    end;
-
-    local procedure VerifyGLNIdentifier(ExpectedGLN: Code[13]; var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
-    begin
-        Assert.AreEqual(ExpectedGLN, GetNodeByPathWithError(TempXMLBuffer, XPath), StrSubstNo(IncorrectValueErr, XPath));
-        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, XPath, 'schemeID'), StrSubstNo(IncorrectValueErr, XPath + '/@schemeID'));
-    end;
-
-    local procedure VerifyGLNIdentifierDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
-    var
-        TempXMLBufferAttribute: Record "XML Buffer" temporary;
-    begin
-        TempXMLBuffer.Reset();
-        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
-        TempXMLBuffer.SetRange(Path, XPath);
-        if TempXMLBuffer.FindSet() then
-            repeat
-                TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
-                TempXMLBufferAttribute.Reset();
-                TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
-                TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
-                TempXMLBufferAttribute.SetRange(Name, 'schemeID');
-                TempXMLBufferAttribute.SetRange(Value, '0088');
-                Assert.IsFalse(TempXMLBufferAttribute.FindFirst(), StrSubstNo(UnexpectedNodeErr, XPath));
-            until TempXMLBuffer.Next() = 0;
-    end;
-
-    local procedure VerifyNodeDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
-    begin
-        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, XPath), StrSubstNo(UnexpectedNodeErr, XPath));
     end;
 
     local procedure VerifyHeaderData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);

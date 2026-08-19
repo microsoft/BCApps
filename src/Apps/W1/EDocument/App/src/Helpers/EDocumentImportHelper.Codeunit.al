@@ -569,7 +569,6 @@ codeunit 6109 "E-Document Import Helper"
             exit('');
 
         Vendor.SetCurrentKey("Registration Number");
-        Vendor.SetLoadFields("No.");
         Vendor.SetRange("Registration Number", RegistrationNo);
         Vendor.SetRange("Use Reg. No. in E-Document", true);
         Vendor.SetRange(GLN, '');

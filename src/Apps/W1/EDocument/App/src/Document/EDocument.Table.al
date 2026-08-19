@@ -286,7 +286,6 @@ table 6121 "E-Document"
         field(45; "Receiving Company Reg. No."; Text[20])
         {
             Caption = 'Receiving Company Registration No.';
-            DataClassification = OrganizationIdentifiableInformation;
         }
         #endregion
 
