@@ -2560,7 +2560,6 @@ codeunit 137080 "SCM Planning And Manufacturing"
     var
         Item: Record Item;
         RequisitionLine: Record "Requisition Line";
-        ProdOrderLine: Record "Prod. Order Line";
     begin
         // [SCENARIO] Released production order can be created from a planning worksheet
         Initialize();
@@ -2586,7 +2585,6 @@ codeunit 137080 "SCM Planning And Manufacturing"
         RountingLines: array[2] of Record "Routing Line";
         SalesLine: Record "Sales Line";
         RequisitionLine: Record "Requisition Line";
-        ProdOrderLine: Record "Prod. Order Line";
     begin
         // [SCENARIO] Released production order can be created and printed from a planning worksheet
         Initialize();
@@ -2666,7 +2664,6 @@ codeunit 137080 "SCM Planning And Manufacturing"
         MfgItems: array[2] of Record Item;
         ComponentItems: array[2] of Record Item;
         RequisitionLine: Record "Requisition Line";
-        ProdBomHeader: Record "Production BOM Header";
         ItemJournalLine: Record "Item Journal Line";
         ComponentItemQty: Decimal;
         ScheduleDirection: Option Forward,Backward;
@@ -2829,8 +2826,6 @@ codeunit 137080 "SCM Planning And Manufacturing"
     local procedure CreateProdItemWithForwardFlushingComponent(var MfgItem: Record Item; var ComponentItem: Record Item; ComponentItemQty: Integer)
     var
         ProdBomHeader: Record "Production BOM Header";
-        ItemJournalLine: Record "Item Journal Line";
-        RoutingLines: array[2] of Record "Routing Line";
     begin
         CreateItemWithReplenishmentSystem(MfgItem, Enum::"Replenishment System"::"Prod. Order");
 
@@ -4155,7 +4150,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         ProdOrderLine.FindFirst();
-        Assert.AreEqual(Enum::"Production Order Status"::Released, ProdOrderLine.Status, 'Wrong status is set on production order.');
+        Assert.AreEqual(ExpectedStatus, ProdOrderLine.Status, 'Wrong status is set on production order.');
     end;
 
     [ConfirmHandler]
@@ -4242,4 +4237,3 @@ codeunit 137080 "SCM Planning And Manufacturing"
     begin
     end;
 }
-
