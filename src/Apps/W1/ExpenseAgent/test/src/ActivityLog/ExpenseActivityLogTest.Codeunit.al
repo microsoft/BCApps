@@ -16,7 +16,6 @@ codeunit 148342 "Expense Activity Log Test"
 
     var
         Assert: Codeunit Assert;
-        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibraryExpense: Codeunit "Library - Expense";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
@@ -634,8 +633,12 @@ codeunit 148342 "Expense Activity Log Test"
     var
         UserSetup: Record "User Setup";
     begin
-        LibraryDocumentApprovals.CreateOrFindUserSetup(
-            UserSetup, CopyStr(UserId(), 1, MaxStrLen(UserSetup."User ID")));
+        if not UserSetup.Get(UserId()) then begin
+            UserSetup.Init();
+            UserSetup."User ID" := CopyStr(UserId(), 1, MaxStrLen(UserSetup."User ID"));
+            UserSetup.Insert();
+        end;
+
         UserSetup."Unlimited Expense Approval" := UnlimitedExpenseApproval;
         UserSetup.Modify();
     end;
