@@ -50,6 +50,7 @@ codeunit 148146 "Identification Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         EDocHelpers: Codeunit "EDoc. Helpers";
+        FREDocMessageSenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
         ImmutableLifecycleErr: Label 'The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.', Locked = true;
         DeleteLifecycleErr: Label 'A French electronic invoice lifecycle occurrence cannot be deleted.', Locked = true;
         ImmutableLifecycleVATErr: Label 'A French electronic invoice lifecycle VAT breakdown cannot be changed.', Locked = true;
@@ -418,6 +419,41 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    procedure DetailedApplicationRoutesMessageWhenParentServiceIsBlank()
+    var
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        ExpectedServiceCode: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 442216] A lifecycle message uses the eligible service-status row when the outgoing parent has no service
+        Initialize();
+
+        // [GIVEN] A French outgoing E-Document whose service is represented only by its service-status row
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        EDocumentServiceStatus.FindFirst();
+        ExpectedServiceCode := EDocumentServiceStatus."E-Document Service Code";
+        Clear(EDocument.Service);
+        EDocument.Modify();
+
+        // [WHEN] The payment application is captured and its lifecycle message is created
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceLifecycle.FindFirst();
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
+
+        // [THEN] The selected French service is frozen and assigned to the child message
+        EDocMessage.Get(FREInvoiceLifecycle."E-Document Message Entry No.");
+        Assert.AreEqual(ExpectedServiceCode, FREInvoiceLifecycle."E-Document Service Code", 'The eligible French service must be frozen at capture.');
+        Assert.AreEqual(ExpectedServiceCode, EDocMessage.Service, 'The child message must use the frozen French service.');
+    end;
+
+    [Test]
     procedure DetailedApplicationCreatesPPFLifecycleMessage()
     var
         EDocument: Record "E-Document";
@@ -733,6 +769,69 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    procedure DetailedApplicationIgnoresFrenchInvoiceThatIsNotAccepted()
+    var
+        EDocument: Record "E-Document";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 442216] Payment reporting starts only after the French invoice service is accepted
+        Initialize();
+
+        // [GIVEN] A payment application for a French E-Invoice whose service is only Sent
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        EDocumentServiceStatus.Get(EDocument."Entry No", EDocument.Service);
+        EDocumentServiceStatus.Status := EDocumentServiceStatus.Status::Sent;
+        EDocumentServiceStatus.Modify();
+
+        // [WHEN] The detailed ledger application is processed
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        // [THEN] No French payment lifecycle occurrence is created
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(FREInvoiceLifecycle);
+    end;
+
+    [Test]
+    procedure DetailedApplicationRejectsAmbiguousAcceptedFrenchServices()
+    var
+        AdditionalService: Record "E-Document Service";
+        AdditionalServiceStatus: Record "E-Document Service Status";
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 442216] Payment routing rejects an outgoing E-Document with multiple accepted French services
+        Initialize();
+
+        // [GIVEN] A French E-Document with no explicit service and two approved French service-status rows
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        Clear(EDocument.Service);
+        EDocument.Modify();
+        AdditionalService.Code := CopyStr(CreateGuid(), 1, MaxStrLen(AdditionalService.Code));
+        AdditionalService."Document Format" := "E-Document Format"::"Peppol BIS 3.0 FR";
+        ConfigurePPFService(AdditionalService);
+        AdditionalService.Insert();
+        AdditionalServiceStatus."E-Document Entry No" := EDocument."Entry No";
+        AdditionalServiceStatus."E-Document Service Code" := AdditionalService.Code;
+        AdditionalServiceStatus.Status := AdditionalServiceStatus.Status::Approved;
+        AdditionalServiceStatus.Insert();
+
+        // [WHEN] The detailed ledger application is processed
+        asserterror FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        // [THEN] The ambiguous routing is rejected without retaining an occurrence
+        Assert.ExpectedError('more than one accepted French service');
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(FREInvoiceLifecycle);
+    end;
+
+    [Test]
     procedure DetailedApplicationReplayDoesNotRequeueCreatedMessage()
     var
         EDocument: Record "E-Document";
@@ -1018,19 +1117,22 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure LifecycleWorkerCreatesQueuedMessage()
     var
         EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
         FREInvoiceLifecycleWorker: Codeunit "FR E-Invoice Lifecycle Worker";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] The background worker creates a message for a queued lifecycle occurrence
+        // [SCENARIO 442216] The background worker creates and sends a message for a queued lifecycle occurrence
         Initialize();
 
-        // [GIVEN] A queued lifecycle occurrence with a VAT breakdown
+        // [GIVEN] A queued lifecycle occurrence with a VAT breakdown and synchronous integration
         CreateEDocument(EDocument);
+        ConfigureMessageIntegration(EDocument);
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
@@ -1041,10 +1143,106 @@ codeunit 148146 "Identification Tests"
         // [WHEN] The lifecycle worker runs
         FREInvoiceLifecycleWorker.Run(FREInvoiceLifecycle);
 
-        // [THEN] The occurrence is linked to a created E-Document Message
+        // [THEN] The occurrence is linked to a sent E-Document Message
         FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
-        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Created", FREInvoiceLifecycle."Processing Status", 'The worker must create the queued lifecycle message.');
+        EDocMessage.Get(FREInvoiceLifecycle."E-Document Message Entry No.");
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Sent", FREInvoiceLifecycle."Processing Status", 'The worker must send the queued lifecycle message.');
         Assert.IsTrue(FREInvoiceLifecycle."E-Document Message Entry No." <> 0, 'The worker must link the created E-Document message.');
+        Assert.AreEqual(EDocMessage.Status::Sent, EDocMessage.Status, 'The E-Document message must be marked as sent.');
+        Assert.AreEqual(1, FREDocMessageSenderMock.GetSendCount(), 'The integration must send the lifecycle message once.');
+        Assert.ExpectedMessage('CrossDomainAcknowledgementAndResponse', FREDocMessageSenderMock.GetLastPayload());
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LifecycleWorkerRetriesSameMessageAfterSendFailure()
+    var
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleError: Codeunit "FR E-Invoice Lifecycle Error";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        FREInvoiceLifecycleWorker: Codeunit "FR E-Invoice Lifecycle Worker";
+        MessageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 442216] Retrying a failed send uses the already-created lifecycle message
+        Initialize();
+
+        // [GIVEN] A queued lifecycle occurrence whose synchronous integration fails
+        CreateEDocument(EDocument);
+        ConfigureMessageIntegration(EDocument);
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
+        FREInvoiceLifecycle.Modify();
+        FREDocMessageSenderMock.SetShouldFail(true);
+
+        // [WHEN] The worker creates the message but sending fails
+        asserterror FREInvoiceLifecycleWorker.Run(FREInvoiceLifecycle);
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        MessageEntryNo := FREInvoiceLifecycle."E-Document Message Entry No.";
+        FREInvoiceLifecycleError.Run(FREInvoiceLifecycle);
+
+        // [THEN] The occurrence fails while the created message is retained
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        EDocMessage.Get(MessageEntryNo);
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::Failed, FREInvoiceLifecycle."Processing Status", 'The failed send must mark the occurrence as failed.');
+        Assert.AreEqual(EDocMessage.Status::Created, EDocMessage.Status, 'The failed message must remain created for retry.');
+
+        // [WHEN] Sending is restored and the occurrence is retried
+        FREDocMessageSenderMock.SetShouldFail(false);
+        FREInvoiceLifecycleMgt.RetryLifecycleMessage(FREInvoiceLifecycle);
+        FREInvoiceLifecycleWorker.Run(FREInvoiceLifecycle);
+
+        // [THEN] The same message is sent without creating a duplicate
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        EDocMessage.Get(MessageEntryNo);
+        Assert.AreEqual(MessageEntryNo, FREInvoiceLifecycle."E-Document Message Entry No.", 'Retry must use the original E-Document message.');
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Sent", FREInvoiceLifecycle."Processing Status", 'The retry must send the lifecycle message.');
+        Assert.AreEqual(EDocMessage.Status::Sent, EDocMessage.Status, 'The retried message must be marked as sent.');
+        Assert.AreEqual(2, FREDocMessageSenderMock.GetSendCount(), 'The integration must be called once for the failure and once for the retry.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LifecycleWorkerRejectsNonSentConnectorStatus()
+    var
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleError: Codeunit "FR E-Invoice Lifecycle Error";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        FREInvoiceLifecycleWorker: Codeunit "FR E-Invoice Lifecycle Worker";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 442216] A synchronous connector must explicitly complete with Sent status
+        Initialize();
+
+        // [GIVEN] A queued lifecycle occurrence whose connector returns Pending instead of Sent
+        CreateEDocument(EDocument);
+        ConfigureMessageIntegration(EDocument);
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
+        FREInvoiceLifecycle.Modify();
+        FREDocMessageSenderMock.SetResultStatus("E-Document Service Status"::Pending);
+
+        // [WHEN] The worker sends the message
+        asserterror FREInvoiceLifecycleWorker.Run(FREInvoiceLifecycle);
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        FREInvoiceLifecycleError.Run(FREInvoiceLifecycle);
+
+        // [THEN] The lifecycle fails and its persisted message remains available for retry
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        EDocMessage.Get(FREInvoiceLifecycle."E-Document Message Entry No.");
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::Failed, FREInvoiceLifecycle."Processing Status", 'A non-Sent connector result must fail the lifecycle.');
+        Assert.AreEqual(EDocMessage.Status::Created, EDocMessage.Status, 'A message with a non-Sent connector result must remain created.');
+        Assert.ExpectedMessage('returned status Pending', FREInvoiceLifecycle."Last Error");
     end;
 
     [Test]
@@ -1182,6 +1380,7 @@ codeunit 148146 "Identification Tests"
         CompanyInformation.Validate("Registration No.", '123456789');
         CompanyInformation.Validate("SIRET No.", '12345678901234');
         CompanyInformation.Modify(true);
+        FREDocMessageSenderMock.Reset();
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Identification Tests");
@@ -1234,6 +1433,17 @@ codeunit 148146 "Identification Tests"
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Insert();
+    end;
+
+    local procedure ConfigureMessageIntegration(var EDocument: Record "E-Document")
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        EDocumentService.Code := CopyStr(CreateGuid(), 1, MaxStrLen(EDocumentService.Code));
+        EDocumentService."Service Integration V2" := "Service Integration"::"FR Message Mock";
+        EDocumentService.Insert();
+        EDocument.Service := EDocumentService.Code;
+        EDocument.Modify();
     end;
 
     local procedure CreateAdditionalEDocument(var AdditionalEDocument: Record "E-Document"; EDocument: Record "E-Document")

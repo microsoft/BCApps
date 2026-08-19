@@ -166,6 +166,13 @@ table 10970 "FR E-Invoice Lifecycle"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the invoice issuer.';
         }
+        field(24; "E-Document Service Code"; Code[20])
+        {
+            Caption = 'E-Document Service Code';
+            DataClassification = SystemMetadata;
+            TableRelation = "E-Document Service";
+            ToolTip = 'Specifies the service selected for the lifecycle occurrence and its message.';
+        }
     }
 
     keys
@@ -227,7 +234,8 @@ table 10970 "FR E-Invoice Lifecycle"
            (Rec."Sender Platform Name" <> PersistedFREInvoiceLifecycle."Sender Platform Name") or
            (Rec."Invoice Issuer ID" <> PersistedFREInvoiceLifecycle."Invoice Issuer ID") or
            (Rec."Invoice Issuer Scheme" <> PersistedFREInvoiceLifecycle."Invoice Issuer Scheme") or
-           (Rec."Invoice Issuer Name" <> PersistedFREInvoiceLifecycle."Invoice Issuer Name")
+              (Rec."Invoice Issuer Name" <> PersistedFREInvoiceLifecycle."Invoice Issuer Name") or
+              (Rec."E-Document Service Code" <> PersistedFREInvoiceLifecycle."E-Document Service Code")
         then
             Error(ImmutableOccurrenceErr);
     end;

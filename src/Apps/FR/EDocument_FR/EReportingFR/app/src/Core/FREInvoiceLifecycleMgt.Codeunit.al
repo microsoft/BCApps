@@ -129,12 +129,12 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         EDocument: Record "E-Document";
         EDocumentService: Record "E-Document Service";
         EDocumentServiceStatus: Record "E-Document Service Status";
-        EDocHelpers: Codeunit "EDoc. Helpers";
     begin
         EDocument.SetLoadFields(Service, "Document Date", "Clearance Date");
         EDocument.Get(FREInvoiceLifecycle."E-Document Entry No.");
-        if not EDocHelpers.GetFrenchEDocumentService(EDocument, EDocumentService, EDocumentServiceStatus) then
+        if not GetAcceptedFREInvoiceService(EDocument, EDocumentService, EDocumentServiceStatus) then
             exit;
+        FREInvoiceLifecycle."E-Document Service Code" := EDocumentService.Code;
         if EDocumentService."FR Sender Platform ID" = '' then
             exit;
 
@@ -292,14 +292,21 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceLifecycleMsg: Codeunit "FR E-Invoice Lifecycle Msg.";
         TempBlob: Codeunit "Temp Blob";
+        ServiceCode: Code[20];
     begin
         if FREInvoiceLifecycle."E-Document Message Entry No." <> 0 then
             exit;
 
         EDocument.Get(FREInvoiceLifecycle."E-Document Entry No.");
         FREInvoiceLifecycleMsg.BuildLifecycleMessage(EDocument, FREInvoiceLifecycle, TempBlob);
+        ServiceCode := FREInvoiceLifecycle."E-Document Service Code";
+        if ServiceCode = '' then begin
+            EDocument.TestField(Service);
+            ServiceCode := EDocument.Service;
+        end;
         FREInvoiceLifecycle."E-Document Message Entry No." := EDocumentMessageAPI.CreateMessage(
-            EDocument, "E-Document Message Type"::"FR Invoice Lifecycle", EDocument.Direction::Outgoing, TempBlob);
+            EDocument, "E-Document Message Type"::"FR Invoice Lifecycle", EDocument.Direction::Outgoing,
+            ServiceCode, TempBlob);
         FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::"Message Created";
         Clear(FREInvoiceLifecycle."Last Error");
         FREInvoiceLifecycle.Modify();
@@ -308,11 +315,32 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
             DataClassification::SystemMetadata, TelemetryScope::All, 'Category', LifecycleTelemetryCategoryTok);
     end;
 
+    internal procedure SendLifecycleMessage(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
+    var
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        FREInvoiceLifecycle.TestField("E-Document Message Entry No.");
+        EDocumentMessageAPI.SendMessage(FREInvoiceLifecycle."E-Document Message Entry No.");
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::"Message Sent";
+        Clear(FREInvoiceLifecycle."Last Error");
+        FREInvoiceLifecycle.Modify();
+        Session.LogMessage(
+            '0000TDU', LifecycleMessageSentTelemetryMsg, Verbosity::Normal,
+            DataClassification::SystemMetadata, TelemetryScope::All, 'Category', LifecycleTelemetryCategoryTok);
+    end;
+
     internal procedure RetryLifecycleMessage(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
     begin
         FREInvoiceLifecycle.TestField("Processing Status", FREInvoiceLifecycle."Processing Status"::Failed);
-        FREInvoiceLifecycle.TestField("E-Document Message Entry No.", 0);
-        ScheduleMessageCreation(FREInvoiceLifecycle);
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
+        Clear(FREInvoiceLifecycle."Last Error");
+        FREInvoiceLifecycle.Modify();
+        TaskScheduler.CreateTask(
+            Codeunit::"FR E-Invoice Lifecycle Worker", Codeunit::"FR E-Invoice Lifecycle Error", true,
+            CompanyName(), CurrentDateTime(), FREInvoiceLifecycle.RecordId);
+        Session.LogMessage(
+            '0000TDR', LifecycleMessageQueuedTelemetryMsg, Verbosity::Normal,
+            DataClassification::SystemMetadata, TelemetryScope::All, 'Category', LifecycleTelemetryCategoryTok);
     end;
 
     local procedure ValidatePaymentOccurrence(EDocumentEntryNo: Integer; LifecycleStatus: Enum "FR E-Invoice Lifecycle Status"; SourceOccurrenceID: Guid; ReportedAmount: Decimal; EventDate: Date; OriginalOccurrenceEntryNo: Integer)
@@ -428,11 +456,45 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     var
         EDocumentService: Record "E-Document Service";
         EDocumentServiceStatus: Record "E-Document Service Status";
-        EDocHelpers: Codeunit "EDoc. Helpers";
     begin
-        exit(
-            EDocHelpers.GetFrenchEDocumentService(EDocument, EDocumentService, EDocumentServiceStatus) and
-            IsFREInvoiceFormat(EDocumentService."Document Format"));
+        exit(GetAcceptedFREInvoiceService(EDocument, EDocumentService, EDocumentServiceStatus));
+    end;
+
+    local procedure GetAcceptedFREInvoiceService(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var EDocumentServiceStatus: Record "E-Document Service Status"): Boolean
+    var
+        CandidateService: Record "E-Document Service";
+        CandidateServiceStatus: Record "E-Document Service Status";
+        ServiceFound: Boolean;
+    begin
+        if EDocument.Service <> '' then
+            if EDocumentService.Get(EDocument.Service) and
+               EDocumentServiceStatus.Get(EDocument."Entry No", EDocument.Service) and
+               IsAcceptedServiceStatus(EDocumentServiceStatus.Status) and
+               IsFREInvoiceFormat(EDocumentService."Document Format")
+            then
+                exit(true);
+
+        CandidateServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        if CandidateServiceStatus.FindSet() then
+            repeat
+                if IsAcceptedServiceStatus(CandidateServiceStatus.Status) and
+                   CandidateService.Get(CandidateServiceStatus."E-Document Service Code") and
+                   IsFREInvoiceFormat(CandidateService."Document Format")
+                then begin
+                    if ServiceFound then
+                        Error(MultipleAcceptedServicesErr, EDocument."Entry No");
+                    EDocumentService := CandidateService;
+                    EDocumentServiceStatus := CandidateServiceStatus;
+                    ServiceFound := true;
+                end;
+            until CandidateServiceStatus.Next() = 0;
+
+        exit(ServiceFound);
+    end;
+
+    local procedure IsAcceptedServiceStatus(ServiceStatus: Enum "E-Document Service Status"): Boolean
+    begin
+        exit(ServiceStatus in [ServiceStatus::Approved, ServiceStatus::Cleared]);
     end;
 
     local procedure IsFREInvoiceFormat(EDocumentFormat: Enum "E-Document Format"): Boolean
@@ -475,8 +537,10 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         VATBreakdownErr: Label 'A VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
         OriginalVATBreakdownErr: Label 'The VAT breakdown for original lifecycle occurrence %1 does not exist.', Comment = '%1 = lifecycle occurrence entry number';
+        MultipleAcceptedServicesErr: Label 'E-Document %1 has more than one accepted French service. Payment lifecycle messages require one explicit service.', Comment = '%1 = E-Document entry number';
         LifecycleMessageCreatedTelemetryMsg: Label 'French e-invoice lifecycle message created.', Locked = true;
-        LifecycleMessageQueuedTelemetryMsg: Label 'French e-invoice lifecycle message creation queued.', Locked = true;
+        LifecycleMessageSentTelemetryMsg: Label 'French e-invoice lifecycle message sent.', Locked = true;
+        LifecycleMessageQueuedTelemetryMsg: Label 'French e-invoice lifecycle message processing queued.', Locked = true;
         LifecycleTelemetryCategoryTok: Label 'French E-Invoice Lifecycle', Locked = true;
         SIRENSchemeTok: Label '0002', Locked = true;
 }

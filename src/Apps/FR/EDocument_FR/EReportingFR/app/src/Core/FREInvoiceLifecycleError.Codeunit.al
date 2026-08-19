@@ -13,8 +13,8 @@ codeunit 10985 "FR E-Invoice Lifecycle Error"
 
     trigger OnRun()
     begin
-        Rec.TestField("Processing Status", Rec."Processing Status"::Queued);
-        Rec.TestField("E-Document Message Entry No.", 0);
+        if Rec."Processing Status" = Rec."Processing Status"::"Message Sent" then
+            exit;
         Session.LogMessage(
             '0000TDQ', LifecycleWorkerFailedTelemetryMsg, Verbosity::Error,
             DataClassification::SystemMetadata, TelemetryScope::All,
@@ -29,7 +29,7 @@ codeunit 10985 "FR E-Invoice Lifecycle Error"
     end;
 
     var
-        LifecycleWorkerFailedTelemetryMsg: Label 'French e-invoice lifecycle message creation failed.', Locked = true;
-        LifecycleWorkerDiagnosticTelemetryMsg: Label 'French e-invoice lifecycle message creation failed with an internal error.', Locked = true;
+        LifecycleWorkerFailedTelemetryMsg: Label 'French e-invoice lifecycle message processing failed.', Locked = true;
+        LifecycleWorkerDiagnosticTelemetryMsg: Label 'French e-invoice lifecycle message processing failed with an internal error.', Locked = true;
         LifecycleTelemetryCategoryTok: Label 'French E-Invoice Lifecycle', Locked = true;
 }

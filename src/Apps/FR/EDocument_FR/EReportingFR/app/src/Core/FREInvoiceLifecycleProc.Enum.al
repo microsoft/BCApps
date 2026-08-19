@@ -20,6 +20,10 @@ enum 10974 "FR E-Invoice Lifecycle Proc."
     {
         Caption = 'Queued';
     }
+    value(3; "Message Sent")
+    {
+        Caption = 'Message Sent';
+    }
     value(4; Failed)
     {
         Caption = 'Failed';

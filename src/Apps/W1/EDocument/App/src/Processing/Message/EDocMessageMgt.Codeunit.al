@@ -5,6 +5,8 @@
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration.Interfaces;
+using Microsoft.eServices.EDocument.Integration.Send;
 using System.Utilities;
 
 /// <summary>
@@ -45,6 +47,22 @@ codeunit 6433 "E-Doc. Message Mgt."
     /// Returns the Entry No. of the new message row.
     /// </summary>
     procedure CreateMessage(EDocument: Record "E-Document"; MessageType: Enum "E-Document Message Type"; Direction: Enum "E-Document Direction"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob"): Integer
+    begin
+        exit(CreateMessage(EDocument, MessageType, Direction, ResponseType, EDocument.Service, TempBlob));
+    end;
+
+    /// <summary>
+    /// Creates an E-Document message for an explicit service and stores its payload.
+    /// </summary>
+    procedure CreateMessage(EDocument: Record "E-Document"; MessageType: Enum "E-Document Message Type"; Direction: Enum "E-Document Direction"; ServiceCode: Code[20]; var TempBlob: Codeunit "Temp Blob"): Integer
+    begin
+        exit(CreateMessage(EDocument, MessageType, Direction, "E-Doc. Response Type"::None, ServiceCode, TempBlob));
+    end;
+
+    /// <summary>
+    /// Creates an E-Document message for an explicit service and response type, and stores its payload.
+    /// </summary>
+    procedure CreateMessage(EDocument: Record "E-Document"; MessageType: Enum "E-Document Message Type"; Direction: Enum "E-Document Direction"; ResponseType: Enum "E-Doc. Response Type"; ServiceCode: Code[20]; var TempBlob: Codeunit "Temp Blob"): Integer
     var
         EDocMessage: Record "E-Document Message";
         DataStorageEntryNo: Integer;
@@ -57,7 +75,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessage.Direction := Direction;
         EDocMessage."Response Type" := ResponseType;
         EDocMessage.Status := EDocMessage.Status::Created;
-        EDocMessage.Service := EDocument.Service;
+        EDocMessage.Service := ServiceCode;
         EDocMessage."Data Storage Entry No." := DataStorageEntryNo;
         EDocMessage."Created At" := CurrentDateTime();
         EDocMessage.Insert();
@@ -79,6 +97,53 @@ codeunit 6433 "E-Doc. Message Mgt."
         TempBlob := EDocDataStorage.GetTempBlob();
     end;
 
+    /// <summary>
+    /// Sends an outgoing message through the synchronous sender configured on its E-Document service.
+    /// </summary>
+    procedure SendMessage(MessageEntryNo: Integer)
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+        EDocMessage: Record "E-Document Message";
+        SendContext: Codeunit SendContext;
+        TempBlob: Codeunit "Temp Blob";
+        EDocumentLog: Codeunit "E-Document Log";
+        IDocumentSender: Interface IDocumentSender;
+        ResultStatus: Enum "E-Document Service Status";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
+        EDocMessage.TestField(Status, EDocMessage.Status::Created);
+        EDocMessage.TestField(Service);
+
+        EDocument.Get(EDocMessage."E-Document Entry No.");
+        EDocumentService.Get(EDocMessage.Service);
+        if EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration" then
+            Error(NoMessageIntegrationErr, EDocumentService.Code);
+
+        GetMessageBlob(MessageEntryNo, TempBlob);
+        if not TempBlob.HasValue() then
+            Error(MessagePayloadErr, MessageEntryNo);
+
+        IDocumentSender := EDocumentService."Service Integration V2";
+        if IDocumentSender is IDocumentResponseHandler then
+            Error(AsyncMessageIntegrationErr, EDocumentService.Code);
+
+        SendContext.SetTempBlob(TempBlob);
+        SendContext.Status().SetStatus("E-Document Service Status"::Sent);
+        IDocumentSender.Send(EDocument, EDocumentService, SendContext);
+        ResultStatus := SendContext.Status().GetStatus();
+        if ResultStatus <> "E-Document Service Status"::Sent then
+            Error(MessageSendingErr, MessageEntryNo, ResultStatus);
+
+        EDocumentLog.InsertIntegrationLog(
+            EDocument, EDocumentService, SendContext.Http().GetHttpRequestMessage(), SendContext.Http().GetHttpResponseMessage());
+
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.Status := EDocMessage.Status::Sent;
+        EDocMessage.Modify();
+    end;
+
     local procedure InsertDataStorage(TempBlob: Codeunit "Temp Blob"): Integer
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
@@ -96,4 +161,10 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocRecRef.Modify();
         exit(EDocDataStorage."Entry No.");
     end;
+
+    var
+        NoMessageIntegrationErr: Label 'E-Document service %1 does not have an integration configured for sending messages.', Comment = '%1 = E-Document service code';
+        MessagePayloadErr: Label 'E-Document message %1 does not contain a payload.', Comment = '%1 = E-Document message entry number';
+        AsyncMessageIntegrationErr: Label 'E-Document service %1 uses asynchronous sending, which is not supported for E-Document messages.', Comment = '%1 = E-Document service code';
+        MessageSendingErr: Label 'E-Document message %1 could not be sent. The integration returned status %2.', Comment = '%1 = E-Document message entry number, %2 = integration status';
 }

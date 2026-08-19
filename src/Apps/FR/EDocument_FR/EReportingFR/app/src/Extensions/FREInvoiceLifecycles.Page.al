@@ -25,6 +25,10 @@ page 10970 "FR E-Invoice Lifecycles"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("E-Document Service Code"; Rec."E-Document Service Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Lifecycle Status"; Rec."Lifecycle Status")
                 {
                     ApplicationArea = Basic, Suite;
@@ -71,14 +75,14 @@ page 10970 "FR E-Invoice Lifecycles"
     {
         area(Processing)
         {
-            action(RetryMessageCreation)
+            action(RetryMessageProcessing)
             {
                 AccessByPermission = tabledata "FR E-Invoice Lifecycle" = M;
                 ApplicationArea = Basic, Suite;
-                Caption = 'Retry Message Creation';
+                Caption = 'Retry Message Processing';
                 Enabled = Rec."Processing Status" = Rec."Processing Status"::Failed;
                 Image = Refresh;
-                ToolTip = 'Schedules another attempt to create the lifecycle message.';
+                ToolTip = 'Schedules another attempt to create or send the lifecycle message.';
 
                 trigger OnAction()
                 var
@@ -91,7 +95,7 @@ page 10970 "FR E-Invoice Lifecycles"
         }
         area(Promoted)
         {
-            actionref(RetryMessageCreationPromoted; RetryMessageCreation)
+            actionref(RetryMessageProcessingPromoted; RetryMessageProcessing)
             {
             }
         }
