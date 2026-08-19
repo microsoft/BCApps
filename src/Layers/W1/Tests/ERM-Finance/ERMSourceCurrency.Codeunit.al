@@ -1653,6 +1653,7 @@ codeunit 134897 "ERM Source Currency"
         // [SCENARIO] An LCY sales invoice with a payment method balancing account can be previewed when source currency consistency is enabled.
         Initialize();
 
+        // [FEATURE] [AI test]
         // [GIVEN] Source currency consistency and extended posting preview are enabled.
         GeneralLedgerSetup.Get();
         ExistingGeneralLedgerSetup := GeneralLedgerSetup;
@@ -1680,10 +1681,9 @@ codeunit 134897 "ERM Source Currency"
         SalesLine.Modify(true);
 
         // [WHEN] The sales invoice posting is previewed.
-        asserterror SalesPost.Run(SalesHeader);
+        SalesPost.Run(SalesHeader);
 
         // [THEN] The preview completes without a source currency consistency error.
-        Assert.ExpectedError('');
 
         //reset General Ledger Setup to original values
         GeneralLedgerSetup := ExistingGeneralLedgerSetup;

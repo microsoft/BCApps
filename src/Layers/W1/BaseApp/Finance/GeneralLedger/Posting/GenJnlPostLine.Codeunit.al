@@ -1210,7 +1210,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 InitGLEntry(
                     GenJnlLine, GLEntry, GenJnlLine."Account No.", GenJnlLine."Amount (LCY)",
                     GenJnlLine."Source Currency Amount", true, GenJnlLine."System-Created Entry",
-                    CalcSourceCurrVATBaseAmount(GenJnlLine));
+                    CalcSourceCurrVATBaseAmount(genJnlLine));
             IsHandled := false;
             OnPostGLAccOnAfterInitGLEntry(GenJnlLine, GLEntry);
             CheckGLAccDirectPosting(GenJnlLine, GLAcc);
@@ -8645,7 +8645,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
             exit(GenJnlLine."Source Curr. VAT Base Amount")
         else
-            exit(GenJnlLine."Source Currency Amount");
+            exit(GenJnlLine.Amount - GenJnlLine."VAT Amount");
     end;
 
     local procedure GetVendorPayablesAccount2(var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var GenJournalLine: Record "Gen. Journal Line"; VendPostingGr: Record "Vendor Posting Group"): Code[20]
