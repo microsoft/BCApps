@@ -36,7 +36,7 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
         layout("StandardSalesInvoiceBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './.resources/Template/StandardSalesCreditMemowithQRBody.docx';
             Caption = 'Body-only: Standard Sales - Credit Memo - E-Document (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address and a header with reference, salesperson, applies-to document, and due date. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals and a QR code.';
