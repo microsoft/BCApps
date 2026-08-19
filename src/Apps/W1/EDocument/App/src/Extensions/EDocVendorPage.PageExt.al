@@ -3,7 +3,7 @@ pageextension 6161 "E-Doc. Vendor Page" extends "Vendor Card"
 {
     layout
     {
-        addafter("Use GLN in Electronic Document")
+        addafter("Registration Number")
         {
             field("Use Reg. No. in E-Document"; Rec."Use Reg. No. in E-Document")
             {
