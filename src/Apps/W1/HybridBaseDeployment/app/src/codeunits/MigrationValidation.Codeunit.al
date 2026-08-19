@@ -166,6 +166,7 @@ codeunit 40032 "Migration Validation"
 
         HybridCompanyStatus.Validate(Validated, false);
         HybridCompanyStatus.Modify(true);
+        Commit(); // Commit after deleting prior tests
     end;
 
     procedure PrepareValidation()
