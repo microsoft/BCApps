@@ -41,6 +41,7 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         Assert: Codeunit Assert;
         ExportPeppolBISFormat: Codeunit "EDoc PEPPOL BIS 3.0 DE";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = Field or element name';
+        MissingCompInfIdentifierErr: Label 'You must specify either GLN, VAT Registration No., or Registration No. in %1.', Comment = '%1=Company Information';
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -163,6 +164,29 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         Assert.AreEqual(RegistrationNo, GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, 'BT-32'));
         Assert.AreEqual('FC', GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, 'BT-32 scheme'));
         Assert.AreEqual(RegistrationNo, GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, 'BT-30'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvFailsWithoutCompanyIdentifier()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] PEPPOL export fails when Company Information has no supported identifier
+        Initialize();
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice));
+        CompanyInformation.Get();
+        CompanyInformation.GLN := '';
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation."Registration No." := '';
+        CompanyInformation."Use Reg. No. in E-Document" := false;
+        CompanyInformation.Modify(true);
+
+        asserterror ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        Assert.ExpectedError(StrSubstNo(MissingCompInfIdentifierErr, CompanyInformation.TableCaption()));
     end;
 
     [Test]
