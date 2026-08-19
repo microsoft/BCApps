@@ -1681,6 +1681,7 @@ codeunit 148157 "Service Object Test"
         Item: Record Item;
         SubscriptionHeader: Record "Subscription Header";
         SubscriptionLine: Record "Subscription Line";
+        DateFormulaManagement: Codeunit "Date Formula Management";
         DateTimeManagement: Codeunit "Date Time Management";
         ExpectedCancellationPossibleUntil: Date;
         ExpectedTermUntil: Date;
@@ -1715,10 +1716,10 @@ codeunit 148157 "Service Object Test"
 
         // [THEN] "Cancellation possible until" and "Term until" are recalculated
         ExpectedTermUntil := CalcDate(SubscriptionLine."Extension Term", SubscriptionLine."Subscription Line Start Date" - 1);
-        if DateTimeManagement.IsLastDayOfMonth(SubscriptionLine."Subscription Line Start Date" - 1) then
+        if DateTimeManagement.IsLastDayOfMonth(SubscriptionLine."Subscription Line Start Date" - 1) and DateFormulaManagement.IsMonthBasedDateFormula(SubscriptionLine."Extension Term") then
             DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedTermUntil);
         ExpectedCancellationPossibleUntil := CalcDate('-' + Format(SubscriptionLine."Notice Period"), SubscriptionLine."Term until");
-        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) then
+        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) and DateFormulaManagement.IsMonthBasedDateFormula(SubscriptionLine."Notice Period") then
             DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedCancellationPossibleUntil);
         Assert.AreEqual(ExpectedTermUntil, SubscriptionLine."Term until", 'Term until should be recalculated.');
         Assert.AreEqual(ExpectedCancellationPossibleUntil, SubscriptionLine."Cancellation possible until", 'Cancellation possible until should be recalculated.');
@@ -1848,6 +1849,7 @@ codeunit 148157 "Service Object Test"
     local procedure GetUpdatedCancellationPossibleUntilDate(CalculationStartDate: Date; SourceServiceCommitment: Record "Subscription Line") CancellationPossibleUntil: Date
     var
         CalendarManagement: Codeunit "Calendar Management";
+        DateFormulaManagement: Codeunit "Date Formula Management";
         DateTimeManagement: Codeunit "Date Time Management";
         NegativeDateFormula: DateFormula;
     begin
@@ -1855,7 +1857,7 @@ codeunit 148157 "Service Object Test"
             exit(0D);
         CalendarManagement.ReverseDateFormula(NegativeDateFormula, SourceServiceCommitment."Notice Period");
         CancellationPossibleUntil := CalcDate(NegativeDateFormula, CalculationStartDate);
-        if DateTimeManagement.IsLastDayOfMonth(SourceServiceCommitment."Term Until") then
+        if DateTimeManagement.IsLastDayOfMonth(SourceServiceCommitment."Term Until") and DateFormulaManagement.IsMonthBasedDateFormula(SourceServiceCommitment."Notice Period") then
             DateTimeManagement.MoveDateToLastDayOfMonth(CancellationPossibleUntil);
     end;
 
@@ -1915,10 +1917,14 @@ codeunit 148157 "Service Object Test"
 
     local procedure TestSubscriptionLineUpdatedTerminationDates(OldSubscriptionLine: Record "Subscription Line"; UpdatedSubscriptionLine: Record "Subscription Line")
     var
+        DateFormulaManagement: Codeunit "Date Formula Management";
+        DateTimeManagement: Codeunit "Date Time Management";
         ExpectedTermUntilDate: Date;
         ExpectedCancellationPossibleUntilDate: Date;
     begin
         ExpectedTermUntilDate := CalcDate(OldSubscriptionLine."Extension Term", OldSubscriptionLine."Term Until");
+        if DateTimeManagement.IsLastDayOfMonth(OldSubscriptionLine."Term Until") and DateFormulaManagement.IsMonthBasedDateFormula(OldSubscriptionLine."Extension Term") then
+            DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedTermUntilDate);
         Assert.AreEqual(ExpectedTermUntilDate, UpdatedSubscriptionLine."Term Until", '"Term Until" Date is not calculated correctly.');
         ExpectedCancellationPossibleUntilDate := GetUpdatedCancellationPossibleUntilDate(UpdatedSubscriptionLine."Term Until", UpdatedSubscriptionLine);
         Assert.AreEqual(ExpectedCancellationPossibleUntilDate, UpdatedSubscriptionLine."Cancellation Possible Until", '"Cancellation Possible Until" Date is not calculated correctly.');
@@ -1949,7 +1955,9 @@ codeunit 148157 "Service Object Test"
 
     local procedure VerifySubscriptionLineDates(var SubscriptionLine: Record "Subscription Line"; StartDate: Date; InitialTerm: Text; NoticePeriod: Text)
     var
+        DateFormulaManagement: Codeunit "Date Formula Management";
         DateTimeManagement: Codeunit "Date Time Management";
+        NoticePeriodDateFormula: DateFormula;
         ExpectedEndDate: Date;
         ExpectedTermUntil: Date;
         ExpectedCancellationPossibleUntil: Date;
@@ -1960,7 +1968,8 @@ codeunit 148157 "Service Object Test"
         else
             ExpectedEndDate := 0D;
         ExpectedCancellationPossibleUntil := CalcDate('-' + NoticePeriod, ExpectedTermUntil);
-        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) then
+        Evaluate(NoticePeriodDateFormula, NoticePeriod);
+        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) and DateFormulaManagement.IsMonthBasedDateFormula(NoticePeriodDateFormula) then
             DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedCancellationPossibleUntil);
 
         SubscriptionLine.TestField("Subscription Line Start Date", StartDate);

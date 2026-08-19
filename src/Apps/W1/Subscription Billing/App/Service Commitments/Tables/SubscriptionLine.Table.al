@@ -801,7 +801,9 @@ table 8059 "Subscription Line"
             PreviousTermUntil := CalcDate('<-1D>', PreviousTermUntil);
         end;
         "Term Until" := CalcDate("Extension Term", PreviousTermUntil);
-        if DateTimeManagement.IsLastDayOfMonth(PreviousTermUntil) then
+        // Aligning to the end of the month compensates for months of different length. It must not be applied to a Subsequent Term
+        // expressed in days or weeks, where the exact number of days is what was agreed.
+        if DateTimeManagement.IsLastDayOfMonth(PreviousTermUntil) and DateFormulaManagement.IsMonthBasedDateFormula("Extension Term") then
             DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
         exit(true);
     end;
@@ -814,7 +816,9 @@ table 8059 "Subscription Line"
             exit;
         "Term Until" := CalcDate("Notice Period", "Cancellation Possible Until");
 
-        if DateTimeManagement.IsLastDayOfMonth("Cancellation possible until") then
+        // Aligning to the end of the month compensates for months of different length. It must not be applied to a Notice Period
+        // expressed in days or weeks, where the exact number of days is what was agreed.
+        if DateTimeManagement.IsLastDayOfMonth("Cancellation possible until") and DateFormulaManagement.IsMonthBasedDateFormula("Notice Period") then
             DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
     end;
 
@@ -824,7 +828,9 @@ table 8059 "Subscription Line"
             exit(false);
         CalendarManagement.ReverseDateFormula(NegativeDateFormula, "Notice Period");
         "Cancellation Possible Until" := CalcDate(NegativeDateFormula, "Term Until");
-        if DateTimeManagement.IsLastDayOfMonth("Term until") then
+        // Aligning to the end of the month compensates for months of different length. It must not be applied to a Notice Period
+        // expressed in days or weeks, where the exact number of days is what was agreed.
+        if DateTimeManagement.IsLastDayOfMonth("Term until") and DateFormulaManagement.IsMonthBasedDateFormula("Notice Period") then
             DateTimeManagement.MoveDateToLastDayOfMonth("Cancellation possible until");
 
         exit(true);
