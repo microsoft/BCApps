@@ -31,13 +31,13 @@ codeunit 12173 "Vendor Bill List - Post"
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         TaxType: Option " ",Withhold,"Free Lance",Company;
-        MustBeErr: Label '%1 must be %2.', Comment = '%1 = List Status, %2 = Status';
-        SelectionTxt: Label 'Open,Sent';
         Window: Dialog;
         LineNo: Integer;
         BalanceAmount: Decimal;
         BalanceAmountLCY: Decimal;
 
+        MustBeErr: Label '%1 must be %2.', Comment = '%1 = List Status, %2 = Status';
+        SelectionTxt: Label 'Open,Sent';
         HasBeenModifiedErr: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.', Comment = '%1 = Remaining Amount, %2 = Document No., %3 = Document Occurrence, %4 = Document Type, %5 = Document Date, %6 = Remaining Amount';
         Text1130000Err: Label 'Do you want to post the lines?';
         Text1130011Err: Label 'Posting Vendor Bill...\\';
