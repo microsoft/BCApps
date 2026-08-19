@@ -117,6 +117,7 @@ page 8705 "Table Information Card"
                 // but we want to allow opening the page directly, so we need to prompt the user to select a table.
 
                 AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+                Objects.SetRecord(AllObjWithCaption);
                 Objects.SetTableView(AllObjWithCaption);
                 Objects.Caption(SelectTableLbl);
                 Objects.LookupMode(true);
