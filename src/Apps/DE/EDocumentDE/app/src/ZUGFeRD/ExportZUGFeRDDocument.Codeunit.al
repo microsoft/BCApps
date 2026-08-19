@@ -654,13 +654,16 @@ codeunit 13917 "Export ZUGFeRD Document"
             SpecifiedTaxRegistrationElement.Add(IDElement);
             SellerTradePartyElement.Add(SpecifiedTaxRegistrationElement);
         end else
-            if CompanyInformation."Registration No." <> '' then begin
+            if CompanyInformation."Use Reg. No. in E-Document" and
+               (CompanyInformation.GLN = '') and
+               (CompanyInformation."Registration No." <> '')
+            then begin
                 SellerIDAttr := XmlAttribute.Create('schemeID', 'FC');
                 IDElement := XmlElement.Create('ID', XmlNamespaceRAM, SellerIDAttr, CompanyInformation."Registration No.");
                 SpecifiedTaxRegistrationElement := XmlElement.Create('SpecifiedTaxRegistration', XmlNamespaceRAM);
                 SpecifiedTaxRegistrationElement.Add(IDElement);
                 SellerTradePartyElement.Add(SpecifiedTaxRegistrationElement);
-        end;
+            end;
         HeaderTradeAgreementElement.Add(SellerTradePartyElement);
 
         // Buyer

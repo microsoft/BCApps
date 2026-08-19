@@ -45,10 +45,10 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
         if CompanyID <> '' then
             exit;
 
-        CompanyInformation.SetLoadFields("Registration No.");
+        CompanyInformation.SetLoadFields("Registration No.", "Use Reg. No. in E-Document", GLN, "VAT Registration No.");
         if not CompanyInformation.Get() then
             exit;
-        if CompanyInformation."Registration No." = '' then
+        if not CanUseRegistrationNo(CompanyInformation) then
             exit;
 
         CompanyID := CompanyInformation."Registration No.";
@@ -162,11 +162,22 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
         if PartyLegalEntityCompanyID <> '' then
             exit;
 
-        CompanyInformation.SetLoadFields("Registration No.");
+        CompanyInformation.SetLoadFields("Registration No.", "Use Reg. No. in E-Document", GLN, "VAT Registration No.");
         if not CompanyInformation.Get() then
+            exit;
+        if not CanUseRegistrationNo(CompanyInformation) then
             exit;
         PartyLegalEntityCompanyID := CompanyInformation."Registration No.";
         PartyLegalEntitySchemeID := '';
+    end;
+
+    local procedure CanUseRegistrationNo(CompanyInformation: Record "Company Information"): Boolean
+    begin
+        exit(
+            CompanyInformation."Use Reg. No. in E-Document" and
+            (CompanyInformation."Registration No." <> '') and
+            (CompanyInformation.GLN = '') and
+            (CompanyInformation."VAT Registration No." = ''));
     end;
 
     var

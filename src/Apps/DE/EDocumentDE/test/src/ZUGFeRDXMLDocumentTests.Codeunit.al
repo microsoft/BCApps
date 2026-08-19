@@ -64,6 +64,11 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         IsInitialized: Boolean;
+        OriginalCompanyGLN: Code[13];
+        OriginalCompanyUsesGLN: Boolean;
+        OriginalCompanyUsesRegistrationNo: Boolean;
+        OriginalCompanyVATRegistrationNo: Text[20];
+        OriginalCompanyRegistrationNo: Text[20];
 
     #region SalesInvoice
     [Test]
@@ -354,8 +359,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] Buyer and ship-to GLN identifiers are not exported
-        VerifyNodeDoesNotExist(TempXMLBuffer, BuyerGlobalIdTok);
-        VerifyNodeDoesNotExist(TempXMLBuffer, ShipToGlobalIdTok);
+        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, BuyerGlobalIdTok);
+        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, ShipToGlobalIdTok);
     end;
 
     [Test]
@@ -2620,6 +2625,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, XPath, 'schemeID'), StrSubstNo(IncorrectValueErr, XPath + '/@schemeID'));
     end;
 
+    local procedure VerifyGLNIdentifierDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+                TempXMLBufferAttribute.Reset();
+                TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+                TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+                TempXMLBufferAttribute.SetRange(Name, 'schemeID');
+                TempXMLBufferAttribute.SetRange(Value, '0088');
+                Assert.IsFalse(TempXMLBufferAttribute.FindFirst(), StrSubstNo(UnexpectedNodeErr, XPath));
+            until TempXMLBuffer.Next() = 0;
+    end;
+
     local procedure VerifyNodeDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
     begin
         Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, XPath), StrSubstNo(UnexpectedNodeErr, XPath));
@@ -3530,17 +3554,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         CompanyInformation."Use GLN in Electronic Document" := false;
         CompanyInformation."VAT Registration No." := '';
         CompanyInformation."Registration No." := RegistrationNo;
+        CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation.Modify();
     end;
 
     local procedure Initialize();
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ZUGFeRD XML Document Tests");
-        if IsInitialized then
+        if IsInitialized then begin
+            RestoreCompanyIdentifiers();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ZUGFeRD XML Document Tests");
         IsInitialized := true;
         CompanyInformation.Get();
+        OriginalCompanyGLN := CompanyInformation.GLN;
+        OriginalCompanyUsesGLN := CompanyInformation."Use GLN in Electronic Document";
+        OriginalCompanyUsesRegistrationNo := CompanyInformation."Use Reg. No. in E-Document";
+        OriginalCompanyVATRegistrationNo := CompanyInformation."VAT Registration No.";
+        OriginalCompanyRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
         CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
         CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
@@ -3551,6 +3583,17 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ZUGFeRD XML Document Tests");
+    end;
+
+    local procedure RestoreCompanyIdentifiers()
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := OriginalCompanyGLN;
+        CompanyInformation."Use GLN in Electronic Document" := OriginalCompanyUsesGLN;
+        CompanyInformation."Use Reg. No. in E-Document" := OriginalCompanyUsesRegistrationNo;
+        CompanyInformation."VAT Registration No." := OriginalCompanyVATRegistrationNo;
+        CompanyInformation."Registration No." := OriginalCompanyRegistrationNo;
+        CompanyInformation.Modify();
     end;
 
     [ConfirmHandler]

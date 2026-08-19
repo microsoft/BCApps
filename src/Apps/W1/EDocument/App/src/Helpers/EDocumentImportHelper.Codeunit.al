@@ -281,11 +281,17 @@ codeunit 6109 "E-Document Import Helper"
     var
         CompanyInformation: Record "Company Information";
         ReceivingCompanyRegistrationNo: Text[20];
+        CanUseRegistrationNo: Boolean;
     begin
         OnGetReceivingCompanyRegistrationNo(EDocument, ReceivingCompanyRegistrationNo);
         CompanyInformation.Get();
+        OnCanUseReceivingCompanyRegistrationNo(CompanyInformation, CanUseRegistrationNo);
 
-        if ReceivingCompanyRegistrationNo <> '' then begin
+        if (ReceivingCompanyRegistrationNo <> '') and
+              CanUseRegistrationNo and
+           (CompanyInformation.GLN = '') and
+           (CompanyInformation."VAT Registration No." = '')
+        then begin
             if CompanyInformation."Registration No." <> ReceivingCompanyRegistrationNo then
                 EDocErrorHelper.LogErrorMessage(
                     EDocument, CompanyInformation, CompanyInformation.FieldNo("Registration No."), InvalidCompanyInfoRegistrationNoErr);
@@ -565,6 +571,9 @@ codeunit 6109 "E-Document Import Helper"
 
         Vendor.SetLoadFields("No.");
         Vendor.SetRange("Registration Number", RegistrationNo);
+        Vendor.SetRange("Use Reg. No. in E-Document", true);
+        Vendor.SetRange(GLN, '');
+        Vendor.SetRange("VAT Registration No.", '');
         if Vendor.FindFirst() then
             exit(Vendor."No.");
     end;
@@ -597,6 +606,11 @@ codeunit 6109 "E-Document Import Helper"
 
     [IntegrationEvent(false, false)]
     local procedure OnGetReceivingCompanyRegistrationNo(EDocument: Record "E-Document"; var ReceivingCompanyRegistrationNo: Text[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCanUseReceivingCompanyRegistrationNo(CompanyInformation: Record "Company Information"; var CanUseRegistrationNo: Boolean)
     begin
     end;
 

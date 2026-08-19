@@ -62,17 +62,36 @@ codeunit 139799 "E-Doc. Helper Test"
     var
         Vendor: Record Vendor;
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         RegistrationNo: Text[20];
     begin
         // [SCENARIO 646793] A vendor can be resolved by Registration No. when other identifiers are unavailable.
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
-        LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Validate("Registration Number", RegistrationNo);
-        Vendor.Modify(true);
+        Vendor.Init();
+        Vendor."No." := LibraryUtility.GenerateRandomCode(Vendor.FieldNo("No."), Database::Vendor);
+        Vendor."Registration Number" := RegistrationNo;
+        Vendor."Use Reg. No. in E-Document" := true;
+        Vendor.Insert();
 
         Assert.AreEqual(Vendor."No.", EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should be matched by Registration No.');
+    end;
+
+    [Test]
+    procedure DoesNotFindVendorByRegistrationNoWithoutSetup()
+    var
+        Vendor: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNo: Text[20];
+    begin
+        // [SCENARIO 646793] Registration No. matching requires explicit vendor setup.
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        Vendor.Init();
+        Vendor."No." := LibraryUtility.GenerateRandomCode(Vendor.FieldNo("No."), Database::Vendor);
+        Vendor."Registration Number" := RegistrationNo;
+        Vendor.Insert();
+
+        Assert.AreEqual('', EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should not be matched by Registration No. without setup.');
     end;
 
     [Test]

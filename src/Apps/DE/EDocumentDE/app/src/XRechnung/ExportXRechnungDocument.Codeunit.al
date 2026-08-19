@@ -861,7 +861,10 @@ codeunit 13916 "Export XRechnung Document"
         UpdateSellerAddressFromResponsibilityCenter(RespCenterCode, TempCompanyAddress);
         InsertAddress(PartyElement, 'PostalAddress', TempCompanyAddress);
         if CompanyInformation."VAT Registration No." = '' then begin
-            if CompanyInformation."Registration No." <> '' then
+            if CompanyInformation."Use Reg. No. in E-Document" and
+               (CompanyInformation.GLN = '') and
+               (CompanyInformation."Registration No." <> '')
+            then
                 InsertPartyRegistrationNoTaxScheme(PartyElement, CompanyInformation."Registration No.");
         end else
             if not AllLinesNotSubjectToVAT then

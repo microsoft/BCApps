@@ -70,6 +70,11 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreditMemoCustomerLegalEntityIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
         CreditMemoDeliveryLocationIdTok: Label '/ns0:CreditNote/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
         IsInitialized: Boolean;
+        OriginalCompanyGLN: Code[13];
+        OriginalCompanyUsesGLN: Boolean;
+        OriginalCompanyUsesRegistrationNo: Boolean;
+        OriginalCompanyVATRegistrationNo: Text[20];
+        OriginalCompanyRegistrationNo: Text[20];
 
     #region SalesInvoice
     [Test]
@@ -1707,12 +1712,13 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] Customer and delivery GLN identifiers are not exported
-        VerifyNodeDoesNotExist(TempXMLBuffer, CustomerPartyIdTok);
-        VerifyNodeDoesNotExist(TempXMLBuffer, CustomerLegalEntityIdTok);
-        VerifyNodeDoesNotExist(TempXMLBuffer, DeliveryLocationIdTok);
+        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, CustomerPartyIdTok);
+        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, CustomerLegalEntityIdTok);
+        VerifyGLNIdentifierDoesNotExist(TempXMLBuffer, DeliveryLocationIdTok);
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure ExportPostedSalesInvoiceInXRechnungFormatUsesSellToGLNForCustomerParty();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2219,6 +2225,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         CompanyInformation."Use GLN in Electronic Document" := false;
         CompanyInformation."VAT Registration No." := '';
         CompanyInformation."Registration No." := RegistrationNo;
+        CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation.Modify();
     end;
 
@@ -2514,6 +2521,25 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         Assert.AreEqual(ExpectedGLN, GetNodeByPathWithError(TempXMLBuffer, XPath), StrSubstNo(IncorrectValueErr, XPath));
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, XPath, 'schemeID'), StrSubstNo(IncorrectValueErr, XPath + '/@schemeID'));
+    end;
+
+    local procedure VerifyGLNIdentifierDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+                TempXMLBufferAttribute.Reset();
+                TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+                TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+                TempXMLBufferAttribute.SetRange(Name, 'schemeID');
+                TempXMLBufferAttribute.SetRange(Value, '0088');
+                Assert.IsFalse(TempXMLBufferAttribute.FindFirst(), StrSubstNo(UnexpectedNodeErr, XPath));
+            until TempXMLBuffer.Next() = 0;
     end;
 
     local procedure VerifyNodeDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
@@ -3532,12 +3558,19 @@ codeunit 13918 "XRechnung XML Document Tests"
     local procedure Initialize();
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"XRechnung XML Document Tests");
-        if IsInitialized then
+        if IsInitialized then begin
+            RestoreCompanyIdentifiers();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"XRechnung XML Document Tests");
         IsInitialized := true;
 
         CompanyInformation.Get();
+        OriginalCompanyGLN := CompanyInformation.GLN;
+        OriginalCompanyUsesGLN := CompanyInformation."Use GLN in Electronic Document";
+        OriginalCompanyUsesRegistrationNo := CompanyInformation."Use Reg. No. in E-Document";
+        OriginalCompanyVATRegistrationNo := CompanyInformation."VAT Registration No.";
+        OriginalCompanyRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
         CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
         CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
@@ -3550,6 +3583,17 @@ codeunit 13918 "XRechnung XML Document Tests"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"XRechnung XML Document Tests");
+    end;
+
+    local procedure RestoreCompanyIdentifiers()
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := OriginalCompanyGLN;
+        CompanyInformation."Use GLN in Electronic Document" := OriginalCompanyUsesGLN;
+        CompanyInformation."Use Reg. No. in E-Document" := OriginalCompanyUsesRegistrationNo;
+        CompanyInformation."VAT Registration No." := OriginalCompanyVATRegistrationNo;
+        CompanyInformation."Registration No." := OriginalCompanyRegistrationNo;
+        CompanyInformation.Modify();
     end;
 
     [ConfirmHandler]
