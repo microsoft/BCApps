@@ -193,6 +193,9 @@ codeunit 6218 "Sustainability Calc. Mgt."
     var
         SustainAccountCategory: Record "Sustain. Account Category";
     begin
+        if AccountCategoryCode = '' then
+            exit(false);
+
         if EmissionScopeCache.Get(AccountCategoryCode, EmissionScope) and CalculationFoundationCache.Get(AccountCategoryCode, CalculationFoundation) then
             exit(true);
 
