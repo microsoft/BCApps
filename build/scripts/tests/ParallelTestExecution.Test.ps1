@@ -253,3 +253,166 @@ Describe "ParallelTestExecution warmup dispatch" {
         }
     }
 }
+
+Describe "ParallelTestExecution failed-app rerun scheduling" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    It "re-runs a failed app on a different tenant than the one it failed on" {
+        # A failed app is retried once, and never on the tenant it failed on: tests are not
+        # guaranteed to clean up after themselves, so residue from the failed run could
+        # re-trigger the same failure and make the retry worthless.
+        InModuleScope ParallelTestExecution {
+            $script:dispatched = [System.Collections.Generic.List[object]]::new()
+            $script:failed = $false
+
+            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Small') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Invoke-WarmupDispatch { @($Pending) }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults { }
+            Mock Wait-ForFreeTenant {
+                # 'default' is always free; the exclusion must push the rerun onto 'tenant2'.
+                @('default', 'tenant2') | Where-Object { $_ -ne $excludeTenant } | Select-Object -First 1
+            }
+            Mock Start-TestAppDispatch {
+                $script:dispatched.Add([PSCustomObject]@{ App = $AppName; Tenant = $Tenant; Suffix = $FileSuffix })
+                # 'Big' fails on its first dispatch, exactly once.
+                if ($AppName -eq 'Big' -and -not $script:failed) {
+                    $script:failed = $true
+                    Register-TestJobOutcome -State $State -Result ([PSCustomObject]@{
+                        Outcome = 'Failed'; AppName = $AppName; Tenant = $Tenant; JobState = 'Failed'
+                    })
+                }
+            }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $result = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Small')
+
+            $rerun = $script:dispatched | Where-Object { $_.Suffix }
+            $rerun.App | Should -Be 'Big'
+            $rerun.Tenant | Should -Be 'tenant2'
+            $rerun.Suffix | Should -Be 'rerun1'
+            # The rerun passed, so the run as a whole passed.
+            $result | Should -BeTrue
+        }
+    }
+
+    It "fails the run when the rerun budget is already spent" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{}
+                rerunBudget = 1; tenantCount = 4
+            }
+            $failure = [PSCustomObject]@{ Outcome = 'Failed'; AppName = 'A'; Tenant = 'default'; JobState = 'Failed' }
+
+            Register-TestJobOutcome -Result $failure -State $state
+            $state.rerun.Count | Should -Be 1
+            $state.hasFailures | Should -BeFalse
+
+            # Budget is spent, so a second failing app is final.
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'B'; Tenant = 'tenant2'; JobState = 'Failed'
+            })
+            $state.rerun.Count | Should -Be 1
+            $state.hasFailures | Should -BeTrue
+        }
+    }
+
+    It "does not re-run an app that already had its rerun" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{ A = $true }
+                rerunBudget = 1; tenantCount = 4
+            }
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'A'; Tenant = 'tenant2'; JobState = 'Failed'
+            })
+            $state.rerun.Count | Should -Be 0
+            $state.hasFailures | Should -BeTrue
+        }
+    }
+
+    It "does not re-run when there is only one tenant, since a different one cannot be used" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{}
+                rerunBudget = 1; tenantCount = 1
+            }
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'A'; Tenant = 'default'; JobState = 'Failed'
+            })
+            $state.rerun.Count | Should -Be 0
+            $state.hasFailures | Should -BeTrue
+        }
+    }
+}
+
+Describe "ParallelTestExecution result merging" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+
+        function New-JUnitFile {
+            param([string]$Path, [string]$SuiteName, [int]$Failures)
+            @"
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="$SuiteName" tests="1" failures="$Failures" />
+</testsuites>
+"@ | Set-Content -Path $Path -Encoding UTF8
+        }
+    }
+
+    It "lets a rerun's results replace those of the run it re-ran" {
+        # The rerun runs the whole app again on another tenant and writes its own file. Without
+        # replace-by-name the merged report would contain the app twice - once failed, once
+        # passed - and the failed copy would fail the build.
+        $dir = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $dir | Out-Null
+        try {
+            $failedRun = Join-Path $dir 'results-tenant2.xml'
+            $rerun = Join-Path $dir 'results-rerun1.xml'
+            $target = Join-Path $dir 'results.xml'
+
+            New-JUnitFile -Path $failedRun -SuiteName '134000 Some Codeunit' -Failures 1
+            New-JUnitFile -Path $rerun -SuiteName '134000 Some Codeunit' -Failures 0
+
+            Merge-TestResultFiles -targetFile $target -sourceFiles @($failedRun, $rerun)
+
+            $merged = [xml](Get-Content $target -Raw)
+            $suites = @($merged.SelectNodes('//testsuites/testsuite'))
+            $suites.Count | Should -Be 1
+            $suites[0].failures | Should -Be '0'
+        }
+        finally {
+            Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It "keeps results for different codeunits side by side" {
+        $dir = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $dir | Out-Null
+        try {
+            $first = Join-Path $dir 'results-default.xml'
+            $second = Join-Path $dir 'results-tenant2.xml'
+            $target = Join-Path $dir 'results.xml'
+
+            New-JUnitFile -Path $first -SuiteName '134000 One' -Failures 0
+            New-JUnitFile -Path $second -SuiteName '134001 Two' -Failures 0
+
+            Merge-TestResultFiles -targetFile $target -sourceFiles @($first, $second)
+
+            $merged = [xml](Get-Content $target -Raw)
+            @($merged.SelectNodes('//testsuites/testsuite')).Count | Should -Be 2
+        }
+        finally {
+            Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}

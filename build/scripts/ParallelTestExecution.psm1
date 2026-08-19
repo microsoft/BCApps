@@ -14,6 +14,13 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
+# Maximum number of test app reruns allowed per job. A failed app is re-run once on a DIFFERENT
+# tenant than the one it failed on: tests are not guaranteed to clean up after themselves, so a
+# same-tenant retry can re-fail on the residue the failed run just left behind. The budget is
+# deliberately small - it exists to absorb instability, and more failures than this means
+# something is genuinely broken rather than flaky.
+$script:MaxAppReruns = 1
+
 <#
 .SYNOPSIS
     Returns the cached parallel-test-run result for a container, or $null if no run has finished.
@@ -180,11 +187,14 @@ function Get-AvailableBcTenants {
     Merges multiple test result XML files into a single file.
 .DESCRIPTION
     Supports both JUnit (<testsuites>/<testsuite>) and XUnit (<assemblies>/<assembly>) formats.
-    Uses the first file as the base and appends test elements from remaining files.
+    Uses the first file as the base and appends test elements from remaining files. Entries are
+    keyed by their "name" attribute (the codeunit) and later files win: an existing entry is
+    removed before the new one is appended. That is what lets a rerun's results, merged last,
+    replace the results of the run it re-ran.
 .PARAMETER targetFile
     Path to the merged output file.
 .PARAMETER sourceFiles
-    Array of paths to per-tenant result files to merge.
+    Ordered array of result files to merge. Later files replace same-named entries from earlier ones.
 #>
 function Merge-TestResultFiles {
     param(
@@ -214,28 +224,30 @@ function Merge-TestResultFiles {
         $additionalXml = [xml](Get-Content $file -Raw)
 
         # JUnit format: root is <testsuites>, children are <testsuite>
-        $junitSuites = $additionalXml.SelectNodes("//testsuites/testsuite")
-        if ($junitSuites -and $junitSuites.Count -gt 0) {
-            $targetNode = $baseXml.SelectSingleNode("//testsuites")
-            foreach ($suite in $junitSuites) {
-                $imported = $baseXml.ImportNode($suite, $true)
-                $targetNode.AppendChild($imported) | Out-Null
-            }
-            continue
-        }
-
         # XUnit format: root is <assemblies>, children are <assembly>
-        $xunitAssemblies = $additionalXml.SelectNodes("//assemblies/assembly")
-        if ($xunitAssemblies -and $xunitAssemblies.Count -gt 0) {
-            $targetNode = $baseXml.SelectSingleNode("//assemblies")
-            foreach ($assembly in $xunitAssemblies) {
-                $imported = $baseXml.ImportNode($assembly, $true)
+        $merged = $false
+        foreach ($format in @(@{ Root = 'testsuites'; Child = 'testsuite' }, @{ Root = 'assemblies'; Child = 'assembly' })) {
+            $nodes = $additionalXml.SelectNodes("//$($format.Root)/$($format.Child)")
+            if (-not $nodes -or $nodes.Count -eq 0) { continue }
+
+            $targetNode = $baseXml.SelectSingleNode("//$($format.Root)")
+            foreach ($node in $nodes) {
+                # Drop any earlier entry for the same codeunit so the later file wins. Compared on
+                # the node itself rather than via XPath so names containing quotes are safe.
+                $nodeName = $node.GetAttribute('name')
+                @($targetNode.ChildNodes | Where-Object { $_.LocalName -eq $format.Child -and $_.GetAttribute('name') -eq $nodeName }) |
+                    ForEach-Object { $targetNode.RemoveChild($_) | Out-Null }
+
+                $imported = $baseXml.ImportNode($node, $true)
                 $targetNode.AppendChild($imported) | Out-Null
             }
-            continue
+            $merged = $true
+            break
         }
 
-        Write-Host "WARNING: Unrecognized test result format in $file, skipping"
+        if (-not $merged) {
+            Write-Host "WARNING: Unrecognized test result format in $file, skipping"
+        }
     }
 
     $baseXml.Save($targetFile)
@@ -344,6 +356,9 @@ function Receive-TestJobResult {
     The parallel execution state object; the new job descriptor is appended to State.jobs.
 .PARAMETER Verb
     Log verb, 'Dispatching' for the initial run or 'Re-dispatching' for a retry.
+.PARAMETER FileSuffix
+    Suffix for the per-job result file. Defaults to the tenant id; a rerun passes its own suffix so
+    its results land in a separate file that replaces the failed run's during the merge.
 #>
 function Start-TestAppDispatch {
     param(
@@ -354,7 +369,8 @@ function Start-TestAppDispatch {
         [string]$ScriptPath,
         [string]$TestType,
         $State,
-        [string]$Verb = 'Dispatching'
+        [string]$Verb = 'Dispatching',
+        [string]$FileSuffix
     )
 
     Write-Host "$Verb '$AppName' (extensionId $AppId) on tenant '$Tenant' in background"
@@ -364,10 +380,58 @@ function Start-TestAppDispatch {
     $appParams['extensionId'] = $AppId
     $appParams.Remove('ReRun') | Out-Null
 
-    $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType
+    $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType -fileSuffix $FileSuffix
     $State.jobs = @($State.jobs) + @([PSCustomObject]@{ jobId = $job.Id; tenant = $Tenant; appName = $AppName })
 
     Start-Sleep -Seconds 5
+}
+
+<#
+.SYNOPSIS
+    Records a finished job's outcome on the state object, queueing a rerun when one is warranted.
+.DESCRIPTION
+    'Transient' feeds the existing platform-race retry queue. 'Failed' consumes one unit of the
+    global rerun budget and queues the app to run again on a different tenant; when the budget is
+    exhausted (or the app has already been re-run, or there is only one tenant so a different one
+    cannot be guaranteed) the failure is final and sets hasFailures.
+.PARAMETER Result
+    The outcome object returned by Receive-TestJobResult.
+.PARAMETER State
+    The parallel execution state object; mutated in place.
+#>
+function Register-TestJobOutcome {
+    param(
+        $Result,
+        $State
+    )
+
+    switch ($Result.Outcome) {
+        'Transient' {
+            Write-Host "Transient platform race for '$($Result.AppName)' on '$($Result.Tenant)'. Queued for one retry."
+            $State.transient = @($State.transient) + @($Result.AppName)
+        }
+        'Failed' {
+            $canRerun = ($State.rerunBudget -gt 0) -and
+                        ($State.tenantCount -gt 1) -and
+                        (-not $State.rerunDone.ContainsKey($Result.AppName))
+
+            if ($canRerun) {
+                $State.rerunBudget = $State.rerunBudget - 1
+                $State.rerunDone[$Result.AppName] = $true
+                $suffix = "rerun$($script:MaxAppReruns - $State.rerunBudget)"
+                Write-Host "::warning::Tests FAILED for '$($Result.AppName)' on tenant '$($Result.Tenant)'. Re-running the app once on a different tenant. A rerun that passes still means this app is unstable - please investigate it."
+                $State.rerun = @($State.rerun) + @([PSCustomObject]@{
+                    appName       = $Result.AppName
+                    excludeTenant = $Result.Tenant
+                    suffix        = $suffix
+                })
+            }
+            else {
+                Write-Host "Tests FAILED for $($Result.AppName) on $($Result.Tenant) (job state: $($Result.JobState))"
+                $State.hasFailures = $true
+            }
+        }
+    }
 }
 
 <#
@@ -398,16 +462,7 @@ function Get-FreeTenants {
             $remainingJobs += $entry
         } else {
             $result = Receive-TestJobResult -Entry $entry -Job $job -Retried $state.retried
-            switch ($result.Outcome) {
-                'Transient' {
-                    Write-Host "Transient platform race for '$($result.AppName)' on '$($result.Tenant)'. Queued for one retry."
-                    $state.transient = @($state.transient) + @($result.AppName)
-                }
-                'Failed' {
-                    Write-Host "Tests FAILED for $($result.AppName) on $($result.Tenant) (job state: $($result.JobState))"
-                    $state.hasFailures = $true
-                }
-            }
+            Register-TestJobOutcome -Result $result -State $state
         }
     }
     $state.jobs = @($remainingJobs)
@@ -422,6 +477,8 @@ function Get-FreeTenants {
     The parallel execution state object.
 .PARAMETER tenants
     Array of all tenant IDs.
+.PARAMETER excludeTenant
+    Tenant to never return. Used to keep a rerun off the tenant its previous run failed on.
 .OUTPUTS
     [string] The first available tenant ID.
 #>
@@ -429,13 +486,14 @@ function Wait-ForFreeTenant {
     param(
         $state,
         $tenants,
+        [string]$excludeTenant,
         [int]$timeoutSeconds = 7200,
         [int]$pollIntervalSeconds = 10
     )
 
     $waited = 0
     while ($waited -lt $timeoutSeconds) {
-        $available = @(Get-FreeTenants -state $state -tenants $tenants)
+        $available = @(Get-FreeTenants -state $state -tenants $tenants | Where-Object { $_ -ne $excludeTenant })
         if ($available) {
             return $available[0]
         }
@@ -457,6 +515,8 @@ function Wait-ForFreeTenant {
     Path to RunTestsInBcContainer.ps1.
 .PARAMETER testType
     The test type (Legacy, UnitTest, etc.)
+.PARAMETER fileSuffix
+    Suffix used for this job's result file. Defaults to the tenant id.
 .OUTPUTS
     [System.Management.Automation.Job] The background job object.
 #>
@@ -465,20 +525,23 @@ function Start-TestJob {
         [Hashtable]$parameters,
         [string]$tenant,
         [string]$scriptPath,
-        [string]$testType
+        [string]$testType,
+        [string]$fileSuffix
     )
 
     $jobParams = $parameters.Clone()
     $jobParams["tenant"] = $tenant
 
-    # Give each tenant its own result file to avoid write conflicts
+    if ([string]::IsNullOrWhiteSpace($fileSuffix)) { $fileSuffix = $tenant }
+
+    # Give each job its own result file to avoid write conflicts
     foreach ($resultKey in @("XUnitResultFileName", "JUnitResultFileName")) {
         if ($jobParams.ContainsKey($resultKey) -and $jobParams[$resultKey]) {
             $origFile = $jobParams[$resultKey]
             $dir = [System.IO.Path]::GetDirectoryName($origFile)
             $name = [System.IO.Path]::GetFileNameWithoutExtension($origFile)
             $ext = [System.IO.Path]::GetExtension($origFile)
-            $jobParams[$resultKey] = Join-Path $dir "$name-$tenant$ext"
+            $jobParams[$resultKey] = Join-Path $dir "$name-$fileSuffix$ext"
         }
     }
 
@@ -508,7 +571,7 @@ function Start-TestJob {
 function Wait-ForAllTestJobs {
     param($state)
 
-    $allPassed = $true
+    $failuresBefore = $state.hasFailures
     foreach ($entry in @($state.jobs)) {
         $pendingJob = Get-Job -Id $entry.jobId -ErrorAction SilentlyContinue
         if ($pendingJob) {
@@ -516,37 +579,34 @@ function Wait-ForAllTestJobs {
             Wait-Job -Job $pendingJob | Out-Null
 
             $result = Receive-TestJobResult -Entry $entry -Job $pendingJob -Retried $state.retried
-            switch ($result.Outcome) {
-                'Transient' {
-                    Write-Host "Transient platform race for '$($result.AppName)' on '$($result.Tenant)'. Queued for one retry."
-                    $state.transient = @($state.transient) + @($result.AppName)
-                }
-                'Failed' {
-                    Write-Host "Tests FAILED for $($result.AppName) on $($result.Tenant) (job state: $($result.JobState))"
-                    $allPassed = $false
-                }
-            }
+            Register-TestJobOutcome -Result $result -State $state
         }
     }
     # All jobs in $state.jobs have been received and removed; clear the list so any later
     # dispatch starts from a clean slate (otherwise stale descriptors confuse Get-FreeTenants).
     $state.jobs = @()
-    return $allPassed
+    return ($state.hasFailures -eq $failuresBefore)
 }
 
 <#
 .SYNOPSIS
-    Merges per-tenant test result files into the single file expected by Run-AlPipeline.
+    Merges per-job test result files into the single file expected by Run-AlPipeline.
 .PARAMETER parameters
     The original test parameters hashtable (contains the expected result file paths).
 .PARAMETER tenants
     Array of tenant IDs whose result files should be merged.
+.PARAMETER rerunSuffixes
+    Suffixes of any rerun result files. Merged after the tenant files so a rerun's results replace
+    those of the failed run it re-ran.
 #>
 function Merge-TenantTestResults {
     param(
         [Hashtable]$parameters,
-        [string[]]$tenants
+        [string[]]$tenants,
+        [string[]]$rerunSuffixes = @()
     )
+
+    $suffixes = @($tenants) + @($rerunSuffixes)
 
     foreach ($resultKey in @("XUnitResultFileName", "JUnitResultFileName")) {
         if ($parameters.ContainsKey($resultKey) -and $parameters[$resultKey]) {
@@ -555,10 +615,10 @@ function Merge-TenantTestResults {
             $name = [System.IO.Path]::GetFileNameWithoutExtension($origFile)
             $ext = [System.IO.Path]::GetExtension($origFile)
 
-            $tenantFiles = @($tenants | ForEach-Object { Join-Path $dir "$name-$_$ext" })
+            $tenantFiles = @($suffixes | ForEach-Object { Join-Path $dir "$name-$_$ext" })
             Merge-TestResultFiles -targetFile $origFile -sourceFiles $tenantFiles
 
-            # Clean up per-tenant files
+            # Clean up per-job files
             $tenantFiles | Where-Object { Test-Path $_ } | ForEach-Object { Remove-Item $_ -Force }
         }
     }
@@ -612,8 +672,9 @@ function Invoke-WarmupDispatch {
         -ScriptPath $ScriptPath -TestType $TestType -State $State -Verb 'Dispatching'
 
     # Await the single job so the process is warm before anything runs in parallel. A transient
-    # failure here lands in $State.transient and the caller's loop re-queues it.
-    if (-not (Wait-ForAllTestJobs -state $State)) { $State.hasFailures = $true }
+    # failure here lands in $State.transient and the caller's loop re-queues it; a hard failure is
+    # recorded on $State by Wait-ForAllTestJobs.
+    $null = Wait-ForAllTestJobs -state $State
 
     return @($Pending | Select-Object -Skip 1)
 }
@@ -684,7 +745,11 @@ function Invoke-ParallelTestExecution {
 
     # dispatched=true marks "we started the foreach" - lets concurrent reads notice an in-flight
     # run. completed=false stays false until wait+merge finish; only then is finalResult valid.
-    $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false; transient = @(); retried = @{} }
+    $state = [PSCustomObject]@{
+        jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false
+        transient = @(); retried = @{}
+        rerun = @(); rerunDone = @{}; rerunBudget = $script:MaxAppReruns; tenantCount = $tenants.Count
+    }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
     # Single dispatch loop, FIFO. TestConfiguration.json lists the smallest app first (a cheap
@@ -697,7 +762,9 @@ function Invoke-ParallelTestExecution {
     $pending = @(Invoke-WarmupDispatch -Parameters $parameters -Pending $pending -AppIdByName $appIdByName `
         -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -State $state)
 
-    while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
+    $rerunSuffixes = @()
+
+    while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0 -or $state.rerun.Count -gt 0) {
         # Promote any transient failures back into the dispatch queue. They go to the FRONT:
         # a platform race normally kills a job within a minute of dispatch, so the victim is
         # almost always one of the first (i.e. longest) apps. Appending it instead would
@@ -711,6 +778,22 @@ function Invoke-ParallelTestExecution {
                 $state.retried[$appName] = $true
             }
             $pending = @($toRetry) + @($pending)
+        }
+
+        # Reruns take priority over the normal queue, for the same tail-latency reason as above:
+        # a failure is usually discovered late, so deferring its rerun would extend the run.
+        if ($state.rerun.Count -gt 0) {
+            $rerunItem = $state.rerun[0]
+            $state.rerun = @($state.rerun | Select-Object -Skip 1)
+            $rerunSuffixes += $rerunItem.suffix
+
+            # Never reuse the tenant the app just failed on: tests are not guaranteed to clean up,
+            # so its residue could re-trigger the same failure and make the rerun meaningless.
+            $tenant = Wait-ForFreeTenant -state $state -tenants $tenants -excludeTenant $rerunItem.excludeTenant
+            Start-TestAppDispatch -Parameters $parameters -AppName $rerunItem.appName -AppId $appIdByName[$rerunItem.appName] `
+                -Tenant $tenant -ScriptPath $scriptPath -TestType $testType -State $state `
+                -Verb 'Re-running' -FileSuffix $rerunItem.suffix
+            continue
         }
 
         if ($pending.Count -gt 0) {
@@ -728,16 +811,17 @@ function Invoke-ParallelTestExecution {
             Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
                 -ScriptPath $scriptPath -TestType $testType -State $state -Verb $verb
         } else {
-            # Nothing left to dispatch; drain any still-running jobs. New transient failures
-            # discovered here will be re-queued at the top of the next loop iteration.
+            # Nothing left to dispatch; drain any still-running jobs. New transient failures and
+            # reruns discovered here are picked up at the top of the next loop iteration.
+            # Wait-ForAllTestJobs records failures on $state directly.
             Write-Host "All apps dispatched. Waiting for in-flight jobs to complete..."
-            if (-not (Wait-ForAllTestJobs -state $state)) { $state.hasFailures = $true }
+            $null = Wait-ForAllTestJobs -state $state
         }
     }
 
     $allPassed = -not $state.hasFailures
 
-    Merge-TenantTestResults -parameters $parameters -tenants $tenants
+    Merge-TenantTestResults -parameters $parameters -tenants $tenants -rerunSuffixes $rerunSuffixes
 
     # Persist final result and mark complete so subsequent override invocations short-circuit
     # to this value (and not the placeholder we wrote before dispatch).
@@ -790,4 +874,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Invoke-WarmupDispatch
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Invoke-WarmupDispatch, Merge-TestResultFiles
