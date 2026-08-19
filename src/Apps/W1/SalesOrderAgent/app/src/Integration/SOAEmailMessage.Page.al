@@ -412,14 +412,13 @@ page 4404 "SOA Email Message"
         SOATaskContactOverride: Record "SOA Task Contact Override";
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
     begin
-        if SOATaskContactOverride.Get(Rec."Task ID", GetInputTaskMessageID()) and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then begin
-            ContactOverrideActive := true;
+        if SOATaskContactOverride.Get(Rec."Task ID", GetInputTaskMessageID()) and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             if SOATaskContactOverride."Contact No." <> '' then
                 if Contact.Get(SOATaskContactOverride."Contact No.") then begin
+                    ContactOverrideActive := true;
                     ContactCount := 1;
                     exit(true);
                 end;
-        end;
 
         exit(SOAFiltersImpl.FindContactByEmail(Contact, EmailAddress, ContactCount));
     end;

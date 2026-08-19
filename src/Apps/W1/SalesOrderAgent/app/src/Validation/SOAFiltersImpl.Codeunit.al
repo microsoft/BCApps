@@ -182,7 +182,8 @@ codeunit 4305 "SOA Filters Impl."
     begin
         RecallDuplicateContactNotification(DuplicateContactNotification);
         DuplicateContactNotification.Message := StrSubstNo(DuplicateContactNotificationLbl, ContactCount, FromEmail);
-        DuplicateContactNotification.AddAction(SelectContactLbl, Codeunit::"SOA Filters Impl.", 'HandleDuplicateContacts');
+        if CanChangeContactMapping(TaskID, TaskMessageID) then
+            DuplicateContactNotification.AddAction(SelectContactLbl, Codeunit::"SOA Filters Impl.", 'HandleDuplicateContacts');
         DuplicateContactNotification.SetData('FromEmail', FromEmail);
         DuplicateContactNotification.SetData('TaskID', Format(TaskID));
         DuplicateContactNotification.SetData('TaskMessageID', Format(TaskMessageID));
@@ -225,35 +226,36 @@ codeunit 4305 "SOA Filters Impl."
         case Choice of
             1:
                 if CreateContact(ContactEmail, ContactName) then
-                    LogContactLinkChoice(ContactLinkActionCreateContactLbl);
+                    LogContactLinkChoice(ContactLinkActionCreateContactLbl, ContactLinkFlowEntryPointLbl);
             2:
-                SelectContactAndSetOverride(TaskID, TaskMessageID);
+                SelectContactAndSetOverride(TaskID, TaskMessageID, '', ContactLinkFlowEntryPointLbl);
             3:
                 if SelectContactAndUpdateEmail(ContactEmail, TaskID, TaskMessageID) then
-                    LogContactLinkChoice(ContactLinkActionUseAlwaysLbl);
+                    LogContactLinkChoice(ContactLinkActionUseAlwaysLbl, ContactLinkFlowEntryPointLbl);
         end;
     end;
 
-    local procedure LogContactLinkChoice(ContactLinkAction: Text)
+    local procedure LogContactLinkChoice(ContactLinkAction: Text; ContactMappingEntryPoint: Text)
     var
         SOASetup: Codeunit "SOA Setup";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
         TelemetryDimensions.Add(ContactLinkActionDimensionLbl, ContactLinkAction);
+        TelemetryDimensions.Add(ContactMappingEntryPointDimensionLbl, ContactMappingEntryPoint);
         FeatureTelemetry.LogUsage('0000V0N', SOASetup.GetFeatureName(), ContactLinkActionSelectedTelemetryLbl, TelemetryDimensions);
     end;
 
     internal procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid): Boolean
     begin
-        exit(SelectContactAndSetOverride(TaskID, TaskMessageID, ''));
+        exit(SelectContactAndSetOverride(TaskID, TaskMessageID, '', AssistEditEntryPointLbl));
     end;
 
     internal procedure SelectMatchingContactAndSetOverride(ContactEmail: Text; TaskID: BigInteger; TaskMessageID: Guid): Boolean
     begin
-        exit(SelectContactAndSetOverride(TaskID, TaskMessageID, ContactEmail));
+        exit(SelectContactAndSetOverride(TaskID, TaskMessageID, ContactEmail, DuplicateNotificationEntryPointLbl));
     end;
 
-    local procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid; ContactEmail: Text): Boolean
+    local procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid; ContactEmail: Text; ContactMappingEntryPoint: Text): Boolean
     var
         SelectedContact: Record Contact;
         SOAContactLookup: Page "SOA Contact Lookup";
@@ -266,7 +268,7 @@ codeunit 4305 "SOA Filters Impl."
             exit(false);
         SOAContactLookup.GetRecord(SelectedContact);
         SetContactOverride(TaskID, TaskMessageID, SelectedContact."No.");
-        LogContactLinkChoice(ContactLinkActionUseOnceLbl);
+        LogContactLinkChoice(ContactLinkActionUseOnceLbl, ContactMappingEntryPoint);
         exit(true);
     end;
 
@@ -297,7 +299,7 @@ codeunit 4305 "SOA Filters Impl."
 
         SOATaskContactOverride.Delete();
         Commit();
-        LogContactLinkChoice(ContactLinkActionClearOnceLbl);
+        LogContactLinkChoice(ContactLinkActionClearOnceLbl, AssistEditEntryPointLbl);
         exit(true);
     end;
 
@@ -351,18 +353,25 @@ codeunit 4305 "SOA Filters Impl."
     /// Internal procedures are not an authorization boundary, so every override and alternate-email write path calls this validation.
     /// </summary>
     local procedure ValidateContactMappingAccess(TaskID: BigInteger; TaskMessageID: Guid)
+    begin
+        if not CanChangeContactMapping(TaskID, TaskMessageID) then
+            Error(ContactMappingNotAuthorizedErr);
+    end;
+
+    internal procedure CanChangeContactMapping(TaskID: BigInteger; TaskMessageID: Guid): Boolean
     var
         AgentTaskMessage: Record "Agent Task Message";
         SOASetup: Record "SOA Setup";
     begin
         if not AgentTaskMessage.Get(TaskID, TaskMessageID) then
-            Error(ContactMappingNotAuthorizedErr);
+            exit(false);
         if AgentTaskMessage.Type <> AgentTaskMessage.Type::Input then
-            Error(ContactMappingNotAuthorizedErr);
+            exit(false);
 
-        SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", true);
-        if not SOASetup.IsAuthorizedUserSecurityID(UserSecurityId()) then
-            Error(ContactMappingNotAuthorizedErr);
+        if not SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", false) then
+            exit(false);
+
+        exit(SOASetup.IsAuthorizedUserSecurityID(UserSecurityId()));
     end;
 
     internal procedure HandleUnknownSenderFromNotification(MissingContactNotification: Notification)
@@ -398,8 +407,23 @@ codeunit 4305 "SOA Filters Impl."
             exit;
 
         Commit();
-        if SelectMatchingContactAndSetOverride(FromEmail, TaskID, TaskMessageID) then
+        if SelectMatchingContactAndSetOverride(FromEmail, TaskID, TaskMessageID) then begin
             RecallDuplicateContactNotification();
+            ShowContactOverrideConfirmation(TaskID, TaskMessageID);
+        end;
+    end;
+
+    local procedure ShowContactOverrideConfirmation(TaskID: BigInteger; TaskMessageID: Guid)
+    var
+        Contact: Record Contact;
+        SOATaskContactOverride: Record "SOA Task Contact Override";
+    begin
+        if not SOATaskContactOverride.Get(TaskID, TaskMessageID) then
+            exit;
+        if not Contact.Get(SOATaskContactOverride."Contact No.") then
+            exit;
+
+        Message(ContactSelectedMsg, Contact.Name);
     end;
 
     internal procedure LearnMoreNotRegisteredEmail(MissingContactNotification: Notification) //Add Action in ShowMissingContactNotification
@@ -506,11 +530,16 @@ codeunit 4305 "SOA Filters Impl."
         MissingContactNotificationLbl: Label 'No contact has <%1> as their email or alternate email address. The agent matches contacts by the E-Mail and E-Mail 2 fields on contact cards. To proceed, select an existing contact or create a new one.', Comment = '%1 = Sender email address';
         ContactAlreadyExistQst: Label 'A contact with the same email already exists. Contact number is %1. Do you want to open it?', Comment = '%1 = Contact number';
         DuplicateContactNotificationLbl: Label 'There are %1 contacts with the same email address <%2>. The first matching contact is currently used. Select the correct contact for this message.', Comment = '%1 - number of contacts, %2 - email address';
+        ContactSelectedMsg: Label 'Contact %1 was selected for this message. Refresh the page to show the updated contact.', Comment = '%1 = Contact name';
         ContactMappingNotAuthorizedErr: Label 'You are not authorized to change the contact mapping for this message.';
         ContactLinkActionDimensionLbl: Label 'ContactLinkAction', Locked = true;
+        ContactMappingEntryPointDimensionLbl: Label 'ContactMappingEntryPoint', Locked = true;
         ContactLinkActionCreateContactLbl: Label 'CreateContact', Locked = true;
         ContactLinkActionUseOnceLbl: Label 'UseOnce', Locked = true;
         ContactLinkActionUseAlwaysLbl: Label 'UseAlways', Locked = true;
         ContactLinkActionClearOnceLbl: Label 'ClearOnce', Locked = true;
+        ContactLinkFlowEntryPointLbl: Label 'ContactLinkFlow', Locked = true;
+        AssistEditEntryPointLbl: Label 'AssistEdit', Locked = true;
+        DuplicateNotificationEntryPointLbl: Label 'DuplicateNotification', Locked = true;
         ContactLinkActionSelectedTelemetryLbl: Label 'Unknown sender contact action selected.', Locked = true;
 }
