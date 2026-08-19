@@ -9422,6 +9422,9 @@ codeunit 134327 "ERM Purchase Order"
         PurchaseCopyDocument(PurchaseHeaderCreditMemo, PurchInvHeader."No.", "Purchase Document Type From"::"Posted Invoice");
         PurchaseHeaderCreditMemo.Get(PurchaseHeaderCreditMemo."Document Type"::"Credit Memo", PurchaseHeaderCreditMemo."No.");
         PurchaseHeaderCreditMemo.Validate("Vendor Cr. Memo No.", PurchaseHeaderCreditMemo."No.");
+        // IT installments require Applies-to Occurrence No. when applied; clear the vendor-ledger apply as it is not part of this scenario.
+        PurchaseHeaderCreditMemo.Validate("Applies-to Doc. Type", PurchaseHeaderCreditMemo."Applies-to Doc. Type"::" ");
+        PurchaseHeaderCreditMemo.Validate("Applies-to Doc. No.", '');
         PurchaseHeaderCreditMemo.Modify(true);
 
         // [WHEN] Post the Purchase Credit Memo.
