@@ -53,7 +53,7 @@ codeunit 148341 "Library - Expense Agent"
         Clear(HasExpenseAgentSetupBackup);
     end;
 
-    internal procedure AppendQueryParameter(TargetURL: Text; QueryParameter: Text): Text
+    internal procedure AppendAPIQueryParameter(TargetURL: Text; QueryParameter: Text): Text
     begin
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&' + QueryParameter);
