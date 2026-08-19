@@ -105,31 +105,43 @@ table 7100 "Expense Activity Log Entry"
         }
         field(15; "Amount (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Amount (LCY)';
             DataClassification = AccountData;
         }
         field(16; "Non-Refundable Amount (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Non-Refundable Amount (LCY)';
             DataClassification = AccountData;
         }
         field(17; "Reimbursable Amount"; Decimal)
         {
+            AutoFormatExpression = "Reimbursement Currency Code";
+            AutoFormatType = 1;
             Caption = 'Reimbursable Amount';
             DataClassification = AccountData;
         }
         field(18; "Reimbursable Amount (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Reimbursable Amount (LCY)';
             DataClassification = AccountData;
         }
         field(19; "Refundable Amount"; Decimal)
         {
+            AutoFormatExpression = "Reimbursement Currency Code";
+            AutoFormatType = 1;
             Caption = 'Refundable Amount';
             DataClassification = AccountData;
         }
         field(20; "Refundable Amount (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Refundable Amount (LCY)';
             DataClassification = AccountData;
         }
