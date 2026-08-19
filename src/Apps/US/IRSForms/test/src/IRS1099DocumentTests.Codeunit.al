@@ -1425,6 +1425,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         VendNo: Code[20];
         FormNo: Code[20];
         FormBoxNo: Code[20];
+        PeriodNo: Code[20];
         InvNo: Code[20];
     begin
         // [FEATURE] [AI test]
@@ -1432,7 +1433,7 @@ codeunit 148010 "IRS 1099 Document Tests"
 
         Initialize();
         // [GIVEN] IRS Reporting Period with Form "F" and Form Box "FB"
-        LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
         FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
 
@@ -1444,11 +1445,59 @@ codeunit 148010 "IRS 1099 Document Tests"
         LibraryPurchase.CreatePurchaseLineWithUnitCost(PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemNo(), 1, 100);
         InvNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
-        // [WHEN] Validate "IRS 1099 Form Box No." in the vendor ledger entry
+        // [WHEN] Validate the IRS 1099 fields in the vendor ledger entry
         LibraryERM.FindVendorLedgerEntry(VendorLedgEntry, VendorLedgEntry."Document Type"::Invoice, InvNo);
         // [THEN] No error is raised for a vendor that has 1099 setup
+        VendorLedgEntry.Validate("IRS 1099 Reporting Period", PeriodNo);
+        VendorLedgEntry.Validate("IRS 1099 Form No.", FormNo);
         VendorLedgEntry.Validate("IRS 1099 Form Box No.", FormBoxNo);
         VendorLedgEntry.TestField("IRS 1099 Form Box No.", FormBoxNo);
+    end;
+
+    [Test]
+    procedure ValidateIRS1099FormAndFormBoxOnVendLedgEntryForNon1099Vendor()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorLedgEntry: Record "Vendor Ledger Entry";
+        VendNo: Code[20];
+        FormNo: Code[20];
+        FormBoxNo: Code[20];
+        PeriodNo: Code[20];
+        InvNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 620132] Setting IRS 1099 Form No. or Form Box No. on vendor ledger entry of a vendor with no 1099 setup raises an error
+
+        Initialize();
+        // [GIVEN] IRS Reporting Period "P" with form "F" and form box "FB"
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
+        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
+
+        // [GIVEN] Vendor "V" with NO IRS 1099 form box setup (plain vendor)
+        VendNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Posted purchase invoice for vendor "V", with IRS period set directly (bypassing validation)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendNo);
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemNo(), 1, 100);
+        InvNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        LibraryERM.FindVendorLedgerEntry(VendorLedgEntry, VendorLedgEntry."Document Type"::Invoice, InvNo);
+        VendorLedgEntry."IRS 1099 Reporting Period" := PeriodNo;
+        VendorLedgEntry.Modify();
+
+        // [WHEN] Validate "IRS 1099 Form No." in the vendor ledger entry
+        // [THEN] An error is raised because vendor "V" has no 1099 setup for the period
+        asserterror VendorLedgEntry.Validate("IRS 1099 Form No.", FormNo);
+        Assert.ExpectedError(StrSubstNo(VendorNotSetupForIRS1099Err, VendNo, PeriodNo));
+
+        // [WHEN] Validate "IRS 1099 Form Box No." in the vendor ledger entry
+        // [THEN] An error is raised because vendor "V" has no 1099 setup for the period
+        LibraryERM.FindVendorLedgerEntry(VendorLedgEntry, VendorLedgEntry."Document Type"::Invoice, InvNo);
+        VendorLedgEntry."IRS 1099 Reporting Period" := PeriodNo;
+        VendorLedgEntry."IRS 1099 Form No." := FormNo;
+        asserterror VendorLedgEntry.Validate("IRS 1099 Form Box No.", FormBoxNo);
+        Assert.ExpectedError(StrSubstNo(VendorNotSetupForIRS1099Err, VendNo, PeriodNo));
     end;
 
     [Test]
