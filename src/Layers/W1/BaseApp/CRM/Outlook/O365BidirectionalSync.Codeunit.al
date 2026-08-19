@@ -244,10 +244,8 @@ codeunit 7106 "O365 Bidirectional Sync"
         ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
         ContactSyncUserRec.SetRange("Folder ID", CopyStr(FolderId, 1, 250));
         ContactSyncUserRec.SetLoadFields("Delta Url");
-        if ContactSyncUserRec.FindFirst() and not (NewDeltaLink = '') then begin
+        if ContactSyncUserRec.FindFirst() and not (NewDeltaLink = '') then
             ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
-            ContactSyncUserRec.Modify(false);
-        end;
     end;
 
     local procedure UpdateDeltaUrlEmpty(FolderId: Text; NewDeltaLink: Text)
@@ -259,10 +257,8 @@ codeunit 7106 "O365 Bidirectional Sync"
         ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
         ContactSyncUserRec.SetRange("Folder ID", CopyStr(FolderId, 1, 250));
         ContactSyncUserRec.SetLoadFields("Delta Url");
-        if ContactSyncUserRec.FindFirst() then begin
+        if ContactSyncUserRec.FindFirst() then
             ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
-            ContactSyncUserRec.Modify(false);
-        end;
     end;
 
     local procedure DoFullSync(FolderId: Text; var O365Records: Record "Outlook Contacts"; var Uri: Text)
