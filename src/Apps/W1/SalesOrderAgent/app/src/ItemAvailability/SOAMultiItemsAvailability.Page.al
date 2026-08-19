@@ -83,7 +83,6 @@ page 4410 "SOA Multi Items Availability"
                     trigger OnValidate()
                     begin
                         SetAvailabilityFilter('Date', DateFilter);
-
                         Rec.SetFilter("Date Filter", DateFilter);
                         FindPeriod('');
                     end;
@@ -208,18 +207,6 @@ page 4410 "SOA Multi Items Availability"
                                 InUOMCode := '';
                         end;
                         SetAvailabilityFilter('UOM', InUOMCode);
-                        CurrPage.Update(false);
-                    end;
-                }
-                field(SearchKeywords; SearchKeywords)
-                {
-                    Caption = 'Search Keywords';
-                    ToolTip = 'Specifies search keywords used to search for an item.';
-                    Visible = IsAgentSession;
-
-                    trigger OnValidate()
-                    begin
-                        SetAvailabilityFilter('Search', SearchKeywords);
                         CurrPage.Update(false);
                     end;
                 }
@@ -747,15 +734,11 @@ page 4410 "SOA Multi Items Availability"
             AvailabilityFilterValues.Set('Location', LocationFilter);
             Rec.SetFilter("Item Availability Filter", BuildAvailabilityFilterText() + '|*');
         end else begin
-            if RunFromTimeLine then
-                if BindSubscription(GlobalSOAItemSearch) then;
             if Rec.GetFilter("Item Availability Filter") <> '' then begin
                 ParseAvailabilityFilter();
                 Rec.SetRange("Item Availability Filter");
-                Rec.FilterGroup(-1);
-                Rec.SetFilter("No.", SearchKeywords);
-                Rec.FilterGroup(0);
-                MultiItemsAvailability.InitPage(CustomerNo, ContactNo, DateFilter, LocationFilter, QuantityFilter, InUOMCode, true);
+
+                MultiItemsAvailability.InitPage(CustomerNo, ContactNo, DateFilter, LocationFilter, QuantityFilter, InUOMCode);
                 MultiItemsAvailability.SetTableView(Rec);
                 MultiItemsAvailability.Run();
                 Error('');
@@ -827,8 +810,6 @@ page 4410 "SOA Multi Items Availability"
     end;
 
     local procedure ApplyParsedAvailabilityFilter()
-    var
-        SOAFilterProcessing: Codeunit "SOA Filter Processing";
     begin
         if AvailabilityFilterValues.ContainsKey('Date') then
             DateFilter := AvailabilityFilterValues.Get('Date');
@@ -843,11 +824,9 @@ page 4410 "SOA Multi Items Availability"
                 QuantityFilter := 0;
         if AvailabilityFilterValues.ContainsKey('UOM') then
             InUOMCode := CopyStr(AvailabilityFilterValues.Get('UOM'), 1, MaxStrLen(InUOMCode));
-        if AvailabilityFilterValues.ContainsKey('Search') then
-            SearchKeywords := SOAFilterProcessing.AddOptimizedContainsOperator(AvailabilityFilterValues.Get('Search'));
     end;
 
-    internal procedure InitPage(CustomerNo2: Code[20]; ContactNo2: Code[20]; DateFilter2: Text; LocationFilter2: Text; QuantityFilter2: Decimal; InUOMCode2: Code[10]; RunFromTimeLine2: Boolean)
+    internal procedure InitPage(CustomerNo2: Code[20]; ContactNo2: Code[20]; DateFilter2: Text; LocationFilter2: Text; QuantityFilter2: Decimal; InUOMCode2: Code[10])
     begin
         CustomerNo := CustomerNo2;
         ContactNo := ContactNo2;
@@ -855,7 +834,6 @@ page 4410 "SOA Multi Items Availability"
         LocationFilter := LocationFilter2;
         QuantityFilter := QuantityFilter2;
         InUOMCode := InUOMCode2;
-        RunFromTimeLine := RunFromTimeLine2;
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
@@ -866,7 +844,7 @@ page 4410 "SOA Multi Items Availability"
         PriceCalcNotificationSent := false;
 
         IsHandled := false;
-        OnBeforeFindRecord(Rec, Which, CrossColumnSearchFilter, Found, QuantityFilter, InUOMCode, IsHandled, MatchingItem, not RunFromTimeLine);
+        OnBeforeFindRecord(Rec, Which, CrossColumnSearchFilter, Found, QuantityFilter, InUOMCode, IsHandled, MatchingItem);
         if IsHandled then
             exit(Found);
 
@@ -931,13 +909,6 @@ page 4410 "SOA Multi Items Availability"
             end;
     end;
 
-
-    trigger OnClosePage()
-    begin
-        if RunFromTimeLine then
-            if UnBindSubscription(GlobalSOAItemSearch) then;
-    end;
-
     var
         Calendar: Record Date;
         AssemblyAvailabilityMgt: Codeunit "Assembly Availability Mgt.";
@@ -947,7 +918,6 @@ page 4410 "SOA Multi Items Availability"
         PurchAvailabilityMgt: Codeunit "Purch. Availability Mgt.";
         SalesAvailabilityMgt: Codeunit "Sales Availability Mgt.";
         TransferAvailabilityMgt: Codeunit "Transfer Availability Mgt.";
-        GlobalSOAItemSearch: Codeunit "SOA Item Search";
         AnalysisAmountType: Enum "Analysis Amount Type";
         AnalysisPeriodType: Enum "Analysis Period Type";
         AvailabilityLevel: Enum "SOA Availability Level";
@@ -955,11 +925,11 @@ page 4410 "SOA Multi Items Availability"
         InUOMCode, LineUOM, CurrencyCode, LanguageCode, ResolvedVariantCode : Code[10];
         QuantityFilter, ExpectedInventory, QtyAvailable, PlannedOrderReleases, GrossRequirement, PlannedOrderRcpt, ScheduledRcpt, ProjAvailableBalance, ProjAvailableBalanceInUOM : Decimal;
         UnitCost, UnitPrice, UnitPriceInclDiscount, DiscountPct : Decimal;
-        DateFilter, LocationFilter, CrossColumnSearchFilter, LineUOMDescription, SearchKeywords : Text;
+        DateFilter, LocationFilter, CrossColumnSearchFilter, LineUOMDescription : Text;
         TranslatedDescription: Text[100];
         TranslatedDescription2: Text[50];
         EarliestShipmentDate: Date;
-        Available, CalculateEarliestShipmentDate, OptionsVisible, IsAgentSession, ItemAvailabilityEnabled, IncludeCapableToPromiseItems, MatchingItem, RunFromTimeLine : Boolean;
+        Available, CalculateEarliestShipmentDate, OptionsVisible, IsAgentSession, ItemAvailabilityEnabled, IncludeCapableToPromiseItems, MatchingItem : Boolean;
         PriceCalcNotificationSent: Boolean;
         AvailabilityFilterValues: Dictionary of [Text, Text];
         PreviewDisclaimerLbl: Label 'Item Availability page (preview). Learn more';
@@ -1164,7 +1134,7 @@ page 4410 "SOA Multi Items Availability"
     end;
 
     [InternalEvent(false, false)]
-    local procedure OnBeforeFindRecord(var Rec: Record Item; Which: Text; var CrossColumnSearchFilter: Text; var Found: Boolean; RequiredQuantity: Decimal; InUOMCode: Code[10]; var IsHandled: Boolean; var MatchingItem: Boolean; CheckAvailability: Boolean)
+    local procedure OnBeforeFindRecord(var Rec: Record Item; Which: Text; var CrossColumnSearchFilter: Text; var Found: Boolean; RequiredQuantity: Decimal; InUOMCode: Code[10]; var IsHandled: Boolean; var MatchingItem: Boolean)
     begin
     end;
 

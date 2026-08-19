@@ -109,11 +109,11 @@ codeunit 4591 "SOA Item Search"
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"SOA Multi Items Availability", OnBeforeFindRecord, '', false, false)]
-    local procedure FindRecordItemFromMultiItemsAvailability(var Rec: Record Item; Which: Text; var CrossColumnSearchFilter: Text; var Found: Boolean; RequiredQuantity: Decimal; InUOMCode: Code[10]; var IsHandled: Boolean; var MatchingItem: Boolean; CheckAvailability: Boolean)
+    local procedure FindRecordItemFromMultiItemsAvailability(var Rec: Record Item; Which: Text; var CrossColumnSearchFilter: Text; var Found: Boolean; RequiredQuantity: Decimal; InUOMCode: Code[10]; var IsHandled: Boolean; var MatchingItem: Boolean)
     var
         TelemetryCustomDimension: Dictionary of [Text, Text];
     begin
-        FindRecordItem(Rec, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode, IsHandled, CheckAvailability, MatchingItem, TelemetryCustomDimension);
+        FindRecordItem(Rec, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode, IsHandled, true, MatchingItem, TelemetryCustomDimension);
         LogTelemetryForFindItems(TelemetryCustomDimension);
     end;
 
