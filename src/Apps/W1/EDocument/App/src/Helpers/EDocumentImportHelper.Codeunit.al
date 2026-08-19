@@ -573,7 +573,7 @@ codeunit 6109 "E-Document Import Helper"
         Vendor.SetRange("Use Reg. No. in E-Document", true);
         Vendor.SetRange(GLN, '');
         Vendor.SetRange("VAT Registration No.", '');
-        if not Vendor.FindFirst() then
+        if not Vendor.FindSet() then
             exit('');
 
         VendorNo := Vendor."No.";
