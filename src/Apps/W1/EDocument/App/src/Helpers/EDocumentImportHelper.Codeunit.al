@@ -280,13 +280,11 @@ codeunit 6109 "E-Document Import Helper"
     procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
     var
         CompanyInformation: Record "Company Information";
-        CanUseRegistrationNo: Boolean;
     begin
         CompanyInformation.Get();
-        OnValidateReceivingCompanyInfoOnBeforeCheckRegistrationNo(CompanyInformation, CanUseRegistrationNo);
 
         if (EDocument."Receiving Company Reg. No." <> '') and
-           CanUseRegistrationNo and
+           CompanyInformation."Use Reg. No. in E-Document" and
            (CompanyInformation.GLN = '') and
            (CompanyInformation."VAT Registration No." = '') and
            (EDocument."Receiving Company GLN" = '') and
@@ -603,11 +601,6 @@ codeunit 6109 "E-Document Import Helper"
                 if PhoneNoNearness >= RequiredNearness() then
                     exit(Vendor."No.");
             until Vendor.Next() = 0;
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnValidateReceivingCompanyInfoOnBeforeCheckRegistrationNo(CompanyInformation: Record "Company Information"; var CanUseRegistrationNo: Boolean)
-    begin
     end;
 
     /// <summary>
