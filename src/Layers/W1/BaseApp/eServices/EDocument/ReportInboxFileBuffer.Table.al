@@ -8,6 +8,7 @@ table 476 "Report Inbox File Buffer"
 {
     Caption = 'Report Inbox File Buffer';
     TableType = Temporary;
+    Access = Internal;
     DataClassification = CustomerContent;
 
     fields

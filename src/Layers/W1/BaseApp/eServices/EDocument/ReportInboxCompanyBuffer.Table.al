@@ -8,6 +8,7 @@ table 478 "Report Inbox Company Buffer"
 {
     Caption = 'Report Inbox Company Buffer';
     TableType = Temporary;
+    Access = Internal;
     DataClassification = CustomerContent;
 
     fields

@@ -20,8 +20,8 @@ codeunit 135549 "Report Inbox API E2E"
         ReportInboxContentsTxt: Label 'reportInboxContents', Locked = true;
         ReportInboxFilesTxt: Label 'reportInboxFiles', Locked = true;
         ReportInboxCompaniesTxt: Label 'reportInboxCompanies', Locked = true;
-        SeededEntryTxt: Label 'Test Report', Locked = true;
-        OtherUserEntryTxt: Label 'Entry belonging to another user', Locked = true;
+        SeededEntryTxt: Label 'Test Report';
+        OtherUserEntryTxt: Label 'Entry belonging to another user';
         ProbePrefixTxt: Label 'RIPROBE', Locked = true;
         AllCompaniesFilterTxt: Label '?$filter=includeAllCompanies eq true', Locked = true;
         MarkReadBodyTxt: Label '{"read": true}', Locked = true;

@@ -199,6 +199,7 @@ page 690 "Report Inbox Items API"
         if not ReportInbox.ReadPermission then
             exit;
 
+        ReportInbox.ReadIsolation := IsolationLevel::ReadCommitted;
         ReportInbox.SetRange("User ID", CopyStr(UserId(), 1, MaxStrLen(ReportInbox."User ID")));
         ReportInbox.SetAutoCalcFields("Report Name");
         if not ReportInbox.FindSet() then

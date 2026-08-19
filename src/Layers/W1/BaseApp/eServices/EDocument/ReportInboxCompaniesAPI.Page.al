@@ -76,6 +76,7 @@ page 694 "Report Inbox Companies API"
         if not ReportInbox.ReadPermission then
             exit;
 
+        ReportInbox.ReadIsolation := IsolationLevel::ReadCommitted;
         ReportInbox.SetCurrentKey("User ID", "Created Date-Time");
         ReportInbox.SetRange("User ID", CopyStr(UserId(), 1, MaxStrLen(ReportInbox."User ID")));
         ReportInbox.SetLoadFields(Read);
