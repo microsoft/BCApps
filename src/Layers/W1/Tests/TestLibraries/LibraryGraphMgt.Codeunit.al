@@ -21,6 +21,7 @@ codeunit 130618 "Library - Graph Mgt"
         if IsAuthenticationBound then
             UnbindSubscription(LibraryGraphAuthMgt);
 
+        Clear(LibraryGraphAuthMgt);
         IsAuthenticationBound := BindSubscription(LibraryGraphAuthMgt);
     end;
 
@@ -182,6 +183,8 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
+        if IsAuthenticationBound then
+            BindAuthentication();
         if IsApiTestInitialized then
             EnsureApiTestVATPostingSetups();
         HttpWebRequestMgt.Initialize(TargetURL);
