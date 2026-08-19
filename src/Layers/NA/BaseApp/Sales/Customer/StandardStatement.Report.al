@@ -1002,7 +1002,7 @@ report 1316 "Standard Statement"
         layout("StandardStatementBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/Customer/StandardStatementBody.docx';
             Caption = 'Standard Customer Statement (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address, the opening balance, and ledger entries with document, due date, and amounts. Adds overdue entries, aging bands, and the closing balance for each currency.';
@@ -1010,7 +1010,7 @@ report 1316 "Standard Statement"
         layout("StandardCustomerStatementEmailBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/Customer/StandardCustomerStatementEmailBody.docx';
             Caption = 'Body-only: Standard Customer Statement Email (Word)';
             Summary = 'Portrait orientated. Email body with the heading, customer number, greeting, body, and closing text, followed by the company address. Use it as cover text for the email.';

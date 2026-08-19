@@ -489,7 +489,7 @@ report 107 "Customer - Order Summary"
         layout(WordBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = '.\Sales\Reports\CustomerOrderSummaryBody.docx';
             Caption = 'Body-only: Customer Order Summary Word';
             Summary = 'Landscape orientated. Groups outstanding sales order amounts by customer and currency, split across the periods before, within, and after the date range. Shows a total for each line and overall totals, in LCY.';

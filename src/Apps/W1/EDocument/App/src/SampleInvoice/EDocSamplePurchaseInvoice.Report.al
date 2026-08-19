@@ -276,7 +276,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
         layout(SampleInvoiceLayoutBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoiceBody.docx';
             Caption = 'Body-only: First sample invoice layout';
             Summary = 'Portrait orientated. Shows the vendor and company address, invoice number, and posting date. Item lines list quantity, unit of measure, direct unit cost, and amount, followed by the subtotal, VAT, and total including VAT.';

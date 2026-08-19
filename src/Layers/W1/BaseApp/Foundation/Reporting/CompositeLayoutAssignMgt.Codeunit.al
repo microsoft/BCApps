@@ -63,7 +63,6 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'StandardESGSalesInvoiceBody.docx', this.ExternalDefaultDetailedTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'SalesInvoiceForSubscriptionBillingBody.docx', this.ExternalDefaultTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1307, 'StandardSalesCreditMemoBody.docx', this.ExternalDefaultDetailedTxt));
-        AssignedCount += this.CountIf(this.AssignHeaderFooter(1307, 'StandardSalesInvoiceBody.docx', this.ExternalDefaultDetailedTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1307, 'StandardSalesCreditMemoNABody.docx', this.ExternalDefaultDetailedTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1308, 'StandardSalesShipmentBody.docx', this.ExternalDefaultDetailedTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1309, 'StandardSalesReturnRcptBody.docx', this.ExternalDefaultDetailedTxt));

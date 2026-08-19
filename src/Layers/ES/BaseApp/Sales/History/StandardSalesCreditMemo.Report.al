@@ -1095,7 +1095,7 @@ report 1307 "Standard Sales - Credit Memo"
         layout("StandardSalesCreditMemoBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesCreditMemoBody.docx';
             Caption = 'Body-only: Standard Sales Credit Memo (Word)';
             Summary = 'Landscape orientated. Shows the customer and company address and a header with document number, reference, salesperson, applies-to document, and due date. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
@@ -1104,7 +1104,7 @@ report 1307 "Standard Sales - Credit Memo"
         layout("StandardSalesCreditMemoEmailBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/History/StandardSalesCreditMemoEmailBody.docx';
             Caption = 'Body-only: Standard Sales Credit Memo Email (Word)';
             Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, and total including VAT. Use it as cover text for the email.';

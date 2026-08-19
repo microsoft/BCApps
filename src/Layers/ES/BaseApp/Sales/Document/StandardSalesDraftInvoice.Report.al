@@ -1096,7 +1096,7 @@ report 1303 "Standard Sales - Draft Invoice"
         layout("StandardSalesDraftInvoiceBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesDraftInvoiceBody.docx';
             Caption = 'Body-only: Standard Sales Draft Invoice (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address and a header with document and external document number, your reference, salesperson, and payment terms. Item lines list price, discount %, VAT %, and amount, with VAT totals.';
@@ -1104,7 +1104,7 @@ report 1303 "Standard Sales - Draft Invoice"
         layout("StandardDraftSalesInvoiceEmailBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/Document/StandardDraftSalesInvoiceEmailBody.docx';
             Caption = 'Body-only: Standard Sales Draft Invoice Email (Word)';
             Summary = 'Portrait orientated. Email body with the customer and company address and a header that shows dates, your reference, salesperson, payment terms, and shipment method. Item lines list price, discount %, VAT %, and amount, with VAT totals.';

@@ -1077,7 +1077,7 @@ report 1304 "Standard Sales - Quote"
         layout("StandardSalesQuoteBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/Document/StandardSalesQuoteBody.docx';
             Caption = 'Body-only: Standard Sales Quote (Word)';
             Summary = 'Portrait orientated. Shows the customer and company address, a header with document number, your reference, valid-to date, salesperson, and payment terms, and item lines with price, discount %, VAT %, and amount. Adds VAT-inclusive totals.';
@@ -1086,7 +1086,7 @@ report 1304 "Standard Sales - Quote"
         layout("StandardSalesQuoteEmailBody.docx")
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             //HeaderFooterPart = '';
             LayoutFile = './Sales/Document/StandardSalesQuoteEmailBody.docx';
             Caption = 'Body-only: Standard Sales Quote Email (Word)';

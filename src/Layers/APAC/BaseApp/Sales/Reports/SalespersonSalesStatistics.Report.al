@@ -152,8 +152,7 @@ report 114 "Salesperson - Sales Statistics"
     }
 
     rendering
-    {
-        
+    {        
         layout(RDLCLayout)
         {
             Caption = 'Salesperson Sales Statistics Excel';
@@ -183,7 +182,7 @@ report 114 "Salesperson - Sales Statistics"
         layout(WordBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/Reports/SalespersonSalesStatisticsBody.docx';
             Caption = 'Body-only: Salesperson Sales Statistics Word';
             Summary = 'Landscape orientated. Shows sales, profit, and adjusted profit in LCY and as a percentage for each salesperson, together with invoice discount, payment discount given, and payment tolerance. Includes column totals.';
