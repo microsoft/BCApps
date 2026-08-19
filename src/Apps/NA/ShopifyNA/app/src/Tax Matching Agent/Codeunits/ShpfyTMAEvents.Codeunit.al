@@ -226,7 +226,7 @@ codeunit 30473 "Shpfy TMA Events"
         if not OrderHeader."Tax Match Applied" then
             exit;
 
-        SalesHeader."Tax Match Applied" := true;
+        SalesHeader."Shpfy Tax Match Applied" := true;
         SalesHeader.Modify();
 
         Session.LogMessage('0000UMJ', MarkerPropagatedMsg,
