@@ -115,17 +115,17 @@ page 8700 "Table Information"
     {
         area(Processing)
         {
-            action("Table Data Management")
+            action("Manage Indexes")
             {
                 ApplicationArea = All;
-                Caption = 'Table Data Management';
+                Caption = 'Manage Indexes';
                 Image = "Table";
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
                 Scope = Repeater;
-                ToolTip = 'Open data management information for the selected table.';
+                ToolTip = 'Manage indexes on the selected table. You can investigate index cost and usage, and turn indexes on/off.';
 
                 trigger OnAction()
                 begin

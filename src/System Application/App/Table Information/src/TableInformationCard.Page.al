@@ -16,9 +16,9 @@ page 8705 "Table Information Card"
     PageType = Card;
     UsageCategory = Administration;
     ApplicationArea = All;
-    AdditionalSearchTerms = 'Database,Size,Storage,Index';
+    AdditionalSearchTerms = 'Database,Size,Storage,Index,Key,Table';
     SourceTable = "Table Metadata";
-    Caption = 'Table Data Management';
+    Caption = 'Index Management';
     DeleteAllowed = false;
     InsertAllowed = false;
     ModifyAllowed = false;
