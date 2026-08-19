@@ -1,5 +1,6 @@
 namespace Microsoft.CRM.Outlook;
 using Microsoft.CRM.Contact;
+using System.Utilities;
 
 codeunit 7106 "O365 Bidirectional Sync"
 {
@@ -16,6 +17,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         NoContactFoldersMsg: Label 'No contact folders found in the response.';
         AccessTokenEmptyMsg: Label 'Access token cannot be empty';
         DefaultFolderTxt: Label 'Default', Locked = true, Comment = 'Default folder Name';
+        GraphUrlPrefixTxt: Label 'https://graph.microsoft.com/v1.0/', Locked = true;
         GraphApiUrlTxt: Label 'https://graph.microsoft.com/v1.0/me/contactFolders/', Locked = true;
         DeltaUrlTxt: Label '/contacts/delta', Locked = true;
         ExistingEmails: Dictionary of [Text, Boolean];
@@ -490,9 +492,12 @@ codeunit 7106 "O365 Bidirectional Sync"
 
     local procedure IsApprovedGraphRequestUri(UriToValidate: Text): Boolean
     var
-        ContactSyncUser: Record "Contact Sync User";
+        Uri: Codeunit Uri;
     begin
-        exit(ContactSyncUser.ValidateApprovedGraphDeltaUrl(UriToValidate));
+        if UriToValidate = '' then
+            exit(true);
+
+        exit(Uri.ValidateIntegrationURL(LowerCase(UriToValidate), LowerCase(GraphUrlPrefixTxt)) = LowerCase(UriToValidate));
     end;
 
     local procedure GetSecondaryEmailAddress(JsonObject: JsonObject): Text

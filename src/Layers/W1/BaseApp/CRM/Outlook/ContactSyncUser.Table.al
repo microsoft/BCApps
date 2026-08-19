@@ -96,11 +96,11 @@ table 7121 "Contact Sync User"
         if Session.GetExecutionContext() in [ExecutionContext::Install, ExecutionContext::Upgrade] then
             exit;
 
-        if OriginalUserId <> CopyStr(UserId(), 1, MaxStrLen("User ID")) then
-            Error(CannotModifyOtherUsersSyncErr);
-
         if "User ID" <> OriginalUserId then
             Error(CannotChangeRecordOwnerErr);
+
+        if OriginalUserId <> CopyStr(UserId(), 1, MaxStrLen("User ID")) then
+            Error(CannotModifyOtherUsersSyncErr);
     end;
 
     internal procedure ValidateApprovedGraphDeltaUrl(DeltaUrlToValidate: Text): Boolean
@@ -124,5 +124,5 @@ table 7121 "Contact Sync User"
         CannotChangeRecordOwnerErr: Label 'You cannot change the owner of an existing Contact Sync record.';
         InvalidDeltaUrlErr: Label 'The Delta URL must be an HTTPS Microsoft Graph URL.';
         GraphUrlPrefixLbl: Label 'https://graph.microsoft.com/v1.0/', Locked = true;
-        DeltaUrlValidationTelemetryMsg: Label 'Contact Sync delta URL validation. URL: %1; Approved: %2; context : %3', Locked = true, Comment = '%1 = delta URL, %2 = whether URL is approved, %3 = whether validation raises errors, %4 = whether URL is empty';
+        DeltaUrlValidationTelemetryMsg: Label 'Contact Sync delta URL validation. URL: %1; Approved: %2; context : %3', Locked = true, Comment = '%1 = delta URL, %2 = whether URL is approved, %3 = invalid delta url';
 }
