@@ -167,10 +167,11 @@ Integration changes the most: it previously owned almost nothing in `CODEOWNERS`
 System Application, Business Foundation, the migration and connector apps, and every unlisted W1 app.
 
 ### Regenerating
-Edit `ownership-rules.js` in `BCAppsTriage` and regenerate. The generator reads `ownership-rules.js`
-and `ownership-resolver.js` directly, so it lives alongside them in `BCAppsTriage` rather than here.
-Do not hand-edit the generated block.
-Hand edits are lost on the next regeneration and silently diverge from issue and pull request triage.
+Edit `ownership-rules.js` in `BCAppsTriage`, add a resolver regression test, and update the generated
+block here from the same rules. The original generator is not currently checked in or run by
+automation, so the BCAppsTriage and BCApps changes must be submitted together and their path
+resolution verified explicitly. Do not change only the generated block: doing so silently diverges
+from issue and pull request triage.
 ## What still needs to change (requires an administrator)
 `CODEOWNERS` alone does not finish the job. The `Official Branches` ruleset still contains:
 
