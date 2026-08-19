@@ -454,6 +454,17 @@ table 6900 Expense
                 ApplyRule();
             end;
         }
+        field(63; "Vehicle Type"; Enum "Expense Vehicle Type")
+        {
+            Caption = 'Vehicle Type';
+            ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                ApplyRule();
+            end;
+        }
         field(30; "Reimbursable Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";

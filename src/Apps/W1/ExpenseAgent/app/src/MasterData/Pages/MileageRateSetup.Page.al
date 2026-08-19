@@ -24,7 +24,7 @@ page 7104 "Mileage Rate Setup"
                 field("Code"; Rec."Code")
                 {
                 }
-                field("Country/Region Code"; Rec."Country/Region Code")
+                field("Vehicle Type"; Rec."Vehicle Type")
                 {
                 }
                 field("Currency Code"; Rec."Currency Code")

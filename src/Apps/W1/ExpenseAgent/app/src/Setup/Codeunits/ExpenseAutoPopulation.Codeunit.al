@@ -365,7 +365,7 @@ codeunit 6912 "Expense Auto Population"
             else
                 ExpenseCurrency.Get(Expense."Currency Code");
 
-            Expense.Validate(Amount, Round(GetEffectiveDistance(Expense.Mileage, Expense."Round Trip") * GetStandardRateOfMileage(Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage"), ExpenseCurrency."Amount Rounding Precision"));
+            Expense.Validate(Amount, Round(GetEffectiveDistance(Expense.Mileage, Expense."Round Trip") * GetStandardRateOfMileage(Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage", Expense."Vehicle Type"), ExpenseCurrency."Amount Rounding Precision"));
             if Expense."Unit of Measure Code" = '' then
                 Expense.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
@@ -422,7 +422,7 @@ codeunit 6912 "Expense Auto Population"
             else
                 ExpenseCurrency.Get(ExpenseReportLine."Expense Currency Code");
 
-            ExpenseReportLine.Validate(Amount, Round(GetEffectiveDistance(ExpenseReportLine.Mileage, ExpenseReportLine."Round Trip") * GetStandardRateOfMileage(ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage"), ExpenseCurrency."Amount Rounding Precision"));
+            ExpenseReportLine.Validate(Amount, Round(GetEffectiveDistance(ExpenseReportLine.Mileage, ExpenseReportLine."Round Trip") * GetStandardRateOfMileage(ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage", ExpenseReportLine."Vehicle Type"), ExpenseCurrency."Amount Rounding Precision"));
             if ExpenseReportLine."Unit of Measure Code" = '' then
                 ExpenseReportLine.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
@@ -447,6 +447,11 @@ codeunit 6912 "Expense Auto Population"
     end;
 
     procedure GetStandardRateOfMileage(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; StandardRateOfMileage: Decimal): Decimal
+    begin
+        exit(GetStandardRateOfMileage(ExpenseDate, CurrencyCode, CurrencyFactor, StandardRateOfMileage, "Expense Vehicle Type"::" "));
+    end;
+
+    procedure GetStandardRateOfMileage(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; StandardRateOfMileage: Decimal; VehicleType: Enum "Expense Vehicle Type"): Decimal
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         ExpenseCurrency: Record Currency;
@@ -454,9 +459,7 @@ codeunit 6912 "Expense Auto Population"
         EffectiveRate: Decimal;
         RateCurrencyCode: Code[10];
     begin
-        if MileageRateSetup.FindEffectiveRate(ExpenseDate, CurrencyCode) or
-           ((CurrencyCode <> '') and MileageRateSetup.FindEffectiveRate(ExpenseDate, ''))
-        then begin
+        if MileageRateSetup.FindEffectiveRate(ExpenseDate, CurrencyCode, VehicleType) then begin
             EffectiveRate := MileageRateSetup.Rate;
             RateCurrencyCode := MileageRateSetup."Currency Code";
         end else begin

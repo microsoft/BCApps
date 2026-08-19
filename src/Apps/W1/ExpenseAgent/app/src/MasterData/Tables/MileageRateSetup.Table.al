@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Foundation.Address;
 
 table 6939 "Mileage Rate Setup"
 {
@@ -25,19 +24,7 @@ table 6939 "Mileage Rate Setup"
             NotBlank = true;
             ToolTip = 'Specifies the unique code that identifies the mileage rate.';
         }
-        field(2; "Country/Region Code"; Code[10])
-        {
-            Caption = 'Country/Region Code';
-            DataClassification = CustomerContent;
-            TableRelation = "Country/Region".Code;
-            ToolTip = 'Specifies the country or region the mileage rate applies to. Leave blank to apply the rate regardless of country or region.';
-
-            trigger OnValidate()
-            begin
-                CheckOverlappingRate();
-            end;
-        }
-        field(3; "Currency Code"; Code[10])
+        field(2; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             DataClassification = CustomerContent;
@@ -49,7 +36,7 @@ table 6939 "Mileage Rate Setup"
                 CheckOverlappingRate();
             end;
         }
-        field(4; "Rate"; Decimal)
+        field(3; "Rate"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Rate';
@@ -57,7 +44,7 @@ table 6939 "Mileage Rate Setup"
             MinValue = 0;
             ToolTip = 'Specifies the reimbursement amount per unit of distance for this mileage rate.';
         }
-        field(5; "Starting Date"; Date)
+        field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
             DataClassification = CustomerContent;
@@ -71,7 +58,7 @@ table 6939 "Mileage Rate Setup"
                 CheckOverlappingRate();
             end;
         }
-        field(6; "Ending Date"; Date)
+        field(5; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
             DataClassification = CustomerContent;
@@ -83,6 +70,17 @@ table 6939 "Mileage Rate Setup"
                 CheckOverlappingRate();
             end;
         }
+        field(6; "Vehicle Type"; Enum "Expense Vehicle Type")
+        {
+            Caption = 'Vehicle Type';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the vehicle type this mileage rate applies to. Leave blank (All) to define a generic rate that is used when no rate matches the vehicle type on the expense.';
+
+            trigger OnValidate()
+            begin
+                CheckOverlappingRate();
+            end;
+        }
     }
 
     keys
@@ -91,7 +89,7 @@ table 6939 "Mileage Rate Setup"
         {
             Clustered = true;
         }
-        key(Effective; "Currency Code", "Country/Region Code", "Starting Date")
+        key(Effective; "Vehicle Type", "Currency Code", "Starting Date")
         {
         }
     }
@@ -127,8 +125,8 @@ table 6939 "Mileage Rate Setup"
             exit;
 
         MileageRateSetup.SetFilter("Code", '<>%1', "Code");
+        MileageRateSetup.SetRange("Vehicle Type", "Vehicle Type");
         MileageRateSetup.SetRange("Currency Code", "Currency Code");
-        MileageRateSetup.SetRange("Country/Region Code", "Country/Region Code");
         if MileageRateSetup.FindSet() then
             repeat
                 if DateRangesOverlap("Starting Date", "Ending Date", MileageRateSetup."Starting Date", MileageRateSetup."Ending Date") then
@@ -155,11 +153,12 @@ table 6939 "Mileage Rate Setup"
         exit(Format(EndingDate));
     end;
 
-    procedure FindEffectiveRate(TransactionDate: Date; CurrencyCode: Code[10]): Boolean
+    procedure FindEffectiveRate(TransactionDate: Date; CurrencyCode: Code[10]; VehicleType: Enum "Expense Vehicle Type"): Boolean
     begin
         Rec.Reset();
+        Rec.SetCurrentKey("Vehicle Type", "Currency Code", "Starting Date");
+        Rec.SetRange("Vehicle Type", VehicleType);
         Rec.SetRange("Currency Code", CurrencyCode);
-        Rec.SetRange("Country/Region Code", '');
         Rec.SetFilter("Starting Date", '<=%1', TransactionDate);
         Rec.SetFilter("Ending Date", '%1|>=%2', 0D, TransactionDate);
         exit(Rec.FindLast());
