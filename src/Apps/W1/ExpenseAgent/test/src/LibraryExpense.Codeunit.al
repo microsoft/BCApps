@@ -614,6 +614,7 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
         ExpenseRuleViolation: Record "Expense Rule Violation";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
     begin
         // First, clear expense report references to avoid "cannot delete attachment" validation.
         Expense.ModifyAll("Expense Report No.", '');
@@ -624,6 +625,7 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLineParticip.DeleteAll();
         ExpenseReportLinePerDiem.DeleteAll();
         ExpenseReportLine.DeleteAll();
+        ExpenseActivityLogEntry.DeleteAll();
         ExpenseReportHeader.DeleteAll();
         ExpenseReportRuleViolation.DeleteAll();
 

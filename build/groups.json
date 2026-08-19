@@ -3595,6 +3595,26 @@
     ]
   },
   {
+    "name": "External Storage - Document Attachments Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
     "name": "_Exclude_Email Logging Using Graph API",
     "groups": [
       {
@@ -9714,12 +9734,6 @@
       },
       {
         "name": "FinancialsExtensions"
-      },
-      {
-        "name": "OnPrem"
-      },
-      {
-        "name": "OnPremExtensions"
       }
     ]
   },
