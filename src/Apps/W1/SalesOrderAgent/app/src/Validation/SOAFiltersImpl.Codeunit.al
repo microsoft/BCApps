@@ -18,7 +18,7 @@ codeunit 4305 "SOA Filters Impl."
     InherentPermissions = X;
     Permissions = tabledata Contact = m,
                   tabledata "Agent Task Message" = r,
-                  tabledata "SOA Task Contact Override" = RIM;
+                  tabledata "SOA Task Contact Override" = RIMD;
 
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -176,12 +176,16 @@ codeunit 4305 "SOA Filters Impl."
         if MissingContactNotification.Recall() then;
     end;
 
-    internal procedure ShowDuplicateContactNotification(FromEmail: Text; ContactCount: Integer)
+    internal procedure ShowDuplicateContactNotification(FromEmail: Text; ContactCount: Integer; TaskID: BigInteger; TaskMessageID: Guid)
     var
         DuplicateContactNotification: Notification;
     begin
         RecallDuplicateContactNotification(DuplicateContactNotification);
         DuplicateContactNotification.Message := StrSubstNo(DuplicateContactNotificationLbl, ContactCount, FromEmail);
+        DuplicateContactNotification.AddAction(SelectContactLbl, Codeunit::"SOA Filters Impl.", 'HandleDuplicateContacts');
+        DuplicateContactNotification.SetData('FromEmail', FromEmail);
+        DuplicateContactNotification.SetData('TaskID', Format(TaskID));
+        DuplicateContactNotification.SetData('TaskMessageID', Format(TaskMessageID));
         DuplicateContactNotification.Send();
     end;
 
@@ -223,8 +227,7 @@ codeunit 4305 "SOA Filters Impl."
                 if CreateContact(ContactEmail, ContactName) then
                     LogContactLinkChoice(ContactLinkActionCreateContactLbl);
             2:
-                if SelectContactAndSetOverride(TaskID, TaskMessageID) then
-                    LogContactLinkChoice(ContactLinkActionUseOnceLbl);
+                SelectContactAndSetOverride(TaskID, TaskMessageID);
             3:
                 if SelectContactAndUpdateEmail(ContactEmail, TaskID, TaskMessageID) then
                     LogContactLinkChoice(ContactLinkActionUseAlwaysLbl);
@@ -241,27 +244,60 @@ codeunit 4305 "SOA Filters Impl."
     end;
 
     internal procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid): Boolean
+    begin
+        exit(SelectContactAndSetOverride(TaskID, TaskMessageID, ''));
+    end;
+
+    internal procedure SelectMatchingContactAndSetOverride(ContactEmail: Text; TaskID: BigInteger; TaskMessageID: Guid): Boolean
+    begin
+        exit(SelectContactAndSetOverride(TaskID, TaskMessageID, ContactEmail));
+    end;
+
+    local procedure SelectContactAndSetOverride(TaskID: BigInteger; TaskMessageID: Guid; ContactEmail: Text): Boolean
     var
         SelectedContact: Record Contact;
-        SOATaskContactOverride: Record "SOA Task Contact Override";
-        ContactList: Page "Contact List";
+        SOAContactLookup: Page "SOA Contact Lookup";
     begin
         ValidateContactMappingAccess(TaskID, TaskMessageID);
-        ContactList.LookupMode(true);
-        if ContactList.RunModal() <> Action::LookupOK then
+        if ContactEmail <> '' then
+            SOAContactLookup.SetEmailFilter(ContactEmail);
+        SOAContactLookup.LookupMode(true);
+        if SOAContactLookup.RunModal() <> Action::LookupOK then
             exit(false);
-        ContactList.GetRecord(SelectedContact);
+        SOAContactLookup.GetRecord(SelectedContact);
+        SetContactOverride(TaskID, TaskMessageID, SelectedContact."No.");
+        LogContactLinkChoice(ContactLinkActionUseOnceLbl);
+        exit(true);
+    end;
+
+    local procedure SetContactOverride(TaskID: BigInteger; TaskMessageID: Guid; ContactNo: Code[20])
+    var
+        SOATaskContactOverride: Record "SOA Task Contact Override";
+    begin
         if not SOATaskContactOverride.Get(TaskID, TaskMessageID) then begin
             SOATaskContactOverride.Init();
             SOATaskContactOverride."Task ID" := TaskID;
             SOATaskContactOverride."Task Message ID" := TaskMessageID;
-            SOATaskContactOverride."Contact No." := SelectedContact."No.";
+            SOATaskContactOverride."Contact No." := ContactNo;
             SOATaskContactOverride.Insert();
         end else begin
-            SOATaskContactOverride."Contact No." := SelectedContact."No.";
+            SOATaskContactOverride."Contact No." := ContactNo;
             SOATaskContactOverride.Modify();
         end;
         Commit();
+    end;
+
+    internal procedure ClearContactOverride(TaskID: BigInteger; TaskMessageID: Guid): Boolean
+    var
+        SOATaskContactOverride: Record "SOA Task Contact Override";
+    begin
+        ValidateContactMappingAccess(TaskID, TaskMessageID);
+        if not SOATaskContactOverride.Get(TaskID, TaskMessageID) then
+            exit(false);
+
+        SOATaskContactOverride.Delete();
+        Commit();
+        LogContactLinkChoice(ContactLinkActionClearOnceLbl);
         exit(true);
     end;
 
@@ -347,6 +383,23 @@ codeunit 4305 "SOA Filters Impl."
         Commit();
         Choice := StrMenu(ContactActionsMenuQst, 0, StrSubstNo(ContactActionsInstructionQst, FromEmail));
         DispatchContactLinkChoice(Choice, FromEmail, ContactName, TaskID, TaskMessageID);
+    end;
+
+    internal procedure HandleDuplicateContacts(DuplicateContactNotification: Notification)
+    var
+        TaskID: BigInteger;
+        TaskMessageID: Guid;
+        FromEmail: Text;
+    begin
+        FromEmail := DuplicateContactNotification.GetData('FromEmail');
+        if not Evaluate(TaskID, DuplicateContactNotification.GetData('TaskID')) then
+            exit;
+        if not Evaluate(TaskMessageID, DuplicateContactNotification.GetData('TaskMessageID')) then
+            exit;
+
+        Commit();
+        if SelectMatchingContactAndSetOverride(FromEmail, TaskID, TaskMessageID) then
+            RecallDuplicateContactNotification();
     end;
 
     internal procedure LearnMoreNotRegisteredEmail(MissingContactNotification: Notification) //Add Action in ShowMissingContactNotification
@@ -444,6 +497,7 @@ codeunit 4305 "SOA Filters Impl."
         NoContactsFoundTxt: Label 'No contacts found for given email.', Locked = true;
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;
         LearnMoreLbl: Label 'Learn more';
+        SelectContactLbl: Label 'Select contact';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
         ContactAlreadyHasAlternateEmailQst: Label 'Contact %1 has %2 set to %3. Choosing Yes will replace it with %4. Do you want to continue?', Comment = '%1 = Contact No., %2 = Alternate email field caption, %3 = Existing alternate email, %4 = New email';
         ContactActionsMenuQst: Label 'Create a new contact,Use an existing contact and their email for this task,Select an existing contact and update their alternate email with this sender''s email', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
@@ -451,11 +505,12 @@ codeunit 4305 "SOA Filters Impl."
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;
         MissingContactNotificationLbl: Label 'No contact has <%1> as their email or alternate email address. The agent matches contacts by the E-Mail and E-Mail 2 fields on contact cards. To proceed, select an existing contact or create a new one.', Comment = '%1 = Sender email address';
         ContactAlreadyExistQst: Label 'A contact with the same email already exists. Contact number is %1. Do you want to open it?', Comment = '%1 = Contact number';
-        DuplicateContactNotificationLbl: Label 'There are %1 contacts with the same email address <%2>. The first matching contact will be used.', Comment = '%1 - number of contacts, %2 - email address';
+        DuplicateContactNotificationLbl: Label 'There are %1 contacts with the same email address <%2>. The first matching contact is currently used. Select the correct contact for this message.', Comment = '%1 - number of contacts, %2 - email address';
         ContactMappingNotAuthorizedErr: Label 'You are not authorized to change the contact mapping for this message.';
         ContactLinkActionDimensionLbl: Label 'ContactLinkAction', Locked = true;
         ContactLinkActionCreateContactLbl: Label 'CreateContact', Locked = true;
         ContactLinkActionUseOnceLbl: Label 'UseOnce', Locked = true;
         ContactLinkActionUseAlwaysLbl: Label 'UseAlways', Locked = true;
+        ContactLinkActionClearOnceLbl: Label 'ClearOnce', Locked = true;
         ContactLinkActionSelectedTelemetryLbl: Label 'Unknown sender contact action selected.', Locked = true;
 }
