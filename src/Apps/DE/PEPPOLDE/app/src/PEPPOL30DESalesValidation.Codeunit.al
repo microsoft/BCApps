@@ -23,6 +23,8 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
     var
         PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
         MissingCompInfIdentifierErr: Label 'You must specify either GLN, VAT Registration No., or Registration No. in %1.', Comment = '%1=Company Information';
+        MissingCompInfIdentifierTitleErr: Label 'Company information is incomplete';
+        MissingCompInfIdentifierDetailedErr: Label 'Specify a GLN, VAT Registration No., or Registration No. in Company Information, and then try again.';
         MissingCustGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Customer %1.', Comment = '%1 = Customer No.';
         ShowCompanyInformationLbl: Label 'Show Company Information';
         UnsupportedDocumentErr: Label 'The posted sales document type is not supported for PEPPOL 3.0 validation.';
@@ -127,7 +129,9 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         if (CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '') and
            not (CompanyInfo."Use Reg. No. in E-Document" and (CompanyInfo."Registration No." <> ''))
         then begin
+            MissingCompanyIdentifierError.Title := MissingCompInfIdentifierTitleErr;
             MissingCompanyIdentifierError.Message := StrSubstNo(MissingCompInfIdentifierErr, CompanyInfo.TableCaption());
+            MissingCompanyIdentifierError.DetailedMessage := MissingCompInfIdentifierDetailedErr;
             MissingCompanyIdentifierError.RecordId := CompanyInfo.RecordId;
             MissingCompanyIdentifierError.PageNo := Page::"Company Information";
             MissingCompanyIdentifierError.AddNavigationAction(ShowCompanyInformationLbl);

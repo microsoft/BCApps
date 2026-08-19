@@ -563,6 +563,7 @@ codeunit 6109 "E-Document Import Helper"
     procedure FindVendorByRegistrationNo(RegistrationNo: Text[20]): Code[20]
     var
         Vendor: Record Vendor;
+        VendorNo: Code[20];
     begin
         if RegistrationNo = '' then
             exit('');
@@ -573,8 +574,14 @@ codeunit 6109 "E-Document Import Helper"
         Vendor.SetRange("Use Reg. No. in E-Document", true);
         Vendor.SetRange(GLN, '');
         Vendor.SetRange("VAT Registration No.", '');
-        if Vendor.FindFirst() then
-            exit(Vendor."No.");
+        if not Vendor.FindFirst() then
+            exit('');
+
+        VendorNo := Vendor."No.";
+        if Vendor.Next() <> 0 then
+            Error(MultipleVendorsWithRegistrationNoErr);
+
+        exit(VendorNo);
     end;
 
     /// <summary>
@@ -1135,6 +1142,7 @@ codeunit 6109 "E-Document Import Helper"
         InvalidCompanyInfoGLNErr: Label 'The customer''s GLN %1 on the electronic document does not match the GLN in the Company Information window.', Comment = '%1 = GLN (13 digit number)';
         InvalidCompanyInfoVATRegNoErr: Label 'The customer''s VAT registration number %1 on the electronic document does not match the VAT Registration No. in the Company Information window.', Comment = '%1 VAT Registration Number (format could be AB###### or ###### or AB##-##-###)';
         InvalidCompanyInfoRegistrationNoErr: Label 'The receiving company registration number does not match Company Information.';
+        MultipleVendorsWithRegistrationNoErr: Label 'Multiple vendors match the registration number on the electronic document. Make the registration number unique for vendors that use it in electronic documents.';
         InvalidCompanyInfoNameErr: Label 'The customer name ''%1'' on the electronic document does not match the name in the Company Information window.', Comment = '%1 = customer name';
         InvalidCompanyInfoAddressErr: Label 'The customer''s address ''%1'' on the electronic document does not match the Address in the Company Information window.', Comment = '%1 = customer address, street name';
         UnableToApplyDiscountErr: Label 'The invoice discount of %1 cannot be applied. Invoice discount must be allowed on at least one invoice line and invoice total must not be 0.', Comment = '%1 - a decimal number';

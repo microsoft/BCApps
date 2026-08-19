@@ -63,10 +63,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
-        OriginalCompanyGLN: Code[13];
-        OriginalCompanyVATRegistrationNo: Text[20];
-        OriginalCompanyRegistrationNo: Text[20];
-        OriginalUseGLNInElectronicDocument: Boolean;
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -3580,16 +3576,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         CompanyInformation."VAT Registration No." := '';
         CompanyInformation."Registration No." := RegistrationNo;
         CompanyInformation."Use Reg. No. in E-Document" := true;
-        CompanyInformation.Modify();
-    end;
-
-    local procedure RestoreCompanyIdentifiers()
-    begin
-        CompanyInformation.Get();
-        CompanyInformation.GLN := OriginalCompanyGLN;
-        CompanyInformation."Use GLN in Electronic Document" := OriginalUseGLNInElectronicDocument;
-        CompanyInformation."VAT Registration No." := OriginalCompanyVATRegistrationNo;
-        CompanyInformation."Registration No." := OriginalCompanyRegistrationNo;
         CompanyInformation.Modify();
     end;
 
