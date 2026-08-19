@@ -111,6 +111,60 @@ codeunit 148500 "XRechnung Structured Tests"
     end;
 
     [Test]
+    procedure TestXRechnungInvoice_FiscalCodesSelectVendorAndValidateCompany()
+    var
+        CompanyInformation: Record "Company Information";
+        EDocument: Record "E-Document";
+        PurchaseHeader: Record "Purchase Header";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        DataTypeManagement: Codeunit "Data Type Management";
+        RecRef: RecordRef;
+        VariantRecord: Variant;
+        CompanyRegistrationNo: Text[20];
+        VendorRegistrationNo: Text[20];
+        XmlContent: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] XRechnung FC identifiers select the vendor and validate the receiving company
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupXRechnungEDocumentService();
+
+        // [GIVEN] Vendor and company are configured for Registration No. matching
+        VendorRegistrationNo := 'SUPPLIER-FC';
+        Vendor."VAT Registration No." := '';
+        Vendor."Registration Number" := VendorRegistrationNo;
+        Vendor."Use Reg. No. in E-Document" := true;
+        Vendor.Modify(true);
+        CompanyRegistrationNo := 'BUYER-FC';
+        CompanyInformation.Get();
+        CompanyInformation.GLN := '';
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation."Registration No." := CompanyRegistrationNo;
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation."Use Reg. No. in E-Document" := true;
+        CompanyInformation.Modify(true);
+
+        // [GIVEN] An XRechnung whose supplier and buyer tax identifiers use scheme FC
+        XmlContent := NavApp.GetResourceAsText(TestFileTok);
+        XmlContent := XmlContent.Replace('GB123456789', VendorRegistrationNo);
+        XmlContent := XmlContent.Replace('GB789456278', CompanyRegistrationNo);
+        XmlContent := XmlContent.Replace('<cbc:ID>VAT</cbc:ID>', '<cbc:ID>FC</cbc:ID>');
+        XmlContent := XmlContent.Replace('<cbc:ID>8712345000004</cbc:ID>', '<cbc:ID></cbc:ID>');
+        CreateInboundEDocumentFromXMLText(EDocument, XmlContent);
+
+        // [WHEN] The document is processed into a purchase invoice
+        Assert.IsTrue(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Finish draft"), EDocumentStatusNotUpdatedErr);
+        EDocument.Get(EDocument."Entry No");
+        EDocumentProcessing.GetRecord(EDocument, VariantRecord);
+        DataTypeManagement.GetRecordRef(VariantRecord, RecRef);
+        RecRef.SetTable(PurchaseHeader);
+
+        // [THEN] FC selected the configured vendor and was retained for company validation
+        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor was not selected by Registration No.');
+        Assert.AreEqual(CompanyRegistrationNo, EDocument."Receiving Company Reg. No.", 'The receiving company Registration No. was not imported.');
+    end;
+
+    [Test]
     procedure TestXRechnungInvoice_ValidDocument_UpdateDraftAndFinalize()
     var
         EDocument: Record "E-Document";
@@ -310,13 +364,18 @@ codeunit 148500 "XRechnung Structured Tests"
     end;
 
     local procedure CreateInboundEDocumentFromXML(var EDocument: Record "E-Document"; FilePath: Text)
+    begin
+        CreateInboundEDocumentFromXMLText(EDocument, NavApp.GetResourceAsText(FilePath));
+    end;
+
+    local procedure CreateInboundEDocumentFromXMLText(var EDocument: Record "E-Document"; XmlContent: Text)
     var
         EDocLogRecord: Record "E-Document Log";
         EDocumentLog: Codeunit "E-Document Log";
     begin
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
-        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, NavApp.GetResourceAsText(FilePath));
+        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, XmlContent);
         EDocumentLog.SetFields(EDocument, EDocumentService);
         EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Readable);
 

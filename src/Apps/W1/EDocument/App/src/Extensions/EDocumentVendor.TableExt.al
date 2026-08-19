@@ -15,4 +15,10 @@ tableextension 6165 "E-Document Vendor" extends Vendor
             DataClassification = CustomerContent;
         }
     }
+    keys
+    {
+        key(RegistrationNumber; "Registration Number")
+        {
+        }
+    }
 }

@@ -283,6 +283,11 @@ table 6121 "E-Document"
             Caption = 'Structured Data Process';
             ToolTip = 'Specifies the implementation to use for processing the draft received.';
         }
+        field(45; "Receiving Company Reg. No."; Text[20])
+        {
+            Caption = 'Receiving Company Registration No.';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
         #endregion
 
         #region Clearance Model

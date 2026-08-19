@@ -301,7 +301,7 @@ codeunit 13919 "Import ZUGFeRD Document"
             'VA':
                 EDocument."Receiving Company VAT Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, TaxRegistrationPath), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
             'FC':
-                EDocument."Receiving Company Reg. No. DE" := CopyStr(GetNodeByPath(TempXMLBuffer, TaxRegistrationPath), 1, MaxStrLen(EDocument."Receiving Company Reg. No. DE"));
+                EDocument."Receiving Company Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, TaxRegistrationPath), 1, MaxStrLen(EDocument."Receiving Company Reg. No."));
         end;
     end;
 

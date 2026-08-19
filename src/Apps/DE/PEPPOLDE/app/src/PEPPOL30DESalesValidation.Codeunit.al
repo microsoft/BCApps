@@ -24,6 +24,7 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
         MissingCompInfIdentifierErr: Label 'You must specify either GLN, VAT Registration No., or Registration No. in %1.', Comment = '%1=Company Information';
         MissingCustGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Customer %1.', Comment = '%1 = Customer No.';
+        ShowCompanyInformationLbl: Label 'Show Company Information';
         UnsupportedDocumentErr: Label 'The posted sales document type is not supported for PEPPOL 3.0 validation.';
 
     trigger OnRun()
@@ -99,6 +100,7 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         GLSetup: Record "General Ledger Setup";
         ResponsibilityCenter: Record "Responsibility Center";
         DEContext: Codeunit "PEPPOL30 DE Context";
+        MissingCompanyIdentifierError: ErrorInfo;
     begin
         CompanyInfo.Get();
         GLSetup.Get();
@@ -122,8 +124,15 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         CompanyInfo.TestField("Country/Region Code");
         PEPPOL30SalesValidation.CheckCountryRegionCode(CompanyInfo."Country/Region Code");
 
-        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." + CompanyInfo."Registration No." = '' then
-            Error(MissingCompInfIdentifierErr, CompanyInfo.TableCaption());
+        if (CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '') and
+           not (CompanyInfo."Use Reg. No. in E-Document" and (CompanyInfo."Registration No." <> ''))
+        then begin
+            MissingCompanyIdentifierError.Message := StrSubstNo(MissingCompInfIdentifierErr, CompanyInfo.TableCaption());
+            MissingCompanyIdentifierError.RecordId := CompanyInfo.RecordId;
+            MissingCompanyIdentifierError.PageNo := Page::"Company Information";
+            MissingCompanyIdentifierError.AddNavigationAction(ShowCompanyInformationLbl);
+            Error(MissingCompanyIdentifierError);
+        end;
 
         SalesHeader.TestField("Bill-to Name");
         SalesHeader.TestField("Bill-to Address");

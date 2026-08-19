@@ -280,19 +280,19 @@ codeunit 6109 "E-Document Import Helper"
     procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
     var
         CompanyInformation: Record "Company Information";
-        ReceivingCompanyRegistrationNo: Text[20];
         CanUseRegistrationNo: Boolean;
     begin
-        OnGetReceivingCompanyRegistrationNo(EDocument, ReceivingCompanyRegistrationNo);
         CompanyInformation.Get();
-        OnCanUseReceivingCompanyRegistrationNo(CompanyInformation, CanUseRegistrationNo);
+        OnValidateReceivingCompanyInfoOnBeforeCheckRegistrationNo(CompanyInformation, CanUseRegistrationNo);
 
-        if (ReceivingCompanyRegistrationNo <> '') and
-              CanUseRegistrationNo and
+        if (EDocument."Receiving Company Reg. No." <> '') and
+           CanUseRegistrationNo and
            (CompanyInformation.GLN = '') and
-           (CompanyInformation."VAT Registration No." = '')
+           (CompanyInformation."VAT Registration No." = '') and
+           (EDocument."Receiving Company GLN" = '') and
+           (EDocument."Receiving Company VAT Reg. No." = '')
         then begin
-            if CompanyInformation."Registration No." <> ReceivingCompanyRegistrationNo then
+            if CompanyInformation."Registration No." <> EDocument."Receiving Company Reg. No." then
                 EDocErrorHelper.LogErrorMessage(
                     EDocument, CompanyInformation, CompanyInformation.FieldNo("Registration No."), InvalidCompanyInfoRegistrationNoErr);
             exit;
@@ -569,6 +569,7 @@ codeunit 6109 "E-Document Import Helper"
         if RegistrationNo = '' then
             exit('');
 
+        Vendor.SetCurrentKey("Registration Number");
         Vendor.SetLoadFields("No.");
         Vendor.SetRange("Registration Number", RegistrationNo);
         Vendor.SetRange("Use Reg. No. in E-Document", true);
@@ -605,12 +606,7 @@ codeunit 6109 "E-Document Import Helper"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetReceivingCompanyRegistrationNo(EDocument: Record "E-Document"; var ReceivingCompanyRegistrationNo: Text[20])
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnCanUseReceivingCompanyRegistrationNo(CompanyInformation: Record "Company Information"; var CanUseRegistrationNo: Boolean)
+    local procedure OnValidateReceivingCompanyInfoOnBeforeCheckRegistrationNo(CompanyInformation: Record "Company Information"; var CanUseRegistrationNo: Boolean)
     begin
     end;
 

@@ -288,13 +288,7 @@ codeunit 11038 "E-Document DE Helper"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Document Import Helper", OnGetReceivingCompanyRegistrationNo, '', false, false)]
-    local procedure GetReceivingCompanyRegistrationNo(EDocument: Record "E-Document"; var ReceivingCompanyRegistrationNo: Text[20])
-    begin
-        ReceivingCompanyRegistrationNo := EDocument."Receiving Company Reg. No. DE";
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Document Import Helper", OnCanUseReceivingCompanyRegistrationNo, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Document Import Helper", OnValidateReceivingCompanyInfoOnBeforeCheckRegistrationNo, '', false, false)]
     local procedure CanUseReceivingCompanyRegistrationNo(CompanyInformation: Record "Company Information"; var CanUseRegistrationNo: Boolean)
     begin
         CanUseRegistrationNo := CompanyInformation."Use Reg. No. in E-Document";
