@@ -16,5 +16,7 @@ permissionset 10971 "E-Reporting FR Read"
                   tabledata "FR E-Invoice Buyer Response" = R,
                   page "FR E-Invoice Lifecycles" = X,
                   page "FR E-Invoice Lifecycle VAT" = X,
+                  page "FR E-Inv. Lifecycle Responses" = X,
+                  page "FR E-Inv. Buyer Responses" = X,
                   page "FR E-Invoice Refusal Dialog" = X;
 }

@@ -107,6 +107,37 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
                     Page.Run(Page::"FR E-Invoice Lifecycles", FREInvoiceLifecycle);
                 end;
             }
+            action(ViewFREInvoiceLifecycleResponses)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Invoice Lifecycle Responses';
+                Image = History;
+                ToolTip = 'View French electronic invoice lifecycle responses for this e-document.';
+
+                trigger OnAction()
+                var
+                    FREInvoiceLifecycleResponse: Record "FR E-Invoice Lifecycle Resp.";
+                begin
+                    FREInvoiceLifecycleResponse.SetCurrentKey("E-Document Entry No.", "Received At");
+                    FREInvoiceLifecycleResponse.SetRange("E-Document Entry No.", Rec."Entry No");
+                    Page.Run(Page::"FR E-Inv. Lifecycle Responses", FREInvoiceLifecycleResponse);
+                end;
+            }
+            action(ViewFREInvoiceBuyerResponses)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Invoice Buyer Responses';
+                Image = History;
+                ToolTip = 'View French buyer responses for this e-document.';
+
+                trigger OnAction()
+                var
+                    FREInvoiceBuyerResponse: Record "FR E-Invoice Buyer Response";
+                begin
+                    FREInvoiceBuyerResponse.SetRange("E-Document Entry No.", Rec."Entry No");
+                    Page.Run(Page::"FR E-Inv. Buyer Responses", FREInvoiceBuyerResponse);
+                end;
+            }
         }
     }
 
