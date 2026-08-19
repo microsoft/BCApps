@@ -133,6 +133,7 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
             MissingCompanyIdentifierError.Message := StrSubstNo(MissingCompInfIdentifierErr, CompanyInfo.TableCaption());
             MissingCompanyIdentifierError.DetailedMessage := MissingCompInfIdentifierDetailedErr;
             MissingCompanyIdentifierError.RecordId := CompanyInfo.RecordId;
+            MissingCompanyIdentifierError.FieldNo := CompanyInfo.FieldNo("Registration No.");
             MissingCompanyIdentifierError.PageNo := Page::"Company Information";
             MissingCompanyIdentifierError.AddNavigationAction(ShowCompanyInformationLbl);
             Error(MissingCompanyIdentifierError);
