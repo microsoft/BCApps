@@ -69,61 +69,98 @@ codeunit 6901 "Expense Report Approval Mgmt"
     procedure Submit(var ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseUser: Record "Expense User";
+        IsResubmission: Boolean;
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval" then
             exit;
 
+        IsResubmission := ExpenseReportHeader."Submission DateTime" <> 0DT;
         ExpenseUser.Get(GetExpenseUserNo());
         ExpenseReportHeader.TestApprovalStatus();
 
         ExpenseReportHeader.UpdateApproverID();
 
         SetApprovalStatusToPendingApprovalInExpenseReport(ExpenseReportHeader, ExpenseUser."No.", ExpenseUser."User Id For Approvals");
+        LogExpenseReportSubmission(ExpenseReportHeader, ExpenseUser."No.", IsResubmission);
     end;
 
     internal procedure Submit(var ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
     var
         ExpenseUser: Record "Expense User";
+        IsResubmission: Boolean;
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval" then
             exit;
 
+        IsResubmission := ExpenseReportHeader."Submission DateTime" <> 0DT;
         ExpenseUser.Get(SubmitterExpenseUserNo);
         ExpenseReportHeader.TestApprovalStatus();
 
         ExpenseReportHeader.UpdateApproverID();
 
         SetApprovalStatusToPendingApprovalInExpenseReport(ExpenseReportHeader, SubmitterExpenseUserNo, ExpenseUser."User Id For Approvals");
+        LogExpenseReportSubmission(ExpenseReportHeader, SubmitterExpenseUserNo, IsResubmission);
     end;
 
     procedure ReopenSubmitted(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        SubmitterExpenseUserNo: Code[20];
+        IsRecall: Boolean;
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::Open then
             exit;
 
+        IsRecall := ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval";
+        if IsRecall then
+            SubmitterExpenseUserNo := GetExpenseUserNo();
+
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::Open;
         ExpenseReportHeader.Modify(true);
+        if IsRecall then
+            LogExpenseReportRecalled(ExpenseReportHeader, SubmitterExpenseUserNo);
     end;
 
     procedure ReopenApproved(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ApproverExpenseUserNo: Code[20];
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval" then
             exit;
 
         CheckApproverPermissions(ExpenseReportHeader);
+        ApproverExpenseUserNo := GetExpenseUserNo();
+        ReopenApprovedAfterAuthorization(ExpenseReportHeader, ApproverExpenseUserNo);
+    end;
+
+    local procedure ReopenApprovedAfterAuthorization(
+        var ExpenseReportHeader: Record "Expense Report Header";
+        ApproverExpenseUserNo: Code[20]
+    )
+    begin
         ExpenseReportHeader.UpdateApproverID();
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Pending Approval";
         ExpenseReportHeader.Modify(true);
+        LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::ReopenedByApprover,
+            Enum::"Expense Activity Actor Role"::Approver,
+            ApproverExpenseUserNo,
+            '');
     end;
 
     procedure Reject(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ApproverExpenseUserNo: Code[20];
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::Rejected then
             exit;
 
         ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::"Pending Approval");
         CheckApproverPermissions(ExpenseReportHeader);
-        SetApprovalStatusInExpenseReport(ExpenseReportHeader, ExpenseReportHeader.Status::Rejected, GetExpenseUserNo(), CopyStr(UserId(), 1, 50));
+        ApproverExpenseUserNo := GetExpenseUserNo();
+
+        SetApprovalStatusInExpenseReport(ExpenseReportHeader, ExpenseReportHeader.Status::Rejected, ApproverExpenseUserNo, CopyStr(UserId(), 1, 50));
+        LogExpenseReportRejected(ExpenseReportHeader, ApproverExpenseUserNo, '');
     end;
 
     internal procedure Reject(var ExpenseReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
@@ -138,17 +175,22 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         UpdateApproverComment(ExpenseReportHeader, RejectReason);
         SetApprovalStatusInExpenseReport(ExpenseReportHeader, ExpenseReportHeader.Status::Rejected, ApproverExpenseUserNo, ExpenseUser."User Id For Approvals");
+        LogExpenseReportRejected(ExpenseReportHeader, ApproverExpenseUserNo, RejectReason);
     end;
 
     procedure Approve(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ApproverExpenseUserNo: Code[20];
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::Approved then
             exit;
 
         ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::"Pending Approval");
         CheckApproverPermissions(ExpenseReportHeader);
+        ApproverExpenseUserNo := GetExpenseUserNo();
 
-        SetApprovalStatusInExpenseReport(ExpenseReportHeader, ExpenseReportHeader.Status::Approved, GetExpenseUserNo(), CopyStr(UserId(), 1, 50));
+        SetApprovalStatusInExpenseReport(ExpenseReportHeader, ExpenseReportHeader.Status::Approved, ApproverExpenseUserNo, CopyStr(UserId(), 1, 50));
+        LogExpenseReportApproved(ExpenseReportHeader, ApproverExpenseUserNo);
     end;
 
     internal procedure Approve(var ExpenseReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
@@ -162,6 +204,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         CheckApproverPermissions(ExpenseUser);
 
         SetApprovalStatusInExpenseReport(ExpenseReportHeader, ExpenseReportHeader.Status::Approved, ApproverExpenseUserNo, ExpenseUser."User Id For Approvals");
+        LogExpenseReportApproved(ExpenseReportHeader, ApproverExpenseUserNo);
     end;
 
     local procedure SetApprovalStatusInExpenseReport(var ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportStatus: Enum "Expense Report Status"; ApproverExpenseUserNo: Code[20]; ApproverUserId: Code[50])
@@ -189,6 +232,78 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseReportHeader."Approver Comment".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(Comment);
         ExpenseReportHeader.Modify(true);
+    end;
+
+    local procedure LogExpenseReportSubmission(ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; IsResubmission: Boolean)
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        EventType: Enum "Expense Activity Event Type";
+    begin
+        // Start tracking with the earlier Created event, including reports first acted on after upgrade.
+        if not ExpenseActivityLogMgt.HasEntriesForSource(Database::"Expense Report Header", ExpenseReportHeader.SystemId) then
+            ExpenseActivityLogMgt.LogExpenseReportCreatedEvent(ExpenseReportHeader);
+
+        if IsResubmission then
+            EventType := EventType::Resubmitted
+        else
+            EventType := EventType::Submitted;
+
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader,
+            EventType,
+            Enum::"Expense Activity Initiator"::User,
+            Enum::"Expense Activity Actor Role"::Submitter,
+            SubmitterExpenseUserNo,
+            '');
+    end;
+
+    local procedure LogExpenseReportEvent(
+        ExpenseReportHeader: Record "Expense Report Header";
+        EventType: Enum "Expense Activity Event Type";
+        ActorRole: Enum "Expense Activity Actor Role";
+        ActorExpenseUserNo: Code[20];
+        EventComment: Text
+    )
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader,
+            EventType,
+            Enum::"Expense Activity Initiator"::User,
+            ActorRole,
+            ActorExpenseUserNo,
+            EventComment);
+    end;
+
+    local procedure LogExpenseReportApproved(ExpenseReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
+    begin
+        LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Approved,
+            Enum::"Expense Activity Actor Role"::Approver,
+            ApproverExpenseUserNo,
+            '');
+    end;
+
+    local procedure LogExpenseReportRejected(ExpenseReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
+    begin
+        LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Rejected,
+            Enum::"Expense Activity Actor Role"::Approver,
+            ApproverExpenseUserNo,
+            RejectReason);
+    end;
+
+    local procedure LogExpenseReportRecalled(ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
+    begin
+        LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Recalled,
+            Enum::"Expense Activity Actor Role"::Submitter,
+            SubmitterExpenseUserNo,
+            '');
     end;
 
     internal procedure NoExpenseLinesToProcess(ExpenseApprovalAction: Enum "Expense Approval Action")

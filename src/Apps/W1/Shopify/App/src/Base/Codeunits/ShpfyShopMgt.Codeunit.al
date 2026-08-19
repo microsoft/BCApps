@@ -121,13 +121,16 @@ codeunit 30211 "Shpfy Shop Mgt."
     var
         MyNotifications: Record "My Notifications";
         EnvironmentInformation: Codeunit "Environment Information";
-        ExtensionManagement: Codeunit "Extension Management";
         BelgianLocalizationNotification: Notification;
+        IsInstalled: Boolean;
     begin
         if EnvironmentInformation.GetApplicationFamily() <> BelgianCountryCodeTok then
             exit;
 
-        if ExtensionManagement.IsInstalledByAppId(GetBelgianLocalizationAppId()) then
+        if not TryIsBelgianLocalizationInstalled(IsInstalled) then
+            exit;
+
+        if IsInstalled then
             exit;
 
         if not MyNotifications.IsEnabled(GetBelgianLocalizationNotificationId()) then
@@ -139,6 +142,14 @@ codeunit 30211 "Shpfy Shop Mgt."
         BelgianLocalizationNotification.AddAction(InstallActionLbl, Codeunit::"Shpfy Shop Mgt.", 'InstallBelgianLocalization');
         BelgianLocalizationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableBelgianLocalizationNotification');
         BelgianLocalizationNotification.Send();
+    end;
+
+    [TryFunction]
+    local procedure TryIsBelgianLocalizationInstalled(var IsInstalled: Boolean)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        IsInstalled := ExtensionManagement.IsInstalledByAppId(GetBelgianLocalizationAppId());
     end;
 
     procedure InstallBelgianLocalization(Notification: Notification)

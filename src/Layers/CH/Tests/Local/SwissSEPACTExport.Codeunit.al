@@ -76,6 +76,27 @@ codeunit 144352 "Swiss SEPA CT Export"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CHMgt_GetClearingNoFromIBAN()
+    var
+        CHMgt: Codeunit CHMgt;
+    begin
+        // [FEATURE] [AI test 0.3] [UT]
+        // [SCENARIO] COD 11503 "CHMgt".GetClearingNoFromIBAN() extracts the bank clearing number (IID) from positions 5-9 of a domestic IBAN, strips leading zeros, and returns blank when it cannot be derived
+        // [THEN] Domestic CH IBAN: clearing number from positions 5-9 with leading zeros stripped
+        Assert.AreEqual('8888', CHMgt.GetClearingNoFromIBAN('CH3808888123456789012'), 'CH IBAN with a leading zero in the clearing slice');
+        Assert.AreEqual('12345', CHMgt.GetClearingNoFromIBAN('CH9312345678901234567'), 'CH IBAN with a full 5-digit clearing number');
+        // [THEN] Domestic LI IBAN is also supported
+        Assert.AreEqual('8800', CHMgt.GetClearingNoFromIBAN('LI2108800123456789012'), 'LI IBAN clearing slice');
+        // [THEN] Non-domestic IBAN returns blank
+        Assert.AreEqual('', CHMgt.GetClearingNoFromIBAN('DE62007620110623852957'), 'Non-domestic IBAN');
+        // [THEN] Domestic IBAN too short to contain positions 5-9 returns blank
+        Assert.AreEqual('', CHMgt.GetClearingNoFromIBAN('CH1234'), 'Too-short domestic IBAN');
+        // [THEN] Domestic IBAN with all-zero clearing digits returns blank
+        Assert.AreEqual('', CHMgt.GetClearingNoFromIBAN('CH9300000123456789012'), 'All-zero clearing slice');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure CHMgt_IsSwissSEPACTExport_Negative()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -873,6 +894,48 @@ codeunit 144352 "Swiss SEPA CT Export"
 
         // [THEN] XML File has been exported with correct Swiss SEPA CT scheme for "Payment Type" = "2.2"
         VerifyXMLFile(GenJournalLine, FileName, MessageID, PaymentTypeGbl::"2.2");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure XMLExport_PaymentType22_CHF_BlankClearingNo()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+        ExportFile: File;
+        XMLInStream: InStream;
+        FileName: Text;
+        VendorNo: Code[20];
+        ExpectedMmbId: Code[5];
+    begin
+        // [FEATURE] [AI test 0.3] [XML] [Export]
+        // [SCENARIO] Swiss SEPA CT export for "Payment Type" = "2.2" derives the clearing member id (MmbId) from the domestic IBAN when "Clearing No." is blank
+        Initialize();
+
+        // [GIVEN] Vendor with bank account having "Payment Form" = "Bank Payment Domestic", blank "Clearing No." and "SWIFT Code", and a domestic IBAN
+        VendorNo := CreateVendorWithBankAccount(PaymentFormGbl::"Bank Payment Domestic", '', '', '', GetIBAN(true));
+        // [GIVEN] Positions 5-9 of the domestic IBAN 'CH3808888123456789012' yield clearing member id '8888'
+        ExpectedMmbId := '8888';
+
+        // [GIVEN] Vendor payment journal line with "Currency Code" = ""
+        CreatePaymentJournalLine(GenJournalLine, VendorNo, '', '',
+          GenJournalLine."Account Type"::Vendor, GenJournalLine."Document Type"::Payment);
+
+        // [WHEN] Export payments to file
+        FileName := GenJournalLine_XMLExport(GenJournalLine);
+
+        // [THEN] The payment is classified as Swiss Payment Type "2.2" (LclInstrm/Prtry = "CH03")
+        ExportFile.Open(FileName);
+        ExportFile.CreateInStream(XMLInStream);
+        LibraryXPathXMLReader.InitializeXml(XMLInStream, 'http://www.six-interbank-clearing.com/de/pain.001.001.03.ch.02.xsd');
+        ExportFile.Close();
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:PmtTpInf//ns:LclInstrm/ns:Prtry', 'CH03');
+        // [THEN] The creditor agent uses the CHBCC clearing system with MmbId = the IID derived from the IBAN, and no BIC
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//ns:CdtrAgt//ns:BIC');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:CdtrAgt//ns:Cd', 'CHBCC');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:CdtrAgt//ns:MmbId', ExpectedMmbId);
+        // [THEN] The creditor account holds the IBAN
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:CdtrAcct//ns:IBAN', GetIBAN(true));
     end;
 
     [Test]
@@ -2009,6 +2072,38 @@ codeunit 144352 "Swiss SEPA CT Export"
         CustomerBankAccount."Bank Account No." := LibraryUtility.GenerateGUID();
         Assert.IsTrue(CustomerBankAccount.GetPaymentType(PaymentTypeGbl, GetCurrencyCode('')), GetPaymentTypeErr);
         Assert.AreEqual(PaymentTypeGbl::"6", PaymentTypeGbl, GetPaymentTypeErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorBankAccountGetPaymentTypeType22WhenClearingNoDerivedFromIBAN()
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+    begin
+        // [FEATURE] [AI test 0.3] [UT]
+        // [SCENARIO] "Vendor Bank Account".GetPaymentType returns Swiss Payment Type 2.2 when "Clearing No." and "SWIFT Code" are blank but the clearing number can be derived from a domestic IBAN
+        VendorBankAccount.Init();
+        VendorBankAccount."Payment Form" := VendorBankAccount."Payment Form"::"Bank Payment Domestic";
+        VendorBankAccount."SWIFT Code" := '';
+        VendorBankAccount.IBAN := GetIBAN(true);
+        Assert.IsTrue(VendorBankAccount.GetPaymentType(PaymentTypeGbl, GetCurrencyCode('')), GetPaymentTypeErr);
+        Assert.AreEqual(PaymentTypeGbl::"2.2", PaymentTypeGbl, GetPaymentTypeErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorBankAccountGetPaymentTypeType3WhenBlankClearingNoAndSWIFTSet()
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+    begin
+        // [FEATURE] [AI test 0.3] [UT]
+        // [SCENARIO] "Vendor Bank Account".GetPaymentType keeps Swiss Payment Type 3 (not 2.2) when "Clearing No." is blank but a "SWIFT Code" is provided, so the IBAN-derived clearing does not reclassify SWIFT-routed accounts
+        VendorBankAccount.Init();
+        VendorBankAccount."Payment Form" := VendorBankAccount."Payment Form"::"Bank Payment Domestic";
+        VendorBankAccount."SWIFT Code" := GetSWIFT(true);
+        VendorBankAccount.IBAN := GetIBAN(true);
+        Assert.IsTrue(VendorBankAccount.GetPaymentType(PaymentTypeGbl, GetCurrencyCode('')), GetPaymentTypeErr);
+        Assert.AreEqual(PaymentTypeGbl::"3", PaymentTypeGbl, GetPaymentTypeErr);
     end;
 
     [Test]
