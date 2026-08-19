@@ -11,12 +11,16 @@ on:
 permissions:
   issues: write
   contents: read
-  id-token: write
-  copilot-requests: write
 
 concurrency:
   group: bc-extrequest-triage-${{ inputs.issue_number }}
   cancel-in-progress: false
+
+env:
+  AGENT_REPO: microsoft/BCAppsTriage
+  AGENT_REPO_NAME: BCAppsTriage
+  AGENT_WORKFLOW: bc-extrequest-triage-agent.yml
+  AGENT_REF: main
 
 jobs:
   process:
@@ -24,6 +28,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: triage
     steps:
+      - name: Create correlation token
+        id: correlation
+        run: echo "run_token=$(uuidgen)" >> "$GITHUB_OUTPUT"
+
       - name: Mint token for BCAppsTriage
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -31,51 +39,139 @@ jobs:
           app-id: ${{ vars.TRIAGE_APP_ID }}
           private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: BCAppsTriage
+          repositories: ${{ env.AGENT_REPO_NAME }}
 
-      - name: Checkout BCAppsTriage source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: ${{ github.repository_owner }}/BCAppsTriage
-          token: ${{ steps.app-token.outputs.token }}
-          path: _triage-src
-
-      - name: Setup Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
-        with:
-          node-version: "26"
-          cache: npm
-          cache-dependency-path: _triage-src/internal/BC_ExtRequest_Triage/package-lock.json
-
-      - name: Install dependencies
-        working-directory: _triage-src/internal/BC_ExtRequest_Triage
-        run: npm ci
-
-      - name: Make process-issue script executable
-        run: chmod +x _triage-src/internal/BC_ExtRequest_Triage/scripts/process-issue.sh
-
-      - name: Azure login (OIDC)
-        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.0
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - name: "Process issue #${{ inputs.issue_number }}"
+      - name: Start ExtRequest triage
         env:
-          GH_TOKEN: ${{ github.token }}
-          REPO_READ_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
         run: |
-          bash _triage-src/internal/BC_ExtRequest_Triage/scripts/process-issue.sh \
-            "${{ inputs.issue_number }}" \
-            "${{ github.repository }}" \
-            "$(pwd)/_triage-src"
+          set -euo pipefail
+          gh workflow run "$AGENT_WORKFLOW" -R "$AGENT_REPO" --ref "$AGENT_REF" \
+            -f issue_number="$ISSUE_NUMBER" \
+            -f run_token="$RUN_TOKEN"
 
-      - name: Upload result artifact
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - name: Await ExtRequest triage
+        id: await
+        timeout-minutes: 30
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+        run: |
+          set -euo pipefail
+          run_id=""
+          for i in $(seq 1 30); do
+            run_id=$(gh run list -R "$AGENT_REPO" --workflow "$AGENT_WORKFLOW" \
+              --json databaseId,displayTitle -L 40 \
+              -q "[.[] | select(.displayTitle | contains(\"[$RUN_TOKEN]\"))][0].databaseId")
+            if [ -n "$run_id" ] && [ "$run_id" != "null" ]; then
+              break
+            fi
+            sleep 10
+          done
+
+          if [ -z "$run_id" ] || [ "$run_id" = "null" ]; then
+            echo "::error::Timed out waiting for the ExtRequest triage run to appear."
+            exit 1
+          fi
+
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          gh run watch "$run_id" -R "$AGENT_REPO" --interval 15
+
+      - name: Download triage result
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_ID: ${{ steps.await.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p result
+          gh run download "$RUN_ID" -R "$AGENT_REPO" \
+            -n bc-extrequest-triage-result \
+            -D result
+
+      - name: Apply triage result
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          name: bc-extrequest-triage-result-${{ github.run_id }}-issue-${{ inputs.issue_number }}
-          path: _triage-src/internal/BC_ExtRequest_Triage/data/triage_result.json
-          retention-days: 30
-          if-no-files-found: ignore
+          script: |
+            const fs = require('fs');
+            const result = JSON.parse(
+              fs.readFileSync('result/triage-result.json', 'utf8')
+            );
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = Number('${{ inputs.issue_number }}');
+
+            if (result.issue_number !== issue_number) {
+              throw new Error(
+                `Result is for issue #${result.issue_number}, expected #${issue_number}.`
+              );
+            }
+
+            const managedLabels = [
+              'missing-info',
+              'agent-not-processable',
+              'Finance',
+              'SCM',
+              'Integration',
+              'event-request',
+              'request-for-external',
+              'enum-request',
+              'extensibility-enhancement'
+            ];
+            const issue = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number
+            });
+            const currentLabels = new Set(
+              issue.data.labels.map(label =>
+                typeof label === 'string' ? label : label.name
+              )
+            );
+
+            for (const label of managedLabels) {
+              if (currentLabels.has(label)) {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number,
+                  name: label
+                });
+              }
+            }
+
+            for (const label of result.labels_to_set) {
+              try {
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number,
+                  labels: [label]
+                });
+              } catch (error) {
+                core.warning(`Could not add label "${label}": ${error.message}`);
+              }
+            }
+
+            if (result.comment_to_post) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: result.comment_to_post
+              });
+            }
+
+            if (
+              result.issue_state?.toLowerCase() === 'closed' &&
+              issue.data.state !== 'closed'
+            ) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number,
+                state: 'closed',
+                state_reason: 'not_planned'
+              });
+            }

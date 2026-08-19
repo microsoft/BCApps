@@ -9734,12 +9734,6 @@
       },
       {
         "name": "FinancialsExtensions"
-      },
-      {
-        "name": "OnPrem"
-      },
-      {
-        "name": "OnPremExtensions"
       }
     ]
   },
