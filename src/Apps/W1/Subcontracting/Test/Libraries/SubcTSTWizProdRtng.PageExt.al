@@ -22,7 +22,7 @@ pageextension 139982 "Subc. TST WizProdRtng" extends "Temp Prod. Ord. Rtng List"
                 trigger OnAction()
                 begin
                     Rec.Delete(true);
-                    // Rec.CheckPreviousAndNextForTemp();
+                    Rec.CheckPreviousAndNextForTemp();
                 end;
             }
         }
