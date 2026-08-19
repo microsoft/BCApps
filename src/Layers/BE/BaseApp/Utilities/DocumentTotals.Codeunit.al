@@ -608,8 +608,6 @@ codeunit 57 "Document Totals"
 
     procedure PurchaseDeltaUpdateTotals(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line"; var TotalPurchaseLine: Record "Purchase Line"; var VATAmount: Decimal; var InvoiceDiscountAmount: Decimal; var InvoiceDiscountPct: Decimal)
     var
-        PurchHeader: Record "Purchase Header";
-        GroupedVATAmount: Decimal;
         InvDiscountBaseAmount: Decimal;
         IsHandled: Boolean;
     begin
@@ -643,14 +641,6 @@ codeunit 57 "Document Totals"
             else
                 InvoiceDiscountPct := Round(100 * InvoiceDiscountAmount / InvDiscountBaseAmount, 0.00001);
         end;
-
-        if PurchHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
-            if not PurchaseDocHasRevChargeOrNonDeductibleVAT(PurchHeader) then
-                if GetGroupedVATAmount(PurchHeader, GroupedVATAmount) then
-                    if GroupedVATAmount <> VATAmount then begin
-                        VATAmount := GroupedVATAmount;
-                        TotalPurchaseLine."Amount Including VAT" := TotalPurchaseLine.Amount + VATAmount;
-                    end;
 
         OnAfterPurchDeltaUpdateTotals(PurchaseLine, xPurchaseLine, TotalPurchaseLine, VATAmount, InvoiceDiscountAmount, InvoiceDiscountPct);
     end;
