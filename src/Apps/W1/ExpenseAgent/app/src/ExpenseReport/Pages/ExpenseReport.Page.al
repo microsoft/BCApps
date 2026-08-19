@@ -635,6 +635,9 @@ page 6910 "Expense Report"
 #if not CLEAN29
                 actionref(VATSpecification_Promoted; VATSpecification)
                 {
+                    ObsoleteReason = 'Replaced by Expense Report Statistics';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
 #endif
                 actionref("Spend Request_Promoted"; "Spend Request")
