@@ -468,6 +468,11 @@ page 4363 "Agent Instruction Editor"
     trigger OnOpenPage()
     begin
         SetupFiltering();
+
+        GetAgentSafe();
+        if GlobalAgent.Substate = GlobalAgent.Substate::Archived then
+            Error(AgentArchivedCannotBeTestedErr);
+
         InitializeControls();
     end;
 
@@ -544,5 +549,6 @@ page 4363 "Agent Instruction Editor"
         AgentInstructionsTxt: Label 'Agent - %1', Comment = '%1 is the agent display name.';
         EditTemplateQst: Label 'Template was created. Do you want to edit the template now?';
         AgentNotFoundErr: Label 'The agent with ID ''%1'' was not found.', Comment = '%1 is the agent user security ID.';
+        AgentArchivedCannotBeTestedErr: Label 'This agent is archived and can no longer be tested. Its instructions, tasks and logs remain available on the agent card and the agent task pages.';
         AgentTaskNotFoundErr: Label 'The agent task with ID ''%1'' was not found.', Comment = '%1 is the agent task ID.';
 }

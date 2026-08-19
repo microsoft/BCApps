@@ -136,6 +136,12 @@ codeunit 4350 "Custom Agent Setup"
     var
         AgentEditInstructionsPage: Page "Agent Instruction Editor";
     begin
+        // The test agent page is an authoring surface. Everything it displays is also
+        // available read-only on the agent card and the agent task pages, so archived
+        // agents are blocked here rather than opening a page that can do nothing.
+        if IsAgentArchived(AgentSecurityId) then
+            Error(AgentArchivedCannotBeTestedErr);
+
         if not ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId) then
             exit;
 
@@ -148,10 +154,28 @@ codeunit 4350 "Custom Agent Setup"
         if not GuiAllowed() then
             exit(false);
 
+        // Archived agents can never be activated again, so the inactive prompt would be misleading.
+        // The instruction editor opens read-only and states that the agent is archived.
+        if IsAgentArchived(AgentSecurityId) then
+            exit(true);
+
         if not IsAgentInactive(AgentSecurityId) then
             exit(true);
 
         exit(Confirm(OpenEditInstructionsPageForInactiveAgentQst, false));
+    end;
+
+    local procedure IsAgentArchived(AgentSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        if IsNullGuid(AgentSecurityId) then
+            exit(false);
+
+        if not Agent.Get(AgentSecurityId) then
+            exit(false);
+
+        exit(Agent.Substate = Agent.Substate::Archived);
     end;
 
     local procedure IsAgentInactive(AgentSecurityId: Guid): Boolean
@@ -247,4 +271,5 @@ codeunit 4350 "Custom Agent Setup"
         DefaultAgentInstructionsLbl: Label '', Locked = true;
         DefaultAgentDescriptionLbl: Label '', Locked = true;
         OpenEditInstructionsPageForInactiveAgentQst: Label 'This agent is inactive. Changes will not take effect until the agent is activated.\\Do you want to continue?';
+        AgentArchivedCannotBeTestedErr: Label 'This agent is archived and can no longer be tested. Its instructions, tasks and logs remain available on the agent card and the agent task pages.';
 }
