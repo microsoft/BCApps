@@ -17,6 +17,7 @@
     "VAT Group Management Tests"
   ],
   "LegacyTests-Bucket1": [
+    "Tests-Resource",
     "Tests-Workflow",
     "AlCosting",
     "Tests-ERM-Application",
@@ -27,6 +28,7 @@
     "Tests-SINGLESERVER",
     "Tests-Job",
     "Tests-ERM-Purchase",
+    "Tests-Local",
     "Tests-ERM-Sales",
     "Tests-ERM-Finance",
     "Tests-Dimension",
@@ -39,11 +41,10 @@
     "Tests-Cost Accounting",
     "Tests-User",
     "Tests-Cash Flow",
-    "Tests-Resource",
-    "Tests-Azure AI",
-    "Tests-Local"
+    "Tests-Azure AI"
   ],
   "LegacyTests-Bucket2": [
+    "Tests-Upgrade",
     "Tests-SCM-Assembly",
     "Tests-SCM",
     "Tests-SCM-Workflow",
@@ -66,7 +67,6 @@
     "Tests-Monitor Sensitive Fields",
     "Performance Toolkit Samples",
     "Tests-Integration-Internal",
-    "Tests-DotNet-Internal",
-    "Tests-Upgrade"
+    "Tests-DotNet-Internal"
   ]
 }
