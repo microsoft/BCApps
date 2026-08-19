@@ -103,14 +103,21 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     /// <returns>True when a row was written.</returns>
     local procedure AssignHeaderFooter(ReportID: Integer; LayoutName: Text; PartName: Text): Boolean
     var
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+        AppId: Guid;
         Composite: Text;
     begin
-        if not this.IsBodyLayoutInstalled(ReportID, LayoutName) then
+        if not this.TryGetBodyLayoutAppId(ReportID, LayoutName, AppId) then
             exit(false);
         if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter, Composite) then
             exit(false);
 
-        exit(this.WriteLayoutPart(ReportID, LayoutName, Composite, Enum::"Report Layout Subtype"::HeaderFooter));
+        // TODO: APPID-IN-LAYOUTNAME - pass LayoutName instead once the platform resolves the body layout.
+        exit(this.WriteLayoutPart(
+            ReportID,
+            CompositeLayoutLookupHelper.EncodeCompositeName(AppId, LayoutName),
+            Composite,
+            Enum::"Report Layout Subtype"::HeaderFooter));
     end;
 
     /// <summary>
@@ -121,6 +128,7 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     local procedure AssignThemeToBodyLayouts(PartName: Text) AssignedCount: Integer
     var
         ReportLayoutList: Record "Report Layout List";
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
         Composite: Text;
     begin
         if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::Theme, Composite) then
@@ -132,7 +140,13 @@ codeunit 9668 "Composite Layout Assign. Mgt."
             exit(0);
 
         repeat
-            if this.WriteLayoutPart(ReportLayoutList."Report ID", ReportLayoutList.Name, Composite, Enum::"Report Layout Subtype"::Theme) then
+            // TODO: APPID-IN-LAYOUTNAME - pass ReportLayoutList.Name instead once the platform resolves the body layout.
+            if this.WriteLayoutPart(
+                ReportLayoutList."Report ID",
+                CompositeLayoutLookupHelper.EncodeCompositeName(ReportLayoutList."Application ID", ReportLayoutList.Name),
+                Composite,
+                Enum::"Report Layout Subtype"::Theme)
+            then
                 AssignedCount += 1;
         until ReportLayoutList.Next() = 0;
     end;
@@ -142,13 +156,15 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     /// parts of that subtype. Leaves an already configured column alone, so nothing overwrites an existing assignment.
     /// </summary>
     /// <returns>True when the row was written.</returns>
-    local procedure WriteLayoutPart(ReportID: Integer; LayoutName: Text; Composite: Text; Subtype: Enum "Report Layout Subtype"): Boolean
+    // TODO: APPID-IN-LAYOUTNAME - BodyLayoutReference is <AppId>::<LayoutName>; it becomes the plain layout name
+    // again once the platform resolves the body layout itself.
+    local procedure WriteLayoutPart(ReportID: Integer; BodyLayoutReference: Text; Composite: Text; Subtype: Enum "Report Layout Subtype"): Boolean
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
         LayoutNameKey: Text[250];
         RowExists: Boolean;
     begin
-        LayoutNameKey := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
+        LayoutNameKey := CopyStr(BodyLayoutReference, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
         RowExists := TenantReportLayoutCfg.Get(ReportID, LayoutNameKey, '');
 
         if RowExists then
@@ -185,15 +201,26 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     /// Whether the report has a body layout of that name installed on the tenant. Only a body layout can carry a
     /// header/footer or a theme: the parts are merged onto it at render time.
     /// </summary>
-    local procedure IsBodyLayoutInstalled(ReportID: Integer; LayoutName: Text): Boolean
+    // TODO: APPID-IN-LAYOUTNAME - the AppId output exists only to build the configuration key. When the platform
+    // resolves the body layout itself, this can go back to answering whether the layout exists.
+    /// <summary>
+    /// Finds the body layout of that name on the report and reports the ID of the application that owns it, which the
+    /// configuration key needs. Returns false when the report has no Word body layout of that name.
+    /// </summary>
+    local procedure TryGetBodyLayoutAppId(ReportID: Integer; LayoutName: Text; var AppId: Guid): Boolean
     var
         ReportLayoutList: Record "Report Layout List";
     begin
+        Clear(AppId);
         ReportLayoutList.SetRange("Report ID", ReportID);
         ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, MaxStrLen(ReportLayoutList.Name)));
         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
         ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
-        exit(not ReportLayoutList.IsEmpty());
+        if not ReportLayoutList.FindFirst() then
+            exit(false);
+
+        AppId := ReportLayoutList."Application ID";
+        exit(true);
     end;
 
     /// <summary>
