@@ -11,7 +11,9 @@ codeunit 148308 "Expense Test Install"
 
     trigger OnInstallAppPerCompany()
     begin
-#if not E2E_MULTITENANT
+#if E2E_MULTITENANT
+        exit;
+#else
         RegisterExpenseTestHandlerService();
 #endif
     end;
