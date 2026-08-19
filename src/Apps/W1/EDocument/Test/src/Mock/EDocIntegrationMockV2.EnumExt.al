@@ -18,5 +18,9 @@ enumextension 139617 "E-Doc Integration Mock V2" extends "Service Integration"
     {
         Implementation = IDocumentSender = "E-Doc. Int Mock No Async", IDocumentReceiver = "E-Doc. Int Mock No Async", IConsentManager = "E-Doc. Int Mock No Async";
     }
+    value(133503; "Message Mock")
+    {
+        Implementation = IDocumentSender = "E-Doc. Integration Mock V2", IDocumentReceiver = "E-Doc. Integration Mock V2", IMessageSender = "E-Doc. Message Mock", IMessageResponseHandler = "E-Doc. Message Mock";
+    }
 
 }
