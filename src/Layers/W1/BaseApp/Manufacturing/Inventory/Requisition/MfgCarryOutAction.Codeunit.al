@@ -263,6 +263,9 @@ codeunit 99000818 "Mfg. Carry Out Action"
         IsHandled: Boolean;
     begin
         OnBeforeSetProdOrderStatus(ProductionOrder, ProdOrderChoice, IsHandled);
+#if not CLEAN27
+        CarryOutAction.RunOnBeforeSetProdOrderStatus(ProductionOrder, ProdOrderChoice, IsHandled);
+#endif
         if IsHandled then
             exit;
 
