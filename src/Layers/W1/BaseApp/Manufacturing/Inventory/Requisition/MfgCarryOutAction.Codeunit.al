@@ -282,8 +282,8 @@ codeunit 99000818 "Mfg. Carry Out Action"
 #if not CLEAN29
                 IsHandled := false;
                 OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
-#if not CLEAN29
-                LegacyCarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
+#if not CLEAN27
+                CarryOutAction.RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProductionOrder, ProdOrderChoice, IsHandled);
 #endif
                 if not IsHandled then
 #endif

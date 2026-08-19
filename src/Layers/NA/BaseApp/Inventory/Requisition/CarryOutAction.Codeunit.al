@@ -1371,13 +1371,13 @@ codeunit 99000813 "Carry Out Action"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN27
     internal procedure RunOnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
     begin
         OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(ProdOrder, ProdOrderChoice, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit MfgCarryOutAction', '29.0')]
+    [Obsolete('Moved to codeunit MfgCarryOutAction', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertProdOrderOnProdOrderChoiceNotFirmPlannedPrint(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
     begin
