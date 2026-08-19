@@ -279,13 +279,13 @@ codeunit 148343 "Expense Activity Log API Test"
 
         // [WHEN] Administrator history is requested through the first Expense User.
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
-            ResponseText, TargetURL + '?$filter=historyActorRole eq ''Administrator''', 400);
+            ResponseText, AppendQueryParameter(TargetURL, '$filter=historyActorRole eq ''Administrator'''), 400);
 
         // [THEN] The endpoint rejects roles that do not grant expense-user history participation.
         Assert.ExpectedError('The historyActorRole filter must be specified as Submitter or Approver.');
 
         // [WHEN] Submitter history is requested through the first Expense User.
-        TargetURL += '?$filter=historyActorRole eq ''Submitter''';
+        TargetURL := AppendQueryParameter(TargetURL, '$filter=historyActorRole eq ''Submitter''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -355,7 +355,7 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Users API",
             ExpenseUsersServiceNameTok,
             ServiceNameTok);
-        TargetURL += '?$filter=historyActorRole eq ''Approver''';
+        TargetURL := AppendQueryParameter(TargetURL, '$filter=historyActorRole eq ''Approver''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -558,7 +558,7 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Users API",
             ExpenseUsersServiceNameTok,
             ServiceNameTok);
-        TargetURL += '?$filter=historyActorRole eq ''' + HistoryRole + '''';
+        TargetURL := AppendQueryParameter(TargetURL, '$filter=historyActorRole eq ''' + HistoryRole + '''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         Assert.AreNotEqual(
             0,
@@ -566,6 +566,13 @@ codeunit 148343 "Expense Activity Log API Test"
                 LowerCase(ResponseText),
                 LowerCase(LibraryGraphMgt.StripBrackets(Format(SubjectSystemID)))),
             'The user history response does not contain the expected subject.');
+    end;
+
+    local procedure AppendQueryParameter(TargetURL: Text; QueryParameter: Text): Text
+    begin
+        if StrPos(TargetURL, '?') <> 0 then
+            exit(TargetURL + '&' + QueryParameter);
+        exit(TargetURL + '?' + QueryParameter);
     end;
 
     local procedure CreateRunToken(): Code[8]
