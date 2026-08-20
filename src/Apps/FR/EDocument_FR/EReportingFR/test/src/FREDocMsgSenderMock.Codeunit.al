@@ -23,13 +23,18 @@ codeunit 148150 "FR E-Doc. Msg. Sender Mock" implements IDocumentSender, IDocume
     procedure SendMessage(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context")
     var
         TempBlob: Codeunit "Temp Blob";
+        PayloadLine: Text;
         InStream: InStream;
     begin
         SendCount += 1;
         LastResponseType := MessageContext.GetResponseType();
         TempBlob := MessageContext.GetTempBlob();
         TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.ReadText(LastPayload);
+        Clear(LastPayload);
+        while not InStream.EOS do begin
+            InStream.ReadText(PayloadLine);
+            LastPayload += PayloadLine;
+        end;
         if ReportSuccess then
             MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
