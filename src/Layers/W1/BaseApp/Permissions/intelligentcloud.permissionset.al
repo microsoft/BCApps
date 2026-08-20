@@ -625,9 +625,9 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Custom Address Format" = R,
                   tabledata "Custom Address Format Line" = R,
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
                   tabledata "Custom Report Layout" = R,
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
 #endif
                   tabledata "Custom Report Selection" = R,
                   tabledata Customer = R,

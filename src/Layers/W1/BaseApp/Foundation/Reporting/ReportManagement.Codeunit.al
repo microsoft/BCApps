@@ -161,9 +161,9 @@ codeunit 44 ReportManagement
     local procedure SelectReportLayoutCode(ObjectId: Integer; var LayoutCode: Text; var LayoutType: Option "None",RDLC,Word,Excel,Custom; var Success: Boolean)
     var
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
         FeatureKey: Record "Feature Key";
 #endif
         ReportLayoutSelection: Record "Report Layout Selection";
@@ -235,9 +235,9 @@ codeunit 44 ReportManagement
     local procedure FetchReportLayoutByCode(ObjectId: Integer; LayoutCode: Text; var TargetStream: OutStream; var Success: Boolean)
     var
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
         TempBlobIn: codeunit "Temp Blob";
         TempInStream: InStream;
 #endif

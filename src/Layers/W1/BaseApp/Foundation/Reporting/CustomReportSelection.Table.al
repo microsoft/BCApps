@@ -69,9 +69,9 @@ table 9657 "Custom Report Selection"
         {
             Caption = 'Custom Report Layout Code';
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
             TableRelation = "Custom Report Layout" where(Code = field("Custom Report Layout Code"));
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
 #endif
 
             trigger OnValidate()
@@ -145,10 +145,10 @@ table 9657 "Custom Report Selection"
         {
             Caption = 'Email Body Layout Code';
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
             TableRelation = "Custom Report Layout" where(Code = field("Email Body Layout Code"),
                                                           "Report ID" = field("Report ID"));
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
 #endif
             ToolTip = 'Specifies the ID of the email body layout that is used.';
 

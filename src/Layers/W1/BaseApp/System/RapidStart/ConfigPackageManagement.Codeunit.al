@@ -1513,9 +1513,9 @@ codeunit 8611 "Config. Package Management"
                 Database::"Company Information":
                 ConfigPackageTable."Processing Order" += 1;
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
             Database::Microsoft.Foundation.Reporting."Custom Report Layout":
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
                 // Moving Layouts to be on the top
                 ConfigPackageTable."Processing Order" := 0;
 #endif

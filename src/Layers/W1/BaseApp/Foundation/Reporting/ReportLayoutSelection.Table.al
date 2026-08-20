@@ -76,9 +76,9 @@ table 9651 "Report Layout Selection"
             Caption = 'Custom Report Layout Code';
             ToolTip = 'Specifies the custom report layout.';
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
             TableRelation = "Custom Report Layout" where("Report ID" = field("Report ID"));
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
 #endif
 
             trigger OnValidate()

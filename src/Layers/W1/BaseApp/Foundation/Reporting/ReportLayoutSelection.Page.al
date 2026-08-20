@@ -71,9 +71,9 @@ page 9652 "Report Layout Selection"
                 {
                     ApplicationArea = Basic, Suite;
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
                     TableRelation = "Custom Report Layout" where("Report ID" = field("Report ID"));
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
 #endif
                     Visible = false;
 
@@ -94,9 +94,9 @@ page 9652 "Report Layout Selection"
                     trigger OnValidate()
 #if not CLEAN29
                     var
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
                         CustomReportLayout2: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
 #endif
                     begin
 #if not CLEAN29

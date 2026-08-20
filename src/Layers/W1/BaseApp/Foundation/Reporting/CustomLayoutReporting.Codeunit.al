@@ -1034,9 +1034,9 @@ codeunit 8800 "Custom Layout Reporting"
 #pragma warning restore AA0137
     var
 #if not CLEAN29
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
 #endif
         ReportManagementHelper: Codeunit "Report Management Helper";
     begin

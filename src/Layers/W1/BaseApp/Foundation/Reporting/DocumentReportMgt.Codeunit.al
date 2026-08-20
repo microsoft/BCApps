@@ -167,9 +167,9 @@ codeunit 9651 "Document Report Mgt."
     [Obsolete('Upgrades layouts stored in the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.', '29.0')]
     procedure ApplyUpgradeToReports(var ReportUpgradeCollection: DotNet ReportUpgradeCollection; testOnly: Boolean): Boolean
     var
-#pragma warning disable AL0432, AS0105
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+#pragma warning restore AL0432
         ReportUpgrade: DotNet ReportUpgradeSet;
         ReportChangeLogCollection: DotNet IReportChangeLogCollection;
     begin
