@@ -28,7 +28,7 @@ page 8376 "MCP API Object Lookup"
             {
                 field("Object Type"; Rec."Object Type")
                 {
-                    ToolTip = 'Specifies whether the object is an API page or an API query.';
+                    ToolTip = 'Specifies whether the object is an API page, an API query, or an API codeunit.';
                 }
                 field("Object ID"; Rec."Object ID")
                 {
