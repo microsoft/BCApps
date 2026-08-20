@@ -1066,27 +1066,6 @@ codeunit 40903 "GP Migration Validator"
         exit(PreferredBankCode);
     end;
 
-    local procedure GetAccountFilter(AccountNo: Text[50]; ACCTYPE: Integer): Text
-    var
-        GPGL00100: Record "GP GL00100";
-        FilterText: Text;
-    begin
-        GPGL00100.SetLoadFields(ACTINDX);
-        GPGL00100.SetRange(ACCTTYPE, ACCTYPE);
-        GPGL00100.SetRange(MNACSGMT, AccountNo);
-        GPGL00100.SetRange(PSTNGTYP, 0);
-        GPGL00100.SetRange(Clear_Balance, false);
-        if GPGL00100.FindSet() then
-            repeat
-                if FilterText <> '' then
-                    FilterText += '|' + Format(GPGL00100.ACTINDX)
-                else
-                    FilterText := Format(GPGL00100.ACTINDX);
-            until GPGL00100.Next() = 0;
-
-        exit(FilterText);
-    end;
-
     internal procedure RoundWithSpecPrecision(Amount: Decimal): Decimal
     begin
         exit(Round(Amount, DefaultCurrency."Amount Rounding Precision"));
@@ -1277,7 +1256,6 @@ codeunit 40903 "GP Migration Validator"
         BankAccountNumberLbl: Label 'Account Number';
         BankBranchNoLbl: Label 'Bank Branch No.';
         BaseUofMLbl: Label 'Base UofM';
-        BeginningBalanceLbl: Label 'Beginning Balance';
         CityLbl: Label 'City';
         ContactLbl: Label 'Contact';
         CostingMethodLbl: Label 'Costing Method';
