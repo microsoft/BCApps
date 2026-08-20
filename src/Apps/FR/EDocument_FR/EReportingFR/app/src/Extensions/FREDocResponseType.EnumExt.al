@@ -8,6 +8,10 @@ using Microsoft.eServices.EDocument.Processing.Message;
 
 enumextension 10974 "FR E-Doc. Response Type" extends "E-Doc. Response Type"
 {
+    value(10970; Submitted)
+    {
+        Caption = 'Submitted';
+    }
     value(10971; Refused)
     {
         Caption = 'Refused';
