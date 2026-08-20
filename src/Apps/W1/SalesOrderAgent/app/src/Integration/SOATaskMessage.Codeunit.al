@@ -130,7 +130,7 @@ codeunit 4398 "SOA Task Message"
         EmailMessage: Codeunit "Email Message";
         CcRecipients: List of [Text];
         CcRecipient: Text;
-        CcRecipientsText: Text;
+        CcRecipientsTextBuilder: TextBuilder;
     begin
         SourceAgentTaskMessage := AgentTaskMessage;
         if AgentTaskMessage.Type = AgentTaskMessage.Type::Output then
@@ -151,12 +151,12 @@ codeunit 4398 "SOA Task Message"
 
         EmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, CcRecipients);
         foreach CcRecipient in CcRecipients do begin
-            if CcRecipientsText <> '' then
-                CcRecipientsText += ';';
-            CcRecipientsText += CcRecipient;
+            if CcRecipientsTextBuilder.Length() > 0 then
+                CcRecipientsTextBuilder.Append(';');
+            CcRecipientsTextBuilder.Append(CcRecipient);
         end;
 
-        exit(CcRecipientsText);
+        exit(CcRecipientsTextBuilder.ToText());
     end;
 
     internal procedure MessageRequiresReview(SOASetup: Record "SOA Setup"; EmailInbox: Record "Email Inbox"; IsFirstMessageInTask: Boolean): Boolean
