@@ -971,8 +971,8 @@ codeunit 148330 "Expense Posting VAT Test"
         VATEntry.SetRange("VAT Bus. Posting Group", VATPostingSetup[1]."VAT Bus. Posting Group");
         VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
         VATEntry.CalcSums(Base, Amount, "Non-Deductible VAT Base", "Non-Deductible VAT Amount");
-        Assert.AreNearlyEqual(ExpectedDeductibleBase, VATEntry.Base, 0.01, 'The VAT entry must contain the deductible VAT base.');
-        Assert.AreNearlyEqual(ExpectedDeductibleVAT, VATEntry.Amount, 0.01, 'The VAT entry must contain the deductible VAT amount.');
+        Assert.AreNearlyEqual(ExpectedDeductibleBase, VATEntry.Base - VATEntry."Non-Deductible VAT Base", 0.01, 'The VAT entry must contain the deductible VAT base.');
+        Assert.AreNearlyEqual(ExpectedDeductibleVAT, VATEntry.Amount - VATEntry."Non-Deductible VAT Amount", 0.01, 'The VAT entry must contain the deductible VAT amount.');
         Assert.AreNearlyEqual(ExpectedNonDeductibleBase, VATEntry."Non-Deductible VAT Base", 0.01, 'The VAT entry must contain the non-deductible VAT base.');
         Assert.AreNearlyEqual(ExpectedNonDeductibleVAT, VATEntry."Non-Deductible VAT Amount", 0.01, 'The VAT entry must contain the non-deductible VAT amount.');
 

@@ -557,6 +557,7 @@ codeunit 6987 "Expense Report-Post"
             Clear(GenJournalLine);
             CreateGenJournalLineFromSpec(GenJournalLine, ExpenseReportHeader, ExpenseReportLine, ExpenseReportLineVATSpec, PostedExpReportLine);
             SetupRefundableAccountForSpec(GenJournalLine, ExpenseReportLine, ExpenseReportLineVATSpec);
+            SetupNonDeductibleVATForSpec(GenJournalLine, ExpenseReportLineVATSpec);
             SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
 
             if (not JobLedgEntryPosted) and (ExpenseReportLine."Job No." <> '') then begin
@@ -840,12 +841,6 @@ codeunit 6987 "Expense Report-Post"
             GenJournalLine."Source Curr. VAT Base Amount" := ExpenseReportLineVATSpec."VAT Base Amount (RCY)";
             GenJournalLine."Source Curr. VAT Amount" := ExpenseReportLineVATSpec."VAT Amount (RCY)";
 
-            // VAT Reclaim % is used to route the non-deductible portion of VAT to the correct accounts via VAT Posting Setup.
-            if (ExpenseReportLineVATSpec."Reclaim %" <> 100) and (ExpenseReportLineVATSpec."VAT Amount (LCY)" <> 0) then begin
-                VATSetup.Get();
-                VATSetup.TestField("Non-Deductible VAT Is Enabled");
-                GenJournalLine.Validate("Non-Deductible VAT %", 100 - ExpenseReportLineVATSpec."Reclaim %");
-            end;
         end else begin
             // VAT is not reclaimable: include VAT in the expense amount (gross) and do not create a VAT entry.
             GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount (RCY)" + ExpenseReportLineVATSpec."VAT Amount (RCY)";
@@ -872,6 +867,24 @@ codeunit 6987 "Expense Report-Post"
         end;
 
         GenJournalLine."System-Created Entry" := true;
+    end;
+
+    local procedure SetupNonDeductibleVATForSpec(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
+    begin
+        if ExpenseReportLineVATSpec."Reclaim Status" <> ExpenseReportLineVATSpec."Reclaim Status"::Approved then
+            exit;
+        if (ExpenseReportLineVATSpec."Reclaim %" = 100) or (ExpenseReportLineVATSpec."VAT Amount (LCY)" = 0) then
+            exit;
+
+        VATSetup.Get();
+        VATSetup.TestField("Non-Deductible VAT Is Enabled");
+        GenJournalLine.Validate("Non-Deductible VAT %", 100 - ExpenseReportLineVATSpec."Reclaim %");
+        GenJournalLine.Validate("Non-Deductible VAT Base", ExpenseReportLineVATSpec."VAT Base Amount (RCY)" * (100 - ExpenseReportLineVATSpec."Reclaim %") / 100);
+        GenJournalLine.Validate("Non-Deductible VAT Amount", ExpenseReportLineVATSpec."VAT Amount (RCY)" - ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)");
+        GenJournalLine.Validate("Non-Deductible VAT Base LCY", ExpenseReportLineVATSpec."VAT Base Amount (LCY)" * (100 - ExpenseReportLineVATSpec."Reclaim %") / 100);
+        GenJournalLine.Validate("Non-Deductible VAT Amount LCY", ExpenseReportLineVATSpec."VAT Amount (LCY)" - ExpenseReportLineVATSpec."Reclaim VAT Amount (LCY)");
+        GenJournalLine."Amount (LCY)" -= GenJournalLine."Non-Deductible VAT Amount LCY";
+        GenJournalLine."Source Curr. VAT Amount" := ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)";
     end;
 
     local procedure SetupRefundableAccount(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line")
