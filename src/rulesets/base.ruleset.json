@@ -24,14 +24,6 @@
       "justification": "Use pragma to remove obsolete warning."
     },
     {
-      "id": "AL0523",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0547",
-      "action": "Warning"
-    },
-    {
       "id": "AL0589",
       "action": "Warning"
     },
@@ -117,12 +109,7 @@
     {
       "id": "AS0052",
       "action": "Warning",
-      "justification": "The property 'url' must be set to a valid URL."
-    },
-    {
-      "id": "AS0058",
-      "action": "Warning",
-      "justification": "Only use AssertError in Test Codeunits."
+      "justification": "The manifest property 'url' must be specified and contain a valid URL."
     },
     {
       "id": "AS0062",
@@ -383,11 +370,6 @@
       "justification": "Group 'Processing' only contains promoted actions that are not set to PromotedOnly='true'."
     },
     {
-      "id": "AW0014",
-      "action": "Warning",
-      "justification": "The group defined in Page should not be hidden because it contains the target actions for some ActionRefs."
-    },
-    {
       "id": "PTE0002",
       "action": "None",
       "justification": "Field ID must be within the range '[50000..99999]'."
@@ -396,11 +378,6 @@
       "id": "PTE0004",
       "action": "Warning",
       "justification": "Table is missing a matching permission set."
-    },
-    {
-      "id": "PTE0007",
-      "action": "Warning",
-      "justification": "Only use AssertError in Test Codeunits."
     },
     {
       "id": "PTE0008",
@@ -424,6 +401,10 @@
       "action": "Warning"
     },
     {
+      "id": "AL0523",
+      "action": "Warning"
+    },
+    {
       "id": "AL0604",
       "action": "Warning"
     },
@@ -433,10 +414,6 @@
     },
     {
       "id": "AL0611",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0679",
       "action": "Warning"
     },
     {
