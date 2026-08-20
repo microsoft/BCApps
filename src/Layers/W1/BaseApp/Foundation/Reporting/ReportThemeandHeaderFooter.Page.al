@@ -433,7 +433,7 @@ page 9666 "Report Theme and Header/Footer"
     local procedure DeleteSelectedArtifact()
     var
         SelectedLayouts: Record "Report Layout List";
-        PartsToDelete: Record "Tenant Report Layout" temporary;
+        TempPartsToDelete: Record "Tenant Report Layout" temporary;
         TenantReportLayout: Record "Tenant Report Layout";
         SingleName: Text;
         DeletableCount: Integer;
@@ -472,18 +472,18 @@ page 9666 "Report Theme and Header/Footer"
         repeat
             if SelectedLayouts."User Defined" then begin
                 LookupHelper.ClearPartAssignments(SelectedLayouts);
-                PartsToDelete.Init();
-                PartsToDelete."Report ID" := SelectedLayouts."Report ID";
-                PartsToDelete.Name := SelectedLayouts.Name;
-                PartsToDelete.Insert();
+                TempPartsToDelete.Init();
+                TempPartsToDelete."Report ID" := SelectedLayouts."Report ID";
+                TempPartsToDelete.Name := SelectedLayouts.Name;
+                TempPartsToDelete.Insert();
             end;
         until SelectedLayouts.Next() = 0;
 
-        if PartsToDelete.FindSet() then
+        if TempPartsToDelete.FindSet() then
             repeat
-                if TenantReportLayout.Get(PartsToDelete."Report ID", PartsToDelete.Name, EmptyGuid) then
+                if TenantReportLayout.Get(TempPartsToDelete."Report ID", TempPartsToDelete.Name, EmptyGuid) then
                     ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
-            until PartsToDelete.Next() = 0;
+            until TempPartsToDelete.Next() = 0;
 
         CurrPage.Update(false);
     end;

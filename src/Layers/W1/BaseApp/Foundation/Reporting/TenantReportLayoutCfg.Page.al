@@ -146,8 +146,7 @@ page 9663 "Tenant Report Layout Cfg"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Add global default';
                 Image = New;
-                Enabled = GlobalRowMissing;
-                ToolTip = 'Add the row that applies to every report and every layout, the fallback used when nothing more specific is set. Available only while that row does not exist; once it does, it is listed like any other row.';
+                ToolTip = 'Add the row that applies to every report and every layout, the fallback used when nothing more specific is set. Goes to that row when it already exists.';
 
                 trigger OnAction()
                 begin
@@ -187,7 +186,7 @@ page 9663 "Tenant Report Layout Cfg"
                         exit;
 
                     if Cfg.Get(Rec."Report ID", '', Rec."Company Name") then
-                        Error(ScopeExistsErr, ScopeDescriptionFor(Rec."Report ID", ''));
+                        RaiseScopeExistsError(Cfg);
 
                     Rec.Rename(Rec."Report ID", '', Rec."Company Name");
                     CurrPage.Update(false);
@@ -233,8 +232,6 @@ page 9663 "Tenant Report Layout Cfg"
     begin
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
-
-        RefreshGlobalRowMissing();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -244,7 +241,6 @@ page 9663 "Tenant Report Layout Cfg"
 
     trigger OnAfterGetRecord()
     begin
-        RefreshGlobalRowMissing();
         ScopeDisplay := ScopeDescription();
         LayoutNameDisplay := LookupHelper.DecodeLayoutName(Rec."Layout Name");
         ReportNameDisplay := ReportDisplayName(Rec."Report ID");
@@ -285,7 +281,18 @@ page 9663 "Tenant Report Layout Cfg"
             exit;
 
         if Cfg.Get(Rec."Report ID", Rec."Layout Name", Rec."Company Name") then
-            Error(ScopeExistsErr, ScopeDescriptionFor(Rec."Report ID", Rec."Layout Name"));
+            RaiseScopeExistsError(Cfg);
+    end;
+
+    local procedure RaiseScopeExistsError(ExistingRow: Record "Tenant Report Layout Cfg")
+    var
+        ScopeError: ErrorInfo;
+    begin
+        ScopeError.Message := StrSubstNo(ScopeExistsErr, ScopeDescriptionFor(ExistingRow."Report ID", ExistingRow."Layout Name"));
+        ScopeError.DataClassification := DataClassification::SystemMetadata;
+        ScopeError.RecordId := ExistingRow.RecordId();
+        ScopeError.PageNo := Page::"Tenant Report Layout Cfg";
+        Error(ScopeError);
     end;
 
     local procedure ReportDisplayName(ReportID: Integer): Text
@@ -295,8 +302,7 @@ page 9663 "Tenant Report Layout Cfg"
         if ReportID = 0 then
             exit('');
 
-        ReportMetadata.SetRange(ID, ReportID);
-        if not ReportMetadata.FindFirst() then
+        if not ReportMetadata.Get(ReportID) then
             exit(StrSubstNo(UnknownReportTxt, ReportID));
 
         if ReportMetadata.Caption <> '' then
@@ -348,16 +354,8 @@ page 9663 "Tenant Report Layout Cfg"
             Rec.SetRange("Report ID");
 
         Rec := Cfg;
-        RefreshGlobalRowMissing();
         CurrPage.SetRecord(Rec);
         CurrPage.Update(false);
-    end;
-
-    local procedure RefreshGlobalRowMissing()
-    var
-        Cfg: Record "Tenant Report Layout Cfg";
-    begin
-        GlobalRowMissing := not Cfg.Get(0, '', '');
     end;
 
     local procedure RowPassesReportFilter(ReportID: Integer): Boolean
@@ -402,7 +400,6 @@ page 9663 "Tenant Report Layout Cfg"
         ThemePartDisplay: Text;
         ScopeDisplay: Text;
         LayoutNameDisplay: Text;
-        GlobalRowMissing: Boolean;
         LayoutScopeSet: Boolean;
         ReportNameDisplay: Text;
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';

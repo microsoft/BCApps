@@ -104,6 +104,9 @@ page 9662 "Report Layout New Dialog"
 
                 trigger OnValidate()
                 begin
+                    if (BodySubtype = BodySubtype::Body) and (FormatOptions <> FormatOptions::Word) then
+                        Error(BodyNeedsWordErr);
+
                     LayoutSubtype := SelectedBodySubtype();
                 end;
             }
@@ -169,6 +172,7 @@ page 9662 "Report Layout New Dialog"
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = LayoutName';
         LayoutNameEmptyErr: Label 'The layout name cannot be an empty value.';
         ReportNotFoundErr: Label 'A report with ID "%1" does not exist.', Comment = '%1 = ReportID';
+        BodyNeedsWordErr: Label 'Only a Word layout can be a body layout. A theme and header/footer are merged onto it when the report renders, which applies to Word documents only.';
         FormatOptions: Option "RDLC","Word","Excel","Custom"; // For Custom type, 'External' will be shown in UI
         LayoutSubtype: Enum "Report Layout Subtype";
         BodySubtype: Option "Default","Body";
