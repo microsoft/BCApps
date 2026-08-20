@@ -1,0 +1,4 @@
+[
+  "src/Layers/APAC/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al",
+  "src/Layers/RU/Tests/ERM-Finance/ERMSourceCurrency.Codeunit.al"
+]
