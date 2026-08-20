@@ -23,6 +23,8 @@ codeunit 134619 "Composite Layout Tests"
         CompanySourceTok: Label 'Company', Locked = true;
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
         DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
+        ExternalDefaultDetailedTok: Label 'External Default Detailed', Locked = true;
+        SalesInvoiceBodyLayoutTok: Label 'StandardSalesInvoiceBody.docx', Locked = true;
         TestReportID: Integer;
         DocReportExpWasEnabled: Boolean;
 
@@ -404,16 +406,22 @@ codeunit 134619 "Composite Layout Tests"
         CompositeReportPartsMgt.SeedDefaultParts();
         Assert.IsTrue(FindAnyBodyLayout(BodyLayout), 'The tenant should have at least one Word body layout to assign to.');
         RemoveLayoutCfg(BodyLayout."Report ID", BodyLayout.Name);
+        RemoveLayoutCfg(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok);
 
         // [WHEN] Assigning the shipped designs.
         FirstPassCount := CompositeLayoutAssignMgt.AssignDefaultParts();
 
-        // [THEN] The pass wrote something, and specifically that layout got the theme. Every body layout gets the theme,
-        // so this holds whichever layout was picked above.
-        Assert.IsTrue(FirstPassCount > 0, 'The first assignment pass should write at least the row that was cleared.');
+        // [THEN] The pass wrote something, and both halves of it ran: the blanket theme reached the arbitrary layout, and
+        // the curated header/footer list reached the layout it names. Asserting only the theme would stay green with the
+        // whole header/footer pass broken, since the theme pass alone can satisfy the count.
+        Assert.IsTrue(FirstPassCount > 0, 'The first assignment pass should write at least the rows that were cleared.');
         Assert.IsTrue(
             LayoutCfgHasThemePart(BodyLayout."Report ID", BodyLayout.Name),
             'The cleared body layout should have been given the default theme.');
+        Assert.AreEqual(
+            ExternalDefaultDetailedTok,
+            LayoutCfgHeaderPartName(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok),
+            'The curated header/footer mapping should have been applied on the first pass.');
 
         // [WHEN] Assigning again.
         SecondPassCount := CompositeLayoutAssignMgt.AssignDefaultParts();
@@ -421,6 +429,76 @@ codeunit 134619 "Composite Layout Tests"
         // [THEN] Nothing was written the second time.
         Assert.AreEqual(0, SecondPassCount, 'A repeated assignment pass should leave every existing assignment alone.');
 
+        RestoreLayoutCfg(TempCfgBefore);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AssignDefaultPartsAppliesCuratedHeaderFooterMapping()
+    var
+        TempCfgBefore: Record "Tenant Report Layout Cfg" temporary;
+        CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // [SCENARIO] The curated report-to-part list is applied, not just the blanket theme: the shipped body layout of
+        // the posted sales invoice gets the header/footer design the list names for it.
+        Initialize();
+        SnapshotLayoutCfg(TempCfgBefore);
+
+        // [GIVEN] The parts are seeded and this layout has no configuration row.
+        CompositeReportPartsMgt.SeedDefaultParts();
+        Assert.IsTrue(
+            ShippedPartExists(ExternalDefaultDetailedTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'The header/footer part the curated list names should be in the pool.');
+        RemoveLayoutCfg(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok);
+
+        // [WHEN] Assigning the shipped designs.
+        CompositeLayoutAssignMgt.AssignDefaultParts();
+
+        // [THEN] The layout carries exactly the part the curated list maps it to.
+        Assert.AreEqual(
+            ExternalDefaultDetailedTok,
+            LayoutCfgHeaderPartName(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok),
+            'The curated mapping for the posted sales invoice body layout should have been applied.');
+
+        RestoreLayoutCfg(TempCfgBefore);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AssignDefaultPartsSkipsLayoutWhenNamedPartIsMissing()
+    var
+        TempCfgBefore: Record "Tenant Report Layout Cfg" temporary;
+        CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // [SCENARIO] When the part a curated mapping names is not in the pool, that one assignment is skipped and no
+        // header/footer row is written for it - the pass degrades rather than failing or writing a bad reference.
+        Initialize();
+        SnapshotLayoutCfg(TempCfgBefore);
+
+        // [GIVEN] The pool is seeded, then the part this mapping needs is removed, and the layout has no row.
+        CompositeReportPartsMgt.SeedDefaultParts();
+        RemoveShippedPart(ExternalDefaultDetailedTok);
+        Assert.IsFalse(
+            ShippedPartExists(ExternalDefaultDetailedTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part should be out of the pool, or this test proves nothing.');
+        RemoveLayoutCfg(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok);
+
+        // [WHEN] Assigning the shipped designs.
+        CompositeLayoutAssignMgt.AssignDefaultParts();
+
+        // [THEN] No header/footer was recorded for that layout.
+        Assert.AreEqual(
+            '', LayoutCfgHeaderPartName(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok),
+            'With the named part missing, the pass should skip that assignment rather than write one.');
+
+        // [THEN] The theme still applied, so the skip was contained to the one unresolved mapping.
+        Assert.IsTrue(
+            LayoutCfgHasThemePart(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok),
+            'The theme is a different part, so it should still have been assigned.');
+
+        CompositeReportPartsMgt.SeedDefaultParts();
         RestoreLayoutCfg(TempCfgBefore);
     end;
 
@@ -459,8 +537,11 @@ codeunit 134619 "Composite Layout Tests"
         // re-seeding, which is what stops it re-writing parts over anything the tenant changed.
         Initialize();
 
-        // [GIVEN] No tag, and one shipped part missing, so the first run has work to do and is not gated.
-        UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
+        // [GIVEN] No tag, and one shipped part missing, so the first run has work to do and is not gated. The delete is
+        // guarded because the library helper does a bare Get and throws when the tag is not there - which is the state on
+        // a fresh database, and after anything else has cleared it.
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
         RemoveShippedPart('Internal Default');
         Assert.IsFalse(
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
@@ -589,6 +670,28 @@ codeunit 134619 "Composite Layout Tests"
     begin
         if TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then
             TenantReportLayoutCfg.Delete(true);
+    end;
+
+    /// <summary>
+    /// The plain name of the header/footer part assigned to a layout, or blank when none is. The stored value is the
+    /// composite reference, so it is decoded before being returned.
+    /// </summary>
+    local procedure LayoutCfgHeaderPartName(ReportID: Integer; LayoutName: Text): Text
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+    begin
+        if not TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then
+            exit('');
+        exit(LookupHelper.DecodeLayoutName(TenantReportLayoutCfg."Header Part Name"));
+    end;
+
+    /// <summary>
+    /// The posted sales invoice, used as the anchor for the curated-mapping tests: both the report and its body layout
+    /// ship with the Base Application, which this test app depends on, so they are present on any tenant running it.
+    /// </summary>
+    local procedure SalesInvoiceReportID(): Integer
+    begin
+        exit(1306);
     end;
 
     local procedure LayoutCfgHasThemePart(ReportID: Integer; LayoutName: Text): Boolean
