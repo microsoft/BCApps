@@ -63,7 +63,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
 
         repeat
             CreateOccurrence(
-                EDocument, "E-Doc. Payment Occurrence Type"::Applied, DetailedCustLedgEntry.SystemId,
+                EDocument."Entry No", "E-Doc. Payment Occurrence Type"::Applied, DetailedCustLedgEntry.SystemId,
                 -DetailedCustLedgEntry.Amount, DetailedCustLedgEntry."Currency Code", DetailedCustLedgEntry."Posting Date",
                 DetailedCustLedgEntry."Entry No.", 0);
         until EDocument.Next() = 0;
@@ -77,7 +77,6 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     procedure ProcessUnapplication(OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
         AppliedOccurrence: Record "E-Doc. Payment Occurrence";
-        EDocument: Record "E-Document";
     begin
         if not IsInvoiceApplication(OldDetailedCustLedgEntry) then
             exit;
@@ -88,26 +87,25 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
             exit;
 
         repeat
-            EDocument.Get(AppliedOccurrence."E-Document Entry No.");
             CreateOccurrence(
-                EDocument, "E-Doc. Payment Occurrence Type"::Reversed, NewDetailedCustLedgEntry.SystemId,
+                AppliedOccurrence."E-Document Entry No.", "E-Doc. Payment Occurrence Type"::Reversed, NewDetailedCustLedgEntry.SystemId,
                 -AppliedOccurrence.Amount, AppliedOccurrence."Currency Code", NewDetailedCustLedgEntry."Posting Date",
                 NewDetailedCustLedgEntry."Entry No.", AppliedOccurrence."Entry No.");
         until AppliedOccurrence.Next() = 0;
     end;
 
-    local procedure CreateOccurrence(EDocument: Record "E-Document"; OccurrenceType: Enum "E-Doc. Payment Occurrence Type"; SourceOccurrenceID: Guid; Amount: Decimal; CurrencyCode: Code[10]; EventDate: Date; DetailedLedgerEntryNo: Integer; OriginalOccurrenceEntryNo: Integer)
+    local procedure CreateOccurrence(EDocumentEntryNo: Integer; OccurrenceType: Enum "E-Doc. Payment Occurrence Type"; SourceOccurrenceID: Guid; Amount: Decimal; CurrencyCode: Code[10]; EventDate: Date; DetailedLedgerEntryNo: Integer; OriginalOccurrenceEntryNo: Integer)
     var
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
     begin
-        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocumentEntryNo);
         EDocPaymentOccurrence.SetRange("Source Occurrence ID", SourceOccurrenceID);
         EDocPaymentOccurrence.SetRange(Type, OccurrenceType);
         if not EDocPaymentOccurrence.IsEmpty() then
             exit;
 
         EDocPaymentOccurrence.Init();
-        EDocPaymentOccurrence."E-Document Entry No." := EDocument."Entry No";
+        EDocPaymentOccurrence."E-Document Entry No." := EDocumentEntryNo;
         EDocPaymentOccurrence.Type := OccurrenceType;
         EDocPaymentOccurrence."Source Occurrence ID" := SourceOccurrenceID;
         EDocPaymentOccurrence."Original Occurrence Entry No." := OriginalOccurrenceEntryNo;
@@ -129,6 +127,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         if not SalesInvoiceHeader.Get(InvoiceCustLedgerEntry."Document No.") then
             exit(false);
 
+        EDocument.SetLoadFields("Entry No");
         EDocument.SetRange("Document Record ID", SalesInvoiceHeader.RecordId);
         EDocument.SetRange(Direction, EDocument.Direction::Outgoing);
         EDocument.SetRange("Document Type", EDocument."Document Type"::"Sales Invoice");

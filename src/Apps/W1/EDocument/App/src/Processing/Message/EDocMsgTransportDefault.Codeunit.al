@@ -14,10 +14,17 @@ codeunit 6534 "E-Doc. Msg. Transport Default" implements IMessageSender
     InherentPermissions = X;
 
     procedure SendMessage(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context")
+    var
+        MessageTransportErrorInfo: ErrorInfo;
     begin
-        Error(MessageTransportNotSupportedErr, EDocumentService.Code);
+        MessageTransportErrorInfo.Message := StrSubstNo(MessageTransportNotSupportedErr, EDocumentService.Code);
+        MessageTransportErrorInfo.RecordId := EDocumentService.RecordId;
+        MessageTransportErrorInfo.PageNo := Page::"E-Document Service";
+        MessageTransportErrorInfo.AddNavigationAction(ShowEDocumentServiceLbl);
+        Error(MessageTransportErrorInfo);
     end;
 
     var
         MessageTransportNotSupportedErr: Label 'E-Document service %1 does not support sending E-Document messages.', Comment = '%1 = E-Document service code';
+        ShowEDocumentServiceLbl: Label 'Open E-Document Service';
 }
