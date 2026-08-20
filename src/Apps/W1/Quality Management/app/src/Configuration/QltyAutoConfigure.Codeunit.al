@@ -1159,6 +1159,7 @@ codeunit 20402 "Qlty. Auto Configure"
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempSalesLine: Record "Sales Line" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempWarehouseReceiptLine: Record "Warehouse Receipt Line" temporary;
     begin
         EnsureSourceConfigWithFilterExists(
@@ -1186,6 +1187,42 @@ codeunit 20402 "Qlty. Auto Configure"
             Database::"Sales Line",
             TempSalesLine.FieldNo("Line No."),
             '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Document No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Line No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Document Line No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Item No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Item No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Qty. (Base)"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Variant Code"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Variant Code"),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Location Code"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Location Code"),
+            '');
     end;
 
     /// <summary>
@@ -1195,6 +1232,7 @@ codeunit 20402 "Qlty. Auto Configure"
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempPurchaseLine: Record "Purchase Line" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempWarehouseReceiptLine: Record "Warehouse Receipt Line" temporary;
     begin
         EnsureSourceConfigWithFilterExists(
@@ -1221,6 +1259,42 @@ codeunit 20402 "Qlty. Auto Configure"
             TempWarehouseReceiptLine.FieldNo("Source Line No."),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Line No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Document No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Line No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Document Line No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Item No."),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Item No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Qty. (Base)"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Variant Code"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Source Variant Code"),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Location Code"),
+            Database::"Qlty. Inspection Header",
+            TempQltyInspectionHeader.FieldNo("Location Code"),
             '');
     end;
 

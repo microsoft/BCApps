@@ -540,21 +540,24 @@ codeunit 20408 "Qlty. Traversal"
     end;
 
     /// <summary>
-    /// Recursively resolves a target field's display override or source caption through configured table chains.
+    /// Searches for an inspection field mapping from a source table through enabled, outgoing chained-table configurations.
+    /// At each level, checks each configuration for a direct mapping to the requested field. If a chained-table configuration
+    /// has no display override, the search continues from its target table to support multi-level mappings.
+    /// Returns the first configured display override found. If a matching mapping has no display override, its source field
+    /// caption is returned through <paramref name="BackupFieldCaption"/>.
     /// </summary>
-    /// <param name="ListOfConsideredSourceRecords">The configuration codes already inspected during traversal.</param>
-    /// <param name="Recursion">The remaining traversal depth.</param>
-    /// <param name="FromTable">The source table number for the current relationship.</param>
-    /// <param name="ToTable">The target table number for the current relationship.</param>
-    /// <param name="TestFieldNo">The target field number whose caption is resolved.</param>
-    /// <param name="BackupFieldCaption">The source field caption retained when no display override exists.</param>
-    /// <returns>The configured display override, or blank when traversal finds none.</returns>
+    /// <param name="ListOfConsideredSourceRecords">The source configuration codes already visited. Used to prevent repeated traversal and circular dependencies.</param>
+    /// <param name="Recursion">The remaining number of chained-table levels that can be searched.</param>
+    /// <param name="FromTable">The table from which enabled source configurations are searched at the current traversal level.</param>
+    /// <param name="ToTable">The table containing the field for which an inspection mapping is sought.</param>
+    /// <param name="TestFieldNo">The number of the field for which an inspection mapping is sought.</param>
+    /// <param name="BackupFieldCaption">Receives the mapped source field caption when a matching mapping has no display override.</param>
+    /// <returns>The first configured display override found, or blank if none is found.</returns>
     local procedure GetSourceFieldInfoFromChain(var ListOfConsideredSourceRecords: List of [Text]; Recursion: Integer; FromTable: Integer; ToTable: Integer; TestFieldNo: Integer; var BackupFieldCaption: Text) ResultText: Text
     var
         CurrentField: Record Field;
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
-        ChainedQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         Test: Text;
     begin
         Recursion -= 1;
@@ -563,13 +566,14 @@ codeunit 20408 "Qlty. Traversal"
 
         QltyInspectSourceConfig.SetRange(Enabled, true);
         QltyInspectSourceConfig.SetRange("From Table No.", FromTable);
-        QltyInspectSourceConfig.SetRange("To Table No.", ToTable);
         if not QltyInspectSourceConfig.FindSet() then
             exit;
 
         repeat
             if not ListOfConsideredSourceRecords.Contains(QltyInspectSourceConfig.Code) then begin
                 ListOfConsideredSourceRecords.Add(QltyInspectSourceConfig.Code);
+
+                QltyInspectSrcFldConf.Reset();
                 QltyInspectSrcFldConf.SetRange(Code, QltyInspectSourceConfig.Code);
                 QltyInspectSrcFldConf.SetRange("To Table No.", ToTable);
                 QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
@@ -587,58 +591,21 @@ codeunit 20408 "Qlty. Traversal"
                     if ResultText <> '' then
                         exit;
                 end;
+
+                if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::"Chained table" then begin
+                    Test := GetSourceFieldInfoFromChain(
+                        ListOfConsideredSourceRecords,
+                        Recursion,
+                        QltyInspectSourceConfig."To Table No.",
+                        ToTable,
+                        TestFieldNo,
+                        BackupFieldCaption);
+                    if Test <> '' then begin
+                        ResultText := Test;
+                        exit;
+                    end;
+                end;
             end;
-
-            ChainedQltyInspectSourceConfig.Reset();
-            ChainedQltyInspectSourceConfig.SetRange(Enabled, true);
-            ChainedQltyInspectSourceConfig.SetRange("To Table No.", ToTable);
-            ChainedQltyInspectSourceConfig.SetRange("To Type", ChainedQltyInspectSourceConfig."To Type"::"Chained table");
-            if ChainedQltyInspectSourceConfig.FindSet() then
-                repeat
-                    if not ListOfConsideredSourceRecords.Contains(ChainedQltyInspectSourceConfig.Code) then begin
-                        QltyInspectSrcFldConf.Reset();
-                        QltyInspectSrcFldConf.SetRange(Code, QltyInspectSrcFldConf.Code);
-                        QltyInspectSrcFldConf.SetRange("To Table No.", ToTable);
-                        QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
-                        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
-                        Test := GetSourceFieldInfoFromChain(
-                            ListOfConsideredSourceRecords,
-                            Recursion,
-                            ChainedQltyInspectSourceConfig."From Table No.",
-                            ChainedQltyInspectSourceConfig."To Table No.",
-                            TestFieldNo,
-                            BackupFieldCaption);
-                        if Test <> '' then
-                            ResultText := Test;
-                    end;
-                until (ChainedQltyInspectSourceConfig.Next() = 0) or (ResultText <> '');
-
-            if ResultText <> '' then
-                exit;
-
-            ChainedQltyInspectSourceConfig.Reset();
-            ChainedQltyInspectSourceConfig.SetRange(Enabled, true);
-            ChainedQltyInspectSourceConfig.SetRange("To Table No.", FromTable);
-            ChainedQltyInspectSourceConfig.SetRange("To Type", ChainedQltyInspectSourceConfig."To Type"::"Chained table");
-            if ChainedQltyInspectSourceConfig.FindSet() then
-                repeat
-                    if not ListOfConsideredSourceRecords.Contains(ChainedQltyInspectSourceConfig.Code) then begin
-                        QltyInspectSrcFldConf.Reset();
-                        QltyInspectSrcFldConf.SetRange(Code, QltyInspectSrcFldConf.Code);
-                        QltyInspectSrcFldConf.SetRange("To Table No.", FromTable);
-                        QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
-                        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
-                        Test := GetSourceFieldInfoFromChain(
-                            ListOfConsideredSourceRecords,
-                            Recursion,
-                            ChainedQltyInspectSourceConfig."From Table No.",
-                            ChainedQltyInspectSourceConfig."To Table No.",
-                            TestFieldNo,
-                            BackupFieldCaption);
-                        if Test <> '' then
-                            ResultText := Test;
-                    end;
-                until (ChainedQltyInspectSourceConfig.Next() = 0) or (ResultText <> '')
         until QltyInspectSourceConfig.Next() = 0;
     end;
 
