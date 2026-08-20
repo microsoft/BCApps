@@ -75,8 +75,8 @@ table 7092 "Expense Policy"
 
     trigger OnModify()
     begin
-        // Bump the policy version on every change so flags evaluated against an earlier
-        // version can be detected as no longer current (see the flag's Is Current FlowField).
+        // Bump the policy version on every change so evaluations against an earlier
+        // version can be detected as no longer current (see the evaluation's Is Current FlowField).
         "Version" += 1;
     end;
 

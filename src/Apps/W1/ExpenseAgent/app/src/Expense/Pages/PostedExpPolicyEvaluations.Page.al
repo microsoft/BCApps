@@ -4,17 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7124 "Expense Policy Flags"
+page 7109 "Posted Exp. Policy Evaluations"
 {
     PageType = List;
-    SourceTable = "Expense Policy Flag";
-    SourceTableView = sorting("Flagged At") order(descending);
+    SourceTable = "Posted Exp. Policy Evaluation";
+    SourceTableView = sorting("Evaluated At") order(descending);
     Caption = 'Evaluated Policies';
     Editable = false;
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
-    CardPageId = "Expense Policy Flag Card";
+    CardPageId = "Posted Policy Evaluation Card";
 
     layout
     {
@@ -41,18 +41,18 @@ page 7124 "Expense Policy Flags"
 
                     trigger OnDrillDown()
                     var
-                        ExpensePolicyFlagCard: Page "Expense Policy Flag Card";
+                        PostedPolicyEvaluationCard: Page "Posted Policy Evaluation Card";
                     begin
-                        ExpensePolicyFlagCard.SetRecord(Rec);
-                        ExpensePolicyFlagCard.RunModal();
+                        PostedPolicyEvaluationCard.SetRecord(Rec);
+                        PostedPolicyEvaluationCard.RunModal();
                     end;
                 }
                 field("Policy Text"; Rec."Policy Text")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the policy text that the AI evaluated, captured when the flag was created.';
+                    ToolTip = 'Specifies the policy text that the AI evaluated.';
                 }
-                field("Flagged At"; Rec."Flagged At")
+                field("Evaluated At"; Rec."Evaluated At")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Evaluated At';

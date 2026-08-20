@@ -56,11 +56,11 @@ page 6999 "Expense Report SubPage"
 
                     trigger OnDrillDown()
                     var
-                        ExpensePolicyFlag: Record "Expense Policy Flag";
+                        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
                     begin
-                        ExpensePolicyFlag.SetRange("Subject Type", "Expense Policy Subject"::"Expense Report Line");
-                        ExpensePolicyFlag.SetRange("Subject System Id", Rec.SystemId);
-                        Page.RunModal(Page::"Expense Policy Flags", ExpensePolicyFlag);
+                        ExpensePolicyEvaluation.SetRange("Subject Type", "Expense Policy Subject"::"Expense Report Line");
+                        ExpensePolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+                        Page.RunModal(Page::"Expense Policy Evaluations", ExpensePolicyEvaluation);
                     end;
                 }
                 field("Expense Location"; Rec."Expense Location")

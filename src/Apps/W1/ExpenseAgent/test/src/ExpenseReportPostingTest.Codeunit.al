@@ -3533,7 +3533,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
         CurrentUserSetup: Record "User Setup";
         FinalApproverUserSetup: Record "User Setup";
         EvaluatedVersion: Integer;
@@ -3557,7 +3557,7 @@ codeunit 148302 "Expense Report Posting Test"
             ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
             ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
 
-        // [GIVEN] A policy for the category and a violation flag captured on the line, then the line is marked evaluated.
+        // [GIVEN] A policy for the category and a non-compliant evaluation captured on the line, then the line is marked evaluated.
         ExpensePolicy.Init();
         ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
         ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
@@ -3565,14 +3565,14 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
 
-        ExpensePolicyFlag.Init();
-        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
-        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
-        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
-        ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
-        ExpensePolicyFlag.Insert(true);
+        ExpensePolicyEvaluation.Init();
+        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyEvaluation.Reason := 'Receipt includes alcohol.';
+        ExpensePolicyEvaluation.Insert(true);
 
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -3603,7 +3603,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
         CurrentUserSetup: Record "User Setup";
         FinalApproverUserSetup: Record "User Setup";
     begin
@@ -3614,7 +3614,7 @@ codeunit 148302 "Expense Report Posting Test"
         SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
 
         // [GIVEN] The line is evaluated then invalidated so it is now Stale.
-        LibraryExpense.CreateExpensePolicyFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Initial evaluation passed.', true);
+        LibraryExpense.CreateExpensePolicyEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Initial evaluation passed.', true);
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -3705,7 +3705,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         CurrentUserSetup: Record "User Setup";
         FinalApproverUserSetup: Record "User Setup";
@@ -3715,7 +3715,7 @@ codeunit 148302 "Expense Report Posting Test"
         SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
 
         // [GIVEN] The line is evaluated then invalidated so it is Stale.
-        LibraryExpense.CreateExpensePolicyFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Initial evaluation passed.', true);
+        LibraryExpense.CreateExpensePolicyEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Initial evaluation passed.', true);
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
 
@@ -3768,7 +3768,7 @@ codeunit 148302 "Expense Report Posting Test"
 
     [Test]
     [HandlerFunctions('PostConfirmHandler')]
-    procedure PolicyFlagsCopiedToPostedExpenseReport()
+    procedure PolicyEvaluationsCopiedToPostedExpenseReport()
     var
         Employee: Record Employee;
         ExpenseUser: Record "Expense User";
@@ -3776,13 +3776,13 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
-        PostedExpPolicyFlag: Record "Posted Exp. Policy Flag";
+        PostedExpPolicyEvaluation: Record "Posted Exp. Policy Evaluation";
         ExpenseReportPost: Codeunit "Expense Report-Post";
     begin
-        // [SCENARIO] Only current policy flags on a report line are copied to the Posted Expense Policy Flag table on posting,
-        //            and all open flags are removed with the line.
+        // [SCENARIO] Only current policy evaluations on a report line are copied to the Posted Expense Policy Evaluation table on posting,
+        //            and all open evaluations are removed with the line.
         Initialize();
 
         // [GIVEN] An expense user and a refundable category with an expense report line.
@@ -3797,7 +3797,7 @@ codeunit 148302 "Expense Report Posting Test"
             ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
             ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
 
-        // [GIVEN] A policy for the category and a violation flag captured on the line.
+        // [GIVEN] A policy for the category and a non-compliant evaluation captured on the line.
         ExpensePolicy.Init();
         ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
         ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
@@ -3805,31 +3805,31 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
 
-        ExpensePolicyFlag.Init();
-        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
-        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
-        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
-        ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
-        ExpensePolicyFlag.Insert(true);
+        ExpensePolicyEvaluation.Init();
+        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyEvaluation.Reason := 'Receipt includes alcohol.';
+        ExpensePolicyEvaluation.Insert(true);
 
-        // [GIVEN] The policy is changed and evaluated again, leaving the previous version's flag as open-line history.
+        // [GIVEN] The policy is changed and evaluated again, leaving the previous evaluation as open-line history.
         ExpensePolicy."Policy Text" := 'No alcohol or tobacco on company expenses.';
         ExpensePolicy.Modify(true);
 
-        ExpensePolicyFlag.Init();
-        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
-        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
-        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
-        ExpensePolicyFlag.Reason := 'Receipt includes alcohol and tobacco.';
-        ExpensePolicyFlag.Insert(true);
+        ExpensePolicyEvaluation.Init();
+        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyEvaluation.Reason := 'Receipt includes alcohol and tobacco.';
+        ExpensePolicyEvaluation.Insert(true);
 
-        ExpensePolicyFlag.Reset();
-        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
-        Assert.RecordCount(ExpensePolicyFlag, 2);
+        ExpensePolicyEvaluation.Reset();
+        ExpensePolicyEvaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        Assert.RecordCount(ExpensePolicyEvaluation, 2);
 
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
@@ -3840,21 +3840,21 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
-        // [THEN] The posted line carries only the current policy flag.
+        // [THEN] The posted line carries only the current policy evaluation.
         FindPostedExpenseReportLine(PostedExpenseReportLine, ExpenseUser);
         Assert.AreEqual(ExpenseReportLine."Policies Evaluated At", PostedExpenseReportLine."Policies Evaluated At", 'The posted line must preserve when policies were evaluated.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine."Policy Status At Posting", 'The posted line must preserve the Flagged status.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine.GetPolicyStatus(), 'The posted status accessor must return the posting snapshot.');
-        PostedExpPolicyFlag.SetRange("Subject System Id", PostedExpenseReportLine.SystemId);
-        Assert.RecordCount(PostedExpPolicyFlag, 1);
-        PostedExpPolicyFlag.FindFirst();
-        Assert.AreEqual(ExpensePolicy."Version", PostedExpPolicyFlag."Policy Version", 'The posted flag must reference the current policy version.');
-        Assert.AreEqual('Receipt includes alcohol and tobacco.', PostedExpPolicyFlag.Reason, 'The posted flag must contain the current policy verdict.');
+        PostedExpPolicyEvaluation.SetRange("Subject System Id", PostedExpenseReportLine.SystemId);
+        Assert.RecordCount(PostedExpPolicyEvaluation, 1);
+        PostedExpPolicyEvaluation.FindFirst();
+        Assert.AreEqual(ExpensePolicy."Version", PostedExpPolicyEvaluation."Policy Version", 'The posted evaluation must reference the current policy version.');
+        Assert.AreEqual('Receipt includes alcohol and tobacco.', PostedExpPolicyEvaluation.Reason, 'The posted evaluation must contain the current policy verdict.');
 
-        // [THEN] Neither the current nor superseded open flag remains.
-        ExpensePolicyFlag.Reset();
-        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
-        Assert.RecordIsEmpty(ExpensePolicyFlag);
+        // [THEN] Neither the current nor superseded open evaluation remains.
+        ExpensePolicyEvaluation.Reset();
+        ExpensePolicyEvaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        Assert.RecordIsEmpty(ExpensePolicyEvaluation);
 
         // [THEN] The expected posting confirmation was shown (the handler consumed the enqueued text).
         LibraryVariableStorage.AssertEmpty();

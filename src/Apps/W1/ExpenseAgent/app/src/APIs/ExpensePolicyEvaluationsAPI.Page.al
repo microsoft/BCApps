@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7126 "Expense Policy Flags API"
+page 7126 "Expense Policy Evaluations API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
@@ -16,7 +16,7 @@ page 7126 "Expense Policy Flags API"
     EntitySetName = 'expensePolicyEvaluations';
     PageType = API;
     ODataKeyFields = SystemId;
-    SourceTable = "Expense Policy Flag";
+    SourceTable = "Expense Policy Evaluation";
     AboutText = 'Provides access to expense policy evaluation results';
     InsertAllowed = true;
     ModifyAllowed = false;
@@ -67,7 +67,7 @@ page 7126 "Expense Policy Flags API"
                 {
                     Caption = 'Reason';
                 }
-                field(evaluatedAt; Rec."Flagged At")
+                field(evaluatedAt; Rec."Evaluated At")
                 {
                     Caption = 'Evaluated At';
                     Editable = false;

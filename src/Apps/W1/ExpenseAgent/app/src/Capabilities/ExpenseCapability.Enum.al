@@ -64,7 +64,7 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
-    /// The backend supports AI-assisted policy evaluation (soft policy flags). Reported
+    /// The backend supports AI-assisted policy evaluation. Reported
     /// enabled only when the admin has turned on "Evaluate Policies" in the Expense Agent
     /// Setup. A backend that predates this feature omits the value entirely, so the frontend
     /// can treat an absent capability as "backend not ready".

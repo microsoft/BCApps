@@ -591,17 +591,17 @@ codeunit 148300 "Library - Expense"
         ExpensePolicy.Insert(true);
     end;
 
-    internal procedure CreateExpensePolicyFlag(var ExpensePolicyFlag: Record "Expense Policy Flag"; ExpenseReportLine: Record "Expense Report Line"; ExpensePolicy: Record "Expense Policy"; FlagDescription: Text[2048]; Compliant: Boolean)
+    internal procedure CreateExpensePolicyEvaluation(var ExpensePolicyEvaluation: Record "Expense Policy Evaluation"; ExpenseReportLine: Record "Expense Report Line"; ExpensePolicy: Record "Expense Policy"; EvaluationReason: Text[2048]; Compliant: Boolean)
     begin
-        ExpensePolicyFlag.Init();
-        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
-        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
-        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
-        ExpensePolicyFlag.Reason := FlagDescription;
-        ExpensePolicyFlag.Compliant := Compliant;
-        ExpensePolicyFlag.Insert(true);
+        ExpensePolicyEvaluation.Init();
+        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyEvaluation.Reason := EvaluationReason;
+        ExpensePolicyEvaluation.Compliant := Compliant;
+        ExpensePolicyEvaluation.Insert(true);
     end;
 
     procedure CleanUpBeforeTesting()
@@ -611,7 +611,7 @@ codeunit 148300 "Library - Expense"
         ExpenseUser: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpensePolicy: Record "Expense Policy";
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
     begin
         ExpenseGroup.DeleteAll();
         ExpenseUser.DeleteAll();
@@ -620,7 +620,7 @@ codeunit 148300 "Library - Expense"
         // Codeunit test isolation keeps data written by earlier test methods, so shared policy
         // master data must be reset between tests. A leaked blank-category policy in particular
         // would otherwise apply to every report line and skew policy-status assertions.
-        ExpensePolicyFlag.DeleteAll();
+        ExpensePolicyEvaluation.DeleteAll();
         ExpensePolicy.DeleteAll();
 
         // Ensure the agent is disabled so tests that toggle approval workflow don't fail

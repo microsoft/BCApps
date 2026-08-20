@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7125 "Expense Policy Flag Card"
+page 7106 "Posted Policy Evaluation Card"
 {
     PageType = Card;
-    SourceTable = "Expense Policy Flag";
+    SourceTable = "Posted Exp. Policy Evaluation";
     Caption = 'Policy Evaluation Details';
     Editable = false;
     InsertAllowed = false;
@@ -28,12 +28,17 @@ page 7125 "Expense Policy Flag Card"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the type of record this policy evaluation belongs to.';
                 }
+                field(Compliant; Rec.Compliant)
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether the expense complied with this policy when it was evaluated.';
+                }
                 field("Expense Category Code"; Rec."Expense Category Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the expense category the evaluated policy applies to.';
                 }
-                field("Flagged At"; Rec."Flagged At")
+                field("Evaluated At"; Rec."Evaluated At")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Evaluated At';

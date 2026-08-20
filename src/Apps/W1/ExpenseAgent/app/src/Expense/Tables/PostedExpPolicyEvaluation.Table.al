@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7105 "Posted Exp. Policy Flag"
+table 7105 "Posted Exp. Policy Evaluation"
 {
     Access = Internal;
-    Caption = 'Posted Expense Policy Flag';
+    Caption = 'Posted Expense Policy Evaluation';
     DataClassification = CustomerContent;
     ReplicateData = false;
 
@@ -56,7 +56,7 @@ table 7105 "Posted Exp. Policy Flag"
             Caption = 'Policy Text';
             DataClassification = CustomerContent;
         }
-        field(9; "Flagged At"; DateTime)
+        field(9; "Evaluated At"; DateTime)
         {
             Caption = 'Evaluated At';
             DataClassification = CustomerContent;
@@ -84,7 +84,7 @@ table 7105 "Posted Exp. Policy Flag"
         key(Category; "Expense Category Code")
         {
         }
-        key(FlaggedAt; "Flagged At")
+        key(EvaluatedAt; "Evaluated At")
         {
         }
     }

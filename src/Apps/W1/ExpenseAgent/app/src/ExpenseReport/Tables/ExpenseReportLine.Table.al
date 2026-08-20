@@ -33,7 +33,7 @@ table 6907 "Expense Report Line"
     DataClassification = CustomerContent;
     DrillDownPageId = "Expense Report Lines";
     LookupPageId = "Expense Report Lines";
-    Permissions = TableData "Expense Policy Flag" = d;
+    Permissions = TableData "Expense Policy Evaluation" = d;
     ReplicateData = false;
 
     fields
@@ -1092,7 +1092,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Has Policy Violation';
             FieldClass = FlowField;
-            CalcFormula = exist("Expense Policy Flag" where("Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Evaluated Policy Version"), "Compliant" = const(false)));
+            CalcFormula = exist("Expense Policy Evaluation" where("Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Evaluated Policy Version"), "Compliant" = const(false)));
             Editable = false;
         }
     }
@@ -1133,16 +1133,16 @@ table 6907 "Expense Report Line"
     var
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
     begin
         DeleteAssociatedRecords();
 
         RemoveExpenseReportNoInExpense();
 
-        ExpensePolicyFlag.SetRange("Subject System Id", Rec.SystemId);
-        ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
-        if not ExpensePolicyFlag.IsEmpty() then
-            ExpensePolicyFlag.DeleteAll();
+        ExpensePolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+        ExpensePolicyEvaluation.SetRange("Subject Type", ExpensePolicyEvaluation."Subject Type"::"Expense Report Line");
+        if not ExpensePolicyEvaluation.IsEmpty() then
+            ExpensePolicyEvaluation.DeleteAll();
 
         ExpenseReportRuleViolation.SetRange("Expense Report No.", Rec."Document No.");
         ExpenseReportRuleViolation.SetRange("Report Line No.", Rec."Line No.");
@@ -1246,7 +1246,7 @@ table 6907 "Expense Report Line"
             exit("Expense Policy Status"::Stale);
 
         // Policy changes do not rewrite every affected line. Currency is derived lazily by comparing
-        // the currently applicable policy versions with the flags recorded for this subject version.
+        // the currently applicable policy versions with the evaluations recorded for this subject version.
         PoliciesToEvalBuilder.GetEvaluationState(Rec, HasApplicablePoliciesResult, HasOutstandingPolicies, HasPoliciesChangedSinceEvaluation);
 
         if not HasApplicablePoliciesResult then
@@ -1266,27 +1266,27 @@ table 6907 "Expense Report Line"
 
     internal procedure HasCurrentPolicyViolation(): Boolean
     var
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
     begin
         // A line is only Flagged by a violation that still reflects the current policy set. Superseded
-        // non-compliant flags (policy since changed, disabled, or deleted) are kept as history but must
-        // not keep a line Flagged - any policy change bumps the policy Version, so the flag's captured
+        // non-compliant evaluations (policy since changed, disabled, or deleted) are kept as history but must
+        // not keep a line Flagged - any policy change bumps the policy Version, so the evaluation's captured
         // Policy Version no longer matches and Is Current reads false. The raw "Has Policy Violation"
-        // FlowField is the cheap gate; this refines it to current flags only.
+        // FlowField is the cheap gate; this refines it to current non-compliant evaluations only.
         Rec.CalcFields("Has Policy Violation");
         if not Rec."Has Policy Violation" then
             exit(false);
 
-        ExpensePolicyFlag.SetRange("Subject System Id", Rec.SystemId);
-        ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
-        ExpensePolicyFlag.SetRange("Subject Version", Rec."Evaluated Policy Version");
-        ExpensePolicyFlag.SetRange(Compliant, false);
-        ExpensePolicyFlag.SetAutoCalcFields("Is Current");
-        if ExpensePolicyFlag.FindSet() then
+        ExpensePolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+        ExpensePolicyEvaluation.SetRange("Subject Type", ExpensePolicyEvaluation."Subject Type"::"Expense Report Line");
+        ExpensePolicyEvaluation.SetRange("Subject Version", Rec."Evaluated Policy Version");
+        ExpensePolicyEvaluation.SetRange(Compliant, false);
+        ExpensePolicyEvaluation.SetAutoCalcFields("Is Current");
+        if ExpensePolicyEvaluation.FindSet() then
             repeat
-                if ExpensePolicyFlag."Is Current" then
+                if ExpensePolicyEvaluation."Is Current" then
                     exit(true);
-            until ExpensePolicyFlag.Next() = 0;
+            until ExpensePolicyEvaluation.Next() = 0;
         exit(false);
     end;
 

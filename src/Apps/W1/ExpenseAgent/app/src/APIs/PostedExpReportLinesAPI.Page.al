@@ -303,7 +303,7 @@ page 6913 "Posted Exp. Report Lines API"
                     EntitySetName = 'postedExpenseReportLineAttachments';
                     SubPageLink = "Document Id" = field(SystemId);
                 }
-                part(expensePolicyEvaluations; "Posted Exp. Policy Flags API")
+                part(expensePolicyEvaluations; "Posted Policy Evaluations API")
                 {
                     EntityName = 'postedExpensePolicyEvaluation';
                     EntitySetName = 'postedExpensePolicyEvaluations';

@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7096 "Expense Policy Flag"
+table 7096 "Expense Policy Evaluation"
 {
     Access = Internal;
-    Caption = 'Expense Policy Flag';
+    Caption = 'Expense Policy Evaluation';
     DataClassification = CustomerContent;
     ReplicateData = false;
 
@@ -56,7 +56,7 @@ table 7096 "Expense Policy Flag"
             Caption = 'Policy Text';
             DataClassification = CustomerContent;
         }
-        field(9; "Flagged At"; DateTime)
+        field(9; "Evaluated At"; DateTime)
         {
             Caption = 'Evaluated At';
             DataClassification = CustomerContent;
@@ -85,7 +85,7 @@ table 7096 "Expense Policy Flag"
         key(Category; "Expense Category Code")
         {
         }
-        key(FlaggedAt; "Flagged At")
+        key(EvaluatedAt; "Evaluated At")
         {
         }
     }
@@ -94,11 +94,11 @@ table 7096 "Expense Policy Flag"
     var
         ExpensePolicy: Record "Expense Policy";
         ExpenseReportLine: Record "Expense Report Line";
-        ExistingFlag: Record "Expense Policy Flag";
+        ExistingEvaluation: Record "Expense Policy Evaluation";
     begin
-        "Flagged At" := CurrentDateTime();
+        "Evaluated At" := CurrentDateTime();
 
-        // A flag is an immutable evaluation record. It must reference a real report line and a real,
+        // An evaluation is immutable. It must reference a real report line and a real,
         // enabled policy that actually applies to that line; otherwise a caller could record a verdict
         // against a subject or policy that the evaluation model would never pair.
         if "Subject Type" <> "Subject Type"::"Expense Report Line" then
@@ -126,16 +126,16 @@ table 7096 "Expense Policy Flag"
         "Expense Category Code" := ExpensePolicy."Expense Category Code";
 
         // Block duplicate evaluations for the same subject+policy version combination.
-        if ExistingFlag.Get("Subject Type", "Subject System Id", "Policy System Id", "Subject Version", "Policy Version") then
+        if ExistingEvaluation.Get("Subject Type", "Subject System Id", "Policy System Id", "Subject Version", "Policy Version") then
             Error(DuplicateEvaluationErr);
     end;
 
     var
         DuplicateEvaluationErr: Label 'Policy evaluation already ran for this version of the record and policy.';
-        UnsupportedSubjectTypeErr: Label 'Only expense report line policy flags are supported.';
-        UnknownSubjectErr: Label 'The expense report line referenced by the policy flag does not exist.';
-        UnknownPolicyErr: Label 'The expense policy referenced by the policy flag does not exist.';
-        DisabledPolicyErr: Label 'A policy flag cannot be recorded for a disabled policy.';
+        UnsupportedSubjectTypeErr: Label 'Only expense report line policy evaluations are supported.';
+        UnknownSubjectErr: Label 'The expense report line referenced by the policy evaluation does not exist.';
+        UnknownPolicyErr: Label 'The expense policy referenced by the policy evaluation does not exist.';
+        DisabledPolicyErr: Label 'A policy evaluation cannot be recorded for a disabled policy.';
         InapplicablePolicyErr: Label 'The referenced policy does not apply to the expense report line''s category.';
         SubjectVersionChangedErr: Label 'The expense report line changed after policy evaluation started. Refresh the line and evaluate it again.';
         PolicyVersionChangedErr: Label 'The expense policy changed after policy evaluation started. Refresh the policy and evaluate it again.';

@@ -42,11 +42,11 @@ page 6993 "Posted Expense Report SubP."
 
                     trigger OnDrillDown()
                     var
-                        PostedExpPolicyFlag: Record "Posted Exp. Policy Flag";
+                        PostedExpPolicyEvaluation: Record "Posted Exp. Policy Evaluation";
                     begin
-                        PostedExpPolicyFlag.SetRange("Subject Type", "Expense Policy Subject"::"Expense Report Line");
-                        PostedExpPolicyFlag.SetRange("Subject System Id", Rec.SystemId);
-                        Page.RunModal(Page::"Posted Exp. Policy Flags", PostedExpPolicyFlag);
+                        PostedExpPolicyEvaluation.SetRange("Subject Type", "Expense Policy Subject"::"Expense Report Line");
+                        PostedExpPolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+                        Page.RunModal(Page::"Posted Exp. Policy Evaluations", PostedExpPolicyEvaluation);
                     end;
                 }
                 field(Description; Rec.Description)

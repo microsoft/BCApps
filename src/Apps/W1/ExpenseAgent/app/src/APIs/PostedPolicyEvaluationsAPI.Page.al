@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7105 "Posted Exp. Policy Flags API"
+page 7105 "Posted Policy Evaluations API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
@@ -20,7 +20,7 @@ page 7105 "Posted Exp. Policy Flags API"
     DeleteAllowed = false;
     ModifyAllowed = false;
     DataAccessIntent = ReadOnly;
-    SourceTable = "Posted Exp. Policy Flag";
+    SourceTable = "Posted Exp. Policy Evaluation";
     AboutText = 'Provides access to posted expense policy evaluation results';
 
     layout
@@ -66,7 +66,7 @@ page 7105 "Posted Exp. Policy Flags API"
                 {
                     Caption = 'Reason';
                 }
-                field(evaluatedAt; Rec."Flagged At")
+                field(evaluatedAt; Rec."Evaluated At")
                 {
                     Caption = 'Evaluated At';
                 }

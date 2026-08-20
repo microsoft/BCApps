@@ -38,8 +38,8 @@ codeunit 6987 "Expense Report-Post"
                   TableData "Posted Exp. Rep. Line Per Diem" = rimd,
                   TableData "Posted Exp. Rep. Line Particip" = rimd,
                   TableData "Posted Exp. Rep. Line VAT Spec" = rimd,
-                  TableData "Expense Policy Flag" = rd,
-                  TableData "Posted Exp. Policy Flag" = i,
+                  TableData "Expense Policy Evaluation" = rd,
+                  TableData "Posted Exp. Policy Evaluation" = i,
                   TableData "Expense Category" = r,
                   TableData "Expense Posting Group" = r,
                   TableData "Expense User" = r;
@@ -205,7 +205,7 @@ codeunit 6987 "Expense Report-Post"
                 InsertPstdExpReportLinePerDiem(PostedExpenseReportLine, ExpenseReportLine);
                 InsertPstdExpReportLineItemization(PostedExpenseReportLine, ExpenseReportLine);
                 InsertPstdExpReportLineVATSpecs(PostedExpenseReportLine, ExpenseReportLine);
-                InsertPstdExpPolicyFlags(PostedExpenseReportLine, ExpenseReportLine);
+                InsertPostedPolicyEvaluations(PostedExpenseReportLine, ExpenseReportLine);
                 CreateSalesDocument(PostedExpenseReportHeader, PostedExpenseReportLine);
 
                 if PostedExpenseReportLine."Expense No." <> '' then
@@ -401,25 +401,25 @@ codeunit 6987 "Expense Report-Post"
             until ExpenseReportLineItem.Next() = 0;
     end;
 
-    local procedure InsertPstdExpPolicyFlags(PstdExpenseReportLine: Record "Posted Expense Report Line"; ExpenseReportLine: Record "Expense Report Line")
+    local procedure InsertPostedPolicyEvaluations(PstdExpenseReportLine: Record "Posted Expense Report Line"; ExpenseReportLine: Record "Expense Report Line")
     var
-        ExpensePolicyFlag: Record "Expense Policy Flag";
-        PostedExpPolicyFlag: Record "Posted Exp. Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        PostedExpPolicyEvaluation: Record "Posted Exp. Policy Evaluation";
     begin
         // Preserve the policy verdicts that were in effect at posting as an immutable audit
         // record, re-pointed to the posted line. Only the currently evaluated version is copied;
-        // superseded (older-version) flags are historical noise on the open line.
-        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
-        ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
-        ExpensePolicyFlag.SetRange("Subject Version", ExpenseReportLine."Evaluated Policy Version");
-        ExpensePolicyFlag.SetRange("Is Current", true);
-        if ExpensePolicyFlag.FindSet() then
+        // superseded evaluations are historical noise on the open line.
+        ExpensePolicyEvaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        ExpensePolicyEvaluation.SetRange("Subject Type", ExpensePolicyEvaluation."Subject Type"::"Expense Report Line");
+        ExpensePolicyEvaluation.SetRange("Subject Version", ExpenseReportLine."Evaluated Policy Version");
+        ExpensePolicyEvaluation.SetRange("Is Current", true);
+        if ExpensePolicyEvaluation.FindSet() then
             repeat
-                PostedExpPolicyFlag.Init();
-                PostedExpPolicyFlag.TransferFields(ExpensePolicyFlag);
-                PostedExpPolicyFlag."Subject System Id" := PstdExpenseReportLine.SystemId;
-                PostedExpPolicyFlag.Insert();
-            until ExpensePolicyFlag.Next() = 0;
+                PostedExpPolicyEvaluation.Init();
+                PostedExpPolicyEvaluation.TransferFields(ExpensePolicyEvaluation);
+                PostedExpPolicyEvaluation."Subject System Id" := PstdExpenseReportLine.SystemId;
+                PostedExpPolicyEvaluation.Insert();
+            until ExpensePolicyEvaluation.Next() = 0;
     end;
 
     local procedure DeleteRelatedExpenseReportLines(ExpenseReportHeader: Record "Expense Report Header")

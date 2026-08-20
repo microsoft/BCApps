@@ -6,7 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 
-codeunit 148344 "Expense Policy Flags API Test"
+codeunit 148344 "Expense Policy Evaluations API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -24,40 +24,40 @@ codeunit 148344 "Expense Policy Flags API Test"
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
 
     [Test]
-    procedure PolicyFlagAPIInsertsFlagWithRequiredVersions()
+    procedure PolicyEvaluationAPIInsertsFlagWithRequiredVersions()
     var
         ExpensePolicy: Record "Expense Policy";
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
         ExpenseReportLine: Record "Expense Report Line";
         RequestBody: JsonObject;
         RequestBodyText: Text;
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO] The policy flag API accepts an evaluation result with current subject and policy versions.
+        // [SCENARIO] The policy evaluation API accepts an evaluation result with current subject and policy versions.
         Initialize();
         CreateReportLineAndPolicy(ExpenseReportLine, ExpensePolicy);
         CreateRequestBody(RequestBody, ExpenseReportLine, ExpensePolicy, true, true);
         RequestBody.WriteTo(RequestBodyText);
         Commit();
 
-        // [WHEN] The flag is posted through the API.
-        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Flags API", ServiceNameTok);
+        // [WHEN] The evaluation is posted through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 201);
 
-        // [THEN] The flag is stored with the supplied versions.
-        ExpensePolicyFlag.Get(
+        // [THEN] The evaluation is stored with the supplied versions.
+        ExpensePolicyEvaluation.Get(
             "Expense Policy Subject"::"Expense Report Line",
             ExpenseReportLine.SystemId,
             ExpensePolicy.SystemId,
             ExpenseReportLine."Policy Eval Version",
             ExpensePolicy."Version");
-        Assert.IsTrue(ExpensePolicyFlag.Compliant, 'The API must store the supplied compliance result.');
+        Assert.IsTrue(ExpensePolicyEvaluation.Compliant, 'The API must store the supplied compliance result.');
         CompleteTest();
     end;
 
     [Test]
-    procedure PolicyFlagAPIRejectsMissingSubjectVersion()
+    procedure PolicyEvaluationAPIRejectsMissingSubjectVersion()
     var
         ExpensePolicy: Record "Expense Policy";
         ExpenseReportLine: Record "Expense Report Line";
@@ -66,23 +66,23 @@ codeunit 148344 "Expense Policy Flags API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO] The policy flag API requires the subject version.
+        // [SCENARIO] The policy evaluation API requires the subject version.
         Initialize();
         CreateReportLineAndPolicy(ExpenseReportLine, ExpensePolicy);
         CreateRequestBody(RequestBody, ExpenseReportLine, ExpensePolicy, false, true);
         RequestBody.WriteTo(RequestBodyText);
         Commit();
 
-        // [WHEN] A flag without subjectVersion is posted.
+        // [WHEN] An evaluation without subjectVersion is posted.
         // [THEN] The API rejects the request.
-        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Flags API", ServiceNameTok);
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
         CompleteTest();
     end;
 
     [Test]
-    procedure PolicyFlagAPIRejectsMissingPolicyVersion()
+    procedure PolicyEvaluationAPIRejectsMissingPolicyVersion()
     var
         ExpensePolicy: Record "Expense Policy";
         ExpenseReportLine: Record "Expense Report Line";
@@ -91,16 +91,16 @@ codeunit 148344 "Expense Policy Flags API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO] The policy flag API requires the policy version.
+        // [SCENARIO] The policy evaluation API requires the policy version.
         Initialize();
         CreateReportLineAndPolicy(ExpenseReportLine, ExpensePolicy);
         CreateRequestBody(RequestBody, ExpenseReportLine, ExpensePolicy, true, false);
         RequestBody.WriteTo(RequestBodyText);
         Commit();
 
-        // [WHEN] A flag without policyVersion is posted.
+        // [WHEN] An evaluation without policyVersion is posted.
         // [THEN] The API rejects the request.
-        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Flags API", ServiceNameTok);
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
         CompleteTest();
@@ -111,13 +111,13 @@ codeunit 148344 "Expense Policy Flags API Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Policy Flags API Test");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Policy Evaluations API Test");
         LibraryExpense.CleanUpBeforeTesting();
         if IsInitialized then
             exit;
 
         BindSubscription(APITestAuthHelper);
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Policy Flags API Test");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Policy Evaluations API Test");
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
@@ -132,7 +132,7 @@ codeunit 148344 "Expense Policy Flags API Test"
         ExpenseAgentSetup.Modify();
         IsInitialized := true;
         Commit();
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Policy Flags API Test");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Policy Evaluations API Test");
     end;
 
     local procedure CreateReportLineAndPolicy(var ExpenseReportLine: Record "Expense Report Line"; var ExpensePolicy: Record "Expense Policy")

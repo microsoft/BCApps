@@ -396,7 +396,7 @@ page 6929 "Expense Report Lines API"
                     SubPageLink = "Expense Report No." = field("Document No."),
                                   "Report Line No." = field("Line No.");
                 }
-                part(expensePolicyEvaluations; "Expense Policy Flags API")
+                part(expensePolicyEvaluations; "Expense Policy Evaluations API")
                 {
                     Caption = 'Expense Policy Evaluations';
                     EntityName = 'expensePolicyEvaluation';

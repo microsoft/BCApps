@@ -812,7 +812,7 @@ codeunit 148306 "Expense Report Test"
         TargetExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
-        ExpensePolicyFlag: Record "Expense Policy Flag";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
         CreateExpReport: Codeunit "Create Expense Report";
         SourceSystemId: Guid;
     begin
@@ -839,14 +839,14 @@ codeunit 148306 "Expense Report Test"
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
 
-        ExpensePolicyFlag.Init();
-        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
-        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
-        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
-        ExpensePolicyFlag.Reason := 'Policy violation.';
-        ExpensePolicyFlag.Insert(true);
+        ExpensePolicyEvaluation.Init();
+        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyEvaluation.Reason := 'Policy violation.';
+        ExpensePolicyEvaluation.Insert(true);
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the source line must be flagged.');
         SourceSystemId := ExpenseReportLine.SystemId;
@@ -859,8 +859,8 @@ codeunit 148306 "Expense Report Test"
         Assert.AreEqual(0, ExpenseReportLine."Evaluated Policy Version", 'The moved line must not retain the evaluated source version.');
         Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'The moved line must require policy evaluation.');
 
-        ExpensePolicyFlag.SetRange("Subject System Id", SourceSystemId);
-        Assert.RecordIsEmpty(ExpensePolicyFlag);
+        ExpensePolicyEvaluation.SetRange("Subject System Id", SourceSystemId);
+        Assert.RecordIsEmpty(ExpensePolicyEvaluation);
     end;
 
     [Test]
