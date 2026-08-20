@@ -7723,7 +7723,7 @@ codeunit 80 "Sales-Post"
         FAComment.SetRange("Document No.", FromNumber);
         if FAComment.Find('-') then
             repeat
-                PostedFAComment.TransferFields(FAComment);
+                PostedFAComment.TransferFields(FAComment, true, true);
                 PostedFAComment."Document No." := ToNumber;
                 PostedFAComment.Insert();
             until FAComment.Next() = 0;
