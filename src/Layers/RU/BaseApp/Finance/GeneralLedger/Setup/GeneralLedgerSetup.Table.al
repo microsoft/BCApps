@@ -1444,6 +1444,10 @@ table 98 "General Ledger Setup"
             Caption = 'Use Concurrent Posting';
             ToolTip = 'Specifies whether to use concurrent posting when posting journals. Concurrent posting can reduce the time it takes to post journals by allowing multiple batches to be posted at the same time. Enabling this option requires additional configuration and setup, such as setting up a batch job to run the concurrent posting process and ensuring that your system has the necessary resources to support concurrent processing.';
         }
+        field(395; "Use Business Activity Code"; Boolean)
+        {
+            Caption = 'Use Business Activity Code';
+        }
         field(12401; "VAT Purch. Ledger No. Series"; Code[20])
         {
             Caption = 'VAT Purch. Ledger No. Series';

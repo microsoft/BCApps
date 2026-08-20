@@ -30,10 +30,20 @@ page 12217 "Periodic VAT Split"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the period of time that defines the VAT period.';
                 }
+#if not CLEAN29
                 field("Activity Code"; Rec."Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the activity code that is assigned to the VAT settlement transaction.';
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the business activity code that is assigned to the VAT settlement transaction.';
                 }
                 field("Prior Period Input VAT"; Rec."Prior Period Input VAT")
                 {
@@ -122,10 +132,16 @@ page 12217 "Periodic VAT Split"
         PriorPeriodOutputVAT, PriorPeriodInputVAT, AddCurrPriorPerInpVAT, AddCurrPriorPerOutVAT, PriorYearInputVAT, PriorYearOutputVAT : Decimal;
     begin
         PeriodicVATSettlementEntry.SetRange("VAT Period", VATPeriod);
+#if not CLEAN29
         PeriodicVATSettlementEntry.SetRange("Activity Code", '');
+#endif
+        PeriodicVATSettlementEntry.SetRange("Business Activity Code", '');
         PeriodicVATSettlementEntry.FindFirst();
         PeriodicVATSettlementEntry2.SetRange("VAT Period", VATPeriod);
+#if not CLEAN29
         PeriodicVATSettlementEntry2.SetFilter("Activity Code", '<>%1', '');
+#endif
+        PeriodicVATSettlementEntry2.SetFilter("Business Activity Code", '<>%1', '');
         if PeriodicVATSettlementEntry2.FindSet() then
             repeat
                 PriorPeriodOutputVAT += PeriodicVATSettlementEntry2."Prior Period Output VAT";

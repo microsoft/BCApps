@@ -1,10 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
@@ -381,11 +382,23 @@ report 12126 "Annual VAT Comm. - 2010"
                             if ACTION::LookupOK = PAGE.RunModal(0, "VAT Statement Name", "VAT Statement Name".Name) then;
                         end;
                     }
+#if not CLEAN29
                     field(ActivityCode; ActivityCode2.Code)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Activity Code';
                         TableRelation = "Activity Code".Code;
+                        ToolTip = 'Specifies a code that describes a primary activity for the company.';
+                        ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
+                    }
+#endif
+                    field(BusinessActivityCode; BusinessActivity.Code)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Business Activity Code';
+                        TableRelation = "Business Activity".Code;
                         ToolTip = 'Specifies a code that describes a primary activity for the company.';
                     }
                     field(SeparateLedger; SeparateLedger)
@@ -468,8 +481,12 @@ report 12126 "Annual VAT Comm. - 2010"
             Clear(AppointmentCode);
 
         "VAT Statement Name".SetRange("Statement Template Name", "VAT Statement Name"."Statement Template Name");
+#if not CLEAN29
         if GeneralLedgerSetup."Use Activity Code" then
             "VAT Statement Line".SetFilter("Activity Code Filter", '%1', ActivityCode2.Code);
+#endif
+        if GeneralLedgerSetup."Use Business Activity Code" then
+            "VAT Statement Line".SetFilter("Business Activity Code Filter", '%1', BusinessActivity.Code);
         "VAT Statement Line".SetRange("Date Filter", StartDate, EndDate);
 
         Selection := Selection::"Open and Closed";
@@ -483,7 +500,10 @@ report 12126 "Annual VAT Comm. - 2010"
     var
         Vendor: Record Vendor;
         AppointmentCode: Record "Appointment Code";
+        BusinessActivity: Record "Business Activity";
+#if not CLEAN29
         ActivityCode2: Record "Activity Code";
+#endif
         GeneralLedgerSetup: Record "General Ledger Setup";
         CompanyInfo: Record "Company Information";
         VATStatement: Report "VAT Statement";
@@ -509,7 +529,7 @@ report 12126 "Annual VAT Comm. - 2010"
         DATE2DMY_StartDate__3____1CaptionLbl: Label 'Fiscal Year';
         CompanyInfo__VAT_Registration_No__CaptionLbl: Label 'VAT registration no.';
         TAXPAYER__CaptionLbl: Label '- TAXPAYER -';
-        ActivityCode_CodeCaptionLbl: Label 'Activity code';
+        ActivityCode_CodeCaptionLbl: Label 'Business activity code';
         SeparateLedgerTxtCaptionLbl: Label 'Separate accounting';
         GroupSettlementTxtCaptionLbl: Label 'Communication by a company belonging to a VAT group';
         ExceptionalEventTxtCaptionLbl: Label 'Special occurrences';
@@ -576,15 +596,28 @@ report 12126 "Annual VAT Comm. - 2010"
     [Scope('OnPrem')]
     procedure InitializeRequest(NewStatementTemplateName: Code[20]; NewStatementName: Code[20]; NewAppointmentCode: Code[2]; NewStartDate: Date; NewEndDate: Date)
     begin
-        InitializeRequestWithActivityCode(NewStatementTemplateName, NewStatementName, '', NewAppointmentCode, NewStartDate, NewEndDate);
+        InitializeRequestWithBusinessActivityCode(NewStatementTemplateName, NewStatementName, '', NewAppointmentCode, NewStartDate, NewEndDate);
     end;
 
+#if not CLEAN29
     [Scope('OnPrem')]
     procedure InitializeRequestWithActivityCode(NewStatementTemplateName: Code[20]; NewStatementName: Code[20]; NewActivityCode: Code[6]; NewAppointmentCode: Code[2]; NewStartDate: Date; NewEndDate: Date)
     begin
         "VAT Statement Name"."Statement Template Name" := NewStatementTemplateName;
         "VAT Statement Name".Name := NewStatementName;
         ActivityCode2.Code := NewActivityCode;
+        AppointmentCode.Code := NewAppointmentCode;
+        StartDate := NewStartDate;
+        EndDate := NewEndDate;
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure InitializeRequestWithBusinessActivityCode(NewStatementTemplateName: Code[20]; NewStatementName: Code[20]; NewBusinessActivityCode: Code[10]; NewAppointmentCode: Code[2]; NewStartDate: Date; NewEndDate: Date)
+    begin
+        "VAT Statement Name"."Statement Template Name" := NewStatementTemplateName;
+        "VAT Statement Name".Name := NewStatementName;
+        BusinessActivity.Code := NewBusinessActivityCode;
         AppointmentCode.Code := NewAppointmentCode;
         StartDate := NewStartDate;
         EndDate := NewEndDate;

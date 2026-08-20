@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Utilities;
 
 /// <summary>
@@ -230,6 +231,11 @@ table 256 "VAT Statement Line"
             Caption = 'Box No.';
             ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
         }
+        field(395; "Business Activity Code Filter"; Code[10])
+        {
+            FieldClass = FlowFilter;
+            TableRelation = "Business Activity".Code;
+        }
         field(12100; "Round Factor"; Option)
         {
             Caption = 'Round Factor';
@@ -250,11 +256,16 @@ table 256 "VAT Statement Line"
                     Print := true;
             end;
         }
+#if not CLEAN29
         field(12125; "Activity Code Filter"; Code[6])
         {
             FieldClass = FlowFilter;
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code Filter field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
         field(12126; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';

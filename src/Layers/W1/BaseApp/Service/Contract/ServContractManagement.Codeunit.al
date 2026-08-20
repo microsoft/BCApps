@@ -526,6 +526,7 @@ codeunit 5940 ServContractManagement
         ServHeader2."Shortcut Dimension 1 Code" := ServContract2."Shortcut Dimension 1 Code";
         ServHeader2."Shortcut Dimension 2 Code" := ServContract2."Shortcut Dimension 2 Code";
         ServHeader2."Dimension Set ID" := ServContract2."Dimension Set ID";
+        ServHeader2."Business Activity Code" := ServContract2."Business Activity Code";
         OnBeforeServHeaderModify(ServHeader2, ServContract2);
         ServHeader2.Modify();
         RecordLinkManagement.CopyLinks(ServContract2, ServHeader2);
@@ -873,6 +874,7 @@ codeunit 5940 ServContractManagement
         ServHeader2."Dimension Set ID" := ServContract."Dimension Set ID";
         ServHeader2.Validate("Location Code",
           UserMgt.GetLocation(2, Cust."Location Code", ServContract."Responsibility Center"));
+        ServHeader2."Business Activity Code" := ServContract."Business Activity Code";
         OnBeforeServHeaderModify(ServHeader2, ServContract);
         ServHeader2.Modify();
 

@@ -467,7 +467,10 @@ report 295 "Combine Shipments"
             ValidateCustomerNo(SalesHeader, SalesOrderHeader);
             SalesHeader.Validate("Bank Account", SalesOrderHeader."Bank Account");
             SalesHeader.Validate("Operation Type", OperationType.Code);
+#if not CLEAN29
             SalesHeader.Validate("Activity Code", SalesOrderHeader."Activity Code");
+#endif
+            SalesHeader.Validate("Business Activity Code", SalesOrderHeader."Business Activity Code");
             SalesHeader.Validate("Posting Date", PostingDateReq);
             SalesHeader.Validate("Document Date", DocDateReq);
             SalesHeader.Validate("VAT Reporting Date", VATDateReq);
@@ -600,7 +603,10 @@ report 295 "Combine Shipments"
           (SalesOrderHeader."Salesperson Code" <> SalesHeader."Salesperson Code") or
           (SalesOrderHeader."Payment Terms Code" <> SalesHeader."Payment Terms Code") or
           (SalesOrderHeader."Payment Method Code" <> SalesHeader."Payment Method Code") or
+#if not CLEAN29
           (SalesOrderHeader."Activity Code" <> SalesHeader."Activity Code") or
+#endif
+          (SalesOrderHeader."Business Activity Code" <> SalesHeader."Business Activity Code") or
           (SalesOrderHeader."Bank Account" <> SalesHeader."Bank Account") or
           (SalesOrderHeader."Fattura Project Code" <> SalesHeader."Fattura Project Code") or
           (SalesOrderHeader."Fattura Tender Code" <> SalesHeader."Fattura Tender Code");

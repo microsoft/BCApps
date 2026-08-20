@@ -341,7 +341,10 @@ report 6653 "Combine Return Receipts"
             SalesHeader.Insert(true);
             ValidateCustomerNoFromOrder(SalesHeader, SalesOrderHeader);
             SalesHeader.Validate("Operation Type", OperationType.Code);
+#if not CLEAN29
             SalesHeader.Validate("Activity Code", SalesOrderHeader."Activity Code");
+#endif
+            SalesHeader.Validate("Business Activity Code", SalesOrderHeader."Business Activity Code");
             SalesHeader.Validate("Currency Code", SalesOrderHeader."Currency Code");
             SalesHeader.Validate("Posting Date", PostingDateReq);
             SalesHeader.Validate("Document Date", DocDateReq);
@@ -430,7 +433,12 @@ report 6653 "Combine Return Receipts"
           (SalesOrderHeader."Salesperson Code" <> SalesHeader."Salesperson Code") or
           (SalesOrderHeader."Payment Terms Code" <> SalesHeader."Payment Terms Code") or
           (SalesOrderHeader."Payment Method Code" <> SalesHeader."Payment Method Code") or
+#if not CLEAN29
+          (SalesOrderHeader."Business Activity Code" <> SalesHeader."Business Activity Code") or
           (SalesOrderHeader."Activity Code" <> SalesHeader."Activity Code");
+#else
+          (SalesOrderHeader."Business Activity Code" <> SalesHeader."Business Activity Code");
+#endif
 
         OnAfterShouldFinalizeSalesInvHeader(SalesOrderHeader, SalesHeader, Finalize, ReturnReceiptLine, "Return Receipt Header");
         exit(Finalize);

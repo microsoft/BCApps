@@ -147,6 +147,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetLocationBinPolicySetupsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetAllowInventoryAdjmtUpgradeTag());
 #if not CLEAN29
+    PerCompanyUpgradeTags.Add(GetBusinessActivityCodeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDirectTransferPostingToEnumUpgradeTag());
 #endif
         PerCompanyUpgradeTags.Add(GetDirectTransferOnTransferRouteUpgradeTag());
@@ -1260,6 +1261,13 @@ codeunit 9998 "Upgrade Tag Definitions"
     begin
         exit('MS-579699-ServiceShptLineFieldsUpgradeTag-20250926');
     end;
+
+#if not CLEAN29
+    internal procedure GetBusinessActivityCodeUpgradeTag(): Code[250]
+    begin
+        exit('MS-BusinessActivityCode-20260729');
+    end;
+#endif
 
     internal procedure GetZeroClosedBankAccountLedgerEntriesUpgradeTag(): Code[250]
     begin

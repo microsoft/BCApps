@@ -1,10 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
@@ -337,6 +338,7 @@ report 12127 "Exp.Annual VAT Comm. - 2010"
         if (CompanyInfo."Tax Representative No." <> '') and (AppointmentCode = '') then
             Error(Text008, CompanyInfo.FieldCaption("Tax Representative No."), CompanyInfo.TableCaption());
 
+#if not CLEAN29
         if GeneralLedgerSetup."Use Activity Code" then begin
             if VATStatementFilters.GetFilter("Activity Code Filter") = '' then
                 Error(EmptyActivityCodeFilterErr, VATStatementFilters.FieldCaption("Activity Code Filter"));
@@ -347,7 +349,20 @@ report 12127 "Exp.Annual VAT Comm. - 2010"
                   VATStatementFilters.GetFilter("Activity Code Filter"));
             ActivityCode.FindFirst();
 
-            VATStatementLine.SetFilter("Activity Code Filter", VATStatementFilters.GetFilter("Activity Code Filter"));
+            VATStatementFilters.CopyFilter("Activity Code Filter", VATStatementLine."Activity Code Filter");
+        end;
+#endif
+        if GeneralLedgerSetup."Use Business Activity Code" then begin
+            if VATStatementFilters.GetFilter("Business Activity Code Filter") = '' then
+                Error(EmptyActivityCodeFilterErr, VATStatementFilters.FieldCaption("Business Activity Code Filter"));
+
+            BusinessActivity.SetFilter(Code, VATStatementFilters.GetFilter("Business Activity Code Filter"));
+            if BusinessActivity.Count() <> 1 then
+                Error(TooManyActivityCodesErr, VATStatementFilters.FieldCaption("Business Activity Code Filter"), BusinessActivity.TableCaption(),
+                  VATStatementFilters.GetFilter("Business Activity Code Filter"));
+            BusinessActivity.FindFirst();
+
+            VATStatementFilters.CopyFilter("Business Activity Code Filter", VATStatementLine."Business Activity Code Filter");
         end;
 
 
@@ -366,7 +381,10 @@ report 12127 "Exp.Annual VAT Comm. - 2010"
     var
         Vendor: Record Vendor;
         CompanyInfo: Record "Company Information";
+        BusinessActivity: Record "Business Activity";
+#if not CLEAN29
         ActivityCode: Record "Activity Code";
+#endif
         VATStatementLine: Record "VAT Statement Line";
         GeneralLedgerSetup: Record "General Ledger Setup";
         FileManagement: Codeunit "File Management";

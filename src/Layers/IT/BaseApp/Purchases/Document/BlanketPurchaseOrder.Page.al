@@ -274,7 +274,18 @@ page 509 "Blanket Purchase Order"
                     ApplicationArea = Suite;
                     ToolTip = 'Specifies the operation type that is assigned to the purchase invoice.';
                 }
+#if not CLEAN29
                 field("Activity Code"; Rec."Activity Code")
+                {
+                    ApplicationArea = Suite;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
                 {
                     ApplicationArea = Suite;
                     ShowMandatory = IsActivityCodeMandatory;
@@ -1287,7 +1298,10 @@ page 509 "Blanket Purchase Order"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+    #if not CLEAN29
         IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+    #endif
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup."Use Business Activity Code";
     end;
 
     local procedure SaveInvoiceDiscountAmount()

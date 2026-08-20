@@ -2982,6 +2982,11 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the identifier for the combination of dimensions applied to the document.
         /// </summary>

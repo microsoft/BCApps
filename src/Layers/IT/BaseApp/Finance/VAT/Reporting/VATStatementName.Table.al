@@ -1,9 +1,10 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Utilities;
 
 /// <summary>
@@ -52,11 +53,21 @@ table 257 "VAT Statement Name"
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
+        field(395; "Business Activity Code Filter"; Code[10])
+        {
+            FieldClass = FlowFilter;
+            TableRelation = "Business Activity".Code;
+        }
+#if not CLEAN29
         field(12125; "Activity Code Filter"; Code[6])
         {
             FieldClass = FlowFilter;
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code Filter field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
     }
 
     keys

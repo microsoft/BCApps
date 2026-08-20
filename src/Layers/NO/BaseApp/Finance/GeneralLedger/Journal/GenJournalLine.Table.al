@@ -2760,6 +2760,11 @@ table 81 "Gen. Journal Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Dimension set identifier linking to dimension value combinations for analytical reporting and cost center tracking.
         /// </summary>

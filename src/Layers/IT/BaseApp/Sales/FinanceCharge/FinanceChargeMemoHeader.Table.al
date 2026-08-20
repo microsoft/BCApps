@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,7 +18,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
-using Microsoft.Utilities;
 using System.Globalization;
 using System.IO;
 using System.Security.User;
@@ -583,6 +582,11 @@ table 302 "Finance Charge Memo Header"
             ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the unique identifier for the combination of dimension values assigned to this memo.
         /// </summary>
@@ -612,11 +616,16 @@ table 302 "Finance Charge Memo Header"
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
+#if not CLEAN29
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
-            TableRelation = "Activity Code".Code;
+            TableRelation = Microsoft.Utilities."Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
     }
 
     keys
@@ -660,9 +669,9 @@ table 302 "Finance Charge Memo Header"
         if "No." = '' then begin
             TestNoSeries();
             "No. Series" := GetNoSeriesCode();
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
-                "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
+            "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
 
         end;
         "Posting Description" := StrSubstNo(Text000, "No.");
@@ -675,8 +684,8 @@ table 302 "Finance Charge Memo Header"
             then
                 "Issuing No. Series" := "No. Series"
             else
-            if NoSeries.IsAutomatic(GetIssuingNoSeriesCode()) then
-                "Issuing No. Series" := GetIssuingNoSeriesCode();
+                if NoSeries.IsAutomatic(GetIssuingNoSeriesCode()) then
+                    "Issuing No. Series" := GetIssuingNoSeriesCode();
 
         if "Posting Date" = 0D then
             "Posting Date" := WorkDate();

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,10 +32,20 @@ page 12216 "Periodic VAT Settl. List"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the period of time that defines the VAT period.';
                 }
+#if not CLEAN29
                 field("Activity Code"; Rec."Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the activity code that is assigned to the VAT settlement transaction.';
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the business activity code that is assigned to the VAT settlement transaction.';
                 }
                 field("VAT Settlement"; Rec."VAT Settlement")
                 {

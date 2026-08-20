@@ -10,11 +10,16 @@ pageextension 12143 "Service Contract IT" extends "Service Contract"
     {
         addafter("Change Status")
         {
+#if not CLEAN29
             field("Activity Code"; Rec."Activity Code")
             {
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the code for the company''s primary activity.';
+                ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
             }
+#endif
         }        
     }
 }

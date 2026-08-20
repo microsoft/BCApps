@@ -397,7 +397,18 @@ page 42 "Sales Order"
                     Importance = Promoted;
                     ToolTip = 'Specifies the operation type that is assigned to the sales order.';
                 }
+#if not CLEAN29
                 field("Activity Code"; Rec."Activity Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
@@ -2863,7 +2874,10 @@ page 42 "Sales Order"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+    #if not CLEAN29
         IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+    #endif
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup."Use Business Activity Code";
     end;
 
     protected procedure PostSalesOrder(PostingCodeunitID: Integer; Navigate: Enum "Navigate After Posting")

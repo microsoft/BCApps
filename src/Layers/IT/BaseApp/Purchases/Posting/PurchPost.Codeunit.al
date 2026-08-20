@@ -330,7 +330,11 @@ codeunit 90 "Purch.-Post"
         OnRunOnAfterPostInvoice(PurchHeader, PurchRcptHeader, ReturnShptHeader, PurchInvHeader, PurchCrMemoHeader, PreviewMode, Window, SrcCode, GenJnlLineDocType, GenJnlLineDocNo, GenJnlPostLine);
 
         if ICGenJnlLineNo > 0 then
-            PostICGenJnl(PurchHeader."Activity Code");
+            PostICGenJnl(
+#if not CLEAN29
+                 PurchHeader."Activity Code",
+#endif
+                 PurchHeader."Business Activity Code");
         IsHandled := false;
         OnRunOnBeforeMakeInventoryAdjustment(PurchHeader, GenJnlPostLine, ItemJnlPostLine, PreviewMode, PurchRcptHeader, PurchInvHeader, IsHandled);
         if not IsHandled then
@@ -5988,7 +5992,11 @@ codeunit 90 "Purch.-Post"
         end;
     end;
 
-    local procedure PostICGenJnl(ActivityCode: Code[6])
+    local procedure PostICGenJnl(
+#if not CLEAN29
+        ActivityCode: Code[6];
+#endif
+        BusinessActivityCode: Code[10])
     var
         ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         ICOutboxExport: Codeunit "IC Outbox Export";
@@ -6001,7 +6009,10 @@ codeunit 90 "Purch.-Post"
                 ICInboxOutboxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, TempICGenJnlLine);
                 ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
                 if TempICGenJnlLine.Amount <> 0 then begin
+#if not CLEAN29
                     TempICGenJnlLine."Activity Code" := ActivityCode;
+#endif
+                    TempICGenJnlLine."Business Activity Code" := BusinessActivityCode;
                     GenJnlPostLine.RunWithCheck(TempICGenJnlLine);
                 end;
             until TempICGenJnlLine.Next() = 0;

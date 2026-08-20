@@ -418,8 +418,12 @@ codeunit 444 "Purchase-Post Prepayments"
         GLSetup.GetRecordOnce();
         if GLSetup."Journal Templ. Name Mandatory" then
             PurchHeader.TestField("Journal Templ. Name");
+#if not CLEAN29
         if GLSetup."Use Activity Code" then
             PurchHeader.TestField("Activity Code");
+#endif
+        if GLSetup."Use Business Activity Code" then
+            PurchHeader.TestField("Business Activity Code");
         if PurchHeader."Operation Occurred Date" < GLSetup."Last Gen. Jour. Printing Date" then
             PurchHeader.FieldError("Operation Occurred Date", Text1130008);
         if PurchHeader."Applies-to Doc. No." <> '' then
@@ -2125,7 +2129,7 @@ codeunit 444 "Purchase-Post Prepayments"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnAfterUpdateHeaderAndLines(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";DocumentType: Option Invoice,"Credit Memo"; PreviewMode: Boolean)
+    local procedure OnCodeOnAfterUpdateHeaderAndLines(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; DocumentType: Option Invoice,"Credit Memo"; PreviewMode: Boolean)
     begin
     end;
 

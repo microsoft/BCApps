@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +16,10 @@ table 12136 "Periodic VAT Settlement Entry"
         field(1; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
+        }
+        field(12189; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
         }
         field(2; "VAT Period"; Code[10])
         {
@@ -190,11 +194,23 @@ table 12136 "Periodic VAT Settlement Entry"
 
     keys
     {
+#if not CLEAN29
         key(Key1; "VAT Period", "Activity Code")
         {
             Clustered = true;
             SumIndexFields = "VAT Settlement", "Add-Curr. VAT Settlement", "Prior Period Input VAT", "Prior Period Output VAT", "Add Curr. Prior Per. Inp. VAT", "Add Curr. Prior Per. Out VAT", "Advanced Amount", "Add-Curr. Paid. Amount", "Paid Amount", "Add-Curr. Advanced Amount", "Payable VAT Variation", "Deductible VAT Variation", "Tax Debit Variation", "Tax Credit Variation", "Unpaid VAT Previous Periods", "Tax Debit Variation Interest", "Omit VAT Payable Interest", "Credit VAT Compensation", "Special Credit";
         }
+        key(Key12189; "VAT Period", "Business Activity Code")
+        {
+            SumIndexFields = "VAT Settlement", "Add-Curr. VAT Settlement", "Prior Period Input VAT", "Prior Period Output VAT", "Add Curr. Prior Per. Inp. VAT", "Add Curr. Prior Per. Out VAT", "Advanced Amount", "Add-Curr. Paid. Amount", "Paid Amount", "Add-Curr. Advanced Amount", "Payable VAT Variation", "Deductible VAT Variation", "Tax Debit Variation", "Tax Credit Variation", "Unpaid VAT Previous Periods", "Tax Debit Variation Interest", "Omit VAT Payable Interest", "Credit VAT Compensation", "Special Credit";
+        }
+#else
+        key(Key1; "VAT Period", "Business Activity Code")
+        {
+            Clustered = true;
+            SumIndexFields = "VAT Settlement", "Add-Curr. VAT Settlement", "Prior Period Input VAT", "Prior Period Output VAT", "Add Curr. Prior Per. Inp. VAT", "Add Curr. Prior Per. Out VAT", "Advanced Amount", "Add-Curr. Paid. Amount", "Paid Amount", "Add-Curr. Advanced Amount", "Payable VAT Variation", "Deductible VAT Variation", "Tax Debit Variation", "Tax Credit Variation", "Unpaid VAT Previous Periods", "Tax Debit Variation Interest", "Omit VAT Payable Interest", "Credit VAT Compensation", "Special Credit";
+        }
+#endif
         key(Key2; "VAT Period Closed")
         {
             SumIndexFields = "VAT Settlement", "Add-Curr. VAT Settlement", "Prior Period Input VAT", "Prior Period Output VAT", "Add Curr. Prior Per. Inp. VAT", "Add Curr. Prior Per. Out VAT", "Advanced Amount", "Add-Curr. Paid. Amount", "Paid Amount", "Add-Curr. Advanced Amount", "Payable VAT Variation", "Deductible VAT Variation", "Tax Debit Variation", "Tax Credit Variation", "Unpaid VAT Previous Periods", "Tax Debit Variation Interest", "Omit VAT Payable Interest", "Credit VAT Compensation", "Special Credit";
@@ -210,7 +226,10 @@ table 12136 "Periodic VAT Settlement Entry"
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
     begin
         PeriodicSettlementVATEntry.SetFilter("VAT Period", '<%1', Rec."VAT Period");
+#if not CLEAN29
         PeriodicSettlementVATEntry.SetRange("Activity Code", Rec."Activity Code");
+#endif
+        PeriodicSettlementVATEntry.SetRange("Business Activity Code", Rec."Business Activity Code");
         if PeriodicSettlementVATEntry.FindLast() then begin
             "Prior Period Input VAT" := PeriodicSettlementVATEntry."Prior Period Input VAT";
             "Prior Period Output VAT" := PeriodicSettlementVATEntry."Prior Period Output VAT";

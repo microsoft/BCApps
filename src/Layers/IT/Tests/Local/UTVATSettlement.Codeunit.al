@@ -186,11 +186,11 @@ codeunit 144186 "UT VAT Settlement"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.Validate("Use Activity Code", NewValue);
+        GeneralLedgerSetup.Validate("Use Business Activity Code", NewValue);
         GeneralLedgerSetup.Modify();
     end;
 
-    local procedure CreateAndPostPurchInvoice(VendorNo: Code[20]; PostingDate: Date; GLAccountNo: Code[20]; UnitCost: Decimal; ActivityCode: Code[6]) VATAmount: Decimal
+    local procedure CreateAndPostPurchInvoice(VendorNo: Code[20]; PostingDate: Date; GLAccountNo: Code[20]; UnitCost: Decimal; ActivityCode: Code[10]) VATAmount: Decimal
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -199,7 +199,7 @@ codeunit 144186 "UT VAT Settlement"
         PurchaseHeader.Validate("Posting Date", PostingDate);
         PurchaseHeader.Validate("Document Date", PostingDate);
         PurchaseHeader.Validate("Operation Occurred Date", PostingDate);
-        PurchaseHeader.Validate("Activity Code", ActivityCode);
+        PurchaseHeader.Validate("Business Activity Code", ActivityCode);
         PurchaseHeader."Posting No. Series" := LibraryERM.CreateNoSeriesPurchaseCode();
         PurchaseHeader.Modify(true);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
@@ -211,7 +211,7 @@ codeunit 144186 "UT VAT Settlement"
         VATAmount := PurchaseLine."Amount Including VAT" - PurchaseLine.Amount;
     end;
 
-    local procedure CreateAndPostSalesInvoice(Customer: Record Customer; PostingDate: Date; UnitPrice: Decimal; GLAccountNo: Code[20]; ActivityCode: Code[6]) VATAmount: Decimal
+    local procedure CreateAndPostSalesInvoice(Customer: Record Customer; PostingDate: Date; UnitPrice: Decimal; GLAccountNo: Code[20]; ActivityCode: Code[10]) VATAmount: Decimal
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -221,7 +221,7 @@ codeunit 144186 "UT VAT Settlement"
         SalesHeader.Validate("Document Date", PostingDate);
         SalesHeader.Validate("Operation Occurred Date", PostingDate);
         SalesHeader.Validate("Posting Date", PostingDate);
-        SalesHeader.Validate("Activity Code", ActivityCode);
+        SalesHeader.Validate("Business Activity Code", ActivityCode);
         NoSeries.Init();
         SalesHeader.Validate("Operation Type", LibraryERM.FindOperationType(NoSeries."No. Series Type"::Sales));
         SalesHeader."Posting No. Series" := LibraryERM.CreateNoSeriesSalesCode();
@@ -246,13 +246,12 @@ codeunit 144186 "UT VAT Settlement"
 
     local procedure CreateActivityCode(): Code[10]
     var
-        ActivityCode: Record "Activity Code";
+        ActivityCode: Record "Business Activity Code";
     begin
         ActivityCode.Init();
         ActivityCode.Validate(
           Code,
-          CopyStr(LibraryUtility.GenerateRandomCode(ActivityCode.FieldNo(Code), DATABASE::"Activity Code"),
-            1, LibraryUtility.GetFieldLength(DATABASE::"Activity Code", ActivityCode.FieldNo(Code))));
+                    CopyStr(LibraryUtility.GenerateRandomCode(ActivityCode.FieldNo(Code), DATABASE::"Business Activity Code"), 1, 6));
         ActivityCode.Insert(true);
         ActivityCode.Validate(Description, ActivityCode.Code); // Validating description with code as value is not important.
         ActivityCode.Modify(true);

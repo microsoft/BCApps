@@ -24,12 +24,18 @@ tableextension 12454 "Service Cr.Memo Header IT" extends "Service Cr.Memo Header
             Caption = 'Operation Occurred Date';
             DataClassification = CustomerContent;
         }
+#if not CLEAN29
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
             DataClassification = CustomerContent;
+            Editable = false;
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';
