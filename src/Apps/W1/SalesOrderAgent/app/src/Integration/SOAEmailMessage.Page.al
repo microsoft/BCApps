@@ -96,7 +96,7 @@ page 4404 "SOA Email Message"
                             field(ContactName; GlobalContact.Name)
                             {
                                 Caption = 'Contact';
-                                ToolTip = 'Specifies the contact name. Use the assist-edit button to select another contact or clear a one-time contact mapping.';
+                                ToolTip = 'Specifies the contact name. Use the assist-edit button to select another contact.';
                                 Editable = false;
 
                                 trigger OnAssistEdit()
@@ -508,7 +508,7 @@ page 4404 "SOA Email Message"
         SendingStatusTxt: Text;
         OutgoingMessageTxt: Label 'Outgoing email';
         IncomingMessageTxt: Label 'Incoming email';
-        ContactMappingActionsQst: Label 'Select another contact,Clear one-time contact mapping', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
+        ContactMappingActionsQst: Label 'Select another contact,Use automatically matched contact', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
         ContactMappingActionsInstructionQst: Label 'Choose how to update the contact for this message:';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
         ShowAttachmentLbl: Label 'Show attachments (%1)', Comment = '%1 = Attachment count';
