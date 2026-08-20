@@ -132,6 +132,7 @@ codeunit 9668 "Composite Layout Assign. Mgt."
             exit(0);
         end;
 
+        ReportLayoutList.SetLoadFields("Report ID", Name);
         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
         ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
         if not ReportLayoutList.FindSet() then
