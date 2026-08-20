@@ -47,7 +47,7 @@ jobs:
 
             has_missing_info=false
             has_request_type=false
-            has_disallowed_label=false
+            has_agent_not_processable=false
 
             while IFS= read -r label; do
               [ -z "$label" ] && continue
@@ -58,10 +58,8 @@ jobs:
                 event-request|request-for-external|enum-request|extensibility-enhancement)
                   has_request_type=true
                   ;;
-                Finance|SCM|Integration|Other|"Ownership: Manual"|"Ownership: Needs Review"|AL:\ *)
-                  ;;
-                *)
-                  has_disallowed_label=true
+                agent-not-processable)
+                  has_agent_not_processable=true
                   ;;
               esac
             done <<< "$labels"
@@ -75,7 +73,7 @@ jobs:
 
             classify_labels "$label_names"
             [ "$has_request_type" = "true" ] && continue
-            [ "$has_disallowed_label" = "true" ] && continue
+            [ "$has_agent_not_processable" = "true" ] && continue
 
             comments=$(gh api "repos/$GITHUB_REPOSITORY/issues/$number/comments" \
               --paginate | jq -cs 'add // []')
