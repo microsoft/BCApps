@@ -539,7 +539,7 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     [Test]
-    [HandlerFunctions('AssignmentDialogClearHeader,OverrideConfirmHandler')]
+    [HandlerFunctions('AssignmentDialogClearHeader,ConfirmFromQueueHandler')]
     [Scope('OnPrem')]
     procedure ConfirmingTheOverrideWarningSavesTheTenantWideChange()
     var
@@ -578,7 +578,7 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     [Test]
-    [HandlerFunctions('AssignmentDialogClearHeader,OverrideConfirmHandler')]
+    [HandlerFunctions('AssignmentDialogClearHeader,ConfirmFromQueueHandler')]
     [Scope('OnPrem')]
     procedure DecliningTheOverrideWarningLeavesTheTenantWideSettingUnchanged()
     var
@@ -610,6 +610,363 @@ codeunit 134619 "Composite Layout Tests"
         RestoreDocumentReportExperience();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure AddGlobalDefaultCreatesTheWildcardRowAndIsIdempotent()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
+    begin
+        // [SCENARIO] The global default is the row that applies when nothing more specific is set. The action creates it,
+        // and goes to it when it is already there, so it can be used twice without a duplicate key.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        TenantReportLayoutCfgPage.OpenEdit();
+
+        // [WHEN] Adding the global default.
+        TenantReportLayoutCfgPage.SetForAllReports.Invoke();
+
+        // [THEN] The wildcard row exists.
+        Assert.IsTrue(TenantReportLayoutCfg.Get(0, '', ''), 'Add global default should create the row that covers every report.');
+
+        // [WHEN] Adding it again.
+        TenantReportLayoutCfgPage.SetForAllReports.Invoke();
+        TenantReportLayoutCfgPage.Close();
+
+        // [THEN] There is still exactly one.
+        TenantReportLayoutCfg.Reset();
+        TenantReportLayoutCfg.SetRange("Report ID", 0);
+        TenantReportLayoutCfg.SetRange("Layout Name", '');
+        TenantReportLayoutCfg.SetRange("Company Name", '');
+        Assert.AreEqual(1, TenantReportLayoutCfg.Count(), 'Add global default should go to the existing row, not add a second one.');
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('PickBodyLayoutHandler')]
+    [Scope('OnPrem')]
+    procedure SetForOneReportCoversEveryLayoutOfThatReport()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
+    begin
+        // [SCENARIO] The user picks a body layout to identify the report, and the row that covers all of that report's
+        // layouts is created - an empty Layout Name, not the layout that was picked.
+        Initialize();
+        EnableDocumentReportExperience();
+        CreateLayoutOnReport(BodyReportID, 'ScopeReportBody', Enum::"Report Layout Subtype"::Body);
+
+        // [WHEN] Setting defaults for one report.
+        LibraryVariableStorage.Enqueue('ScopeReportBody');
+        TenantReportLayoutCfgPage.OpenEdit();
+        TenantReportLayoutCfgPage.SetForOneReport.Invoke();
+        TenantReportLayoutCfgPage.Close();
+
+        // [THEN] The report-level row exists and names no layout.
+        Assert.IsTrue(TenantReportLayoutCfg.Get(BodyReportID, '', ''), 'Set for one report should create the row covering every layout of the report.');
+        LibraryVariableStorage.AssertEmpty();
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('PickBodyLayoutHandler')]
+    [Scope('OnPrem')]
+    procedure SetForOneLayoutCoversOnlyThatLayout()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
+        BodyKey: Text;
+    begin
+        // [SCENARIO] Setting defaults for one layout keys the row to that layout's composite reference.
+        Initialize();
+        EnableDocumentReportExperience();
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'ScopeLayoutBody', Enum::"Report Layout Subtype"::Body);
+
+        // [WHEN] Setting defaults for one layout.
+        LibraryVariableStorage.Enqueue('ScopeLayoutBody');
+        TenantReportLayoutCfgPage.OpenEdit();
+        TenantReportLayoutCfgPage.SetForOneLayout.Invoke();
+        TenantReportLayoutCfgPage.Close();
+
+        // [THEN] The row is keyed to that layout, and the report-wide row was not created instead.
+        Assert.IsTrue(
+            TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), ''),
+            'Set for one layout should create the row keyed to the picked layout.');
+        Assert.IsFalse(TenantReportLayoutCfg.Get(BodyReportID, '', ''), 'Set for one layout should not create the report-wide row.');
+        LibraryVariableStorage.AssertEmpty();
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToAllLayoutsWidensTheRowAndKeepsItsParts()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
+        HeaderComposite: Text;
+        BodyKey: Text;
+    begin
+        // [SCENARIO] Widening a layout-scoped row makes it cover every layout of the report, carrying its parts across
+        // rather than starting a new row.
+        Initialize();
+        EnableDocumentReportExperience();
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'WidenBody', Enum::"Report Layout Subtype"::Body);
+        HeaderComposite := CreatePart('WidenHF', Enum::"Report Layout Subtype"::HeaderFooter);
+        InsertCfg(BodyReportID, BodyKey, '', HeaderComposite, '');
+
+        // [WHEN] Applying the row to all layouts.
+        TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '');
+        TenantReportLayoutCfgPage.OpenEdit();
+        TenantReportLayoutCfgPage.GoToRecord(TenantReportLayoutCfg);
+        TenantReportLayoutCfgPage.WidenToAllLayouts.Invoke();
+        TenantReportLayoutCfgPage.Close();
+
+        // [THEN] The layout-scoped row is gone and the report-wide row carries the same part.
+        Assert.IsFalse(
+            TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), ''),
+            'The layout-scoped row should have been renamed, not left behind.');
+        Assert.IsTrue(TenantReportLayoutCfg.Get(BodyReportID, '', ''), 'The row should now cover every layout of the report.');
+        Assert.AreEqual('WidenHF', LookupHelper.DecodeLayoutName(TenantReportLayoutCfg."Header Part Name"), 'Widening the row should carry its parts across.');
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToAllLayoutsIsRefusedWhenTheWiderRowAlreadyExists()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
+        BodyKey: Text;
+    begin
+        // [SCENARIO] Widening onto a scope that another row already owns is refused, naming the row that owns it,
+        // instead of failing on a duplicate key.
+        Initialize();
+        EnableDocumentReportExperience();
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'ClashBody', Enum::"Report Layout Subtype"::Body);
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('ClashLayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+        InsertCfg(BodyReportID, '', '', CreatePart('ClashReportHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+
+        TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '');
+        TenantReportLayoutCfgPage.OpenEdit();
+        TenantReportLayoutCfgPage.GoToRecord(TenantReportLayoutCfg);
+
+        // [WHEN] Applying the row to all layouts, where that scope is taken.
+        asserterror TenantReportLayoutCfgPage.WidenToAllLayouts.Invoke();
+
+        // [THEN] The clash is reported, naming the scope that is already taken rather than failing on a duplicate key.
+        Assert.ExpectedError('already exists');
+        Assert.ExpectedError('All layouts of');
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutSubtypeDialogHandler')]
+    [Scope('OnPrem')]
+    procedure NewWordLayoutDefaultsToTheBodySubtype()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [SCENARIO] A theme and header/footer are merged onto a body layout, so a new Word layout is offered as Body.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [WHEN] Creating a Word layout without touching the subtype.
+        LibraryVariableStorage.Enqueue('SubtypeLeftAsOffered');
+        LibraryVariableStorage.Enqueue('Word');
+        LibraryVariableStorage.Enqueue('');
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        // [THEN] It is created as a body layout.
+        FindLayout(BodyReportID, 'SubtypeLeftAsOffered', ReportLayoutList);
+        Assert.AreEqual(
+            ReportLayoutList."Layout Subtype"::Body, ReportLayoutList."Layout Subtype",
+            'A new Word layout should be created as a body layout.');
+        LibraryVariableStorage.AssertEmpty();
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutSubtypeDialogHandler')]
+    [Scope('OnPrem')]
+    procedure NewWordLayoutCanBeCreatedAsDefaultSubtype()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [SCENARIO] Body is only the offer, not the only option: a Word layout can still be a stand-alone one.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [WHEN] Creating a Word layout and choosing Default.
+        LibraryVariableStorage.Enqueue('SubtypeChosenDefault');
+        LibraryVariableStorage.Enqueue('Word');
+        LibraryVariableStorage.Enqueue('Default');
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        // [THEN] It is created as a default layout.
+        FindLayout(BodyReportID, 'SubtypeChosenDefault', ReportLayoutList);
+        Assert.AreEqual(
+            ReportLayoutList."Layout Subtype"::Default, ReportLayoutList."Layout Subtype",
+            'Choosing Default should create a stand-alone layout, not a body layout.');
+        LibraryVariableStorage.AssertEmpty();
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutBodyOnNonWordHandler')]
+    [Scope('OnPrem')]
+    procedure BodySubtypeIsRefusedForANonWordFormat()
+    begin
+        // [SCENARIO] Only a Word document can carry a merged theme and header/footer, so Body is refused for any other
+        // format, naming Word.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [WHEN] Choosing Body for an RDLC layout.
+        ReportLayoutsNewLayout();
+
+        // [THEN] The choice is refused and explains that it applies to Word only.
+        Assert.ExpectedMessage('Only a Word layout can be a body layout', LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] Nothing was created.
+        Assert.IsFalse(TenantLayoutExists(BodyReportID, 'SubtypeGuard'), 'A refused subtype should not leave a layout behind.');
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmFromQueueHandler')]
+    [Scope('OnPrem')]
+    procedure DeletingAnAssignedPartClearsItsAssignments()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        PartLayout: Record "Report Layout List";
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+    begin
+        // [SCENARIO] Deleting a part that reports still reference warns about those assignments, then clears them so no
+        // configuration row is left pointing at a part that no longer exists.
+        Initialize();
+        EnableDocumentReportExperience();
+        InsertCfg(BodyReportID, '', '', CreatePart('DeleteAssignedHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+        FindLayout(PartsReportID, 'DeleteAssignedHF', PartLayout);
+
+        // [WHEN] Deleting the part and confirming.
+        LibraryVariableStorage.Enqueue(true);
+        ReportThemePage.OpenView();
+        ReportThemePage.GoToRecord(PartLayout);
+        ReportThemePage.DeleteArtifact.Invoke();
+        ReportThemePage.Close();
+
+        // [THEN] The question asked was the one that warns about existing assignments, not the plain delete question.
+        Assert.ExpectedMessage('Deleting it will clear those assignments', LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] The part is gone and the configuration row survives with the reference cleared.
+        Assert.IsFalse(TenantLayoutExists(PartsReportID, 'DeleteAssignedHF'), 'The part should have been deleted.');
+        Assert.IsTrue(TenantReportLayoutCfg.Get(BodyReportID, '', ''), 'The configuration row should survive the deletion.');
+        Assert.AreEqual('', TenantReportLayoutCfg."Header Part Name", 'Deleting the part should clear the assignment.');
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmFromQueueHandler')]
+    [Scope('OnPrem')]
+    procedure DecliningTheDeleteKeepsThePart()
+    var
+        PartLayout: Record "Report Layout List";
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+    begin
+        // [SCENARIO] An unassigned part is confirmed with the plain question, and declining it deletes nothing.
+        Initialize();
+        EnableDocumentReportExperience();
+        CreatePart('DeleteDeclinedHF', Enum::"Report Layout Subtype"::HeaderFooter);
+        FindLayout(PartsReportID, 'DeleteDeclinedHF', PartLayout);
+
+        // [WHEN] Deleting the part and declining.
+        LibraryVariableStorage.Enqueue(false);
+        ReportThemePage.OpenView();
+        ReportThemePage.GoToRecord(PartLayout);
+        ReportThemePage.DeleteArtifact.Invoke();
+        ReportThemePage.Close();
+
+        // [THEN] An unassigned part is asked about plainly, with no mention of configurations.
+        Assert.ExpectedMessage('Delete the artifact', LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] The part is still there.
+        Assert.IsTrue(TenantLayoutExists(PartsReportID, 'DeleteDeclinedHF'), 'Declining the confirmation should keep the part.');
+
+        RestoreDocumentReportExperience();
+    end;
+
+    local procedure ReportLayoutsNewLayout()
+    var
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+    end;
+
+    [ModalPageHandler]
+    procedure PickBodyLayoutHandler(var ReportLayouts: TestPage "Report Layouts")
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        FindLayout(BodyReportID, LibraryVariableStorage.DequeueText(), ReportLayoutList);
+        ReportLayouts.GoToRecord(ReportLayoutList);
+        ReportLayouts.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure NewLayoutSubtypeDialogHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
+    var
+        LayoutName: Text;
+        SubtypeChoice: Text;
+    begin
+        LayoutName := LibraryVariableStorage.DequeueText();
+        ReportLayoutNewDialog.ReportID.SetValue(BodyReportID);
+        ReportLayoutNewDialog.LayoutName.SetValue(LayoutName);
+        ReportLayoutNewDialog.Description.SetValue(LayoutName);
+        ReportLayoutNewDialog."Format Options".SetValue(LibraryVariableStorage.DequeueText());
+        ReportLayoutNewDialog.CreateEmptyLayout.SetValue(true);
+
+        SubtypeChoice := LibraryVariableStorage.DequeueText();
+        if SubtypeChoice <> '' then
+            ReportLayoutNewDialog.BodySubtype.SetValue(SubtypeChoice);
+
+        ReportLayoutNewDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure NewLayoutBodyOnNonWordHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
+    begin
+        ReportLayoutNewDialog.ReportID.SetValue(BodyReportID);
+        ReportLayoutNewDialog.LayoutName.SetValue('SubtypeGuard');
+        ReportLayoutNewDialog.Description.SetValue('SubtypeGuard');
+        ReportLayoutNewDialog."Format Options".SetValue('RDLC');
+
+        asserterror ReportLayoutNewDialog.BodySubtype.SetValue('Body');
+        LibraryVariableStorage.Enqueue(GetLastErrorText());
+
+        ReportLayoutNewDialog.Cancel().Invoke();
+    end;
+
     local procedure SeedOverriddenLayout() BodyKey: Text
     begin
         BodyKey := CreateLayoutOnReport(BodyReportID, 'OverriddenBody', Enum::"Report Layout Subtype"::Body);
@@ -632,7 +989,6 @@ codeunit 134619 "Composite Layout Tests"
     [ModalPageHandler]
     procedure AssignmentDialogCaptureAndCancel(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
     begin
-        // Capture what the dialog shows and let the test assert on it, so the queue also proves the dialog opened once.
         LibraryVariableStorage.Enqueue(HeaderFooterThemeAssignment.CompanyOverrideDisplay.Visible());
         LibraryVariableStorage.Enqueue(HeaderFooterThemeAssignment.CompanyOverrideDisplay.Value());
         LibraryVariableStorage.Enqueue(HeaderFooterThemeAssignment.LayoutNameDisplay.Value());
@@ -650,13 +1006,12 @@ codeunit 134619 "Composite Layout Tests"
         HeaderFooterThemeAssignment.HeaderPartDisplay.SetValue('');
         HeaderFooterThemeAssignment.OK().Invoke();
 
-        // Declining the warning refuses the close, so the dialog is still open and has to be dismissed.
         if CloseIsRefused then
             HeaderFooterThemeAssignment.Cancel().Invoke();
     end;
 
     [ConfirmHandler]
-    procedure OverrideConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    procedure ConfirmFromQueueHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := LibraryVariableStorage.DequeueBoolean();
         LibraryVariableStorage.Enqueue(Question);
@@ -686,8 +1041,41 @@ codeunit 134619 "Composite Layout Tests"
         TenantReportLayoutCfg.DeleteAll(true);
         TenantReportLayoutCfg.SetRange("Report ID", BodyReportID);
         TenantReportLayoutCfg.DeleteAll(true);
+        ClearTestReportLayouts();
         ClearWildcardCfg('');                                                                     // global default: report 0, all companies
         ClearWildcardCfg(CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))); // company default: report 0, this company
+    end;
+
+    local procedure ClearTestReportLayouts()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TempLayoutsToDelete: Record "Tenant Report Layout" temporary;
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        EmptyGuid: Guid;
+    begin
+        TenantReportLayout.SetRange("Report ID", BodyReportID);
+        if TenantReportLayout.FindSet() then
+            repeat
+                TempLayoutsToDelete.Init();
+                TempLayoutsToDelete."Report ID" := TenantReportLayout."Report ID";
+                TempLayoutsToDelete.Name := TenantReportLayout.Name;
+                TempLayoutsToDelete.Insert();
+            until TenantReportLayout.Next() = 0;
+
+        if TempLayoutsToDelete.FindSet() then
+            repeat
+                if TenantReportLayout.Get(TempLayoutsToDelete."Report ID", TempLayoutsToDelete.Name, EmptyGuid) then
+                    ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
+            until TempLayoutsToDelete.Next() = 0;
+    end;
+
+    local procedure TenantLayoutExists(ReportID: Integer; LayoutName: Text): Boolean
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        TenantReportLayout.SetRange("Report ID", ReportID);
+        TenantReportLayout.SetRange(Name, CopyStr(LayoutName, 1, 250));
+        exit(not TenantReportLayout.IsEmpty());
     end;
 
     local procedure ClearWildcardCfg(CompanyFilter: Text)
@@ -729,7 +1117,6 @@ codeunit 134619 "Composite Layout Tests"
 
     local procedure CreatePart(PartName: Text; Subtype: Enum "Report Layout Subtype"): Text
     begin
-        // Parts live under Tenant Report Defaults (report 2000000001) so they can be assigned to any report.
         exit(CreateLayoutOnReport(PartsReportID, PartName, Subtype));
     end;
 
@@ -745,7 +1132,7 @@ codeunit 134619 "Composite Layout Tests"
         // Remove only this specific layout if a previous run left it behind, then create it fresh. The name is unique
         // per test, so (Report ID, Name) identifies exactly this layout. CreateEmptyLayout generates a valid empty Word
         // document, so the result is a real layout that the Tenant Report Layout Cfg validation accepts when it is
-        // referenced. Returns the composite configuration key for the created layout.
+        // referenced.
         TenantReportLayout.SetRange("Report ID", ReportID);
         TenantReportLayout.SetRange("Name", CopyStr(LayoutName, 1, 250));
         if TenantReportLayout.FindFirst() then
@@ -769,21 +1156,14 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     local procedure FindAppOwnedWordLayout(var AppOwnedLayout: Record "Report Layout List"): Boolean
+    var
+        EmptyGuid: Guid;
     begin
-        // Any layout shipped by an extension carries that extension's Application ID; tenant layouts carry the
-        // empty GUID. Walk rather than filter, so the test does not depend on which extensions are installed.
         AppOwnedLayout.Reset();
         AppOwnedLayout.SetRange("Layout Format", AppOwnedLayout."Layout Format"::Word);
         AppOwnedLayout.SetRange("User Defined", false);
-        if not AppOwnedLayout.FindSet() then
-            exit(false);
-
-        repeat
-            if not IsNullGuid(AppOwnedLayout."Application ID") then
-                exit(true);
-        until AppOwnedLayout.Next() = 0;
-
-        exit(false);
+        AppOwnedLayout.SetFilter("Application ID", '<>%1', EmptyGuid);
+        exit(AppOwnedLayout.FindFirst());
     end;
 
     local procedure InsertCfg(ReportID: Integer; LayoutName: Text; CompanyFilter: Text; HeaderComposite: Text; ThemeComposite: Text)
