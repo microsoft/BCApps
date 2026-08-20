@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
-using System.Reflection;
 using System.Environment.Configuration;
+using System.Reflection;
 
 /// <summary>
 /// Assigns the header/footer and theme parts that ship with the Base Application to the body layouts of the standard
