@@ -250,7 +250,7 @@ codeunit 5699 "Contoso Inventory"
             ItemUnitOfMeasure.Insert(true);
     end;
 
-    procedure InsertItemTemplateData(TemplateCode: Code[20]; Description: Text[100]; BaseUnitofMeasure: Code[20]; ItemType: Enum "Item Type"; InventoryPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; Reserve: Enum "Reserve Method")
+    procedure InsertItemTemplateData(TemplateCode: Code[20]; Description: Text[100]; BaseUnitofMeasure: Code[10]; ItemType: Enum "Item Type"; InventoryPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; Reserve: Enum "Reserve Method")
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         ItemTempl: Record "Item Templ.";
@@ -273,7 +273,7 @@ codeunit 5699 "Contoso Inventory"
         ItemTempl.Modify(true);
     end;
 
-    procedure InsertItemTemplateData(TemplateCode: Code[20]; Description: Text[100]; BaseUnitofMeasure: Code[20]; ItemType: Enum "Item Type"; InventoryPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; Reserve: Enum "Reserve Method"; CostingMethod: Enum "Costing Method"; ReplenishmentSystem: Enum "Replenishment System"; ManufacturingPolicy: Enum "Manufacturing Policy"; FlushingMethod: Enum "Flushing Method"; ReorderingPolicy: Enum "Reordering Policy"; IncludeInventory: Boolean; TimeBucket: Code[20]; LotSize: Decimal)
+    procedure InsertItemTemplateData(TemplateCode: Code[20]; Description: Text[100]; BaseUnitofMeasure: Code[10]; ItemType: Enum "Item Type"; InventoryPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; Reserve: Enum "Reserve Method"; CostingMethod: Enum "Costing Method"; ReplenishmentSystem: Enum "Replenishment System"; ManufacturingPolicy: Enum "Manufacturing Policy"; FlushingMethod: Enum "Flushing Method"; ReorderingPolicy: Enum "Reordering Policy"; IncludeInventory: Boolean; TimeBucket: Code[20]; LotSize: Decimal)
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         ItemTempl: Record "Item Templ.";
