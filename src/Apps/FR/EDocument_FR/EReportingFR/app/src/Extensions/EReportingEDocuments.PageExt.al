@@ -56,6 +56,22 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
                     CurrPage.Update(false);
                 end;
             }
+            action(AcceptFREInvoice)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Accept E-Invoice';
+                Image = Approve;
+                ToolTip = 'Accept the incoming French electronic purchase invoice and send the response to the supplier.';
+                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice");
+
+                trigger OnAction()
+                var
+                    FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+                begin
+                    FREInvoiceMessageMgt.AcceptInvoice(Rec);
+                    CurrPage.Update(false);
+                end;
+            }
         }
     }
 }

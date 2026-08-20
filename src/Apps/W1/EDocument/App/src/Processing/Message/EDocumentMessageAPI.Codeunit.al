@@ -28,6 +28,54 @@ codeunit 6532 "E-Document Message API"
     end;
 
     /// <summary>
+    /// Gets the parent E-Document of an E-Document message.
+    /// </summary>
+    /// <param name="MessageEntryNo">The entry number of the E-Document message.</param>
+    /// <param name="EDocument">The parent E-Document.</param>
+    procedure GetMessageEDocument(MessageEntryNo: Integer; var EDocument: Record "E-Document")
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        EDocMessageMgt.GetMessageEDocument(MessageEntryNo, EDocument);
+    end;
+
+    /// <summary>
+    /// Gets the direction of an E-Document message.
+    /// </summary>
+    /// <param name="MessageEntryNo">The entry number of the E-Document message.</param>
+    /// <returns>The message direction.</returns>
+    procedure GetMessageDirection(MessageEntryNo: Integer): Enum "E-Document Direction"
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        exit(EDocMessageMgt.GetMessageDirection(MessageEntryNo));
+    end;
+
+    /// <summary>
+    /// Gets the processing status of an E-Document message.
+    /// </summary>
+    /// <param name="MessageEntryNo">The entry number of the E-Document message.</param>
+    /// <returns>The message processing status.</returns>
+    procedure GetMessageStatus(MessageEntryNo: Integer): Enum "E-Doc. Message Status"
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        exit(EDocMessageMgt.GetMessageStatus(MessageEntryNo));
+    end;
+
+    /// <summary>
+    /// Gets the response type represented by an E-Document message.
+    /// </summary>
+    /// <param name="MessageEntryNo">The entry number of the E-Document message.</param>
+    /// <returns>The message response type.</returns>
+    procedure GetMessageResponseType(MessageEntryNo: Integer): Enum "E-Doc. Response Type"
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        exit(EDocMessageMgt.GetMessageResponseType(MessageEntryNo));
+    end;
+
+    /// <summary>
     /// Sends a previously created outgoing E-Document message through its E-Document service.
     /// </summary>
     /// <param name="MessageEntryNo">The entry number of the E-Document message to send.</param>
