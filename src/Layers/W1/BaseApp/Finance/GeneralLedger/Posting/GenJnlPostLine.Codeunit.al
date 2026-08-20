@@ -1210,7 +1210,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 InitGLEntry(
                     GenJnlLine, GLEntry, GenJnlLine."Account No.", GenJnlLine."Amount (LCY)",
                     GenJnlLine."Source Currency Amount", true, GenJnlLine."System-Created Entry",
-                    CalcSourceCurrVATBaseAmount(genJnlLine));
+                    CalcSourceCurrVATBaseAmount(GenJnlLine));
             IsHandled := false;
             OnPostGLAccOnAfterInitGLEntry(GenJnlLine, GLEntry);
             CheckGLAccDirectPosting(GenJnlLine, GLAcc);
