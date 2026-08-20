@@ -122,9 +122,9 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Reports API",
             ExpenseReportsServiceNameTok,
             ServiceNameTok);
-        EntryURL :=
-            CollectionURL + '(' +
-            LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')';
+        EntryURL := LibraryGraphMgt.AppendPathToTargetURL(
+            CollectionURL,
+            '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')');
 
         // [WHEN] A POST is attempted.
         // [THEN] The API rejects it with Method Not Allowed.
@@ -175,7 +175,8 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Reports API",
             ExpenseReportsServiceNameTok,
             ServiceNameTok);
-        TargetURL += '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -282,7 +283,8 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.ExpectedError('The historyActorRole filter must be specified as Submitter or Approver.');
 
         // [WHEN] Submitter history is requested through the first Expense User.
-        TargetURL += '?$filter=historyActorRole eq ''Submitter''';
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$filter=historyActorRole eq ''Submitter''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -352,7 +354,8 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Users API",
             ExpenseUsersServiceNameTok,
             ServiceNameTok);
-        TargetURL += '?$filter=historyActorRole eq ''Approver''';
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$filter=historyActorRole eq ''Approver''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -555,7 +558,8 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Users API",
             ExpenseUsersServiceNameTok,
             ServiceNameTok);
-        TargetURL += '?$filter=historyActorRole eq ''' + HistoryRole + '''';
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$filter=historyActorRole eq ''' + HistoryRole + '''');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         Assert.AreNotEqual(
             0,
