@@ -17,6 +17,7 @@ codeunit 148500 "XRechnung Structured Tests"
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         XRechnungStructuredValidations: Codeunit "XRechnung Struct. Validations";
         IsInitialized: Boolean;
+        CompanyIDFormatTok: Label '<cbc:CompanyID>%1</cbc:CompanyID>', Locked = true;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
         TestFileTok: Label 'xrechnung/xrechnung-invoice-0.xml', Locked = true;
         UnsupportedXmlRootElementErr: Label 'Unsupported XML root element: %1.', Comment = '%1 = local name of the XML root element';
@@ -371,7 +372,7 @@ codeunit 148500 "XRechnung Structured Tests"
         TaxSchemeIDPosition: Integer;
         SearchStartPosition: Integer;
     begin
-        CompanyIDToken := StrSubstNo('<cbc:CompanyID>%1</cbc:CompanyID>', RegistrationNo);
+        CompanyIDToken := StrSubstNo(CompanyIDFormatTok, RegistrationNo);
         CompanyIDPosition := StrPos(XmlContent, CompanyIDToken);
         Assert.IsTrue(CompanyIDPosition > 0, 'The party company identifier was not found in the test XML.');
 
