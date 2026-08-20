@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using Microsoft.Purchases.Setup;
+#if not CLEAN29
+using Microsoft.eServices.EDocument.Processing.Import;
+#endif
 using System.Upgrade;
 
 codeunit 6168 "E-Document Upgrade"
@@ -17,7 +19,9 @@ codeunit 6168 "E-Document Upgrade"
     trigger OnUpgradePerCompany()
     begin
         UpgradeLogURLMaxLength();
-        UpgradeEnableVATOptionsForPurchEDoc();
+#if not CLEAN29
+        UpgradeProcessDraftEnum();
+#endif
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -41,7 +45,7 @@ codeunit 6168 "E-Document Upgrade"
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetUpgradeLogURLMaxLengthUpgradeTag());
-        PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
+        PerCompanyUpgradeTags.Add(GetUpgradeProcessDraftEnumTag());
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
@@ -49,25 +53,26 @@ codeunit 6168 "E-Document Upgrade"
         exit('MS-540448-LogURLMaxLength-20240813');
     end;
 
-    local procedure UpgradeEnableVATOptionsForPurchEDoc()
+#if not CLEAN29
+    local procedure UpgradeProcessDraftEnum()
     var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        EDocument: Record "E-Document";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetEnableVATOptionsForPurchEDocTag()) then
+        if UpgradeTag.HasUpgradeTag(GetUpgradeProcessDraftEnumTag()) then
             exit;
 
-        if PurchasesPayablesSetup.Get() then begin
-            PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc" := true;
-            PurchasesPayablesSetup."Resolve VAT Group Purch EDoc" := true;
-            PurchasesPayablesSetup.Modify();
-        end;
+        EDocument.SetRange("Process Draft Impl.", "E-Doc. Process Draft"::"Purchase Document");
+        if not EDocument.IsEmpty() then
+            EDocument.ModifyAll("Process Draft Impl.", "E-Doc. Process Draft"::"Purchase Invoice");
 
-        UpgradeTag.SetUpgradeTag(GetEnableVATOptionsForPurchEDocTag());
+        UpgradeTag.SetUpgradeTag(GetUpgradeProcessDraftEnumTag());
     end;
+#endif
 
-    internal procedure GetEnableVATOptionsForPurchEDocTag(): Code[250]
+    internal procedure GetUpgradeProcessDraftEnumTag(): Code[250]
     begin
-        exit('MS-EDoc-EnableVATOptionsForPurchEDoc-20260520');
+        exit('MS-EDoc-ProcessDraftEnum-20260407');
     end;
+
 }

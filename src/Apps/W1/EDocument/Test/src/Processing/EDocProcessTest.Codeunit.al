@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -23,6 +24,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using System.IO;
 using System.TestLibraries.Utilities;
 using System.Utilities;
@@ -1034,6 +1036,50 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure FinishDraftCreditMemoCanBeUndone()
+    var
+        EDocument: Record "E-Document";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocLogRecord: Record "E-Document Log";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        // [SCENARIO] A credit memo created via FinishDraft can be reverted
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocument."Document Type" := "E-Document Type"::"Purchase Credit Memo";
+        EDocument.Modify();
+        EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+        EDocumentService.Modify();
+
+        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, 'Data');
+        EDocumentLog.SetFields(EDocument, EDocumentService);
+        EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Readable);
+
+        EDocument."Structured Data Entry No." := EDocLogRecord."E-Doc. Data Storage Entry No.";
+        EDocument.Modify();
+
+        // [GIVEN] A credit memo is created via FinishDraft
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        PurchaseHeader.FindFirst();
+        Assert.AreEqual("Purchase Document Type"::"Credit Memo", PurchaseHeader."Document Type", 'The document type should be Credit Memo.');
+
+        // [WHEN] Undo is performed
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+
+        // [THEN] The credit memo is removed
+        Assert.RecordIsEmpty(PurchaseHeader);
+    end;
+
+    [Test]
     [HandlerFunctions('EditDimensionSetEntriesHandler')]
     procedure ManuallyAddedDimensionsOnDraftAreCarriedToPurchaseInvoice()
     var
@@ -1088,6 +1134,254 @@ codeunit 139883 "E-Doc Process Test"
         EditDimensionSetEntries.DimensionValueCode.SetValue(DimensionValueCode);
         EditDimensionSetEntries.OK().Invoke();
     end;
+
+    [Test]
+    procedure ProcessingInboundCreditNoteCreatesCorrectDocumentType()
+    var
+        EDocument: Record "E-Document";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocRecordLink: Record "E-Doc. Record Link";
+    begin
+        // [SCENARIO] A PEPPOL CreditNote processed through the full pipeline creates a Purchase Credit Memo with correct content
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        EDocRecordLink.DeleteAll();
+
+        // [GIVEN] An inbound credit note e-document is received and fully processed
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', EDocImportParameters), 'The credit note e-document should be processed');
+
+        // [THEN] The E-Document type is Purchase Credit Memo
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Document Type"::"Purchase Credit Memo", EDocument."Document Type", 'The document type should be Purchase Credit Memo.');
+
+        // [THEN] A Purchase Credit Memo header is created with correct fields
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual("Purchase Document Type"::"Credit Memo", PurchaseHeader."Document Type", 'The purchase header document type should be Credit Memo.');
+        Assert.AreEqual(EDocument.SystemId, PurchaseHeader."E-Document Link", 'The E-Document link should be set on the purchase header.');
+        Assert.AreEqual('CN-5001', PurchaseHeader."Vendor Cr. Memo No.", 'The vendor credit memo number should match the CreditNote ID.');
+        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor should be resolved from the CreditNote.');
+        Assert.AreEqual(2500, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the CreditNote total.');
+        Assert.AreEqual('5', PurchaseHeader."Vendor Order No.", 'The Vendor Order No. should match the OrderReference from the CreditNote.');
+
+        // [THEN] The purchase credit memo has the correct number of lines
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 1);
+
+        // [THEN] Links are created between e-document and purchase records
+        EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Header");
+        EDocRecordLink.SetRange("Target SystemId", PurchaseHeader.SystemId);
+        Assert.RecordCount(EDocRecordLink, 1);
+    end;
+
+    [Test]
+    procedure ProcessingInboundInvoiceStillCreatesCorrectDocumentType()
+    var
+        EDocument: Record "E-Document";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO] After the refactoring, a PEPPOL Invoice still creates a Purchase Invoice with correct content (regression check)
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParameters), 'The invoice e-document should be processed');
+
+        // [THEN] The E-Document type is Purchase Invoice
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Document Type"::"Purchase Invoice", EDocument."Document Type", 'The document type should be Purchase Invoice.');
+
+        // [THEN] A Purchase Invoice header is created with correct fields
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual("Purchase Document Type"::Invoice, PurchaseHeader."Document Type", 'The purchase header document type should be Invoice.');
+        Assert.AreEqual('103033', PurchaseHeader."Vendor Invoice No.", 'The vendor invoice number should match the Invoice ID.');
+        Assert.AreEqual('2', PurchaseHeader."Vendor Order No.", 'The vendor order number should match the OrderReference from the Invoice.');
+        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor should be resolved from the Invoice.');
+        Assert.AreEqual(14140, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the Invoice total.');
+
+        // [THEN] The purchase invoice has the correct number of lines (2 from peppol-invoice-0.xml)
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 2);
+    end;
+
+    #region FinishDraft Sales Order Tests
+
+    [Test]
+    procedure FinishDraftSalesOrder_CreatesSalesOrder()
+    var
+        EDocument: Record "E-Document";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] A PEPPOL Order XML is imported through the full pipeline with a mock customization. FinishDraft creates a Sales Header with Document Type = Order.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Sales Order";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', EDocImportParameters), 'The e-document should be fully processed.');
+        EDocument.Get(EDocument."Entry No");
+
+        // [THEN] The e-document reaches Processed state
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'The status should be Processed after FinishDraft.');
+
+        // [THEN] A Sales Header is linked to the e-document with Document Type = Order
+        SalesHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.IsFalse(SalesHeader.IsEmpty(), 'A Sales Header should be linked to the e-document after FinishDraft.');
+        SalesHeader.FindFirst();
+        Assert.AreEqual("Sales Document Type"::Order, SalesHeader."Document Type", 'The Sales Header Document Type should be Order.');
+    end;
+
+    [Test]
+    procedure FinishDraftSalesOrder_CanBeUndone()
+    var
+        EDocument: Record "E-Document";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        SalesHeader: Record "Sales Header";
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        // [SCENARIO] After a PEPPOL Order XML is imported and a Sales Header created, requesting an earlier step undoes the FinishDraft and clears the Sales Header link.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Sales Order";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', EDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+
+        // [GIVEN] FinishDraft has created a Sales Header linked to the e-document
+        SalesHeader.SetRange("E-Document Link", EDocument.SystemId);
+        SalesHeader.FindFirst();
+
+        // [WHEN] An earlier step is requested, causing FinishDraft to be undone
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+
+        // [THEN] The Sales Header is no longer linked to the e-document (E-Document Link cleared)
+        Assert.RecordIsEmpty(SalesHeader);
+    end;
+
+    [Test]
+    procedure FinishDraftSalesOrder_AnyOrderTypeCodeCreatesSalesOrder()
+    var
+        EDocument: Record "E-Document";
+        EDocSalesHeader: Record "E-Document Sales Header";
+        EDocSalesLine: Record "E-Document Sales Line";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        SalesHeader: Record "Sales Header";
+        Item: Record Item;
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        // [SCENARIO] A PEPPOL Order XML with OrderTypeCode=221 is imported. FinishDraft always produces a Sales Order regardless of OrderTypeCode.
+        Initialize(Enum::"Service Integration"::"Mock");
+        WorkDate(DMY2Date(1, 1, 2027));
+
+        // [GIVEN] The XML is parsed into staging records (ReadIntoDraft sets OrderTypeCode = '221' from the XML)
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-typecode-221.xml', EDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+
+        // [GIVEN] BC-resolved fields are set (customer + item), simulating what PrepareDraft would do
+        LibraryEDoc.GetGenericItem(Item);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."[BC] Customer No." := Customer."No.";
+        EDocSalesHeader.Modify();
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if EDocSalesLine.FindSet() then
+            repeat
+                EDocSalesLine."[BC] Sales Line Type" := "Sales Line Type"::Item;
+                EDocSalesLine."[BC] Sales Line No." := Item."No.";
+                EDocSalesLine.Modify();
+            until EDocSalesLine.Next() = 0;
+
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+
+        // [WHEN] FinishDraft runs with the real EDocCreateSalesOrder implementation
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+
+        // [THEN] The e-document is Processed and the resulting Sales Header is a Sales Order (OrderTypeCode is ignored)
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'The status should be Processed after FinishDraft regardless of OrderTypeCode.');
+        SalesHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual("Sales Document Type"::Order, SalesHeader."Document Type", 'OrderTypeCode=221 should produce a Sales Order, not a Blanket Order.');
+    end;
+
+    [Test]
+    procedure FinishDraftSalesOrder_DuplicateOrderError()
+    var
+        EDocument: Record "E-Document";
+        EDocSalesHeader: Record "E-Document Sales Header";
+        EDocSalesLine: Record "E-Document Sales Line";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        ExistingSalesHeader: Record "Sales Header";
+        Item: Record Item;
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        // [SCENARIO] A PEPPOL Order XML is imported. A Sales Order with the same customer and External Document No. already exists. FinishDraft detects the duplicate and logs an error.
+        Initialize(Enum::"Service Integration"::"Mock");
+        WorkDate(DMY2Date(1, 1, 2027));
+
+        // [GIVEN] A Sales Order already exists for the same customer using the Order ID from the XML as its External Document No.
+        // peppol-order-standard.xml has cbc:ID = 'ORD-1001', which maps to EDocSalesHeader."Buyer Order No."
+        ExistingSalesHeader.Init();
+        ExistingSalesHeader."Document Type" := ExistingSalesHeader."Document Type"::Order;
+        ExistingSalesHeader."No." := 'EDOC-DUP-SO-001';
+        ExistingSalesHeader."Sell-to Customer No." := Customer."No.";
+        ExistingSalesHeader."External Document No." := 'ORD-1001';
+        ExistingSalesHeader.Insert();
+
+        // [GIVEN] The XML is parsed into staging records; Buyer Order No. = 'ORD-1001' matches the pre-existing order
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', EDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+
+        // [GIVEN] BC-resolved fields are set on the staging records
+        LibraryEDoc.GetGenericItem(Item);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."[BC] Customer No." := Customer."No.";
+        EDocSalesHeader.Modify();
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if EDocSalesLine.FindSet() then
+            repeat
+                EDocSalesLine."[BC] Sales Line Type" := "Sales Line Type"::Item;
+                EDocSalesLine."[BC] Sales Line No." := Item."No.";
+                EDocSalesLine.Modify();
+            until EDocSalesLine.Next() = 0;
+
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+
+        // [WHEN] FinishDraft detects a duplicate — error is captured internally by the "if codeunit.run" pattern
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+
+        // [THEN] The e-document is NOT in Processed state
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreNotEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'Duplicate detection should prevent the e-document from reaching Processed state.');
+
+        // [Cleanup]
+        ExistingSalesHeader.Get(ExistingSalesHeader."Document Type"::Order, 'EDOC-DUP-SO-001');
+        ExistingSalesHeader.Delete();
+    end;
+
+    #endregion
 
     local procedure Initialize(Integration: Enum "Service Integration")
     var

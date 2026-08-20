@@ -47,6 +47,7 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         VATPostingSetup2: Record "VAT Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VATProductPostingGroup: Record "VAT Product Posting Group";
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocImport: Codeunit "E-Doc. Import";
@@ -62,7 +63,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
         Vendor2."No." := 'EDOC001';
         Vendor2."VAT Registration No." := 'XXXXXXX001';
-        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        Vendor2."VAT Bus. Posting Group" := VATBusinessPostingGroup.Code;
         Vendor2.Insert();
 
         // [GIVEN] A VAT Posting Setup with VAT % = 10 for the vendor's bus posting group
@@ -101,6 +103,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         VATPostingSetup2.Delete();
         VATProductPostingGroup.SetRecFilter();
         VATProductPostingGroup.Delete();
+        VATBusinessPostingGroup.SetRecFilter();
+        VATBusinessPostingGroup.Delete();
     end;
 
     [Test]
@@ -112,8 +116,10 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         EDocImportParameters: Record "E-Doc. Import Parameters";
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocImport: Codeunit "E-Doc. Import";
+        LibraryERM: Codeunit "Library - ERM";
     begin
         // [SCENARIO] When a draft line has a VAT Rate but no matching VAT Posting Setup exists, Prepare Draft leaves the field blank and sets the mismatch flag
         Initialize(Enum::"Service Integration"::"Mock");
@@ -125,7 +131,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
         Vendor2."No." := 'EDOC001';
         Vendor2."VAT Registration No." := 'XXXXXXX001';
-        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        Vendor2."VAT Bus. Posting Group" := VATBusinessPostingGroup.Code;
         Vendor2.Insert();
 
         // [GIVEN] E-Document purchase header and line with VAT Rate = 99 (no matching setup)
@@ -150,6 +157,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         // Cleanup
         Vendor2.SetRecFilter();
         Vendor2.Delete();
+        VATBusinessPostingGroup.SetRecFilter();
+        VATBusinessPostingGroup.Delete();
     end;
 
     [Test]
@@ -162,6 +171,7 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         VATPostingSetup2: Record "VAT Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VATProductPostingGroup: Record "VAT Product Posting Group";
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocImport: Codeunit "E-Doc. Import";
@@ -177,7 +187,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
         Vendor2."No." := 'EDOC001';
         Vendor2."VAT Registration No." := 'XXXXXXX001';
-        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        Vendor2."VAT Bus. Posting Group" := VATBusinessPostingGroup.Code;
         Vendor2.Insert();
 
         // [GIVEN] A Full VAT Posting Setup with VAT % = 10
@@ -216,6 +227,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         VATPostingSetup2.Delete();
         VATProductPostingGroup.SetRecFilter();
         VATProductPostingGroup.Delete();
+        VATBusinessPostingGroup.SetRecFilter();
+        VATBusinessPostingGroup.Delete();
     end;
 
     [Test]
@@ -228,6 +241,7 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         VATPostingSetup2: Record "VAT Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VATProductPostingGroup: Record "VAT Product Posting Group";
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocImport: Codeunit "E-Doc. Import";
@@ -243,7 +257,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
         Vendor2."No." := 'EDOC001';
         Vendor2."VAT Registration No." := 'XXXXXXX001';
-        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        Vendor2."VAT Bus. Posting Group" := VATBusinessPostingGroup.Code;
         Vendor2.Insert();
 
         // [GIVEN] A Sales Tax Posting Setup with VAT % = 10
@@ -282,6 +297,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         VATPostingSetup2.Delete();
         VATProductPostingGroup.SetRecFilter();
         VATProductPostingGroup.Delete();
+        VATBusinessPostingGroup.SetRecFilter();
+        VATBusinessPostingGroup.Delete();
     end;
 
     [Test]
@@ -294,6 +311,7 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         VATPostingSetup2: Record "VAT Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VATProductPostingGroup: Record "VAT Product Posting Group";
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocImport: Codeunit "E-Doc. Import";
@@ -309,7 +327,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
         Vendor2."No." := 'EDOC001';
         Vendor2."VAT Registration No." := 'XXXXXXX001';
-        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        Vendor2."VAT Bus. Posting Group" := VATBusinessPostingGroup.Code;
         Vendor2.Insert();
 
         // [GIVEN] A Reverse Charge VAT Posting Setup with VAT % = 20
@@ -349,6 +368,8 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         VATPostingSetup2.Delete();
         VATProductPostingGroup.SetRecFilter();
         VATProductPostingGroup.Delete();
+        VATBusinessPostingGroup.SetRecFilter();
+        VATBusinessPostingGroup.Delete();
     end;
 
     local procedure Initialize(Integration: Enum "Service Integration")

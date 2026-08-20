@@ -272,7 +272,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     begin
         ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
         EDocPurchaseDraftUtility.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
-        exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
+        exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
     end;
 
     local procedure ReadIntoBuffer(
@@ -328,4 +328,5 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Analysis") then
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis", '');
     end;
+
 }

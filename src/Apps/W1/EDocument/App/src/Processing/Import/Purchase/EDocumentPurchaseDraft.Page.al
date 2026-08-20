@@ -161,6 +161,26 @@ page 6181 "E-Document Purchase Draft"
                             CurrPage.Update();
                         end;
                     }
+                    field("Vendor Invoice No."; EDocumentPurchaseHeader."Vendor Invoice No.")
+                    {
+                        Caption = 'Vendor Invoice No.';
+                        ToolTip = 'Specifies the vendor''s invoice number referenced in the credit memo billing reference.';
+                        Visible = IsCreditMemo;
+                        Editable = false;
+                    }
+                    field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
+                    {
+                        Caption = 'Applies-to Doc. No.';
+                        ToolTip = 'Specifies the posted purchase invoice number in Business Central that this credit memo applies to.';
+                        Visible = IsCreditMemo;
+                        Editable = PageEditable;
+
+                        trigger OnValidate()
+                        begin
+                            EDocumentPurchaseHeader.Modify();
+                            CurrPage.Update();
+                        end;
+                    }
                 }
                 field("Status"; Rec.Status)
                 {
@@ -514,6 +534,7 @@ page 6181 "E-Document Purchase Draft"
         HasErrorsOrWarnings := false;
         HasErrors := false;
         PageEditable := IsEditable();
+        IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
         EDocumentNotification.SendPurchaseDocumentDraftNotifications(Rec."Entry No");
         if PurchasesPayablesSetup.Get() then
             ApplyVATDiffEnabled := PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc";
@@ -549,6 +570,7 @@ page 6181 "E-Document Purchase Draft"
             (Rec.Status = Enum::"E-Document Status"::Error);
 
         PageEditable := IsEditable();
+        IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
     end;
 
     local procedure SetPageCaption()
@@ -775,7 +797,6 @@ page 6181 "E-Document Purchase Draft"
         FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
-        PageEditable, HasPDFSource : Boolean;
-        ApplyVATDiffEnabled: Boolean;
+        PageEditable, HasPDFSource, IsCreditMemo, ApplyVATDiffEnabled : Boolean;
         AppliedVATAmountDiff: Decimal;
 }
