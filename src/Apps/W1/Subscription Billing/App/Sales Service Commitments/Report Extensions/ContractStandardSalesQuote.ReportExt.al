@@ -120,7 +120,7 @@ reportextension 8011 "Contract Standard Sales Quote" extends "Standard Sales - Q
             Caption = 'Sales Quote for Subscription Billing (Word)';
             Summary = 'The Sales Quote for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("SalesQuoteForSubscriptionBillingBody.docx")

@@ -30,7 +30,7 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
             Caption = 'Standard Sales - Credit Memo - E-Document (Word)';
             Summary = 'The Standard Sales - Credit Memo - E-Document (Word) provides the layout including E-Document QR code support.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesCrMemoBody.docx")

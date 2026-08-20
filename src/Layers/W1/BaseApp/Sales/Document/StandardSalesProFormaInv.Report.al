@@ -447,7 +447,7 @@ report 1302 "Standard Sales - Pro Forma Inv"
             Caption = 'Standard Sales Proforma Invoice (Word)';
             Summary = 'The Standard Sales Proforma Invoice (Word) provides a basic layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesProFormaInvBody.docx")

@@ -1060,7 +1060,7 @@ report 1303 "Standard Sales - Draft Invoice"
             Caption = 'Standard Sales Draft Invoice (Word)';
             Summary = 'The Standard Sales Draft Invoice (Word) provides a basic layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardDraftSalesInvoiceBlue.docx")
@@ -1070,7 +1070,7 @@ report 1303 "Standard Sales - Draft Invoice"
             Caption = 'Standard Sales Draft Invoice - Blue (Word)';
             Summary = 'The Standard Sales Draft Invoice -Blue (Word) provides a basic layout with a blue theme.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardDraftSalesInvoiceBlueThemable.docx")
@@ -1080,7 +1080,7 @@ report 1303 "Standard Sales - Draft Invoice"
             Caption = 'Standard Sales Draft Invoice - themable Word layout';
             Summary = 'The Standard Sales Draft Invoice -Themable (Word) provides a Themable layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardDraftSalesInvoiceEmail.docx")
@@ -1090,7 +1090,7 @@ report 1303 "Standard Sales - Draft Invoice"
             Caption = 'Standard Sales Draft Invoice Email (Word)';
             Summary = 'The Standard Sales Draft Invoice Email (Word) provides a email body layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesDraftInvoiceBody.docx")

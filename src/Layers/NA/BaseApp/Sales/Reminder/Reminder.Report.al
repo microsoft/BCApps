@@ -834,7 +834,7 @@ report 117 Reminder
             Caption = 'Default Reminder Email (Word)';
             Summary = 'The Default Reminder Email (Word) provides an email body for the reminder.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("DefaultReminderEmailBody.docx")

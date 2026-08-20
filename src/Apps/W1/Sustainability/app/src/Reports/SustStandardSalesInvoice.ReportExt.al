@@ -62,7 +62,7 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             Summary = 'The Standard ESG Sales Invoice (Word) provides a basic layout.';
             LayoutFile = 'src\Reports\StandardESGSalesInvoice.docx';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardESGSalesInvoiceBlueSimple.docx")
@@ -72,7 +72,7 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             Summary = 'The Standard ESG Sales Invoice (Word) provides a basic layout with blue theme.';
             LayoutFile = 'src\Reports\StandardESGSalesInvoiceBlueSimple.docx';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardESGSalesInvoiceBody.docx")

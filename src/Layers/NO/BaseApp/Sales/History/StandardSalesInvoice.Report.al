@@ -1299,7 +1299,7 @@ report 1306 "Standard Sales - Invoice"
             Caption = 'Standard Sales Invoice (Word)';
             Summary = 'The Standard Sales Invoice (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesInvoiceBlueSimple.docx")
@@ -1309,7 +1309,7 @@ report 1306 "Standard Sales - Invoice"
             Caption = 'Standard Sales Invoice - Blue (Word)';
             Summary = 'The Standard Sales Invoice - Blue (Word) provides a simple layout with a blue theme.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesInvoiceBlueSimpleThemable.docx")
@@ -1319,7 +1319,7 @@ report 1306 "Standard Sales - Invoice"
             Caption = 'Standard Sales Invoice - themable Word layout';
             Summary = 'The Standard Sales Invoice - Themable (Word) provides a simple Themable layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesInvoiceVatSpec.docx")
@@ -1329,7 +1329,7 @@ report 1306 "Standard Sales - Invoice"
             Caption = 'Standard Sales Invoice - VAT Spec (Word)';
             Summary = 'The Standard Sales Invoice - VAT Spec (Word) provides a layout with VAT Specification.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesInvoiceDefEmail.docx")
@@ -1339,7 +1339,7 @@ report 1306 "Standard Sales - Invoice"
             Caption = 'Standard Sales Invoice Email (Word)';
             Summary = 'The Standard Sales Invoice Email (Word) provides the default email body layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesInvoiceBody.docx")

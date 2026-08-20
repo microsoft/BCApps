@@ -616,7 +616,7 @@ report 1309 "Standard Sales - Return Rcpt."
             Caption = 'Standard Sales Return Receipt (Word)';
             Summary = 'The Standard Sales Return Receipt (Word) provides a basic layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesReturnRcptBlue.docx")
@@ -626,7 +626,7 @@ report 1309 "Standard Sales - Return Rcpt."
             Caption = 'Standard Sales Return Receipt - Blue (Word)';
             Summary = 'The Standard Sales Return Receipt - Blue (Word) provides a simple layout with a blue theme.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesReturnRcptBlueThemable.docx")
@@ -636,7 +636,7 @@ report 1309 "Standard Sales - Return Rcpt."
             Caption = 'Standard Sales Return Receipt - themable Word layout';
             Summary = 'The Standard Sales Return Receipt - Themable (Word) provides a Themable layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesReturnRcptBody.docx")

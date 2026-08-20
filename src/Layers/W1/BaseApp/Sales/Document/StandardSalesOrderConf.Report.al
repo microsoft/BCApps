@@ -1050,7 +1050,7 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation (Word)';
             Summary = 'Simple layout with most necessary fields.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesOrderConfThemable.docx")
@@ -1060,7 +1060,7 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation - themable Word layout';
             Summary = 'Simple themable layout with most necessary fields.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardOrderConfirmationEmail.docx")
@@ -1070,7 +1070,7 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation Email (Word)';
             Summary = 'Layout intended for an email body.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
 

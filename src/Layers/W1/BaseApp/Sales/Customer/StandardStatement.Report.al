@@ -986,7 +986,7 @@ report 1316 "Standard Statement"
             Caption = 'Standard Customer Statement (Word)';
             Summary = 'The Standard Customer Statement (Word) provides a basic layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardCustomerStatementEmail.docx")
@@ -996,7 +996,7 @@ report 1316 "Standard Statement"
             Caption = 'Standard Customer Statement Email (Word)';
             Summary = 'The Standard Customer Statement Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardStatementBody.docx")

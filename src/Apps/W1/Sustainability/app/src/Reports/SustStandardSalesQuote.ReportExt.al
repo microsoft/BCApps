@@ -62,7 +62,7 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
             Summary = 'The Standard ESG Sales Quote (Word) provides a basic layout.';
             LayoutFile = 'src\Reports\StandardESGSalesQuote.docx';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardESGSalesQuoteBlue.docx")
@@ -72,7 +72,7 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
             Summary = 'The Standard ESG Sales Quote (Word) provides a basic layout with blue theme.	';
             LayoutFile = 'src\Reports\StandardESGSalesQuoteBlue.docx';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardESGSalesQuoteBody.docx")

@@ -121,7 +121,7 @@ reportextension 8010 "Contract Sales Order Conf." extends "Standard Sales - Orde
             Caption = 'Sales Order Confirmation for Subscription Billing (Word)';
             Summary = 'The Sales Order Confirmation for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("SalesOrderConfForSubscriptionBillingBody.docx")

@@ -854,7 +854,7 @@ report 1308 "Standard Sales - Shipment"
             Caption = 'Standard Sales Shipment (Word)';
             Summary = 'The Standard Sales Shipment (Word) provides a basic layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesShipmentBlue.docx")
@@ -864,7 +864,7 @@ report 1308 "Standard Sales - Shipment"
             Caption = 'Standard Sales Shipment - Blue (Word)';
             Summary = 'The Standard Sales Shipment - Blue (Word) provides a simple layout with a blue theme.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesShipmentBlueThemable.docx")
@@ -874,7 +874,7 @@ report 1308 "Standard Sales - Shipment"
             Caption = 'Standard Sales Shipment - themable Word layout';
             Summary = 'The Standard Sales Shipment - Themable (Word) provides a Themable layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesShipmentBody.docx")

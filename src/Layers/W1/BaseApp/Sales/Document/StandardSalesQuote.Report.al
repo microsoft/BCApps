@@ -990,7 +990,7 @@ report 1304 "Standard Sales - Quote"
             Caption = 'Standard Sales Quote (Word)';
             Summary = 'The Standard Sales Quote (Word) provides a basic layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesQuoteBlue.docx")
@@ -1000,7 +1000,7 @@ report 1304 "Standard Sales - Quote"
             Caption = 'Standard Sales Quote - Blue (Word)';
             Summary = 'The Standard Sales Quote - Blue (Word) provides a basic layout with a blue theme.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesQuoteBlueThemable.docx")
@@ -1010,7 +1010,7 @@ report 1304 "Standard Sales - Quote"
             Caption = 'Standard Sales Quote - blue themable Word layout';
             Summary = 'The Standard Sales Quote - Themable (Word) provides a basic Themable layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesQuoteEmail.docx")
@@ -1020,7 +1020,7 @@ report 1304 "Standard Sales - Quote"
             Caption = 'Standard Sales Quote Email (Word)';
             Summary = 'The Standard Sales Quote Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardSalesQuoteBody.docx")

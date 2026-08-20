@@ -1040,7 +1040,7 @@ report 1322 "Standard Purchase - Order"
             Caption = 'Standard Purchase Order (Word)';
             Summary = 'The Standard Purchase Order (Word) provides a basic layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardPurchaseOrderThemable.docx")
@@ -1050,7 +1050,7 @@ report 1322 "Standard Purchase - Order"
             Caption = 'Standard Purchase Order - themable Word layout';
             Summary = 'The Standard Purchase Order (Word) provides a Themable layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardPurchaseOrderEmail.docx")
@@ -1060,7 +1060,7 @@ report 1322 "Standard Purchase - Order"
             Caption = 'Standard Purchase Order Email (Word)';
             Summary = 'The Standard Purchase Order Email (Word) provides an email body layout.';
             ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the new Report Layout Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
         layout("StandardPurchaseOrderBody.docx")
