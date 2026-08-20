@@ -7,7 +7,6 @@ page 150001 "Fabric Platform Companies"
     Caption = 'Fabric Platform Companies';
     PageType = List;
     SourceTable = "Tenant Fabric Companies";
-    UsageCategory = Lists;
     ApplicationArea = All;
 
     layout

@@ -8,7 +8,6 @@ page 150005 "Fabric Platform Tables"
     Caption = 'Fabric Platform Tables';
     PageType = List;
     SourceTable = "Tenant Fabric Tables";
-    UsageCategory = Lists;
     ApplicationArea = All;
 
     layout

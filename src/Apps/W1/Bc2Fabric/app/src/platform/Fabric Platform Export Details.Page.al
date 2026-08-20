@@ -7,7 +7,6 @@ page 150002 "Fabric Platform Export Details"
     Caption = 'Fabric Platform Export Details';
     PageType = List;
     SourceTable = "Tenant Fabric Export Details";
-    UsageCategory = History;
     ApplicationArea = All;
     Editable = false;
     InsertAllowed = false;

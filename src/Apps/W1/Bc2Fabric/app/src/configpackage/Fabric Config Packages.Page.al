@@ -5,7 +5,6 @@ page 150008 "Fabric Config Packages"
     Caption = 'Fabric Config Packages';
     PageType = List;
     SourceTable = "Fabric Config Package";
-    UsageCategory = Lists;
     ApplicationArea = All;
     Editable = false;
     InsertAllowed = false;
