@@ -358,8 +358,17 @@ codeunit 4305 "SOA Filters Impl."
     /// Internal procedures are not an authorization boundary, so every override and alternate-email write path calls this validation.
     /// </summary>
     local procedure ValidateContactMappingAccess(TaskID: BigInteger; TaskMessageID: Guid)
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        SOASetup: Record "SOA Setup";
     begin
-        if not CanChangeContactMapping(TaskID, TaskMessageID) then
+        if not AgentTaskMessage.Get(TaskID, TaskMessageID) then
+            Error(ContactMappingNotAuthorizedErr);
+        if AgentTaskMessage.Type <> AgentTaskMessage.Type::Input then
+            Error(ContactMappingNotAuthorizedErr);
+
+        SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", true);
+        if not SOASetup.IsAuthorizedUserSecurityID(UserSecurityId()) then
             Error(ContactMappingNotAuthorizedErr);
     end;
 
