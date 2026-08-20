@@ -106,10 +106,14 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         AppId: Guid;
         Composite: Text;
     begin
-        if not this.TryGetBodyLayoutAppId(ReportID, LayoutName, AppId) then
+        if not this.TryGetBodyLayoutAppId(ReportID, LayoutName, AppId) then begin
+            this.LogUnresolvedLayout(ReportID, LayoutName);
             exit(false);
-        if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter, Composite) then
+        end;
+        if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter, Composite) then begin
+            this.LogUnresolvedPart(PartName, Enum::"Report Layout Subtype"::HeaderFooter);
             exit(false);
+        end;
 
         // TODO: APPID-IN-LAYOUTNAME - pass LayoutName instead once the platform resolves the body layout.
         exit(this.WriteLayoutPart(
@@ -130,8 +134,10 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
         Composite: Text;
     begin
-        if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::Theme, Composite) then
+        if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::Theme, Composite) then begin
+            this.LogUnresolvedPart(PartName, Enum::"Report Layout Subtype"::Theme);
             exit(0);
+        end;
 
         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
         ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
@@ -251,6 +257,28 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         exit(0);
     end;
 
+    local procedure LogUnresolvedLayout(ReportID: Integer; LayoutName: Text)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('ReportId', Format(ReportID, 0, 9));
+        TelemetryDimensions.Add('LayoutName', LayoutName);
+        Session.LogMessage(
+            '0000V40', this.UnresolvedLayoutTxt, Verbosity::Warning, DataClassification::SystemMetadata,
+            TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+    end;
+
+    local procedure LogUnresolvedPart(PartName: Text; Subtype: Enum "Report Layout Subtype")
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('PartName', PartName);
+        TelemetryDimensions.Add('LayoutSubtype', Format(Subtype, 0, 9));
+        Session.LogMessage(
+            '0000V41', this.UnresolvedPartTxt, Verbosity::Error, DataClassification::SystemMetadata,
+            TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+    end;
+
     var
         InternalDefaultTxt: Label 'Internal Default', Locked = true;
         InternalMinimalisticCenteredTxt: Label 'Internal Minimalistic Centered', Locked = true;
@@ -259,4 +287,6 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         ExternalModernTxt: Label 'External Modern', Locked = true;
         ExternalModernLogoTxt: Label 'External Modern Logo', Locked = true;
         DefaultThemeTxt: Label 'Default', Locked = true;
+        UnresolvedLayoutTxt: Label 'Composite layout defaults: no body layout of the shipped name is installed on the report, so the header/footer assignment was skipped.', Locked = true;
+        UnresolvedPartTxt: Label 'Composite layout defaults: the shipped header/footer or theme part is not in the shared pool, so every assignment that uses it was skipped.', Locked = true;
 }
