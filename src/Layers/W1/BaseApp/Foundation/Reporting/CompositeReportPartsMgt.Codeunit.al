@@ -94,9 +94,11 @@ codeunit 9667 "Composite Report Parts Mgt."
     /// re-seeding picks up a changed layout file.
     /// </summary>
     /// <remarks>
-    /// The resource is read before the existing row is deleted, so the most likely failure - a resource missing from
-    /// the package - leaves the part that is already there untouched instead of removing it and failing to replace it.
-    /// A try method does not roll back what it already wrote, so keep the read first.
+    /// Nothing destructive happens before the fallible work has succeeded. An existing part is updated in place rather
+    /// than deleted and re-inserted, and the resource is read first, so a missing resource, a rejected layout file or a
+    /// row the platform refuses all leave the part that is already there exactly as it was. This matters because a try
+    /// method does not roll back what it has already written: a delete followed by a failed insert would strip a working
+    /// part off the tenant with nothing to restore it.
     /// </remarks>
     /// <param name="PartName">The name the part is stored and assigned under.</param>
     /// <param name="ResourceFile">Path of the layout file inside the resource folder declared in app.json.</param>
@@ -109,23 +111,29 @@ codeunit 9667 "Composite Report Parts Mgt."
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
         LayoutInStream: InStream;
         EmptyAppId: Guid;
+        PartExists: Boolean;
     begin
         NavApp.GetResource(ResourceFile, LayoutInStream);
 
-        if TenantReportLayout.Get(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId) then
-            TenantReportLayout.Delete(true);
+        PartExists := TenantReportLayout.Get(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId);
+        if not PartExists then begin
+            TenantReportLayout.Init();
+            TenantReportLayout."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();
+            TenantReportLayout.Name := PartName;
+            TenantReportLayout."Company Name" := '';
+        end;
 
-        TenantReportLayout.Init();
-        TenantReportLayout."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();
-        TenantReportLayout.Name := PartName;
-        TenantReportLayout."Company Name" := '';
         TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Word;
         TenantReportLayout."Layout Subtype" := Subtype;
         TenantReportLayout.Description := CopyStr(Description, 1, MaxStrLen(TenantReportLayout.Description));
         TenantReportLayout."Layout Status" := TenantReportLayout."Layout Status"::Approved;
         TenantReportLayout."MIME Type" := PartMimeType(Subtype);
         TenantReportLayout.Layout.ImportStream(LayoutInStream, PartName);
-        TenantReportLayout.Insert(true);
+
+        if PartExists then
+            TenantReportLayout.Modify(true)
+        else
+            TenantReportLayout.Insert(true);
     end;
 
     /// <summary>
