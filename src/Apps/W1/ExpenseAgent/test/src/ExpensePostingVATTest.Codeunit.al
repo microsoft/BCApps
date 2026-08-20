@@ -25,6 +25,7 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
@@ -971,8 +972,8 @@ codeunit 148330 "Expense Posting VAT Test"
         VATEntry.SetRange("VAT Bus. Posting Group", VATPostingSetup[1]."VAT Bus. Posting Group");
         VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
         VATEntry.CalcSums(Base, Amount, "Non-Deductible VAT Base", "Non-Deductible VAT Amount");
-        Assert.AreNearlyEqual(ExpectedDeductibleBase, VATEntry.Base - VATEntry."Non-Deductible VAT Base", 0.01, 'The VAT entry must contain the deductible VAT base.');
-        Assert.AreNearlyEqual(ExpectedDeductibleVAT, VATEntry.Amount - VATEntry."Non-Deductible VAT Amount", 0.01, 'The VAT entry must contain the deductible VAT amount.');
+        Assert.AreNearlyEqual(ExpectedDeductibleBase, VATEntry.Base, 0.01, 'The VAT entry must contain the deductible VAT base.');
+        Assert.AreNearlyEqual(ExpectedDeductibleVAT, VATEntry.Amount, 0.01, 'The VAT entry must contain the deductible VAT amount.');
         Assert.AreNearlyEqual(ExpectedNonDeductibleBase, VATEntry."Non-Deductible VAT Base", 0.01, 'The VAT entry must contain the non-deductible VAT base.');
         Assert.AreNearlyEqual(ExpectedNonDeductibleVAT, VATEntry."Non-Deductible VAT Amount", 0.01, 'The VAT entry must contain the non-deductible VAT amount.');
 
@@ -987,7 +988,6 @@ codeunit 148330 "Expense Posting VAT Test"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
-        VATSetup: Record "VAT Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryVariableStorage.Clear();
@@ -1004,9 +1004,7 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
         ExpenseAgentSetup.Modify(true);
 
-        VATSetup.Get();
-        VATSetup.Validate("Non-Deductible VAT Is Enabled", true);
-        VATSetup.Modify(true);
+        LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
 
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         LibraryERMCountryData.UpdateLocalData();

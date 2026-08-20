@@ -877,13 +877,12 @@ codeunit 6987 "Expense Report-Post"
             exit;
 
         VATSetup.Get();
-        VATSetup.TestField("Non-Deductible VAT Is Enabled");
+        VATSetup.TestField("Enable Non-Deductible VAT");
         GenJournalLine.Validate("Non-Deductible VAT %", 100 - ExpenseReportLineVATSpec."Reclaim %");
         GenJournalLine.Validate("Non-Deductible VAT Base", ExpenseReportLineVATSpec."VAT Base Amount (RCY)" * (100 - ExpenseReportLineVATSpec."Reclaim %") / 100);
         GenJournalLine.Validate("Non-Deductible VAT Amount", ExpenseReportLineVATSpec."VAT Amount (RCY)" - ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)");
         GenJournalLine.Validate("Non-Deductible VAT Base LCY", ExpenseReportLineVATSpec."VAT Base Amount (LCY)" * (100 - ExpenseReportLineVATSpec."Reclaim %") / 100);
         GenJournalLine.Validate("Non-Deductible VAT Amount LCY", ExpenseReportLineVATSpec."VAT Amount (LCY)" - ExpenseReportLineVATSpec."Reclaim VAT Amount (LCY)");
-        GenJournalLine."Amount (LCY)" -= GenJournalLine."Non-Deductible VAT Amount LCY";
         GenJournalLine."Source Curr. VAT Amount" := ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)";
     end;
 
