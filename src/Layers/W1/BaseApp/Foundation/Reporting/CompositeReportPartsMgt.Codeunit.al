@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
-using System.Reflection;
 using System.Environment.Configuration;
+using System.Reflection;
+
 
 /// <summary>
 /// Seeds the reusable Composite Layout header/footer and theme parts that ship with the Base Application into
