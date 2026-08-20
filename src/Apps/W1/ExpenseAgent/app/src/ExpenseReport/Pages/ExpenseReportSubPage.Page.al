@@ -50,6 +50,7 @@ page 6999 "Expense Report SubPage"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Policy Status';
                     Editable = false;
+                    StyleExpr = PolicyStatusStyleExpr;
                     Visible = PolicyEvaluationEnabled;
                     ToolTip = 'Specifies the policy evaluation status for the expense: Not Evaluated when the agent has not assessed it yet, Flagged when one or more policy flags exist, or Cleared when it was evaluated and no flags were raised. Choose the value to see the policies that were evaluated for this expense.';
 
@@ -647,6 +648,7 @@ page 6999 "Expense Report SubPage"
         ReimbursementAmountLbl: Label '%1 (%2)', Comment = '%1 = Field Caption, %2 = Field Value';
         LCYLbl: Label 'LCY';
         PolicyStatus: Enum "Expense Policy Status";
+        PolicyStatusStyleExpr: Text;
 
     local procedure UpdateControls()
     begin
@@ -664,8 +666,24 @@ page 6999 "Expense Report SubPage"
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
         PolicyEvaluationEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation);
-        if PolicyEvaluationEnabled then
+        if PolicyEvaluationEnabled then begin
             PolicyStatus := Rec.GetPolicyStatus();
+            SetPolicyStatusStyle();
+        end;
+    end;
+
+    local procedure SetPolicyStatusStyle()
+    begin
+        case PolicyStatus of
+            PolicyStatus::Cleared,
+            PolicyStatus::"No Policies":
+                PolicyStatusStyleExpr := 'Favorable';
+            PolicyStatus::Flagged,
+            PolicyStatus::Stale:
+                PolicyStatusStyleExpr := 'Attention';
+            else
+                PolicyStatusStyleExpr := '';
+        end;
     end;
 
     local procedure ValidateHeaderAmountField()
