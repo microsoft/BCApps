@@ -103,6 +103,7 @@ table 7096 "Expense Policy Evaluation"
         // against a subject or policy that the evaluation model would never pair.
         if "Subject Type" <> "Subject Type"::"Expense Report Line" then
             Error(UnsupportedSubjectTypeErr);
+        ExpenseReportLine.LockTable();
         if not ExpenseReportLine.GetBySystemId("Subject System Id") then
             Error(UnknownSubjectErr);
         if not ExpensePolicy.GetBySystemId("Policy System Id") then
@@ -128,6 +129,8 @@ table 7096 "Expense Policy Evaluation"
         // Block duplicate evaluations for the same subject+policy version combination.
         if ExistingEvaluation.Get("Subject Type", "Subject System Id", "Policy System Id", "Subject Version", "Policy Version") then
             Error(DuplicateEvaluationErr);
+
+        ExpenseReportLine.MarkPolicyEvaluationPending();
     end;
 
     var

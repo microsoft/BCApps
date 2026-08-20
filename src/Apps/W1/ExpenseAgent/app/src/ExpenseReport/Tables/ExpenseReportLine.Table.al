@@ -1095,6 +1095,12 @@ table 6907 "Expense Report Line"
             CalcFormula = exist("Expense Policy Evaluation" where("Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Evaluated Policy Version"), "Compliant" = const(false)));
             Editable = false;
         }
+        field(106; "Policy Evaluation Pending"; Boolean)
+        {
+            Caption = 'Policy Evaluation Pending';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
     keys
     {
@@ -1124,6 +1130,7 @@ table 6907 "Expense Report Line"
             "Policy Eval Version" := StoredExpenseReportLine."Policy Eval Version";
             "Evaluated Policy Version" := StoredExpenseReportLine."Evaluated Policy Version";
             "Policies Evaluated At" := StoredExpenseReportLine."Policies Evaluated At";
+            "Policy Evaluation Pending" := StoredExpenseReportLine."Policy Evaluation Pending";
         end;
         if RelevantFieldChanged then
             "Policy Eval Version" += 1;
@@ -1255,6 +1262,9 @@ table 6907 "Expense Report Line"
         if Rec."Policies Evaluated At" = 0DT then
             exit("Expense Policy Status"::"Not Evaluated");
 
+        if Rec."Policy Evaluation Pending" then
+            exit("Expense Policy Status"::Stale);
+
         if HasOutstandingPolicies or HasPoliciesChangedSinceEvaluation then
             exit("Expense Policy Status"::Stale);
 
@@ -1307,7 +1317,21 @@ table 6907 "Expense Report Line"
 
         Rec."Evaluated Policy Version" := Rec."Policy Eval Version";
         Rec."Policies Evaluated At" := CurrentDateTime();
+        Rec."Policy Evaluation Pending" := false;
         // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
+        Rec.Modify(false);
+    end;
+
+    internal procedure MarkPolicyEvaluationPending()
+    var
+        DocumentNo: Code[20];
+        LineNo: Integer;
+    begin
+        DocumentNo := Rec."Document No.";
+        LineNo := Rec."Line No.";
+        Rec.LockTable();
+        Rec.Get(DocumentNo, LineNo);
+        Rec."Policy Evaluation Pending" := true;
         Rec.Modify(false);
     end;
 
@@ -1364,7 +1388,8 @@ table 6907 "Expense Report Line"
             Rec.FieldNo("User Confirmed"),
             Rec.FieldNo("Policies Evaluated At"),
             Rec.FieldNo("Policy Eval Version"),
-            Rec.FieldNo("Evaluated Policy Version"):
+            Rec.FieldNo("Evaluated Policy Version"),
+            Rec.FieldNo("Policy Evaluation Pending"):
                 exit(true);
         end;
         exit(false);
