@@ -13,10 +13,15 @@ codeunit 104064 "Upgrade Composite Report Parts"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    /// <remarks>
+    /// This seeds the shipped parts only. Assigning them to body layouts is not wired up here yet: it waits on the
+    /// platform change that resolves a body layout from a plain layout name. Whoever adds that step has to add a new
+    /// dated tag in Upgrade Tag Definitions as well - databases upgraded in the meantime already carry the tag below,
+    /// so the guard would otherwise skip the pass and the assignment would never run on them.
+    /// </remarks>
     trigger OnUpgradePerDatabase()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        //CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
@@ -24,10 +29,6 @@ codeunit 104064 "Upgrade Composite Report Parts"
             exit;
 
         CompositeReportPartsMgt.SeedDefaultParts();
-        // Assignment is disabled until the platform change it depends on ships. Re-enable this line together with the
-        // declaration above, and add a new dated tag in Upgrade Tag Definitions so the pass runs on databases that
-        // already carry the tag below.
-        //CompositeLayoutAssignMgt.AssignDefaultParts();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
     end;
