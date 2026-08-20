@@ -172,8 +172,10 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     begin
         if UpgradeTag.HasUpgradeTag(GetMigratePostedExpRepLineCanceledTag()) then
             exit;
+
         PostedExpenseReportHeader.SetLoadFields(Canceled);
-        PostedExpenseReportLine.SetLoadFields("Document No.", "Is Canceled");#pragma warning disable AL0432
+        PostedExpenseReportLine.SetLoadFields("Document No.", "Is Canceled");
+#pragma warning disable AL0432
         PostedExpenseReportLine.SetRange(Canceled, true);
 #pragma warning restore AL0432
         if PostedExpenseReportLine.FindSet() then
