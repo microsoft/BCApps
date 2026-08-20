@@ -18,6 +18,7 @@ report 32 "VAT Registration No. Check"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Batch VAT Registration No. Check';
+    ToolTip = 'Use an EU VAT number validation service to validated the VAT number of a business partner.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -21,6 +21,7 @@ report 8610 "Create G/L Acc. Journal Lines"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Create G/L Account Journal Lines';
+    ToolTip = 'Create G/L journal lines for the legacy account balances that you will transfer to the new company.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

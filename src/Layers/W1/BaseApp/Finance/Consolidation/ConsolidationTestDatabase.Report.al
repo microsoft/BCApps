@@ -23,6 +23,7 @@ using System.Utilities;
 report 14 "Consolidation - Test Database"
 {
     Caption = 'Consolidation - Test Database (same environment)';
+    ToolTip = 'Preview the consolidation, without transferring data.';
     DefaultRenderingLayout = RDLCLayout;
 
     dataset

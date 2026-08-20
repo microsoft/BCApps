@@ -16,6 +16,7 @@ report 13 "VAT Register"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'VAT Register';
+    ToolTip = 'Run the VAT Register report.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;

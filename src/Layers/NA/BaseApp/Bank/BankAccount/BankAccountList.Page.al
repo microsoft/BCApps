@@ -514,7 +514,6 @@ page 371 "Bank Account List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Receivables-Payables";
-                ToolTip = 'View a summary of the receivables and payables for the account, including customer and vendor balance due amounts.';
             }
 #if not CLEAN28
             action("Trial Balance")

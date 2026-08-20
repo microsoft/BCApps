@@ -26,6 +26,7 @@ report 28 "Dimensions - Detail"
 {
     ApplicationArea = Dimensions;
     Caption = 'Dimensions - Detail';
+    ToolTip = 'Run the Dimensions - Detail report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

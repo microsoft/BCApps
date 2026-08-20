@@ -30,6 +30,7 @@ report 10019 "G/L Register"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'G/L Register';
+    ToolTip = 'View posted G/L entries.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;

@@ -21,6 +21,7 @@ report 597 "G/L Currency Revaluation"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'G/L Currency Revaluation';
+    ToolTip = 'Create general journal lines with currency revaluation for G/L accounts with posting in source currency.';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
     AllowScheduling = false;

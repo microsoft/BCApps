@@ -21,6 +21,7 @@ report 10002 "Chart of Accounts"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Chart of Accounts';
+    ToolTip = 'Run the Chart of Accounts report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

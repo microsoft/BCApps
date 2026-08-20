@@ -24,6 +24,7 @@ report 38 "Trial Balance by Period"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Trial Balance by Period';
+    ToolTip = 'Show the opening balance by general ledger account, the movements in the selected period of month, quarter, or year, and the resulting closing balance.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;

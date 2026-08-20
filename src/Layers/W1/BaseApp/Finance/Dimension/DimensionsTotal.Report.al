@@ -24,6 +24,7 @@ report 27 "Dimensions - Total"
     AllowScheduling = false;
     ApplicationArea = Dimensions;
     Caption = 'Dimensions - Total';
+    ToolTip = 'View how dimensions or dimension sets are used on entries based on total amounts over a specified period and for a specified analysis view.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

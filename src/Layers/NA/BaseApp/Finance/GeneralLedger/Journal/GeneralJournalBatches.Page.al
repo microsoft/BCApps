@@ -226,7 +226,6 @@ page 251 "General Journal Batches"
                 Caption = 'Detail Trial Balance';
                 Image = "Report";
                 RunObject = Report "Detail Trial Balance";
-                ToolTip = 'View detail general ledger account balances and activities.';
             }
 #if not CLEAN28
             action("Trial Balance")
@@ -249,7 +248,6 @@ page 251 "General Journal Batches"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Trial Balance by Period";
-                ToolTip = 'View general ledger account balances and activities within a selected period.';
             }
             action(Action10)
             {
@@ -257,7 +255,6 @@ page 251 "General Journal Batches"
                 Caption = 'G/L Register';
                 Image = GLRegisters;
                 RunObject = Report "G/L Register";
-                ToolTip = 'View posted G/L entries.';
             }
         }
         area(Promoted)

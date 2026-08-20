@@ -17,6 +17,7 @@ report 1700 "Deferral Summary - G/L"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Deferral Summary - G/L';
+    ToolTip = 'Run the G/L Deferral Summary report.';
     DefaultRenderingLayout = Excel;
     UsageCategory = ReportsAndAnalysis;
 

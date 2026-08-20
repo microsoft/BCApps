@@ -21,6 +21,7 @@ report 5 "Receivables-Payables"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Receivables-Payables';
+    ToolTip = 'View a summary of the receivables and payables for the account, including customer and vendor balance due amounts.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;

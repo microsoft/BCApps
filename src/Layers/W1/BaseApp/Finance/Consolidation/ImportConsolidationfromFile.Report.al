@@ -25,6 +25,7 @@ using System.Utilities;
 report 92 "Import Consolidation from File"
 {
     Caption = 'Import Consolidation from File';
+    ToolTip = 'Run consolidation for the file that you import.';
     ProcessingOnly = true;
 
     dataset

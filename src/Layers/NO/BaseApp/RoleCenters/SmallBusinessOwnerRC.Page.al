@@ -225,7 +225,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Trial Balance by &Period';
                 Image = "Report";
                 RunObject = Report "Trial Balance by Period";
-                ToolTip = 'Show the opening balance by general ledger account, the movements in the selected period of month, quarter, or year, and the resulting closing balance.';
             }
             action("Closing T&rial Balance")
             {
@@ -233,7 +232,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Closing T&rial Balance';
                 Image = "Report";
                 RunObject = Report "Closing Trial Balance";
-                ToolTip = 'View this year''s and last year''s figures as an ordinary trial balance. For income statement accounts, the balances are shown without closing entries. Closing entries are listed on a fictitious date that falls between the last day of one fiscal year and the first day of the next one. The closing of the income statement accounts is posted at the end of a fiscal year. The report can be used in connection with closing a fiscal year.';
             }
             separator(Action49)
             {
@@ -268,7 +266,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Reconcile Cust. and &Vend. Accs';
                 Image = "Report";
                 RunObject = Report "Reconcile Cust. and Vend. Accs";
-                ToolTip = 'View if a certain general ledger account reconciles the balance on a certain date for the corresponding posting group. The report shows the accounts that are included in the reconciliation with the general ledger balance and the customer or the vendor ledger balance for each account and shows any differences between the general ledger balance and the customer or vendor ledger balance.';
             }
             separator(Action53)
             {
@@ -279,7 +276,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'VAT Registration No. Chec&k';
                 Image = "Report";
                 RunObject = Report "VAT Registration No. Check";
-                ToolTip = 'Use an EU VAT number validation service to validated the VAT number of a business partner.';
             }
             action("VAT E&xceptions")
             {
@@ -287,7 +283,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'VAT E&xceptions';
                 Image = "Report";
                 RunObject = Report "VAT Exceptions";
-                ToolTip = 'View the VAT entries that were posted and placed in a general ledger register in connection with a VAT difference. The report is used to document adjustments made to VAT amounts that were calculated for use in internal or external auditing.';
             }
             action("VAT Reconciliation")
             {
@@ -983,7 +978,6 @@ page 9020 "Small Business Owner RC"
                 Ellipsis = true;
                 Image = SettleOpenTransactions;
                 RunObject = Report "Calc. and Post VAT Settlement";
-                ToolTip = 'Close open VAT entries and transfers purchase and sales VAT amounts to the VAT settlement account. For every VAT posting group, the batch job finds all the VAT entries in the VAT Entry table that are included in the filters in the definition window.';
             }
             separator(Action31)
             {
@@ -1023,3 +1017,4 @@ page 9020 "Small Business Owner RC"
         }
     }
 }
+
