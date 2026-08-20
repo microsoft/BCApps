@@ -9,6 +9,7 @@ codeunit 150002 "Fabric Config Package Mgt"
     internal procedure Activate(var Pkg: Record "Fabric Config Package")
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
         NewTableCount: Integer;
@@ -40,10 +41,12 @@ codeunit 150002 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         Session.LogMessage('FAB-150', StrSubstNo('Config package %1 activated.', Pkg."Code"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'BC2Fabric');
+        Telemetry.LogAudit('FAB-150-AUD', StrSubstNo('Microsoft Fabric Open Mirroring - configuration package %1 (v%2) activated.', Pkg."Code", Pkg.Version));
     end;
 
     internal procedure Deactivate(var Pkg: Record "Fabric Config Package")
     var
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
         OtherPackageCode: Code[20];
@@ -65,6 +68,7 @@ codeunit 150002 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         Session.LogMessage('FAB-151', StrSubstNo('Config package %1 deactivated.', Pkg."Code"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'BC2Fabric');
+        Telemetry.LogAudit('FAB-151-AUD', StrSubstNo('Microsoft Fabric Open Mirroring - configuration package %1 deactivated.', Pkg."Code"));
     end;
 
     local procedure FindOtherActivePackage(TableId: Integer; ExcludePackageCode: Code[20]; var OtherPackageCode: Code[20]): Boolean
@@ -88,6 +92,7 @@ codeunit 150002 "Fabric Config Package Mgt"
     internal procedure Reapply(var Pkg: Record "Fabric Config Package")
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
         NewTableCount: Integer;
@@ -115,6 +120,7 @@ codeunit 150002 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         Session.LogMessage('FAB-152', StrSubstNo('Config package %1 reapplied.', Pkg."Code"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'BC2Fabric');
+        Telemetry.LogAudit('FAB-152-AUD', StrSubstNo('Microsoft Fabric Open Mirroring - configuration package %1 reapplied (v%2).', Pkg."Code", Pkg.Version));
     end;
 
     internal procedure IsReapplyAvailable(var Pkg: Record "Fabric Config Package"): Boolean

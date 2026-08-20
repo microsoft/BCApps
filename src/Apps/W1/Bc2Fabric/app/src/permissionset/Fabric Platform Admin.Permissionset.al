@@ -22,6 +22,7 @@ permissionset 150001 "Fabric Plat Admin"
         codeunit "Fabric Platform Mgt" = X,
         codeunit "Fabric Platform Credential Mgt" = X,
         codeunit "Fabric Platform Admin Client" = X,
+        codeunit "Fabric Platform Telemetry" = X,
         codeunit "Fabric Config Package Mgt" = X,
         codeunit "Fabric Install" = X,
         page "Fabric Platform Setup" = X,
@@ -32,5 +33,11 @@ permissionset 150001 "Fabric Plat Admin"
         page "Fabric Platform Export Details" = X,
         page "Fabric Config Packages" = X,
         page "Fabric Config Package Card" = X,
-        page "Fabric Config Package Subform" = X;
+        page "Fabric Config Package Subform" = X,
+        page "Fabric API Tables" = X,
+        page "Fabric API Companies" = X,
+        page "Fabric API Config Packages" = X,
+        page "Fabric API Export Summary" = X,
+        page "Fabric API Export Details" = X,
+        page "Fabric API Setup" = X;
 }

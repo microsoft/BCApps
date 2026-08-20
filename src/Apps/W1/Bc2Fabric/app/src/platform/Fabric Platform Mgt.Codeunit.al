@@ -102,12 +102,15 @@ codeunit 150001 "Fabric Platform Mgt"
     procedure EnableExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         IsHandled: Boolean;
     begin
         // Parameterless overload = Microsoft first-party authentication.
         OnBeforeEnableExport(IsHandled);
         if not IsHandled then
             FabricExportManager.EnableFabricExport();
+        Telemetry.LogEvent('FAB-100', 'Fabric export enable requested.');
+        Telemetry.LogAudit('FAB-100-AUD', 'Microsoft Fabric Open Mirroring - export enable requested.');
         if GuiAllowed() then
             Message(EnableRequestedMsg);
     end;
@@ -115,11 +118,14 @@ codeunit 150001 "Fabric Platform Mgt"
     procedure StartExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         IsHandled: Boolean;
     begin
         OnBeforeStartExport(IsHandled);
         if not IsHandled then
             FabricExportManager.StartFabricExport();
+        Telemetry.LogEvent('FAB-101', 'Fabric export start requested.');
+        Telemetry.LogAudit('FAB-101-AUD', 'Microsoft Fabric Open Mirroring - export start requested.');
         if GuiAllowed() then
             Message(StartRequestedMsg);
     end;
@@ -127,11 +133,14 @@ codeunit 150001 "Fabric Platform Mgt"
     procedure StopExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         IsHandled: Boolean;
     begin
         OnBeforeStopExport(IsHandled);
         if not IsHandled then
             FabricExportManager.StopFabricExport();
+        Telemetry.LogEvent('FAB-102', 'Fabric export stop requested.');
+        Telemetry.LogAudit('FAB-102-AUD', 'Microsoft Fabric Open Mirroring - export stop requested.');
         if GuiAllowed() then
             Message(StopRequestedMsg);
     end;
@@ -139,11 +148,14 @@ codeunit 150001 "Fabric Platform Mgt"
     procedure DisableExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         IsHandled: Boolean;
     begin
         OnBeforeDisableExport(IsHandled);
         if not IsHandled then
             FabricExportManager.DisableFabricExport();
+        Telemetry.LogEvent('FAB-103', 'Fabric export disable requested.');
+        Telemetry.LogAudit('FAB-103-AUD', 'Microsoft Fabric Open Mirroring - export disable requested.');
         if GuiAllowed() then
             Message(DisableRequestedMsg);
     end;
