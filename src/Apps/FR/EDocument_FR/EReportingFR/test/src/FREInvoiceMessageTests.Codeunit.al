@@ -38,11 +38,17 @@ codeunit 148151 "FR E-Invoice Message Tests"
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Applying a payment to an approved French E-Document creates a Collected message
         Initialize();
-        CreatePaymentScenario(EDocument, DetailedCustLedgEntry);
 
+        // [GIVEN] An approved outgoing French E-Document with an applied customer payment
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+
+        // [WHEN] The payment application is processed
         FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
 
+        // [THEN] One Collected lifecycle message and one generic payment occurrence are created and the message can be sent
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
         Assert.RecordCount(FREInvoiceMessage, 1);
@@ -61,6 +67,58 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
+    procedure PaymentApplicationForClearedDocumentCreatesCollected()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Applying a payment to a cleared French E-Document creates a Collected message
+        Initialize();
+
+        // [GIVEN] A cleared outgoing French E-Document with an applied customer payment
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Cleared);
+
+        // [WHEN] The payment application is processed
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+
+        // [THEN] One Collected lifecycle message is created for the E-Document
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        Assert.RecordCount(FREInvoiceMessage, 1);
+    end;
+
+    [Test]
+    procedure PaymentApplicationForSentDocumentDoesNotCreateCollected()
+    var
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Applying a payment to a sent French E-Document does not create a Collected message
+        Initialize();
+
+        // [GIVEN] A sent outgoing French E-Document with an applied customer payment
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Sent);
+
+        // [WHEN] The payment application is processed
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+
+        // [THEN] The generic payment occurrence is created but no French lifecycle message is created
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
+        Assert.RecordCount(EDocPaymentOccurrence, 1);
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        Assert.RecordCount(FREInvoiceMessage, 0);
+    end;
+
+    [Test]
     procedure PaymentUnapplicationSendsLinkedNegativeCollected()
     var
         EDocument: Record "E-Document";
@@ -73,7 +131,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         Initialize();
-        CreatePaymentScenario(EDocument, DetailedCustLedgEntry);
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
         FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
         CollectedMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         CollectedMessage.SetRange(Type, CollectedMessage.Type::Collected);
@@ -175,7 +233,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         Initialize();
-        CreatePaymentScenario(EDocument, DetailedCustLedgEntry);
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
         FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
         FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
@@ -687,7 +745,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument.Insert();
     end;
 
-    local procedure CreatePaymentScenario(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    local procedure CreatePaymentScenario(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; ServiceStatus: Enum "E-Document Service Status")
     var
         InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
         PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
@@ -706,7 +764,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Service := 'FR-MESSAGE-MOCK';
         EDocument.Insert();
-        CreateServiceStatus(EDocument);
+        CreateServiceStatus(EDocument, ServiceStatus);
 
         InvoiceCustLedgerEntry.Init();
         InvoiceCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
@@ -720,14 +778,14 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreateDetailedLedgerEntry(DetailedCustLedgEntry, InvoiceCustLedgerEntry."Entry No.", PaymentCustLedgerEntry."Entry No.", -100);
     end;
 
-    local procedure CreateServiceStatus(EDocument: Record "E-Document")
+    local procedure CreateServiceStatus(EDocument: Record "E-Document"; ServiceStatus: Enum "E-Document Service Status")
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
     begin
         EDocumentServiceStatus.Init();
         EDocumentServiceStatus."E-Document Entry No" := EDocument."Entry No";
         EDocumentServiceStatus."E-Document Service Code" := EDocument.Service;
-        EDocumentServiceStatus.Status := EDocumentServiceStatus.Status::Approved;
+        EDocumentServiceStatus.Status := ServiceStatus;
         EDocumentServiceStatus.Insert();
     end;
 
