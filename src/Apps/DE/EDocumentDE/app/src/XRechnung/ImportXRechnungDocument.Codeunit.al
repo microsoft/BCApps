@@ -122,6 +122,28 @@ codeunit 13915 "Import XRechnung Document"
             exit(TempXMLBuffer.Value);
     end;
 
+    local procedure GetTaxRegistrationNoByScheme(var TempXMLBuffer: Record "XML Buffer" temporary; PartyPath: Text; TaxSchemeID: Text): Text
+    var
+        PartyTaxSchemeEntryNo: Integer;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, PartyPath + '/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID');
+        TempXMLBuffer.SetRange(Value, TaxSchemeID);
+        if not TempXMLBuffer.FindFirst() then
+            exit('');
+
+        TempXMLBuffer.Get(TempXMLBuffer."Parent Entry No.");
+        PartyTaxSchemeEntryNo := TempXMLBuffer."Parent Entry No.";
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID');
+        TempXMLBuffer.SetRange("Parent Entry No.", PartyTaxSchemeEntryNo);
+        if TempXMLBuffer.FindFirst() then
+            exit(TempXMLBuffer.Value);
+    end;
+
     local procedure ParseAccountingSupplierParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentType: Text)
     var
         Vendor: Record Vendor;
@@ -133,13 +155,11 @@ codeunit 13915 "Import XRechnung Document"
         GLN: Text[13];
         VendorID: Text[200];
         VendorNo: Code[20];
-        TaxSchemeID: Text;
+        PartyPath: Text;
     begin
-        TaxSchemeID := GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID');
-        if TaxSchemeID = 'FC' then
-            RegistrationNo := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), 1, MaxStrLen(RegistrationNo))
-        else
-            VATRegistrationNo := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), 1, MaxStrLen(VATRegistrationNo));
+        PartyPath := '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party';
+        VATRegistrationNo := CopyStr(GetTaxRegistrationNoByScheme(TempXMLBuffer, PartyPath, 'VA'), 1, MaxStrLen(VATRegistrationNo));
+        RegistrationNo := CopyStr(GetTaxRegistrationNoByScheme(TempXMLBuffer, PartyPath, 'FC'), 1, MaxStrLen(RegistrationNo));
 
         if VATRegistrationNo = '' then
             VATRegistrationNo := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID'), 1, MaxStrLen(VATRegistrationNo));
@@ -171,7 +191,10 @@ codeunit 13915 "Import XRechnung Document"
     end;
 
     local procedure ParseAccountingCustomerParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentType: Text)
+    var
+        PartyPath: Text;
     begin
+        PartyPath := '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party';
         EDocument."Receiving Company Name" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName'), 1, MaxStrLen(EDocument."Receiving Company Name"));
         EDocument."Receiving Company Address" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName'), 1, MaxStrLen(EDocument."Receiving Company Address"));
 
@@ -180,10 +203,8 @@ codeunit 13915 "Import XRechnung Document"
             if GetAttributeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID') = '0094' then
                 EDocument."Receiving Company GLN" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'), 1, MaxStrLen(EDocument."Receiving Company GLN"));
 
-        if GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID') = 'FC' then
-            EDocument."Receiving Company Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), 1, MaxStrLen(EDocument."Receiving Company Reg. No."))
-        else
-            EDocument."Receiving Company VAT Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+        EDocument."Receiving Company VAT Reg. No." := CopyStr(GetTaxRegistrationNoByScheme(TempXMLBuffer, PartyPath, 'VA'), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+        EDocument."Receiving Company Reg. No." := CopyStr(GetTaxRegistrationNoByScheme(TempXMLBuffer, PartyPath, 'FC'), 1, MaxStrLen(EDocument."Receiving Company Reg. No."));
         if (EDocument."Receiving Company VAT Reg. No." = '') and (EDocument."Receiving Company Reg. No." = '') then
             if GetAttributeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID') in ['EM', '0198', '9930'] then
                 EDocument."Receiving Company VAT Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));

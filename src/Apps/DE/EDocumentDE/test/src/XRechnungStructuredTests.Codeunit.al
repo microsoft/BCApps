@@ -112,7 +112,7 @@ codeunit 148500 "XRechnung Structured Tests"
     end;
 
     [Test]
-    procedure TestXRechnungInvoice_FiscalCodesSelectVendorAndValidateCompany()
+    procedure TestXRechnungInvoice_RepeatedTaxSchemesSelectVendorAndValidateCompany()
     var
         CompanyInformation: Record "Company Information";
         EDocument: Record "E-Document";
@@ -126,7 +126,7 @@ codeunit 148500 "XRechnung Structured Tests"
         XmlContent: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 646793] XRechnung FC identifiers select the vendor and validate the receiving company
+        // [SCENARIO 646793] XRechnung VA and FC identifiers are imported from repeated tax schemes
         Initialize(Enum::"Service Integration"::"No Integration");
         SetupXRechnungEDocumentService();
 
@@ -139,18 +139,16 @@ codeunit 148500 "XRechnung Structured Tests"
         CompanyRegistrationNo := 'BUYER-FC';
         CompanyInformation.Get();
         CompanyInformation.GLN := '';
-        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation."VAT Registration No." := 'GB789456278';
         CompanyInformation."Registration No." := CompanyRegistrationNo;
         CompanyInformation."Use GLN in Electronic Document" := false;
         CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation.Modify(true);
 
-        // [GIVEN] An XRechnung whose supplier and buyer tax identifiers use scheme FC
+        // [GIVEN] An XRechnung whose supplier and buyer each have VA followed by FC tax schemes
         XmlContent := NavApp.GetResourceAsText(TestFileTok);
-        XmlContent := XmlContent.Replace('GB123456789', VendorRegistrationNo);
-        XmlContent := XmlContent.Replace('GB789456278', CompanyRegistrationNo);
-        SetPartyTaxSchemeToFiscalCode(XmlContent, VendorRegistrationNo);
-        SetPartyTaxSchemeToFiscalCode(XmlContent, CompanyRegistrationNo);
+        AddPartyTaxSchemeWithFiscalCode(XmlContent, 'GB123456789', VendorRegistrationNo);
+        AddPartyTaxSchemeWithFiscalCode(XmlContent, 'GB789456278', CompanyRegistrationNo);
         XmlContent := XmlContent.Replace('<cbc:ID>8712345000004</cbc:ID>', '<cbc:ID></cbc:ID>');
         CreateInboundEDocumentFromXMLText(EDocument, XmlContent);
 
@@ -161,8 +159,9 @@ codeunit 148500 "XRechnung Structured Tests"
         DataTypeManagement.GetRecordRef(VariantRecord, RecRef);
         RecRef.SetTable(PurchaseHeader);
 
-        // [THEN] FC selected the configured vendor and was retained for company validation
+        // [THEN] The second supplier scheme selected the vendor and both buyer schemes were retained
         Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor was not selected by Registration No.');
+        Assert.AreEqual(CompanyInformation."VAT Registration No.", EDocument."Receiving Company VAT Reg. No.", 'The receiving company VAT Registration No. was not imported.');
         Assert.AreEqual(CompanyRegistrationNo, EDocument."Receiving Company Reg. No.", 'The receiving company Registration No. was not imported.');
     end;
 
@@ -365,24 +364,25 @@ codeunit 148500 "XRechnung Structured Tests"
         EDocumentService.Modify(false);
     end;
 
-    local procedure SetPartyTaxSchemeToFiscalCode(var XmlContent: Text; RegistrationNo: Text)
+    local procedure AddPartyTaxSchemeWithFiscalCode(var XmlContent: Text; VATRegistrationNo: Text; RegistrationNo: Text)
     var
         CompanyIDToken: Text;
         CompanyIDPosition: Integer;
-        TaxSchemeIDPosition: Integer;
-        SearchStartPosition: Integer;
+        PartyTaxSchemeEndPosition: Integer;
+        FiscalCodeTaxScheme: Text;
+        PartyTaxSchemeEndTok: Label '</cac:PartyTaxScheme>', Locked = true;
+        FiscalCodeTaxSchemeTok: Label '<cac:PartyTaxScheme><cbc:CompanyID>%1</cbc:CompanyID><cac:TaxScheme><cbc:ID>FC</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme>', Locked = true;
     begin
-        CompanyIDToken := StrSubstNo(CompanyIDFormatTok, RegistrationNo);
+        CompanyIDToken := StrSubstNo(CompanyIDFormatTok, VATRegistrationNo);
         CompanyIDPosition := StrPos(XmlContent, CompanyIDToken);
         Assert.IsTrue(CompanyIDPosition > 0, 'The party company identifier was not found in the test XML.');
 
-        SearchStartPosition := CompanyIDPosition + StrLen(CompanyIDToken);
-        TaxSchemeIDPosition := StrPos(CopyStr(XmlContent, SearchStartPosition), '<cbc:ID>VAT</cbc:ID>');
-        Assert.IsTrue(TaxSchemeIDPosition > 0, 'The party VAT tax scheme was not found in the test XML.');
+        PartyTaxSchemeEndPosition := StrPos(CopyStr(XmlContent, CompanyIDPosition), PartyTaxSchemeEndTok);
+        Assert.IsTrue(PartyTaxSchemeEndPosition > 0, 'The party tax scheme was not found in the test XML.');
 
-        TaxSchemeIDPosition += SearchStartPosition - 1;
-        XmlContent := DelStr(XmlContent, TaxSchemeIDPosition, StrLen('<cbc:ID>VAT</cbc:ID>'));
-        XmlContent := InsStr(XmlContent, '<cbc:ID>FC</cbc:ID>', TaxSchemeIDPosition);
+        PartyTaxSchemeEndPosition += CompanyIDPosition + StrLen(PartyTaxSchemeEndTok) - 1;
+        FiscalCodeTaxScheme := StrSubstNo(FiscalCodeTaxSchemeTok, RegistrationNo);
+        XmlContent := InsStr(XmlContent, FiscalCodeTaxScheme, PartyTaxSchemeEndPosition);
     end;
 
     local procedure CreateInboundEDocumentFromXML(var EDocument: Record "E-Document"; FilePath: Text)
