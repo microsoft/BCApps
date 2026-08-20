@@ -10,7 +10,6 @@ using System.Reflection;
 /// <summary>
 /// Configures which reports are used when printing or emailing reminders and finance charges.
 /// </summary>
-#pragma warning disable AS0032
 page 524 "Report Selection - Reminder"
 {
     AboutTitle = 'About report selection for reminders';
@@ -91,6 +90,9 @@ page 524 "Report Selection - Reminder"
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = CustomLayoutsExist;
 
@@ -199,5 +201,4 @@ page 524 "Report Selection - Reminder"
     begin
     end;
 }
-#pragma warning restore AS0032
 

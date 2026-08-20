@@ -7,7 +7,6 @@ namespace Microsoft.Service.Setup;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
-#pragma warning disable AS0032
 page 5932 "Report Selection - Service"
 {
     AboutTitle = 'About report selection for service';
@@ -122,6 +121,9 @@ page 5932 "Report Selection - Service"
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = false;
 
@@ -244,4 +246,3 @@ page 5932 "Report Selection - Service"
     begin
     end;
 }
-#pragma warning restore AS0032

@@ -10,7 +10,6 @@ using System.Reflection;
 /// <summary>
 /// Configures default report selections for cash desk. Allows users to specify which reports to use for printing, emailing, and other output operations.
 /// </summary>
-#pragma warning disable AS0032
 page 31222 "Report Sel. - Cash Desk CZP"
 {
     AboutTitle = 'About report selection for cash desk';
@@ -126,6 +125,9 @@ page 31222 "Report Sel. - Cash Desk CZP"
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = false;
                 }
@@ -214,5 +216,4 @@ page 31222 "Report Sel. - Cash Desk CZP"
     begin
     end;
 }
-#pragma warning restore AS0032
 
