@@ -1,5 +1,6 @@
 namespace Microsoft.Bc2Fabric;
 
+using Microsoft.Utilities;
 using System.Fabric;
 
 page 150004 "Fabric Platform Setup"
@@ -20,20 +21,66 @@ page 150004 "Fabric Platform Setup"
             {
                 Caption = 'Fabric Destination';
 
-                field("Fabric Workspace ID"; Rec."Fabric Workspace ID")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the Microsoft Fabric workspace that receives the exported data.';
-                }
                 field("Fabric Workspace Name"; Rec."Fabric Workspace Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric workspace.';
+                    Editable = false;
+                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric workspace. Use the assist button to browse available workspaces.';
+
+                    trigger OnAssistEdit()
+                    var
+                        AdminClient: Codeunit "Fabric Platform Admin Client";
+                        LookupState: Codeunit "Fabric Platform Lookup State";
+                        TempBuffer: Record "Name/Value Buffer" temporary;
+                        LookupPage: Page "Fabric Platform Name Lookup";
+                    begin
+                        AdminClient.GetWorkspaces(TempBuffer);
+                        if TempBuffer.IsEmpty() then
+                            Error(NoWorkspacesFoundErr);
+                        LookupState.ClearSelection();
+                        LookupPage.SetSource(TempBuffer);
+                        LookupPage.RunModal();
+                        if LookupPage.IsRecordSelected() then begin
+                            LookupPage.GetSelectedRecord(TempBuffer);
+                            Rec."Fabric Workspace ID" := CopyStr(TempBuffer.Value, 1, MaxStrLen(Rec."Fabric Workspace ID"));
+                            Rec."Fabric Workspace Name" := CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name"));
+                            Rec."Fabric Lakehouse ID" := '';
+                            Rec.Modify(true);
+                            CurrPage.Update(false);
+                        end;
+                    end;
+                }
+                field("Fabric Workspace ID"; Rec."Fabric Workspace ID")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies the Microsoft Fabric workspace that receives the exported data.';
                 }
                 field("Fabric Lakehouse ID"; Rec."Fabric Lakehouse ID")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Microsoft Fabric lakehouse that receives the exported data.';
+                    ToolTip = 'Specifies the Microsoft Fabric lakehouse that receives the exported data. Use the assist button to browse lakehouses in the selected workspace.';
+
+                    trigger OnAssistEdit()
+                    var
+                        AdminClient: Codeunit "Fabric Platform Admin Client";
+                        LookupState: Codeunit "Fabric Platform Lookup State";
+                        TempBuffer: Record "Name/Value Buffer" temporary;
+                        LookupPage: Page "Fabric Platform Name Lookup";
+                    begin
+                        AdminClient.GetLakehouses(Rec."Fabric Workspace ID", TempBuffer);
+                        if TempBuffer.IsEmpty() then
+                            Error(NoLakehousesFoundErr);
+                        LookupState.ClearSelection();
+                        LookupPage.SetSource(TempBuffer);
+                        LookupPage.RunModal();
+                        if LookupPage.IsRecordSelected() then begin
+                            LookupPage.GetSelectedRecord(TempBuffer);
+                            Rec."Fabric Lakehouse ID" := CopyStr(TempBuffer.Value, 1, MaxStrLen(Rec."Fabric Lakehouse ID"));
+                            Rec.Modify(true);
+                            CurrPage.Update(false);
+                        end;
+                    end;
                 }
                 field("Fabric Data Namespace"; Rec."Fabric Data Namespace")
                 {
@@ -59,6 +106,56 @@ page 150004 "Fabric Platform Setup"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies how many consecutive failed runs are allowed before the platform stops the export.';
+                }
+            }
+            group(Credentials)
+            {
+                // Temporary: will be replaced by Microsoft first-party app authentication.
+                Caption = 'Workspace API Credentials';
+
+                field(ClientId; ClientIdValue)
+                {
+                    Caption = 'Client ID';
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and lakehouse browsing.';
+
+                    trigger OnValidate()
+                    var
+                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+                    begin
+                        CredMgt.SetClientId(ClientIdValue);
+                    end;
+                }
+                field(ClientSecret; ClientSecretValue)
+                {
+                    Caption = 'Client Secret';
+                    ApplicationArea = All;
+                    ExtendedDatatype = Masked;
+                    ToolTip = 'Specifies the Azure AD client secret. Enter a new value to update the stored secret.';
+
+                    trigger OnValidate()
+                    var
+                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+                    begin
+                        if (ClientSecretValue <> '') and (ClientSecretValue <> ClientSecretSetLbl) then begin
+                            CredMgt.SetClientSecret(ClientSecretValue);
+                            CredMgt.ClearTokenCache();
+                            ClientSecretValue := ClientSecretSetLbl;
+                        end;
+                    end;
+                }
+                field(PrincipalId; PrincipalIdValue)
+                {
+                    Caption = 'Principal ID';
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace.';
+
+                    trigger OnValidate()
+                    var
+                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+                    begin
+                        CredMgt.SetPrincipalId(PrincipalIdValue);
+                    end;
                 }
             }
             group(Status)
@@ -145,6 +242,22 @@ page 150004 "Fabric Platform Setup"
                     CurrPage.Update(false);
                 end;
             }
+            action(AddToWorkspace)
+            {
+                Caption = 'Add to Workspace';
+                ApplicationArea = All;
+                Image = UserSetup;
+                ToolTip = 'Grants the service principal (Principal ID) Contributor access on the selected Fabric workspace. Run this once after selecting the workspace.';
+
+                trigger OnAction()
+                var
+                    AdminClient: Codeunit "Fabric Platform Admin Client";
+                    CredMgt: Codeunit "Fabric Platform Credential Mgt";
+                begin
+                    AdminClient.AddServicePrincipalToWorkspace(Rec."Fabric Workspace ID", CredMgt.GetPrincipalId());
+                    Message(SPAddedToWorkspaceMsg, Rec."Fabric Workspace Name");
+                end;
+            }
         }
         area(Navigation)
         {
@@ -206,7 +319,22 @@ page 150004 "Fabric Platform Setup"
     trigger OnOpenPage()
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
     begin
         FabricPlatformMgt.EnsureSetup(Rec);
+        ClientIdValue := CopyStr(CredMgt.GetClientId(), 1, MaxStrLen(ClientIdValue));
+        PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
+        if CredMgt.IsClientSecretSet() then
+            ClientSecretValue := ClientSecretSetLbl;
     end;
+
+    var
+        ClientIdValue: Text[250];
+        PrincipalIdValue: Text[250];
+        [NonDebuggable]
+        ClientSecretValue: Text[250];
+        ClientSecretSetLbl: Label '*** secret stored ***', Locked = true;
+        NoWorkspacesFoundErr: Label 'No workspaces found. Verify the Client ID and Client Secret.';
+        NoLakehousesFoundErr: Label 'No lakehouses found in the selected workspace.';
+        SPAddedToWorkspaceMsg: Label 'Service principal added as Contributor to workspace ''%1''.', Comment = '%1 = workspace name';
 }
