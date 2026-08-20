@@ -132,6 +132,32 @@ page 7100 "Contact Sync"
                         Caption = 'Force full sync';
                         ToolTip = 'When this is enabled, Business Central will synchronize contacts no matter when they were last modified. This may take longer, but can overcome some synchronization issues.';
                     }
+                    group(AdvancedGroup)
+                    {
+                        Caption = 'Advanced';
+
+                        group(ClearSyncDetailsGroup)
+                        {
+                            Caption = '';
+
+                            field(ClearSyncDetailsField; ClearSyncDetailsLbl)
+                            {
+                                ApplicationArea = All;
+                                Caption = '';
+                                Editable = false;
+                                ShowCaption = false;
+                                Style = StandardAccent;
+                                StyleExpr = true;
+                                ToolTip = 'Deletes the internal log of your last synchronization that affects what gets synchronized next. You should use this only if synchronization fails.';
+
+                                trigger OnDrillDown()
+                                begin
+                                    if Confirm(ClearLastSyncConfirmMsg) then
+                                        ClearSyncRecordsForCurrentUser();
+                                end;
+                            }
+                        }
+                    }
                     field(PreviewText; PreviewTextLbl)
                     {
                         ApplicationArea = All;
@@ -527,6 +553,15 @@ page 7100 "Contact Sync"
             end;
     end;
 
+    local procedure ClearSyncRecordsForCurrentUser()
+    var
+        ContactSyncUserRec: Record "Contact Sync User";
+    begin
+        ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
+        if not ContactSyncUserRec.IsEmpty() then
+            ContactSyncUserRec.DeleteAll();
+    end;
+
     local procedure GoToStep(NewStep: Option)
     begin
         Step := NewStep;
@@ -651,6 +686,8 @@ page 7100 "Contact Sync"
         NewLineChar: Char;
         Deltalink: Text;
         SyncDirection: Enum "ContactSyncDirection";
+        ClearLastSyncConfirmMsg: Label 'This will delete the internal log of your last synchronization, but will not modify any contacts you have synchronized to date. Do you want to proceed?';
+        ClearSyncDetailsLbl: Label 'Clear last sync details';
         ContactsSentToM365Count: Integer;
         ContactsSentToBCCount: Integer;
         ContactsFailedCount: Integer;
