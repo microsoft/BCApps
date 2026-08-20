@@ -1117,7 +1117,6 @@ report 1307 "Standard Sales - Credit Memo"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
-        }
         layout("StandardSalesCreditMemoBody.docx")
         {
             Type = Word;
@@ -1126,7 +1125,6 @@ report 1307 "Standard Sales - Credit Memo"
             Caption = 'Body-only: Standard Sales Credit Memo (Word)';
             Summary = 'Landscape orientated. Shows the customer and company address and a header with document number, reference, salesperson, applies-to document, and due date. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
         }
-
         layout("StandardSalesCreditMemoEmailBody.docx")
         {
             Type = Word;
