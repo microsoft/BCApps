@@ -84,8 +84,10 @@ codeunit 9667 "Composite Report Parts Mgt."
         TelemetryDimensions.Add('ResourceFile', ResourceFile);
         TelemetryDimensions.Add('LayoutSubtype', Format(Subtype, 0, 9));
         TelemetryDimensions.Add('Error', ErrorText);
+        // Warning, not Error: the pass carries on and the other parts are still seeded, so this is one part degraded
+        // rather than an operation that ended. The error text below says why it was refused.
         Session.LogMessage(
-            '0000V42', PartNotSeededTxt, Verbosity::Error, DataClassification::SystemMetadata,
+            '0000V42', PartNotSeededTxt, Verbosity::Warning, DataClassification::SystemMetadata,
             TelemetryScope::All, TelemetryDimensions);
     end;
 
