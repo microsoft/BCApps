@@ -121,6 +121,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageSender: Interface IMessageSender;
+        MessageSendingErrorInfo: ErrorInfo;
     begin
         EDocMessage.Get(MessageEntryNo);
         EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
@@ -137,8 +138,12 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageSender := EDocumentService."Service Integration V2";
         MessageSender.SendMessage(EDocument, EDocumentService, EDocMessageContext);
-        if EDocMessageContext.Status().GetStatus() <> "E-Document Service Status"::Sent then
-            Error(MessageSendingErr, MessageEntryNo, EDocMessageContext.Status().GetStatus());
+        if EDocMessageContext.Status().GetStatus() <> "E-Document Service Status"::Sent then begin
+            MessageSendingErrorInfo.ErrorType := ErrorType::Internal;
+            MessageSendingErrorInfo.Message := StrSubstNo(MessageSendingErr, MessageEntryNo);
+            MessageSendingErrorInfo.DetailedMessage := StrSubstNo(MessageSendingDetailedErr, EDocMessageContext.Status().GetStatus());
+            Error(MessageSendingErrorInfo);
+        end;
 
         EDocumentLog.InsertIntegrationLog(
             EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
@@ -160,6 +165,7 @@ codeunit 6433 "E-Doc. Message Mgt."
 
         EDocMessage.Status := EDocMessage.Status::Queued;
         EDocMessage.Modify();
+        Commit();
         EDocumentBackgroundJobs.ScheduleMessageSend(EDocMessage);
     end;
 
@@ -204,6 +210,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         if not TempBlob.HasValue() then
             Error(IncomingMessagePayloadRequiredErr);
 
+        EDocMessage.LockTable();
         EDocMessage.SetRange(Service, ServiceCode);
         EDocMessage.SetRange("External Message ID", ExternalMessageID);
         if EDocMessage.FindFirst() then
@@ -248,7 +255,8 @@ codeunit 6433 "E-Doc. Message Mgt."
 
     var
         MessagePayloadErr: Label 'E-Document message %1 does not contain a payload.', Comment = '%1 = E-Document message entry number';
-        MessageSendingErr: Label 'E-Document message %1 could not be sent. The integration returned status %2.', Comment = '%1 = E-Document message entry number, %2 = integration status';
+        MessageSendingErr: Label 'E-Document message %1 could not be sent.', Comment = '%1 = E-Document message entry number';
+        MessageSendingDetailedErr: Label 'The E-Document message integration returned status %1.', Comment = '%1 = integration status';
         ExternalDocumentIDRequiredErr: Label 'An external document ID is required.';
         ExternalMessageIDRequiredErr: Label 'An external message ID is required.';
         IncomingMessagePayloadRequiredErr: Label 'An incoming E-Document message payload is required.';

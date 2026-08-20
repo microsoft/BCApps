@@ -19,7 +19,7 @@ codeunit 6535 "E-Doc. Message Send Job"
         LastErrorText: Text;
     begin
         EDocumentMessage.Get(Rec."Record ID to Process");
-        if TrySendMessage(EDocumentMessage."Entry No.") then
+        if Codeunit.Run(Codeunit::"E-Doc. Message Send Runner", EDocumentMessage) then
             exit;
 
         LastErrorText := GetLastErrorText();
@@ -31,14 +31,6 @@ codeunit 6535 "E-Doc. Message Send Job"
         EDocumentMessage.Modify();
         Commit();
         Error(MessageSendFailedErr, EDocumentMessage."Entry No.", LastErrorText);
-    end;
-
-    [TryFunction]
-    local procedure TrySendMessage(MessageEntryNo: Integer)
-    var
-        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
-    begin
-        EDocMessageMgt.SendMessage(MessageEntryNo);
     end;
 
     var
