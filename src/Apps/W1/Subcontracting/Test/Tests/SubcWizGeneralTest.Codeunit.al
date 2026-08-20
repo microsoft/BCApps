@@ -9,7 +9,7 @@ using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 149918 "Subc. Wiz. General Test"
+codeunit 149923 "Subc. Wiz. General Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

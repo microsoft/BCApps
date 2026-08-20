@@ -5407,7 +5407,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         PurchaseLine.CreateSubcontractingProductionOrder();
 
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
