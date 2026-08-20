@@ -9,7 +9,7 @@ using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
 using System.Utilities;
 
-codeunit 139895 "E-Doc. Message Mock" implements IMessageSender, IMessageResponseHandler
+codeunit 133519 "E-Doc. Message Mock" implements IMessageSender, IMessageResponseHandler
 {
     Access = Internal;
     SingleInstance = true;

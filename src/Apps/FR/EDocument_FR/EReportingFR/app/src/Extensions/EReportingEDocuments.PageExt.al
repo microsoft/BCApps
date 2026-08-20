@@ -52,8 +52,8 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
 
                 trigger OnAction()
                 var
-                    FREInvoiceRefusalDialog: Page "FR E-Invoice Refusal Dialog";
                     FREInvoiceBuyerResponseMgt: Codeunit "FR E-Inv. Buyer Resp. Mgt.";
+                    FREInvoiceRefusalDialog: Page "FR E-Invoice Refusal Dialog";
                     ReasonCode: Code[20];
                     ReasonDescription: Text[500];
                 begin

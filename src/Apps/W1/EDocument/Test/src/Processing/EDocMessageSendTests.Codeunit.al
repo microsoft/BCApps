@@ -9,7 +9,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Message;
 using System.Utilities;
 
-codeunit 139899 "E-Doc. Message Send Tests"
+codeunit 133710 "E-Doc. Message Send Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

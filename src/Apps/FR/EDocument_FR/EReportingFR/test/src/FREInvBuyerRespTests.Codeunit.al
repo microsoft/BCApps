@@ -7,7 +7,6 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Message;
-using System.Utilities;
 
 codeunit 148152 "FR E-Inv. Buyer Resp. Tests"
 {

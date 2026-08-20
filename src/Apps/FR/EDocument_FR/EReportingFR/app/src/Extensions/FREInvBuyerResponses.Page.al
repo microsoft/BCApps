@@ -25,26 +25,32 @@ page 10974 "FR E-Inv. Buyer Responses"
                 field("Response Type"; Rec."Response Type")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the type of response sent for the electronic invoice.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the processing status of the buyer response.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the code that indicates the reason for the response.';
                 }
                 field("Reason Description"; Rec."Reason Description")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the description of the reason for the response.';
                 }
                 field("Created At"; Rec."Created At")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the date and time when the buyer response was created.';
                 }
                 field("E-Document Message Entry No."; Rec."E-Document Message Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the entry number of the related electronic document message.';
                 }
             }
         }

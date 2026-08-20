@@ -714,11 +714,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             CountryRegion.Init();
             CountryRegion.Code := CountryCode;
             CountryRegion.Name := CountryCode;
-            CountryRegion."ISO Code" := CountryCode;
+            CountryRegion."ISO Code" := CopyStr(CountryCode, 1, MaxStrLen(CountryRegion."ISO Code"));
             CountryRegion.Insert(true);
         end else
             if CountryRegion."ISO Code" = '' then begin
-                CountryRegion."ISO Code" := CountryCode;
+                CountryRegion."ISO Code" := CopyStr(CountryCode, 1, MaxStrLen(CountryRegion."ISO Code"));
                 CountryRegion.Modify(true);
             end;
     end;
