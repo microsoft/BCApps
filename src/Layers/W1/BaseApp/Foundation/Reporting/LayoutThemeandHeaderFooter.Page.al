@@ -102,6 +102,8 @@ page 9670 "Layout Theme and Header/Footer"
         HeaderResolved: Boolean;
         ThemeResolved: Boolean;
     begin
+        // This page is filtered to a single report, so the layout-independent report/global defaults are identical for
+        // every row. Resolve them once and only do the per-layout lookups for each rendered row.
         if not ReportLevelResolved then begin
             LookupHelper.GetReportLevelPartDisplays(Rec."Report ID", ReportHeaderDisplay, ReportHeaderSource, ReportThemeDisplay, ReportThemeSource);
             ReportLevelResolved := true;
