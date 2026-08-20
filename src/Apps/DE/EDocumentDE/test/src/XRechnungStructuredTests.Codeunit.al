@@ -148,7 +148,8 @@ codeunit 148500 "XRechnung Structured Tests"
         XmlContent := NavApp.GetResourceAsText(TestFileTok);
         XmlContent := XmlContent.Replace('GB123456789', VendorRegistrationNo);
         XmlContent := XmlContent.Replace('GB789456278', CompanyRegistrationNo);
-        XmlContent := XmlContent.Replace('<cbc:ID>VAT</cbc:ID>', '<cbc:ID>FC</cbc:ID>');
+        SetPartyTaxSchemeToFiscalCode(XmlContent, VendorRegistrationNo);
+        SetPartyTaxSchemeToFiscalCode(XmlContent, CompanyRegistrationNo);
         XmlContent := XmlContent.Replace('<cbc:ID>8712345000004</cbc:ID>', '<cbc:ID></cbc:ID>');
         CreateInboundEDocumentFromXMLText(EDocument, XmlContent);
 
@@ -361,6 +362,26 @@ codeunit 148500 "XRechnung Structured Tests"
     begin
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::XRechnung;
         EDocumentService.Modify(false);
+    end;
+
+    local procedure SetPartyTaxSchemeToFiscalCode(var XmlContent: Text; RegistrationNo: Text)
+    var
+        CompanyIDToken: Text;
+        CompanyIDPosition: Integer;
+        TaxSchemeIDPosition: Integer;
+        SearchStartPosition: Integer;
+    begin
+        CompanyIDToken := StrSubstNo('<cbc:CompanyID>%1</cbc:CompanyID>', RegistrationNo);
+        CompanyIDPosition := StrPos(XmlContent, CompanyIDToken);
+        Assert.IsTrue(CompanyIDPosition > 0, 'The party company identifier was not found in the test XML.');
+
+        SearchStartPosition := CompanyIDPosition + StrLen(CompanyIDToken);
+        TaxSchemeIDPosition := StrPos(CopyStr(XmlContent, SearchStartPosition), '<cbc:ID>VAT</cbc:ID>');
+        Assert.IsTrue(TaxSchemeIDPosition > 0, 'The party VAT tax scheme was not found in the test XML.');
+
+        TaxSchemeIDPosition += SearchStartPosition - 1;
+        XmlContent := DelStr(XmlContent, TaxSchemeIDPosition, StrLen('<cbc:ID>VAT</cbc:ID>'));
+        XmlContent := InsStr(XmlContent, '<cbc:ID>FC</cbc:ID>', TaxSchemeIDPosition);
     end;
 
     local procedure CreateInboundEDocumentFromXML(var EDocument: Record "E-Document"; FilePath: Text)

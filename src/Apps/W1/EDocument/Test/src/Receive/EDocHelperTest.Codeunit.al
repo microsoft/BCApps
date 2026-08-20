@@ -63,19 +63,16 @@ codeunit 139799 "E-Doc. Helper Test"
     var
         Vendor: Record Vendor;
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         RegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 646793] A vendor can be resolved by Registration No. when other identifiers are unavailable.
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
-        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
-        LibraryPurchase.CreateVendor(Vendor);
+        CreateVendor(Vendor);
         Vendor."Use Reg. No. in E-Document" := true;
-        Vendor.Validate("Registration Number", RegistrationNo);
-        Vendor.Modify(true);
+        Vendor."Registration Number" := RegistrationNo;
+        Vendor.Modify();
 
         Assert.AreEqual(Vendor."No.", EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should be matched by Registration No.');
     end;
@@ -85,18 +82,15 @@ codeunit 139799 "E-Doc. Helper Test"
     var
         Vendor: Record Vendor;
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         RegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 646793] Registration No. matching requires explicit vendor setup.
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
-        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
-        LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Validate("Registration Number", RegistrationNo);
-        Vendor.Modify(true);
+        CreateVendor(Vendor);
+        Vendor."Registration Number" := RegistrationNo;
+        Vendor.Modify();
 
         Assert.AreEqual('', EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should not be matched by Registration No. without setup.');
     end;
@@ -106,23 +100,20 @@ codeunit 139799 "E-Doc. Helper Test"
     var
         Vendor: array[2] of Record Vendor;
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         RegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 646793] Vendor matching fails when a registration number identifies multiple vendors.
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
-        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
-        LibraryPurchase.CreateVendor(Vendor[1]);
+        CreateVendor(Vendor[1]);
         Vendor[1]."Use Reg. No. in E-Document" := true;
-        Vendor[1].Validate("Registration Number", RegistrationNo);
-        Vendor[1].Modify(true);
-        LibraryPurchase.CreateVendor(Vendor[2]);
+        Vendor[1]."Registration Number" := RegistrationNo;
+        Vendor[1].Modify();
+        CreateVendor(Vendor[2]);
         Vendor[2]."Use Reg. No. in E-Document" := true;
-        Vendor[2].Validate("Registration Number", RegistrationNo);
-        Vendor[2].Modify(true);
+        Vendor[2]."Registration Number" := RegistrationNo;
+        Vendor[2].Modify();
 
         asserterror EDocumentImportHelper.FindVendor('', '', '', RegistrationNo);
 
@@ -239,5 +230,14 @@ codeunit 139799 "E-Doc. Helper Test"
 
         // Cleanup
         EDocument.Delete();
+    end;
+
+    local procedure CreateVendor(var Vendor: Record Vendor)
+    var
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        Vendor.Init();
+        Vendor."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Vendor."No."));
+        Vendor.Insert();
     end;
 }
