@@ -15,8 +15,6 @@ report 99000769 "Output Item Label"
     ApplicationArea = Manufacturing;
     WordMergeDataItem = ItemLedgerEntry;
     DefaultRenderingLayout = Word;
-    //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "Default";
     Caption = 'Production Output Item Label';
 
     dataset

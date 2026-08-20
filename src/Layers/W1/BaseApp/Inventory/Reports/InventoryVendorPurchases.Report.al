@@ -15,8 +15,6 @@ report 714 "Inventory - Vendor Purchases"
     Caption = 'Inventory - Vendor Purchases';
     ToolTip = 'View a list of the vendors that your company has purchased items from within a selected period. It shows invoiced quantity, amount and discount. The report can be used to analyze a company''s item purchases.';
     DefaultRenderingLayout = Word;
-    //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "Default";
     UsageCategory = ReportsAndAnalysis;
 
     dataset

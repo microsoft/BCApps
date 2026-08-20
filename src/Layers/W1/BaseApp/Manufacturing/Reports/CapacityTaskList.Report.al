@@ -11,8 +11,6 @@ using Microsoft.Manufacturing.WorkCenter;
 report 99000780 "Capacity Task List"
 {
     DefaultRenderingLayout = ExcelLayout;
-    //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "Default";
     ApplicationArea = Manufacturing;
     Caption = 'Capacity Task List';
     ToolTip = 'View the production orders that are waiting to be processed at the work centers and machine centers. Printouts are made for the capacity of the work center or machine center. The report includes information such as starting and ending time, date per production order and input quantity.';

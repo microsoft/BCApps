@@ -36,8 +36,6 @@ report 1304 "Standard Sales - Quote"
 {
     Caption = 'Sales - Quote';
     DefaultRenderingLayout = "StandardSalesQuote.docx";
-    //DefaultHeaderFooterPart = "External Default";
-    //DefaultThemePart = "Default";
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 
@@ -1036,7 +1034,6 @@ report 1304 "Standard Sales - Quote"
         {
             Type = Word;
             Subtype = Body;
-            //HeaderFooterPart = '';
             LayoutFile = './Sales/Document/StandardSalesQuoteEmailBody.docx';
             Caption = 'Body-only: Standard Sales Quote Email (Word)';
             Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, and total including VAT. Use it as cover text for the email.';

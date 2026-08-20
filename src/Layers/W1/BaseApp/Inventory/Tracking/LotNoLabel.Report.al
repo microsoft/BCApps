@@ -14,8 +14,6 @@ report 6628 "Lot No Label"
     Caption = 'Lot No Label';
     WordMergeDataItem = "Lot No. Information";
     DefaultRenderingLayout = Word;
-    //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "Default";
 
     dataset
     {

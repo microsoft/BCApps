@@ -39,8 +39,6 @@ report 1307 "Standard Sales - Credit Memo"
 {
     Caption = 'Sales - Credit Memo';
     DefaultRenderingLayout = "StandardSalesCreditMemo.docx";
-    //DefaultThemePart = "Default";
-    //DefaultHeaderFooterPart = "External Default Detailed";
     Permissions = TableData "Sales Shipment Buffer" = rimd;
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;

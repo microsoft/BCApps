@@ -10,8 +10,6 @@ using Microsoft.Manufacturing.Document;
 report 99000788 "Prod. Order - Shortage List"
 {
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "Default";
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Shortage List';
     ToolTip = 'View a list of the missing quantity per production order. The report shows how the inventory development is planned from today until the set day - for example whether orders are still open.';

@@ -34,8 +34,6 @@ report 117 Reminder
 #else
     DefaultRenderingLayout = "Reminder.rdlc";
 #endif
-    //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "Default";
     WordMergeDataItem = "Issued Reminder Header";
 
     dataset

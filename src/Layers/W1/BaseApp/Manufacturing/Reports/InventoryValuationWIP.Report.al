@@ -15,8 +15,6 @@ report 5802 "Inventory Valuation - WIP"
     ToolTip = 'View inventory valuation for selected production orders in your WIP inventory. The report also shows information about the value of consumption, capacity usage and output in WIP. The printed report only shows invoiced amounts, that is, the cost of entries that have been posted as invoiced.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "Default";
 
     dataset
     {

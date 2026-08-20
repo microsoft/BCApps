@@ -12,8 +12,6 @@ using Microsoft.Purchases.Vendor;
 report 99000789 "Subcontractor - Dispatch List"
 {
     DefaultRenderingLayout = ExcelLayout;
-    //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "Default";
     ApplicationArea = Manufacturing;
     Caption = 'Subcontractor - Dispatch List';
     ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';

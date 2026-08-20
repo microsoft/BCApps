@@ -13,8 +13,6 @@ report 6625 "Item GTIN Label"
     Caption = 'Item GTIN Label';
     WordMergeDataItem = Items;
     DefaultRenderingLayout = Word;
-    //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "Default";
 
     dataset
     {

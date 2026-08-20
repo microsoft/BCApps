@@ -14,8 +14,6 @@ using System.Utilities;
 report 5084 "Email Merge"
 {
     DefaultRenderingLayout = "EmailMerge.rdlc";
-    //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "Default";
     Caption = 'Email Merge';
 
     dataset

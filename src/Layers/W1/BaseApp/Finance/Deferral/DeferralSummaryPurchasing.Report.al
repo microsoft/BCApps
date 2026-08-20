@@ -19,8 +19,6 @@ report 1702 "Deferral Summary - Purchasing"
     ApplicationArea = Suite;
     Caption = 'Deferral Summary - Purchasing';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "Default";
     UsageCategory = ReportsAndAnalysis;
 
     dataset

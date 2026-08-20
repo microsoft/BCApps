@@ -38,8 +38,6 @@ report 1305 "Standard Sales - Order Conf."
 {
     Caption = 'Sales - Confirmation';
     DefaultRenderingLayout = "StandardSalesOrderConf.docx";
-    //DefaultHeaderFooterPart = "External Default Detailed";
-    //DefaultThemePart = "Default";
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 
@@ -1122,7 +1120,6 @@ report 1305 "Standard Sales - Order Conf."
         {
             Type = Word;
             Subtype = Body;
-            //HeaderFooterPart = 'External Minimalistic';
             LayoutFile = './Sales/Document/StandardOrderConfirmationEmailBody.docx';
             Caption = 'Body-only: Standard Sales Order Confirmation Email (Word)';
             Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, and total including VAT. Use it as cover text for the email.';
