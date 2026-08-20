@@ -287,7 +287,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         if PurchaseLine.FindSet() then
             repeat
-                EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+                SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
             until PurchaseLine.Next() = 0;
 
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -388,7 +388,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Assert.ExpectedError('transfer orders exist');
 
         // [WHEN] Transfer order is posted to the subcontractor location
-        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
         PostDirectTransferOrder(TransferHeader);
 
         // [VERIFY] Modification is blocked because stock exists at the subcontractor location
@@ -413,7 +413,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
         CreateReturnTransferOrderForPurchaseOrder(PurchaseHeader);
 
-        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, true);
         PostDirectTransferOrder(TransferHeader);
 
         // [WHEN] CheckSubcPurchLineCanBeModified is called after full consumption
@@ -464,7 +464,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
         // [WHEN] The transfer to the subcontractor is created and posted as a direct transfer
         CreateTransferOrderForPurchaseOrder(PurchaseHeader);
-        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
         PostDirectTransferOrder(TransferHeader);
 
         // [THEN] The component has been moved to the subcontractor location
@@ -532,7 +532,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
         // [GIVEN] The component is transferred to the subcontractor and partially consumed there
         CreateTransferOrderForPurchaseOrder(PurchaseHeader);
-        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
         TransferLine.SetRange("Document No.", TransferHeader."No.");
         TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
         TransferLine.FindFirst();
@@ -554,6 +554,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ReturnTransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         ReturnTransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
         ReturnTransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        ReturnTransferLine.SetRange("Derived From Line No.", 0);
         ReturnTransferLine.SetRange("Subc. Return Order", true);
         ReturnTransferLine.FindFirst();
         ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
@@ -678,7 +679,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ProdOrderComponent.FindFirst();
 
 
-        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
         TransferLine.SetRange("Document No.", TransferHeader."No.");
         TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
         TransferLine.FindFirst();
@@ -721,6 +722,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ReturnTransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         ReturnTransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
         ReturnTransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
+        ReturnTransferLine.SetRange("Derived From Line No.", 0);
         ReturnTransferLine.SetRange("Subc. Return Order", true);
         ReturnTransferLine.FindFirst();
         Assert.AreEqual(ReturnQty, ReturnTransferLine.Quantity,
@@ -764,12 +766,12 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
         // [GIVEN] Outbound transfer order is created and posted (components sent to subcontractor)
         CreateTransferOrderForPurchaseOrder(PurchaseHeader);
-        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
         PostDirectTransferOrder(TransferHeader);
 
         // [GIVEN] First partial purchase receipt (4 of 10)
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
         PurchaseLine.Modify(true);
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
@@ -780,6 +782,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         CreateReturnTransferOrderForPurchaseOrder(PurchaseHeader);
         ReturnTransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
         ReturnTransferLine.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
+        ReturnTransferLine.SetRange("Derived From Line No.", 0);
         ReturnTransferLine.SetRange("Subc. Return Order", true);
         ReturnTransferLine.FindFirst();
         ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
@@ -788,7 +791,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [GIVEN] A new outbound transfer for the remaining outstanding qty is created and posted
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
         CreateTransferOrderForPurchaseOrder(PurchaseHeader);
-        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
         PostDirectTransferOrder(TransferHeader);
 
         // [GIVEN] Second partial purchase receipt (3 of remaining 6)
@@ -809,6 +812,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ReturnTransferLine.Reset();
         ReturnTransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
         ReturnTransferLine.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
+        // ReturnTransferLine.SetRange("Derived From Line No.", 0);
         ReturnTransferLine.SetRange("Subc. Return Order", true);
         ReturnTransferLine.FindLast();
         ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
@@ -1413,25 +1417,6 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Purch. Subcont. Test");
     end;
 
-    local procedure EnsureGeneralPostingSetupIsValid(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
-    var
-        GeneralPostingSetup: Record "General Posting Setup";
-    begin
-        if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
-            if GeneralPostingSetup.Blocked then begin
-                GeneralPostingSetup.Blocked := false;
-                GeneralPostingSetup.Modify();
-            end;
-            exit;
-        end;
-
-        GeneralPostingSetup.Init();
-        GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
-        GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
-        GeneralPostingSetup.Insert();
-        GeneralPostingSetup.SuggestSetupAccounts();
-    end;
-
     local procedure SetupSubcontractingEnvironment()
     begin
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -1514,7 +1499,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 #pragma warning restore AA0210
     end;
 
-    local procedure FindTransferOrderForPurchaseLine(var TransferHeader: Record "Transfer Header"; PurchaseLine: Record "Purchase Line")
+    local procedure FindTransferOrderForPurchaseLine(var TransferHeader: Record "Transfer Header"; PurchaseLine: Record "Purchase Line"; IsReturnOrder: Boolean)
     var
         TransferLine: Record "Transfer Line";
     begin
@@ -1522,6 +1507,8 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         TransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
         TransferLine.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
         TransferLine.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.SetRange("Subc. Return Order", IsReturnOrder);
 #pragma warning restore AA0210
         TransferLine.FindFirst();
         TransferHeader.Get(TransferLine."Document No.");
