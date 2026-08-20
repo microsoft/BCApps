@@ -30,7 +30,8 @@ codeunit 5000 "BaseApp Install"
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        CompositeReportPartsMgt.SeedDefaultParts();
+        if not CompositeReportPartsMgt.SeedDefaultParts() then
+            exit;
 
         if not UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());

@@ -28,8 +28,7 @@ codeunit 104064 "Upgrade Composite Report Parts"
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
 
-        CompositeReportPartsMgt.SeedDefaultParts();
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
+        if CompositeReportPartsMgt.SeedDefaultParts() then
+            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
     end;
 }
