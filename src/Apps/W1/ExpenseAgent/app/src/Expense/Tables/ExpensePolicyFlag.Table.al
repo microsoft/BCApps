@@ -107,10 +107,11 @@ table 7096 "Expense Policy Flag"
             Error(UnknownSubjectErr);
         if not ExpensePolicy.GetBySystemId("Policy System Id") then
             Error(UnknownPolicyErr);
-        if not ExpensePolicy.Enabled then
-            Error(DisabledPolicyErr);
-        if not PolicyAppliesToLine(ExpensePolicy, ExpenseReportLine) then
+        if not ExpensePolicy.AppliesToLine(ExpenseReportLine) then begin
+            if not ExpensePolicy.Enabled then
+                Error(DisabledPolicyErr);
             Error(InapplicablePolicyErr);
+        end;
 
         // Reject results produced from an older subject or policy snapshot. The caller must echo the
         // versions returned by policiesToEvaluate so an evaluation cannot be stamped as current after
@@ -127,16 +128,6 @@ table 7096 "Expense Policy Flag"
         // Block duplicate evaluations for the same subject+policy version combination.
         if ExistingFlag.Get("Subject Type", "Subject System Id", "Policy System Id", "Subject Version", "Policy Version") then
             Error(DuplicateEvaluationErr);
-    end;
-
-    local procedure PolicyAppliesToLine(ExpensePolicy: Record "Expense Policy"; ExpenseReportLine: Record "Expense Report Line"): Boolean
-    begin
-        // Mirrors the applicability rule used by the policies-to-evaluate endpoint: an enabled
-        // report-line policy whose category matches the line or is blank (blank applies to every
-        // category).
-        if ExpensePolicy."Subject Type" <> ExpensePolicy."Subject Type"::"Expense Report Line" then
-            exit(false);
-        exit((ExpensePolicy."Expense Category Code" = ExpenseReportLine."Expense Category") or (ExpensePolicy."Expense Category Code" = ''));
     end;
 
     var

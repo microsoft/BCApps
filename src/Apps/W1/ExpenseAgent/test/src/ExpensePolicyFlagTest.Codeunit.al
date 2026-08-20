@@ -897,6 +897,9 @@ codeunit 148340 "Expense Policy Flag Test"
         MatchingPolicy: Record "Expense Policy";
         BlankCategoryPolicy: Record "Expense Policy";
         OtherCategoryPolicy: Record "Expense Policy";
+        DisabledPolicy: Record "Expense Policy";
+        OfferedPolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
         OtherCategory: Record "Expense Category";
         TempPolicyToEval: Record "Exp. Policy To Eval Buffer" temporary;
         Builder: Codeunit "Exp. Policies To Eval Builder";
@@ -905,9 +908,12 @@ codeunit 148340 "Expense Policy Flag Test"
         Initialize();
         CreateTestReportLine(ExpenseReportLine);
 
-        // [GIVEN] A policy for the line's category, a blank-category policy, and a policy for a different category.
+        // [GIVEN] Matching and blank-category policies, plus policies that are disabled or belong to another category.
         CreateTestPolicy(MatchingPolicy, ExpenseReportLine."Expense Category", 'Matches the line category');
         CreateTestPolicy(BlankCategoryPolicy, '', 'Applies to every category');
+        CreateTestPolicy(DisabledPolicy, ExpenseReportLine."Expense Category", 'Disabled policy');
+        DisabledPolicy.Enabled := false;
+        DisabledPolicy.Modify(true);
         LibraryExpense.CreateExpenseCategory(OtherCategory, OtherCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ", '');
         CreateTestPolicy(OtherCategoryPolicy, OtherCategory.Code, 'Belongs to another category');
 
@@ -919,6 +925,17 @@ codeunit 148340 "Expense Policy Flag Test"
         Assert.IsTrue(TempPolicyToEval.Get(ExpenseReportLine.SystemId, MatchingPolicy.SystemId), 'The matching-category policy must be listed.');
         Assert.IsTrue(TempPolicyToEval.Get(ExpenseReportLine.SystemId, BlankCategoryPolicy.SystemId), 'The blank-category policy must be listed.');
         Assert.IsFalse(TempPolicyToEval.Get(ExpenseReportLine.SystemId, OtherCategoryPolicy.SystemId), 'A different-category policy must not be listed.');
+        Assert.IsFalse(TempPolicyToEval.Get(ExpenseReportLine.SystemId, DisabledPolicy.SystemId), 'A disabled policy must not be listed.');
+
+        // [THEN] Every policy offered by the builder is accepted by the flag-insert guard.
+        TempPolicyToEval.Reset();
+        if TempPolicyToEval.FindSet() then
+            repeat
+                OfferedPolicy.GetBySystemId(TempPolicyToEval."Policy System Id");
+                AddCompliantFlag(ExpensePolicyFlag, ExpenseReportLine, OfferedPolicy, 'Accepted builder policy.');
+            until TempPolicyToEval.Next() = 0;
+        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        Assert.RecordCount(ExpensePolicyFlag, 2);
     end;
 
     [Test]

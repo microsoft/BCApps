@@ -80,6 +80,23 @@ table 7092 "Expense Policy"
         "Version" += 1;
     end;
 
+    internal procedure SetApplicableToLineFilter(ExpenseReportLine: Record "Expense Report Line")
+    begin
+        // Report-line policies apply when enabled and scoped to either the line's category or every category.
+        Rec.SetCurrentKey("Subject Type", Enabled, "Expense Category Code");
+        Rec.SetRange("Subject Type", Rec."Subject Type"::"Expense Report Line");
+        Rec.SetRange(Enabled, true);
+        Rec.SetFilter("Expense Category Code", '%1|%2', ExpenseReportLine."Expense Category", '');
+    end;
+
+    internal procedure AppliesToLine(ExpenseReportLine: Record "Expense Report Line"): Boolean
+    begin
+        exit(
+            Rec.Enabled and
+            (Rec."Subject Type" = Rec."Subject Type"::"Expense Report Line") and
+            ((Rec."Expense Category Code" = ExpenseReportLine."Expense Category") or (Rec."Expense Category Code" = '')));
+    end;
+
     local procedure GetNextLineNo(): Integer
     var
         ExpensePolicy: Record "Expense Policy";

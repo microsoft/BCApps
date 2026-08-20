@@ -37,7 +37,7 @@ codeunit 7107 "Exp. Policies To Eval Builder"
 
         LoadExistingFlagKeys(SubjectSystemId, SubjectVersion, ExistingFlagKeys);
 
-        SetApplicablePolicyFilter(ExpensePolicy, ExpenseReportLine);
+        ExpensePolicy.SetApplicableToLineFilter(ExpenseReportLine);
         if ExpensePolicy.FindSet() then
             repeat
                 if not FlagExists(ExistingFlagKeys, ExpensePolicy.SystemId, ExpensePolicy."Version") then
@@ -69,7 +69,7 @@ codeunit 7107 "Exp. Policies To Eval Builder"
         SubjectSystemId := ExpenseReportLine.SystemId;
         SubjectVersion := ExpenseReportLine."Policy Eval Version";
 
-        SetApplicablePolicyFilter(ExpensePolicy, ExpenseReportLine);
+        ExpensePolicy.SetApplicableToLineFilter(ExpenseReportLine);
         if not ExpensePolicy.FindSet() then
             exit;
 
@@ -83,17 +83,6 @@ codeunit 7107 "Exp. Policies To Eval Builder"
                 exit;
             end;
         until ExpensePolicy.Next() = 0;
-    end;
-
-    local procedure SetApplicablePolicyFilter(var ExpensePolicy: Record "Expense Policy"; ExpenseReportLine: Record "Expense Report Line")
-    begin
-        // Applicable policies are the enabled report-line policies whose category matches the line
-        // or is blank (a blank category applies to every category). The category-or-blank rule is
-        // pushed into the query filter so unrelated categories are never loaded.
-        ExpensePolicy.SetCurrentKey("Subject Type", Enabled, "Expense Category Code");
-        ExpensePolicy.SetRange("Subject Type", ExpensePolicy."Subject Type"::"Expense Report Line");
-        ExpensePolicy.SetRange(Enabled, true);
-        ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', ExpenseReportLine."Expense Category", '');
     end;
 
     local procedure LoadExistingFlagKeys(SubjectSystemId: Guid; SubjectVersion: Integer; var ExistingFlagKeys: Dictionary of [Text, Boolean])
