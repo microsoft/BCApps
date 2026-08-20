@@ -115,8 +115,9 @@ page 9667 "Header/Footer Theme Assignment"
         Rec.DeleteAll();
         Rec.Init();
         Rec."Report ID" := ReportID;
-        Rec."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(Rec."Layout Name"));
-        if TenantReportLayoutCfg.Get(ReportID, Rec."Layout Name", '') then begin
+        Rec."Layout Name" := CopyStr(LookupHelper.DecodeLayoutName(LayoutName), 1, MaxStrLen(Rec."Layout Name"));
+        LayoutNameDisplay := Rec."Layout Name";
+        if TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then begin
             Rec."Header Part Name" := TenantReportLayoutCfg."Header Part Name";
             Rec."Theme Part Name" := TenantReportLayoutCfg."Theme Part Name";
         end;
@@ -128,7 +129,7 @@ page 9667 "Header/Footer Theme Assignment"
 
     trigger OnAfterGetCurrRecord()
     begin
-        LayoutNameDisplay := LookupHelper.DecodeLayoutName(Rec."Layout Name");
+        LayoutNameDisplay := Rec."Layout Name";
         HeaderPartDisplay := LookupHelper.DecodeLayoutName(Rec."Header Part Name");
         ThemePartDisplay := LookupHelper.DecodeLayoutName(Rec."Theme Part Name");
     end;
