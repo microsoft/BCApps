@@ -89,6 +89,8 @@ codeunit 1765 "Projects-Data Classification"
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Resource Price");
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Resource Cost");
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Resource Price Change");
+        DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Job Assigned Resource");
+        DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Job Assigned Resource Archive");
     end;
 
     local procedure ClassifyMyJob()

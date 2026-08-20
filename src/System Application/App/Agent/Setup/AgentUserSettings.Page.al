@@ -121,6 +121,8 @@ page 4317 "Agent User Settings"
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        AgentImpl: Codeunit "Agent Impl.";
     begin
         if not (CloseAction in [Action::LookupOK, Action::OK]) then
             exit(true);
@@ -129,6 +131,9 @@ page 4317 "Agent User Settings"
 
         if TemporaryRecord then
             exit(true);
+
+        if AgentImpl.IsArchived(Rec."User Security ID") then
+            Error(AgentArchivedCannotBeModifiedErr);
 
         UserSettings.UpdateUserSettings(Rec);
         exit(true);
@@ -181,4 +186,5 @@ page 4317 "Agent User Settings"
         GlobalLanguageID: Integer;
         TemporaryRecord: Boolean;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions. Do you want to continue?';
+        AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.';
 }

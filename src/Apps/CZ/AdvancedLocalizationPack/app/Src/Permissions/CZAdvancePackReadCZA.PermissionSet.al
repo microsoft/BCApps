@@ -7,5 +7,6 @@ permissionset 11740 "CZ Advance Pack - Read CZA"
 
     IncludedPermissionSets = "CZ Advance Pack - Objects CZA";
 
-    Permissions = tabledata "Detailed G/L Entry CZA" = R;
+    Permissions = tabledata "Auto. Create Default Dim. CZA" = R,
+                  tabledata "Detailed G/L Entry CZA" = R;
 }

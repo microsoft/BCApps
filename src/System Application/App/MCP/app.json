@@ -12,6 +12,12 @@
   "logo": "",
   "dependencies": [
     {
+      "id": "d3433b68-4901-445f-9547-fdfeca57575a",
+      "name": "AI SDK",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
       "id": "95025170-61fc-4808-9505-4ba1fe1d05d9",
       "name": "Azure AD Tenant",
       "publisher": "Microsoft",
@@ -72,11 +78,15 @@
   "idRanges": [
     {
       "from": 8350,
-      "to": 8360
+      "to": 8362
     },
     {
       "from": 8365,
       "to": 8370
+    },
+    {
+      "from": 8376,
+      "to": 8380
     }
   ],
   "target": "OnPrem",

@@ -1598,6 +1598,7 @@ table 8063 "Vendor Subscription Contract"
     var
         ServiceObject: Record "Subscription Header";
         VendorContract: Record "Vendor Subscription Contract";
+        SourceCodeSetup: Record "Source Code Setup";
     begin
         ServiceObject.Get(ServiceCommitment."Subscription Header No.");
         VendorContractLine.InitFromServiceCommitment(ServiceCommitment, ContractNo);
@@ -1607,7 +1608,8 @@ table 8063 "Vendor Subscription Contract"
         ServiceCommitment."Subscription Contract Line No." := VendorContractLine."Line No.";
 
         VendorContract.Get(ServiceCommitment."Subscription Contract No.");
-        ServiceCommitment.GetCombinedDimensionSetID(ServiceCommitment."Dimension Set ID", VendorContract."Dimension Set ID");
+        SourceCodeSetup.Get();
+        ServiceCommitment.ApplyContractDimensions(VendorContract."Dimension Set ID", SourceCodeSetup.Purchases, Database::Vendor);
         if "Currency Code" <> ServiceCommitment."Currency Code" then begin
             CalculateCurrencyFactor(ServiceCommitment."Subscription Line Start Date", VendorContract."Currency Code");
             ServiceCommitment.SetCurrencyData(CurrencyFactor, CurrencyFactorDate, VendorContract."Currency Code");

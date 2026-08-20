@@ -133,7 +133,7 @@ codeunit 136319 "Job Item Tracking"
         OpenJobAndCreateInventoryPick(Job);
 
         // [THEN] Make sure 2 lines are created
-        WarehouseActivityLinePick.SetRange("Source Type", Database::Job);
+        WarehouseActivityLinePick.SetRange("Source Type", Database::"Job Planning Line");
         WarehouseActivityLinePick.SetRange("Source Document", WarehouseActivityLinePick."Source Document"::"Job Usage");
         WarehouseActivityLinePick.SetRange("Source No.", Job."No.");
         Assert.RecordCount(WarehouseActivityLinePick, 2);
@@ -3559,7 +3559,7 @@ codeunit 136319 "Job Item Tracking"
     begin
         WarehouseEntry.SetRange("Item No.", JobPlanningLine."No.");
         WarehouseEntry.SetRange("Source No.", JobPlanningLine."Job No.");
-        WarehouseEntry.SetRange("Source Type", DATABASE::Job);
+        WarehouseEntry.SetRange("Source Type", DATABASE::"Job Planning Line");
         WarehouseEntry.SetRange("Source Line No.", JobPlanningLine."Job Contract Entry No.");
         WarehouseEntry.SetRange("Source Subline No.", JobPlanningLine."Line No."); //Link job planning line to warehouse entry for registered pick
         WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);

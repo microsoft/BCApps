@@ -30,6 +30,20 @@ codeunit 130510 "Library - Price Calculation"
         exit(PriceCalculationSetup.Code)
     end;
 
+    procedure FindOrAddSetup(var PriceCalculationSetup: Record "Price Calculation Setup"; NewMethod: Enum "Price Calculation Method"; PriceType: Enum "Price Type"; AssetType: Enum "Price Asset Type"; NewImplementation: Enum "Price Calculation Handler"; NewDefault: Boolean): Code[100];
+    begin
+        PriceCalculationSetup.SetRange(Method, NewMethod);
+        PriceCalculationSetup.SetRange(Type, PriceType);
+        PriceCalculationSetup.SetRange("Asset Type", AssetType);
+        PriceCalculationSetup.SetRange(Implementation, NewImplementation);
+        if not PriceCalculationSetup.FindFirst() then begin
+            PriceCalculationSetup.Reset();
+            exit(AddSetup(PriceCalculationSetup, NewMethod, PriceType, AssetType, NewImplementation, NewDefault));
+        end;
+        PriceCalculationSetup.Reset();
+        exit(PriceCalculationSetup.Code);
+    end;
+
     procedure AddDtldSetup(var DtldPriceCalculationSetup: Record "Dtld. Price Calculation Setup"; PriceType: Enum "Price Type"; AssetType: Enum "Price Asset Type"; AssetNo: code[20]; SourceGroup: Enum "Price Source Group"; SourceNo: Code[20])
     begin
         if DtldPriceCalculationSetup.IsTemporary then

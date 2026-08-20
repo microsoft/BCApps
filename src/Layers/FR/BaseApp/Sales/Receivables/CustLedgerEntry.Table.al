@@ -146,7 +146,8 @@ table 21 "Cust. Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Entry No."),
-                                                                         "Posting Date" = field("Date Filter")));
+                                                                         "Posting Date" = field("Date Filter"),
+                                                                         "Excluded from calculation" = const(false)));
             Caption = 'Remaining Amount';
             Editable = false;
             FieldClass = FlowField;
@@ -175,7 +176,8 @@ table 21 "Cust. Ledger Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Cust. Ledger Entry No." = field("Entry No."),
-                                                                                 "Posting Date" = field("Date Filter")));
+                                                                                 "Posting Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Remaining Amt. (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -1097,23 +1099,23 @@ table 21 "Cust. Ledger Entry"
         key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
-        key(Key23; "Document Type", "Posting Date")
+        key(Key18; "Document Type", "Posting Date")
         {
             SumIndexFields = "Sales (LCY)";
         }
-        key(Key24; "Document Type", "Customer No.", Open, "Due Date")
+        key(Key19; "Document Type", "Customer No.", Open, "Due Date")
         {
         }
-        key(Key25; "Customer Posting Group")
+        key(Key20; "Customer Posting Group")
         {
         }
-        key(Key26; "Document Type", Open, "Posting Date", "Closed at Date")
+        key(Key21; "Document Type", Open, "Posting Date", "Closed at Date")
         {
         }
-        key(Key27; "Salesperson Code")
+        key(Key22; "Salesperson Code")
         {
         }
-        key(Key28; SystemModifiedAt)
+        key(Key23; SystemModifiedAt)
         {
         }
         key(Key35; "Customer No.", "Posting Date", "Applies-to ID")
@@ -1139,11 +1141,6 @@ table 21 "Cust. Ledger Entry"
         {
         }
     }
-
-    trigger OnInsert()
-    begin
-        TestField("G/L Register No.");
-    end;
 
     var
 #pragma warning disable AA0074

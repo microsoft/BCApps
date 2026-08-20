@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
 
-codeunit 99001513 "Subc. Req.Line Extension"
+codeunit 20513 "Subc. Req.Line Extension"
 {
 #if not CLEAN29
     var
