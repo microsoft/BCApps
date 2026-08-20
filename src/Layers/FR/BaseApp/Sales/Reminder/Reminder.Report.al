@@ -36,6 +36,8 @@ report 117 Reminder
 #endif
     //DefaultHeaderFooterPart = None;
     //DefaultThemePart = "Default";
+    //DefaultHeaderFooterPart = None;
+    //DefaultThemePart = "Default";
     WordMergeDataItem = "Issued Reminder Header";
 
     dataset

@@ -39,8 +39,8 @@ report 1307 "Standard Sales - Credit Memo"
 {
     Caption = 'Sales - Credit Memo';
     DefaultRenderingLayout = "StandardSalesCreditMemo.docx";
-    //DefaultHeaderFooterPart = "External Default";
     //DefaultThemePart = "Default";
+    //DefaultHeaderFooterPart = "External Default Detailed";
     Permissions = TableData "Sales Shipment Buffer" = rimd;
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
@@ -1126,6 +1126,26 @@ report 1307 "Standard Sales - Credit Memo"
             LayoutFile = './Sales/History/StandardSalesCreditMemoBody.docx';
             Caption = 'Body-only: Standard Sales Credit Memo NA (Word)';
             Summary = 'Portrait orientated. Shows the customer, ship-to, and company address, a header with date, salesperson, applies-to document, and due date, and item lines with quantity, price, and amount. Adds total including VAT and a taxable and exempt tax split.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("StandardSalesCreditMemoBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoBody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo (Word)';
+            Summary = 'Landscape orientated. Shows the customer and company address and a header with document number, reference, salesperson, applies-to document, and due date. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
+        }
+
+        layout("StandardSalesCreditMemoEmailBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo Email (Word)';
+            Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, and total including VAT. Use it as cover text for the email.';
         }
     }
 
