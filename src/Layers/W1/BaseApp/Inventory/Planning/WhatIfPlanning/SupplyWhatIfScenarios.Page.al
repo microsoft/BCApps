@@ -91,9 +91,6 @@ page 5440 "Supply What-If Scenarios"
                 Caption = 'Run What-If Analysis';
                 Image = CalculateRegenerativePlan;
                 ToolTip = 'Run planning calculation with the what-if scenarios to see planning impact.';
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
 
                 trigger OnAction()
                 var
@@ -104,6 +101,17 @@ page 5440 "Supply What-If Scenarios"
                     CurrPage.WhatIfImpacts.Page.UpdateWhatIfImpacts(TempWhatIfImpact);
                     CurrPage.Update();
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(WhatIf_Promoted; WhatIf)
+                {
+                }
             }
         }
     }
