@@ -21,7 +21,6 @@ report 114 "Salesperson - Sales Statistics"
     DefaultRenderingLayout = Excel;
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
-    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
