@@ -13,7 +13,7 @@ tableextension 10805 Contact extends Contact
         field(10806; "SIREN No. FR"; Code[9])
         {
             Caption = 'SIREN No.';
-            DataClassification = CustomerContent;
+            DataClassification = OrganizationIdentifiableInformation;
         }
     }
 }

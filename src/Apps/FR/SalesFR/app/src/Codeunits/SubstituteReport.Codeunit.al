@@ -30,7 +30,11 @@ codeunit 10808 "Substitute Report"
                 NewReportId := Report::"Standard Sales-Credit Memo FR";
             Report::"Standard Sales - Invoice":
                 NewReportId := Report::"Standard Sales - Invoice FR";
+            else
+                exit;
         end;
+
+        SalesFR.LogFeatureUsed();
     end;
 }
 #endif

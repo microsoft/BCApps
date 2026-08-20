@@ -28,13 +28,12 @@ codeunit 10812 "Feature - Sales FR" implements "Feature Data Update"
         DescriptionTxt: Label 'Existing records in FR BaseApp fields will be copied to Sales FR App fields';
 
     procedure IsDataUpdateRequired(): Boolean;
+    var
+        SalesFR: Codeunit "Sales FR";
     begin
+        SalesFR.LogFeatureDiscovered();
         CountRecords();
-        if TempDocumentEntry.IsEmpty() then begin
-            SetUpgradeTag(false);
-            exit(false);
-        end;
-        exit(true);
+        exit(not TempDocumentEntry.IsEmpty());
     end;
 
     procedure ReviewData();
@@ -50,12 +49,14 @@ codeunit 10812 "Feature - Sales FR" implements "Feature Data Update"
     procedure AfterUpdate(FeatureDataUpdateStatus: Record "Feature Data Update Status")
     var
         UpdateFeatureDataUpdateStatus: Record "Feature Data Update Status";
+        SalesFR: Codeunit "Sales FR";
     begin
         UpdateFeatureDataUpdateStatus.SetRange("Feature Key", FeatureDataUpdateStatus."Feature Key");
         UpdateFeatureDataUpdateStatus.SetFilter("Company Name", '<>%1', FeatureDataUpdateStatus."Company Name");
         UpdateFeatureDataUpdateStatus.ModifyAll("Feature Status", FeatureDataUpdateStatus."Feature Status");
 
-        SetUpgradeTag(true);
+        SetUpgradeTag();
+        SalesFR.LogFeatureSetUp();
     end;
 
     procedure UpdateData(FeatureDataUpdateStatus: Record "Feature Data Update Status");
@@ -118,19 +119,19 @@ codeunit 10812 "Feature - Sales FR" implements "Feature Data Update"
         SalesFRHelperProcedures.TransferFields(Database::"Sales Invoice Header", 10801, 10802, false); // 10801 - the existing field "VAT Paid on Debits", 10802 - the new field "VAT Paid on Debits FR";
     end;
 
-    local procedure SetUpgradeTag(DataUpgradeExecuted: Boolean)
+    local procedure SetUpgradeTag()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgTagSalesFR: Codeunit "Upg. Tag Sales FR";
     begin
-        // Set the upgrade tag to indicate that the data update is executed/skipped and the feature is enabled.
-        // This is needed when the feature is enabled by default in a future version, to skip the data upgrade.
+        // Set the upgrade tag only after the data update has actually run, so that the version 31
+        // upgrade does not copy the data a second time. The tag is deliberately not set when the
+        // feature is enabled without a data update, because records created while the feature is
+        // still off must be migrated by the version 31 upgrade.
         if UpgradeTag.HasUpgradeTag(UpgTagSalesFR.GetSalesFRUpgradeTag()) then
             exit;
 
         UpgradeTag.SetUpgradeTag(UpgTagSalesFR.GetSalesFRUpgradeTag());
-        if not DataUpgradeExecuted then
-            UpgradeTag.SetSkippedUpgrade(UpgTagSalesFR.GetSalesFRUpgradeTag(), true);
     end;
 }
 #endif

@@ -13,7 +13,7 @@ enumextension 10800 "Feature - Sales FR" extends "Feature To Update"
     {
         Implementation = "Feature Data Update" = "Feature - Sales FR";
         ObsoleteState = Pending;
-        ObsoleteReason = 'Feature GovTalk will be enabled by default in version 31.0.';
+        ObsoleteReason = 'Feature Sales FR will be enabled by default in version 31.0.';
         ObsoleteTag = '29.0';
     }
 }

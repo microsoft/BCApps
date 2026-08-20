@@ -17,7 +17,30 @@ pageextension 10812 "Contact Card" extends "Contact Card"
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the SIREN No. for the contact.';
+#if not CLEAN29
+                Visible = SalesFRFeatureEnabled;
+#endif
             }
         }
+#if not CLEAN29
+#pragma warning disable AL0432
+        modify("SIREN No.")
+        {
+            Visible = not SalesFRFeatureEnabled;
+        }
+#pragma warning restore AL0432
+#endif
     }
+#if not CLEAN29
+
+    var
+        SalesFRFeatureEnabled: Boolean;
+
+    trigger OnOpenPage()
+    var
+        SalesFR: Codeunit "Sales FR";
+    begin
+        SalesFRFeatureEnabled := SalesFR.IsEnabled();
+    end;
+#endif
 }

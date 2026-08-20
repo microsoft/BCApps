@@ -14,12 +14,12 @@ tableextension 10800 Customer extends Customer
         field(10806; "SIREN No. FR"; Code[9])
         {
             Caption = 'SIREN No.';
-            DataClassification = CustomerContent;
+            DataClassification = OrganizationIdentifiableInformation;
         }
     }
 
     var
-        SirenNoTemplateTxt: Label '%1: %2', Locked = true;
+        SirenNoTemplateTxt: Label '%1: %2', Comment = '%1 = SIREN No. field caption, %2 = SIREN number', Locked = true;
 
     procedure GetSIRENNoWithCaptionFR(): Text
     begin

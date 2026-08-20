@@ -6,6 +6,7 @@
 namespace Microsoft.Sales.SalesFR;
 
 using System.Environment.Configuration;
+using System.Telemetry;
 
 codeunit 10815 "Sales FR"
 {
@@ -17,7 +18,9 @@ codeunit 10815 "Sales FR"
     ObsoleteTag = '29.0';
 
     var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         FeatureKeyIdTok: Label 'SalesFR', Locked = true;
+        FeatureNameTok: Label 'Sales FR', Locked = true;
 
     procedure IsEnabled() Enabled: Boolean
     var
@@ -29,6 +32,21 @@ codeunit 10815 "Sales FR"
     procedure GetFeatureKeyId(): Text
     begin
         exit(FeatureKeyIdTok);
+    end;
+
+    procedure LogFeatureDiscovered()
+    begin
+        FeatureTelemetry.LogUptake('', FeatureNameTok, Enum::"Feature Uptake Status"::Discovered);
+    end;
+
+    procedure LogFeatureSetUp()
+    begin
+        FeatureTelemetry.LogUptake('', FeatureNameTok, Enum::"Feature Uptake Status"::"Set up");
+    end;
+
+    procedure LogFeatureUsed()
+    begin
+        FeatureTelemetry.LogUptake('', FeatureNameTok, Enum::"Feature Uptake Status"::Used);
     end;
 }
 #endif
