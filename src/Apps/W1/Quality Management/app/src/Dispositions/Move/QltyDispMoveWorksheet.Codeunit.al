@@ -30,7 +30,9 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         DocumentTypeWarehouseMovementLbl: Label 'Warehouse Movement';
         NoWhseWkshErr: Label 'There is no Warehouse Worksheet for the specified template, worksheet name, and location. Ensure the correct worksheet is defined on the Quality Management Setup Card and the worksheet exists for location %1.', Comment = '%1=location';
 
+#pragma warning disable AL0920
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+#pragma warning restore AL0920
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         FromLocation: Record Location;

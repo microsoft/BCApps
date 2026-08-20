@@ -12,20 +12,26 @@ codeunit 8012 "Price By Percent" implements "Contract Price Update"
         IncludeServiceCommitmentUpToDate: Date;
         PerformUpdateOnDate: Date;
 
+#pragma warning disable AL0920
     internal procedure SetPriceUpdateParameters(NewPriceUpdateTemplate: Record "Price Update Template"; NewIncludeServiceCommitmentUpToDate: Date; NewPerformUpdateOnDate: Date)
+#pragma warning restore AL0920
     begin
         PriceUpdateTemplate := NewPriceUpdateTemplate;
         IncludeServiceCommitmentUpToDate := NewIncludeServiceCommitmentUpToDate;
         PerformUpdateOnDate := NewPerformUpdateOnDate;
     end;
 
+#pragma warning disable AL0920
     internal procedure ApplyFilterOnServiceCommitments()
+#pragma warning restore AL0920
     begin
         PriceUpdateManagement.TestIncludeServiceCommitmentUpToDate(IncludeServiceCommitmentUpToDate);
         PriceUpdateManagement.GetAndApplyFiltersOnServiceCommitment(ServiceCommitment, PriceUpdateTemplate, IncludeServiceCommitmentUpToDate);
     end;
 
+#pragma warning disable AL0920
     internal procedure CreatePriceUpdateProposal()
+#pragma warning restore AL0920
     begin
         if ServiceCommitment.FindSet() then
             repeat
@@ -46,7 +52,9 @@ codeunit 8012 "Price By Percent" implements "Contract Price Update"
             until ServiceCommitment.Next() = 0;
     end;
 
+#pragma warning disable AL0920
     internal procedure CalculateNewPrice(UpdatePercentValue: Decimal; var NewContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
+#pragma warning restore AL0920
     var
         Currency: Record Currency;
     begin
