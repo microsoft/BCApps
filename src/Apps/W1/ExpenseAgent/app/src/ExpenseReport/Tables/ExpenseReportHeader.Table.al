@@ -852,13 +852,23 @@ table 6906 "Expense Report Header"
     /// </remarks>
     /// <param name="ApproverExpenseUserNo">The expense user number of the approver.</param>
     procedure PerformManualApproved(ApproverExpenseUserNo: Code[20])
+    begin
+        PerformManualApproved(ApproverExpenseUserNo, false);
+    end;
+
+    /// <summary>
+    /// Approves the expense document, optionally skipping policy validation.
+    /// </summary>
+    /// <param name="ApproverExpenseUserNo">The expense user number of the approver.</param>
+    /// <param name="SkipPolicyValidation">Specifies whether approval can proceed with stale or unevaluated policies.</param>
+    procedure PerformManualApproved(ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
         if Rec.Status = Rec.Status::Approved then
             exit;
 
-        ReleaseExpenseReportDoc.PerformManualApproved(Rec, ApproverExpenseUserNo);
+        ReleaseExpenseReportDoc.PerformManualApproved(Rec, ApproverExpenseUserNo, SkipPolicyValidation);
         Commit();
     end;
 

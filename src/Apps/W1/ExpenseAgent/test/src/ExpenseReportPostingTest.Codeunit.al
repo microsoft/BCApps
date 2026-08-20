@@ -3597,23 +3597,21 @@ codeunit 148302 "Expense Report Posting Test"
     end;
 
     [Test]
-    procedure SubmitBlockedWhenPolicyEvaluationStaleAndAiPolicyEnabled()
+    procedure SubmitAllowedWhenPolicyEvaluationStaleAndAiPolicyEnabled()
     var
         ExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
         ExpensePolicyFlag: Record "Expense Policy Flag";
-        ExpenseReportNo: Code[20];
+        CurrentUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
     begin
-        // [SCENARIO] With AI policy evaluation on, releasing and submitting a report whose line went
-        //            stale after it was evaluated is rejected in-transaction with a machine-detectable
-        //            error, so the client can re-evaluate and retry instead of submitting a stale report.
+        // [SCENARIO] Submission can move a report with stale policy evaluation into approval.
         Initialize();
 
         // [GIVEN] AI policy evaluation on and an expense report line with an applicable policy.
         SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
-        ExpenseReportNo := ExpenseReportHeader."No.";
 
         // [GIVEN] The line is evaluated then invalidated so it is now Stale.
         LibraryExpense.CreateExpensePolicyFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Initial evaluation passed.', true);
@@ -3621,41 +3619,83 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportLine.InvalidatePolicyEvaluation();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line must be Stale.');
-
-        // [GIVEN] Save the committed stale state so the rejected submit rolls back only its own
-        //         changes and the report can still be read back afterwards.
-        Commit();
+        CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
 
         // [WHEN] The report is released and marked Pending Approval.
-        asserterror ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
 
-        // [THEN] Submit is rejected with the stable machine-detectable token and the report is not submitted.
-        Assert.ExpectedError('(PolicyEvaluationNotCurrent)');
-        ExpenseReportHeader.Get(ExpenseReportNo);
-        Assert.AreNotEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'A stale report must not reach Pending Approval.');
+        // [THEN] Submission succeeds while the line remains Stale.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'A stale report must reach Pending Approval.');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Submission must not change the stale policy state.');
     end;
 
     [Test]
-    procedure SubmitBlockedWhenApplicablePolicyNotEvaluatedAndAiPolicyEnabled()
+    procedure SubmitAllowedWhenApplicablePolicyNotEvaluatedAndAiPolicyEnabled()
     var
         ExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
+        CurrentUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
     begin
-        // [SCENARIO] With AI policy evaluation on, submitting a report whose line has an applicable
-        //            policy that was never evaluated is rejected in-transaction (a newly added policy
-        //            that landed after the client's snapshot read must not slip through unevaluated).
+        // [SCENARIO] Submission can move a report with an unevaluated applicable policy into approval.
         Initialize();
         SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line must be Not Evaluated.');
+        CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
 
         // [WHEN] The report is released and marked Pending Approval.
-        asserterror ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
 
-        // [THEN] Submit is rejected with the stable machine-detectable token.
+        // [THEN] Submission succeeds while the line remains Not Evaluated.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'An unevaluated report must reach Pending Approval.');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'Submission must not change the unevaluated policy state.');
+    end;
+
+    [Test]
+    procedure ApprovalRequiresExplicitPolicyOverrideWhenPolicyNotEvaluated()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        CurrentUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
+        ApproverExpenseUserNo: Code[20];
+    begin
+        // [SCENARIO] Approval rejects unevaluated policies unless the caller explicitly skips policy validation.
+        Initialize();
+        SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line must be Not Evaluated.');
+        CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ApproverExpenseUserNo := ExpenseReportHeader."Approver Expense User No.";
+        Commit();
+
+        // [WHEN] Approval is attempted without an explicit override.
+        asserterror ExpenseReportHeader.PerformManualApproved(ApproverExpenseUserNo);
+
+        // [THEN] Approval is blocked by the policy currency gate.
         Assert.ExpectedError('(PolicyEvaluationNotCurrent)');
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'A rejected approval attempt must leave the report Pending Approval.');
+
+        // [WHEN] Approval is retried with the explicit override.
+        ExpenseReportHeader.PerformManualApproved(ApproverExpenseUserNo, true);
+
+        // [THEN] Approval succeeds without changing the line's policy state.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(ExpenseReportHeader.Status::Approved, ExpenseReportHeader.Status, 'The explicit policy override must allow approval.');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'Approval must not change the unevaluated policy state.');
     end;
 
     [Test]
@@ -3670,8 +3710,7 @@ codeunit 148302 "Expense Report Posting Test"
         CurrentUserSetup: Record "User Setup";
         FinalApproverUserSetup: Record "User Setup";
     begin
-        // [SCENARIO] The submit-time policy currency gate only applies when AI policy evaluation is on.
-        //            With it off no policy currency is expected, so a stale line must not block submit.
+        // [SCENARIO] Submission remains available when AI policy evaluation is disabled and a line is stale.
         Initialize();
         SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
 

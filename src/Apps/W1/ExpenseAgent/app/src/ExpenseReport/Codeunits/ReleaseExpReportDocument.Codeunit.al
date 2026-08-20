@@ -26,7 +26,7 @@ codeunit 6984 "Release Exp. Report Document"
         ApprovalProcessMustBeCancelledErr: Label 'The approval process must be cancelled or completed to reopen this document.';
         RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
         CannotReleaseDocumentWithNothingToRefundErr: Label 'Cannot release the Expense Report No. %1 because there is nothing to refund for this Line No. %2.', Comment = '%1 - Expense No. , %2 - Line No.';
-        PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and submit again.';
+        PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and approve again.';
         PolicyEvaluationNotCurrentCodeTok: Label ' (PolicyEvaluationNotCurrent)', Locked = true;
 
     local procedure ReleaseExpenseReport()
@@ -175,7 +175,6 @@ codeunit 6984 "Release Exp. Report Document"
         ExpReportHeader.TestField("Expense User No.");
 
         CheckExpenseReportLines(ExpenseReportLine, ExpReportHeader);
-        CheckPoliciesUpToDate(ExpReportHeader);
     end;
 
     local procedure CheckPoliciesUpToDate(ExpReportHeader: Record "Expense Report Header")
@@ -183,12 +182,8 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseReportLine: Record "Expense Report Line";
         PolicyEvaluationNotCurrentMsg: Text;
     begin
-        // Re-check policy currency in the submit transaction. The client decides whether to run
-        // evaluation from a snapshot read of the report's policy state; between that read and this
-        // release+submit a line can go stale (a policy or the line itself changed) or a newly added
-        // policy can leave a line unevaluated. Without this gate such a report would enter approval
-        // without a current evaluation. Only enforced when AI policy evaluation is switched on; when
-        // it is off no policy currency is expected, so submit proceeds as before.
+        // Re-check policy currency in the approval transaction unless the caller explicitly overrides it.
+        // Submission remains available so a report can enter approval while policy evaluation is pending.
         ExpenseAgentSetup.GetRecordOnce();
         if not ExpenseAgentSetup."Evaluate Policies" then
             exit;
@@ -210,15 +205,20 @@ codeunit 6984 "Release Exp. Report Document"
     end;
 
     procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
+    begin
+        PerformManualApproved(ExpReportHeader, ApproverExpenseUserNo, false);
+    end;
+
+    procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
-        CheckApprovedStatus(ExpReportHeader);
+        CheckApprovedStatus(ExpReportHeader, SkipPolicyValidation);
 
         ExpenseReportApprovalMgmt.Approve(ExpReportHeader, ApproverExpenseUserNo);
     end;
 
-    local procedure CheckApprovedStatus(var ExpReportHeader: Record "Expense Report Header")
+    local procedure CheckApprovedStatus(var ExpReportHeader: Record "Expense Report Header"; SkipPolicyValidation: Boolean)
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
@@ -226,6 +226,8 @@ codeunit 6984 "Release Exp. Report Document"
         ExpReportHeader.TestField("Expense User No.");
 
         CheckExpenseReportLines(ExpenseReportLine, ExpReportHeader);
+        if not SkipPolicyValidation then
+            CheckPoliciesUpToDate(ExpReportHeader);
     end;
 
     procedure PerformManualRejected(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
