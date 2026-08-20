@@ -1114,9 +1114,18 @@ table 6907 "Expense Report Line"
     end;
 
     trigger OnModify()
+    var
+        StoredExpenseReportLine: Record "Expense Report Line";
+        RelevantFieldChanged: Boolean;
     begin
         UpdateExpenseUserOnModify();
-        if PolicyRelevantFieldChanged() then
+        RelevantFieldChanged := PolicyRelevantFieldChanged(StoredExpenseReportLine);
+        if not IsNullGuid(StoredExpenseReportLine.SystemId) then begin
+            "Policy Eval Version" := StoredExpenseReportLine."Policy Eval Version";
+            "Evaluated Policy Version" := StoredExpenseReportLine."Evaluated Policy Version";
+            "Policies Evaluated At" := StoredExpenseReportLine."Policies Evaluated At";
+        end;
+        if RelevantFieldChanged then
             "Policy Eval Version" += 1;
     end;
 
@@ -1298,6 +1307,7 @@ table 6907 "Expense Report Line"
 
         Rec."Evaluated Policy Version" := Rec."Policy Eval Version";
         Rec."Policies Evaluated At" := CurrentDateTime();
+        // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
         Rec.Modify(false);
     end;
 
@@ -1307,12 +1317,12 @@ table 6907 "Expense Report Line"
         // first evaluation or while the line is already stale. Evaluators can therefore detect any
         // change that happened after they captured their subject version.
         Rec."Policy Eval Version" += 1;
+        // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
         Rec.Modify(false);
     end;
 
-    local procedure PolicyRelevantFieldChanged(): Boolean
+    local procedure PolicyRelevantFieldChanged(var StoredExpenseReportLine: Record "Expense Report Line"): Boolean
     var
-        StoredExpenseReportLine: Record "Expense Report Line";
         RecRef: RecordRef;
         xRecRef: RecordRef;
         FieldRef: FieldRef;

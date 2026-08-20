@@ -843,6 +843,38 @@ codeunit 148340 "Expense Policy Flag Test"
     end;
 
     [Test]
+    procedure NeutralParentModifyPreservesChildInvalidation()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineParticip: Record "Expense Report Line Particip.";
+        EvaluatedAt: DateTime;
+    begin
+        // [SCENARIO] A stale parent buffer cannot overwrite policy fields that a child trigger updated.
+        Initialize();
+        CreateTestReportLine(ExpenseReportLine);
+        CreateReportLineParticipant(ExpenseReportLineParticip, ExpenseReportLine);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        EvaluatedAt := ExpenseReportLine."Policies Evaluated At";
+
+        // [GIVEN] The held line is current at version 1, then deleting its child advances the stored line to version 2.
+        Assert.AreEqual(1, ExpenseReportLine."Policy Eval Version", 'The participant insert must establish version 1.');
+        ExpenseReportLineParticip.Delete(true);
+
+        // [WHEN] The stale held line modifies a policy-neutral field.
+        ExpenseReportLine."Applied Rule Id" := CreateGuid();
+        ExpenseReportLine.Modify(true);
+
+        // [THEN] The child invalidation and prior evaluation fields are preserved.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(2, ExpenseReportLine."Policy Eval Version", 'A stale parent modify must not overwrite the child-trigger version.');
+        Assert.AreEqual(1, ExpenseReportLine."Evaluated Policy Version", 'A stale parent modify must preserve the evaluated version.');
+        Assert.AreEqual(EvaluatedAt, ExpenseReportLine."Policies Evaluated At", 'A stale parent modify must preserve the evaluation timestamp.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'The line must remain stale after its child is deleted.');
+    end;
+
+    [Test]
     procedure AddingItemizationInvalidatesParent()
     var
         ExpenseReportLine: Record "Expense Report Line";
