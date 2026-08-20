@@ -190,6 +190,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, '', 'Not accepted.');
         Assert.ExpectedError('A refusal reason code is required.');
+        Assert.ExpectedErrorCode('Dialog');
         Clear(EDocument);
         CreateIncomingEDocument(EDocument);
         FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Not accepted.');
@@ -198,6 +199,27 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.ExpectedError('already has a buyer response');
         Assert.ExpectedErrorCode('Dialog');
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'A duplicate refusal must not be sent.');
+    end;
+
+    [Test]
+    procedure RefusalRequiresReasonDescription()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A buyer refusal requires a reason description
+        Initialize();
+
+        // [GIVEN] An incoming French purchase invoice
+        CreateIncomingEDocument(EDocument);
+
+        // [WHEN] The invoice is refused without a reason description
+        asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', '');
+
+        // [THEN] The refusal is rejected
+        Assert.ExpectedError('A refusal reason description is required.');
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -253,20 +275,24 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocumentMessageAPI: Codeunit "E-Document Message API";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
+        ExternalDocumentID: Text[250];
+        ExternalMessageID: Text[250];
         FirstMessageEntryNo: Integer;
         DuplicateMessageEntryNo: Integer;
     begin
         Initialize();
         CreateIncomingEDocument(EDocument);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, 'FR-DOC-001');
+        ExternalDocumentID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExternalDocumentID));
+        ExternalMessageID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExternalMessageID));
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocumentID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
 
         FirstMessageEntryNo := EDocumentMessageAPI.CreateIncomingMessage(
-            EDocument.Service, 'FR-DOC-001', 'FR-MSG-001', "E-Document Message Type"::"FR Invoice Lifecycle",
+            EDocument.Service, ExternalDocumentID, ExternalMessageID, "E-Document Message Type"::"FR Invoice Lifecycle",
             "E-Doc. Response Type"::Refused, CurrentDateTime(), TempBlob);
         DuplicateMessageEntryNo := EDocumentMessageAPI.CreateIncomingMessage(
-            EDocument.Service, 'FR-DOC-001', 'FR-MSG-001', "E-Document Message Type"::"FR Invoice Lifecycle",
+            EDocument.Service, ExternalDocumentID, ExternalMessageID, "E-Document Message Type"::"FR Invoice Lifecycle",
             "E-Doc. Response Type"::Refused, CurrentDateTime(), TempBlob);
 
         Assert.AreNotEqual(0, FirstMessageEntryNo, 'The incoming lifecycle message must be persisted.');
