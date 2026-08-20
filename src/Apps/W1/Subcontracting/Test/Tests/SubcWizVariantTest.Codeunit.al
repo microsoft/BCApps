@@ -986,12 +986,14 @@ codeunit 139996 "Subc. Wiz. Variant Test"
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardInvalidVariant(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        InvalidVariantSelectedLbl: Label 'Invalid variant selected', Locked = true;
     begin
         // [SCENARIO J4] Handle wizard to select invalid variant (should cause error)
         WizardWasOpened := true;
 
         // This handler should cause an error
-        Error('Invalid variant selected');
+        Error(InvalidVariantSelectedLbl);
     end;
 
     [ModalPageHandler]

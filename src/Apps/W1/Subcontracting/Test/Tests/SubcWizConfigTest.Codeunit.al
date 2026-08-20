@@ -678,10 +678,12 @@ codeunit 140000 "Subc. Wiz. Config Test"
 
     [ModalPageHandler]
     procedure HandleProductionDefinitionWizardNotExpected(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        WizardShouldNotHaveOpenedErr: Label 'Wizard should not have opened when both settings are set to Hide';
     begin
         // This handler should not be called for B1 scenario
         WizardWasOpened := true;
-        Error('Wizard should not have opened when both settings are set to Hide');
+        Error(WizardShouldNotHaveOpenedErr);
     end;
 
     [ModalPageHandler]

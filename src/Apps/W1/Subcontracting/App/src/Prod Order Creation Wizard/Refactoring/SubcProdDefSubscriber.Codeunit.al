@@ -28,7 +28,7 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
     /// <summary>
     /// Sets the purchase line for subcontracting context. Must be called before BindSubscription.
     /// </summary>
-    procedure SetSubcontractingPurchaseLine(PurchLine: Record "Purchase Line")
+    internal procedure SetSubcontractingPurchaseLine(PurchLine: Record "Purchase Line")
     begin
         SubcontractingPurchaseLine := PurchLine;
     end;
