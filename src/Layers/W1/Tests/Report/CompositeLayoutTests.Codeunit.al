@@ -504,9 +504,11 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     [Test]
-    [HandlerFunctions('AssignmentDialogInspectOverrideAndCancel')]
+    [HandlerFunctions('AssignmentDialogCaptureAndCancel')]
     [Scope('OnPrem')]
     procedure CompanyOverrideNoticeIsShownOnTheAssignmentDialog()
+    var
+        Notice: Text;
     begin
         // [SCENARIO] When a company sets its own theme and header/footer for a layout, the assignment dialog says so,
         // because the company setting is more specific and keeps applying whatever is chosen for all companies.
@@ -516,14 +518,28 @@ codeunit 134619 "Composite Layout Tests"
         // [GIVEN] A body layout with a tenant-wide setting and a company-scoped override.
         SeedOverriddenLayout();
 
-        // [WHEN] Opening the assignment dialog on that layout. [THEN] Asserted in the handler.
+        // [WHEN] Opening the assignment dialog on that layout.
         OpenAssignmentDialog();
+
+        // [THEN] The notice is shown and names the company and both of the parts it sets.
+        Assert.IsTrue(LibraryVariableStorage.DequeueBoolean(), 'The company override notice should be shown when a company sets its own parts.');
+        Notice := LibraryVariableStorage.DequeueText();
+        Assert.ExpectedMessage(CompanyName(), Notice);
+        Assert.ExpectedMessage('OverrideHF', Notice);
+        Assert.ExpectedMessage('OverrideTheme', Notice);
+
+        // [THEN] The dialog names the layout plainly and stages the tenant-wide part, not the company override.
+        Assert.AreEqual('OverriddenBody', LibraryVariableStorage.DequeueText(), 'The dialog should name the layout without the composite prefix.');
+        Assert.AreEqual('TenantWideHF', LibraryVariableStorage.DequeueText(), 'The dialog should stage the tenant-wide part, not the company override.');
+
+        // [THEN] Nothing else was shown: exactly one dialog and no confirmation on the cancel path.
+        LibraryVariableStorage.AssertEmpty();
 
         RestoreDocumentReportExperience();
     end;
 
     [Test]
-    [HandlerFunctions('AssignmentDialogClearHeaderAndOk,OverrideConfirmYes')]
+    [HandlerFunctions('AssignmentDialogClearHeader,OverrideConfirmHandler')]
     [Scope('OnPrem')]
     procedure ConfirmingTheOverrideWarningSavesTheTenantWideChange()
     var
@@ -538,8 +554,14 @@ codeunit 134619 "Composite Layout Tests"
         // [GIVEN] A body layout with a tenant-wide setting and a company-scoped override.
         BodyKey := SeedOverriddenLayout();
 
-        // [WHEN] Clearing the header/footer and confirming the warning.
+        // [WHEN] Clearing the header/footer and confirming the warning, which closes the dialog.
+        LibraryVariableStorage.Enqueue(false);
+        LibraryVariableStorage.Enqueue(true);
         OpenAssignmentDialog();
+
+        // [THEN] The warning was asked once, and still explains that the company setting keeps applying.
+        Assert.ExpectedMessage('keeps applying there', LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] The tenant-wide row is gone.
         Assert.IsFalse(
@@ -556,7 +578,7 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     [Test]
-    [HandlerFunctions('AssignmentDialogClearHeaderOkThenCancel,OverrideConfirmNo')]
+    [HandlerFunctions('AssignmentDialogClearHeader,OverrideConfirmHandler')]
     [Scope('OnPrem')]
     procedure DecliningTheOverrideWarningLeavesTheTenantWideSettingUnchanged()
     var
@@ -570,8 +592,14 @@ codeunit 134619 "Composite Layout Tests"
         // [GIVEN] A body layout with a tenant-wide setting and a company-scoped override.
         BodyKey := SeedOverriddenLayout();
 
-        // [WHEN] Clearing the header/footer and declining the warning.
+        // [WHEN] Clearing the header/footer and declining the warning, which refuses the close.
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(false);
         OpenAssignmentDialog();
+
+        // [THEN] The warning was asked once, and still explains that the company setting keeps applying.
+        Assert.ExpectedMessage('keeps applying there', LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] The tenant-wide row still carries the part it started with.
         Assert.IsTrue(
@@ -602,52 +630,36 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     [ModalPageHandler]
-    procedure AssignmentDialogInspectOverrideAndCancel(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
-    var
-        Notice: Text;
+    procedure AssignmentDialogCaptureAndCancel(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
     begin
-        Assert.IsTrue(HeaderFooterThemeAssignment.CompanyOverrideDisplay.Visible(), 'The company override notice should be shown when a company sets its own parts.');
-
-        Notice := HeaderFooterThemeAssignment.CompanyOverrideDisplay.Value();
-        Assert.ExpectedMessage(CompanyName(), Notice);
-        Assert.ExpectedMessage('OverrideHF', Notice);
-        Assert.ExpectedMessage('OverrideTheme', Notice);
-
-        Assert.AreEqual('OverriddenBody', HeaderFooterThemeAssignment.LayoutNameDisplay.Value(), 'The dialog should name the layout without the composite prefix.');
-        Assert.AreEqual('TenantWideHF', HeaderFooterThemeAssignment.HeaderPartDisplay.Value(), 'The dialog should stage the tenant-wide part, not the company override.');
-
+        // Capture what the dialog shows and let the test assert on it, so the queue also proves the dialog opened once.
+        LibraryVariableStorage.Enqueue(HeaderFooterThemeAssignment.CompanyOverrideDisplay.Visible());
+        LibraryVariableStorage.Enqueue(HeaderFooterThemeAssignment.CompanyOverrideDisplay.Value());
+        LibraryVariableStorage.Enqueue(HeaderFooterThemeAssignment.LayoutNameDisplay.Value());
+        LibraryVariableStorage.Enqueue(HeaderFooterThemeAssignment.HeaderPartDisplay.Value());
         HeaderFooterThemeAssignment.Cancel().Invoke();
     end;
 
     [ModalPageHandler]
-    procedure AssignmentDialogClearHeaderAndOk(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
+    procedure AssignmentDialogClearHeader(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
+    var
+        CloseIsRefused: Boolean;
     begin
+        CloseIsRefused := LibraryVariableStorage.DequeueBoolean();
+
         HeaderFooterThemeAssignment.HeaderPartDisplay.SetValue('');
         HeaderFooterThemeAssignment.OK().Invoke();
-    end;
-
-    [ModalPageHandler]
-    procedure AssignmentDialogClearHeaderOkThenCancel(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
-    begin
-        HeaderFooterThemeAssignment.HeaderPartDisplay.SetValue('');
 
         // Declining the warning refuses the close, so the dialog is still open and has to be dismissed.
-        HeaderFooterThemeAssignment.OK().Invoke();
-        HeaderFooterThemeAssignment.Cancel().Invoke();
+        if CloseIsRefused then
+            HeaderFooterThemeAssignment.Cancel().Invoke();
     end;
 
     [ConfirmHandler]
-    procedure OverrideConfirmYes(Question: Text[1024]; var Reply: Boolean)
+    procedure OverrideConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
-        Assert.ExpectedMessage('keeps applying there', Question);
-        Reply := true;
-    end;
-
-    [ConfirmHandler]
-    procedure OverrideConfirmNo(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Assert.ExpectedMessage('keeps applying there', Question);
-        Reply := false;
+        Reply := LibraryVariableStorage.DequeueBoolean();
+        LibraryVariableStorage.Enqueue(Question);
     end;
 
     [MessageHandler]
