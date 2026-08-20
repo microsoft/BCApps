@@ -5,12 +5,8 @@
 namespace Microsoft.Upgrade;
 
 using Microsoft.Foundation.Reporting;
+using System.Upgrade;
 
-/// <summary>
-/// Re-seeds the Composite Layout header/footer and theme parts that ship with the Base Application on every
-/// upgrade, so newly shipped parts appear and changed layout files take effect, and assigns the shipped designs to
-/// the body layouts that have none.
-/// </summary>
 codeunit 104064 "Upgrade Composite Report Parts"
 {
     Subtype = Upgrade;
@@ -21,8 +17,15 @@ codeunit 104064 "Upgrade Composite Report Parts"
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            exit;
+
         CompositeReportPartsMgt.SeedDefaultParts();
         CompositeLayoutAssignMgt.AssignDefaultParts();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
     end;
 }
