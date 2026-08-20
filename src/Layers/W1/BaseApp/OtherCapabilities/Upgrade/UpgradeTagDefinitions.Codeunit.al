@@ -1287,10 +1287,6 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
     end;
 
-    // Seeds the shipped Composite Layout theme and header/footer parts and assigns them to the body layouts that have
-    // none. Re-seeding replaces a part whose layout file changed, so shipping a new or updated part means adding a new
-    // dated tag here and registering it below - that is what makes the pass run once more on an already-upgraded
-    // database.
     internal procedure GetCompositeReportPartsUpgradeTag(): Code[250]
     begin
         exit('MS-643211-CompositeReportPartsUpgradeTag-20260820');
