@@ -158,7 +158,7 @@ table 6939 "Mileage Rate Setup"
         Rec.Reset();
         Rec.SetCurrentKey("Vehicle Type", "Currency Code", "Starting Date");
         Rec.SetRange("Vehicle Type", VehicleType);
-        Rec.SetRange("Currency Code", CurrencyCode);
+        Rec.SetFilter("Currency Code", '%1|%2', CurrencyCode, '');
         Rec.SetFilter("Starting Date", '<=%1', TransactionDate);
         Rec.SetFilter("Ending Date", '%1|>=%2', 0D, TransactionDate);
         exit(Rec.FindLast());
