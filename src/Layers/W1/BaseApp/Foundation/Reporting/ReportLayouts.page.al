@@ -677,9 +677,7 @@ page 9660 "Report Layouts"
         DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
         if DocumentReportExperienceEnabled and (not CurrPage.LookupMode) and (ImpliedSubtype = Enum::"Report Layout Subtype"::Default) then begin
             Rec.FilterGroup(2);
-            // Hide the reusable theme and header/footer parts, which are managed on their own setup page. Stated as
-            // "not one of the part subtypes" rather than "only Default", so body layouts stay listed here.
-            Rec.SetFilter("Layout Subtype", '<>%1&<>%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
+            Rec.SetRange("Layout Subtype", Rec."Layout Subtype"::Default);
             Rec.FilterGroup(0);
         end;
     end;
