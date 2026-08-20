@@ -424,7 +424,7 @@ table 6916 "Posted Expense Report Line"
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
-        field(92; Canceled; Boolean)
+        field(93; Canceled; Boolean)
         {
             Caption = 'Canceled';
             Editable = false;
