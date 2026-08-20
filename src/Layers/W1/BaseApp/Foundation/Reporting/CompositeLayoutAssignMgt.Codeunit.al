@@ -110,7 +110,8 @@ codeunit 9668 "Composite Layout Assign. Mgt."
             exit(false);
         end;
         if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter, Composite) then begin
-            this.LogUnresolvedPart(PartName, Enum::"Report Layout Subtype"::HeaderFooter);
+            // Only this one layout goes without a header/footer; the rest of the pass still runs.
+            this.LogUnresolvedPart(PartName, Enum::"Report Layout Subtype"::HeaderFooter, Verbosity::Warning);
             exit(false);
         end;
 
@@ -128,7 +129,7 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         Composite: Text;
     begin
         if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::Theme, Composite) then begin
-            this.LogUnresolvedPart(PartName, Enum::"Report Layout Subtype"::Theme);
+            this.LogUnresolvedPart(PartName, Enum::"Report Layout Subtype"::Theme, Verbosity::Error);
             exit(0);
         end;
 
@@ -149,11 +150,6 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         until ReportLayoutList.Next() = 0;
     end;
 
-    /// <summary>
-    /// Writes one part onto a layout's Tenant Report Layout Cfg row for all companies, filling the column that carries
-    /// parts of that subtype. Leaves an already configured column alone, so nothing overwrites an existing assignment.
-    /// </summary>
-    /// <returns>True when the row was written.</returns>
     local procedure WriteLayoutPart(ReportID: Integer; LayoutName: Text; Composite: Text; Subtype: Enum "Report Layout Subtype"): Boolean
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
@@ -249,14 +245,14 @@ codeunit 9668 "Composite Layout Assign. Mgt."
             TelemetryScope::All, TelemetryDimensions);
     end;
 
-    local procedure LogUnresolvedPart(PartName: Text; Subtype: Enum "Report Layout Subtype")
+    local procedure LogUnresolvedPart(PartName: Text; Subtype: Enum "Report Layout Subtype"; PartVerbosity: Verbosity)
     var
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
         TelemetryDimensions.Add('PartName', PartName);
         TelemetryDimensions.Add('LayoutSubtype', Format(Subtype, 0, 9));
         Session.LogMessage(
-            '0000V41', this.UnresolvedPartTxt, Verbosity::Error, DataClassification::SystemMetadata,
+            '0000V41', this.UnresolvedPartTxt, PartVerbosity, DataClassification::SystemMetadata,
             TelemetryScope::All, TelemetryDimensions);
     end;
 
