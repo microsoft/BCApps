@@ -823,8 +823,8 @@ codeunit 6987 "Expense Report-Post"
 
         // Amounts come directly from the spec row in reimbursement currency and LCY.
         GenJournalLine."Gen. Posting Type" := GenJournalLine."Gen. Posting Type"::Purchase;
-        GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount (RCY)";
-        GenJournalLine."Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)";
+        GenJournalLine.Amount := ExpenseReportLineVATSpec."VAT Base Amount (RCY)" + ExpenseReportLineVATSpec."VAT Amount (RCY)";
+        GenJournalLine."Amount (LCY)" := ExpenseReportLineVATSpec."VAT Base Amount (LCY)" + ExpenseReportLineVATSpec."VAT Amount (LCY)";
         GenJournalLine."Source Currency Amount" := GenJournalLine.Amount;
 
         if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Approved" then begin
