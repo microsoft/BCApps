@@ -910,7 +910,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetProdOrderStatus(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
+    local procedure OnBeforeSetProdOrderStatus(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderChoice: Enum Microsoft.Manufacturing.Document."Planning Create Prod. Order"; var IsHandled: Boolean)
     begin
     end;
 
