@@ -152,8 +152,11 @@ page 7100 "Contact Sync"
 
                                 trigger OnDrillDown()
                                 begin
-                                    if Confirm(ClearLastSyncConfirmMsg) then
+                                    if Confirm(ClearLastSyncConfirmMsg) then begin
                                         ClearSyncRecordsForCurrentUser();
+                                        Message(LastSyncClearedMsg);
+                                        GoToStep(Step::Welcome);
+                                    end;
                                 end;
                             }
                         }
@@ -688,6 +691,7 @@ page 7100 "Contact Sync"
         SyncDirection: Enum "ContactSyncDirection";
         ClearLastSyncConfirmMsg: Label 'This will delete the internal log of your last synchronization, but will not modify any contacts you have synchronized to date. Do you want to proceed?';
         ClearSyncDetailsLbl: Label 'Clear last sync details';
+        LastSyncClearedMsg: Label 'Last sync details cleared navigating to step1';
         ContactsSentToM365Count: Integer;
         ContactsSentToBCCount: Integer;
         ContactsFailedCount: Integer;
