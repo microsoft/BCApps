@@ -167,19 +167,21 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     local procedure UpgradeMigratePostedExpRepLineCanceled()
     var
         PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if UpgradeTag.HasUpgradeTag(GetMigratePostedExpRepLineCanceledTag()) then
             exit;
-
-#pragma warning disable AL0432
-        PostedExpenseReportLine.SetLoadFields(Canceled, "Is Canceled");
+        PostedExpenseReportHeader.SetLoadFields(Canceled);
+        PostedExpenseReportLine.SetLoadFields("Document No.", "Is Canceled");#pragma warning disable AL0432
         PostedExpenseReportLine.SetRange(Canceled, true);
 #pragma warning restore AL0432
         if PostedExpenseReportLine.FindSet() then
             repeat
-                PostedExpenseReportLine."Is Canceled" := true;
-                PostedExpenseReportLine.Modify();
+                if PostedExpenseReportHeader.Get(PostedExpenseReportLine."Document No.") and PostedExpenseReportHeader.Canceled then begin
+                    PostedExpenseReportLine."Is Canceled" := true;
+                    PostedExpenseReportLine.Modify();
+                end;
             until PostedExpenseReportLine.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetMigratePostedExpRepLineCanceledTag());
