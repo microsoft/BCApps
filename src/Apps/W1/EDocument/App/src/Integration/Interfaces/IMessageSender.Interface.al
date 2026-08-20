@@ -18,6 +18,9 @@ interface IMessageSender
     /// <param name="EDocument">The parent E-Document.</param>
     /// <param name="EDocumentService">The service used to send the message.</param>
     /// <param name="MessageContext">The message payload, transport state, and result. The implementation must set the result to Sent after successful transmission.</param>
-    /// <remarks>The implementation is responsible for obtaining any privacy consent required by the external service before transmitting data.</remarks>
+    /// <remarks>
+    /// The implementation is responsible for obtaining any privacy consent required by the external service before transmitting data.
+    /// Implementations must use MessageContext.GetMessageEntryNo() as an idempotency key because a message can be retried after an ambiguous transport failure.
+    /// </remarks>
     procedure SendMessage(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context");
 }
