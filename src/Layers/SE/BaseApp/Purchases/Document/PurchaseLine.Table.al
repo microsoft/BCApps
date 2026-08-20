@@ -10314,7 +10314,7 @@ table 39 "Purchase Line"
         PurchLine.SetFilter("Line No.", '<>%1', "Line No.");
         PurchLine.SetRange("VAT Identifier", "VAT Identifier");
         PurchLine.SetFilter("Non-Deductible VAT %", '<>%1', "Non-Deductible VAT %");
-        if PurchLine.FindFirst() then
+        if not PurchLine.IsEmpty() then
             Error(DifferentNonDedVATRatesSameVATIdentifierErr, "VAT Bus. Posting Group", "VAT Prod. Posting Group");
     end;
 
