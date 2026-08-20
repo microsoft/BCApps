@@ -10,6 +10,9 @@ using System.Reflection;
 /// <summary>
 /// Administrative list over the platform Tenant Report Layout Cfg table, used to configure default header/footer and theme parts that apply to body layouts during the Composite Layout Merge.
 /// </summary>
+/// <remarks>
+/// Report ID 0 acts as a global wildcard. Empty Layout Name applies to all layouts for the given Report ID. Empty Company Name applies to all companies. The platform validates on insert and modify that any Header Part Name resolves to a Header/Footer-subtype layout and any Theme Part Name resolves to a Theme-subtype layout.
+/// </remarks>
 page 9663 "Tenant Report Layout Cfg"
 {
     ApplicationArea = Basic, Suite;
@@ -93,6 +96,8 @@ page 9663 "Tenant Report Layout Cfg"
 
     trigger OnAfterGetRecord()
     begin
+        // The Header/Theme Part Name columns store the composite reference (<guid>::<name>); decode to the
+        // plain layout name for display so the list shows names instead of the raw GUID-prefixed value.
         HeaderPartDisplay := LookupHelper.DecodeLayoutName(Rec."Header Part Name");
         ThemePartDisplay := LookupHelper.DecodeLayoutName(Rec."Theme Part Name");
     end;
