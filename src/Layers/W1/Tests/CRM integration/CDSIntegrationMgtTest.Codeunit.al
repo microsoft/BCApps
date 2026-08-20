@@ -13,6 +13,7 @@ codeunit 139195 "CDS Integration Mgt Test"
         LibraryCRMIntegration: Codeunit "Library - CRM Integration";
         LibraryMockCRMConnection: Codeunit "Library - Mock CRM Connection";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryUtility: Codeunit "Library - Utility";
         CDSIntegrationMgt: Codeunit "CDS Integration Mgt.";
         CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
         IsInitialized: Boolean;
@@ -1400,6 +1401,152 @@ codeunit 139195 "CDS Integration Mgt Test"
         CRMTeam.DeleteAll();
         CRMBusinessUnit.DeleteAll();
         CDSCompany.DeleteAll();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure CleanCDSIntegrationRemovesCRMIntegrationRecordsForCurrentCompany()
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        CDSConnectionSetup: Record "CDS Connection Setup";
+    begin
+        // [FEATURE] [Environment Cleanup]
+        // [SCENARIO 646451] CleanCDSIntegration removes CRM Integration Records and connection setup for the current company
+        Initialize();
+
+        // [GIVEN] A CDS Connection Setup and several CRM Integration Records in the current company
+        InitializeSetup(false);
+        SeedCRMIntegrationRecords(5);
+        Assert.AreEqual(5, CRMIntegrationRecord.Count(), 'CRM Integration Records were not seeded.');
+
+        // [WHEN] Cleaning the CDS integration for the current company
+        CDSIntegrationImpl.CleanCDSIntegration(CompanyName());
+
+        // [THEN] All CRM Integration Records and the connection setup are removed
+        Assert.AreEqual(0, CRMIntegrationRecord.Count(), 'CRM Integration Records were not removed.');
+        Assert.IsTrue(CDSConnectionSetup.IsEmpty(), 'CDS Connection Setup was not removed.');
+    end;
+
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure CleanCDSIntegrationCleansCompanySelectedViaChangeCompany()
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        NewCompanyName: Text[30];
+        SeededOtherCompanyCount: Integer;
+        RemainingOtherCompanyCount: Integer;
+        RemainingCurrentCompanyCount: Integer;
+    begin
+        // [FEATURE] [Environment Cleanup]
+        // [SCENARIO 646451] CleanCDSIntegration cleans a company selected via ChangeCompany without touching the current company
+        Initialize();
+
+        // [GIVEN] A CRM Integration Record in the current company and records in another company
+        SeedCRMIntegrationRecords(1);
+        NewCompanyName := CreateNewCompany();
+        SeedCRMIntegrationRecordsInCompany(NewCompanyName, 4);
+        SeededOtherCompanyCount := CountCRMIntegrationRecordsInCompany(NewCompanyName);
+
+        // [WHEN] Cleaning the CDS integration for the other company
+        CDSIntegrationImpl.CleanCDSIntegration(NewCompanyName);
+        Commit();
+
+        // [THEN] The other company is emptied while the current company is preserved
+        RemainingOtherCompanyCount := CountCRMIntegrationRecordsInCompany(NewCompanyName);
+        CRMIntegrationRecord.Reset();
+        RemainingCurrentCompanyCount := CRMIntegrationRecord.Count();
+
+        // Remove the seeded data and the temporary company before asserting so nothing leaks on failure
+        CRMIntegrationRecord.DeleteAll();
+        RemoveCompany(NewCompanyName);
+
+        Assert.AreEqual(4, SeededOtherCompanyCount, 'CRM Integration Records were not seeded in the selected company.');
+        Assert.AreEqual(0, RemainingOtherCompanyCount, 'CRM Integration Records in the selected company were not removed.');
+        Assert.AreEqual(1, RemainingCurrentCompanyCount, 'CRM Integration Records in the current company should be preserved.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    procedure CleanCDSIntegrationFallsBackToDeleteAllWhenTruncateUnsupported()
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        CDSCleanupTestSubscribers: Codeunit "CDS Cleanup Test Subscribers";
+    begin
+        // [FEATURE] [Environment Cleanup]
+        // [SCENARIO 646451] When Truncate is unsupported the cleanup falls back to DeleteAll and still removes all records
+        Initialize();
+
+        // [GIVEN] Several CRM Integration Records and a delete-event subscriber that makes Truncate unsupported
+        SeedCRMIntegrationRecords(5);
+        BindSubscription(CDSCleanupTestSubscribers);
+
+        // [WHEN] Cleaning the CDS integration for the current company
+        CDSIntegrationImpl.CleanCDSIntegration(CompanyName());
+        UnbindSubscription(CDSCleanupTestSubscribers);
+
+        // [THEN] All CRM Integration Records are removed through the DeleteAll fallback
+        Assert.AreEqual(0, CRMIntegrationRecord.Count(), 'CRM Integration Records were not removed by the DeleteAll fallback.');
+    end;
+
+    local procedure SeedCRMIntegrationRecords(NumberOfRecords: Integer)
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        Index: Integer;
+    begin
+        for Index := 1 to NumberOfRecords do begin
+            CRMIntegrationRecord.Init();
+            CRMIntegrationRecord."CRM ID" := CreateGuid();
+            CRMIntegrationRecord."Integration ID" := CreateGuid();
+            CRMIntegrationRecord."Table ID" := Database::Customer;
+            CRMIntegrationRecord.Insert();
+        end;
+    end;
+
+    local procedure SeedCRMIntegrationRecordsInCompany(NewCompanyName: Text[30]; NumberOfRecords: Integer)
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        Index: Integer;
+    begin
+        CRMIntegrationRecord.ChangeCompany(NewCompanyName);
+        for Index := 1 to NumberOfRecords do begin
+            CRMIntegrationRecord.Init();
+            CRMIntegrationRecord."CRM ID" := CreateGuid();
+            CRMIntegrationRecord."Integration ID" := CreateGuid();
+            CRMIntegrationRecord."Table ID" := Database::Customer;
+            CRMIntegrationRecord.Insert();
+        end;
+    end;
+
+    local procedure CountCRMIntegrationRecordsInCompany(NewCompanyName: Text[30]): Integer
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+    begin
+        CRMIntegrationRecord.ChangeCompany(NewCompanyName);
+        exit(CRMIntegrationRecord.Count());
+    end;
+
+    local procedure CreateNewCompany() NewCompanyName: Text[30]
+    var
+        Company: Record Company;
+    begin
+        NewCompanyName := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Company.Name)), 1, MaxStrLen(Company.Name));
+        Company.LockTable(true);
+        Company.Name := NewCompanyName;
+        Company.Insert(true);
+        Commit();
+    end;
+
+    local procedure RemoveCompany(NewCompanyName: Text[30])
+    var
+        Company: Record Company;
+    begin
+        if Company.Get(NewCompanyName) then
+            Company.Delete(true);
+        Commit();
     end;
 
     [MessageHandler]
