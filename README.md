@@ -1,98 +1,79 @@
-# Migrate existing Word report layouts to the composite document report structure
+# BCApps — the home of Business Central application development
 
-Splits the existing Word report layouts into **body-only layouts** that carry no header or footer of their own, and ships a set of **reusable header/footer designs and themes** that the platform merges onto them at render time. The old Word layouts stay in place and keep working; they are marked obsolete-pending so they can be removed in a later release.
+**BCApps is the single, open collaboration hub for everything _Business Central application platform_ development.**
 
-168 files: 76 added, 92 modified.
+This is where Microsoft engineers, partners, and the wider community build the Business Central application — together, in the open. The Microsoft product team and external contributors work side-by-side in this one repository, on the same code, with the same pipelines and the same tooling.
 
-## What the PR does
+The source code in this repository is available to everyone under the standard [MIT license](https://github.com/microsoft/BCApps/blob/main/LICENSE).
 
-**1. A body-only Word layout per report.** Every migrated report gets a new `…Body.docx` layout declared with `Subtype = Body`, so the platform recognises it as the body of a composite document. **100 body layouts** across 46 reports and report extensions.
+✨ **BCApps runs on [AL-Go for GitHub](https://github.com/microsoft/AL-Go)** — the same build, test, and release automation is available to everyone. ✨
 
-**2. The old Word layouts are marked obsolete-pending.** 149 layouts get `ObsoleteState = Pending` with `ObsoleteTag = '30.0'` and a reason pointing at the corresponding body layout. No layout is removed, and no `DefaultRenderingLayout` is changed, so existing tenants keep rendering exactly what they render today.
+## One repository for Business Central
 
-**3. Reusable header/footer designs and themes ship as app resources** under `src/Layers/W1/BaseApp/.resources/ReportParts/`:
+BCApps is now _the_ repository for Business Central application development, consolidating code that used to live in several separate repositories into a single place. It is the single home for:
 
-- 12 header/footer designs — External Default, External Default Detailed, External Minimalistic, External Minimalistic Detailed, External Minimalist Detailed, External Modern, External Modern Logo, Internal Default, Internal Minimalistic, Internal Minimalistic Centered, Internal Modern, Internal Modern Maxi
-- 3 themes — Default, Calm, Playful
+- the **System Application**,
+- the **Business Foundation**,
+- the **Base Application**,
+- Microsoft's **first-party apps** (such as E-Documents, Shopify connector, Subscription Billing, Power BI reports, and many more), and
+- the **developer tools** — Test Framework, Performance Toolkit, AI Test Toolkit, and others.
 
-They are read with `NavApp.GetResource`, so the binaries stay out of the AL source. Each design binds the report caption and the company metadata through `#BC:InsertDataItem` content controls.
+One repo. One workflow. One issues list. One place to collaborate — for Microsoft, for partners, and increasingly for AI agents working alongside them.
 
-**4. Three new codeunits in the Base Application:**
+> **Why this matters:** GitHub becomes Business Central's business application collaboration platform. It levels the playing field — the same code, pipelines, and tooling Microsoft uses to build the product are available to every partner and community contributor.
 
-| Object | Purpose |
+## Repository structure
+
+All source lives under `src`, organized by application area. Anything that ships in multiple localizations is split by country/region: a `W1` ("worldwide") base plus per-market folders such as `DE`, `US`, or `GB`.
+
+| Path | What's inside |
 |---|---|
-| Codeunit 9667 `Composite Report Parts Mgt.` | Seeds the shipped designs and themes into the shared pool (the platform's Tenant Report Defaults report, 2000000001) as approved, global parts. Re-runnable: a missing part is inserted, an existing one refreshed from the shipped file. |
-| Codeunit 9668 `Composite Layout Assign. Mgt.` | Assigns a header/footer design to each body layout and the theme to every body layout, as layout-level `Tenant Report Layout Cfg` rows for all companies. Never overwrites an assignment that is already set. |
-| Codeunit 104064 `Upgrade Composite Report Parts` | Re-seeds the parts on every upgrade so new parts appear and changed layout files take effect. |
+| `src/System Application` | The System Application and its modules — the foundational platform layer. |
+| `src/Business Foundation` | Foundational business logic shared across the application. |
+| `src/Layers` | The **Base Application** and Application layers, built per country/region (`W1` plus localizations). |
+| `src/Apps` | Microsoft's first-party apps, split into `W1` and country/region variants. |
+| `src/GDL` | Additional country/region-specific application content. |
+| `src/Tools` | Developer tools — Test Framework, Performance Toolkit, AI Test Toolkit, Red Team Scan. |
+| `src/DemoTool` | The tool that generates Business Central demonstration data. |
+| `src/DisabledTests` | Test apps that are temporarily disabled. |
+| `src/rulesets` | Code-analysis rulesets used when building the apps. |
+| `build` | Build orchestration. `build/projects` defines the AL-Go projects and `build/scripts` the supporting automation; `build.ps1` builds the repo locally. |
+| `tools` | Repository-level agent tooling and developer plugins, including the [Copilot PR review](tools/Code%20Review/README.md) integration. |
+| `docs` | Repository and feature documentation. |
 
-**5. Install and upgrade seed only — they do not assign.** The platform validates every `Tenant Report Layout Cfg` row against the layout it names, and an error inside an install or upgrade trigger rolls back the whole publish. Seeding is therefore the only thing that runs automatically; the assignment is an explicit administrator action on the setup page.
+## Contributing
 
-**6. Changes to existing reporting objects:**
+We welcome contributions across the Business Central application platform — the System Application, Business Foundation, the Base Application, the first-party apps, and the developer tools.
 
-- **Page 9666 Report themes and header-footer setup** — new Publisher column (Microsoft for shipped parts, the publishing extension for parts from another app, Tenant-defined for uploaded ones), a new action *Assign default designs to report layouts* that runs the shipped assignment on demand, and a related action *Reports using this part* that opens the configuration list filtered on the selected part.
-- **Page 9660 Report Layouts** — the subtype filter went from "only Default" to "not one of the part subtypes", so body layouts are listed instead of being hidden. The filter sits in `FilterGroup(2)` and could not be cleared from the UI.
-- **Page 9667 Assign Theme and Header/Footer** — reads and writes the configuration row on the body layout's `<AppId>::<LayoutName>` reference.
-- **Codeunit 9665 Composite Layout Lookup Helper** — resolves that reference, and filters the configuration table on the column that carries a part so a part's usage can be listed.
+Want to get involved? Start with our **[Contribution Guidelines](CONTRIBUTING.md)**. To build and validate your changes locally, see the **[Local Development Environment guidelines](LOCAL_DEV_ENV.md)**.
 
-## Localizations changed
+Every contribution needs an **approved GitHub issue** before a Pull Request is opened — this saves you from writing code that can't be accepted. The full process is described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Localization layers declare their own versions of the sales documents and the reminder, so each one needs its own body layout. All of them follow the same pattern as W1: new `…Body.docx` layout with `Subtype = Body`, old Word layout marked obsolete-pending.
+**⚠IMPORTANT⚠:** This is **not** the right place to report product defects with customer impact to Microsoft! Issues created in this repository might not get picked up by the Microsoft engineering team and do not fall under SLAs (Service Level Agreements); they have no guaranteed time to mitigation, and provided fixes won't get backported to all supported versions of the product. For customer-impacting defects, follow ["Technical Support for Dynamics 365 Business Central"](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/technical-support).
 
-| Layer | Reports | New body layouts | Layouts marked obsolete |
-|---|---|---|---|
-| W1 | 36 | 44 | 57 |
-| NA | 8 | 13 | 28 |
-| ES | 6 | 12 | 20 |
-| FR | 4 | 8 | 13 |
-| NO | 3 | 6 | 10 |
-| APAC | 2 | 2 | 2 |
-| DACH | 1 | 1 | 1 |
-| FI | 1 | 1 | 1 |
-| GB | 1 | 1 | 1 |
-| RU | 1 | 1 | 1 |
+## Building Business Central with agents
 
-Per layer, the reports touched:
+Now that the collaboration platform is in place, we're reimagining _how_ the application is built. AI agents are starting to assist at every stage of the engineering process — they assist developers, they don't replace them:
 
-- **NA** — Standard Sales Invoice, Credit Memo, Quote, Draft Invoice, Order Confirmation, Standard Statement, Standard Purchase Order, Reminder
-- **ES** — Standard Sales Invoice, Credit Memo, Quote, Draft Invoice, Order Confirmation, Reminder
-- **FR** — Standard Sales Invoice, Credit Memo, Draft Invoice, Reminder
-- **NO** — Standard Sales Invoice, Quote, Reminder
-- **APAC** — Salesperson Sales Statistics, Reminder
-- **DACH, FI, GB** — Reminder
-- **RU** — Customer Order Summary
+- **Code Review agent** — a "Copilot for PRs" already running in the BCApps CI pipeline. It inspects pull requests, posts review comments, and runs quality checks against shared best practices. See [`tools/Code Review`](tools/Code%20Review/README.md).
+- **[BCQuality](https://github.com/microsoft/BCQuality)** — an open, agent-consumable knowledge base of Business Central best practices, patterns, and guidelines. It is layered (Microsoft / Community / Custom) so partners can extend and override the rules the agents follow. The BCApps Copilot reviewer consumes it through the integration under [`tools/Code Review`](tools/Code%20Review/README.md).
 
-`DefaultRenderingLayout` is unchanged in every layer, RU included.
+The direction is for this agent framework to ship as part of AL-Go for GitHub, so every partner's pipeline can opt into agents — configured through BCQuality — without complex setup.
 
-## Apps outside the layers
+## Business Central
 
-Four W1 apps declare report extensions or reports with their own Word layouts, and are migrated the same way.
+![image](https://user-images.githubusercontent.com/19796701/178490212-f14a11e4-8b06-437d-8444-ea28156f70c7.png)
 
-| App | Object | New body layouts | Obsoleted |
-|---|---|---|---|
-| E-Document | `PostedSalesInvoiceWithQR.ReportExt` | 1 | 1 |
-| E-Document | `PostedSalesCrdMemoWithQR.ReportExt` | 1 | 1 |
-| E-Document | `EDocSamplePurchaseInvoice.Report` | 1 | 3 |
-| Payment Practices | `PaymentPractice.Report` | 3 | 3 |
-| Subscription Billing | `ContractStandardSalesInv.ReportExt` | 1 | 1 |
-| Subscription Billing | `ContractSalesOrderConf.ReportExt` | 1 | 1 |
-| Subscription Billing | `ContractStandardSalesQuote.ReportExt` | 1 | 1 |
-| Sustainability | `SustStandardSalesInvoice.ReportExt` | 1 | 2 |
-| Sustainability | `SustStandardSalesQuote.ReportExt` | 1 | 2 |
+[Business Central](https://learn.microsoft.com/dynamics365/business-central/) is a business management solution for small and mid-sized organizations that automates and streamlines business processes and helps you manage your business. Highly adaptable and rich with features, Business Central enables companies to manage their business — including finance, manufacturing, sales, shipping, project management, services, and more. Companies can easily add functionality that is relevant to their region of operation and customized to support even highly specialized industries. Business Central is fast to implement, easy to configure, and simplicity guides innovations in product design, development, implementation, and usability.
 
-The body layout files live with their own app, not in the Base Application.
+## More resources
 
-## Temporary code, marked for removal
+- **Getting help & support** — see [SUPPORT.md](SUPPORT.md) for where to ask questions and how issues are handled.
+- **Reporting security issues** — please follow our [Security Policy](SECURITY.md); do not open public issues for security vulnerabilities.
+- This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com).
+- New to contributing on GitHub? Follow the [GitHub quickstart guidelines](https://docs.github.com/en/get-started/quickstart/fork-a-repo).
+- New to developing for Business Central? Visit the [Developers Learning Catalog](https://learn.microsoft.com/dynamics365/business-central/readiness/readiness-learning-developers).
 
-The `Layout Name` key of `Tenant Report Layout Cfg` has to carry the owning application as `<AppId>::<LayoutName>`, because the table has no application ID field — its key is Report ID + Layout Name + Company Name. The platform will take over that resolution, so every site is marked:
+## Trademarks
 
-```
-grep -rn APPID-IN-LAYOUTNAME
-```
-
-Six sites in three objects (codeunits 9665 and 9668, page 9667). They have to be removed together: if one side writes the encoded form and another reads the plain name, the row is not found and the report renders without its parts.
-
-## Not covered here
-
-- No `DefaultRenderingLayout` is changed, so no tenant sees a different format for an existing report.
-- No layout is deleted; the obsoletions are pending only.
-- E-mail body layouts and label layouts get no header/footer, since they were never authored to carry one. They do get the theme, which is styling only.
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos is subject to those third-parties' policies.
