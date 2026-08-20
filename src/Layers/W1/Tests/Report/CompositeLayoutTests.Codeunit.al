@@ -503,6 +503,153 @@ codeunit 134619 "Composite Layout Tests"
         RestoreDocumentReportExperience();
     end;
 
+    [Test]
+    [HandlerFunctions('AssignmentDialogInspectOverrideAndCancel')]
+    [Scope('OnPrem')]
+    procedure CompanyOverrideNoticeIsShownOnTheAssignmentDialog()
+    begin
+        // [SCENARIO] When a company sets its own theme and header/footer for a layout, the assignment dialog says so,
+        // because the company setting is more specific and keeps applying whatever is chosen for all companies.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A body layout with a tenant-wide setting and a company-scoped override.
+        SeedOverriddenLayout();
+
+        // [WHEN] Opening the assignment dialog on that layout. [THEN] Asserted in the handler.
+        OpenAssignmentDialog();
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('AssignmentDialogClearHeaderAndOk,OverrideConfirmYes')]
+    [Scope('OnPrem')]
+    procedure ConfirmingTheOverrideWarningSavesTheTenantWideChange()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        BodyKey: Text;
+    begin
+        // [SCENARIO] Accepting the warning applies the change to all other companies. Clearing both parts removes the
+        // tenant-wide row rather than leaving an empty one behind.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A body layout with a tenant-wide setting and a company-scoped override.
+        BodyKey := SeedOverriddenLayout();
+
+        // [WHEN] Clearing the header/footer and confirming the warning.
+        OpenAssignmentDialog();
+
+        // [THEN] The tenant-wide row is gone.
+        Assert.IsFalse(
+            TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), ''),
+            'Clearing both parts should remove the tenant-wide row instead of leaving it empty.');
+
+        // [THEN] The company override is untouched, since the warning said it keeps applying.
+        Assert.IsTrue(
+            TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))),
+            'The company override should survive a tenant-wide change.');
+        Assert.AreEqual('OverrideHF', LookupHelper.DecodeLayoutName(TenantReportLayoutCfg."Header Part Name"), 'The company override should keep its header/footer part.');
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('AssignmentDialogClearHeaderOkThenCancel,OverrideConfirmNo')]
+    [Scope('OnPrem')]
+    procedure DecliningTheOverrideWarningLeavesTheTenantWideSettingUnchanged()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        BodyKey: Text;
+    begin
+        // [SCENARIO] Declining the warning writes nothing, so the tenant-wide setting is left exactly as it was.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A body layout with a tenant-wide setting and a company-scoped override.
+        BodyKey := SeedOverriddenLayout();
+
+        // [WHEN] Clearing the header/footer and declining the warning.
+        OpenAssignmentDialog();
+
+        // [THEN] The tenant-wide row still carries the part it started with.
+        Assert.IsTrue(
+            TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), ''),
+            'Declining the warning should leave the tenant-wide row in place.');
+        Assert.AreEqual('TenantWideHF', LookupHelper.DecodeLayoutName(TenantReportLayoutCfg."Header Part Name"), 'Declining the warning should not clear the tenant-wide header/footer part.');
+
+        RestoreDocumentReportExperience();
+    end;
+
+    local procedure SeedOverriddenLayout() BodyKey: Text
+    begin
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'OverriddenBody', Enum::"Report Layout Subtype"::Body);
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('TenantWideHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+        InsertCfg(BodyReportID, BodyKey, CopyStr(CompanyName(), 1, 30), CreatePart('OverrideHF', Enum::"Report Layout Subtype"::HeaderFooter), CreatePart('OverrideTheme', Enum::"Report Layout Subtype"::Theme));
+    end;
+
+    local procedure OpenAssignmentDialog()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        ReportLayoutsPage.OpenView();
+        FindLayout(BodyReportID, 'OverriddenBody', ReportLayoutList);
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.AssignReportDefaults.Invoke();
+        ReportLayoutsPage.Close();
+    end;
+
+    [ModalPageHandler]
+    procedure AssignmentDialogInspectOverrideAndCancel(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
+    var
+        Notice: Text;
+    begin
+        Assert.IsTrue(HeaderFooterThemeAssignment.CompanyOverrideDisplay.Visible(), 'The company override notice should be shown when a company sets its own parts.');
+
+        Notice := HeaderFooterThemeAssignment.CompanyOverrideDisplay.Value();
+        Assert.ExpectedMessage(CompanyName(), Notice);
+        Assert.ExpectedMessage('OverrideHF', Notice);
+        Assert.ExpectedMessage('OverrideTheme', Notice);
+
+        Assert.AreEqual('OverriddenBody', HeaderFooterThemeAssignment.LayoutNameDisplay.Value(), 'The dialog should name the layout without the composite prefix.');
+        Assert.AreEqual('TenantWideHF', HeaderFooterThemeAssignment.HeaderPartDisplay.Value(), 'The dialog should stage the tenant-wide part, not the company override.');
+
+        HeaderFooterThemeAssignment.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure AssignmentDialogClearHeaderAndOk(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
+    begin
+        HeaderFooterThemeAssignment.HeaderPartDisplay.SetValue('');
+        HeaderFooterThemeAssignment.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure AssignmentDialogClearHeaderOkThenCancel(var HeaderFooterThemeAssignment: TestPage "Header/Footer Theme Assignment")
+    begin
+        HeaderFooterThemeAssignment.HeaderPartDisplay.SetValue('');
+
+        // Declining the warning refuses the close, so the dialog is still open and has to be dismissed.
+        HeaderFooterThemeAssignment.OK().Invoke();
+        HeaderFooterThemeAssignment.Cancel().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure OverrideConfirmYes(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage('keeps applying there', Question);
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure OverrideConfirmNo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage('keeps applying there', Question);
+        Reply := false;
+    end;
+
     [MessageHandler]
     procedure PartInfoMessageHandler(Message: Text[1024])
     begin
