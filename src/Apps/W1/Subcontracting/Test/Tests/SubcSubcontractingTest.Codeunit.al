@@ -43,6 +43,9 @@ codeunit 139989 "Subc. Subcontracting Test"
     TestPermissions = Disabled;
     TestType = IntegrationTest;
 
+    var
+        SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+
     trigger OnRun()
     begin
         IsInitialized := false;

@@ -24,7 +24,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.TestLibraries.Utilities;
 
-codeunit 149919 "Subc SCM Mfg. 70"
+codeunit 149924 "Subc SCM Mfg. 70"
 {
     Subtype = Test;
     TestPermissions = Disabled;
