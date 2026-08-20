@@ -19,6 +19,7 @@ codeunit 130618 "Library - Graph Mgt"
     procedure BindAuthentication()
     begin
         IsAuthenticationBound := true;
+        LibraryGraphAuthMgt.EnableAuthentication();
     end;
 
     procedure InitializeApiTest()
@@ -179,11 +180,11 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
+        if IsAuthenticationBound then
+            LibraryGraphAuthMgt.EnableAuthentication();
         if IsApiTestInitialized then
             EnsureApiTestVATPostingSetups();
         HttpWebRequestMgt.Initialize(TargetURL);
-        if IsAuthenticationBound then
-            LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
     end;
 
