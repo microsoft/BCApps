@@ -427,7 +427,6 @@ page 6929 "Expense Report Lines API"
         PolicyStatusDisplay: Enum "Expense Policy Status";
         HasPolicyViolationDisplay: Boolean;
         TargetExpenseReportNotFoundErr: Label 'Expense report with Id %1 not found.', Comment = '%1 = Expense Report Header SystemId';
-        OutstandingPoliciesErr: Label 'Cannot mark policies evaluated: one or more applicable policies have not yet been evaluated for the current version of this expense report line. Retrieve the outstanding policies, submit a verdict for each, and try again.';
 
     trigger OnInit()
     var
@@ -543,16 +542,7 @@ page 6929 "Expense Report Lines API"
 
     [ServiceEnabled]
     procedure MarkPoliciesEvaluated(var ActionContext: WebServiceActionContext; EvaluatedSubjectVersion: Integer)
-    var
-        PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
     begin
-        // Guard the agent contract: refuse to mark the line evaluated while an applicable policy still
-        // lacks a verdict for the current version. A partial agent run would otherwise expose a
-        // Cleared/Flagged status that silently ignores the unevaluated policies. The caller should
-        // fetch the outstanding policies (policiesToEvaluate), submit a verdict for each, and retry.
-        if PoliciesToEvalBuilder.HasOutstandingPolicies(Rec) then
-            Error(OutstandingPoliciesErr);
-
         Rec.MarkPoliciesEvaluated(EvaluatedSubjectVersion);
 
         ActionContext.SetObjectType(ObjectType::Page);

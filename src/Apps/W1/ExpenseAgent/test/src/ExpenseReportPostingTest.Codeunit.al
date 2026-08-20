@@ -3603,6 +3603,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
         ExpenseReportNo: Code[20];
     begin
         // [SCENARIO] With AI policy evaluation on, releasing and submitting a report whose line went
@@ -3615,6 +3616,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportNo := ExpenseReportHeader."No.";
 
         // [GIVEN] The line is evaluated then invalidated so it is now Stale.
+        LibraryExpense.CreateExpensePolicyFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Initial evaluation passed.', true);
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -3663,6 +3665,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyFlag: Record "Expense Policy Flag";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         CurrentUserSetup: Record "User Setup";
         FinalApproverUserSetup: Record "User Setup";
@@ -3673,6 +3676,7 @@ codeunit 148302 "Expense Report Posting Test"
         SetupEvaluatedPolicyLineForSubmit(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy, ExpenseUser);
 
         // [GIVEN] The line is evaluated then invalidated so it is Stale.
+        LibraryExpense.CreateExpensePolicyFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Initial evaluation passed.', true);
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
 

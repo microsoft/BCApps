@@ -225,6 +225,7 @@ codeunit 148340 "Expense Policy Flag Test"
         ExpensePolicy.Modify(true);
 
         // [GIVEN] The line is evaluated then invalidated once so Policy Eval Version is 1 (not the trivial 0).
+        AddCompliantFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Initial evaluation passed.');
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.InvalidatePolicyEvaluation();
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -984,8 +985,11 @@ codeunit 148340 "Expense Policy Flag Test"
         // [WHEN] An applicable policy exists but has not been evaluated.
         CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Must be evaluated.');
 
-        // [THEN] The policy is outstanding.
+        // [THEN] The policy is outstanding and the line cannot be marked evaluated.
         Assert.IsTrue(Builder.HasOutstandingPolicies(ExpenseReportLine), 'An applicable policy without a flag must be outstanding.');
+        Commit();
+        asserterror ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        Assert.ExpectedError('one or more applicable policies have not yet been evaluated');
 
         // [WHEN] A verdict (flag) is recorded for the policy at the current version.
         AddCompliantFlag(ExpensePolicyFlag, ExpenseReportLine, ExpensePolicy, 'Compliant.');

@@ -1167,6 +1167,7 @@ table 6907 "Expense Report Line"
         NonRefundableCannotBeNegativeErr: Label '%1 cannot be in negative on Expense Report No. %2, Line No. %3.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Line No.';
         CannotUseVATCalcTypeErr: Label 'You cannot use VAT Calculation Type %1 in Expense Report Line Expense No. %2, Line No. %3', Comment = '%1 = VAT Calculation Type, %2 = Expense No., %3 = Line No.';
         EvaluationSubjectVersionChangedErr: Label 'The expense report line changed after policy evaluation started. Refresh the line and evaluate it again.';
+        OutstandingPoliciesErr: Label 'Cannot mark policies evaluated: one or more applicable policies have not yet been evaluated for the current version of this expense report line. Retrieve the outstanding policies, submit a verdict for each, and try again.';
         CannotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Field Name';
         CannotExceedForErr: Label '%1 for %2 must not exceed %3 = %4.', Comment = '%1 = Field Name, %2 = Description, %3 = Limit Field Name, %4 = Limit Value';
         CannotExceedErr: Label '%1 must not exceed %2 = %3.', Comment = '%1 = Field Name, %2 = Limit Field Name, %3 = Limit Value';
@@ -1282,6 +1283,7 @@ table 6907 "Expense Report Line"
 
     internal procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)
     var
+        PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
         DocumentNo: Code[20];
         LineNo: Integer;
     begin
@@ -1291,6 +1293,8 @@ table 6907 "Expense Report Line"
         Rec.Get(DocumentNo, LineNo);
         if EvaluatedSubjectVersion <> Rec."Policy Eval Version" then
             Error(EvaluationSubjectVersionChangedErr);
+        if PoliciesToEvalBuilder.HasOutstandingPolicies(Rec) then
+            Error(OutstandingPoliciesErr);
 
         Rec."Evaluated Policy Version" := Rec."Policy Eval Version";
         Rec."Policies Evaluated At" := CurrentDateTime();
