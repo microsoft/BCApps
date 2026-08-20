@@ -274,6 +274,12 @@ page 9663 "Tenant Report Layout Cfg"
         if (Rec."Report ID" = 0) and (Rec."Layout Name" <> '') then
             Error(GlobalWildcardCannotHaveLayoutNameErr);
 
+        if (Rec."Layout Name" <> '') and (not LookupHelper.IsBodyLayout(Rec."Report ID", Rec."Layout Name")) then
+            Error(
+                LayoutNotOnReportErr,
+                LookupHelper.DecodeLayoutName(Rec."Layout Name"),
+                ReportDisplayName(Rec."Report ID"));
+
         if (Rec."Report ID" = xRec."Report ID") and
            (Rec."Layout Name" = xRec."Layout Name") and
            (Rec."Company Name" = xRec."Company Name")
@@ -406,6 +412,7 @@ page 9663 "Tenant Report Layout Cfg"
         GlobalWildcardCannotHaveLayoutNameErr: Label 'When Report ID is 0, the row applies to every report, so Layout Name must be empty.';
         ScopeExistsErr: Label 'A row for %1 already exists. Change that row instead of pointing this one at the same scope.', Comment = '%1 = scope description, for example All layouts of Sales Invoice';
         PickReportFirstErr: Label 'Choose a report first. A layout belongs to one report, so there is nothing to pick from until Report ID is set.';
+        LayoutNotOnReportErr: Label '"%1" is not a body layout of %2. Clear Layout Name to cover every layout of that report, or use the assist-edit to pick one of its body layouts.', Comment = '%1 = layout name; %2 = report name';
         NoBodyLayoutsForReportMsg: Label 'There are no body layouts on %1, so there is nothing to set a theme or header/footer on. A Word layout has to be created with the Body subtype to carry them.', Comment = '%1 = report name';
         NoBodyLayoutsAtAllMsg: Label 'There are no body layouts on this tenant, so there is nothing to set a theme or header/footer on. A Word layout has to be created with the Body subtype to carry them.';
         AllReportsTxt: Label 'All reports';
