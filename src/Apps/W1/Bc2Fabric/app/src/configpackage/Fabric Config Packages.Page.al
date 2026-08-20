@@ -1,5 +1,7 @@
 namespace Microsoft.Bc2Fabric;
 
+using System.Utilities;
+
 page 150008 "Fabric Config Packages"
 {
     Caption = 'Fabric Config Packages';
@@ -7,7 +9,7 @@ page 150008 "Fabric Config Packages"
     SourceTable = "Fabric Config Package";
     ApplicationArea = All;
     Editable = false;
-    InsertAllowed = false;
+    InsertAllowed = true;
     ModifyAllowed = false;
     DeleteAllowed = true;
     CardPageId = "Fabric Config Package Card";
@@ -101,11 +103,66 @@ page 150008 "Fabric Config Packages"
                     CurrPage.Update(false);
                 end;
             }
+            action(DeletePackage)
+            {
+                Caption = 'Delete';
+                ApplicationArea = All;
+                Image = Delete;
+                Enabled = not Rec.Active;
+                ToolTip = 'Deletes the selected configuration package. The package must be deactivated first.';
+                trigger OnAction()
+                begin
+                    if not Confirm(DeleteConfirmQst, false, Rec."Code") then
+                        exit;
+                    Rec.Delete(true);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ImportPackage)
+            {
+                Caption = 'Import Package';
+                ApplicationArea = All;
+                Image = Import;
+                ToolTip = 'Imports a configuration package definition from a JSON file.';
+                trigger OnAction()
+                var
+                    FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+                    InStream: InStream;
+                    FileName: Text;
+                begin
+                    if not UploadIntoStream('', '', '', FileName, InStream) then
+                        exit;
+                    FabricConfigPkgMgt.ImportPackageFromStream(InStream);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ExportPackage)
+            {
+                Caption = 'Export Package';
+                ApplicationArea = All;
+                Image = Export;
+                ToolTip = 'Exports the selected configuration package definition to a JSON file.';
+                trigger OnAction()
+                var
+                    FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+                    TempBlob: Codeunit "Temp Blob";
+                    OutStream: OutStream;
+                    InStream: InStream;
+                    FileName: Text;
+                begin
+                    TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+                    FabricConfigPkgMgt.ExportPackageToStream(Rec, OutStream);
+                    TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+                    FileName := Rec."Code" + '.json';
+                    DownloadFromStream(InStream, '', '', '', FileName);
+                end;
+            }
         }
     }
 
     var
         ReapplyAvailable: Boolean;
+        DeleteConfirmQst: Label 'Delete configuration package ''%1''?', Comment = '%1 = package code';
 
     trigger OnAfterGetRecord()
     var

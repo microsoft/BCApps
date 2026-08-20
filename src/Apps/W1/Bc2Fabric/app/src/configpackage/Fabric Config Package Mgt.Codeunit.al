@@ -6,6 +6,11 @@ using System.Reflection;
 codeunit 150002 "Fabric Config Package Mgt"
 {
 
+    var
+        TablesKeptByOtherPackageMsg: Label '%1 table(s) were not removed because they are also included in at least one other active package.', Comment = '%1 = number of tables retained';
+        ImportMissingCodeErr: Label 'The package file does not contain a package code.';
+        InvalidPackageFileErr: Label 'The file could not be read as a valid package definition.';
+
     internal procedure Activate(var Pkg: Record "Fabric Config Package")
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
@@ -50,6 +55,7 @@ codeunit 150002 "Fabric Config Package Mgt"
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
         OtherPackageCode: Code[20];
+        KeptTableCount: Integer;
     begin
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
@@ -57,9 +63,11 @@ codeunit 150002 "Fabric Config Package Mgt"
                 // Remove the table only when no other active package still needs it.
                 // The platform Tenant Fabric Tables has no ownership column, so a table that
                 // also matches a manually-added selection cannot be distinguished here.
-                if not FindOtherActivePackage(PackageLine."Table ID", Pkg."Code", OtherPackageCode) then
+                if not FindOtherActivePackage(PackageLine."Table ID", Pkg."Code", OtherPackageCode) then begin
                     if TenantFabricTables.Get(PackageLine."Table ID") then
                         TenantFabricTables.Delete(true);
+                end else
+                    KeptTableCount += 1;
             until PackageLine.Next() = 0;
 
         Pkg.Active := false;
@@ -69,6 +77,9 @@ codeunit 150002 "Fabric Config Package Mgt"
 
         Session.LogMessage('FAB-151', StrSubstNo('Config package %1 deactivated.', Pkg."Code"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'BC2Fabric');
         Telemetry.LogAudit('FAB-151-AUD', StrSubstNo('Microsoft Fabric Open Mirroring - configuration package %1 deactivated.', Pkg."Code"));
+
+        if GuiAllowed() and (KeptTableCount > 0) then
+            Message(TablesKeptByOtherPackageMsg, KeptTableCount);
     end;
 
     local procedure FindOtherActivePackage(TableId: Integer; ExcludePackageCode: Code[20]; var OtherPackageCode: Code[20]): Boolean
@@ -179,5 +190,61 @@ codeunit 150002 "Fabric Config Package Mgt"
             Reapply(Pkg);
 
         Session.LogMessage('FAB-155', StrSubstNo('Config package %1 v%2 registered via code.', PackageCode, Version), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'BC2Fabric');
+    end;
+
+    internal procedure ExportPackageToStream(var Pkg: Record "Fabric Config Package"; var OutStream: OutStream)
+    var
+        PackageLine: Record "Fabric Config Package Line";
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        JsonText: Text;
+    begin
+        JsonObj.Add('code', Pkg."Code");
+        JsonObj.Add('description', Pkg.Description);
+        JsonObj.Add('version', Pkg.Version);
+        PackageLine.SetRange("Package Code", Pkg."Code");
+        if PackageLine.FindSet() then
+            repeat
+                JsonArr.Add(PackageLine."Table ID");
+            until PackageLine.Next() = 0;
+        JsonObj.Add('tables', JsonArr);
+        JsonObj.WriteTo(JsonText);
+        OutStream.WriteText(JsonText);
+    end;
+
+    internal procedure ImportPackageFromStream(var InStream: InStream)
+    var
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        TablesToken: JsonToken;
+        FieldToken: JsonToken;
+        TableElem: JsonToken;
+        TableIds: List of [Integer];
+        PackageCode: Code[20];
+        Description: Text[100];
+        Version: Code[10];
+        JsonText: Text;
+        Line: Text;
+    begin
+        while not InStream.EOS() do begin
+            InStream.ReadText(Line);
+            JsonText += Line;
+        end;
+        if not JsonObj.ReadFrom(JsonText) then
+            Error(InvalidPackageFileErr);
+        if JsonObj.Get('code', FieldToken) then
+            PackageCode := CopyStr(FieldToken.AsValue().AsText(), 1, MaxStrLen(PackageCode));
+        if JsonObj.Get('description', FieldToken) then
+            Description := CopyStr(FieldToken.AsValue().AsText(), 1, MaxStrLen(Description));
+        if JsonObj.Get('version', FieldToken) then
+            Version := CopyStr(FieldToken.AsValue().AsText(), 1, MaxStrLen(Version));
+        if PackageCode = '' then
+            Error(ImportMissingCodeErr);
+        if JsonObj.Get('tables', TablesToken) then begin
+            JsonArr := TablesToken.AsArray();
+            foreach TableElem in JsonArr do
+                TableIds.Add(TableElem.AsValue().AsInteger());
+        end;
+        RegisterPackage(PackageCode, Description, Version, TableIds);
     end;
 }

@@ -5,10 +5,10 @@ page 150007 "Fabric Config Package Subform"
     Caption = 'Fabric Config Package Lines';
     PageType = ListPart;
     SourceTable = "Fabric Config Package Line";
-    Editable = false;
-    InsertAllowed = false;
-    ModifyAllowed = false;
-    DeleteAllowed = false;
+    Editable = true;
+    InsertAllowed = true;
+    ModifyAllowed = true;
+    DeleteAllowed = true;
 
     layout
     {
