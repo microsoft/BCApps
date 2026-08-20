@@ -77,15 +77,17 @@ codeunit 9667 "Composite Report Parts Mgt."
         if TryUpsertPart(PartName, ResourceFile, Subtype, Description) then
             exit(true);
 
-        LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorCode(), GetLastErrorText());
+        // Redacted error text only: the unredacted form can echo field values, record keys or paths.
+        LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorCode(), GetLastErrorText(true));
         exit(false);
     end;
 
     /// <summary>
     /// Reports a part that could not be written, in two signals. The tenant-visible one carries only shipped constants
-    /// and the platform's error code; the verbatim error text goes to the publisher alone, because a platform or
-    /// resource-loader message can echo a path or record data and must not be sent tenant-wide.
+    /// and the platform's error code; the reason text goes to the publisher alone, and only in its redacted form, since
+    /// a platform or resource-loader message can otherwise echo a path or record data.
     /// </summary>
+    /// <param name="ErrorText">The redacted error text, from GetLastErrorText(true).</param>
     local procedure LogPartNotSeeded(PartName: Text; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; ErrorCode: Text; ErrorText: Text)
     var
         TelemetryDimensions: Dictionary of [Text, Text];
@@ -101,14 +103,15 @@ codeunit 9667 "Composite Report Parts Mgt."
             '0000V42', PartNotSeededTxt, Verbosity::Warning, DataClassification::SystemMetadata,
             TelemetryScope::All, TelemetryDimensions);
 
-        // Publisher only: the free-text reason, which is what actually diagnoses the failure.
+        // Publisher only, redacted: the reason is what diagnoses the failure, but it is the one value here that does not
+        // come from a shipped constant, so it stays off tenant-wide telemetry even in its redacted form.
         Clear(TelemetryDimensions);
         TelemetryDimensions.Add('PartName', PartName);
         TelemetryDimensions.Add('ResourceFile', ResourceFile);
         TelemetryDimensions.Add('ErrorCode', ErrorCode);
         TelemetryDimensions.Add('Error', ErrorText);
         Session.LogMessage(
-            '0000V43', PartNotSeededDetailTxt, Verbosity::Warning, DataClassification::CustomerContent,
+            '0000V43', PartNotSeededDetailTxt, Verbosity::Warning, DataClassification::SystemMetadata,
             TelemetryScope::ExtensionPublisher, TelemetryDimensions);
     end;
 
