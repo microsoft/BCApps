@@ -16,7 +16,7 @@ codeunit 104064 "Upgrade Composite Report Parts"
     trigger OnUpgradePerDatabase()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
+        //CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
@@ -24,7 +24,10 @@ codeunit 104064 "Upgrade Composite Report Parts"
             exit;
 
         CompositeReportPartsMgt.SeedDefaultParts();
-        CompositeLayoutAssignMgt.AssignDefaultParts();
+        // Assignment is disabled until the platform change it depends on ships. Re-enable this line together with the
+        // declaration above, and add a new dated tag in Upgrade Tag Definitions so the pass runs on databases that
+        // already carry the tag below.
+        //CompositeLayoutAssignMgt.AssignDefaultParts();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
     end;

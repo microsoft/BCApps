@@ -260,12 +260,17 @@ page 9666 "Report Theme and Header/Footer"
                 actionref(NewTheme_Promoted; NewTheme) { }
                 actionref(NewHeaderFooter_Promoted; NewHeaderFooter) { }
                 actionref(AssignShippedDesigns_Promoted; AssignShippedDesigns) { }
-                actionref(ReportsUsingPart_Promoted; ReportsUsingPart) { }
                 actionref(ReplaceArtifact_Promoted; ReplaceArtifact) { }
                 actionref(ShowInfo_Promoted; ShowInfo) { }
                 actionref(EditDescription_Promoted; EditDescription) { }
                 actionref(SetApproved_Promoted; SetApproved) { }
                 actionref(SetDraft_Promoted; SetDraft) { }
+            }
+            group(Category_Category4)
+            {
+                Caption = 'Navigate';
+
+                actionref(ReportsUsingPart_Promoted; ReportsUsingPart) { }
             }
         }
     }

@@ -13,7 +13,7 @@ report 99000753 "Quantity Explosion of BOM"
 {
     DefaultRenderingLayout = ExcelLayout;
     //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
     ApplicationArea = Manufacturing;
     Caption = 'Quantity Explosion of BOM';
     ToolTip = 'View an indented BOM listing for the item or items that you specify in the filters. The production BOM is completely exploded for all levels.';

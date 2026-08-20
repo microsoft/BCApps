@@ -19,7 +19,7 @@ report 1700 "Deferral Summary - G/L"
     Caption = 'Deferral Summary - G/L';
     DefaultRenderingLayout = Excel;
     //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
     UsageCategory = ReportsAndAnalysis;
 
     dataset

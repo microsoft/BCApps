@@ -31,7 +31,7 @@ report 1322 "Standard Purchase - Order"
     Caption = 'Purchase - Order';
     DefaultRenderingLayout = "StandardPurchaseOrder.docx";
     //DefaultHeaderFooterPart = "External Default";
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purchase Header";

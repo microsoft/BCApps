@@ -15,7 +15,7 @@ report 5084 "Email Merge"
 {
     DefaultRenderingLayout = "EmailMerge.rdlc";
     //DefaultHeaderFooterPart = None;
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
     Caption = 'Email Merge';
 
     dataset

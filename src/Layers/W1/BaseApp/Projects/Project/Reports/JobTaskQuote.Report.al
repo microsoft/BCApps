@@ -17,7 +17,7 @@ report 1017 "Job Task Quote"
 {
     DefaultRenderingLayout = "JobTaskQuote.rdlc";
     //DefaultHeaderFooterPart = "External Modern Logo";
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
     Caption = 'Project Task Quote';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Job Task";

@@ -17,7 +17,7 @@ report 1016 "Job Quote"
 {
     DefaultRenderingLayout = "JobQuote.rdlc";
     //DefaultHeaderFooterPart = "External Modern Logo";
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
     Caption = 'Project Quote';
     PreviewMode = PrintLayout;
 

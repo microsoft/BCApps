@@ -39,7 +39,7 @@ report 1305 "Standard Sales - Order Conf."
     Caption = 'Sales - Confirmation';
     DefaultRenderingLayout = "StandardSalesOrderConf.docx";
     //DefaultHeaderFooterPart = "External Default Detailed";
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
     PreviewMode = PrintLayout;
     WordMergeDataItem = Header;
 

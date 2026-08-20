@@ -16,7 +16,7 @@ report 5802 "Inventory Valuation - WIP"
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
     //DefaultHeaderFooterPart = "Internal Default";
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
 
     dataset
     {

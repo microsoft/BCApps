@@ -29,7 +29,7 @@ report 1302 "Standard Sales - Pro Forma Inv"
     Caption = 'Pro Forma Invoice';
     DefaultRenderingLayout = "StandardSalesProFormaInv.rdlc";
     //DefaultHeaderFooterPart = "External Default Detailed";
-    //DefaultThemePart = "BC Default";
+    //DefaultThemePart = "Default";
     WordMergeDataItem = Header;
 
     dataset
