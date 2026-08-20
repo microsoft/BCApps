@@ -685,8 +685,8 @@ table 9650 "Custom Report Layout"
     procedure LookupLayoutOK(ReportID: Integer): Boolean
     begin
         FilterOnReport(ReportID);
-        OnLookupLayoutOKOnBeforePageRun(Rec);
 #pragma warning disable AL0432
+        OnLookupLayoutOKOnBeforePageRun(Rec);
         exit(PAGE.RunModal(PAGE::"Custom Report Layouts", Rec) = ACTION::LookupOK);
 #pragma warning restore AL0432
     end;

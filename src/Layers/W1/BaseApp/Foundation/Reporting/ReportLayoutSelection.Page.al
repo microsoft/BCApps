@@ -8,7 +8,6 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
 
-#pragma warning disable AS0032
 page 9652 "Report Layout Selection"
 {
     AdditionalSearchTerms = 'customization,document layout';
@@ -131,6 +130,9 @@ page 9652 "Report Layout Selection"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Custom Layouts';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by the system "Report Layouts" page. This part will be removed in a future version.';
+                ObsoleteTag = '29.0';
                 ShowFilter = false;
                 SubPageLink = "Report ID" = field("Report ID");
                 UpdatePropagation = Both;
@@ -368,6 +370,7 @@ page 9652 "Report Layout Selection"
         Rec.Type := ReportLayoutSelection.Type;
         Rec."Custom Report Layout Code" := ReportLayoutSelection."Custom Report Layout Code";
 #if not CLEAN29
+#pragma warning disable AL0432
         case Rec.Type of
             Rec.Type::"Custom Layout":
                 Rec.CalcFields("Report Layout Description");
@@ -382,6 +385,7 @@ page 9652 "Report Layout Selection"
         end;
 
         CustomLayoutDescription := Rec."Report Layout Description";
+#pragma warning restore AL0432
 #else
         if TenantReportLayoutSelection.Get(Rec."Report ID", SelectedCompany) then
             CustomLayoutDescription := TenantReportLayoutSelection."Layout Name"
@@ -470,7 +474,9 @@ page 9652 "Report Layout Selection"
     begin
         Rec.Validate(Type, LayoutFormatToType(ReportLayoutList."Layout Format"));
 #if not CLEAN29
+#pragma warning disable AL0432
         Rec."Report Layout Description" := LayoutName;
+#pragma warning restore AL0432
 #endif
         CustomLayoutDescription := LayoutName;
     end;
@@ -631,5 +637,4 @@ page 9652 "Report Layout Selection"
     begin
     end;
 }
-#pragma warning restore AS0032
 
