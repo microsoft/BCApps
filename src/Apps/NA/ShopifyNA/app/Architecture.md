@@ -380,15 +380,15 @@ The tax config fields carry their defaults as field `InitValue`s (`Auto Create T
 | Event ID | Level | Location | Trigger |
 |----------|-------|----------|---------|
 | 0000UMF | Warning | Events | Order held for review due to a rate conflict |
-| 0000UMG | Normal | Events | Tax Match Applied marker set on Order Header |
-| 0000UMH | Normal | Events | Tax lines matched (match successful) |
+| 0000UMG | Normal (ExtensionPublisher scope) | Events | Tax Match Applied marker set on Order Header |
+| 0000UMH | Normal (ExtensionPublisher scope) | Events | Tax lines matched (match successful) |
 | 0000UMI | Warning | Events | Sales Document creation blocked pending tax match review |
-| 0000UMJ | Normal | Events | Tax Match Applied marker propagated to Sales Header |
+| 0000UMJ | Normal (ExtensionPublisher scope) | Events | Tax Match Applied marker propagated to Sales Header |
 | 0000UMK | Normal (ExtensionPublisher scope) | Events | Match starting for order |
 | 0000UML | Uptake: Used | Matcher | MatchTaxLines called |
-| 0000UMM | Error | Matcher | AOAI call failed (status code + error) |
-| 0000UMN | Error | Matcher | No function call in LLM response |
-| 0000UMO | Error | Matcher | Function execution failed |
+| 0000UMM | Error (ExtensionPublisher scope) | Matcher | AOAI call failed (HTTP status code in a custom dimension; no echoed error text) |
+| 0000UMN | Error (ExtensionPublisher scope) | Matcher | No function call in LLM response |
+| 0000UMO | Error (ExtensionPublisher scope) | Matcher | Function execution failed |
 | 0000UMP | Normal | Matcher | Low-confidence match skipped |
 | 0000UMQ | Warning | Matcher | Jurisdiction not found, auto-create disabled |
 | 0000UMR | Warning | Matcher | A matched tax line's Tax Detail rate differs from Shopify's (item or shipping tax group) — jurisdiction still matched, order held for review |
