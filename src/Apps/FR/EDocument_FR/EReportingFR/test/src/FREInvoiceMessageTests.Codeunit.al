@@ -7,6 +7,11 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
@@ -27,6 +32,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
     var
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
+        LibrarySales: Codeunit "Library - Sales";
         MessageSenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
 
     [Test]
@@ -773,18 +780,37 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
     local procedure CreatePaymentScenario(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; ServiceStatus: Enum "E-Document Service Status")
     var
-        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
-        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        EDocumentService: Record "E-Document Service";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        DocumentNo: Code[20];
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PostedInvoiceNo: Code[20];
     begin
-        DocumentNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentNo));
-        SalesInvoiceHeader.Init();
-        SalesInvoiceHeader."No." := DocumentNo;
-        SalesInvoiceHeader.Insert();
+        EDocumentService.Get('FR-MESSAGE-MOCK');
+        EDocumentService."Document Format" := EDocumentService."Document Format"::Mock;
+        EDocumentService.Modify();
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
 
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Sale), 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
+        EDocumentService.Modify();
+
+        SalesInvoiceHeader.Get(PostedInvoiceNo);
         EDocument.Init();
-        EDocument."Document No." := DocumentNo;
+        EDocument."Document No." := PostedInvoiceNo;
         EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
@@ -792,16 +818,18 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument.Insert();
         CreateServiceStatus(EDocument, ServiceStatus);
 
-        InvoiceCustLedgerEntry.Init();
-        InvoiceCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
-        InvoiceCustLedgerEntry."Document Type" := InvoiceCustLedgerEntry."Document Type"::Invoice;
-        InvoiceCustLedgerEntry."Document No." := DocumentNo;
-        InvoiceCustLedgerEntry.Insert();
-        PaymentCustLedgerEntry.Init();
-        PaymentCustLedgerEntry."Entry No." := InvoiceCustLedgerEntry."Entry No." + 1;
-        PaymentCustLedgerEntry."Document Type" := PaymentCustLedgerEntry."Document Type"::Payment;
-        PaymentCustLedgerEntry.Insert();
-        CreateDetailedLedgerEntry(DetailedCustLedgEntry, InvoiceCustLedgerEntry."Entry No.", PaymentCustLedgerEntry."Entry No.", -100);
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine,
+            GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, Customer."No.",
+            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -100);
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", PostedInvoiceNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        FindApplicationDetailedEntry(DetailedCustLedgEntry, PostedInvoiceNo);
     end;
 
     local procedure CreateServiceStatus(EDocument: Record "E-Document"; ServiceStatus: Enum "E-Document Service Status")
@@ -829,13 +857,18 @@ codeunit 148151 "FR E-Invoice Message Tests"
         DetailedCustLedgEntry.Insert();
     end;
 
-    local procedure GetNextCustLedgerEntryNo(): Integer
+    local procedure FindApplicationDetailedEntry(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; InvoiceDocNo: Code[20])
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
-        if CustLedgerEntry.FindLast() then
-            exit(CustLedgerEntry."Entry No." + 1);
-        exit(1);
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Document No.", InvoiceDocNo);
+        CustLedgerEntry.FindFirst();
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+        DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
+        DetailedCustLedgEntry.SetRange("Initial Document Type", DetailedCustLedgEntry."Initial Document Type"::Invoice);
+        DetailedCustLedgEntry.SetFilter(Amount, '<%1', 0);
+        DetailedCustLedgEntry.FindLast();
     end;
 
     local procedure GetNextDetailedLedgerEntryNo(): Integer
