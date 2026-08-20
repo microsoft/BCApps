@@ -29,18 +29,22 @@ codeunit 4581 "SOA Send Replies"
         TelemetryEmailReplyFailedToSendLbl: Label 'Email reply failed to send.', Locked = true;
         TelemetryEmailReplyExternalIdEmptyLbl: Label 'Email reply failed to be sent due to input agent task message containing empty External Id.', Locked = true;
         TelemetryFailedToGetInputAgentTaskMessageLbl: Label 'Failed to get input agent task message.', Locked = true;
+        ReplyDeliveryFailedReasonLbl: Label 'The reply could not be sent after %1 attempts. Check your email connection and account permissions, then choose Retry sending.', Comment = '%1 = number of attempts';
 
     local procedure SendEmailReplies(SOASetup: Record "SOA Setup")
     var
         OutputAgentTaskMessage: Record "Agent Task Message";
-        TempFailedReplyAttempt: Record "SOA Reply Attempt" temporary;
-        TempSuccessfulReplyAttempt: Record "SOA Reply Attempt" temporary;
-        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
+        TempReplyResult: Record "Agent Task Message" temporary;
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
         AllSentSuccessfully := true;
 
+        // Must run before the first send. Sending commits, and after a commit an error can no longer be
+        // trapped, so the status transition would abort this codeunit instead of being handled.
+        FailExhaustedReplies(SOASetup);
+
         OutputAgentTaskMessage.ReadIsolation(IsolationLevel::ReadCommitted);
+        // Messages that gave up on delivery are in the Failed status, so this filter already excludes them.
         OutputAgentTaskMessage.SetRange(Status, OutputAgentTaskMessage.Status::Reviewed);
         OutputAgentTaskMessage.SetRange(Type, OutputAgentTaskMessage.Type::Output);
         OutputAgentTaskMessage.SetRange("Agent User Security ID", SOASetup."User Security ID");
@@ -53,13 +57,46 @@ codeunit 4581 "SOA Send Replies"
             TelemetryDimensions.Add('AgentTaskID', Format(OutputAgentTaskMessage."Task ID"));
             TelemetryDimensions.Add('AgentTaskMessageID', OutputAgentTaskMessage."ID");
 
-            if SOAReplyRetryMgt.IsExhausted(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID) then
-                AllSentSuccessfully := false
-            else
-                SendEmailReply(OutputAgentTaskMessage, TelemetryDimensions, TempFailedReplyAttempt, TempSuccessfulReplyAttempt);
+            SendEmailReply(OutputAgentTaskMessage, TelemetryDimensions, TempReplyResult);
         until OutputAgentTaskMessage.Next() = 0;
 
-        ApplyRetryUpdates(TempFailedReplyAttempt, TempSuccessfulReplyAttempt);
+        ApplyReplyResults(TempReplyResult);
+    end;
+
+    /// <summary>
+    /// Moves messages that already used up their retry budget to the terminal Failed status, so that they are
+    /// not attempted again. A message that uses up its budget during a run is failed at the start of the next run.
+    /// </summary>
+    local procedure FailExhaustedReplies(SOASetup: Record "SOA Setup")
+    var
+        OutputAgentTaskMessage: Record "Agent Task Message";
+        TempExhaustedReply: Record "Agent Task Message" temporary;
+        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
+    begin
+        OutputAgentTaskMessage.ReadIsolation(IsolationLevel::ReadCommitted);
+        OutputAgentTaskMessage.SetRange(Status, OutputAgentTaskMessage.Status::Reviewed);
+        OutputAgentTaskMessage.SetRange(Type, OutputAgentTaskMessage.Type::Output);
+        OutputAgentTaskMessage.SetRange("Agent User Security ID", SOASetup."User Security ID");
+
+        if not OutputAgentTaskMessage.FindSet() then
+            exit;
+
+        // Buffered, because the transition changes the status this loop filters on.
+        repeat
+            if SOAReplyRetryMgt.IsExhausted(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID) then begin
+                TempExhaustedReply.Init();
+                TempExhaustedReply."Task ID" := OutputAgentTaskMessage."Task ID";
+                TempExhaustedReply.ID := OutputAgentTaskMessage.ID;
+                TempExhaustedReply.Insert();
+            end;
+        until OutputAgentTaskMessage.Next() = 0;
+
+        if not TempExhaustedReply.FindSet() then
+            exit;
+
+        repeat
+            GiveUpOnDelivery(TempExhaustedReply, SOAReplyRetryMgt);
+        until TempExhaustedReply.Next() = 0;
     end;
 
     procedure GetAllSentSuccessfully(): Boolean
@@ -67,7 +104,7 @@ codeunit 4581 "SOA Send Replies"
         exit(AllSentSuccessfully);
     end;
 
-    local procedure SendEmailReply(OutputAgentTaskMessage: Record "Agent Task Message"; var TelemetryDimensions: Dictionary of [Text, Text]; var TempFailedReplyAttempt: Record "SOA Reply Attempt" temporary; var TempSuccessfulReplyAttempt: Record "SOA Reply Attempt" temporary)
+    local procedure SendEmailReply(OutputAgentTaskMessage: Record "Agent Task Message"; var TelemetryDimensions: Dictionary of [Text, Text]; var TempReplyResult: Record "Agent Task Message" temporary)
     var
         InputAgentTaskMessage: Record "Agent Task Message";
         SOASendReply: Codeunit "SOA Send Reply";
@@ -76,20 +113,20 @@ codeunit 4581 "SOA Send Replies"
     begin
         if not InputAgentTaskMessage.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then begin
             AllSentSuccessfully := false;
-            AddRetryUpdate(TempFailedReplyAttempt, OutputAgentTaskMessage);
+            AddReplyResult(TempReplyResult, OutputAgentTaskMessage, TempReplyResult.Status::Failed);
             FeatureTelemetry.LogError('0000NDQ', SOASetupCU.GetFeatureName(), 'Get Input Agent Task Message', TelemetryFailedToGetInputAgentTaskMessageLbl, GetLastErrorCallStack(), TelemetryDimensions);
             exit;
         end;
 
         if InputAgentTaskMessage."External ID" = '' then begin
             AllSentSuccessfully := false;
-            AddRetryUpdate(TempFailedReplyAttempt, OutputAgentTaskMessage);
+            AddReplyResult(TempReplyResult, OutputAgentTaskMessage, TempReplyResult.Status::Failed);
             FeatureTelemetry.LogError('0000NDR', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyExternalIdEmptyLbl, '', TelemetryDimensions);
             exit;
         end;
 
         if SOASendReply.Run(OutputAgentTaskMessage) then begin
-            AddRetryUpdate(TempSuccessfulReplyAttempt, OutputAgentTaskMessage);
+            AddReplyResult(TempReplyResult, OutputAgentTaskMessage, TempReplyResult.Status::Sent);
             FeatureTelemetry.LogUsage('0000NDS', SOASetupCU.GetFeatureName(), TelemetryEmailReplySentLbl, TelemetryDimensions);
             exit;
         end;
@@ -97,31 +134,60 @@ codeunit 4581 "SOA Send Replies"
         ErrorText := GetLastErrorText(true);
         ErrorCallStack := GetLastErrorCallStack();
         AllSentSuccessfully := false;
-        AddRetryUpdate(TempFailedReplyAttempt, OutputAgentTaskMessage);
+        AddReplyResult(TempReplyResult, OutputAgentTaskMessage, TempReplyResult.Status::Failed);
         TelemetryDimensions.Set('Error', ErrorText);
         FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, ErrorCallStack, TelemetryDimensions);
     end;
 
-    local procedure AddRetryUpdate(var TempSOAReplyAttempt: Record "SOA Reply Attempt" temporary; OutputAgentTaskMessage: Record "Agent Task Message")
+    /// <summary>
+    /// Buffers the outcome of a send attempt so that the message status and the attempt counter are only written
+    /// after the loop over the reviewed messages has completed, because the loop filters on the status it would change.
+    /// </summary>
+    local procedure AddReplyResult(var TempReplyResult: Record "Agent Task Message" temporary; OutputAgentTaskMessage: Record "Agent Task Message"; ResultStatus: Option)
     begin
-        TempSOAReplyAttempt.Init();
-        TempSOAReplyAttempt."Task ID" := OutputAgentTaskMessage."Task ID";
-        TempSOAReplyAttempt."Message ID" := OutputAgentTaskMessage.ID;
-        TempSOAReplyAttempt.Insert();
+        TempReplyResult.Init();
+        TempReplyResult."Task ID" := OutputAgentTaskMessage."Task ID";
+        TempReplyResult.ID := OutputAgentTaskMessage.ID;
+        TempReplyResult.Status := ResultStatus;
+        TempReplyResult.Insert();
     end;
 
-    local procedure ApplyRetryUpdates(var TempFailedReplyAttempt: Record "SOA Reply Attempt" temporary; var TempSuccessfulReplyAttempt: Record "SOA Reply Attempt" temporary)
+    local procedure ApplyReplyResults(var TempReplyResult: Record "Agent Task Message" temporary)
     var
         SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
     begin
-        if TempFailedReplyAttempt.FindSet() then
-            repeat
-                SOAReplyRetryMgt.RegisterFailedAttempt(TempFailedReplyAttempt."Task ID", TempFailedReplyAttempt."Message ID");
-            until TempFailedReplyAttempt.Next() = 0;
+        if not TempReplyResult.FindSet() then
+            exit;
 
-        if TempSuccessfulReplyAttempt.FindSet() then
-            repeat
-                SOAReplyRetryMgt.ClearAttempts(TempSuccessfulReplyAttempt."Task ID", TempSuccessfulReplyAttempt."Message ID");
-            until TempSuccessfulReplyAttempt.Next() = 0;
+        repeat
+            if TempReplyResult.Status = TempReplyResult.Status::Sent then
+                SOAReplyRetryMgt.ClearAttempts(TempReplyResult."Task ID", TempReplyResult.ID)
+            else
+                SOAReplyRetryMgt.RegisterFailedAttempt(TempReplyResult."Task ID", TempReplyResult.ID);
+        until TempReplyResult.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Moves the message to the terminal Failed status so that it is no longer picked up for delivery,
+    /// and records why delivery was given up in the status reason shown to the user.
+    /// </summary>
+    local procedure GiveUpOnDelivery(var TempExhaustedReply: Record "Agent Task Message" temporary; var SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.")
+    var
+        AgentTaskMessageToFail: Record "Agent Task Message";
+        SOASetReplyFailed: Codeunit "SOA Set Reply Failed";
+    begin
+        // Only carries the values into the isolated run; it is never inserted or modified here.
+        AgentTaskMessageToFail."Task ID" := TempExhaustedReply."Task ID";
+        AgentTaskMessageToFail.ID := TempExhaustedReply.ID;
+        // The status reason is shown to the user, so it tells them what to do instead of repeating a
+        // technical message that only says the send failed.
+        AgentTaskMessageToFail."Status Reason" := CopyStr(StrSubstNo(ReplyDeliveryFailedReasonLbl, SOAReplyRetryMgt.GetMaxAttempts()), 1, MaxStrLen(AgentTaskMessageToFail."Status Reason"));
+
+        // The message keeps its counter at the maximum, so the next run tries the transition again
+        // rather than restarting the retry budget or sending the reply once more.
+        if not SOASetReplyFailed.Run(AgentTaskMessageToFail) then
+            exit;
+
+        SOAReplyRetryMgt.ClearAttempts(TempExhaustedReply."Task ID", TempExhaustedReply.ID);
     end;
 }

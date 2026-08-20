@@ -616,6 +616,10 @@ page 4400 "SOA Setup"
         SOASetupCU: Codeunit "SOA Setup";
     begin
         UpdateAgentSetupBuffer();
+        // The warning is only meaningful when the agent actually monitors a mailbox.
+        if (not Rec."Email Monitoring") or IsNullGuid(Rec."Email Account ID") then
+            exit(false);
+
         if (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled) and StateChanged() and not IsFirstConfig() then
             if not SOASetupCU.ValidateEmailConnectionStatus(Rec) then
                 exit(true);
