@@ -9,7 +9,6 @@ codeunit 130618 "Library - Graph Mgt"
         Assert: Codeunit Assert;
         LibraryGraphAuthMgt: Codeunit Microsoft.TestLibraries.ERP."Library - Graph Auth Mgt.";
         IsApiTestInitialized: Boolean;
-        IsAuthenticationBound: Boolean;
         IncorrectValueErr: Label 'Incorrect value found in JSON for %1 property.', Comment = '%1 - Name of property';
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
         UnexpectedResponseCodeErr: Label 'Response code %1 (%2) differs from the expected %3.', Comment = '%1 - Actual response code number, %2 - Actual response code, %3 - Expected response code number';
@@ -18,8 +17,6 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure BindAuthentication()
     begin
-        IsAuthenticationBound := true;
-        LibraryGraphAuthMgt.EnableAuthentication();
     end;
 
     procedure InitializeApiTest()
@@ -180,11 +177,10 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
-        if IsAuthenticationBound then
-            LibraryGraphAuthMgt.EnableAuthentication();
         if IsApiTestInitialized then
             EnsureApiTestVATPostingSetups();
         HttpWebRequestMgt.Initialize(TargetURL);
+        LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
     end;
 

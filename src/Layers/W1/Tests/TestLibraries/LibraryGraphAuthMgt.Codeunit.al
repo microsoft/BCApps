@@ -14,10 +14,8 @@ using System.Text;
 codeunit 131022 "Library - Graph Auth Mgt."
 {
     Access = Internal;
-    SingleInstance = true;
 
     var
-        AuthenticationEnabled: Boolean;
         ApiTestPasswordFileTok: Label 'C:\Run\my\ApiTestPassword', Locked = true;
         NavServerUserPasswordKeyTok: Label 'NavServerUserPassword', Locked = true;
         CurrentUserNotFoundErr: Label 'The current test user could not be found.';
@@ -25,21 +23,12 @@ codeunit 131022 "Library - Graph Auth Mgt."
         KeyVaultPasswordReadErr: Label 'The API test password could not be retrieved from the %1 secret.', Comment = '%1 - Azure Key Vault secret name';
         PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.', Locked = true;
 
-    procedure EnableAuthentication()
-    begin
-        AuthenticationEnabled := true;
-    end;
-
     [NonDebuggable]
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Graph Mgt", OnAfterInitializeWebRequestWithURL, '', false, false)]
-    local procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
     var
         User: Record User;
         Password: SecretText;
     begin
-        if not AuthenticationEnabled then
-            exit;
-
         if not User.Get(UserSecurityId()) then
             Error(CurrentUserNotFoundErr);
 
