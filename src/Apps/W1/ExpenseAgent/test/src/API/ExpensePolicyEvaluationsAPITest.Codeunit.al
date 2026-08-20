@@ -6,7 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 
-codeunit 148344 "Expense Policy Evaluations API Test"
+codeunit 148344 "Policy Evaluations API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -115,13 +115,13 @@ codeunit 148344 "Expense Policy Evaluations API Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Policy Evaluations API Test");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Policy Evaluations API Test");
         LibraryExpense.CleanUpBeforeTesting();
         if IsInitialized then
             exit;
 
         BindSubscription(APITestAuthHelper);
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Policy Evaluations API Test");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Policy Evaluations API Test");
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
@@ -136,7 +136,7 @@ codeunit 148344 "Expense Policy Evaluations API Test"
         ExpenseAgentSetup.Modify();
         IsInitialized := true;
         Commit();
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Policy Evaluations API Test");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Policy Evaluations API Test");
     end;
 
     local procedure CreateReportLineAndPolicy(var ExpenseReportLine: Record "Expense Report Line"; var ExpensePolicy: Record "Expense Policy")
