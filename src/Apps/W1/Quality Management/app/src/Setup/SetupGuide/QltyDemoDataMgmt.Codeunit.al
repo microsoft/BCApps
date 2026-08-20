@@ -51,11 +51,15 @@ codeunit 20422 "Qlty. Demo Data Mgmt."
     /// <summary>
     /// Returns the App ID of the Quality Management Contoso Coffee Demo Dataset app.
     /// </summary>
+    /// <returns>The application identifier of the demo dataset app.</returns>
     local procedure GetContosoAppId(): Guid
     begin
         exit('40bf2bab-2a57-4c34-9002-c11d23fcbff6');
     end;
 
+    /// <summary>
+    /// Opens the Contoso Demo Tool page.
+    /// </summary>
     local procedure OpenContosoDemoTool()
     var
         ContosoDemoToolPageId: Integer;

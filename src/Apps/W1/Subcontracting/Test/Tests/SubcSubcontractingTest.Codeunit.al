@@ -1130,8 +1130,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
         ProdPostingGroup1, ProdPostingGroup2 : Code[20];
         VATBusPostingGroup1, VATBusPostingGroup2 : Code[20];
@@ -2500,6 +2500,249 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure ChangingVendorKeepsProdOrderRoutingLineDescriptions()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription: Text[100];
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor on a subcontracting requisition line keeps the production routing descriptions
+        Initialize();
+
+        // [GIVEN] A released production order with custom descriptions on its subcontracting routing line
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ExpectedDescription := 'Custom subcontracting operation';
+        ExpectedDescription2 := 'Custom operation details';
+        ProdOrderRoutingLine.Description := ExpectedDescription;
+        ProdOrderRoutingLine."Description 2" := ExpectedDescription2;
+        ProdOrderRoutingLine.Modify();
+
+        // [GIVEN] The production routing line is suggested on the subcontracting worksheet
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] Both descriptions still come from the production order routing line
+        Assert.AreEqual(ExpectedDescription, RequisitionLine.Description, 'The routing line description must be kept when the vendor changes.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The routing line description 2 must be kept when the vendor changes.');
+    end;
+
+    [Test]
+    procedure ChangingVendorKeepsBlankRoutingDescriptionAndUsesWorkCenterDescription2()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor keeps a blank routing description and uses work center description 2
+        Initialize();
+
+        // [GIVEN] A released production order with blank descriptions on its subcontracting routing line
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        ExpectedDescription2 := 'Work center details';
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        Clear(ProdOrderRoutingLine.Description);
+        Clear(ProdOrderRoutingLine."Description 2");
+        ProdOrderRoutingLine.Modify();
+
+        // [GIVEN] The production routing line is suggested on the subcontracting worksheet
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine.Description := 'Description before vendor validation';
+        RequisitionLine."Description 2" := 'Description 2 before validation';
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] The description remains blank and description 2 comes from the subcontracting work center
+        Assert.AreEqual('', RequisitionLine.Description, 'The blank routing line description must be kept when the vendor changes.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The work center description 2 must be used when the routing line description 2 is blank.');
+    end;
+
+    [Test]
+    procedure ChangingVendorUsesWorkCenterDescriptionsWhenRoutingLineNotFound()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription: Text[100];
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor uses the subcontracting work center descriptions when the routing line is not found
+        Initialize();
+
+        // [GIVEN] A released production order with distinct descriptions on its subcontracting work center
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        ExpectedDescription := 'Subcontracting work center';
+        ExpectedDescription2 := 'Work center details';
+        WorkCenter[2].Validate(Name, ExpectedDescription);
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] A subcontracting requisition line whose routing operation does not exist
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine."Operation No." := 'NOTFOUND';
+        RequisitionLine.Description := 'Description before vendor validation';
+        RequisitionLine."Description 2" := 'Description 2 before validation';
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] Both descriptions fall back to the subcontracting work center
+        Assert.AreEqual(ExpectedDescription, RequisitionLine.Description, 'The work center description must be used when the routing line is not found.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The work center description 2 must be used when the routing line is not found.');
+    end;
+
+    [Test]
+    procedure ChangingVendorUsesWorkCenterDescriptionsWhenRoutingLineWorkCenterDiffers()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription: Text[100];
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor uses the requisition work center descriptions when the routing line work center differs
+        Initialize();
+
+        // [GIVEN] A released production order with distinct descriptions on its subcontracting work center
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        ExpectedDescription := 'Current subcontracting work center';
+        ExpectedDescription2 := 'Current work center details';
+        WorkCenter[2].Validate(Name, ExpectedDescription);
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] A subcontracting requisition line and its matching-key routing line with different work centers
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        ProdOrderRoutingLine.Get(
+            RequisitionLine."Ref. Order Status", RequisitionLine."Ref. Order No.", RequisitionLine."Routing Reference No.",
+            RequisitionLine."Routing No.", RequisitionLine."Operation No.");
+        ProdOrderRoutingLine."Work Center No." := WorkCenter[1]."No.";
+        ProdOrderRoutingLine.Description := 'Mismatched routing description';
+        ProdOrderRoutingLine."Description 2" := 'Mismatched routing details';
+        ProdOrderRoutingLine.Modify();
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] Both descriptions fall back to the requisition line's subcontracting work center
+        Assert.AreEqual(ExpectedDescription, RequisitionLine.Description, 'The requisition work center description must be used when the routing line work center differs.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The requisition work center description 2 must be used when the routing line work center differs.');
+    end;
+
+    [Test]
     procedure CalculateSubcontractsErrorsWhenWorkCenterMissingGenProdPostingGroup()
     var
         Item: Record Item;
@@ -3711,7 +3954,9 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         LibraryVariableStorage.Enqueue(Question);
         case true of
-            Question.Contains('Do you want to create a production order from'):
+            Question.Contains('Do you really want to change Inventory Account although value entries exist?'),
+            Question.Contains('Do you want to create a production order from'),
+            Question.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?'):
                 Reply := true;
             else
                 Reply := false;
@@ -4696,6 +4941,74 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             ReturnTransferHeader."No.", SubcPurchFactboxMgmt.GetReturnTransferOrderNo(PurchaseLine),
             'Return Transfer Order No. must match the created return transfer order');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TransferOrderActionDisabledOnNonSubcontractingPurchaseLine()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        NonSubcItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        SubcPurchaseLine: Record "Purchase Line";
+        NonSubcPurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrderPage: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [Subcontracting]
+        // [SCENARIO 638531] The "Transfer Order" action on the Purchase Order Subform must be disabled
+        // for a non-subcontracting line (no Prod. Order No.) and enabled for a subcontracting line.
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+
+        // [GIVEN] Work and Machine Centers, an Item with Routing and Prod. BOM configured for Transfer subcontracting
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order with its transfer components located
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        // [GIVEN] A subcontracting purchase order is created from the routing (with Prod. Order No. set on the subc. line)
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        SubcPurchaseLine.SetRange("Document Type", SubcPurchaseLine."Document Type"::Order);
+        SubcPurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        SubcPurchaseLine.FindFirst();
+        PurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
+
+        // [GIVEN] A second non-subcontracting line is added to the same purchase order (no Prod. Order No.)
+        LibraryInventory.CreateItem(NonSubcItem);
+        LibraryPurchase.CreatePurchaseLine(
+            NonSubcPurchaseLine, PurchaseHeader, NonSubcPurchaseLine.Type::Item, NonSubcItem."No.", 1);
+
+        // [WHEN] Opening the Purchase Order page
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+
+        // [THEN] "Transfer Order" action is enabled on the subcontracting line (Prod. Order No. is set)
+        PurchaseOrderPage.PurchLines.GoToRecord(SubcPurchaseLine);
+        Assert.IsTrue(
+            PurchaseOrderPage.PurchLines."Transfer Order".Enabled(),
+            'Transfer Order action must be enabled for a subcontracting purchase line (Prod. Order No. is set).');
+
+        // [THEN] "Transfer Order" action is disabled on the non-subcontracting line (no Prod. Order No.)
+        PurchaseOrderPage.PurchLines.GoToRecord(NonSubcPurchaseLine);
+        Assert.IsFalse(
+            PurchaseOrderPage.PurchLines."Transfer Order".Enabled(),
+            'Transfer Order action must be disabled for a non-subcontracting purchase line (no Prod. Order No.).');
+
+        PurchaseOrderPage.Close();
     end;
 
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
