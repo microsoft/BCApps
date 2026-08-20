@@ -22,6 +22,7 @@ codeunit 139799 "E-Doc. Helper Test"
         Assert: Codeunit "Assert";
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryPurchase: Codeunit "Library - Purchase";
         MultipleVendorsWithRegistrationNoErr: Label 'Multiple vendors match the registration number on the electronic document.';
 
     trigger OnRun()
@@ -69,7 +70,7 @@ codeunit 139799 "E-Doc. Helper Test"
         // [FEATURE] [AI test]
         // [SCENARIO 646793] A vendor can be resolved by Registration No. when other identifiers are unavailable.
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
-        CreateVendor(Vendor);
+        LibraryPurchase.CreateVendor(Vendor);
         Vendor."Use Reg. No. in E-Document" := true;
         Vendor."Registration Number" := RegistrationNo;
         Vendor.Modify();
@@ -88,7 +89,7 @@ codeunit 139799 "E-Doc. Helper Test"
         // [FEATURE] [AI test]
         // [SCENARIO 646793] Registration No. matching requires explicit vendor setup.
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
-        CreateVendor(Vendor);
+        LibraryPurchase.CreateVendor(Vendor);
         Vendor."Registration Number" := RegistrationNo;
         Vendor.Modify();
 
@@ -106,11 +107,11 @@ codeunit 139799 "E-Doc. Helper Test"
         // [FEATURE] [AI test]
         // [SCENARIO 646793] Vendor matching fails when a registration number identifies multiple vendors.
         RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
-        CreateVendor(Vendor[1]);
+        LibraryPurchase.CreateVendor(Vendor[1]);
         Vendor[1]."Use Reg. No. in E-Document" := true;
         Vendor[1]."Registration Number" := RegistrationNo;
         Vendor[1].Modify();
-        CreateVendor(Vendor[2]);
+        LibraryPurchase.CreateVendor(Vendor[2]);
         Vendor[2]."Use Reg. No. in E-Document" := true;
         Vendor[2]."Registration Number" := RegistrationNo;
         Vendor[2].Modify();
@@ -232,12 +233,4 @@ codeunit 139799 "E-Doc. Helper Test"
         EDocument.Delete();
     end;
 
-    local procedure CreateVendor(var Vendor: Record Vendor)
-    var
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        Vendor.Init();
-        Vendor."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Vendor."No."));
-        Vendor.Insert();
-    end;
 }
