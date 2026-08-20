@@ -15,7 +15,10 @@ using System.Reflection;
 codeunit 9667 "Composite Report Parts Mgt."
 {
     Access = Internal;
-    Permissions = tabledata "Tenant Report Layout" = RIMD;
+    // No Permissions elevation on purpose. Access = Internal is a compile-time boundary, not an authorization one - the
+    // apps listed in the Base Application's internalsVisibleTo can call in here - so elevating would let a caller write
+    // the shared part pool without holding rights to it. The callers that need to seed (install and upgrade) already run
+    // with the rights, and a caller that does not hold them should fail.
 
     /// <summary>
     /// Writes every part that ships with the Base Application into the shared pool. Safe to call repeatedly:

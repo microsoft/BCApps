@@ -22,7 +22,8 @@ using System.Reflection;
 codeunit 9668 "Composite Layout Assign. Mgt."
 {
     Access = Internal;
-    Permissions = tabledata "Tenant Report Layout Cfg" = RIM;
+    // No Permissions elevation on purpose - see the note in Composite Report Parts Mgt. Internal visibility is not an
+    // authorization boundary, so the caller has to hold the rights to write the configuration table itself.
 
     /// <summary>
     /// Applies every assignment that ships with the Base Application: the header/footer design listed for each body
