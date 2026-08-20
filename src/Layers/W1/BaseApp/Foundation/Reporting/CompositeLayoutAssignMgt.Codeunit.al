@@ -213,22 +213,24 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     /// Looks up a header/footer or theme part in the shared pool by name and returns the composite reference to store.
     /// </summary>
     local procedure ResolvePart(PartName: Text; Subtype: Enum "Report Layout Subtype"; var Composite: Text): Boolean
-    var
-        ReportLayoutList: Record "Report Layout List";
-        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
-    begin
-        Composite := '';
-        if PartName = '' then
-            exit(false);
+var
+    ReportLayoutList: Record "Report Layout List";
+    CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+    EmptyAppId: Guid;
+begin
+    Composite := '';
+    if PartName = '' then
+        exit(false);
 
-        ReportLayoutList.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
-        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
-        ReportLayoutList.SetRange("Layout Subtype", Subtype);
-        if not ReportLayoutList.FindFirst() then
-            exit(false);
+    ReportLayoutList.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
+    ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
+    ReportLayoutList.SetRange("Application ID", EmptyAppId);
+    ReportLayoutList.SetRange("Layout Subtype", Subtype);
+    if not ReportLayoutList.FindFirst() then
+        exit(false);
 
-        Composite := CompositeLayoutLookupHelper.EncodeCompositeName(ReportLayoutList."Application ID", ReportLayoutList.Name);
-        exit(true);
+    Composite := CompositeLayoutLookupHelper.EncodeCompositeName(ReportLayoutList."Application ID", ReportLayoutList.Name);
+    exit(true);
     end;
 
     local procedure CountIf(Assigned: Boolean): Integer
