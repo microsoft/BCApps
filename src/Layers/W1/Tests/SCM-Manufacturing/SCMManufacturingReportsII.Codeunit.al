@@ -801,6 +801,72 @@ codeunit 137310 "SCM Manufacturing Reports -II"
 
     [Test]
     [HandlerFunctions('ExpCostPostingConfirmHandler,ExpCostPostingMsgHandler,InventoryValuationWIPRequestPageHandler')]
+    procedure InventoryValuationWIPReportForNoOutputLineWithCapacityCost()
+    var
+        InventorySetup: Record "Inventory Setup";
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ConsumptionValueEntry: Record "Value Entry";
+        CapacityValueEntry: Record "Value Entry";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        ExpectedExpensedWIP: Decimal;
+        ExpectedCapacity: Decimal;
+    begin
+        // [AI] 0.2
+        // [SCENARIO 604329] When a production order is finished with no output but capacity cost was posted, the
+        // "Inventory Valuation - WIP" report must move the capacity cost into the "Expensed WIP" column and leave a zero
+        // Capacity column, so the same cost is not reported in both places.
+        Initialize();
+
+        // [GIVEN] "Allow Finish Prod. Order with no Output" is enabled in Manufacturing Setup.
+        ExecuteUIHandlers();
+        LibraryManufacturing.UpdateFinishOrderWithoutOutputInManufacturingSetup(true);
+
+        // [GIVEN] A manufacturing Item with a component, Routing and Production BOM.
+        UpdateInventorySetup(true, true, InventorySetup."Automatic Cost Adjustment"::Never);
+        CreateProdOrderItemsSetup(Item);
+
+        // [GIVEN] A released Production Order.
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", LibraryRandom.RandIntInRange(2, 5));
+
+        // [GIVEN] Consumption and capacity (run time with no output quantity) are posted for the line.
+        CreateAndPostConsumptionJournal(ProductionOrder."No.");
+        PostCapacityWithoutOutput(ProductionOrder."No.", LibraryRandom.RandIntInRange(10, 20), LibraryRandom.RandIntInRange(10, 20));
+
+        // [GIVEN] The order is finished without output, so the line's WIP (consumption and capacity) is written off.
+        ProdOrderStatusMgt.SetFinishOrderWithoutOutput(true);
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), true);
+
+        // [GIVEN] The expensed WIP equals the line's consumption plus capacity cost; capacity cost is non-zero.
+        ConsumptionValueEntry.SetRange("Order Type", ConsumptionValueEntry."Order Type"::Production);
+        ConsumptionValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        ConsumptionValueEntry.SetRange("Item Ledger Entry Type", ConsumptionValueEntry."Item Ledger Entry Type"::Consumption);
+        ConsumptionValueEntry.CalcSums("Cost Amount (Actual)");
+
+        CapacityValueEntry.SetRange("Order Type", CapacityValueEntry."Order Type"::Production);
+        CapacityValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityValueEntry.SetRange("Item Ledger Entry Type", CapacityValueEntry."Item Ledger Entry Type"::" ");
+        CapacityValueEntry.CalcSums("Cost Amount (Actual)");
+
+        ExpectedCapacity := CapacityValueEntry."Cost Amount (Actual)";
+        Assert.AreNotEqual(0, ExpectedCapacity, 'Test setup must post capacity cost on the no-output line.');
+        ExpectedExpensedWIP := -ConsumptionValueEntry."Cost Amount (Actual)" + ExpectedCapacity;
+
+        // [WHEN] Running the "Inventory Valuation - WIP" report for the finished order.
+        RunAndSaveInventoryValuationWIPReport(ProductionOrder);
+
+        // [THEN] The capacity cost is included in "Expensed WIP", the Capacity column is zero and the ending WIP is zero.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_ProductionOrder', ProductionOrder."No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), 'Report produced no row for the finished production order.');
+        LibraryReportDataset.AssertCurrentRowValueEquals('ExpensedWIP', ExpectedExpensedWIP);
+        LibraryReportDataset.AssertCurrentRowValueEquals('ValueOfCap', 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals('ValueOfMatConsump', 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals('AtLastDate', 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpCostPostingConfirmHandler,ExpCostPostingMsgHandler,InventoryValuationWIPRequestPageHandler')]
     procedure InventoryValuationWIPReportForMixedOutputAndNoOutputLines()
     var
         InventorySetup: Record "Inventory Setup";
@@ -980,6 +1046,30 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         LibraryInventory.ClearItemJournal(OutputItemJournalTemplate, OutputItemJournalBatch);
         LibraryManufacturing.CreateOutputJournal(ItemJournalLine, OutputItemJournalTemplate, OutputItemJournalBatch, '', ProductionOrderNo);
         LibraryManufacturing.OutputJnlExplodeRoute(ItemJournalLine);
+    end;
+
+    local procedure PostCapacityWithoutOutput(ProductionOrderNo: Code[20]; RunTime: Decimal; UnitCost: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // Explode the routing and post only capacity (run time) with no output quantity, so the line carries capacity cost
+        // but produces no output.
+        LibraryInventory.ClearItemJournal(OutputItemJournalTemplate, OutputItemJournalBatch);
+        LibraryManufacturing.CreateOutputJournal(ItemJournalLine, OutputItemJournalTemplate, OutputItemJournalBatch, '', ProductionOrderNo);
+        LibraryManufacturing.OutputJnlExplodeRoute(ItemJournalLine);
+
+        ItemJournalLine.SetRange("Journal Template Name", OutputItemJournalBatch."Journal Template Name");
+        ItemJournalLine.SetRange("Journal Batch Name", OutputItemJournalBatch.Name);
+        if ItemJournalLine.FindSet() then
+            repeat
+                ItemJournalLine.Validate("Output Quantity", 0);
+                ItemJournalLine.Validate("Setup Time", 0);
+                ItemJournalLine.Validate("Run Time", RunTime);
+                ItemJournalLine.Validate("Unit Cost", UnitCost);
+                ItemJournalLine.Modify(true);
+            until ItemJournalLine.Next() = 0;
+
+        LibraryInventory.PostItemJournalLine(OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
     end;
 
     local procedure CreateProdOrderItemsSetup(var Item: Record Item) ChildItemNo: Code[20]
