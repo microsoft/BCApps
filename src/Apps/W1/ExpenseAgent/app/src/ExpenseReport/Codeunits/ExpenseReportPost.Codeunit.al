@@ -412,6 +412,7 @@ codeunit 6987 "Expense Report-Post"
         ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
         ExpensePolicyFlag.SetRange("Subject Type", ExpensePolicyFlag."Subject Type"::"Expense Report Line");
         ExpensePolicyFlag.SetRange("Subject Version", ExpenseReportLine."Evaluated Policy Version");
+        ExpensePolicyFlag.SetRange("Is Current", true);
         if ExpensePolicyFlag.FindSet() then
             repeat
                 PostedExpPolicyFlag.Init();

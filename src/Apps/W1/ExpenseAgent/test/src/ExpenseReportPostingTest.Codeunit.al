@@ -3738,8 +3738,8 @@ codeunit 148302 "Expense Report Posting Test"
         PostedExpPolicyFlag: Record "Posted Exp. Policy Flag";
         ExpenseReportPost: Codeunit "Expense Report-Post";
     begin
-        // [SCENARIO] Policy flags on a report line are copied to the Posted Expense Policy Flag table on posting,
-        //            and the open flags are removed with the line.
+        // [SCENARIO] Only current policy flags on a report line are copied to the Posted Expense Policy Flag table on posting,
+        //            and all open flags are removed with the line.
         Initialize();
 
         // [GIVEN] An expense user and a refundable category with an expense report line.
@@ -3754,7 +3754,7 @@ codeunit 148302 "Expense Report Posting Test"
             ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
             ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
 
-        // [GIVEN] A policy for the category and a violation flag captured on the line, then the line is marked evaluated.
+        // [GIVEN] A policy for the category and a violation flag captured on the line.
         ExpensePolicy.Init();
         ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
         ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
@@ -3771,6 +3771,23 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicyFlag.Reason := 'Receipt includes alcohol.';
         ExpensePolicyFlag.Insert(true);
 
+        // [GIVEN] The policy is changed and evaluated again, leaving the previous version's flag as open-line history.
+        ExpensePolicy."Policy Text" := 'No alcohol or tobacco on company expenses.';
+        ExpensePolicy.Modify(true);
+
+        ExpensePolicyFlag.Init();
+        ExpensePolicyFlag."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyFlag."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyFlag."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyFlag."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyFlag."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyFlag.Reason := 'Receipt includes alcohol and tobacco.';
+        ExpensePolicyFlag.Insert(true);
+
+        ExpensePolicyFlag.Reset();
+        ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        Assert.RecordCount(ExpensePolicyFlag, 2);
+
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
         // [GIVEN] The report is released.
@@ -3780,15 +3797,18 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
-        // [THEN] The posted line carries the copied policy flag.
+        // [THEN] The posted line carries only the current policy flag.
         FindPostedExpenseReportLine(PostedExpenseReportLine, ExpenseUser);
         Assert.AreEqual(ExpenseReportLine."Policies Evaluated At", PostedExpenseReportLine."Policies Evaluated At", 'The posted line must preserve when policies were evaluated.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine."Policy Status At Posting", 'The posted line must preserve the Flagged status.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine.GetPolicyStatus(), 'The posted status accessor must return the posting snapshot.');
         PostedExpPolicyFlag.SetRange("Subject System Id", PostedExpenseReportLine.SystemId);
         Assert.RecordCount(PostedExpPolicyFlag, 1);
+        PostedExpPolicyFlag.FindFirst();
+        Assert.AreEqual(ExpensePolicy."Version", PostedExpPolicyFlag."Policy Version", 'The posted flag must reference the current policy version.');
+        Assert.AreEqual('Receipt includes alcohol and tobacco.', PostedExpPolicyFlag.Reason, 'The posted flag must contain the current policy verdict.');
 
-        // [THEN] The original open flag no longer exists.
+        // [THEN] Neither the current nor superseded open flag remains.
         ExpensePolicyFlag.Reset();
         ExpensePolicyFlag.SetRange("Subject System Id", ExpenseReportLine.SystemId);
         Assert.RecordIsEmpty(ExpensePolicyFlag);
