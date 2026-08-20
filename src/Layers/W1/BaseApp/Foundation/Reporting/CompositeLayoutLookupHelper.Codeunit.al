@@ -168,38 +168,6 @@ codeunit 9665 "Composite Layout Lookup Helper"
         exit(2000000001);
     end;
 
-    // TODO: APPID-IN-LAYOUTNAME - remove when the platform resolves the body layout itself.
-    //
-    // The Layout Name key of Tenant Report Layout Cfg has to carry the owning application as <AppId>::<LayoutName>,
-    // because the table has no application ID field: its key is Report ID + Layout Name + Company Name. Until the
-    // platform does that resolution, every reader and writer of that key has to agree on the encoded form.
-    //
-    // To remove: delete this function, and pass the plain layout name at every call site. Find them all with
-    //     grep -rn APPID-IN-LAYOUTNAME
-    /// <summary>
-    /// Returns the value to store in the Layout Name key of Tenant Report Layout Cfg for a body layout: the
-    /// <c>&lt;AppId&gt;::&lt;LayoutName&gt;</c> composite.
-    /// </summary>
-    /// <param name="ReportID">The report the body layout belongs to.</param>
-    /// <param name="LayoutName">The plain layout name.</param>
-    /// <returns>The composite reference, or the plain name when no such layout is installed.</returns>
-    internal procedure GetBodyLayoutReference(ReportID: Integer; LayoutName: Text): Text
-    var
-        ReportLayoutList: Record "Report Layout List";
-    begin
-        if LayoutName = '' then
-            exit('');
-        if StrPos(LayoutName, '::') > 0 then
-            exit(LayoutName);
-
-        ReportLayoutList.SetRange("Report ID", ReportID);
-        ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, MaxStrLen(ReportLayoutList.Name)));
-        if not ReportLayoutList.FindFirst() then
-            exit(LayoutName);
-
-        exit(this.EncodeCompositeName(ReportLayoutList."Application ID", ReportLayoutList.Name));
-    end;
-
     /// <summary>
     /// Resolves the header/footer and theme parts that effectively apply to a report layout and reports both the part
     /// name and where it resolved from. Mirrors the platform resolver (Stage 2 of ReportLayoutSelection), walking the
@@ -252,7 +220,6 @@ codeunit 9665 "Composite Layout Lookup Helper"
     internal procedure GetLayoutLevelPartDisplays(ReportID: Integer; LayoutName: Text; var HeaderDisplay: Text; var HeaderSource: Text; var ThemeDisplay: Text; var ThemeSource: Text; var HeaderResolved: Boolean; var ThemeResolved: Boolean)
     var
         CompanyFilter: Text;
-        BodyLayoutReference: Text;
     begin
         HeaderDisplay := NoneTxt;
         ThemeDisplay := NoneTxt;
@@ -261,11 +228,9 @@ codeunit 9665 "Composite Layout Lookup Helper"
         HeaderResolved := false;
         ThemeResolved := false;
         CompanyFilter := CompanyName();
-        // TODO: APPID-IN-LAYOUTNAME - pass LayoutName instead once the platform resolves the body layout.
-        BodyLayoutReference := this.GetBodyLayoutReference(ReportID, LayoutName);
 
-        this.TryApplyCfgLevel(ReportID, BodyLayoutReference, CompanyFilter, ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
-        this.TryApplyCfgLevel(ReportID, BodyLayoutReference, '', ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        this.TryApplyCfgLevel(ReportID, LayoutName, CompanyFilter, ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        this.TryApplyCfgLevel(ReportID, LayoutName, '', ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
     end;
 
     /// <summary>

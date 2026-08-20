@@ -86,15 +86,13 @@ page 9667 "Header/Footer Theme Assignment"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        // TODO: APPID-IN-LAYOUTNAME - stored as <AppId>::<LayoutName>; use the plain LayoutName once the platform
-        // resolves the body layout itself. The dialog already shows the plain name.
-        BodyLayoutReference := CopyStr(LookupHelper.GetBodyLayoutReference(ReportID, LayoutName), 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
+        BodyLayoutReference := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
 
         Rec.Reset();
         Rec.DeleteAll();
         Rec.Init();
         Rec."Report ID" := ReportID;
-        Rec."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(Rec."Layout Name"));
+        Rec."Layout Name" := BodyLayoutReference;
         if TenantReportLayoutCfg.Get(ReportID, BodyLayoutReference, '') then begin
             Rec."Header Part Name" := TenantReportLayoutCfg."Header Part Name";
             Rec."Theme Part Name" := TenantReportLayoutCfg."Theme Part Name";
