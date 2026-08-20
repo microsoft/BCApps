@@ -49,13 +49,12 @@ codeunit 7107 "Exp. Policies To Eval Builder"
     var
         HasApplicablePolicies: Boolean;
         HasOutstandingPoliciesResult: Boolean;
-        HasPoliciesChangedSinceEvaluation: Boolean;
     begin
-        GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPoliciesResult, HasPoliciesChangedSinceEvaluation);
+        GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPoliciesResult);
         exit(HasOutstandingPoliciesResult);
     end;
 
-    procedure GetEvaluationState(ExpenseReportLine: Record "Expense Report Line"; var HasApplicablePolicies: Boolean; var HasOutstandingPoliciesResult: Boolean; var HasPoliciesChangedSinceEvaluation: Boolean)
+    procedure GetEvaluationState(ExpenseReportLine: Record "Expense Report Line"; var HasApplicablePolicies: Boolean; var HasOutstandingPoliciesResult: Boolean)
     var
         ExpensePolicy: Record "Expense Policy";
         ExistingEvaluationKeys: Dictionary of [Text, Boolean];
@@ -64,7 +63,6 @@ codeunit 7107 "Exp. Policies To Eval Builder"
     begin
         HasApplicablePolicies := false;
         HasOutstandingPoliciesResult := false;
-        HasPoliciesChangedSinceEvaluation := false;
 
         SubjectSystemId := ExpenseReportLine.SystemId;
         SubjectVersion := ExpenseReportLine."Policy Eval Version";
@@ -76,8 +74,6 @@ codeunit 7107 "Exp. Policies To Eval Builder"
         HasApplicablePolicies := true;
         LoadExistingEvaluationKeys(SubjectSystemId, SubjectVersion, ExistingEvaluationKeys);
         repeat
-            if (ExpenseReportLine."Policies Evaluated At" <> 0DT) and (ExpensePolicy.SystemModifiedAt > ExpenseReportLine."Policies Evaluated At") then
-                HasPoliciesChangedSinceEvaluation := true;
             if not EvaluationExists(ExistingEvaluationKeys, ExpensePolicy.SystemId, ExpensePolicy."Version") then begin
                 HasOutstandingPoliciesResult := true;
                 exit;

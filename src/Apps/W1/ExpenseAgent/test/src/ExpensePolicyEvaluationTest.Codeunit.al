@@ -539,19 +539,19 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual(0, ExpenseReportLine."Policy Eval Version", 'A policy change must not rewrite the evaluated line.');
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Changing a policy must leave the evaluated line Stale.');
 
-        // [WHEN] A verdict is recorded for the changed policy, but evaluation completion is not marked yet.
+        // [WHEN] A verdict is recorded for the changed policy.
         AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Updated evaluation passed.');
 
-        // [THEN] The line remains Stale until the explicit completion action updates the evaluation timestamp.
+        // [THEN] The current verdict makes the line Cleared without relying on the audit timestamp.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Submitting the new verdict must not complete the evaluation by itself.');
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Submitting a verdict for the current policy version must make the line Cleared.');
 
-        // [WHEN] Evaluation completion is marked.
+        // [WHEN] Evaluation completion is marked for audit.
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
-        // [THEN] The current verdict and completion timestamp make the line Cleared.
+        // [THEN] Recording the audit timestamp does not change the status.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Marking evaluation complete must make the current compliant verdict effective.');
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Recording the evaluation timestamp must leave the current compliant verdict effective.');
     end;
 
     [Test]
