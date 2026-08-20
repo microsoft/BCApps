@@ -68,6 +68,16 @@ page 10973 "FR E-Invoice Messages"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the related generic E-Document message entry.';
                 }
+                field("External Message ID"; Rec."External Message ID")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the identifier assigned to an incoming lifecycle message by the external service.';
+                }
+                field("Received At"; Rec."Received At")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies when the incoming lifecycle message was received.';
+                }
                 field("Created At"; Rec."Created At")
                 {
                     ApplicationArea = Basic, Suite;

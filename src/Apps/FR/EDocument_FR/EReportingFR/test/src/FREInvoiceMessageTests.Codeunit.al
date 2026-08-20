@@ -7,12 +7,11 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Message;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
-codeunit 148152 "FR E-Invoice Message Tests"
+codeunit 148151 "FR E-Invoice Message Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -58,6 +57,7 @@ codeunit 148152 "FR E-Invoice Message Tests"
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One Collected message must be sent.');
         Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ProcessConditionCode>212</ram:ProcessConditionCode>'), 'The payload must contain status 212.');
         Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ValueAmount currencyID="EUR">100'), 'The payload must contain the collected amount.');
+        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<udt:DateTimeString format="204">'), 'The payload must contain the AFNOR lifecycle event date.');
     end;
 
     [Test]
@@ -232,6 +232,352 @@ codeunit 148152 "FR E-Invoice Message Tests"
         Assert.ExpectedError('is not registered');
     end;
 
+    [Test]
+    procedure BuyerAcceptanceQueuesAndSendsStatus205()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        Initialize();
+        CreateIncomingEDocument(EDocument);
+
+        FREInvoiceMessageMgt.AcceptInvoice(EDocument);
+
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Accepted);
+        Assert.RecordCount(FREInvoiceMessage, 1);
+        Assert.AreEqual(0, MessageSenderMock.GetSendCount(), 'Acceptance must queue the message without invoking the connector.');
+        SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Accepted);
+        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One Accepted message must be sent.');
+        Assert.AreEqual("E-Doc. Response Type"::Accepted, MessageSenderMock.GetLastResponseType(), 'The child message must be Accepted.');
+        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ProcessConditionCode>205</ram:ProcessConditionCode>'), 'The payload must contain status 205.');
+    end;
+
+    [Test]
+    procedure BuyerResponseCannotBeRepeated()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        Initialize();
+        CreateIncomingEDocument(EDocument);
+
+        FREInvoiceMessageMgt.AcceptInvoice(EDocument);
+        asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Changed my mind.');
+        Assert.ExpectedError('already has a buyer response');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure BuyerResponseCannotBeRepeatedAfterRefusal()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        Initialize();
+        CreateIncomingEDocument(EDocument);
+
+        FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Not accepted.');
+        asserterror FREInvoiceMessageMgt.AcceptInvoice(EDocument);
+        Assert.ExpectedError('already has a buyer response');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure ReceiveSubmittedPersistsNormalizedMessage()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+        ExternalMsgID: Text[250];
+        ReceivedAt: DateTime;
+        FREntryNo: Integer;
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
+        ReceivedAt := CreateDateTime(20260101D, 120000T);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Submitted', '', ''));
+
+        FREntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, ReceivedAt, TempBlob);
+
+        FREInvoiceMessage.Get(FREntryNo);
+        Assert.AreEqual(FREInvoiceMessage.Type::Submitted, FREInvoiceMessage.Type, 'FR type must be Submitted.');
+        Assert.AreEqual(ExternalMsgID, FREInvoiceMessage."External Message ID", 'External message ID must be stored.');
+        Assert.AreEqual(ReceivedAt, FREInvoiceMessage."Received At", 'Received timestamp must be persisted.');
+        Assert.AreEqual("E-Document Direction"::Incoming, EDocumentMessageAPI.GetMessageDirection(FREInvoiceMessage."E-Document Message Entry No."), 'Generic message must be Incoming.');
+        Assert.AreEqual("E-Doc. Message Status"::Received, EDocumentMessageAPI.GetMessageStatus(FREInvoiceMessage."E-Document Message Entry No."), 'Generic message status must be Received.');
+        Assert.AreEqual("E-Doc. Response Type"::Submitted, EDocumentMessageAPI.GetMessageResponseType(FREInvoiceMessage."E-Document Message Entry No."), 'Generic response must be Submitted.');
+    end;
+
+    [Test]
+    procedure ReceiveAcceptedPersistsNormalizedMessage()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+        ExternalMsgID: Text[250];
+        FREntryNo: Integer;
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", '205', '', ''));
+
+        FREntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, CurrentDateTime(), TempBlob);
+
+        FREInvoiceMessage.Get(FREntryNo);
+        Assert.AreEqual(FREInvoiceMessage.Type::Accepted, FREInvoiceMessage.Type, 'FR type must be Accepted.');
+        Assert.AreEqual("E-Doc. Response Type"::Accepted, EDocumentMessageAPI.GetMessageResponseType(FREInvoiceMessage."E-Document Message Entry No."), 'Generic response must be Accepted.');
+    end;
+
+    [Test]
+    procedure ReceiveTechnicalRejectedPersistsReason()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+        ExternalMsgID: Text[250];
+        FREntryNo: Integer;
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejetée', 'SCHEMA', 'Schema validation failed'));
+
+        FREntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, CurrentDateTime(), TempBlob);
+
+        FREInvoiceMessage.Get(FREntryNo);
+        Assert.AreEqual(FREInvoiceMessage.Type::"Technical Rejected", FREInvoiceMessage.Type, 'FR type must be Technical Rejected.');
+        Assert.AreEqual('SCHEMA', Format(FREInvoiceMessage."Reason Code"), 'Reason code must be persisted.');
+        Assert.AreEqual('Schema validation failed', FREInvoiceMessage."Reason Description", 'Reason description must be persisted.');
+        Assert.AreEqual("E-Doc. Response Type"::Rejected, EDocumentMessageAPI.GetMessageResponseType(FREInvoiceMessage."E-Document Message Entry No."), 'Generic response must be Rejected.');
+    end;
+
+    [Test]
+    procedure ReceiveMessageIsIdempotent()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+        ExternalMsgID: Text[250];
+        FirstEntryNo: Integer;
+        SecondEntryNo: Integer;
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Submitted', '', ''));
+
+        FirstEntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, CurrentDateTime(), TempBlob);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Submitted', '', ''));
+        SecondEntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, CurrentDateTime(), TempBlob);
+
+        Assert.AreEqual(FirstEntryNo, SecondEntryNo, 'Same external message ID must return same FR entry.');
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Submitted);
+        Assert.RecordCount(FREInvoiceMessage, 1);
+    end;
+
+    [Test]
+    procedure ReceiveMessageRejectsInvalidXml()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('not xml at all');
+
+        asserterror FREInvoiceMessageAPI.ReceiveMessage(
+            EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
+
+        Assert.ExpectedError('not valid XML');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure ReceiveMessageRejectsUnsupportedStatus()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Unknown', '', ''));
+
+        asserterror FREInvoiceMessageAPI.ReceiveMessage(
+            EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
+
+        Assert.ExpectedError('is not supported');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure ReceiveMessageRejectsInvoiceMismatch()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml('WRONG-INVOICE-ID', 'Submitted', '', ''));
+
+        asserterror FREInvoiceMessageAPI.ReceiveMessage(
+            EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
+
+        Assert.ExpectedError('does not match');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure ReceiveTechnicalRejectedRequiresReasonCode()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejected', '', 'Something went wrong'));
+
+        asserterror FREInvoiceMessageAPI.ReceiveMessage(
+            EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
+
+        Assert.ExpectedError('reason code is required');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure ReceiveTechnicalRejectedRequiresReasonDescription()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        ExternalDocID: Text[250];
+    begin
+        Initialize();
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejected', 'SCHEMA', ''));
+
+        asserterror FREInvoiceMessageAPI.ReceiveMessage(
+            EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
+
+        Assert.ExpectedError('reason description is required');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure BuilderRejectsIncomingOnlyStatus()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        FREInvoiceMessageBuilder: Codeunit "FR E-Invoice Message Builder";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        Initialize();
+        CreateIncomingEDocument(EDocument);
+        FREInvoiceMessage.Init();
+        FREInvoiceMessage."E-Document Entry No." := EDocument."Entry No";
+        FREInvoiceMessage.Type := FREInvoiceMessage.Type::Submitted;
+        FREInvoiceMessage."Source Occurrence ID" := CreateGuid();
+        FREInvoiceMessage."Event Date" := Today();
+        FREInvoiceMessage."Created At" := CurrentDateTime();
+        FREInvoiceMessage.Insert();
+
+        asserterror FREInvoiceMessageBuilder.BuildMessage(EDocument, FREInvoiceMessage, TempBlob);
+
+        Assert.ExpectedError('cannot be sent');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    local procedure BuildLifecycleXml(InvoiceID: Text; Status: Text; ReasonCode: Text; ReasonDescription: Text): Text
+    var
+        XmlText: TextBuilder;
+    begin
+        XmlText.Append('<LifecycleMessage>');
+        XmlText.Append('<InvoiceID>');
+        XmlText.Append(InvoiceID);
+        XmlText.Append('</InvoiceID>');
+        XmlText.Append('<Status>');
+        XmlText.Append(Status);
+        XmlText.Append('</Status>');
+        if ReasonCode <> '' then begin
+            XmlText.Append('<ReasonCode>');
+            XmlText.Append(ReasonCode);
+            XmlText.Append('</ReasonCode>');
+        end;
+        if ReasonDescription <> '' then begin
+            XmlText.Append('<ReasonDescription>');
+            XmlText.Append(ReasonDescription);
+            XmlText.Append('</ReasonDescription>');
+        end;
+        XmlText.Append('</LifecycleMessage>');
+        exit(XmlText.ToText());
+    end;
+
     local procedure SendFirstMessage(EDocument: Record "E-Document"; MessageType: Enum "FR E-Invoice Message Type")
     var
         FREInvoiceMessage: Record "FR E-Invoice Message";
@@ -279,6 +625,16 @@ codeunit 148152 "FR E-Invoice Message Tests"
         EDocument."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(EDocument."Document No."));
         EDocument.Direction := EDocument.Direction::Incoming;
         EDocument."Document Type" := EDocument."Document Type"::"Purchase Invoice";
+        EDocument.Service := 'FR-MESSAGE-MOCK';
+        EDocument.Insert();
+    end;
+
+    local procedure CreateOutgoingEDocument(var EDocument: Record "E-Document")
+    begin
+        EDocument.Init();
+        EDocument."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(EDocument."Document No."));
+        EDocument.Direction := EDocument.Direction::Outgoing;
+        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Service := 'FR-MESSAGE-MOCK';
         EDocument.Insert();
     end;

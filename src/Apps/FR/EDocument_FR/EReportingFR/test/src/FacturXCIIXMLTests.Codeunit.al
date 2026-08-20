@@ -47,9 +47,9 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         CIIXMLBuilder: Codeunit "CII XML Builder";
-        EDocHelpers: Codeunit "EDoc. Helpers";
         FacturXFormat: Codeunit "Factur-X Format";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
+        BuyerElectronicAddressRequiredErr: Label 'Electronic Address must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
         DialogErrorCodeTok: Label 'Dialog', Locked = true;
         IsInitialized: Boolean;
@@ -1389,52 +1389,44 @@ codeunit 148148 "Factur-X CII XML Tests"
     procedure FacturXBillingModeB1ForItemOnlyInvoice()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
-        SourceDocumentLines: RecordRef;
-        OriginalView: Text;
+        TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] GetFrenchBillingMode returns B1 for an invoice with only Item lines
+        // [SCENARIO] Factur-X CII XML uses billing mode B1 for an invoice with only Item lines
         Initialize();
 
         // [GIVEN] Posted sales invoice containing only an Item line
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(false));
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SourceDocumentLines.GetTable(SalesInvoiceLine);
-        OriginalView := SourceDocumentLines.GetView(false);
 
-        // [WHEN] GetFrenchBillingMode is called
-        // [THEN] Result = 'B1' and the source lines view is unchanged
-        Assert.AreEqual('B1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Billing mode = 'B1'
+        Assert.AreEqual('B1',
+            GetCIINodeValue(TempBlob, '//ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID'),
             StrSubstNo(IncorrectValueErr, 'BillingMode B1'));
-        Assert.AreEqual(OriginalView, SourceDocumentLines.GetView(false), StrSubstNo(IncorrectValueErr, 'Source Document Lines View'));
     end;
 
     [Test]
     procedure FacturXBillingModeM1ForMixedItemAndNonItemInvoice()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
-        SourceDocumentLines: RecordRef;
-        OriginalView: Text;
+        TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] GetFrenchBillingMode returns M1 for an invoice with both Item and G/L Account lines
+        // [SCENARIO] Factur-X CII XML uses billing mode M1 for an invoice with both Item and G/L Account lines
         Initialize();
 
         // [GIVEN] Posted sales invoice containing Item and G/L Account lines
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(true));
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SourceDocumentLines.GetTable(SalesInvoiceLine);
-        OriginalView := SourceDocumentLines.GetView(false);
 
-        // [WHEN] GetFrenchBillingMode is called
-        // [THEN] Result = 'M1' and the source lines view is unchanged
-        Assert.AreEqual('M1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Billing mode = 'M1'
+        Assert.AreEqual('M1',
+            GetCIINodeValue(TempBlob, '//ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID'),
             StrSubstNo(IncorrectValueErr, 'BillingMode M1'));
-        Assert.AreEqual(OriginalView, SourceDocumentLines.GetView(false), StrSubstNo(IncorrectValueErr, 'Source Document Lines View'));
     end;
     #endregion
 
@@ -1459,11 +1451,11 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
+        AssertExpectedDialogError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
     end;
 
     [Test]
-    procedure FacturXCheckRaisesErrorWhenBuyerElectronicAddressIsMalformed()
+    procedure FacturXCheckAcceptsNonemptyBuyerElectronicAddress()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
@@ -1471,7 +1463,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         CustomerNo: Code[20];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X Format Check raises error when buyer electronic address does not match SIREN format
+        // [SCENARIO] Factur-X Format Check accepts a nonempty buyer electronic address
         Initialize();
 
         // [GIVEN] Customer "C" with malformed FR Electronic Address (non-digit prefix)
@@ -1486,11 +1478,8 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader.GetTable(SalesInvoiceHeader);
 
         // [WHEN] Factur-X Format Check is called
-        asserterror CheckFacturX(SourceDocumentHeader);
-
-        // [THEN] Error about malformed buyer identifier is raised
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
-            Customer.FieldCaption("FR Electronic Address"), CustomerNo));
+        // [THEN] No error is raised
+        CheckFacturX(SourceDocumentHeader);
     end;
 
     [Test]
@@ -1563,7 +1552,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
+        AssertExpectedDialogError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
     end;
     #endregion
 
@@ -2145,7 +2134,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
         Customer."FR Electronic Address" := '';
-        Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::" ";
+        Clear(Customer."FR Elec. Address Scheme");
         Customer."VAT Registration No." := '';
         Customer."Registration Number" := '';
         Customer.Modify(true);

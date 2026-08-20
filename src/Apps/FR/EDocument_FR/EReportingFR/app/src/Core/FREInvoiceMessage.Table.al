@@ -86,6 +86,16 @@ table 10970 "FR E-Invoice Message"
             Caption = 'Created At';
             DataClassification = SystemMetadata;
         }
+        field(14; "External Message ID"; Text[250])
+        {
+            Caption = 'External Message ID';
+            DataClassification = CustomerContent;
+        }
+        field(15; "Received At"; DateTime)
+        {
+            Caption = 'Received At';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -99,6 +109,9 @@ table 10970 "FR E-Invoice Message"
             Unique = true;
         }
         key(DetailedLedgerEntry; Type, "Detailed Ledger Entry No.")
+        {
+        }
+        key(EDocumentMessage; "E-Document Message Entry No.")
         {
         }
     }
