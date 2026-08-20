@@ -2051,6 +2051,17 @@
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
     },
+    "API - Codeunits": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\APICodeunits\\app",
+      "dvdFolder": "Applications\\APICodeunits\\Source",
+      "hasTranslations": true,
+      "installOnEnvironmentUpdate": true,
+      "supportedCountries": "All",
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
+    },
     "API Reports - Finance": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\APIReportsFinance\\App",
       "dvdFolder": "Applications\\APIReportsFinance\\Source",
