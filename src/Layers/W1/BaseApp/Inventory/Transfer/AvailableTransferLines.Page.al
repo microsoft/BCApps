@@ -326,7 +326,7 @@ page 99000896 "Available - Transfer Lines"
 
     local procedure ValidateReservationApplicable()
     begin
-        if TransferDirection = TransferDirection::Inbound then
+        if (TransferDirection = TransferDirection::Inbound) and (Rec."Qty. in Transit (Base)" <> 0) then
             Error(InboundQtyErr);
 
         Error(Text001);
