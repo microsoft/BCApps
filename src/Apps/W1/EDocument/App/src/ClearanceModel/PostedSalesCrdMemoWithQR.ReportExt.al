@@ -33,7 +33,7 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
-        layout("StandardSalesCrMemoBody.docx")
+        layout("StandardSalesCrMemoQRBody.docx")
         {
             Type = Word;
             Subtype = Body;

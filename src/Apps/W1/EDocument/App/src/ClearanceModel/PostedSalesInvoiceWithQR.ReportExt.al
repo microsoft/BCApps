@@ -34,7 +34,7 @@ reportextension 6166 "PostedSalesInvoiceWithQR" extends "Standard Sales - Invoic
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
-        layout("StandardSalesInvoiceBody.docx")
+        layout("StandardSalesInvoiceQRBody.docx")
         {
             Type = Word;
             Subtype = Body;

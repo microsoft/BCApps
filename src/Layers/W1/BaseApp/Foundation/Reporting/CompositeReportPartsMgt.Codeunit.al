@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,26 +19,28 @@ codeunit 9667 "Composite Report Parts Mgt."
 
     /// <summary>
     /// Writes every part that ships with the Base Application into the shared pool. Safe to call repeatedly:
-    /// a missing part is inserted and an existing one is refreshed from the shipped file.
+    /// a missing part is inserted and an existing one is refreshed from the shipped file. Each part is written in
+    /// isolation, so one that cannot be written is reported and skipped rather than failing the whole pass - this runs
+    /// during install and upgrade of the Base Application, where an uncaught error would abort the entire operation.
     /// </summary>
     procedure SeedDefaultParts()
     begin
-        UpsertPart(ExternalDefaultTxt, 'ReportParts/HeaderFooterDesign/ExternalDefault.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalDefaultDescTxt);
-        UpsertPart(ExternalDefaultDetailedTxt, 'ReportParts/HeaderFooterDesign/ExternalDefaultDetailed.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalDefaultDetailedDescTxt);
-        UpsertPart(ExternalMinimalisticTxt, 'ReportParts/HeaderFooterDesign/ExternalMinimalistic.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalMinimalisticDescTxt);
-        UpsertPart(ExternalMinimalisticDetailedTxt, 'ReportParts/HeaderFooterDesign/ExternalMinimalisticDetailed.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalMinimalisticDetailedDescTxt);
-        UpsertPart(ExternalModernTxt, 'ReportParts/HeaderFooterDesign/ExternalModern.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalModernDescTxt);
-        UpsertPart(ExternalModernLogoTxt, 'ReportParts/HeaderFooterDesign/ExternalModernLogo.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalModernLogoDescTxt);
+        SeedPart(ExternalDefaultTxt, 'ReportParts/HeaderFooterDesign/ExternalDefault.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalDefaultDescTxt);
+        SeedPart(ExternalDefaultDetailedTxt, 'ReportParts/HeaderFooterDesign/ExternalDefaultDetailed.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalDefaultDetailedDescTxt);
+        SeedPart(ExternalMinimalisticTxt, 'ReportParts/HeaderFooterDesign/ExternalMinimalistic.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalMinimalisticDescTxt);
+        SeedPart(ExternalMinimalisticDetailedTxt, 'ReportParts/HeaderFooterDesign/ExternalMinimalisticDetailed.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalMinimalisticDetailedDescTxt);
+        SeedPart(ExternalModernTxt, 'ReportParts/HeaderFooterDesign/ExternalModern.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalModernDescTxt);
+        SeedPart(ExternalModernLogoTxt, 'ReportParts/HeaderFooterDesign/ExternalModernLogo.docx', Enum::"Report Layout Subtype"::HeaderFooter, ExternalModernLogoDescTxt);
 
-        UpsertPart(InternalDefaultTxt, 'ReportParts/HeaderFooterDesign/InternalDefault.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalDefaultDescTxt);
-        UpsertPart(InternalMinimalisticCenteredTxt, 'ReportParts/HeaderFooterDesign/InternalMinimalisticCentered.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalMinimalisticCenteredDescTxt);
-        UpsertPart(InternalMinimalisticTxt, 'ReportParts/HeaderFooterDesign/InternalMinimalistic.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalMinimalisticDescTxt);
-        UpsertPart(InternalModernTxt, 'ReportParts/HeaderFooterDesign/InternalModern.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalModernDescTxt);
-        UpsertPart(InternalModernMaxiTxt, 'ReportParts/HeaderFooterDesign/InternalModernMaxi.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalModernMaxiDescTxt);
+        SeedPart(InternalDefaultTxt, 'ReportParts/HeaderFooterDesign/InternalDefault.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalDefaultDescTxt);
+        SeedPart(InternalMinimalisticCenteredTxt, 'ReportParts/HeaderFooterDesign/InternalMinimalisticCentered.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalMinimalisticCenteredDescTxt);
+        SeedPart(InternalMinimalisticTxt, 'ReportParts/HeaderFooterDesign/InternalMinimalistic.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalMinimalisticDescTxt);
+        SeedPart(InternalModernTxt, 'ReportParts/HeaderFooterDesign/InternalModern.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalModernDescTxt);
+        SeedPart(InternalModernMaxiTxt, 'ReportParts/HeaderFooterDesign/InternalModernMaxi.docx', Enum::"Report Layout Subtype"::HeaderFooter, InternalModernMaxiDescTxt);
 
-        UpsertPart(DefaultThemeTxt, 'ReportParts/ReportTheme/Default.dotx', Enum::"Report Layout Subtype"::Theme, DefaultThemeDescTxt);
-        UpsertPart(CalmThemeTxt, 'ReportParts/ReportTheme/Calm.dotx', Enum::"Report Layout Subtype"::Theme, CalmThemeDescTxt);
-        UpsertPart(PlayfulThemeTxt, 'ReportParts/ReportTheme/Playful.dotx', Enum::"Report Layout Subtype"::Theme, PlayfulThemeDescTxt);
+        SeedPart(DefaultThemeTxt, 'ReportParts/ReportTheme/Default.dotx', Enum::"Report Layout Subtype"::Theme, DefaultThemeDescTxt);
+        SeedPart(CalmThemeTxt, 'ReportParts/ReportTheme/Calm.dotx', Enum::"Report Layout Subtype"::Theme, CalmThemeDescTxt);
+        SeedPart(PlayfulThemeTxt, 'ReportParts/ReportTheme/Playful.dotx', Enum::"Report Layout Subtype"::Theme, PlayfulThemeDescTxt);
     end;
 
     /// <summary>
@@ -55,14 +57,53 @@ codeunit 9667 "Composite Report Parts Mgt."
     end;
 
     /// <summary>
-    /// Writes one part into the shared pool, inserting it when missing and replacing it when already there, so
-    /// re-seeding picks up a changed layout file.
+    /// Writes one part, containing any failure to that part. A missing packaged resource or a tenant layout the
+    /// platform refuses is reported and skipped, so the remaining parts are still seeded and the install or upgrade
+    /// this runs under is not aborted.
     /// </summary>
     /// <param name="PartName">The name the part is stored and assigned under.</param>
     /// <param name="ResourceFile">Path of the layout file inside the resource folder declared in app.json.</param>
     /// <param name="Subtype">HeaderFooter or Theme. Also decides the MIME type.</param>
     /// <param name="Description">The description shown next to the part in the UI.</param>
-    local procedure UpsertPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text)
+    local procedure SeedPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text)
+    begin
+        ClearLastError();
+        if not TryUpsertPart(PartName, ResourceFile, Subtype, Description) then
+            LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorText());
+    end;
+
+    /// <summary>
+    /// Signals that one shipped part could not be written. The part name and resource path are shipped constants, so
+    /// they identify which part failed; the error text says why the platform or the resource loader refused it.
+    /// </summary>
+    local procedure LogPartNotSeeded(PartName: Text; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; ErrorText: Text)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('PartName', PartName);
+        TelemetryDimensions.Add('ResourceFile', ResourceFile);
+        TelemetryDimensions.Add('LayoutSubtype', Format(Subtype, 0, 9));
+        TelemetryDimensions.Add('Error', ErrorText);
+        Session.LogMessage(
+            '0000V42', PartNotSeededTxt, Verbosity::Error, DataClassification::SystemMetadata,
+            TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+    end;
+
+    /// <summary>
+    /// Writes one part into the shared pool, inserting it when missing and replacing it when already there, so
+    /// re-seeding picks up a changed layout file.
+    /// </summary>
+    /// <remarks>
+    /// The resource is read before the existing row is deleted, so the most likely failure - a resource missing from
+    /// the package - leaves the part that is already there untouched instead of removing it and failing to replace it.
+    /// A try method does not roll back what it already wrote, so keep the read first.
+    /// </remarks>
+    /// <param name="PartName">The name the part is stored and assigned under.</param>
+    /// <param name="ResourceFile">Path of the layout file inside the resource folder declared in app.json.</param>
+    /// <param name="Subtype">HeaderFooter or Theme. Also decides the MIME type.</param>
+    /// <param name="Description">The description shown next to the part in the UI.</param>
+    [TryFunction]
+    local procedure TryUpsertPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text)
     var
         TenantReportLayout: Record "Tenant Report Layout";
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
@@ -130,6 +171,8 @@ codeunit 9667 "Composite Report Parts Mgt."
         DefaultThemeDescTxt: Label 'Simple and clear, so the details that matter stand out. Styling-only theme: neutral Segoe UI in semibold and regular for hierarchy, dark-grey text on white, calm accent colours, and softly banded table rows. Works for most reports out of the box.';
         CalmThemeDescTxt: Label 'Classic and calm, and easy to read. Styling-only theme: Sitka serif in semibold and regular for hierarchy, with dark-green text on a soft beige background. A timeless look that gives your reports a quieter, more classic feel.';
         PlayfulThemeDescTxt: Label 'Dynamic and lively, a fresh take on a professional report. Styling-only theme: geometric Bahnschrift in semibold and regular for hierarchy, with backgrounds alternating between green and pink for an energetic, modern feel.';
+
+        PartNotSeededTxt: Label 'Composite layout parts: a shipped theme or header/footer part could not be written to the shared pool and was skipped. The remaining parts were seeded.', Locked = true;
 
         ThemeMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.template', Locked = true;
         HeaderFooterMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', Locked = true;
