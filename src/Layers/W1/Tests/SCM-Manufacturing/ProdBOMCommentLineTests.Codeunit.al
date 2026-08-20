@@ -136,6 +136,7 @@ codeunit 137436 "Prod. BOM Comment Line Tests"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Prod. BOM Comment Line Tests");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         if IsInitialized then
