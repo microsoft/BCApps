@@ -575,7 +575,7 @@ codeunit 134242 "Spend Request Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure RejectActionRequiresReleasedStatus()
+    procedure RejectActionIgnoredOnClosedStatus()
     var
         SpendRequest: Record "Spend Request";
         SpendRequestCard: TestPage "Spend Request Card";
@@ -583,17 +583,20 @@ codeunit 134242 "Spend Request Tests"
         // [SCENARIO] The Reject action requires the spend request to be in Released status.
         Initialize();
 
-        // [GIVEN] An open spend request (not Released).
+        // [GIVEN] A closed spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
+        SpendRequest.Status := SpendRequest.Status::Closed;
+        SpendRequest.Modify();
         SpendRequestCard.OpenEdit();
         SpendRequestCard.GoToRecord(SpendRequest);
 
         // [WHEN] The Reject action is invoked.
-        asserterror SpendRequestCard.Reject.Invoke();
+        SpendRequestCard.Reject.Invoke();
 
         // [THEN] An error is raised because Status is not Released.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Released));
         SpendRequestCard.Close();
+        SpendRequest.Find(); // retrieve the same record
+        SpendRequest.TestField(Status, SpendRequest.Status::Closed);
     end;
 
     [Test]

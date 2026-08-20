@@ -428,7 +428,7 @@ table 6840 "Spend Request"
     /// </summary>
     internal procedure Reject()
     begin
-        if Rec.Status = Rec.Status::Rejected then
+        if Rec.Status in [Rec.Status::Rejected, Rec.Status::Closed] then
             exit;
         Rec.Status := Rec.Status::Rejected;
         Rec."Approved/Rejected At" := CurrentDateTime();

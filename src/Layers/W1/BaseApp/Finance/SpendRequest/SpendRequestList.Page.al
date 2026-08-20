@@ -68,6 +68,87 @@ page 6840 "Spend Request List"
     {
         area(Processing)
         {
+            group(Action21)
+            {
+                Caption = 'Submit';
+                Image = ReleaseDoc;
+
+                action(Submit)
+                {
+                    Caption = 'Submit';
+                    ToolTip = 'Set the status field to Submitted so that it can be processed for approval.';
+                    ApplicationArea = Basic, Suite;
+                    Enabled = Rec.Status <> Rec.Status::Submitted;
+                    Image = ReleaseDoc;
+
+                    trigger OnAction()
+                    var
+                        SubmitSpendRequest: Codeunit "Submit Spend Request";
+                    begin
+                        SubmitSpendRequest.PerformManualSubmit(Rec);
+                    end;
+                }
+                action(ReOpen)
+                {
+                    Caption = 'Reopen';
+                    ToolTip = 'Set the status field to Open so that it can be edited.';
+                    ApplicationArea = Basic, Suite;
+                    Enabled = Rec.Status <> Rec.Status::Open;
+                    Image = ReOpen;
+
+                    trigger OnAction()
+                    var
+                        SubmitSpendRequest: Codeunit "Submit Spend Request";
+                    begin
+                        SubmitSpendRequest.PerformManualReopen(Rec);
+                    end;
+                }
+                action(Close)
+                {
+                    Caption = 'Close';
+                    ToolTip = 'Set the status field to Closed so it cannot be used anymore.';
+                    ApplicationArea = Basic, Suite;
+                    Enabled = Rec.Status <> Rec.Status::Closed;
+                    Image = CloseDocument;
+
+                    trigger OnAction()
+                    var
+                        SubmitSpendRequest: Codeunit "Submit Spend Request";
+                    begin
+                        SubmitSpendRequest.PerformManualClose(Rec);
+                    end;
+                }
+            }
+            group(SpendRequestApproval)
+            {
+                Caption = 'Approval';
+                action(Approve)
+                {
+                    Caption = 'Approve';
+                    ToolTip = 'Manually set the status field to Approved';
+                    ApplicationArea = Basic, Suite;
+                    Enabled = Rec.Status <> Rec.Status::Approved;
+                    Image = Approve;
+
+                    trigger OnAction()
+                    begin
+                        Rec.Approve();
+                    end;
+                }
+                action(Reject)
+                {
+                    Caption = 'Reject';
+                    ToolTip = 'Manually set the status field to Rejected';
+                    ApplicationArea = Basic, Suite;
+                    Enabled = Rec.Status <> Rec.Status::Closed;
+                    Image = Reject;
+
+                    trigger OnAction()
+                    begin
+                        Rec.Reject();
+                    end;
+                }
+            }
             action(RefreshCurrency)
             {
                 Caption = 'Refresh Currency Exchange rate';
@@ -129,8 +210,33 @@ page 6840 "Spend Request List"
             group(Category_Process)
             {
                 Caption = 'Process';
+                group(Category_Submit)
+                {
+                    Caption = 'Submit';
+                    ShowAs = SplitButton;
 
+                    actionref(Submit_Promoted; Submit)
+                    {
+                    }
+                    actionref(Reopen_Promoted; Reopen)
+                    {
+                    }
+                    actionref(Close_Promoted; Close)
+                    {
+                    }
+                }
                 actionref(RefreshCurrency_Promoted; RefreshCurrency)
+                {
+                }
+            }
+            group(Category_Approval)
+            {
+                Caption = 'Approval';
+
+                actionref(Approve_Promoted; Approve)
+                {
+                }
+                actionref(Reject_Promoted; Reject)
                 {
                 }
             }

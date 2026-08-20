@@ -128,22 +128,22 @@ page 6841 "Spend Request Card"
         {
             group(Action21)
             {
-                Caption = 'Release';
+                Caption = 'Submit';
                 Image = ReleaseDoc;
 
-                action(Release)
+                action(Submit)
                 {
-                    Caption = 'Release';
-                    ToolTip = 'Set the status field to Released so that it can be processed for approval.';
+                    Caption = 'Submit';
+                    ToolTip = 'Set the status field to Submitted so that it can be processed for approval.';
                     ApplicationArea = Basic, Suite;
-                    Enabled = Rec.Status <> Rec.Status::Released;
+                    Enabled = Rec.Status <> Rec.Status::Submitted;
                     Image = ReleaseDoc;
 
                     trigger OnAction()
                     var
-                        ReleaseSpendRequest: Codeunit "Release Spend Request";
+                        SubmitSpendRequest: Codeunit "Submit Spend Request";
                     begin
-                        ReleaseSpendRequest.PerformManualRelease(Rec);
+                        SubmitSpendRequest.PerformManualSubmit(Rec);
                     end;
                 }
                 action(ReOpen)
@@ -156,9 +156,9 @@ page 6841 "Spend Request Card"
 
                     trigger OnAction()
                     var
-                        ReleaseSpendRequest: Codeunit "Release Spend Request";
+                        SubmitSpendRequest: Codeunit "Submit Spend Request";
                     begin
-                        ReleaseSpendRequest.PerformManualReopen(Rec);
+                        SubmitSpendRequest.PerformManualReopen(Rec);
                     end;
                 }
                 action(Close)
@@ -171,9 +171,9 @@ page 6841 "Spend Request Card"
 
                     trigger OnAction()
                     var
-                        ReleaseSpendRequest: Codeunit "Release Spend Request";
+                        SubmitSpendRequest: Codeunit "Submit Spend Request";
                     begin
-                        ReleaseSpendRequest.PerformManualClose(Rec);
+                        SubmitSpendRequest.PerformManualClose(Rec);
                     end;
                 }
             }
@@ -268,12 +268,12 @@ page 6841 "Spend Request Card"
             {
                 Caption = 'Process';
 
-                group(Category_Release)
+                group(Category_Submit)
                 {
-                    Caption = 'Release';
+                    Caption = 'Submit';
                     ShowAs = SplitButton;
 
-                    actionref(Release_Promoted; Release)
+                    actionref(Submit_Promoted; Submit)
                     {
                     }
                     actionref(Reopen_Promoted; Reopen)

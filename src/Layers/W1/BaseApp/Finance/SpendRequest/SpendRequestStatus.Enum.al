@@ -16,9 +16,9 @@ enum 6841 "Spend Request Status"
     {
         Caption = 'Open';
     }
-    value(1; Released)
+    value(1; Submitted)
     {
-        Caption = 'Released';
+        Caption = 'Submitted';
     }
     value(2; Approved)
     {
