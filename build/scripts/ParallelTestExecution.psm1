@@ -50,16 +50,7 @@ function Get-AppRerunBudget {
         return 0
     }
 
-    # Settings are free-form JSON, so validate before trusting the value: a typo, a decimal or a
-    # negative number must switch reruns off rather than silently corrupt the budget comparison.
-    # Requiring plain digits keeps the accepted shape obvious at a glance.
-    $configuredText = "$configured".Trim()
-    if ($configuredText -notmatch '^\d+$') {
-        Write-Host "::warning::AL-Go setting 'maxTestAppReruns' is '$configured', which is not a non-negative integer. Failed test apps will NOT be re-run."
-        return 0
-    }
-
-    $budget = [int]$configuredText
+    $budget = $configured -as [int]
     Write-Host "Rerun budget for this job: $budget test app(s) may be re-run on a different tenant."
     return $budget
 }

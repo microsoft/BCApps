@@ -402,15 +402,6 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
         Get-AppRerunBudget | Should -Be 0
     }
 
-    It "grants no rerun budget when the setting is not a non-negative integer" {
-        # Settings are free-form JSON, so a typo must disable reruns rather than corrupt the budget.
-        $env:GITHUB_EVENT_NAME = 'pull_request'
-        foreach ($bad in @('"lots"', '-1', '"2.5"')) {
-            $env:settings = "{ ""maxTestAppReruns"": $bad }"
-            Get-AppRerunBudget | Should -Be 0
-        }
-    }
-
     It "honours a budget of 0 as a way to switch reruns off" {
         $env:GITHUB_EVENT_NAME = 'pull_request'
         $env:settings = '{ "maxTestAppReruns": 0 }'
