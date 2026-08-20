@@ -20,14 +20,17 @@ page 137437 "Prod. BOM Comment Line Test"
                 field("Production BOM No."; Rec."Production BOM No.")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the production BOM that the comment applies to.';
                 }
                 field("BOM Line No."; Rec."BOM Line No.")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the production BOM line that the comment applies to.';
                 }
                 field("Version Code"; Rec."Version Code")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the production BOM version that the comment applies to.';
                 }
             }
         }
