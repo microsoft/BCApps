@@ -1,0 +1,223 @@
+name: BC ExtRequest Triage Dispatcher
+
+on:
+  issue_comment:
+    types: [created]
+  schedule:
+    - cron: "0 1/6 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: >-
+    bc-extrequest-triage-${{
+      github.event_name == 'issue_comment' &&
+      format('feedback-{0}', github.event.issue.number) ||
+      'scheduled'
+    }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch_feedback:
+    if: >-
+      github.repository == 'microsoft/BCApps' &&
+      github.event_name == 'issue_comment' &&
+      github.event.comment.user.type != 'Bot' &&
+      !endsWith(github.event.comment.user.login, '[bot]') &&
+      contains(github.event.comment.body, '/not-accurate')
+    runs-on: ubuntu-latest
+    environment: triage
+    env:
+      AGENT_REPO: microsoft/BCAppsTriage
+      AGENT_REPO_NAME: BCAppsTriage
+      AGENT_WORKFLOW: bc-extrequest-triage-feedback.yml
+      AGENT_REF: main
+    steps:
+      - name: Check whether feedback was already recorded
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          set -euo pipefail
+          marker="<!-- bc-extrequest-feedback-recorded:$COMMENT_ID -->"
+          if gh api "repos/$GITHUB_REPOSITORY/issues/${{ github.event.issue.number }}/comments" \
+            --paginate --jq '.[].body' | grep -qF "$marker"; then
+            echo "process=false" >> "$GITHUB_OUTPUT"
+            echo "Feedback was already recorded for this comment."
+            exit 0
+          fi
+
+          echo "process=true" >> "$GITHUB_OUTPUT"
+
+      - name: Check out dispatcher scripts
+        if: steps.detect.outputs.process == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/bc-extrequest-triage
+
+      - name: Create correlation token
+        if: steps.detect.outputs.process == 'true'
+        id: correlation
+        run: echo "run_token=$(uuidgen)" >> "$GITHUB_OUTPUT"
+
+      - name: Mint token for BCAppsTriage
+        if: steps.detect.outputs.process == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.TRIAGE_APP_ID }}
+          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ env.AGENT_REPO_NAME }}
+
+      - name: Start feedback telemetry
+        if: steps.detect.outputs.process == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          FEEDBACK_COMMENT_ID: ${{ github.event.comment.id }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+        run: |
+          set -euo pipefail
+          gh workflow run "$AGENT_WORKFLOW" -R "$AGENT_REPO" --ref "$AGENT_REF" \
+            -f issue_number="$ISSUE_NUMBER" \
+            -f feedback_comment_id="$FEEDBACK_COMMENT_ID" \
+            -f run_token="$RUN_TOKEN"
+
+      - name: Await feedback telemetry
+        if: steps.detect.outputs.process == 'true'
+        timeout-minutes: 10
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+          RUN_LIST_LIMIT: 40
+          WATCH_INTERVAL_SECONDS: 10
+        run: bash .github/scripts/bc-extrequest-triage/await-agent-run.sh
+
+      - name: Post feedback acknowledgement
+        if: steps.detect.outputs.process == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/acknowledgement.md" <<EOF
+          <!-- bc-extrequest-feedback-recorded:$COMMENT_ID -->
+          **Feedback recorded**
+
+          Thanks - your \`/not-accurate\` feedback has been logged and will be reviewed.
+          EOF
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --body-file "$RUNNER_TEMP/acknowledgement.md"
+
+  discover_eligible_extensibility_requests:
+    name: Discover eligible extensibility requests
+    if: >-
+      github.repository == 'microsoft/BCApps' &&
+      (
+        github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch'
+      )
+    runs-on: ubuntu-latest
+    outputs:
+      issues: ${{ steps.find-issues.outputs.issues }}
+    steps:
+      - name: Check out dispatcher scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/bc-extrequest-triage
+
+      - name: Find eligible issues
+        id: find-issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/bc-extrequest-triage/find-eligible-issues.sh
+
+  dispatch_and_apply_extensibility_request_triage:
+    name: Triage BCApps issue #${{ matrix.issue }}
+    needs: discover_eligible_extensibility_requests
+    if: >-
+      needs.discover_eligible_extensibility_requests.result == 'success' &&
+      needs.discover_eligible_extensibility_requests.outputs.issues != '' &&
+      needs.discover_eligible_extensibility_requests.outputs.issues != '[]'
+    runs-on: ubuntu-latest
+    environment: triage
+    env:
+      AGENT_REPO: microsoft/BCAppsTriage
+      AGENT_REPO_NAME: BCAppsTriage
+      AGENT_WORKFLOW: bc-extrequest-triage-agent.yml
+      AGENT_REF: main
+    strategy:
+      fail-fast: false
+      matrix:
+        issue: ${{ fromJson(needs.discover_eligible_extensibility_requests.outputs.issues) }}
+    steps:
+      - name: Check out dispatcher scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/bc-extrequest-triage
+
+      - name: Create correlation token
+        id: correlation
+        run: echo "run_token=$(uuidgen)" >> "$GITHUB_OUTPUT"
+
+      - name: Mint token for BCAppsTriage
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.TRIAGE_APP_ID }}
+          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ env.AGENT_REPO_NAME }}
+
+      - name: Start ExtRequest triage
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ISSUE_NUMBER: ${{ matrix.issue }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+        run: |
+          set -euo pipefail
+          gh workflow run "$AGENT_WORKFLOW" -R "$AGENT_REPO" --ref "$AGENT_REF" \
+            -f issue_number="$ISSUE_NUMBER" \
+            -f run_token="$RUN_TOKEN"
+
+      - name: Await ExtRequest triage
+        id: await
+        timeout-minutes: 30
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+          RUN_LIST_LIMIT: 100
+          WATCH_INTERVAL_SECONDS: 15
+        run: bash .github/scripts/bc-extrequest-triage/await-agent-run.sh
+
+      - name: Download triage result
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_ID: ${{ steps.await.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p result
+          gh run download "$RUN_ID" -R "$AGENT_REPO" \
+            -n bc-extrequest-triage-result \
+            -D result
+
+      - name: Apply triage result
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_NUMBER: ${{ matrix.issue }}
+        with:
+          script: |
+            const applyTriageResult = require(
+              './.github/scripts/bc-extrequest-triage/apply-triage-result.js'
+            );
+            await applyTriageResult({ github, context, core });
