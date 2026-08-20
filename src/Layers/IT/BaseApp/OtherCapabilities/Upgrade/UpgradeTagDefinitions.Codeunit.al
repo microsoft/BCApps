@@ -1292,9 +1292,8 @@ codeunit 9998 "Upgrade Tag Definitions"
     begin
         exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
     end;
-}
 
-        internal procedure GetCompositeReportPartsUpgradeTag(): Code[250]
+    internal procedure GetCompositeReportPartsUpgradeTag(): Code[250]
     begin
         exit('MS-643211-CompositeReportPartsUpgradeTag-20260820');
     end;
