@@ -172,7 +172,7 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         exit(OrderLine."Line Id");
     end;
 
-    internal procedure CreateDiscountedOrderLine(OrderId: BigInteger; LineNo: Integer; ProductId: BigInteger; VariantId: BigInteger; UnitPrice: Decimal; Quantity: Integer; DiscountAmount: Decimal): BigInteger
+    internal procedure CreateDiscountedOrderLine(OrderId: BigInteger; LineNo: Integer; ProductId: BigInteger; VariantId: BigInteger; UnitPrice: Decimal; PresentmentUnitPrice: Decimal; Quantity: Integer; DiscountAmount: Decimal; PresentmentDiscountAmount: Decimal): BigInteger
     var
         Item: Record Item;
         OrderLine: Record "Shpfy Order Line";
@@ -189,9 +189,9 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         OrderLine."Gift Card" := false;
         OrderLine.Taxable := false;
         OrderLine."Unit Price" := UnitPrice;
-        OrderLine."Presentment Unit Price" := UnitPrice;
+        OrderLine."Presentment Unit Price" := PresentmentUnitPrice;
         OrderLine."Discount Amount" := DiscountAmount;
-        OrderLine."Presentment Discount Amount" := DiscountAmount;
+        OrderLine."Presentment Discount Amount" := PresentmentDiscountAmount;
         OrderLine.Insert();
         exit(OrderLine."Line Id");
     end;
@@ -387,7 +387,7 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundLine.Insert();
     end;
 
-    internal procedure CreateRefundLineWithoutCreditMemo(RefundId: BigInteger; OrderLineId: BigInteger; Quantity: Integer; UnitPrice: Decimal; SubtotalAmount: Decimal)
+    internal procedure CreateRefundLineWithoutCreditMemo(RefundId: BigInteger; OrderLineId: BigInteger; Quantity: Integer; UnitPrice: Decimal; PresentmentUnitPrice: Decimal; SubtotalAmount: Decimal; PresentmentSubtotalAmount: Decimal)
     var
         RefundLine: Record "Shpfy Refund Line";
     begin
@@ -396,9 +396,9 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundLine."Order Line Id" := OrderLineId;
         RefundLine.Quantity := Quantity;
         RefundLine.Amount := UnitPrice;
-        RefundLine."Presentment Amount" := UnitPrice;
+        RefundLine."Presentment Amount" := PresentmentUnitPrice;
         RefundLine."Subtotal Amount" := SubtotalAmount;
-        RefundLine."Presentment Subtotal Amount" := SubtotalAmount;
+        RefundLine."Presentment Subtotal Amount" := PresentmentSubtotalAmount;
         RefundLine."Can Create Credit Memo" := false;
         RefundLine.Insert();
     end;
