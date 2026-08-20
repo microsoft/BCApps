@@ -393,7 +393,7 @@ The tax config fields carry their defaults as field `InitValue`s (`Auto Create T
 | 0000UMQ | Warning | Matcher | Jurisdiction not found, auto-create disabled |
 | 0000UMR | Warning | Matcher | A matched tax line's Tax Detail rate differs from Shopify's (item or shipping tax group) — jurisdiction still matched, order held for review |
 | 0000UMT | Usage | Notify | Sales Order review notification sent |
-| 0000UMU | Usage | Notify | User opened the review from the Sales Order notification |
+| 0000UMU | Usage | Notify | User opened the Tax Match Review page from the Sales Order notification (logged only when the review page actually opened) |
 | 0000UMV | Usage | Notify | Order-page review notification sent |
 | 0000UMW | Usage | Notify | User opened the Tax Match Review page from the order-page notification |
 | 0000UMX | Usage | Notify | User marked notification reviewed |
@@ -407,6 +407,7 @@ The tax config fields carry their defaults as field `InitValue`s (`Auto Create T
 | 0000UNT | Warning | Events | Order held for review due to an unresolved (`UNKNOWN`) tax line |
 | 0000UNV | Error | Events | Guardrail/security prompt unavailable from Key Vault — matching skipped, order proceeds via the normal tax path |
 | 0000UN8 | Uptake: Discovered | Shop Card | User opened the shop configuration surface where the Tax Matching Agent settings live |
+| 0000UN9 | Usage | Notify | Review drill-through fell back to the raw Shopify order because the review page could not be resolved |
 
 ## Test App
 
