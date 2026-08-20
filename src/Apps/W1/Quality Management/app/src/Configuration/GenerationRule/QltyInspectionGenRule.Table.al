@@ -296,12 +296,18 @@ table 20404 "Qlty. Inspection Gen. Rule"
             SetIntentAndDefaultTriggerValuesFromSetup();
     end;
 
+    /// <summary>
+    /// Raises an error when the generation rule has no source table.
+    /// </summary>
     local procedure CheckSourceTableNoIsSet()
     begin
         if Rec."Source Table No." = 0 then
             Error(TableMissingErr);
     end;
 
+    /// <summary>
+    /// Assigns the next entry number when the generation rule has no entry number.
+    /// </summary>
     internal procedure SetEntryNo()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -314,6 +320,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
+    /// <summary>
+    /// Assigns a sort order after the current highest value when the sort order is zero or one.
+    /// </summary>
     internal procedure UpdateSortOrder()
     var
         FindHighestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -326,6 +335,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
+    /// <summary>
+    /// Looks up a source table from configured tables and validates the selected table number.
+    /// </summary>
     internal procedure HandleOnAssistEditSourceTable()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -347,7 +359,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Provides the ability to assist edit a condition filter.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the filter builder completes and the condition filter is accepted.</returns>
     procedure AssistEditConditionTableFilter() Result: Boolean
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -367,7 +379,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Provides the ability to assist edit an item filter.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the filter builder completes and the item filter is accepted.</returns>
     procedure AssistEditConditionItemFilter() Result: Boolean
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -397,8 +409,8 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Gets the template code from either the selected record, or the filter.
     /// </summary>
-    /// <param name="OnlyFilters"></param>
-    /// <returns></returns>
+    /// <param name="OnlyFilters">Specifies whether the current record value is ignored and only filter groups are inspected.</param>
+    /// <returns>The template code from the record or the first filter group that contains one.</returns>
     procedure GetTemplateCodeFromRecordOrFilter(OnlyFilters: Boolean) TemplateCode: Code[20]
     var
         FilterGroupIterator: Integer;
@@ -464,6 +476,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
+    /// <summary>
+    /// Offers to enable automatic activation when a manual-only rule still has automatic trigger settings.
+    /// </summary>
     local procedure ConfirmUpdateManualTriggerStatus()
     begin
         if (Rec."Activation Trigger" = Rec."Activation Trigger"::"Manual only") and GuiAllowed() then
@@ -476,6 +491,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     Rec."Activation Trigger" := Rec."Activation Trigger"::"Manual or Automatic";
     end;
 
+    /// <summary>
+    /// Clears every automatic document trigger on the generation rule.
+    /// </summary>
     local procedure SetDefaultTriggerValuesToNoTrigger()
     begin
         Rec."Warehouse Receipt Trigger" := Rec."Warehouse Receipt Trigger"::NoTrigger;
@@ -487,6 +505,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
         Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
     end;
 
+    /// <summary>
+    /// Attempts to infer the generation rule intent and certainty without propagating inference errors.
+    /// </summary>
+    /// <param name="QltyGenRuleIntent">The inferred generation rule intent.</param>
+    /// <param name="QltyCertainty">The certainty assigned to the inferred intent.</param>
     [TryFunction]
     internal procedure TryInferGenerationRuleIntent(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
     begin
@@ -593,7 +616,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// Purpose is to help determine if the line is intended to be used for production based
     /// on the table number and filter.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the source table or condition filter identifies a production scenario.</returns>
     local procedure GetIsProductionIntent(): Boolean
     var
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
@@ -626,6 +649,10 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
+    /// <summary>
+    /// Checks whether a warehouse journal line condition filter identifies a receipt scenario.
+    /// </summary>
+    /// <returns>True if the condition filter selects a warehouse receipt document or reference type.</returns>
     local procedure InferIsWarehouseReceiveIntentFromCondition(): Boolean
     var
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
@@ -639,6 +666,10 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     exit(true);
     end;
 
+    /// <summary>
+    /// Checks whether a warehouse journal line condition filter identifies a movement scenario.
+    /// </summary>
+    /// <returns>True if the condition filter selects an internal put-away or movement entry.</returns>
     local procedure InferIsWarehouseMoveIntentFromCondition(): Boolean
     var
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
@@ -652,6 +683,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
+    /// <summary>
+    /// Infers purchase, sales return, or transfer intent from an item journal line document type filter.
+    /// </summary>
+    /// <param name="QltyGenRuleIntent">The intent inferred from the condition filter.</param>
+    /// <returns>True if the condition filter identifies a supported document type.</returns>
     local procedure InferItemJournalIntentFromConditionFilter(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"): Boolean
     var
         TempItemJournalLine: Record "Item Journal Line" temporary;
@@ -684,6 +720,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
             end;
     end;
 
+    /// <summary>
+    /// Infers purchase, sales return, transfer, or assembly intent from an item ledger entry type filter.
+    /// </summary>
+    /// <param name="QltyGenRuleIntent">The intent inferred from the condition filter.</param>
+    /// <returns>True if the condition filter identifies a supported entry type.</returns>
     local procedure InferItemLedgerIntentFromConditionFilter(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"): Boolean
     var
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
@@ -716,6 +757,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
             end;
     end;
 
+    /// <summary>
+    /// Checks whether setup enables exactly one automatic trigger and it matches the specified intent.
+    /// </summary>
+    /// <param name="IntentToCheck">The intent whose setup trigger must be the only enabled automatic trigger.</param>
+    /// <returns>True if exactly one automatic setup trigger is enabled and belongs to the specified intent.</returns>
     local procedure GetIsOnlyAutoTriggerInSetup(IntentToCheck: Enum "Qlty. Gen. Rule Intent"): Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";

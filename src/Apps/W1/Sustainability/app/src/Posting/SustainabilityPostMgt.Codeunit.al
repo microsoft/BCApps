@@ -335,9 +335,44 @@ codeunit 6212 "Sustainability Post Mgt"
     begin
         SustainabilityValueEntry.SetLoadFields("Item Ledger Entry No.", "CO2e Amount (Actual)", "Item Ledger Entry Quantity");
         SustainabilityValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntryNo);
+        if SustainabilityValueEntry.IsEmpty() then begin
+            ResolveTransferInCO2e(ItemLedgerEntryNo, CO2eAmount, CO2eQuantity);
+            exit;
+        end;
+
         SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)", "Item Ledger Entry Quantity");
         CO2eAmount += SustainabilityValueEntry."CO2e Amount (Actual)";
         CO2eQuantity += SustainabilityValueEntry."Item Ledger Entry Quantity";
+    end;
+
+    local procedure ResolveTransferInCO2e(ItemLedgerEntryNo: Integer; var CO2eAmount: Decimal; var CO2eQuantity: Decimal)
+    var
+        TransferInILE: Record "Item Ledger Entry";
+        TransferOutILE: Record "Item Ledger Entry";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+    begin
+        TransferInILE.SetLoadFields("Entry Type", Quantity, "Item Register No.", "Item No.", "Lot No.", "Serial No.");
+        if not TransferInILE.Get(ItemLedgerEntryNo) then
+            exit;
+
+        if (TransferInILE."Entry Type" <> TransferInILE."Entry Type"::Transfer) or (TransferInILE.Quantity <= 0) then
+            exit;
+
+        // Reclassification transfer-in ILEs lack SVEs; resolve from the transfer-out counterpart.
+        TransferOutILE.SetRange("Item Register No.", TransferInILE."Item Register No.");
+        TransferOutILE.SetRange("Item No.", TransferInILE."Item No.");
+        TransferOutILE.SetRange("Entry Type", TransferOutILE."Entry Type"::Transfer);
+        TransferOutILE.SetFilter(Quantity, '<%1', 0);
+        TransferOutILE.SetRange("Lot No.", TransferInILE."Lot No.");
+        TransferOutILE.SetRange("Serial No.", TransferInILE."Serial No.");
+        if not TransferOutILE.FindFirst() then
+            exit;
+
+        SustainabilityValueEntry.SetLoadFields("Item Ledger Entry No.", "CO2e Amount (Actual)", "Item Ledger Entry Quantity");
+        SustainabilityValueEntry.SetRange("Item Ledger Entry No.", TransferOutILE."Entry No.");
+        SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)", "Item Ledger Entry Quantity");
+        CO2eAmount += SustainabilityValueEntry."CO2e Amount (Actual)";
+        CO2eQuantity += Abs(SustainabilityValueEntry."Item Ledger Entry Quantity");
     end;
 
     procedure GetTotalCO2eAmountFromValueEntry(
