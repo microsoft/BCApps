@@ -1,39 +1,29 @@
-# Vendored verbatim from AL-Go's RunTests action (Actions/RunTests/AlToolTestRunner.psm1). This is
-# Microsoft's public, non-batched `al runtests` runner. BCApps drives it from the shared
-# RunTestsInBcContainer.ps1 override for the IntegrationTest and Uncategorized buckets so those
-# buckets run on altool while keeping BCApps' parallel-tenant fan-out, reruns and test tolerance.
-# UnitTest and Legacy buckets stay on the BCH runner. Keep this file in sync with the AL-Go source
-# rather than editing it locally.
-
+# ------------------------------------------------------------------------------
+# Vendored from spetersenms/AL-Go @ spetersen/separateTestAction (commit 3885bca).
+# Source: Actions/RunTests/AlToolTestRunner.psm1
+#
+# This is the AL-Go RunTests action's BATCHED altool runner: Invoke-AlToolTestRun
+# runs all of a test app's codeunits in a single `al runtests --testgroups` call
+# (one shared server session per app), instead of one `al runtests` per codeunit.
+#
+# BCApps' RunTestsInBcContainer.ps1 override drives this module for the
+# IntegrationTest and Uncategorized buckets while keeping BCApps' parallel-tenant
+# fan-out, reruns and test tolerance. To refresh, re-copy the file from the AL-Go
+# branch above and keep this header.
+#
+# NOTE: batching reuses one session across a codeunit group, so until altool's
+# per-codeunit session renewal ships, expect cross-codeunit state leakage failures
+# (e.g. "codeunit ... already been bound" and mock-provider poisoning) that the
+# previous per-codeunit runner did not exhibit.
+# ------------------------------------------------------------------------------
 <#
 .SYNOPSIS
-    Built-in test runner that drives Microsoft's headless `al runtests` (altool) CLI instead of
-    BcContainerHelper's client-session runner, while producing the same JUnit XML the AL-Go
-    pipeline already consumes downstream.
+    Executes tests with AlTool and produces JUnit XML compatible with AL-Go AnalyzeTests.
 
 .DESCRIPTION
-    This module is the default test runner used by the RunTests action (Invoke-AlGoTestRun) when no
-    RunTestsInBcContainer override script is supplied. For a single test app (identified by
-    extensionId) it:
-      1. Ensures the `al` CLI is installed (dotnet global tool, prerelease).
-      2. Resolves the kept-alive container's on-prem connection settings (server/instance/port)
-         host-side from the container name via BcContainerHelper, and generates a throw-away AL
-         project with a launch.json so `al runtests` has connection settings.
-      3. Enumerates the app's test codeunits + methods via Get-TestsFromBcContainer.
-      4. Runs `al runtests <codeunitId> --testmethods` once per test codeunit (each in its own
-         session), with a rerun pass that retries any method that produced no result or a failure.
-      5. Emits a JUnit results file matching the exact schema BcContainerHelper produces, so the
-         downstream AnalyzeTests step keeps working unchanged.
-
-    Credentials are taken from the parameters' PSCredential and exposed to `al` through the
-    BC_SERVER_USERNAME / BC_SERVER_PASSWORD environment variables (the only auth mechanism the CLI
-    supports for on-prem UserPassword).
-
-    Known altool output quirks handled here:
-      - The Results: block emits a phantom `PASS OnRun (..)` trigger entry and a trailing
-        empty-named aggregate entry per codeunit; both are dropped so counts match the real methods.
-      - Failure text is the indented lines after `FAIL <name> (Nms)` up to `AL Callstack:`; the
-        callstack follows until the next result line.
+    This is the default RunTests executor when no RunTestsInBcContainer override is supplied.
+    BcContainerHelper provides app metadata, container configuration, company discovery, and test
+    enumeration. AlTool runs each app's enabled methods as one batch and writes the outcomes as JUnit.
 #>
 
 $ErrorActionPreference = "Stop"
@@ -42,11 +32,101 @@ $script:AlToolPackageId = "Microsoft.Dynamics.BusinessCentral.Development.Tools"
 
 <#
 .SYNOPSIS
+    Invokes a native executable and returns its output streams and exit code.
+.DESCRIPTION
+    Keeps stdout separate from native stderr under Windows PowerShell 5 and restores the caller's
+    error preference immediately after invocation. Command resolution and invocation failures remain
+    terminating.
+.PARAMETER FilePath
+    The native executable name or path.
+.PARAMETER ArgumentList
+    Arguments passed to the native executable.
+.OUTPUTS
+    [pscustomobject] with StandardOutput, StandardError, combined Output, and ExitCode properties.
+#>
+function Invoke-AlNativeCommand {
+    param(
+        [Parameter(Mandatory = $true)][string] $FilePath,
+        [string[]] $ArgumentList = @()
+    )
+
+    $nativeCommand = Get-Command -Name $FilePath -CommandType Application -ErrorAction Stop
+    $standardErrorPath = Join-Path ([System.IO.Path]::GetTempPath()) "altool-stderr-$([Guid]::NewGuid().ToString('N')).txt"
+    $errorBeforeInvocation = if ($Error.Count -gt 0) { $Error[0] } else { $null }
+    $originalErrorActionPreference = $ErrorActionPreference
+    $nativeErrorPreference = Get-Variable -Name PSNativeCommandUseErrorActionPreference -ErrorAction SilentlyContinue
+    $originalNativeErrorPreference = if ($nativeErrorPreference) { $nativeErrorPreference.Value } else { $null }
+    try {
+        try {
+            $ErrorActionPreference = "Continue"
+            if ($nativeErrorPreference) {
+                $PSNativeCommandUseErrorActionPreference = $false
+            }
+            if ($PSVersionTable.PSVersion.Major -le 5) {
+                $nativeOutput = & $nativeCommand.Source @ArgumentList 2>&1
+                [int] $exitCode = $LASTEXITCODE
+            }
+            else {
+                $standardOutput = & $nativeCommand.Source @ArgumentList 2> $standardErrorPath
+                [int] $exitCode = $LASTEXITCODE
+            }
+        }
+        finally {
+            $ErrorActionPreference = $originalErrorActionPreference
+            if ($nativeErrorPreference) {
+                $PSNativeCommandUseErrorActionPreference = $originalNativeErrorPreference
+            }
+        }
+
+        $invocationErrors = @()
+        foreach ($errorRecord in $Error) {
+            if ($null -ne $errorBeforeInvocation -and [object]::ReferenceEquals($errorRecord, $errorBeforeInvocation)) {
+                break
+            }
+            if ($errorRecord.FullyQualifiedErrorId -notin @("NativeCommandError", "NativeCommandErrorMessage")) {
+                $invocationErrors += $errorRecord
+            }
+        }
+        if ($invocationErrors.Count -gt 0) {
+            throw $invocationErrors[0]
+        }
+
+        if ($PSVersionTable.PSVersion.Major -le 5) {
+            [string[]] $standardOutputLines = @($nativeOutput |
+                Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } |
+                ForEach-Object { "$_" })
+            [string[]] $standardErrorLines = @($nativeOutput |
+                Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } |
+                ForEach-Object { "$($_.Exception.Message)" })
+        }
+        else {
+            [string[]] $standardOutputLines = @($standardOutput | ForEach-Object { "$_" })
+            if (Test-Path -LiteralPath $standardErrorPath) {
+                [string[]] $standardErrorLines = @(Get-Content -LiteralPath $standardErrorPath | ForEach-Object { "$_" })
+            }
+            else {
+                [string[]] $standardErrorLines = @()
+            }
+        }
+
+        return [PSCustomObject]@{
+            StandardOutput = $standardOutputLines
+            StandardError  = $standardErrorLines
+            Output         = [string[]] (@($standardOutputLines) + @($standardErrorLines))
+            ExitCode       = $exitCode
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $standardErrorPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
+<#
+.SYNOPSIS
     Ensures the `al` CLI is available on PATH, installing the prerelease dotnet global tool.
 .DESCRIPTION
-    Installs (or, when already present, leaves in place) the AL developer tools as a dotnet global
-    tool. The install is guarded by a named mutex so concurrent jobs on the same runner do not
-    collide on the shared tools store, and availability is re-checked after acquiring the mutex.
+    Installs the AL developer tools when unavailable. A named mutex prevents concurrent jobs from
+    modifying the shared tool store at the same time.
 .OUTPUTS
     [string] The resolved `al` version string.
 #>
@@ -74,19 +154,34 @@ function Install-AlTool {
 
         if (-not $alAvailable) {
             Write-Host "Installing '$script:AlToolPackageId' (prerelease) as a dotnet global tool..."
-            & dotnet tool install $script:AlToolPackageId --global --prerelease *>&1 | ForEach-Object { Write-Host $_ }
-            if ($LASTEXITCODE -ne 0) {
+            $installResult = Invoke-AlNativeCommand -FilePath "dotnet" -ArgumentList @(
+                "tool", "install", $script:AlToolPackageId, "--global", "--prerelease"
+            )
+            $installResult.Output | ForEach-Object { Write-Host $_ }
+            if ($installResult.ExitCode -ne 0) {
                 # A concurrent job may have installed it first; treat as success if `al` now resolves,
                 # otherwise fall back to an update.
                 if ($null -eq (Get-Command al -ErrorAction SilentlyContinue)) {
-                    & dotnet tool update $script:AlToolPackageId --global --prerelease *>&1 | ForEach-Object { Write-Host $_ }
+                    $updateResult = Invoke-AlNativeCommand -FilePath "dotnet" -ArgumentList @(
+                        "tool", "update", $script:AlToolPackageId, "--global", "--prerelease"
+                    )
+                    $updateResult.Output | ForEach-Object { Write-Host $_ }
+                    if ($updateResult.ExitCode -ne 0) {
+                        throw "Failed to install or update '$script:AlToolPackageId'. The fallback dotnet tool update exited with code $($updateResult.ExitCode). Output: $($updateResult.Output -join [Environment]::NewLine)"
+                    }
                 }
             }
         }
         elseif ($Force) {
             # Explicit opt-in moves to the newest prerelease once, under the mutex.
             try {
-                & dotnet tool update $script:AlToolPackageId --global --prerelease *>&1 | ForEach-Object { Write-Host $_ }
+                $updateResult = Invoke-AlNativeCommand -FilePath "dotnet" -ArgumentList @(
+                    "tool", "update", $script:AlToolPackageId, "--global", "--prerelease"
+                )
+                $updateResult.Output | ForEach-Object { Write-Host $_ }
+                if ($updateResult.ExitCode -ne 0) {
+                    Write-Host "WARNING: 'al' update check exited with code $($updateResult.ExitCode). Using existing version."
+                }
             }
             catch {
                 Write-Host "WARNING: 'al' update check failed ($($_.Exception.Message)). Using existing version."
@@ -102,7 +197,14 @@ function Install-AlTool {
         throw "The 'al' CLI is not available after installation. Ensure '$toolsPath' is on PATH and that the runner can reach nuget.org."
     }
 
-    $version = (& al --version 2>&1 | Select-Object -First 1)
+    $versionResult = Invoke-AlNativeCommand -FilePath "al" -ArgumentList @("--version")
+    if ($versionResult.ExitCode -ne 0) {
+        throw "Failed to run 'al --version'. The command exited with code $($versionResult.ExitCode). Output: $($versionResult.Output -join [Environment]::NewLine)"
+    }
+    if ($versionResult.StandardOutput.Count -eq 0) {
+        throw "Failed to run 'al --version'. The command returned no output."
+    }
+    $version = $versionResult.StandardOutput[0]
     Write-Host "Using al CLI version: $version"
     return "$version"
 }
@@ -111,9 +213,8 @@ function Install-AlTool {
 .SYNOPSIS
     Resolves the on-prem connection settings (server URL, instance, dev-service port) for a container.
 .DESCRIPTION
-    BcContainerHelper's Run-TestsInBcContainer only needs the container name and resolves the
-    endpoint internally, but `al runtests` needs an explicit server/instance/port. This reads them
-    host-side from the container's server configuration, falling back to conventional defaults.
+    Reads the container server configuration required by AlTool and falls back to conventional
+    defaults when it is unavailable.
 .PARAMETER ContainerName
     The name of the build container.
 .OUTPUTS
@@ -144,8 +245,7 @@ function Get-AlToolConnection {
 
 <#
 .SYNOPSIS
-    Creates a throw-away AL project folder with a launch.json targeting the container so `al runtests`
-    can resolve connection settings.
+    Creates the temporary AL project used to connect AlTool to the container.
 .PARAMETER ContainerName
     The name of the build container.
 .PARAMETER Tenant
@@ -204,8 +304,8 @@ function New-AlToolProject {
 .SYNOPSIS
     Resolves the company `al runtests` should target.
 .DESCRIPTION
-    Honors an explicitly requested company name first, then falls back to the container's default
-    (preferring an evaluation company) via Get-CompanyInBcContainer.
+    Uses an explicitly requested company or selects a container company, preferring an evaluation
+    company.
 .PARAMETER ContainerName
     The name of the build container.
 .PARAMETER Tenant
@@ -242,13 +342,9 @@ function Get-AlToolCompany {
 
 <#
 .SYNOPSIS
-    Builds disabled-test lookups from the disabledTests list: per-method keys plus whole-codeunit
-    names (where a `*` wildcard method disables the entire codeunit).
+    Builds case-insensitive disabled-method and disabled-codeunit lookups.
 .DESCRIPTION
-    Each disabledTests entry has a codeunitName and either a single 'method', an array of methods, or
-    the wildcard '*'. A '*' entry means the ENTIRE codeunit is disabled, so it must exclude every
-    method of that codeunit - not a literal method named '*'. Names/keys are lowercased for
-    case-insensitive matching.
+    A `*` method disables the complete codeunit instead of a method named `*`.
 .PARAMETER DisabledTests
     Array of disabled-test entries.
 .OUTPUTS
@@ -280,40 +376,51 @@ function Get-DisabledTestKeySet {
 
 <#
 .SYNOPSIS
-    Enumerates the test codeunits + enabled methods for an app in the container.
+    Enumerates enabled test methods for an app in the container.
 .DESCRIPTION
-    Uses Get-TestsFromBcContainer with the app's extensionId to list every test codeunit and method.
-    When a disabledTests list is supplied, disabled methods (and whole codeunits marked with a `*`
-    wildcard) are filtered out here, because `al runtests` has no equivalent of BCH's run-time
-    DisableTestMethod control.
-.PARAMETER Parameters
-    Hashtable with containerName, tenant, credential, extensionId and optionally testType and
-    disabledTests.
+    Removes configured disabled methods and codeunits before AlTool execution.
+.PARAMETER ContainerName
+    Container whose tests are enumerated.
+.PARAMETER Credential
+    Credential used to access the container.
+.PARAMETER ExtensionId
+    App ID whose test codeunits are enumerated.
+.PARAMETER Tenant
+    Tenant used for test enumeration.
+.PARAMETER TestType
+    Optional BcContainerHelper test type filter.
+.PARAMETER DisabledTests
+    Test methods or codeunits excluded from the run.
 .OUTPUTS
     [object[]] Codeunit objects with .Id, .Name, .Tests (enabled method name array).
 #>
 function Get-AlToolTestCodeunits {
     param(
-        [Parameter(Mandatory = $true)][hashtable] $Parameters
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ContainerName,
+        [Parameter(Mandatory = $true)][System.Management.Automation.PSCredential] $Credential,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ExtensionId,
+        [string] $Tenant = "default",
+        [string] $TestType = "",
+        [AllowEmptyCollection()][object[]] $DisabledTests = @()
     )
 
     $getTestsParams = @{
-        containerName = $Parameters.containerName
-        tenant        = if ($Parameters.ContainsKey("tenant") -and $Parameters.tenant) { $Parameters.tenant } else { "default" }
-        credential    = $Parameters.credential
-        extensionId   = $Parameters.extensionId
+        containerName = $ContainerName
+        tenant        = $Tenant
+        credential    = $Credential
+        extensionId   = $ExtensionId
         ignoreGroups  = $true
     }
-    if ($Parameters.ContainsKey("testType") -and $Parameters.testType) {
-        $getTestsParams.testType = $Parameters.testType
+    if (-not [string]::IsNullOrWhiteSpace($TestType)) {
+        $getTestsParams.testType = $TestType
     }
 
     $codeunits = @(Get-TestsFromBcContainer @getTestsParams)
 
     $disabledMethods = @{}
     $disabledCodeunits = @{}
-    if ($Parameters.ContainsKey("disabledTests") -and $Parameters.disabledTests) {
-        $lookup = Get-DisabledTestKeySet -DisabledTests @($Parameters.disabledTests)
+    if ($DisabledTests.Count -gt 0) {
+        $lookup = Get-DisabledTestKeySet -DisabledTests $DisabledTests
         $disabledMethods = $lookup.Methods
         $disabledCodeunits = $lookup.Codeunits
     }
@@ -345,146 +452,276 @@ function Get-AlToolTestCodeunits {
     return @($result)
 }
 
-<#
-.SYNOPSIS
-    Parses the `Results:` block of a single `al runtests` invocation into per-method outcomes.
-.DESCRIPTION
-    Drops the phantom `OnRun` trigger entry and the trailing empty-named aggregate entry. Captures
-    the failure message (lines up to `AL Callstack:`) and callstack (following lines) for failures.
-.PARAMETER OutputLines
-    The lines of `al runtests --raw` output.
-.OUTPUTS
-    [hashtable] method name -> @{ Outcome (Pass/Fail/Skip); Ms; Message; Stacktrace }
-#>
-function ConvertFrom-AlRunTestsOutput {
+function ConvertFrom-AlFailureOutput {
     param(
-        [Parameter(Mandatory = $true)][AllowEmptyCollection()][AllowEmptyString()][string[]] $OutputLines
+        [AllowEmptyString()][string] $Output
     )
 
-    $results = @{}
-    $resultLineRegex = '^\s*(PASS|FAIL|SKIP)\s+(.*?)\s*\((\d+)ms\)\s*$'
-
-    $startIdx = -1
-    for ($i = 0; $i -lt $OutputLines.Count; $i++) {
-        if ($OutputLines[$i] -match '^\s*Results:\s*$') { $startIdx = $i + 1; break }
-    }
-    if ($startIdx -lt 0) { return $results }
-
-    $i = $startIdx
-    while ($i -lt $OutputLines.Count) {
-        $line = $OutputLines[$i]
-        $m = [regex]::Match($line, $resultLineRegex)
-        if (-not $m.Success) { $i++; continue }
-
-        $outcome = switch ($m.Groups[1].Value) { 'PASS' { 'Pass' } 'FAIL' { 'Fail' } 'SKIP' { 'Skip' } }
-        $name = $m.Groups[2].Value.Trim()
-        $ms = [int]$m.Groups[3].Value
-
-        if ([string]::IsNullOrWhiteSpace($name) -or $name -eq 'OnRun') { $i++; continue }
-
-        $message = ''
-        $stackText = ''
-        if ($outcome -eq 'Fail') {
-            $msgLines = @()
-            $stackLines = @()
-            $inStack = $false
-            $j = $i + 1
-            while ($j -lt $OutputLines.Count) {
-                $next = $OutputLines[$j]
-                if ([regex]::IsMatch($next, $resultLineRegex)) { break }
-                if ($next -match '^\s*AL Callstack:\s*$') { $inStack = $true; $j++; continue }
-                if ($inStack) {
-                    if ($next.Trim().Length -gt 0) { $stackLines += $next.Trim() }
-                }
-                else {
-                    if ($next.Trim().Length -gt 0) { $msgLines += $next.Trim() }
-                }
-                $j++
-            }
-            $message = ($msgLines -join ' ').Trim()
-            $stackText = ($stackLines -join ';')
-            $i = $j
+    $messageLines = @()
+    $stackLines = @()
+    $inStack = $false
+    foreach ($line in @("$Output" -split "\r?\n")) {
+        if ($line -match '^\s*AL Callstack:\s*$') {
+            $inStack = $true
+            continue
+        }
+        if ($line.Trim().Length -eq 0) { continue }
+        if ($inStack) {
+            $stackLines += $line.Trim()
         }
         else {
-            $i++
+            $messageLines += $line.Trim()
         }
-
-        $results[$name] = @{ Outcome = $outcome; Ms = $ms; Message = $message; Stacktrace = $stackText }
     }
 
-    return $results
+    return @{
+        Message    = ($messageLines -join ' ').Trim()
+        Stacktrace = ($stackLines -join ';')
+    }
 }
 
 <#
 .SYNOPSIS
-    Runs `al runtests` for one codeunit and returns the parsed per-method results plus raw output.
-.PARAMETER CodeunitId
-    The codeunit id to run.
-.PARAMETER Methods
-    The test method names to run.
-.PARAMETER ProjectPath
-    The throw-away AL project folder.
-.PARAMETER Company
-    The company to run against.
-.PARAMETER Tenant
-    The tenant to connect to.
-.PARAMETER Connection
-    The connection hashtable produced by Get-AlToolConnection.
+    Parses an AlTool test-groups response into codeunit and method result maps.
+.DESCRIPTION
+    Valid batch entries are retained even when other entries are invalid or missing.
+.PARAMETER OutputLines
+    The complete structured stdout from `al runtests --testgroups`.
 .OUTPUTS
-    [hashtable] @{ Results (method->outcome map); ElapsedSec; Raw; Connected (bool) }
+    [hashtable] containing Results, HasFailedOutcome, Parsed, Issues, and ParseError.
 #>
-function Invoke-AlRunTestsForCodeunit {
+function ConvertFrom-AlTestGroupsOutput {
     param(
-        [Parameter(Mandatory = $true)][string] $CodeunitId,
-        [Parameter(Mandatory = $true)][string[]] $Methods,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][AllowEmptyString()][string[]] $OutputLines
+    )
+
+    $result = @{
+        Results          = @{}
+        HasFailedOutcome = $false
+        Parsed           = $false
+        Issues           = @()
+        ParseError       = ""
+    }
+    $json = ($OutputLines -join [Environment]::NewLine).Trim()
+    if ([string]::IsNullOrWhiteSpace($json)) {
+        $result.ParseError = "The command returned no structured stdout."
+        return $result
+    }
+
+    try {
+        $toolResponse = ConvertTo-HashTable -object ($json | ConvertFrom-Json) -recurse
+    }
+    catch {
+        $result.ParseError = "The structured stdout could not be parsed as JSON: $($_.Exception.Message)"
+        return $result
+    }
+
+    if ($toolResponse -isnot [hashtable] -or
+        -not $toolResponse.ContainsKey("succeeded") -or $toolResponse.succeeded -isnot [bool] -or
+        -not $toolResponse.ContainsKey("data") -or $toolResponse.data -isnot [hashtable] -or
+        -not $toolResponse.data.ContainsKey("results") -or $null -eq $toolResponse.data.results) {
+        $result.ParseError = "The structured response does not contain a valid ToolResponse data.results collection."
+        return $result
+    }
+
+    $result.Parsed = $true
+    $invalidResults = @{}
+    foreach ($entry in @($toolResponse.data.results)) {
+        if ($entry -isnot [hashtable]) {
+            $result.Issues += "A result entry is not an object."
+            continue
+        }
+
+        $codeunitId = 0
+        if (-not [int]::TryParse("$($entry.codeunitId)", [ref] $codeunitId) -or $codeunitId -le 0) {
+            $result.Issues += "A result entry has an invalid codeunitId '$($entry.codeunitId)'."
+            continue
+        }
+        $methodName = "$($entry.methodName)"
+        if ([string]::IsNullOrWhiteSpace($methodName)) {
+            $result.Issues += "A result entry for codeunit $codeunitId has no methodName."
+            continue
+        }
+
+        $outcome = switch ("$($entry.status)".ToLowerInvariant()) {
+            "passed" { "Pass" }
+            "failed" { "Fail" }
+            "skipped" { "Skip" }
+            default { $null }
+        }
+        if (-not $outcome) {
+            $result.Issues += "Result $codeunitId/$methodName has unknown status '$($entry.status)'."
+            continue
+        }
+        if ($outcome -eq "Fail") {
+            $result.HasFailedOutcome = $true
+        }
+
+        $durationMs = 0
+        if ($entry.ContainsKey("durationMs") -and $null -ne $entry.durationMs -and
+            -not [int]::TryParse("$($entry.durationMs)", [ref] $durationMs)) {
+            $result.Issues += "Result $codeunitId/$methodName has invalid durationMs '$($entry.durationMs)'; using zero."
+            $durationMs = 0
+        }
+
+        $message = ""
+        $callstackText = ""
+        if ($outcome -eq "Fail") {
+            $failure = ConvertFrom-AlFailureOutput -Output "$($entry.output)"
+            $message = $failure.Message
+            $callstackText = $failure.Stacktrace
+        }
+
+        $codeunitKey = "$codeunitId"
+        $resultKey = "$codeunitKey::$methodName"
+        if ($invalidResults.ContainsKey($resultKey)) {
+            continue
+        }
+        if (-not $result.Results.ContainsKey($codeunitKey)) {
+            $result.Results[$codeunitKey] = @{}
+        }
+        if ($result.Results[$codeunitKey].ContainsKey($methodName)) {
+            $result.Results[$codeunitKey].Remove($methodName)
+            $invalidResults[$resultKey] = $true
+            $result.Issues += "The response contains duplicate results for $codeunitId/$methodName; the result was invalidated."
+            continue
+        }
+        $result.Results[$codeunitKey][$methodName] = @{
+            Outcome    = $outcome
+            Ms         = $durationMs
+            Message    = $message
+            Stacktrace = $callstackText
+        }
+    }
+
+    return $result
+}
+
+function New-AlTestGroupsFile {
+    param(
+        [Parameter(Mandatory = $true)][object[]] $Codeunits
+    )
+
+    $groups = @()
+    $seenCodeunits = @{}
+    foreach ($codeunit in $Codeunits) {
+        $codeunitId = 0
+        if (-not [int]::TryParse("$($codeunit.Id)", [ref] $codeunitId) -or $codeunitId -le 0) {
+            throw "AlTool test codeunit id '$($codeunit.Id)' must be a positive integer."
+        }
+        if ($seenCodeunits.ContainsKey("$codeunitId")) {
+            throw "AlTool test codeunit id '$codeunitId' was enumerated more than once."
+        }
+        $seenCodeunits["$codeunitId"] = $true
+        $methods = @($codeunit.Tests | ForEach-Object { "$_" })
+        if ($methods.Count -eq 0) { continue }
+        $groups += [ordered]@{
+            codeunitId = $codeunitId
+            testMethods = [string[]] $methods
+        }
+    }
+
+    $testGroupsFile = Join-Path ([System.IO.Path]::GetTempPath()) "altool-testgroups-$([Guid]::NewGuid().ToString('N')).json"
+    ConvertTo-Json -InputObject @($groups) -Depth 5 -Compress |
+        Set-Content -LiteralPath $testGroupsFile -Encoding UTF8
+    return $testGroupsFile
+}
+
+<#
+.SYNOPSIS
+    Runs all enabled test groups for one app through one AlTool connection.
+.DESCRIPTION
+    Valid structured results are returned for JUnit generation. Invalid result entries are reported.
+#>
+function Invoke-AlRunTestsBatch {
+    param(
+        [Parameter(Mandatory = $true)][object[]] $Codeunits,
         [Parameter(Mandatory = $true)][string] $ProjectPath,
         [Parameter(Mandatory = $true)][string] $Company,
         [Parameter(Mandatory = $true)][string] $Tenant,
         [Parameter(Mandatory = $true)][hashtable] $Connection
     )
 
-    # `al runtests` emits structured JSON by default in newer builds; `--raw` restores the
-    # human-readable text summary ("Test run completed: ..." + a "Results:" block of
-    # "PASS|FAIL|SKIP <name> (Nms)" lines) that ConvertFrom-AlRunTestsOutput parses.
-    $alArgs = @(
-        'runtests', $CodeunitId,
-        '--project', $ProjectPath,
-        '--company', $Company,
-        '--server', $Connection.Server,
-        '--serverinstance', $Connection.ServerInstance,
-        '--port', "$($Connection.Port)",
-        '--environmenttype', 'OnPrem',
-        '--authentication', 'UserPassword',
-        '--tenant', $Tenant,
-        '--raw',
-        '--testmethods'
-    ) + $Methods
+    $testGroupsFile = New-AlTestGroupsFile -Codeunits $Codeunits
+    try {
+        $alArgs = @(
+            'runtests',
+            '--testgroups', $testGroupsFile,
+            '--project', $ProjectPath,
+            '--company', $Company,
+            '--server', $Connection.Server,
+            '--serverinstance', $Connection.ServerInstance,
+            '--port', "$($Connection.Port)",
+            '--environmenttype', 'OnPrem',
+            '--authentication', 'UserPassword',
+            '--tenant', $Tenant
+        )
 
-    $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    $output = & al @alArgs 2>&1
-    $sw.Stop()
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        try {
+            $nativeResult = Invoke-AlNativeCommand -FilePath "al" -ArgumentList $alArgs
+        }
+        finally {
+            $sw.Stop()
+        }
 
-    $lines = @($output | ForEach-Object { "$_" })
-    $connected = ($lines | Where-Object { $_ -match 'Test run completed:' }).Count -gt 0
-    $parsed = ConvertFrom-AlRunTestsOutput -OutputLines $lines
+        $parsed = ConvertFrom-AlTestGroupsOutput -OutputLines @($nativeResult.StandardOutput)
+        $protocolErrors = @()
+        if ($nativeResult.ExitCode -notin @(0, 1)) {
+            $protocolErrors += "The command exited with unexpected code $($nativeResult.ExitCode)."
+        }
+        if (-not $parsed.Parsed) {
+            $protocolErrors += $parsed.ParseError
+        }
+        else {
+            if ($nativeResult.ExitCode -eq 1 -and -not $parsed.HasFailedOutcome) {
+                $protocolErrors += "The command exited with code 1 without reporting a failed test."
+            }
+            if ($nativeResult.ExitCode -eq 0 -and $parsed.HasFailedOutcome) {
+                $protocolErrors += "The command exited with code 0 after reporting a failed test."
+            }
+        }
 
-    if ($connected -and $parsed.Count -eq 0 -and $Methods.Count -gt 0) {
-        Write-Host "::warning::al runtests connected for codeunit $CodeunitId but produced no parseable results. Raw output follows (possible output-format change):"
-        Write-Host ($lines -join "`n")
+        if ($protocolErrors.Count -gt 0) {
+            $diagnostics = @()
+            if ($nativeResult.StandardError.Count -gt 0) {
+                $diagnostics += "stderr: $($nativeResult.StandardError -join [Environment]::NewLine)"
+            }
+            if ($nativeResult.StandardOutput.Count -gt 0) {
+                $diagnostics += "stdout: $($nativeResult.StandardOutput -join [Environment]::NewLine)"
+            }
+            if ($diagnostics.Count -eq 0) {
+                $diagnostics += "The command produced no stdout or stderr."
+            }
+            throw "AlTool test batch protocol failure. $($protocolErrors -join ' ') $($diagnostics -join [Environment]::NewLine)"
+        }
+
+        if ($parsed.Issues.Count -gt 0) {
+            Write-Host "::warning::The AlTool test batch contained invalid result entries. $($parsed.Issues -join ' ')"
+            if ($nativeResult.StandardError.Count -gt 0) {
+                Write-Host "al runtests stderr:"
+                Write-Host ($nativeResult.StandardError -join [Environment]::NewLine)
+            }
+            if ($nativeResult.StandardOutput.Count -gt 0) {
+                Write-Host "al runtests stdout:"
+                Write-Host ($nativeResult.StandardOutput -join [Environment]::NewLine)
+            }
+        }
+
+        return @{
+            Results    = $parsed.Results
+            ElapsedSec = [Math]::Round($sw.Elapsed.TotalSeconds, 3)
+        }
     }
-
-    return @{
-        Results    = $parsed
-        ElapsedSec = [Math]::Round($sw.Elapsed.TotalSeconds, 3)
-        Raw        = ($lines -join "`n")
-        Connected  = $connected
+    finally {
+        Remove-Item -LiteralPath $testGroupsFile -Force -ErrorAction SilentlyContinue
     }
 }
 
 <#
 .SYNOPSIS
-    Appends a JUnit <testsuite> for one codeunit to the given <testsuites> document, matching the
-    exact schema BcContainerHelper produces.
+    Appends an AL-Go AnalyzeTests-compatible JUnit <testsuite> for one codeunit to the given
+    <testsuites> document.
 .PARAMETER Doc
     The JUnit XmlDocument being built.
 .PARAMETER TestSuitesNode
@@ -501,8 +738,6 @@ function Invoke-AlRunTestsForCodeunit {
     The app name.
 .PARAMETER Hostname
     The runner host name.
-.PARAMETER ElapsedSec
-    The elapsed time (seconds) attributed to this codeunit.
 .OUTPUTS
     [int] Number of failing methods in this codeunit.
 #>
@@ -515,8 +750,7 @@ function Add-JUnitTestSuite {
         [Parameter(Mandatory = $true)][hashtable] $MethodResults,
         [Parameter(Mandatory = $true)][string] $ExtensionId,
         [Parameter(Mandatory = $true)][string] $AppName,
-        [Parameter(Mandatory = $true)][string] $Hostname,
-        [Parameter(Mandatory = $true)][double] $ElapsedSec
+        [Parameter(Mandatory = $true)][string] $Hostname
     )
 
     $ci = [System.Globalization.CultureInfo]::InvariantCulture
@@ -542,6 +776,7 @@ function Add-JUnitTestSuite {
 
     $failed = 0
     $skipped = 0
+    $suiteMs = 0.0
     foreach ($method in $RequestedMethods) {
         $res = $MethodResults[$method]
 
@@ -550,7 +785,7 @@ function Add-JUnitTestSuite {
         $tc.SetAttribute("name", $method)
 
         if ($null -eq $res) {
-            # Method was requested but the runner produced no result (e.g. connect failure) -> error.
+            # Missing results remain failures in the final JUnit output.
             $tc.SetAttribute("time", "0")
             $failure = $Doc.CreateElement("failure")
             $failure.SetAttribute("message", "No result produced by al runtests")
@@ -559,6 +794,7 @@ function Add-JUnitTestSuite {
             $failed++
         }
         else {
+            $suiteMs += [double] $res.Ms
             $tc.SetAttribute("time", ([Math]::Round($res.Ms / 1000.0, 3)).ToString($ci))
             switch ($res.Outcome) {
                 'Fail' {
@@ -582,7 +818,7 @@ function Add-JUnitTestSuite {
     $suite.SetAttribute("errors", "0")
     $suite.SetAttribute("failures", "$failed")
     $suite.SetAttribute("skipped", "$skipped")
-    $suite.SetAttribute("time", ([Math]::Round($ElapsedSec, 3)).ToString($ci))
+    $suite.SetAttribute("time", ([Math]::Round($suiteMs / 1000.0, 3)).ToString($ci))
 
     $TestSuitesNode.AppendChild($suite) | Out-Null
     return $failed
@@ -592,75 +828,86 @@ function Add-JUnitTestSuite {
 .SYNOPSIS
     Runs all of a single app's test codeunits through `al runtests` and writes a JUnit results file.
 .DESCRIPTION
-    The built-in default test runner for the RunTests action. Expects $Parameters to contain
-    containerName, credential, extensionId and (optionally) tenant, companyName, appName,
-    disabledTests and JUnitResultFileName. Runs each of the app's test codeunits in its own
-    `al runtests` invocation, then re-runs any method that produced no result or a failure once,
-    and appends a BcContainerHelper-schema JUnit result. Returns whether every executed method
-    passed.
-.PARAMETER Parameters
-    The BcContainerHelper-shaped test parameters built by Invoke-AlGoTestRun.
+    Runs the app in one test-groups batch and appends JUnit output compatible with AL-Go AnalyzeTests.
+.PARAMETER ContainerName
+    Container hosting the app under test.
+.PARAMETER Credential
+    Credential used to run tests.
+.PARAMETER ExtensionId
+    App ID whose tests are executed.
+.PARAMETER AppName
+    App name included in logs and JUnit output.
+.PARAMETER CompanyName
+    Company used for the test run. The container default is used when omitted.
+.PARAMETER Tenant
+    Tenant used for container discovery and AlTool execution.
+.PARAMETER DisabledTests
+    Test methods or codeunits excluded from the run.
+.PARAMETER TestType
+    Optional BcContainerHelper test type filter.
+.PARAMETER JUnitResultFileName
+    JUnit file to create or append.
 .OUTPUTS
     [bool] $true if all executed methods passed; $false otherwise.
 #>
 function Invoke-AlToolTestRun {
     param(
-        [Parameter(Mandatory = $true)][hashtable] $Parameters
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ContainerName,
+        [Parameter(Mandatory = $true)][System.Management.Automation.PSCredential] $Credential,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $ExtensionId,
+        [string] $AppName = "",
+        [string] $CompanyName = "",
+        [string] $Tenant = "default",
+        [AllowEmptyCollection()][object[]] $DisabledTests = @(),
+        [string] $TestType = "",
+        [string] $JUnitResultFileName = ""
     )
 
-    Install-AlTool | Out-Null
-
-    $containerName = $Parameters.containerName
-    $tenant = if ($Parameters.ContainsKey("tenant") -and $Parameters.tenant) { "$($Parameters.tenant)" } else { "default" }
-    $extensionId = "$($Parameters.extensionId)"
-    $appName = if ($Parameters.ContainsKey("appName")) { "$($Parameters.appName)" } else { "" }
-    $companyName = if ($Parameters.ContainsKey("companyName")) { "$($Parameters.companyName)" } else { "" }
-
-    if ([string]::IsNullOrWhiteSpace($extensionId)) {
-        throw "Invoke-AlToolTestRun requires 'extensionId' in parameters."
+    if ([string]::IsNullOrWhiteSpace($ExtensionId)) {
+        throw "Invoke-AlToolTestRun requires a nonblank ExtensionId."
     }
-
-    # Expose credentials to the al CLI (only auth channel it supports for on-prem UserPassword).
-    # Set inside the try below so the finally always clears them from the process environment.
-    if ($Parameters.credential -isnot [System.Management.Automation.PSCredential]) {
-        throw "Invoke-AlToolTestRun requires a PSCredential in parameters.credential."
+    if ([string]::IsNullOrWhiteSpace($Tenant)) {
+        $Tenant = "default"
     }
 
     try {
-        $env:BC_SERVER_USERNAME = $Parameters.credential.UserName
-        $env:BC_SERVER_PASSWORD = $Parameters.credential.GetNetworkCredential().Password
+        $env:BC_SERVER_USERNAME = $Credential.UserName
+        $env:BC_SERVER_PASSWORD = $Credential.GetNetworkCredential().Password
 
-        $connection = Get-AlToolConnection -ContainerName $containerName
-        $projectPath = New-AlToolProject -ContainerName $containerName -Tenant $tenant -Connection $connection
-        $company = Get-AlToolCompany -ContainerName $containerName -Tenant $tenant -CompanyName $companyName
-        if ([string]::IsNullOrWhiteSpace($company)) {
-            throw "Could not resolve a company to run tests against in container '$containerName'."
-        }
-
-        Write-Host "altool run: app='$appName' extensionId=$extensionId company='$company' server='$($connection.Server)' instance='$($connection.ServerInstance)' port=$($connection.Port) tenant='$tenant'"
-
-        $codeunits = @(Get-AlToolTestCodeunits -Parameters $Parameters)
-        Write-Host "Enumerated $($codeunits.Count) test codeunit(s) for app '$appName'."
+        $codeunits = @(Get-AlToolTestCodeunits -ContainerName $ContainerName -Credential $Credential `
+                -ExtensionId $ExtensionId -Tenant $Tenant -TestType $TestType -DisabledTests $DisabledTests)
+        Write-Host "Enumerated $($codeunits.Count) test codeunit(s) for app '$AppName'."
         if ($codeunits.Count -eq 0) {
-            Write-Host "No test codeunits to run for app '$appName'; nothing to do."
+            Write-Host "No test codeunits to run for app '$AppName'; nothing to do."
             return $true
         }
 
+        if (-not (Get-Command al -ErrorAction SilentlyContinue)) {
+            Install-AlTool | Out-Null
+        }
+
+        $connection = Get-AlToolConnection -ContainerName $ContainerName
+        $projectPath = New-AlToolProject -ContainerName $ContainerName -Tenant $Tenant -Connection $connection
+        $company = Get-AlToolCompany -ContainerName $ContainerName -Tenant $Tenant -CompanyName $CompanyName
+        if ([string]::IsNullOrWhiteSpace($company)) {
+            throw "Could not resolve a company to run tests against in container '$ContainerName'."
+        }
+
+        Write-Host "altool run: app='$AppName' extensionId=$ExtensionId company='$company' server='$($connection.Server)' instance='$($connection.ServerInstance)' port=$($connection.Port) tenant='$Tenant'"
+
         $hostname = [System.Net.Dns]::GetHostName()
 
-        # Append to an existing JUnit file when present (Invoke-AlGoTestRun runs one app at a time
-        # into the same TestResults.xml), matching BCH's AppendToJUnitResultFile behavior.
-        $junitFile = if ($Parameters.ContainsKey("JUnitResultFileName")) { $Parameters.JUnitResultFileName } else { "" }
+        # Multiple test apps append to the same result file.
         $doc = New-Object System.Xml.XmlDocument
         $suites = $null
-        if (-not [string]::IsNullOrWhiteSpace($junitFile) -and (Test-Path $junitFile)) {
+        if (-not [string]::IsNullOrWhiteSpace($JUnitResultFileName) -and (Test-Path $JUnitResultFileName)) {
             try {
-                $doc.Load($junitFile)
+                $doc.Load($JUnitResultFileName)
                 $suites = $doc.DocumentElement
                 if (-not $suites -or $suites.LocalName -ne 'testsuites') { $suites = $null; $doc = New-Object System.Xml.XmlDocument }
             }
             catch {
-                Write-Host "WARNING: Could not load existing JUnit file '$junitFile' ($($_.Exception.Message)); starting fresh."
+                Write-Host "WARNING: Could not load existing JUnit file '$JUnitResultFileName' ($($_.Exception.Message)); starting fresh."
                 $doc = New-Object System.Xml.XmlDocument
                 $suites = $null
             }
@@ -672,87 +919,21 @@ function Invoke-AlToolTestRun {
         }
 
         $allPassed = $true
-        $merged = @{}         # merged[codeunitId] = @{ method -> result }
-        $totalElapsed = 0.0
 
-        # PRIMARY execution: run each test codeunit in its OWN `al runtests <id> --testmethods`
-        # invocation (a fresh session per codeunit). The official altool has no batch/plan mode,
-        # so per-codeunit is the only supported execution model.
-        foreach ($cu in $codeunits) {
-            $cid = "$($cu.Id)"
-            $methods = @($cu.Tests | ForEach-Object { "$_" })
-            $run = Invoke-AlRunTestsForCodeunit -CodeunitId $cid -Methods $methods `
-                -ProjectPath $projectPath -Company $company -Tenant $tenant -Connection $connection
-            $totalElapsed += [double]$run.ElapsedSec
-            if (-not $run.Connected) {
-                Write-Host "::warning::al runtests did not complete for codeunit $cid ('$($cu.Name)') in app '$appName'. Raw output:"
-                Write-Host $run.Raw
-            }
-            $merged[$cid] = $run.Results
-        }
+        $batch = Invoke-AlRunTestsBatch -Codeunits $codeunits -ProjectPath $projectPath `
+            -Company $company -Tenant $Tenant -Connection $connection
+        $batchResults = $batch.Results
 
-        # Rerun-on-failure pass. Each affected codeunit runs again in its OWN `al runtests` call
-        # (a fresh session): a method that produced no result (a state-sensitive codeunit can leave
-        # a method unreported) is retried for correctness, and a failed method is retried once to
-        # recover flaky failures (mirroring BCH's rerun of failed tests).
-        $isoGroups = @()
-        foreach ($cu in $codeunits) {
-            $cid = "$($cu.Id)"
-            $requested = @($cu.Tests | ForEach-Object { "$_" })
-            $cuResults = $merged[$cid]
-            $retryMethods = @($requested | Where-Object {
-                    $r = if ($cuResults) { $cuResults[$_] } else { $null }
-                    ($null -eq $r) -or ($r.Outcome -eq 'Fail')
-                })
-            if ($retryMethods.Count -gt 0) {
-                $isoGroups += @{ Id = $cid; Methods = $retryMethods; Name = $cu.Name }
-            }
-        }
-        if ($isoGroups.Count -gt 0) {
-            Write-Host ("rerun pass: {0} codeunit(s) with unreported or failed method(s) (each in its own session)" -f $isoGroups.Count)
-            foreach ($g in $isoGroups) {
-                $iso = Invoke-AlRunTestsForCodeunit -CodeunitId $g.Id -Methods $g.Methods `
-                    -ProjectPath $projectPath -Company $company -Tenant $tenant -Connection $connection
-                $totalElapsed += [double]$iso.ElapsedSec
-                if (-not $merged.ContainsKey($g.Id)) { $merged[$g.Id] = @{} }
-                foreach ($mName in $iso.Results.Keys) { $merged[$g.Id][$mName] = $iso.Results[$mName] }
-            }
-        }
-
-        # Distribute the app's REAL al wall-clock across its codeunits weighted by each codeunit's
-        # method-ms share (al's per-method `ms` under-reports real work, so it is used only for
-        # weighting, not as the absolute suite time). Equal split as a fallback.
-        $cuMsShare = @{}
-        $grandMs = 0.0
-        foreach ($cu in $codeunits) {
-            $cuResults = $merged["$($cu.Id)"]
-            $ms = 0.0
-            if ($cuResults) { foreach ($mName in $cuResults.Keys) { $ms += [double]$cuResults[$mName].Ms } }
-            $cuMsShare["$($cu.Id)"] = $ms
-            $grandMs += $ms
-        }
-
-        # Build one JUnit <testsuite> per codeunit from the merged results.
         $idx = 0
         foreach ($cu in $codeunits) {
             $idx++
             $methods = @($cu.Tests | ForEach-Object { "$_" })
-            $cuResults = $merged["$($cu.Id)"]
+            $cuResults = $batchResults["$($cu.Id)"]
             if ($null -eq $cuResults) { $cuResults = @{} }
 
-            if ($grandMs -gt 0) {
-                $suiteSec = $totalElapsed * ($cuMsShare["$($cu.Id)"] / $grandMs)
-            }
-            elseif ($codeunits.Count -gt 0) {
-                $suiteSec = $totalElapsed / $codeunits.Count
-            }
-            else {
-                $suiteSec = 0.0
-            }
-
             $failed = Add-JUnitTestSuite -Doc $doc -TestSuitesNode $suites -Codeunit $cu `
-                -RequestedMethods $methods -MethodResults $cuResults -ExtensionId $extensionId `
-                -AppName $appName -Hostname $hostname -ElapsedSec $suiteSec
+                -RequestedMethods $methods -MethodResults $cuResults -ExtensionId $ExtensionId `
+                -AppName $AppName -Hostname $hostname
 
             if ($failed -gt 0) { $allPassed = $false }
 
@@ -760,27 +941,25 @@ function Invoke-AlToolTestRun {
                     $idx, $codeunits.Count, $cu.Id, $cu.Name, $failed, $methods.Count)
         }
         Write-Host ("Run for app '{0}': {1} codeunit(s) in {2}s real al wall-clock." -f `
-                $appName, $codeunits.Count, [Math]::Round($totalElapsed, 2))
+                $AppName, $codeunits.Count, [Math]::Round([double] $batch.ElapsedSec, 2))
 
-        if (-not [string]::IsNullOrWhiteSpace($junitFile)) {
-            $dir = [System.IO.Path]::GetDirectoryName($junitFile)
+        if (-not [string]::IsNullOrWhiteSpace($JUnitResultFileName)) {
+            $dir = [System.IO.Path]::GetDirectoryName($JUnitResultFileName)
             if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-            $doc.Save($junitFile)
-            Write-Host "Wrote JUnit results for app '$appName' to $junitFile"
+            $doc.Save($JUnitResultFileName)
+            Write-Host "Wrote JUnit results for app '$AppName' to $JUnitResultFileName"
         }
         else {
-            Write-Host "WARNING: No JUnitResultFileName in parameters; results not persisted for app '$appName'."
+            Write-Host "WARNING: No JUnitResultFileName in parameters; results not persisted for app '$AppName'."
         }
 
         return $allPassed
     }
     finally {
-        # Do not let the container credential linger in the process environment after the run.
+        # Do not retain container credentials after the run.
         Remove-Item Env:\BC_SERVER_USERNAME -ErrorAction SilentlyContinue
         Remove-Item Env:\BC_SERVER_PASSWORD -ErrorAction SilentlyContinue
     }
 }
 
-Export-ModuleMember -Function Install-AlTool, Get-AlToolConnection, New-AlToolProject, Get-AlToolCompany, `
-    Get-DisabledTestKeySet, Get-AlToolTestCodeunits, ConvertFrom-AlRunTestsOutput, `
-    Invoke-AlRunTestsForCodeunit, Add-JUnitTestSuite, Invoke-AlToolTestRun
+Export-ModuleMember -Function Install-AlTool, Invoke-AlToolTestRun

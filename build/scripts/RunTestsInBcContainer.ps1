@@ -161,12 +161,22 @@ if ($AppNamesToTest.Count -gt 0) {
 }
 
 if (Test-UseAlToolRunner -TestType $TestType) {
-    # IntegrationTest and Uncategorized run through Microsoft's headless `al runtests` (public
-    # altool). This is a single-app leaf invocation dispatched onto one tenant by the parallel
-    # harness above, so tenant fan-out is preserved. Invoke-AlToolTestRun runs each test codeunit
-    # in its own `al runtests` call and re-runs any failed or unreported method once, mirroring
-    # BCH's rerun pass. The tolerance check below still applies to the JUnit file it writes.
-    $result = Invoke-AlToolTestRun -Parameters $parameters
+    # IntegrationTest and Uncategorized run through Microsoft's headless `al runtests` (altool) using
+    # the AL-Go RunTests action's batched runner vendored in AlToolTestRunner.psm1. This is a
+    # single-app leaf invocation dispatched onto one tenant by the parallel harness above, so tenant
+    # fan-out is preserved. Invoke-AlToolTestRun batches the app's codeunits into a single
+    # `al runtests --testgroups` call and appends to the per-tenant JUnit file the harness later
+    # merges. The tolerance check below still applies to that JUnit file.
+    $result = Invoke-AlToolTestRun `
+        -ContainerName $parameters.containerName `
+        -Credential $parameters.credential `
+        -ExtensionId "$($parameters.extensionId)" `
+        -AppName "$($parameters.appName)" `
+        -CompanyName "$($parameters.companyName)" `
+        -Tenant "$($parameters.tenant)" `
+        -DisabledTests @($parameters.disabledTests) `
+        -TestType $TestType `
+        -JUnitResultFileName $parameters.JUnitResultFileName
 }
 else {
     $maxAttempts = if ($TestType -eq "Legacy") { 1 } else { 2 }
