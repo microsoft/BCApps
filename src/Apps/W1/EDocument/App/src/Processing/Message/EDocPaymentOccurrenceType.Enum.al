@@ -5,30 +5,19 @@
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
 /// <summary>
-/// Operational status of an E-Document message record.
+/// Identifies whether an E-Document payment occurrence applies or reverses an amount.
 /// </summary>
-enum 6429 "E-Doc. Message Status"
+enum 6430 "E-Doc. Payment Occurrence Type"
 {
-    Extensible = true;
+    Access = Public;
+    Extensible = false;
 
-    value(0; Created)
+    value(0; Applied)
     {
-        Caption = 'Created';
+        Caption = 'Applied';
     }
-    value(1; Sent)
+    value(1; Reversed)
     {
-        Caption = 'Sent';
-    }
-    value(2; Queued)
-    {
-        Caption = 'Queued';
-    }
-    value(3; Error)
-    {
-        Caption = 'Error';
-    }
-    value(4; Received)
-    {
-        Caption = 'Received';
+        Caption = 'Reversed';
     }
 }

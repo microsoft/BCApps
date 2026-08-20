@@ -20,4 +20,16 @@ enum 10970 "FR E-Invoice Message Type"
     {
         Caption = 'Refused';
     }
+    value(3; Submitted)
+    {
+        Caption = 'Submitted';
+    }
+    value(4; "Technical Rejected")
+    {
+        Caption = 'Technical Rejected';
+    }
+    value(5; Accepted)
+    {
+        Caption = 'Accepted';
+    }
 }

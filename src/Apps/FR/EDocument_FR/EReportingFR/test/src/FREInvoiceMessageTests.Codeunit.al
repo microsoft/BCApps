@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using System.Utilities;
 
 codeunit 148152 "FR E-Invoice Message Tests"
 {
@@ -21,6 +22,7 @@ codeunit 148152 "FR E-Invoice Message Tests"
                   tabledata "E-Document" = rimd,
                   tabledata "E-Document Service" = rimd,
                   tabledata "E-Document Service Status" = rimd,
+                  tabledata "E-Doc. Payment Occurrence" = rimd,
                   tabledata "FR E-Invoice Message" = rimd,
                   tabledata "Sales Invoice Header" = rimd;
 
@@ -32,6 +34,7 @@ codeunit 148152 "FR E-Invoice Message Tests"
     procedure PaymentApplicationSendsCollected()
     var
         EDocument: Record "E-Document";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
@@ -44,6 +47,14 @@ codeunit 148152 "FR E-Invoice Message Tests"
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
         Assert.RecordCount(FREInvoiceMessage, 1);
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
+        Assert.RecordCount(EDocPaymentOccurrence, 1);
+        EDocPaymentOccurrence.FindFirst();
+        Assert.AreEqual(100, EDocPaymentOccurrence.Amount, 'The generic applied occurrence must carry a positive amount.');
+        Assert.AreEqual(0, MessageSenderMock.GetSendCount(), 'Payment posting must queue the message without invoking the connector.');
+        FREInvoiceMessage.FindFirst();
+        SendMessage(FREInvoiceMessage);
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One Collected message must be sent.');
         Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ProcessConditionCode>212</ram:ProcessConditionCode>'), 'The payload must contain status 212.');
         Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ValueAmount currencyID="EUR">100'), 'The payload must contain the collected amount.');
@@ -54,7 +65,9 @@ codeunit 148152 "FR E-Invoice Message Tests"
     var
         EDocument: Record "E-Document";
         CollectedMessage: Record "FR E-Invoice Message";
+        AppliedOccurrence: Record "E-Doc. Payment Occurrence";
         NegativeMessage: Record "FR E-Invoice Message";
+        ReversedOccurrence: Record "E-Doc. Payment Occurrence";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
@@ -62,18 +75,29 @@ codeunit 148152 "FR E-Invoice Message Tests"
         Initialize();
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry);
         FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        CollectedMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        CollectedMessage.SetRange(Type, CollectedMessage.Type::Collected);
+        CollectedMessage.FindFirst();
+        SendMessage(CollectedMessage);
         CreateDetailedLedgerEntry(NewDetailedCustLedgEntry, DetailedCustLedgEntry."Cust. Ledger Entry No.", DetailedCustLedgEntry."Applied Cust. Ledger Entry No.", -100);
 
         FREInvoiceMessageMgt.ProcessUnapplication(DetailedCustLedgEntry, NewDetailedCustLedgEntry);
 
-        CollectedMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
-        CollectedMessage.SetRange(Type, CollectedMessage.Type::Collected);
-        CollectedMessage.FindFirst();
         NegativeMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         NegativeMessage.SetRange(Type, NegativeMessage.Type::"Negative Collected");
         NegativeMessage.FindFirst();
         Assert.AreEqual(CollectedMessage."Entry No.", NegativeMessage."Original Entry No.", 'The reversal must link to the original occurrence.');
         Assert.AreEqual(-CollectedMessage.Amount, NegativeMessage.Amount, 'The reversal amount must negate the original amount.');
+        AppliedOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        AppliedOccurrence.SetRange(Type, AppliedOccurrence.Type::Applied);
+        AppliedOccurrence.FindFirst();
+        ReversedOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        ReversedOccurrence.SetRange(Type, ReversedOccurrence.Type::Reversed);
+        ReversedOccurrence.FindFirst();
+        Assert.AreEqual(AppliedOccurrence."Entry No.", ReversedOccurrence."Original Occurrence Entry No.", 'The generic reversal must link to its applied occurrence.');
+        Assert.AreEqual(-AppliedOccurrence.Amount, ReversedOccurrence.Amount, 'The generic reversal must negate the applied amount.');
+        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'Unapplication must queue the reversal without invoking the connector.');
+        SendMessage(NegativeMessage);
         Assert.AreEqual(2, MessageSenderMock.GetSendCount(), 'Collected and Negative Collected messages must be sent.');
         Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ValueAmount currencyID="EUR">-100'), 'The reversal payload must contain a negative amount.');
     end;
@@ -89,6 +113,8 @@ codeunit 148152 "FR E-Invoice Message Tests"
 
         FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'PRICE', 'The amount is incorrect.');
 
+        Assert.AreEqual(0, MessageSenderMock.GetSendCount(), 'Refusal must queue the message without invoking the connector.');
+        SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One refusal message must be sent.');
         Assert.AreEqual("E-Doc. Response Type"::Refused, MessageSenderMock.GetLastResponseType(), 'The child message must be Refused.');
         Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ProcessConditionCode>210</ram:ProcessConditionCode>'), 'The payload must contain status 210.');
@@ -107,15 +133,128 @@ codeunit 148152 "FR E-Invoice Message Tests"
         asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, '', 'Not accepted.');
         Assert.ExpectedError('A refusal reason code is required.');
         FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Not accepted.');
+        SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
         asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Again.');
         Assert.ExpectedError('has already been refused');
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'A duplicate refusal must not be sent.');
     end;
 
-    local procedure Initialize()
+    [Test]
+    procedure MessageSenderMustReportSuccess()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        MessageEntryNo: Integer;
+    begin
+        Initialize();
+        CreateIncomingEDocument(EDocument);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('<Message />');
+        MessageEntryNo := EDocumentMessageAPI.CreateMessage(
+            EDocument, "E-Document Message Type"::"FR Invoice Lifecycle", "E-Doc. Response Type"::Refused, TempBlob);
+        MessageSenderMock.SetReportSuccess(false);
+
+        asserterror EDocumentMessageAPI.SendMessage(MessageEntryNo);
+
+        Assert.ExpectedError('could not be sent');
+        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'The connector must be invoked before its missing success result is rejected.');
+    end;
+
+    [Test]
+    procedure PaymentApplicationReplayIsIdempotent()
+    var
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        Initialize();
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry);
+
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
+        Assert.RecordCount(EDocPaymentOccurrence, 1);
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        Assert.RecordCount(FREInvoiceMessage, 1);
+    end;
+
+    [Test]
+    procedure IncomingMessageIsCorrelatedAndDeduplicated()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        FirstMessageEntryNo: Integer;
+        DuplicateMessageEntryNo: Integer;
+    begin
+        Initialize();
+        CreateIncomingEDocument(EDocument);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, 'FR-DOC-001');
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('<Message />');
+
+        FirstMessageEntryNo := EDocumentMessageAPI.CreateIncomingMessage(
+            EDocument.Service, 'FR-DOC-001', 'FR-MSG-001', "E-Document Message Type"::"FR Invoice Lifecycle",
+            "E-Doc. Response Type"::Refused, CurrentDateTime(), TempBlob);
+        DuplicateMessageEntryNo := EDocumentMessageAPI.CreateIncomingMessage(
+            EDocument.Service, 'FR-DOC-001', 'FR-MSG-001', "E-Document Message Type"::"FR Invoice Lifecycle",
+            "E-Doc. Response Type"::Refused, CurrentDateTime(), TempBlob);
+
+        Assert.AreNotEqual(0, FirstMessageEntryNo, 'The incoming lifecycle message must be persisted.');
+        Assert.AreEqual(FirstMessageEntryNo, DuplicateMessageEntryNo, 'The external message ID must deduplicate repeated delivery.');
+    end;
+
+    [Test]
+    procedure IncomingMessageRequiresRegisteredDocumentReference()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+    begin
+        Initialize();
+        CreateIncomingEDocument(EDocument);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('<Message />');
+
+        asserterror EDocumentMessageAPI.CreateIncomingMessage(
+            EDocument.Service, CopyStr(Format(CreateGuid()), 1, 250), CopyStr(Format(CreateGuid()), 1, 250),
+            "E-Document Message Type"::"FR Invoice Lifecycle", "E-Doc. Response Type"::Refused, CurrentDateTime(), TempBlob);
+
+        Assert.ExpectedError('is not registered');
+    end;
+
+    local procedure SendFirstMessage(EDocument: Record "E-Document"; MessageType: Enum "FR E-Invoice Message Type")
     var
         FREInvoiceMessage: Record "FR E-Invoice Message";
     begin
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, MessageType);
+        FREInvoiceMessage.FindFirst();
+        SendMessage(FREInvoiceMessage);
+    end;
+
+    local procedure SendMessage(FREInvoiceMessage: Record "FR E-Invoice Message")
+    var
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        EDocumentMessageAPI.SendMessage(FREInvoiceMessage."E-Document Message Entry No.");
+    end;
+
+    local procedure Initialize()
+    var
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+    begin
+        EDocPaymentOccurrence.DeleteAll();
         FREInvoiceMessage.DeleteAll();
         MessageSenderMock.Reset();
         EnsureService();
