@@ -9,8 +9,16 @@ using System.Reflection;
 
 /// <summary>
 /// Assigns the header/footer and theme parts that ship with the Base Application to the body layouts of the standard
-/// reports, so a fresh installation renders those reports with a header/footer and a theme instead of bare.
+/// reports, so that a report renders with a header/footer and a theme instead of bare.
 /// </summary>
+/// <remarks>
+/// Nothing calls this on install or upgrade yet, so it does not run on its own: it waits on the platform change that
+/// resolves a body layout from a plain layout name. Install and upgrade seed the shared pool of parts (see Composite
+/// Report Parts Mgt.) but assign none of them, so a shipped report renders bare until a part is assigned - by an
+/// administrator on the report defaults page, or by this codeunit once it is wired in. When wiring it into the upgrade
+/// codeunit, add a new dated tag in Upgrade Tag Definitions: databases upgraded meanwhile already carry the current one,
+/// so the existing guard would skip them and the assignment would never run there.
+/// </remarks>
 codeunit 9668 "Composite Layout Assign. Mgt."
 {
     Access = Internal;
