@@ -244,6 +244,44 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodHideZeroValuesHandler')]
+    procedure TrialBalanceByPeriodDoesntExportZeroValueDimensionCombinations()
+    var
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [SCENARIO] Trial Balance by Period only exports dimension combinations with values.
+        Initialize();
+        CreateTrialBalanceByPeriodDataWithUnusedDimensions();
+        Commit();
+
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
+        Assert.AreEqual(8, LibraryReportDataset.RowCount(), 'Only dimension combinations with values should be exported');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodIncludeZeroValuesHandler')]
+    procedure TrialBalanceByPeriodExportsZeroValueDimensionCombinationsWhenRequested()
+    var
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [SCENARIO] Trial Balance by Period exports zero-value dimension combinations when requested.
+        Initialize();
+        CreateTrialBalanceByPeriodDataWithUnusedDimensions();
+        Commit();
+
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
+        Assert.AreEqual(18, LibraryReportDataset.RowCount(), 'All dimension combinations should be exported');
+    end;
+
+    [Test]
     [HandlerFunctions('EXRTrialBalanceBudgetExcelHandler')]
     procedure TrialBalanceBudgetExportsOnlyTheUsedDimensionValues()
     var
@@ -973,6 +1011,32 @@ codeunit 139544 "Trial Balance Excel Reports"
         DimensionValue.Modify();
     end;
 
+    local procedure CreateTrialBalanceByPeriodDataWithUnusedDimensions()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension1: Record Dimension;
+        Dimension2: Record Dimension;
+        DimensionValue1: Record "Dimension Value";
+        DimensionValue2: Record "Dimension Value";
+    begin
+        CreateGLAccount(GLAccount);
+        LibraryERM.CreateDimension(Dimension1);
+        LibraryERM.CreateDimensionValue(DimensionValue1, Dimension1.Code);
+        DimensionValue1."Global Dimension No." := 1;
+        DimensionValue1.Modify();
+        LibraryERM.CreateDimensionValue(DimensionValue1, Dimension1.Code);
+        DimensionValue1."Global Dimension No." := 1;
+        DimensionValue1.Modify();
+        LibraryERM.CreateDimension(Dimension2);
+        LibraryERM.CreateDimensionValue(DimensionValue2, Dimension2.Code);
+        DimensionValue2."Global Dimension No." := 2;
+        DimensionValue2.Modify();
+        LibraryERM.CreateDimensionValue(DimensionValue2, Dimension2.Code);
+        DimensionValue2."Global Dimension No." := 2;
+        DimensionValue2.Modify();
+        CreateGLEntryWithAmount(GLAccount."No.", DimensionValue1.Code, DimensionValue2.Code, '', WorkDate(), 100);
+    end;
+
     local procedure CreateGLEntry(GLAccountNo: Code[20]; DimensionValue2Code: Code[20])
     begin
         CreateGLEntryWithAmount(GLAccountNo, '', DimensionValue2Code, '', WorkDate(), 1337);
@@ -1112,6 +1176,22 @@ codeunit 139544 "Trial Balance Excel Reports"
     begin
         EXRTrialBalanceExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
         EXRTrialBalanceExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceByPeriodHideZeroValuesHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    begin
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(true);
+        EXRTrialBalanceByPeriodExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceByPeriodIncludeZeroValuesHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    begin
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(false);
+        EXRTrialBalanceByPeriodExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
