@@ -84,6 +84,8 @@ codeunit 2503 "Extension Operation Impl"
         end;
     end;
 
+#if not CLEAN29
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '29.0')]
     procedure UploadExtension(PackageInStream: InStream; lcid: Integer)
     var
         DotNetALPackageDeploymentSchedule: DotNet ALPackageDeploymentSchedule;
@@ -94,6 +96,7 @@ codeunit 2503 "Extension Operation Impl"
         DotNetALNavAppOperationInvoker.UploadPackage(PackageInStream, DotNetALPackageDeploymentSchedule, Format(lcid));
     end;
 
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '29.0')]
     procedure DeployAndUploadExtension(PackageInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To"; SyncMode: Enum "Extension Sync Mode")
     var
         DotNetALPackageDeploymentSchedule: DotNet ALPackageDeploymentSchedule;
@@ -130,6 +133,7 @@ codeunit 2503 "Extension Operation Impl"
                 end;
         end;
     end;
+#endif
 
     procedure UnpublishExtension(PackageID: Guid): Boolean
     var
@@ -269,6 +273,8 @@ codeunit 2503 "Extension Operation Impl"
         ExtensionInstallationImpl.CheckPermissions();
     end;
 
+#if not CLEAN29
+    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '29.0')]
     procedure GetAllExtensionDeploymentStatusEntries(var TempExtensionDeploymentStatus: Record "Extension Deployment Status" temporary)
     var
         NavAppTenantOperation: Record "NAV App Tenant Operation";
@@ -280,6 +286,7 @@ codeunit 2503 "Extension Operation Impl"
             TempExtensionDeploymentStatus.Insert();
         until NavAppTenantOperation.Next() = 0;
     end;
+#endif
 
     procedure GetDeploymentDetailedStatusMessageAsStream(OperationId: Guid; OutStream: OutStream)
     begin

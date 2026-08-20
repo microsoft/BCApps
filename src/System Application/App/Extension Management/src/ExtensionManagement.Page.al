@@ -16,9 +16,6 @@ using System.Integration;
 page 2500 "Extension Management"
 {
     Caption = 'Extension Management';
-    ObsoleteReason = 'Use the Business Central admin center to upload and manage per-tenant extensions.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
     AdditionalSearchTerms = 'app,add-in,customize,plug-in,appsource';
     ApplicationArea = All;
     DeleteAllowed = false;
@@ -221,23 +218,35 @@ page 2500 "Extension Management"
                         CurrPage.Update(false);
                     end;
                 }
+#if not CLEAN29
                 action("Upload Extension")
                 {
                     Caption = 'Upload Extension';
                     Image = Import;
+#pragma warning disable AL0432
                     RunObject = page "Upload And Deploy Extension";
+#pragma warning restore AL0432
                     ToolTip = 'Upload an extension to your application.';
                     Ellipsis = true;
                     Visible = IsSaaS;
+                    ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 action("Deployment Status")
                 {
                     Caption = 'Installation Status';
                     Image = Status;
+#pragma warning disable AL0432
                     RunObject = page "Extension Deployment Status";
+#pragma warning restore AL0432
                     ToolTip = 'Check status for upload process for extensions.';
                     Visible = IsSaaS;
+                    ObsoleteReason = 'Use the Business Central admin center or the admin center API to monitor per-tenant extension operations.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 action("Delete Orphaned Extension Data")
                 {
 
@@ -324,8 +333,20 @@ page 2500 "Extension Management"
             group(Category_Category5)
             {
                 Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';
-                actionref("Upload Extension_Promoted"; "Upload Extension") { }
-                actionref("Deployment Status_Promoted"; "Deployment Status") { }
+#if not CLEAN29
+                actionref("Upload Extension_Promoted"; "Upload Extension")
+                {
+                    ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                }
+                actionref("Deployment Status_Promoted"; "Deployment Status")
+                {
+                    ObsoleteReason = 'Use the Business Central admin center or the admin center API to monitor per-tenant extension operations.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                }
+#endif
                 actionref(View_Promoted; View) { }
                 actionref(Install_Promoted; Install) { }
                 actionref(Uninstall_Promoted; Uninstall) { }
@@ -393,6 +414,9 @@ page 2500 "Extension Management"
     var
         DeprecationNotification: Notification;
     begin
+        if not IsSaaS then
+            exit;
+
         DeprecationNotification.Id := ExtensionManagementDeprecationNotificationIdTok;
         DeprecationNotification.Scope := NotificationScope::LocalScope;
         DeprecationNotification.Message(ExtensionManagementDeprecationMsg);
@@ -444,7 +468,7 @@ page 2500 "Extension Management"
         ShowOrphanedDataLbl: Label 'Show Data';
         MarkAllAsReviewedLbl: Label 'Mark All as Reviewed';
         OrphanedDataNotificationIdTok: Label 'b1c5a678-2e3f-4d91-a6b0-9f8e7d6c5b4a', Locked = true;
-        ExtensionManagementDeprecationMsg: Label 'Extension management is moving to the Business Central admin center. Use the admin center to upload and manage per-tenant extensions. This page will become unavailable in a future release.';
+        ExtensionManagementDeprecationMsg: Label 'Uploading and managing per-tenant extensions is moving to the Business Central admin center. This page will remain available for viewing installed extensions.';
         ReadMoreHereLbl: Label 'Read more here';
         ExtensionManagementDeprecationNotificationIdTok: Label '3be91c11-8195-4c65-be23-20fddbea9bb7', Locked = true;
 

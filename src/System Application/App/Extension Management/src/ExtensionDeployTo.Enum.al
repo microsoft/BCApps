@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,6 +11,9 @@ namespace System.Apps;
 /// </summary>
 enum 2504 "Extension Deploy To"
 {
+    ObsoleteReason = 'Use the scheduling options in the Business Central admin center API.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     Extensible = false;
     AssignmentCompatibility = true;
 
@@ -36,3 +40,4 @@ enum 2504 "Extension Deploy To"
         Caption = 'Next major version';
     }
 }
+#endif

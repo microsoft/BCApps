@@ -1,3 +1,4 @@
+#if not CLEAN29
 namespace Microsoft.API.V2;
 
 using Microsoft.API;
@@ -6,6 +7,9 @@ using System.Environment;
 
 page 30006 "APIV2 - Aut. Extension Upload"
 {
+    ObsoleteReason = 'Use the Business Central admin center API to upload per-tenant extensions.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     APIGroup = 'automation';
     APIPublisher = 'microsoft';
     APIVersion = 'v2.0';
@@ -87,3 +91,4 @@ page 30006 "APIV2 - Aut. Extension Upload"
         AutomationAPIManagement: Codeunit "Automation - API Management";
         ExtensionContentEmptyErr: Label 'Extension content is empty';
 }
+#endif

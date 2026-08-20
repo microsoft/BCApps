@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,7 +14,7 @@ using System.Globalization;
 page 2507 "Upload And Deploy Extension"
 {
     Extensible = false;
-    ObsoleteReason = 'Use the Business Central admin center to upload and manage per-tenant extensions.';
+    ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
     ObsoleteState = Pending;
     ObsoleteTag = '29.0';
     PageType = NavigatePage;
@@ -186,3 +187,4 @@ page 2507 "Upload And Deploy Extension"
         DisclaimerLbl: Label 'Per-Tenant Extension (PTE) Disclaimer';
         IsAccepted: Boolean;
 }
+#endif

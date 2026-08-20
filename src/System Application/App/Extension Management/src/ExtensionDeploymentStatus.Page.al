@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,6 +13,9 @@ using System.Environment;
 /// </summary>
 page 2508 "Extension Deployment Status"
 {
+    ObsoleteReason = 'Use the Business Central admin center or the admin center API to monitor per-tenant extension operations.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     Extensible = false;
     Editable = false;
     PageType = List;
@@ -186,5 +190,4 @@ page 2508 "Extension Deployment Status"
         OperationType: Option Upload,Install;
         IsSaaS: Boolean;
 }
-
-
+#endif
