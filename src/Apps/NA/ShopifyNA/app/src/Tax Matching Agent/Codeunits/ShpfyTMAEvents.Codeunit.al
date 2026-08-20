@@ -105,7 +105,7 @@ codeunit 30473 "Shpfy TMA Events"
                 ShopifyOrderHeader."Tax Match Low Confidence" := HasLowConfidenceMatch;
                 ShopifyOrderHeader.Modify();
                 Session.LogMessage('0000UMG', MarkerSetMsg,
-                    Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
+                    Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
                 if HasRateConflict then
                     Session.LogMessage('0000UMF', HeldRateConflictMsg,
                         Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
@@ -118,7 +118,7 @@ codeunit 30473 "Shpfy TMA Events"
             end;
 
         Session.LogMessage('0000UMH', TaxLinesMatchedMsg,
-            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeCreateSalesHeader, '', false, false)]
@@ -230,6 +230,6 @@ codeunit 30473 "Shpfy TMA Events"
         SalesHeader.Modify();
 
         Session.LogMessage('0000UMJ', MarkerPropagatedMsg,
-            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(OrderHeader."Shopify Order Id"));
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(OrderHeader."Shopify Order Id"));
     end;
 }
