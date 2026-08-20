@@ -119,15 +119,26 @@ codeunit 6987 "Expense Report-Post"
     end;
 
     local procedure CheckAndCreatePostedDocument(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
         AmountToEmployee := 0;
         ValidateExpenseReportForPosting(ExpenseReportHeader);
         CreatePostedExpenseReport(ExpenseReportHeader);
+        if not PreviewMode then
+            if ExpenseActivityLogMgt.HasEntriesForSource(Database::"Expense Report Header", ExpenseReportHeader.SystemId) then
+                ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
+                    ExpenseReportHeader,
+                    Enum::"Expense Activity Event Type"::Posted,
+                    Enum::"Expense Activity Actor Role"::" ",
+                    '');
         UpdateLastPostingNos(ExpenseReportHeader);
         ProcessExpenseReportLines(ExpenseReportHeader);
         InsertPstdExpReportHeaderVATSpecs(ExpenseReportHeader."No.", PostedExpenseReportHeader."No.");
         if AmountToEmployee <> 0 then
             PostEmployeeEntry(ExpenseReportHeader);
+        if not PreviewMode then
+            ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(ExpenseReportHeader, PostedExpenseReportHeader);
     end;
 
     local procedure ValidateExpenseReportForPosting(var ExpenseReportHeader: Record "Expense Report Header")
@@ -203,6 +214,7 @@ codeunit 6987 "Expense Report-Post"
 
                 InsertExpenseLedgerEntry(GlobalExpenseLedgerEntry);
 
+                OnAfterProcessExpenseReportLine(ExpenseReportHeader, ExpenseReportLine, PostedExpenseReportLine, PostedExpenseReportHeader);
             until ExpenseReportLine.Next() = 0;
 
         if not PreviewMode then
@@ -655,7 +667,10 @@ codeunit 6987 "Expense Report-Post"
 
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportHeader."Dimension Set ID");
         GenJournalLine."System-Created Entry" := true;
+
+        OnBeforePostEmployeeEntry(GenJournalLine, ExpenseReportHeader, PostedExpenseReportHeader);
         GenJnlPostLine.RunWithCheck(GenJournalLine);
+        OnAfterPostEmployeeEntry(GenJournalLine, ExpenseReportHeader, PostedExpenseReportHeader);
     end;
 
     local procedure UpdateLastPostingNos(var ExpenseReportHeader: Record "Expense Report Header")
@@ -1252,5 +1267,20 @@ codeunit 6987 "Expense Report-Post"
 
         // Delete the source aggregate rows now that they are safely in the posted table.
         ExpenseReportLineVATSpec.DeleteAll();
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterProcessExpenseReportLine(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpenseReportLine: Record "Posted Expense Report Line"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostEmployeeEntry(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterPostEmployeeEntry(GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    begin
     end;
 }

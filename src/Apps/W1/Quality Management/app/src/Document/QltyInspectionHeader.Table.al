@@ -27,6 +27,7 @@ using System.Device;
 using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 
 table 20405 "Qlty. Inspection Header"
@@ -78,6 +79,7 @@ table 20405 "Qlty. Inspection Header"
         field(6; Description; Text[250])
         {
             Caption = 'Description';
+            OptimizeForTextSearch = true;
             ToolTip = 'Specifies a description of the Quality Inspection itself.';
         }
         field(8; "Status"; Enum "Qlty. Inspection Status")
@@ -178,13 +180,17 @@ table 20405 "Qlty. Inspection Header"
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Name";
+            ValidateTableRelation = false;
             Caption = 'Assigned User ID';
             ToolTip = 'Specifies the user this inspection is assigned to. Changing another user''s assignment requires the Quality Admin & Supervisor role.';
 
             trigger OnValidate()
             var
+                UserSelection: Codeunit "User Selection";
                 CanChangeAssignmentWithoutPermission: Boolean;
             begin
+                UserSelection.ValidateUserName("Assigned User ID");
+
                 CanChangeAssignmentWithoutPermission := false;
 
                 if ((xRec."Assigned User ID" = UserId()) and (Rec."Assigned User ID" = '')) or (((xRec."Assigned User ID" = '') and (Rec."Assigned User ID" = UserId()))) then
@@ -333,6 +339,7 @@ table 20405 "Qlty. Inspection Header"
         field(58; "Source Task No."; Code[20])
         {
             Caption = 'Task No.';
+            OptimizeForTextSearch = true;
             ToolTip = 'Specifies a reference to the source task no. that this Quality Inspection is referring to. This typically refers to an operation.';
         }
         field(61; "Source Item No."; Code[20])
@@ -612,7 +619,7 @@ table 20405 "Qlty. Inspection Header"
             end;
             if ShouldTryAndChangePrompt then
                 if QltyPermissionMgmt.GetShouldAutoAssign(PromptToAssignIfPossible) then
-                    if PromptToAssignIfPossible and GuiAllowed() then
+                    if PromptToAssignIfPossible then
                         QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(Rec)
                     else
                         Rec.AssignToSelf();
@@ -837,8 +844,10 @@ table 20405 "Qlty. Inspection Header"
             if Proceed then begin
                 IsChangingStatus := true;
                 OnBeforeReopenInspection(Rec, IsHandled);
-                if IsHandled then
+                if IsHandled then begin
+                    IsChangingStatus := false;
                     exit;
+                end;
 
                 Rec.Validate(Status, Rec.Status::Open);
                 Rec.Modify(true);
@@ -883,8 +892,10 @@ table 20405 "Qlty. Inspection Header"
             if Proceed then begin
                 IsChangingStatus := true;
                 OnBeforeFinishInspection(Rec, IsHandled);
-                if IsHandled then
+                if IsHandled then begin
+                    IsChangingStatus := false;
                     exit;
+                end;
 
                 Rec.Validate(Status, Rec.Status::Finished);
                 Rec.Get(Rec.RecordId());

@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Item;
 
-pageextension 99001519 "Subc. Item List" extends "Item List"
+pageextension 20519 "Subc. Item List" extends "Item List"
 {
     actions
     {
