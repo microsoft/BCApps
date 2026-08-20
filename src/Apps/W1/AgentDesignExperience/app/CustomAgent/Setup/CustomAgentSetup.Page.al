@@ -241,16 +241,10 @@ page 4350 "Custom Agent Setup"
                         ShowCaption = false;
                         ToolTip = 'Updates the configuration and opens the test agent page.';
                         Editable = false;
+                        Enabled = not AgentIsArchived;
 
                         trigger OnDrillDown()
-                        var
-                            CustomAgentSetup: Codeunit "Custom Agent Setup";
                         begin
-                            if AgentIsArchived then begin
-                                CustomAgentSetup.OpenEditInstructionsPage(Rec."User Security ID");
-                                exit;
-                            end;
-
                             if IsUpdated or (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) then
                                 if not Confirm(YouHaveUnsavedChangesQst) then
                                     exit;
