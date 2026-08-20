@@ -318,6 +318,8 @@ page 9666 "Report Theme and Header/Footer"
     begin
         CurrPage.SetSelectionFilter(SelectedLayouts);
 
+        SelectedLayouts.SetRange("User Defined", true);
+
         // Moving an assigned part away from Approved does not unassign it — it will keep applying at print time
         // (status is not enforced at render). Warn so the change isn't made unknowingly.
         if NewStatus <> NewStatus::Approved then begin
@@ -345,10 +347,8 @@ page 9666 "Report Theme and Header/Footer"
     begin
         if SelectedLayouts.FindSet() then
             repeat
-                if SelectedLayouts."User Defined" then begin
-                    FoundName := SelectedLayouts.Name;
-                    FoundCount += 1;
-                end;
+                FoundName := SelectedLayouts.Name;
+                FoundCount += 1;
             until (SelectedLayouts.Next() = 0) or (FoundCount > 1);
 
         if FoundCount = 1 then
@@ -359,11 +359,9 @@ page 9666 "Report Theme and Header/Footer"
     var
         Total: Integer;
     begin
-        // Only user-defined parts can actually change status; count assignments for those.
         if SelectedLayouts.FindSet() then
             repeat
-                if SelectedLayouts."User Defined" then
-                    Total += LookupHelper.CountPartAssignments(SelectedLayouts);
+                Total += LookupHelper.CountPartAssignments(SelectedLayouts);
             until SelectedLayouts.Next() = 0;
         exit(Total);
     end;
@@ -441,12 +439,12 @@ page 9666 "Report Theme and Header/Footer"
     begin
         CurrPage.SetSelectionFilter(SelectedLayouts);
 
+        SelectedLayouts.SetRange("User Defined", true);
+
         if SelectedLayouts.FindSet() then
             repeat
-                if SelectedLayouts."User Defined" then begin
-                    DeletableCount += 1;
-                    AssignedCount += LookupHelper.CountPartAssignments(SelectedLayouts);
-                end;
+                DeletableCount += 1;
+                AssignedCount += LookupHelper.CountPartAssignments(SelectedLayouts);
             until SelectedLayouts.Next() = 0;
 
         if DeletableCount = 0 then
@@ -470,13 +468,11 @@ page 9666 "Report Theme and Header/Footer"
 
         SelectedLayouts.FindSet();
         repeat
-            if SelectedLayouts."User Defined" then begin
-                LookupHelper.ClearPartAssignments(SelectedLayouts);
-                TempPartsToDelete.Init();
-                TempPartsToDelete."Report ID" := SelectedLayouts."Report ID";
-                TempPartsToDelete.Name := SelectedLayouts.Name;
-                TempPartsToDelete.Insert();
-            end;
+            LookupHelper.ClearPartAssignments(SelectedLayouts);
+            TempPartsToDelete.Init();
+            TempPartsToDelete."Report ID" := SelectedLayouts."Report ID";
+            TempPartsToDelete.Name := SelectedLayouts.Name;
+            TempPartsToDelete.Insert();
         until SelectedLayouts.Next() = 0;
 
         if TempPartsToDelete.FindSet() then
