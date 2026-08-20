@@ -15,24 +15,21 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    internal procedure RefuseInvoice(EDocument: Record "E-Document"; ReasonCode: Code[20]; ReasonDescription: Text[500])
-    var
-        FREInvoiceMessage: Record "FR E-Invoice Message";
+    internal procedure AcceptInvoice(EDocument: Record "E-Document")
     begin
-        EDocument.TestField(Direction, EDocument.Direction::Incoming);
-        EDocument.TestField("Document Type", EDocument."Document Type"::"Purchase Invoice");
-        EDocument.TestField(Service);
+        CheckBuyerResponseAllowed(EDocument);
+        CreateAndSendMessage(EDocument, "FR E-Invoice Message Type"::Accepted, CreateGuid(), 0, '', Today(), 0, 0, '', '');
+    end;
+
+    internal procedure RefuseInvoice(EDocument: Record "E-Document"; ReasonCode: Code[20]; ReasonDescription: Text[500])
+    begin
+        CheckBuyerResponseAllowed(EDocument);
         if ReasonCode = '' then
             Error(ReasonCodeRequiredErr);
         if ReasonDescription = '' then
             Error(ReasonDescriptionRequiredErr);
 
-        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
-        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Refused);
-        if not FREInvoiceMessage.IsEmpty() then
-            Error(AlreadyRefusedErr, EDocument."Document No.");
-
-        CreateAndSendMessage(EDocument, FREInvoiceMessage.Type::Refused, CreateGuid(), 0, '', Today(), 0, 0, ReasonCode, ReasonDescription);
+        CreateAndSendMessage(EDocument, "FR E-Invoice Message Type"::Refused, CreateGuid(), 0, '', Today(), 0, 0, ReasonCode, ReasonDescription);
     end;
 
     internal procedure ProcessApplication(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
@@ -130,15 +127,34 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         exit(EDocumentServiceStatus.Status in [EDocumentServiceStatus.Status::Approved, EDocumentServiceStatus.Status::Cleared]);
     end;
 
+    local procedure CheckBuyerResponseAllowed(EDocument: Record "E-Document")
+    var
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+    begin
+        EDocument.TestField(Direction, EDocument.Direction::Incoming);
+        EDocument.TestField("Document Type", EDocument."Document Type"::"Purchase Invoice");
+        EDocument.TestField(Service);
+
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetFilter(Type, '%1|%2', FREInvoiceMessage.Type::Accepted, FREInvoiceMessage.Type::Refused);
+        if not FREInvoiceMessage.IsEmpty() then
+            Error(AlreadyRespondedErr, EDocument."Document No.");
+    end;
+
     local procedure GetResponseType(MessageType: Enum "FR E-Invoice Message Type"): Enum "E-Doc. Response Type"
     begin
-        if MessageType = MessageType::Refused then
-            exit("E-Doc. Response Type"::Refused);
-        exit("E-Doc. Response Type"::None);
+        case MessageType of
+            MessageType::Accepted:
+                exit("E-Doc. Response Type"::Accepted);
+            MessageType::Refused:
+                exit("E-Doc. Response Type"::Refused);
+            else
+                exit("E-Doc. Response Type"::None);
+        end;
     end;
 
     var
         ReasonCodeRequiredErr: Label 'A refusal reason code is required.';
         ReasonDescriptionRequiredErr: Label 'A refusal reason description is required.';
-        AlreadyRefusedErr: Label 'Invoice %1 has already been refused.', Comment = '%1 = invoice number';
+        AlreadyRespondedErr: Label 'Invoice %1 already has a buyer response.', Comment = '%1 = invoice number';
 }

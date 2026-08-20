@@ -80,6 +80,38 @@ codeunit 6433 "E-Doc. Message Mgt."
         TempBlob := EDocDataStorage.GetTempBlob();
     end;
 
+    procedure GetMessageEDocument(MessageEntryNo: Integer; var EDocument: Record "E-Document")
+    var
+        EDocMessage: Record "E-Document Message";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        EDocument.Get(EDocMessage."E-Document Entry No.");
+    end;
+
+    procedure GetMessageDirection(MessageEntryNo: Integer): Enum "E-Document Direction"
+    var
+        EDocMessage: Record "E-Document Message";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        exit(EDocMessage.Direction);
+    end;
+
+    procedure GetMessageStatus(MessageEntryNo: Integer): Enum "E-Doc. Message Status"
+    var
+        EDocMessage: Record "E-Document Message";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        exit(EDocMessage.Status);
+    end;
+
+    procedure GetMessageResponseType(MessageEntryNo: Integer): Enum "E-Doc. Response Type"
+    var
+        EDocMessage: Record "E-Document Message";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        exit(EDocMessage."Response Type");
+    end;
+
     procedure SendMessage(MessageEntryNo: Integer)
     var
         EDocument: Record "E-Document";

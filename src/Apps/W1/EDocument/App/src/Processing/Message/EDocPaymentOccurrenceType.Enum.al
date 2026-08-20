@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Message;
 /// <summary>
 /// Identifies whether an E-Document payment occurrence applies or reverses an amount.
 /// </summary>
-enum 6430 "E-Doc. Payment Occurrence Type"
+enum 6115 "E-Doc. Payment Occurrence Type"
 {
     Access = Public;
     Extensible = false;
